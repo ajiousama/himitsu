@@ -710,6 +710,7 @@ http://ha-ip.f5.si:9394/stream/38.m3u8
 http://ha-ip.f5.si:9394/stream/157.m3u8
 #EXTINF:-1  tvg-id="TOKYO・MX2_jp" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Tokyo_metropolitan_television_logo_%28rainbow%29.svg/2560px-Tokyo_metropolitan_television_logo_%28rainbow%29.svg.png" group-title="競馬 / Kanto Region",TOKYO MX2(utako)
 https://nl.utako.moe/Tokyo_MX2/video.m3u8
+
 #EXTINF:-1  tvg-id="rch_47" tvg-logo="https://channel.rakuten.co.jp/service/img/logo/chlogo-with-number/104_ntvnews.png" group-title="RAKUTEN",日テレNEWS
 https://cdn-apne1.tsv2.amagi.tv/linear/amg01287-rakutentvjapan-news1hlscmaf-rakutenjp/playlist.m3u8
 #EXTINF:-1  tvg-id="rch_45" tvg-logo="https://channel.rakuten.co.jp/service/img/logo/chlogo-with-number/106_whethernews.png" group-title="RAKUTEN",ウェザーニュースLiVE
@@ -770,124 +771,151 @@ https://cdn-apne1.tsv2.amagi.tv/linear/amg01287-rakutentvjapan-gravurecmaf-rakut
 https://cdn-apne1.tsv2.amagi.tv/linear/amg01287-rakutentvjapan-shigekicmaf-rakutenjp/playlist.m3u8
 #EXTINF:-1  tvg-id="rch_42" tvg-logo="https://channel.rakuten.co.jp/service/img/logo/chlogo-with-number/243_r-15movie.png" group-title="RAKUTEN",映画（R15+）
 https://cdn-apne1.tsv2.amagi.tv/linear/amg01287-rakutentvjapan-movie2cmaf-rakutenjp/playlist.m3u8
-#EXTINF:-1  tvg-id="fastch_healt" tvg-logo="https://prod-dxtool-fast.s3.ap-northeast-1.amazonaws.com/public/channels/40/Sjl1xTglSA4BUbFawwl6UGdDhpsaTH3aA9drpA9H.png" group-title="fast_ch",ウェルネスチャンネル
-https://amg02570-amg02570c12-bbm-worldwide-3473.playouts.now.amagi.tv/playlist/amg02570-bbmcorporation-health-bbmworldwide/playlist.m3u8?did=&app_bundle=jp.fastv.atv&app_domain=jp.fastv.atv&app_name=FAST%E3%83%81%E3%83%A3%E3%83%B3%E3%83%8D%E3%83%AB&app_store_url=https%3A%2F%2Fplay.google.com%2Fstore%2Fapps%2Fdetails%3Fid%3Djp.fastv.atv&us_privacy=1---&dnt=0&ifa_type=&lmt=0&url=https%3A%2F%2Fwww.fastv.jp%2F
-#EXTINF:-1  tvg-id="fastch_kids" tvg-logo="https://prod-dxtool-fast.s3.ap-northeast-1.amazonaws.com/public/channels/41/F81vlDUmpB3AA3TWTsnYzSPU6kMlWlxOpkpXJRXw.jpg" group-title="fast_ch",キッズステーションEX
-https://amg02570-amg02570c13-bbm-worldwide-3474.playouts.now.amagi.tv/playlist/amg02570-bbmcorporation-kids-bbmworldwide/playlist.m3u8?did=&app_bundle=jp.fastv.atv&app_domain=jp.fastv.atv&app_name=FAST%E3%83%81%E3%83%A3%E3%83%B3%E3%83%8D%E3%83%AB&app_store_url=https%3A%2F%2Fplay.google.com%2Fstore%2Fapps%2Fdetails%3Fid%3Djp.fastv.atv&us_privacy=1---&dnt=0&ifa_type=&lmt=0&url=https%3A%2F%2Fwww.fastv.jp%2F
-#EXTINF:-1  tvg-id="fastch_cokng" tvg-logo="https://prod-dxtool-fast.s3.ap-northeast-1.amazonaws.com/public/channels/34/KZfUcrvHw5sQjbLPvVn0tEWOKLOqyXFZ3Ik9z4U3.png" group-title="fast_ch",つまみ堂
-https://amg02570-amg02570c5-bbm-worldwide-3421.playouts.now.amagi.tv/playlist/amg02570-bbmcorporation-cooking-bbmworldwide/playlist.m3u8?did=&app_bundle=jp.fastv.atv&app_domain=jp.fastv.atv&app_name=FAST%E3%83%81%E3%83%A3%E3%83%B3%E3%83%8D%E3%83%AB&app_store_url=https%3A%2F%2Fplay.google.com%2Fstore%2Fapps%2Fdetails%3Fid%3Djp.fastv.atv&us_privacy=1---&dnt=0&ifa_type=&lmt=0&url=https%3A%2F%2Fwww.fastv.jp%2F
-#EXTINF:-1  tvg-id="fastch_krdrm" tvg-logo="https://prod-dxtool-fast.s3.ap-northeast-1.amazonaws.com/public/channels/43/KnCRz4vMKLwcWdyKN7iFle9dWct4hl2Oo449qouS.jpg" group-title="fast_ch",韓流チャンネル
-https://amg02570-amg02570c15-bbm-worldwide-4697.playouts.now.amagi.tv/playlist/amg02570-bbmcorporation-koreandrama-bbmworldwide/playlist.m3u8?did=&app_bundle=jp.fastv.atv&app_domain=jp.fastv.atv&app_name=FAST%E3%83%81%E3%83%A3%E3%83%B3%E3%83%8D%E3%83%AB&app_store_url=https%3A%2F%2Fplay.google.com%2Fstore%2Fapps%2Fdetails%3Fid%3Djp.fastv.atv&us_privacy=1---&dnt=0&ifa_type=&lmt=0&url=https%3A%2F%2Fwww.fastv.jp%2F
-#EXTINF:-1  tvg-id="fastch_recip" tvg-logo="https://prod-dxtool-fast.s3.ap-northeast-1.amazonaws.com/public/channels/42/NnPcJNtssjnP5MgoVKe5fkYATCQvgYPBtBwVEdC6.png" group-title="fast_ch",観るたび PRODUCED by るるぶ
-https://amg02570-amg02570c14-bbm-worldwide-3475.playouts.now.amagi.tv/playlist/amg02570-bbmcorporation-recipe-bbmworldwide/playlist.m3u8?did=&app_bundle=jp.fastv.atv&app_domain=jp.fastv.atv&app_name=FAST%E3%83%81%E3%83%A3%E3%83%B3%E3%83%8D%E3%83%AB&app_store_url=https%3A%2F%2Fplay.google.com%2Fstore%2Fapps%2Fdetails%3Fid%3Djp.fastv.atv&us_privacy=1---&dnt=0&ifa_type=&lmt=0&url=https%3A%2F%2Fwww.fastv.jp%2F
-#EXTINF:-1  tvg-id="fastch_travl" tvg-logo="https://prod-dxtool-fast.s3.ap-northeast-1.amazonaws.com/public/channels/33/ge0sxMQ5q82Hf9xCOyPF5V7mNubY12E3BRKLFw7G.png" group-title="fast_ch",今日のごはん、なに⤴？
-https://amg02570-amg02570c8-bbm-worldwide-3476.playouts.now.amagi.tv/playlist/amg02570-bbmcorporation-travel-bbmworldwide/playlist.m3u8?did=&app_bundle=jp.fastv.atv&app_domain=jp.fastv.atv&app_name=FAST%E3%83%81%E3%83%A3%E3%83%B3%E3%83%8D%E3%83%AB&app_store_url=https%3A%2F%2Fplay.google.com%2Fstore%2Fapps%2Fdetails%3Fid%3Djp.fastv.atv&us_privacy=1---&dnt=0&ifa_type=&lmt=0&url=https%3A%2F%2Fwww.fastv.jp%2F
-#EXTINF:-1  tvg-id="fastch_camng" tvg-logo="https://prod-dxtool-fast.s3.ap-northeast-1.amazonaws.com/public/channels/35/XGe302QS9Um4BqQ2Q43XpHgn3uxVnwKIAyOKJpGT.png" group-title="fast_ch",キャンプ・アウトドアチャンネルPowered byハピキャン
-https://amg02570-amg02570c6-bbm-worldwide-3422.playouts.now.amagi.tv/playlist/amg02570-bbmcorporation-camping-bbmworldwide/playlist.m3u8?did=&app_bundle=jp.fastv.atv&app_domain=jp.fastv.atv&app_name=FAST%E3%83%81%E3%83%A3%E3%83%B3%E3%83%8D%E3%83%AB&app_store_url=https%3A%2F%2Fplay.google.com%2Fstore%2Fapps%2Fdetails%3Fid%3Djp.fastv.atv&us_privacy=1---&dnt=0&ifa_type=&lmt=0&url=https%3A%2F%2Fwww.fastv.jp%2F
-#EXTINF:-1  tvg-id="fastch_samri" tvg-logo="https://prod-dxtool-fast.s3.ap-northeast-1.amazonaws.com/public/channels/30/INtnk2kg0AU2gPInpuF97dvQgbjMYqXtiehIhFMl.png" group-title="fast_ch",時代劇TV（Powered by 時代劇専門チャンネル）
-https://amg02570-amg02570c4-bbm-worldwide-3425.playouts.now.amagi.tv/playlist/amg02570-bbmcorporation-samurai-bbmworldwide/playlist.m3u8?did=&app_bundle=jp.fastv.atv&app_domain=jp.fastv.atv&app_name=FAST%E3%83%81%E3%83%A3%E3%83%B3%E3%83%8D%E3%83%AB&app_store_url=https%3A%2F%2Fplay.google.com%2Fstore%2Fapps%2Fdetails%3Fid%3Djp.fastv.atv&us_privacy=1---&dnt=0&ifa_type=&lmt=0&url=https%3A%2F%2Fwww.fastv.jp%2F
-#EXTINF:-1  tvg-id="fastch_bgolf" tvg-logo="https://prod-dxtool-fast.s3.ap-northeast-1.amazonaws.com/public/channels/45/HYye6CA6EeqKiZA1uxAb1hbsKcc2L96chsfP3AgL.png" group-title="fast_ch",GOLF LIFE
-https://amg02570-amg02570c17-bbm-worldwide-6651.playouts.now.amagi.tv/playlist/amg02570-bbmcorporation-golf-bbmworldwide/playlist.m3u8?did=&app_bundle=jp.fastv.atv&app_domain=jp.fastv.atv&app_name=FAST%E3%83%81%E3%83%A3%E3%83%B3%E3%83%8D%E3%83%AB&app_store_url=https%3A%2F%2Fplay.google.com%2Fstore%2Fapps%2Fdetails%3Fid%3Djp.fastv.atv&us_privacy=1---&dnt=0&ifa_type=&lmt=0&url=https%3A%2F%2Fwww.fastv.jp%2F
-#EXTINF:-1  tvg-id="fastch_entns" tvg-logo="https://prod-dxtool-fast.s3.ap-northeast-1.amazonaws.com/public/channels/49/fP7GjPbGOA51JZBhYdQlJljEiwTobd4u5BGNnzSw.png" group-title="fast_ch",エンタメニュース POWERED BY ORICON NEWS
-https://amg02570-amg02570c21-bbm-worldwide-6640.playouts.now.amagi.tv/playlist/amg02570-bbmcorporation-entertainmentnews-bbmworldwide/playlist.m3u8?did=&app_bundle=jp.fastv.atv&app_domain=jp.fastv.atv&app_name=FAST%E3%83%81%E3%83%A3%E3%83%B3%E3%83%8D%E3%83%AB&app_store_url=https%3A%2F%2Fplay.google.com%2Fstore%2Fapps%2Fdetails%3Fid%3Djp.fastv.atv&us_privacy=1---&dnt=0&ifa_type=&lmt=0&url=https%3A%2F%2Fwww.fastv.jp%2F
-#EXTINF:-1  tvg-id="fastch_jpthp" tvg-logo="https://prod-dxtool-fast.s3.ap-northeast-1.amazonaws.com/public/channels/50/MckCK9nWgo7mhQSvcgeiCw7yUWM6SgmuvegTgXmS.png" group-title="fast_ch",ぴあ落語ざんまい
-https://amg02570-amg02570c22-bbm-worldwide-6641.playouts.now.amagi.tv/playlist/amg02570-bbmcorporation-rakugo-bbmworldwide/playlist.m3u8?did=&app_bundle=jp.fastv.atv&app_domain=jp.fastv.atv&app_name=FAST%E3%83%81%E3%83%A3%E3%83%B3%E3%83%8D%E3%83%AB&app_store_url=https%3A%2F%2Fplay.google.com%2Fstore%2Fapps%2Fdetails%3Fid%3Djp.fastv.atv&us_privacy=1---&dnt=0&ifa_type=&lmt=0&url=https%3A%2F%2Fwww.fastv.jp%2F
-#EXTINF:-1  tvg-id="abema-news" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/abema-news/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_240p",ABEMA NEWSチャンネル
+
+#EXTINF:-1 tvg-id="abema-news" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/abema-news/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_240p" ,ABEMA NEWSチャンネル
 https://linear-abematv.akamaized.net/preview/channel/abema-news/playlist.m3u8
-#EXTINF:-1  tvg-id="news-plus" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/news-plus/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_240p",ABEMA NEWS会見チャンネル
+
+#EXTINF:-1 tvg-id="news-plus" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/news-plus/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_240p" ,ABEMA NEWS会見チャンネル
 https://linear-abematv.akamaized.net/preview/channel/news-plus/playlist.m3u8
-#EXTINF:-1  tvg-id="abema-special" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/abema-special/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_240p",ABEMA SPECIALチャンネル
+
+#EXTINF:-1 tvg-id="abema-special" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/abema-special/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_240p" ,ABEMA SPECIALチャンネル
 https://linear-abematv.akamaized.net/preview/channel/abema-special/playlist.m3u8
-#EXTINF:-1  tvg-id="special-plus" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/special-plus/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_240p",ABEMA SPECIAL 2チャンネル
+
+#EXTINF:-1 tvg-id="special-plus" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/special-plus/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_240p" ,ABEMA SPECIAL 2チャンネル
 https://linear-abematv.akamaized.net/preview/channel/special-plus/playlist.m3u8
-#EXTINF:-1  tvg-id="abema-anime" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/abema-anime/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_Anime",ABEMA アニメチャンネル
+
+#EXTINF:-1 tvg-id="abema-anime" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/abema-anime/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_Anime" ,ABEMA アニメチャンネル
 https://linear-abematv.akamaized.net/preview/channel/abema-anime/playlist.m3u8
-#EXTINF:-1  tvg-id="abema-anime-2" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/abema-anime-2/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_Anime",ABEMA アニメチャンネル2
+
+#EXTINF:-1 tvg-id="abema-anime-2" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/abema-anime-2/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_Anime" ,ABEMA アニメチャンネル2
 https://linear-abematv.akamaized.net/preview/channel/abema-anime-2/playlist.m3u8
-#EXTINF:-1  tvg-id="abema-anime-3" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/abema-anime-3/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_Anime",ABEMA アニメチャンネル3
+
+#EXTINF:-1 tvg-id="abema-anime-3" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/abema-anime-3/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_Anime" ,ABEMA アニメチャンネル3
 https://linear-abematv.akamaized.net/preview/channel/abema-anime-3/playlist.m3u8
-#EXTINF:-1  tvg-id="special-plus-7" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/special-plus-7/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_Anime",アニメSPECIALチャンネル
+
+#EXTINF:-1 tvg-id="special-plus-7" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/special-plus-7/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_Anime" ,アニメSPECIALチャンネル
 https://linear-abematv.akamaized.net/preview/channel/special-plus-7/playlist.m3u8
-#EXTINF:-1  tvg-id="anime-live" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/anime-live/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_Anime",アニメLIVEチャンネル
+
+#EXTINF:-1 tvg-id="anime-special-2" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/anime-special-2/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_Anime" ,アニメSPECIAL2チャンネル
+https://linear-abematv.akamaized.net/preview/channel/anime-special-2/playlist.m3u8
+
+#EXTINF:-1 tvg-id="anime-live" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/anime-live/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_Anime" ,アニメLIVEチャンネル
 https://linear-abematv.akamaized.net/preview/channel/anime-live/playlist.m3u8
-#EXTINF:-1  tvg-id="ten-sura" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/ten-sura/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_Anime",転生したらスライムだった件チャンネル
-https://linear-abematv.akamaized.net/preview/channel/ten-sura/playlist.m3u8
-#EXTINF:-1  tvg-id="chibimaruko" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/chibimaruko/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_Anime",ちびまる子ちゃんチャンネル
+
+#EXTINF:-1 tvg-id="chibimaruko" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/chibimaruko/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_Anime" ,ちびまる子ちゃんチャンネル
 https://linear-abematv.akamaized.net/preview/channel/chibimaruko/playlist.m3u8
-#EXTINF:-1  tvg-id="atashinchi" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/atashinchi/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_Anime",あたしンちチャンネル
+
+#EXTINF:-1 tvg-id="atashinchi" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/atashinchi/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_Anime" ,あたしンちチャンネル
 https://linear-abematv.akamaized.net/preview/channel/atashinchi/playlist.m3u8
-#EXTINF:-1  tvg-id="doraemon-special" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/doraemon-special/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_Anime",映画ドラえもん特集チャンネル
+
+#EXTINF:-1 tvg-id="doraemon-special" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/doraemon-special/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_Anime" ,映画ドラえもん特集チャンネル
 https://linear-abematv.akamaized.net/preview/channel/doraemon-special/playlist.m3u8
-#EXTINF:-1  tvg-id="isekai-anime" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/isekai-anime/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_Anime",異世界・ファンタジーアニメチャンネル
+
+#EXTINF:-1 tvg-id="isekai-anime" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/isekai-anime/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_Anime" ,異世界・ファンタジーアニメチャンネル
 https://linear-abematv.akamaized.net/preview/channel/isekai-anime/playlist.m3u8
-#EXTINF:-1  tvg-id="pokemon-1" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/pokemon-1/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_Anime",アニメ ポケットモンスターチャンネル1
+
+#EXTINF:-1 tvg-id="pokemon-1" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/pokemon-1/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_Anime" ,アニメ ポケットモンスターチャンネル1
 https://linear-abematv.akamaized.net/preview/channel/pokemon-1/playlist.m3u8
-#EXTINF:-1  tvg-id="isekai-anime-2" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/isekai-anime-2/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_Anime",異世界・ファンタジーアニメ2チャンネル
+
+#EXTINF:-1 tvg-id="isekai-anime-2" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/isekai-anime-2/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_Anime" ,異世界・ファンタジーアニメ2チャンネル
 https://linear-abematv.akamaized.net/preview/channel/isekai-anime-2/playlist.m3u8
-#EXTINF:-1  tvg-id="pokemon-2" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/pokemon-2/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_Anime",アニメ ポケットモンスターチャンネル2
+
+#EXTINF:-1 tvg-id="pokemon-2" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/pokemon-2/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_Anime" ,アニメ ポケットモンスターチャンネル2
 https://linear-abematv.akamaized.net/preview/channel/pokemon-2/playlist.m3u8
-#EXTINF:-1  tvg-id="conan" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/conan/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_Anime",名探偵コナンチャンネル
+
+#EXTINF:-1 tvg-id="conan" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/conan/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_Anime" ,名探偵コナンチャンネル
 https://linear-abematv.akamaized.net/preview/channel/conan/playlist.m3u8
-#EXTINF:-1  tvg-id="isekai-anime-3" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/isekai-anime-3/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_Anime",異世界・ファンタジーアニメ3チャンネル
+
+#EXTINF:-1 tvg-id="isekai-anime-3" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/isekai-anime-3/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_Anime" ,異世界・ファンタジーアニメ3チャンネル
 https://linear-abematv.akamaized.net/preview/channel/isekai-anime-3/playlist.m3u8
-#EXTINF:-1  tvg-id="onepiece" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/onepiece/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_Anime",ONE PIECEチャンネル
+
+#EXTINF:-1 tvg-id="onepiece" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/onepiece/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_Anime" ,ONE PIECEチャンネル
 https://linear-abematv.akamaized.net/preview/channel/onepiece/playlist.m3u8
-#EXTINF:-1  tvg-id="family-anime-1" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/family-anime-1/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_Anime",ファミリーアニメ
+
+#EXTINF:-1 tvg-id="family-anime-1" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/family-anime-1/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_Anime" ,ファミリーアニメ
 https://linear-abematv.akamaized.net/preview/channel/family-anime-1/playlist.m3u8
-#EXTINF:-1  tvg-id="family-anime-2" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/family-anime-2/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_Anime",ファミリーアニメ２
+
+#EXTINF:-1 tvg-id="family-anime-2" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/family-anime-2/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_Anime" ,ファミリーアニメ２
 https://linear-abematv.akamaized.net/preview/channel/family-anime-2/playlist.m3u8
-#EXTINF:-1  tvg-id="lovecomedy-anime" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/lovecomedy-anime/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_Anime",ラブコメアニメチャンネル
+
+#EXTINF:-1 tvg-id="lovecomedy-anime" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/lovecomedy-anime/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_Anime" ,ラブコメアニメチャンネル
 https://linear-abematv.akamaized.net/preview/channel/lovecomedy-anime/playlist.m3u8
-#EXTINF:-1  tvg-id="dailylife-anime" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/dailylife-anime/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_Anime",日常・青春アニメチャンネル
+
+#EXTINF:-1 tvg-id="dailylife-anime" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/dailylife-anime/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_Anime" ,日常・青春アニメチャンネル
 https://linear-abematv.akamaized.net/preview/channel/dailylife-anime/playlist.m3u8
-#EXTINF:-1  tvg-id="gintama" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/gintama/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_Anime",銀魂チャンネル
-https://linear-abematv.akamaized.net/preview/channel/gintama/playlist.m3u8
-#EXTINF:-1  tvg-id="late-night-anime" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/late-night-anime/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_Anime",深夜アニメチャンネル
+
+#EXTINF:-1 tvg-id="late-night-anime" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/late-night-anime/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_Anime" ,深夜アニメチャンネル
 https://linear-abematv.akamaized.net/preview/channel/late-night-anime/playlist.m3u8
-#EXTINF:-1  tvg-id="80s-anime-1" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/80s-anime-1/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_Anime",なつかしアニメ80's
+
+#EXTINF:-1 tvg-id="80s-anime-1" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/80s-anime-1/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_Anime" ,なつかしアニメ80's
 https://linear-abematv.akamaized.net/preview/channel/80s-anime-1/playlist.m3u8
-#EXTINF:-1  tvg-id="90s-anime-1" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/90s-anime-1/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_Anime",なつかしアニメ90's
+
+#EXTINF:-1 tvg-id="90s-anime-1" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/90s-anime-1/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_Anime" ,なつかしアニメ90's
 https://linear-abematv.akamaized.net/preview/channel/90s-anime-1/playlist.m3u8
-#EXTINF:-1  tvg-id="00s-anime-1" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/00s-anime-1/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_Anime",なつかしアニメ00's
+
+#EXTINF:-1 tvg-id="00s-anime-1" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/00s-anime-1/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_Anime" ,なつかしアニメ00's
 https://linear-abematv.akamaized.net/preview/channel/00s-anime-1/playlist.m3u8
-#EXTINF:-1  tvg-id="asia-drama" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/asia-drama/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_Korea",韓国ドラマチャンネル
+
+#EXTINF:-1 tvg-id="asia-drama" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/asia-drama/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_Korea" ,韓国ドラマチャンネル
 https://linear-abematv.akamaized.net/preview/channel/asia-drama/playlist.m3u8
-#EXTINF:-1  tvg-id="asia-drama-2" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/asia-drama-2/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_Korea",韓国ドラマチャンネル2
+
+#EXTINF:-1 tvg-id="asia-drama-2" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/asia-drama-2/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_Korea" ,韓国ドラマチャンネル2
 https://linear-abematv.akamaized.net/preview/channel/asia-drama-2/playlist.m3u8
-#EXTINF:-1  tvg-id="chinese-drama" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/chinese-drama/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_240p",中国ドラマチャンネル
+
+#EXTINF:-1 tvg-id="chinese-drama" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/chinese-drama/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_240p" ,中国ドラマチャンネル
 https://linear-abematv.akamaized.net/preview/channel/chinese-drama/playlist.m3u8
-#EXTINF:-1  tvg-id="asia-love-comedy" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/asia-love-comedy/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_Korea",韓国ラブコメディ
+
+#EXTINF:-1 tvg-id="asia-love-comedy" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/asia-love-comedy/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_Korea" ,韓国ラブコメディ
 https://linear-abematv.akamaized.net/preview/channel/asia-love-comedy/playlist.m3u8
-#EXTINF:-1  tvg-id="asia-loveromance" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/asia-loveromance/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_Korea",韓国ラブロマンス
+
+#EXTINF:-1 tvg-id="asia-loveromance" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/asia-loveromance/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_Korea" ,韓国ラブロマンス
 https://linear-abematv.akamaized.net/preview/channel/asia-loveromance/playlist.m3u8
-#EXTINF:-1  tvg-id="asia-historical" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/asia-historical/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_Korea",韓国時代劇
+
+#EXTINF:-1 tvg-id="asia-historical" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/asia-historical/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_Korea" ,韓国時代劇
 https://linear-abematv.akamaized.net/preview/channel/asia-historical/playlist.m3u8
-#EXTINF:-1  tvg-id="k-world" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/k-world/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_Korea",K WORLDチャンネル
+
+#EXTINF:-1 tvg-id="k-world" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/k-world/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_Korea" ,K WORLDチャンネル
 https://linear-abematv.akamaized.net/preview/channel/k-world/playlist.m3u8
-#EXTINF:-1  tvg-id="drama" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/drama/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_240p",ドラマ映画チャンネル
+
+#EXTINF:-1 tvg-id="drama" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/drama/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_240p" ,ドラマ映画チャンネル
 https://linear-abematv.akamaized.net/preview/channel/drama/playlist.m3u8
-#EXTINF:-1  tvg-id="drama-2" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/drama-2/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_240p",ドラマ映画チャンネル2
+
+#EXTINF:-1 tvg-id="drama-2" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/drama-2/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_240p" ,ドラマ映画チャンネル2
 https://linear-abematv.akamaized.net/preview/channel/drama-2/playlist.m3u8
-#EXTINF:-1  tvg-id="drama-3" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/drama-3/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_240p",ドラマ映画チャンネル3
+
+#EXTINF:-1 tvg-id="drama-3" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/drama-3/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_240p" ,ドラマ映画チャンネル3
 https://linear-abematv.akamaized.net/preview/channel/drama-3/playlist.m3u8
-#EXTINF:-1  tvg-id="mahjong" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/mahjong/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_240p",麻雀チャンネル
+
+#EXTINF:-1 tvg-id="mahjong" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/mahjong/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_240p" ,麻雀チャンネル
 https://linear-abematv.akamaized.net/preview/channel/mahjong/playlist.m3u8
-#EXTINF:-1  tvg-id="shogi" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/shogi/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_240p",将棋チャンネル
+
+#EXTINF:-1 tvg-id="shogi" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/shogi/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_240p" ,将棋チャンネル
 https://linear-abematv.akamaized.net/preview/channel/shogi/playlist.m3u8
-#EXTINF:-1  tvg-id="world-sports" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/world-sports/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_240p",SPORTSチャンネル
+
+#EXTINF:-1 tvg-id="world-sports" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/world-sports/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_240p" ,SPORTSチャンネル
 https://linear-abematv.akamaized.net/preview/channel/world-sports/playlist.m3u8
-#EXTINF:-1  tvg-id="motor-sport" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/motor-sport/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_240p",MOTOR SPORTチャンネル
+
+#EXTINF:-1 tvg-id="motor-sport" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/motor-sport/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_240p" ,MOTOR SPORTチャンネル
 https://linear-abematv.akamaized.net/preview/channel/motor-sport/playlist.m3u8
-#EXTINF:-1  tvg-id="fighting-sports" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/fighting-sports/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_240p",格闘チャンネル
+
+#EXTINF:-1 tvg-id="sumo" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/sumo/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_240p" ,大相撲チャンネル
+https://linear-abematv.akamaized.net/preview/channel/sumo/playlist.m3u8
+
+#EXTINF:-1 tvg-id="fighting-sports" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/fighting-sports/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_240p" ,格闘チャンネル
 https://linear-abematv.akamaized.net/preview/channel/fighting-sports/playlist.m3u8
-#EXTINF:-1  tvg-id="hiphop" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/hiphop/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_240p",HIPHOPチャンネル
+
+#EXTINF:-1 tvg-id="hiphop" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/hiphop/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_240p" ,HIPHOPチャンネル
 https://linear-abematv.akamaized.net/preview/channel/hiphop/playlist.m3u8
-#EXTINF:-1  tvg-id="commercial" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/commercial/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_240p",CMチャンネル
+
+#EXTINF:-1 tvg-id="commercial" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/commercial/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_240p" ,CMチャンネル
 https://linear-abematv.akamaized.net/preview/channel/commercial/playlist.m3u8
-#EXTINF:-1  tvg-id="boatrace" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/boatrace/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_240p",BOATRACEチャンネル
+
+#EXTINF:-1 tvg-id="boatrace" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/boatrace/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_240p" ,BOATRACEチャンネル
 https://linear-abematv.akamaized.net/preview/channel/boatrace/playlist.m3u8
-#EXTINF:-1  tvg-id="keirin-auto" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/keirin-auto/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_240p",競輪・オートレースチャンネル
+
+#EXTINF:-1 tvg-id="keirin-auto" tvg-logo="https://image.p-c2-x.abema-tv.com/image/channels/keirin-auto/logo.png?height=48&quality=30&version=20200413&width=128" group-title="Abema_240p" ,競輪・オートレースチャンネル
 https://linear-abematv.akamaized.net/preview/channel/keirin-auto/playlist.m3u8
+
 #EXTINF:-1  tvg-logo="https://www.city.matsuyama.ehime.jp/images/2021_top_title.png" group-title="その他",松山市議会中継
 https://cdn-ecatv-stream.durasite.net/live/ms_gikai/chunklist_w152985868.m3u8
 #EXTINF:-1  tvg-logo="https://msp.c.yimg.jp/images/v2/FUTi93tXq405grZVGgDqG_-cMwnEF_9yxZr5x-1Yd21q8SEeSDdwRD9doioeL5uLYbPwJnuAPx174aQVwaw1NVPqBFXaFNopDeaogjSnmsCMGjdgSZvVanY01bYg72S7zmqCWkgRxLrlmZRY1_zNFFZP4rUyRuBLumsyhB8kt9IEqa9jpiKnnfIC_xngNXt_frHW7s8TeEWPW1CX056crQ==/X315129_3L1.jpg?errorImage=false" group-title="その他",愛媛県議会中継
