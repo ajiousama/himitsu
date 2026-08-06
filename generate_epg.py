@@ -41,9 +41,26 @@ HEADERS = {
 }
 
 
+def get_html_with_proxy(url):
+    """プロキシ経由取得（海外IPブロック回避）"""
+    endpoints = [
+        f"https://api.allorigins.win/raw?url={url}",
+        f"https://corsproxy.io/?{url}",
+        url
+    ]
+    for ep in endpoints:
+        try:
+            res = requests.get(ep, headers=HEADERS, timeout=8)
+            if res.status_code == 200 and len(res.text) > 300:
+                return res.text
+        except Exception:
+            pass
+    return ""
+
+
 def fetch_keirin(today_str):
-    """KEIRIN.JP CDNの月間公式JSONデータから本日開催場を100%正確に取得"""
-    active = set()
+    """KEIRIN.JP（発売中 / 全レース終了 判定）"""
+    active = {}
     url = f"https://keirin.jp/pc/dfw/datainfo/SCHEDULE/schedule_{today_str[:6]}.json"
     try:
         res = requests.get(url, headers=HEADERS, timeout=10)
@@ -52,31 +69,43 @@ def fetch_keirin(today_str):
                 if str(item.get("hd")) == today_str:
                     v_name = str(item.get("joName", "")).strip()
                     if v_name in KEIRIN_MAP:
-                        active.add(v_name)
+                        if str(item.get("status")) == "1" or item.get("betFlg") is True:
+                            active[v_name] = "【本日開催】 (発売中)"
+                        else:
+                            active[v_name] = "【本日開催】 (発売終了)"
     except Exception as e:
-        print(f"競輪公式JSONエラー: {e}")
+        print(f"競輪判定エラー: {e}")
     return active
 
 
-def fetch_keiba(today_str):
-    """楽天競馬の本日出走表リンクから開催中の競馬場のみを厳密判定"""
+def fetch_keiba():
+    """楽天競馬トップ画面からの【発売中 / 本日発売終了】判定"""
     active = {}
-    try:
-        url = "https://keiba.rakuten.co.jp/racecard/list"
-        res = requests.get(url, headers=HEADERS, timeout=10)
-        if res.status_code == 200:
-            html = res.text
-            for map_key in KEIBA_MAP.keys():
-                if "ＪＲＡ" not in map_key:
-                    short = map_key.replace("競馬", "").replace("南関東", "").replace("ホッカイドウ", "").replace("岩手", "").replace("(ばんえい)", "").replace("(門別)", "").replace("(盛岡)", "").replace("(水沢)", "").replace("(浦和)", "").replace("(船橋)", "").replace("(大井)", "").replace("(川崎)", "")
-                    # ナビメニューではなく、出走表リンク(RACE_CARD)内に場名が含まれるかチェック
-                    pattern = rf'RACE_CARD/{today_str}/[^"]*?"[^>]*?{short}'
-                    if re.search(pattern, html) or f'title="{short}"' in html:
-                        active[map_key] = "【本日開催】"
-    except Exception as e:
-        print(f"地方競馬エラー: {e}")
+    html = get_html_with_proxy("https://keiba.rakuten.co.jp/")
+    
+    if html:
+        # 「本日の開催情報」ブロックの切り出し
+        pos_start = html.find("本日の開催情報")
+        pos_end = html.find("明日の開催情報")
+        target_html = html[pos_start:pos_end] if (pos_start != -1 and pos_end != -1) else html
 
-    # JRA（土日開催判定）
+        for map_key in KEIBA_MAP.keys():
+            if "ＪＲＡ" not in map_key:
+                short = map_key.replace("競馬", "").replace("南関東", "").replace("ホッカイドウ", "").replace("岩手", "").replace("(ばんえい)", "").replace("(門別)", "").replace("(盛岡)", "").replace("(水沢)", "").replace("(浦和)", "").replace("(船橋)", "").replace("(大井)", "").replace("(川崎)", "")
+                
+                # 開催情報枠内に場名があるか
+                if short in target_html:
+                    # その場名カードブロック部分を特定
+                    venue_idx = target_html.find(short)
+                    card_snippet = target_html[venue_idx:venue_idx + 600]
+                    
+                    # 「本日発売終了」が含まれているかチェック
+                    if "本日発売終了" in card_snippet or "発売終了" in card_snippet:
+                        active[map_key] = "【本日開催】 (発売終了)"
+                    else:
+                        active[map_key] = "【本日開催】 (発売中)"
+
+    # JRA（土日判定）
     now = datetime.datetime.now()
     if now.weekday() in [5, 6]:
         active["ＪＲＡ公式"] = "【本日開催】 (中央競馬)"
@@ -86,20 +115,13 @@ def fetch_keiba(today_str):
 
 
 def fetch_auto():
-    """オートレース公式ライブページから、本日レース中の会場のみを厳密判定"""
+    """TIPSTARからのオートレース判定"""
     active = set()
-    try:
-        url = "https://autorace.jp/netstadium/Live"
-        res = requests.get(url, headers=HEADERS, timeout=10)
-        if res.status_code == 200:
-            html = res.text
-            for k in AUTO_MAP.keys():
-                # 会場名の直後に「ライブ」「開催」「発走」「R」などの文字がある場合のみヒット
-                pattern = rf'{k}[^<]*?(?:ライブ|開催|発走|試走|\d+R)'
-                if re.search(pattern, html):
-                    active.add(k)
-    except Exception as e:
-        print(f"オートレースエラー: {e}")
+    html = get_html_with_proxy("https://tipstar.com/autorace/channels")
+    if html:
+        for k in AUTO_MAP.keys():
+            if f">{k}<" in html or f'"{k}"' in html or f"button>{k}" in html:
+                active.add(k)
     return active
 
 
@@ -124,7 +146,7 @@ def add_channel_program(tv, map_dict, active_data, today_str, now):
             is_active = True
 
         if is_active:
-            desc_text = f"{today_display} {v_name} レース開催中"
+            desc_text = f"{today_display} {v_name} レース開催中 ({title_text})"
         else:
             title_text = "本日非開催"
             desc_text = f"{today_display} 本日のレース開催はありません。"
@@ -143,11 +165,11 @@ def build_epg_xml():
     tv = ET.Element("tv", {"generator-info-name": "CombinedEPGGenerator"})
 
     keirin_active = fetch_keirin(today_str)
-    keiba_active = fetch_keiba(today_str)
+    keiba_active = fetch_keiba()
     auto_active = fetch_auto()
 
-    print(f"競輪検出: {list(keirin_active)}")
-    print(f"地方競馬検出: {list(keiba_active.keys())}")
+    print(f"競輪検出: {keirin_active}")
+    print(f"地方競馬検出: {keiba_active}")
     print(f"オートレース検出: {list(auto_active)}")
 
     add_channel_program(tv, KEIRIN_MAP, keirin_active, today_str, now)
