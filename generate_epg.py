@@ -41,17 +41,16 @@ HEADERS = {
 }
 
 
-def get_html_with_proxy(url):
-    """プロキシ経由取得（海外IPブロック回避）"""
+def fetch_fast(url):
+    """爆速・海外IP制限回避取得（タイムアウト3秒）"""
     endpoints = [
-        f"https://api.allorigins.win/raw?url={url}",
         f"https://corsproxy.io/?{url}",
         url
     ]
     for ep in endpoints:
         try:
-            res = requests.get(ep, headers=HEADERS, timeout=8)
-            if res.status_code == 200 and len(res.text) > 300:
+            res = requests.get(ep, headers=HEADERS, timeout=3)
+            if res.status_code == 200 and len(res.text) > 100:
                 return res.text
         except Exception:
             pass
@@ -59,11 +58,10 @@ def get_html_with_proxy(url):
 
 
 def fetch_keirin(today_str):
-    """KEIRIN.JP（発売中 / 全レース終了 判定）"""
     active = {}
     url = f"https://keirin.jp/pc/dfw/datainfo/SCHEDULE/schedule_{today_str[:6]}.json"
     try:
-        res = requests.get(url, headers=HEADERS, timeout=10)
+        res = requests.get(url, headers=HEADERS, timeout=3)
         if res.status_code == 200:
             for item in res.json():
                 if str(item.get("hd")) == today_str:
@@ -79,12 +77,9 @@ def fetch_keirin(today_str):
 
 
 def fetch_keiba():
-    """楽天競馬トップ画面からの【発売中 / 本日発売終了】判定"""
     active = {}
-    html = get_html_with_proxy("https://keiba.rakuten.co.jp/")
-    
+    html = fetch_fast("https://keiba.rakuten.co.jp/")
     if html:
-        # 「本日の開催情報」ブロックの切り出し
         pos_start = html.find("本日の開催情報")
         pos_end = html.find("明日の開催情報")
         target_html = html[pos_start:pos_end] if (pos_start != -1 and pos_end != -1) else html
@@ -92,20 +87,14 @@ def fetch_keiba():
         for map_key in KEIBA_MAP.keys():
             if "ＪＲＡ" not in map_key:
                 short = map_key.replace("競馬", "").replace("南関東", "").replace("ホッカイドウ", "").replace("岩手", "").replace("(ばんえい)", "").replace("(門別)", "").replace("(盛岡)", "").replace("(水沢)", "").replace("(浦和)", "").replace("(船橋)", "").replace("(大井)", "").replace("(川崎)", "")
-                
-                # 開催情報枠内に場名があるか
                 if short in target_html:
-                    # その場名カードブロック部分を特定
                     venue_idx = target_html.find(short)
                     card_snippet = target_html[venue_idx:venue_idx + 600]
-                    
-                    # 「本日発売終了」が含まれているかチェック
                     if "本日発売終了" in card_snippet or "発売終了" in card_snippet:
                         active[map_key] = "【本日開催】 (発売終了)"
                     else:
                         active[map_key] = "【本日開催】 (発売中)"
 
-    # JRA（土日判定）
     now = datetime.datetime.now()
     if now.weekday() in [5, 6]:
         active["ＪＲＡ公式"] = "【本日開催】 (中央競馬)"
@@ -115,9 +104,8 @@ def fetch_keiba():
 
 
 def fetch_auto():
-    """TIPSTARからのオートレース判定"""
     active = set()
-    html = get_html_with_proxy("https://tipstar.com/autorace/channels")
+    html = fetch_fast("https://tipstar.com/autorace/channels")
     if html:
         for k in AUTO_MAP.keys():
             if f">{k}<" in html or f'"{k}"' in html or f"button>{k}" in html:
