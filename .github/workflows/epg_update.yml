@@ -2,9 +2,8 @@ name: Auto Generate Keirin EPG
 
 on:
   schedule:
-    # 3分おきに実行 (日本時間の 7:00 〜 0:00 のみ動作、深夜0:00〜7:00はストップ)
-    # UTC時間で 23:00〜14:59 の間に相当
-    - cron: '*/3 23,0-14 * * *'
+    # 5分おきに実行 (UTCの毎時 0,5,10,15...分)
+    - cron: '*/5 * * * *'
   workflow_dispatch:
 
 permissions:
