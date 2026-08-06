@@ -21,11 +21,14 @@ KEIRIN_MAP = {
 }
 
 KEIBA_MAP = {
-    "帯広": "chihou.obihiro", "門別": "chihou.mombetsu", "盛岡": "chihou.morioka",
-    "水沢": "chihou.mizusawa", "浦和": "chihou.urawa", "船橋": "chihou.funabashi",
-    "大井": "chihou.oi", "川崎": "chihou.kawasaki_keiba", "金沢": "chihou.kanazawa",
-    "名古屋": "chihou.nagoya_keiba", "笠松": "chihou.kasamatsu", "園田": "chihou.sonoda",
-    "姫路": "chihou.himeji", "高知": "chihou.kochi_keiba", "佐賀": "chihou.saga",
+    "帯広競馬(ばんえい)": "chihou.obihiro", "ホッカイドウ競馬(門別)": "chihou.mombetsu",
+    "岩手競馬(盛岡)": "chihou.morioka", "岩手競馬(水沢)": "chihou.mizusawa",
+    "南関東競馬(浦和)": "chihou.urawa", "南関東競馬(船橋)": "chihou.funabashi",
+    "南関東競馬(大井)": "chihou.oi", "南関東競馬(川崎)": "chihou.kawasaki_keiba",
+    "金沢競馬": "chihou.kanazawa", "名古屋競馬": "chihou.nagoya_keiba",
+    "笠松競馬": "chihou.kasamatsu", "園田競馬": "chihou.sonoda",
+    "姫路競馬": "chihou.himeji", "高知競馬": "chihou.kochi_keiba",
+    "佐賀競馬": "chihou.saga", 
     "ＪＲＡ公式": "jra.official", "ＪＲＡグリーン": "jra.green"
 }
 
@@ -50,15 +53,21 @@ def fetch_keirin():
     try:
         res = requests.get("https://www.winticket.jp/keirin/schedules", headers=HEADERS, timeout=5)
         if res.status_code == 200:
-            today_day = str(datetime.datetime.now().day)
+            today = datetime.date.today()
+            month_day_str = f"{today.month}月{today.day}日"
             for k in KEIRIN_MAP.keys():
-                if k in res.text:
-                    idx = res.text.find(k)
-                    snippet = res.text[idx:idx+1500]
-                    if today_day in snippet or "開催" in snippet:
+                pos = 0
+                while True:
+                    idx = res.text.find(k, pos)
+                    if idx == -1:
+                        break
+                    snippet = res.text[max(0, idx-100):idx+500]
+                    if month_day_str in snippet and "非開催" not in snippet:
                         tags = get_tags(snippet)
                         if not tags: tags = ["デイ"]
                         active[k] = f"【本日開催】 ({' '.join(tags)})"
+                        break
+                    pos = idx + len(k)
     except Exception as e:
         print(f"競輪取得スキップ: {e}")
     return active
@@ -66,20 +75,18 @@ def fetch_keirin():
 def fetch_keiba():
     active = {}
     try:
-        res = requests.get("https://nar.netkeiba.com/top/calendar.html", headers=HEADERS, timeout=5)
+        res = requests.get("https://keiba.rakuten.co.jp/calendar", headers=HEADERS, timeout=5)
         if res.status_code == 200:
-            today_day = datetime.datetime.now().day
-            pattern = f'>{today_day}</div>(.*?)</div>'
-            match = re.search(pattern, res.text, re.DOTALL)
-            if match:
-                snippet = match.group(1)
-                for name in KEIBA_MAP.keys():
-                    if name in res.text:
-                        idx = res.text.find(name)
-                        sub_snippet = res.text[idx:idx+600]
-                        tags = get_tags(sub_snippet)
-                        if not tags: tags = ["デイ"]
-                        active[name] = f"【本日開催】 ({' '.join(tags)})"
+            html = res.text
+            for map_key in KEIBA_MAP.keys():
+                if "ＪＲＡ" not in map_key and "競馬" in map_key:
+                    if map_key in html:
+                        idx = html.find(map_key)
+                        snippet = html[idx:idx + 1500]
+                        if "開催" in snippet or "重賞" in snippet or "Jpn" in snippet:
+                            tags = get_tags(snippet)
+                            if not tags: tags = ["デイ"]
+                            active[map_key] = f"【本日開催】 ({' '.join(tags)})"
     except Exception as e:
         print(f"地方競馬取得スキップ: {e}")
 
@@ -95,11 +102,12 @@ def fetch_autorace():
     try:
         res = requests.get("https://autorace.jp/calendar/first/", headers=HEADERS, timeout=5)
         if res.status_code == 200:
+            html = res.text
             for k in AUTO_MAP.keys():
-                if k in res.text:
-                    idx = res.text.find(k)
-                    snippet = res.text[idx:idx+1000]
-                    if "開催" in snippet or "レース" in snippet:
+                if k in html:
+                    idx = html.find(k)
+                    snippet = html[idx:idx + 1500]
+                    if "開催" in snippet or "ナイター" in snippet or "ミッドナイト" in snippet or "SG" in snippet or "GI" in snippet:
                         tags = get_tags(snippet)
                         if not tags: tags = ["デイ"]
                         active[k] = f"【本日開催】 ({' '.join(tags)})"
@@ -115,6 +123,10 @@ def build_epg_xml():
     keirin = fetch_keirin()
     keiba = fetch_keiba()
     auto = fetch_autorace()
+
+    print(f"競輪検出: {keirin}")
+    print(f"地方競馬検出: {keiba}")
+    print(f"オートレース検出: {auto}")
 
     all_data = {**keirin, **keiba, **auto}
     all_maps = {**KEIRIN_MAP, **KEIBA_MAP, **AUTO_MAP}
