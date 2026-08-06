@@ -3,9 +3,9 @@ import re
 import xml.etree.ElementTree as ET
 import requests
 
-# 競輪マッピング
+# 競輪マッピング（表示名: [検索エイリアス]）
 KEIRIN_MAP = {
-    "函館": ["函館"], "青森": ["青森"], "いわき平": ["いわき平", "いわき"],
+    "函館": ["函館"], "青森": ["青森"], "いわき平": ["いわき平", "いわき", "平"],
     "弥彦": ["弥彦"], "前橋": ["前橋"], "取手": ["取手"],
     "宇都宮": ["宇都宮"], "大宮": ["大宮"], "西武園": ["西武園"],
     "京王閣": ["京王閣"], "立川": ["立川"], "松戸": ["松戸"],
@@ -18,7 +18,7 @@ KEIRIN_MAP = {
     "防府": ["防府"], "小松島": ["小松島"], "松山": ["松山"],
     "高知": ["高知"], "小倉": ["小倉"], "久留米": ["久留米"],
     "武雄": ["武雄"], "佐世保": ["佐世保"], "別府": ["別府"],
-    "熊本": ["熊本"], "千葉PIST6": ["PIST6"]
+    "熊本": ["熊本"], "千葉PIST6": ["PIST6", "千葉"]
 }
 
 # 地方競馬・JRAマッピング
@@ -78,7 +78,7 @@ HEADERS = {
 
 
 def get_html(url):
-    """プロキシ経由でWebページを取得"""
+    """プロキシ経由および直接リクエストでWebページを取得"""
     endpoints = [
         f"https://api.allorigins.win/raw?url={url}",
         f"https://corsproxy.io/?{url}",
@@ -94,57 +94,52 @@ def get_html(url):
     return ""
 
 
-def extract_section(html, start_keys, end_keys):
-    """メニューやフッターの誤検出を防ぐため、本日のレース枠だけを切り抜く"""
+def get_clean_body(html):
+    """ヘッダー・フッター・メニュー等の共通リンクを取り除き、本文枠のみ抽出"""
     if not html:
         return ""
-    start_idx = -1
-    for sk in start_keys:
-        pos = html.find(sk)
-        if pos != -1:
-            start_idx = pos
-            break
-    if start_idx == -1:
-        return html  # 見つからなければ全体
-
-    sub = html[start_idx:]
-    end_idx = len(sub)
-    for ek in end_keys:
-        pos = sub.find(ek, 100)
-        if pos != -1 and pos < end_idx:
-            end_idx = pos
-
-    return sub[:end_idx]
+    # script / style / header / footer / nav タグを除去
+    html = re.sub(r'<script.*?>.*?</script>', '', html, flags=re.DOTALL | re.IGNORECASE)
+    html = re.sub(r'<style.*?>.*?</style>', '', html, flags=re.DOTALL | re.IGNORECASE)
+    html = re.sub(r'<header.*?>.*?</header>', '', html, flags=re.DOTALL | re.IGNORECASE)
+    html = re.sub(r'<footer.*?>.*?</footer>', '', html, flags=re.DOTALL | re.IGNORECASE)
+    html = re.sub(r'<nav.*?>.*?</nav>', '', html, flags=re.DOTALL | re.IGNORECASE)
+    return html
 
 
 def fetch_keirin():
     active = set()
-    html = get_html("https://netkeirin.netkeiba.com/")
-    # 本日の開催エリアのみ抽出
-    target_area = extract_section(html, ["RaceList", "本日の開催", "レース一覧"], ["明日の開催", "ニュース", "<footer>"])
-
-    if target_area:
-        for venue_name, aliases in KEIRIN_MAP.items():
-            for alias in aliases:
-                if alias in target_area:
-                    active.add(venue_name)
-                    break
+    urls = [
+        "https://netkeirin.netkeiba.com/",
+        "https://keirin.kdr.rakuten.co.jp/"
+    ]
+    for url in urls:
+        html = get_html(url)
+        body = get_clean_body(html)
+        if body:
+            for venue_name, aliases in KEIRIN_MAP.items():
+                for alias in aliases:
+                    if alias in body:
+                        active.add(venue_name)
+                        break
+        if active:
+            break
     return active
 
 
 def fetch_keiba():
     active = {}
     html = get_html("https://nar.netkeiba.com/top/")
-    # 本日のレース枠のみ抽出
-    target_area = extract_section(html, ["Race_List_Box", "RaceList_Data", "本日のレース"], ["明日", "開催日程", "<footer>"])
+    body = get_clean_body(html)
+    if not body:
+        body = html
 
-    if target_area:
-        for venue_name, aliases in KEIBA_MAP.items():
-            if "ＪＲＡ" not in venue_name:
-                for alias in aliases:
-                    if alias in target_area:
-                        active[venue_name] = "【本日開催】"
-                        break
+    for venue_name, aliases in KEIBA_MAP.items():
+        if "ＪＲＡ" not in venue_name:
+            for alias in aliases:
+                if alias in body:
+                    active[venue_name] = "【本日開催】"
+                    break
 
     now = datetime.datetime.now()
     if now.weekday() in [5, 6]:
@@ -156,15 +151,22 @@ def fetch_keiba():
 
 def fetch_auto():
     active = set()
-    html = get_html("https://sp.autorace.jp/")
-    target_area = extract_section(html, ["本日のレース", "Live", "ライブ"], ["明日の", "お知らせ", "<footer>"])
-
-    if target_area:
-        for venue_name, aliases in AUTO_MAP.items():
-            for alias in aliases:
-                if alias in target_area:
-                    active.add(venue_name)
-                    break
+    urls = [
+        "https://sp.autorace.jp/",
+        "https://autorace.jp/"
+    ]
+    for url in urls:
+        html = get_html(url)
+        body = get_clean_body(html)
+        if body:
+            for venue_name, aliases in AUTO_MAP.items():
+                for alias in aliases:
+                    pattern = f"{alias}[^<]*?(開催|ライブ|レース|発走|試走|オッズ|確定|1R|2R|3R|4R|5R|6R|7R|8R|9R|10R|11R|12R)"
+                    if re.search(pattern, body) or f">{alias}<" in body:
+                        active.add(venue_name)
+                        break
+        if active:
+            break
     return active
 
 
