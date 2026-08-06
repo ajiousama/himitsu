@@ -1,0 +1,33 @@
+name: Auto Generate Keirin EPG
+
+on:
+  schedule:
+    # 毎日 日本時間 00:00 / 12:00 / 17:00 に自動実行する Cron 設定
+    - cron: '0 15,3,8 * * *'
+  workflow_dispatch: # 手動実行用
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: リポジトリのチェックアウト
+        uses: actions/checkout@v3
+
+      - name: Python環境構築
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: 依存ライブラリのインストール
+        run: pip install requests
+
+      - name: EPG生成スクリプト実行
+        run: python generate_epg.py
+
+      - name: 変更をコミットしてPush
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add epg.xml
+          git commit -m "Auto update EPG" || exit 0
+          git push
