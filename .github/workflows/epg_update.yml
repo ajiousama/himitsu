@@ -2,7 +2,7 @@ name: Auto Generate Keirin EPG
 
 on:
   schedule:
-    # 5分おきに実行 (UTCの毎時 0,5,10,15...分)
+    # 5分おきに実行
     - cron: '*/5 * * * *'
   workflow_dispatch:
 
@@ -35,6 +35,8 @@ jobs:
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
+          # 毎回必ずタイムスタンプを更新してコミットさせる
+          echo "<!-- Updated at $(TZ='Asia/Tokyo' date '+%Y-%m-%d %H:%M:%S') -->" >> epg.xml
           git add epg.xml
-          git commit -m "Auto update EPG [skip ci]" || echo "No changes to commit"
+          git commit -m "Auto update EPG [skip ci]"
           git push
