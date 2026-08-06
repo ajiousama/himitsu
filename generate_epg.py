@@ -20,46 +20,40 @@ KEIRIN_MAP = {
     "熊本": "keirin.kumamoto", "千葉PIST6": "keirin.pist6"
 }
 
-# 地方競馬・JRAのIDマッピング
+# 競馬のIDマッピング
 KEIBA_MAP = {
-    "帯広競馬(ばんえい)": "chihou.obihiro",
-    "ホッカイドウ競馬(門別)": "chihou.mombetsu",
-    "岩手競馬(盛岡)": "chihou.morioka",
-    "岩手競馬(水沢)": "chihou.mizusawa",
-    "南関東競馬(浦和)": "chihou.urawa",
-    "南関東競馬(船橋)": "chihou.funabashi",
-    "南関東競馬(大井)": "chihou.oi",
-    "南関東競馬(川崎)": "chihou.kawasaki_keiba",
-    "金沢競馬": "chihou.kanazawa",
-    "名古屋競馬": "chihou.nagoya_keiba",
-    "笠松競馬": "chihou.kasamatsu",
-    "園田競馬": "chihou.sonoda",
-    "姫路競馬": "chihou.himeji",
-    "高知競馬": "chihou.kochi_keiba",
-    "佐賀競馬": "chihou.saga",
-    "ＪＲＡ公式": "jra.official",
-    "ＪＲＡグリーン": "jra.green"
+    "帯広競馬(ばんえい)": "chihou.obihiro", "ホッカイドウ競馬(門別)": "chihou.mombetsu",
+    "岩手競馬(盛岡)": "chihou.morioka", "岩手競馬(水沢)": "chihou.mizusawa",
+    "南関東競馬(浦和)": "chihou.urawa", "南関東競馬(船橋)": "chihou.funabashi",
+    "南関東競馬(大井)": "chihou.oi", "南関東競馬(川崎)": "chihou.kawasaki_keiba",
+    "金沢競馬": "chihou.kanazawa", "名古屋競馬": "chihou.nagoya_keiba",
+    "笠松競馬": "chihou.kasamatsu", "園田競馬": "chihou.sonoda",
+    "姫路競馬": "chihou.himeji", "高知競馬": "chihou.kochi_keiba",
+    "佐賀競馬": "chihou.saga", "ＪＲＡ公式": "jra.official", "ＪＲＡグリーン": "jra.green"
 }
 
 # オートレースのIDマッピング
 AUTO_MAP = {
-    "川口": "auto.kawaguchi",
-    "伊勢崎": "auto.isesaki",
-    "浜松": "auto.hamamatsu",
-    "飯塚": "auto.iizuka",
-    "山陽": "auto.sanyo"
+    "川口": "auto.kawaguchi", "伊勢崎": "auto.isesaki", "浜松": "auto.hamamatsu",
+    "飯塚": "auto.iizuka", "山陽": "auto.sanyo"
 }
 
 
 def fetch_keirin_schedule(date_str):
-    """KEIRIN.JP の公式開催データ取得"""
-    url = f"https://keirin.jp/pc/dfw/datainfo/SCHEDULE/schedule_{date_str[:6]}.json"
+    """競輪の本日開催情報を取得（複数ルート取得）"""
+    active = {}
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+    }
+
+    # ルート1: KEIRIN.JP 公式月間JSON
     try:
-        res = requests.get(url, headers={"User-Agent": "Mozilla/5.0"}, timeout=10)
+        url = f"https://keirin.jp/pc/dfw/datainfo/SCHEDULE/schedule_{date_str[:6]}.json"
+        res = requests.get(url, headers=headers, timeout=5)
         if res.status_code == 200:
-            active = {}
-            for item in res.json():
-                if item.get("hd") == date_str:
+            data = res.json()
+            for item in data:
+                if str(item.get("hd")) == date_str:
                     v_name = item.get("joName")
                     if v_name in KEIRIN_MAP:
                         active[v_name] = {
@@ -67,20 +61,38 @@ def fetch_keirin_schedule(date_str):
                             "grade": item.get("gradeName", ""),
                             "last_time": item.get("lastRaceTime", "")
                         }
-            return active
+            if active:
+                return active
     except Exception:
         pass
-    return {}
+
+    # ルート2: オッズパークの当日常設開催データ（予備）
+    try:
+        url = "https://www.oddspark.com/keirin/JsonObject.do"
+        res = requests.get(url, headers=headers, timeout=5)
+        if res.status_code == 200:
+            for item in res.json().get("joList", []):
+                v_name = item.get("joName")
+                if v_name in KEIRIN_MAP:
+                    active[v_name] = {
+                        "day_num": item.get("day", ""),
+                        "grade": item.get("grade", ""),
+                        "last_time": item.get("lastRaceTime", "")
+                    }
+    except Exception:
+        pass
+
+    return active
 
 
-def add_channel_program(tv, map_dict, active_dict, category_name, today_str, now):
+def add_channel_program(tv, map_dict, active_dict, today_str, now):
     today_display = now.strftime("%Y年%m月%d日")
 
     for v_name, tvg_id in map_dict.items():
         # <channel> の作成
         channel = ET.SubElement(tv, "channel", id=tvg_id)
         disp = ET.SubElement(channel, "display-name")
-        disp.text = f"{v_name}"
+        disp.text = v_name
 
         start_xml = f"{today_str}000000 +0900"
         stop_xml = f"{today_str}235959 +0900"
@@ -107,6 +119,8 @@ def add_channel_program(tv, map_dict, active_dict, category_name, today_str, now
                 desc_text = f"{today_display} {day_num} ({grade}) の全レースおよび払戻は終了いたしました。"
             else:
                 title_text = f"【開催】{day_num} ({grade})".strip()
+                if title_text == "【開催】 ()":
+                    title_text = "【本日開催】"
                 desc_text = f"{today_display} {v_name} 開催中"
                 if last_time:
                     desc_text += f"（最終R発走予定 {last_time} 頃）"
@@ -132,15 +146,15 @@ def build_epg_xml():
     keirin_active = fetch_keirin_schedule(today_str)
 
     # XML要素生成
-    add_channel_program(tv, KEIRIN_MAP, keirin_active, "競輪", today_str, now)
-    add_channel_program(tv, KEIBA_MAP, {}, "競馬", today_str, now)
-    add_channel_program(tv, AUTO_MAP, {}, "オートレース", today_str, now)
+    add_channel_program(tv, KEIRIN_MAP, keirin_active, today_str, now)
+    add_channel_program(tv, KEIBA_MAP, {}, today_str, now)
+    add_channel_program(tv, AUTO_MAP, {}, today_str, now)
 
     # XML書き出し
     tree = ET.ElementTree(tv)
     ET.indent(tree, space="  ")
     tree.write("epg.xml", encoding="utf-8", xml_declaration=True)
-    print("競輪・競馬・オートレース統合 EPG (epg.xml) の生成が正常に完了しました。")
+    print("生成処理完了")
 
 
 if __name__ == "__main__":
