@@ -45,8 +45,9 @@ HEADERS = {
 
 
 def fetch_keirin_schedule(date_str):
-    """KEIRIN.JP公式から本日の開催日程を取得"""
+    """KEIRIN.JP公式および楽天Kドリームスから競輪開催情報を取得"""
     active = {}
+    # ルート1: KEIRIN.JP公式
     url = f"https://keirin.jp/pc/dfw/datainfo/SCHEDULE/schedule_{date_str[:6]}.json"
     try:
         res = requests.get(url, headers=HEADERS, timeout=10)
@@ -61,7 +62,20 @@ def fetch_keirin_schedule(date_str):
                             "last_time": item.get("lastRaceTime", "")
                         }
     except Exception as e:
-        print(f"競輪取得エラー: {e}")
+        print(f"競輪公式取得エラー: {e}")
+
+    # ルート2: Kドリームス（フォールバック）
+    if not active:
+        try:
+            url2 = "https://kdr.goforit.jp/race/today"
+            res2 = requests.get(url2, headers=HEADERS, timeout=10)
+            if res2.status_code == 200:
+                for k in KEIRIN_MAP.keys():
+                    if k in res2.text:
+                        active[k] = {"day_num": "本日開催", "grade": "", "last_time": ""}
+        except Exception:
+            pass
+
     return active
 
 
@@ -69,13 +83,11 @@ def fetch_jra_official_schedule():
     """JRA（www.jra.go.jp）公式サイトから本日の開催場一覧を直接抽出"""
     jra_venues = []
     try:
-        # JRA本日の開催出馬表トップ
         url = "https://www.jra.go.jp/keiba/"
         res = requests.get(url, headers=HEADERS, timeout=10)
         res.encoding = res.apparent_encoding
         if res.status_code == 200:
             html = res.text
-            # 競馬場名の正規表現抽出（例: 1回東京5日 -> 東京）
             matches = re.findall(r'(\d+回(札幌|函館|福島|新潟|東京|中山|中京|京都|阪神|小倉)\d+日)', html)
             found_set = set()
             for m in matches:
@@ -83,15 +95,12 @@ def fetch_jra_official_schedule():
             jra_venues = sorted(list(found_set))
     except Exception as e:
         print(f"JRA公式取得エラー: {e}")
-
     return jra_venues
 
 
 def fetch_keiba_schedule(date_str):
-    """地方競馬およびJRA（公式サイト連携）の本日開催情報を取得"""
+    """地方競馬およびJRAの開催情報を取得"""
     active = {}
-
-    # 1. 地方競馬の取得 (オッズパークAPI)
     try:
         url = "https://www.oddspark.com/keiba/JsonObject.do"
         res = requests.get(url, headers=HEADERS, timeout=10)
@@ -109,7 +118,7 @@ def fetch_keiba_schedule(date_str):
     except Exception as e:
         print(f"地方競馬取得エラー: {e}")
 
-    # 2. JRA公式サイトから直接抽出した開催場の紐付け
+    # JRA公式サイトから直接抽出
     jra_venues = fetch_jra_official_schedule()
     if jra_venues:
         jra_desc = "・".join(jra_venues) + "競馬"
@@ -198,16 +207,10 @@ def build_epg_xml():
 
     tv = ET.Element("tv", {"generator-info-name": "CombinedEPGGenerator"})
 
-    # 全競技の本日開催データ取得
     keirin_active = fetch_keirin_schedule(today_str)
     keiba_active = fetch_keiba_schedule(today_str)
     auto_active = fetch_auto_schedule(today_str)
 
-    print(f"競輪開催: {list(keirin_active.keys())}")
-    print(f"競馬開催: {list(keiba_active.keys())}")
-    print(f"オート開催: {list(auto_active.keys())}")
-
-    # XML要素生成
     add_channel_program(tv, KEIRIN_MAP, keirin_active, today_str, now)
     add_channel_program(tv, KEIBA_MAP, keiba_active, today_str, now)
     add_channel_program(tv, AUTO_MAP, auto_active, today_str, now)
@@ -215,7 +218,7 @@ def build_epg_xml():
     tree = ET.ElementTree(tv)
     ET.indent(tree, space="  ")
     tree.write("epg.xml", encoding="utf-8", xml_declaration=True)
-    print("epg.xml の自動生成が完了しました。")
+    print("epg.xml の生成が完了しました。")
 
 
 if __name__ == "__main__":
