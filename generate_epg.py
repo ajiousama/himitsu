@@ -1,9 +1,11 @@
 import datetime
+import re
 import xml.etree.ElementTree as ET
 import requests
 
+# 競輪マッピング
 KEIRIN_MAP = {
-    "函館": ["函館"], "青森": ["青森"], "いわき平": ["いわき平", "いわき", "平"],
+    "函館": ["函館"], "青森": ["青森"], "いわき平": ["いわき平", "いわき"],
     "弥彦": ["弥彦"], "前橋": ["前橋"], "取手": ["取手"],
     "宇都宮": ["宇都宮"], "大宮": ["大宮"], "西武園": ["西武園"],
     "京王閣": ["京王閣"], "立川": ["立川"], "松戸": ["松戸"],
@@ -16,9 +18,10 @@ KEIRIN_MAP = {
     "防府": ["防府"], "小松島": ["小松島"], "松山": ["松山"],
     "高知": ["高知"], "小倉": ["小倉"], "久留米": ["久留米"],
     "武雄": ["武雄"], "佐世保": ["佐世保"], "別府": ["別府"],
-    "熊本": ["熊本"], "千葉PIST6": ["PIST6", "千葉"]
+    "熊本": ["熊本"], "千葉PIST6": ["PIST6"]
 }
 
+# 地方競馬・JRAマッピング
 KEIBA_MAP = {
     "帯広競馬(ばんえい)": ["帯広", "ばんえい"], "ホッカイドウ競馬(門別)": ["門別"],
     "岩手競馬(盛岡)": ["盛岡"], "岩手競馬(水沢)": ["水沢"],
@@ -30,6 +33,7 @@ KEIBA_MAP = {
     "佐賀競馬": ["佐賀"], "ＪＲＡ公式": ["JRA", "中央競馬"], "ＪＲＡグリーン": ["JRA", "中央競馬"]
 }
 
+# オートレースマッピング
 AUTO_MAP = {
     "川口": ["川口"], "伊勢崎": ["伊勢崎"], "浜松": ["浜松"],
     "飯塚": ["飯塚"], "山陽": ["山陽"]
@@ -73,33 +77,56 @@ HEADERS = {
 }
 
 
-def get_html_with_proxy(target_url):
-    """海外IPブロック回避用プロキシ経由取得"""
-    proxies = [
-        f"https://api.allorigins.win/raw?url={target_url}",
-        f"https://corsproxy.io/?{target_url}",
-        target_url
+def get_html(url):
+    """プロキシ経由でWebページを取得"""
+    endpoints = [
+        f"https://api.allorigins.win/raw?url={url}",
+        f"https://corsproxy.io/?{url}",
+        url
     ]
-    for url in proxies:
+    for ep in endpoints:
         try:
-            res = requests.get(url, headers=HEADERS, timeout=10)
-            if res.status_code == 200 and len(res.text) > 300:
+            res = requests.get(ep, headers=HEADERS, timeout=8)
+            if res.status_code == 200 and len(res.text) > 500:
                 return res.text
         except Exception:
             pass
     return ""
 
 
-def fetch_keirin(today_str):
-    active = set()
-    html = get_html_with_proxy("https://keirin.kdr.rakuten.co.jp/")
+def extract_section(html, start_keys, end_keys):
+    """メニューやフッターの誤検出を防ぐため、本日のレース枠だけを切り抜く"""
     if not html:
-        html = get_html_with_proxy(f"https://keirin.jp/pc/dfw/datainfo/SCHEDULE/schedule_{today_str[:6]}.json")
+        return ""
+    start_idx = -1
+    for sk in start_keys:
+        pos = html.find(sk)
+        if pos != -1:
+            start_idx = pos
+            break
+    if start_idx == -1:
+        return html  # 見つからなければ全体
 
-    if html:
+    sub = html[start_idx:]
+    end_idx = len(sub)
+    for ek in end_keys:
+        pos = sub.find(ek, 100)
+        if pos != -1 and pos < end_idx:
+            end_idx = pos
+
+    return sub[:end_idx]
+
+
+def fetch_keirin():
+    active = set()
+    html = get_html("https://netkeirin.netkeiba.com/")
+    # 本日の開催エリアのみ抽出
+    target_area = extract_section(html, ["RaceList", "本日の開催", "レース一覧"], ["明日の開催", "ニュース", "<footer>"])
+
+    if target_area:
         for venue_name, aliases in KEIRIN_MAP.items():
             for alias in aliases:
-                if alias in html:
+                if alias in target_area:
                     active.add(venue_name)
                     break
     return active
@@ -107,15 +134,15 @@ def fetch_keirin(today_str):
 
 def fetch_keiba():
     active = {}
-    html = get_html_with_proxy("https://nar.netkeiba.com/top/")
-    if not html:
-        html = get_html_with_proxy("https://keiba.rakuten.co.jp/")
+    html = get_html("https://nar.netkeiba.com/top/")
+    # 本日のレース枠のみ抽出
+    target_area = extract_section(html, ["Race_List_Box", "RaceList_Data", "本日のレース"], ["明日", "開催日程", "<footer>"])
 
-    if html:
+    if target_area:
         for venue_name, aliases in KEIBA_MAP.items():
             if "ＪＲＡ" not in venue_name:
                 for alias in aliases:
-                    if alias in html:
+                    if alias in target_area:
                         active[venue_name] = "【本日開催】"
                         break
 
@@ -129,11 +156,13 @@ def fetch_keiba():
 
 def fetch_auto():
     active = set()
-    html = get_html_with_proxy("https://sp.autorace.jp/")
-    if html:
+    html = get_html("https://sp.autorace.jp/")
+    target_area = extract_section(html, ["本日のレース", "Live", "ライブ"], ["明日の", "お知らせ", "<footer>"])
+
+    if target_area:
         for venue_name, aliases in AUTO_MAP.items():
             for alias in aliases:
-                if alias in html:
+                if alias in target_area:
                     active.add(venue_name)
                     break
     return active
@@ -178,7 +207,7 @@ def build_epg_xml():
 
     tv = ET.Element("tv", {"generator-info-name": "CombinedEPGGenerator"})
 
-    keirin_active = fetch_keirin(today_str)
+    keirin_active = fetch_keirin()
     keiba_active = fetch_keiba()
     auto_active = fetch_auto()
 
