@@ -69,6 +69,7 @@ def parse_status(snippet):
         return f"【本日開催】 ({tag_str}) ({r_info})"
 
 def fetch_keirin():
+    """日刊ゲンダイ 競輪から確実・堅牢に抽出"""
     active = {}
     try:
         url = "https://keirin-autorace.nikkan-gendai.com/Keirin"
@@ -76,12 +77,17 @@ def fetch_keirin():
         if res.status_code == 200:
             html = res.text
             for k in KEIRIN_MAP.keys():
+                # 会場名がHTML内に含まれているか確認
                 if k in html:
+                    # 会場名の周辺（前後500文字）を切り出す
                     idx = html.find(k)
-                    snippet = html[idx:idx + 400]
-                    status = parse_status(snippet)
-                    if status:
-                        active[k] = status
+                    snippet = html[max(0, idx - 100):idx + 400]
+                    
+                    # 非開催の文字が近くになければ開催中とみなす
+                    if "非開催" not in snippet:
+                        status = parse_status(snippet)
+                        if status:
+                            active[k] = status
     except Exception as e:
         print(f"競輪取得エラー: {e}")
     return active
