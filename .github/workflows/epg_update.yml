@@ -2,7 +2,7 @@ name: Auto Generate Keirin EPG
 
 on:
   schedule:
-    - cron: '0 21 * * *'  # 毎日日本時間AM6:00
+    - cron: '0 * * * *'  # 1時間おき
   workflow_dispatch:
 
 permissions:
@@ -10,17 +10,9 @@ permissions:
   pages: write
   id-token: write
 
-concurrency:
-  group: "pages"
-  cancel-in-progress: true
-
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    # 【追加】Pagesへのデプロイに必要な環境設定
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -38,22 +30,10 @@ jobs:
       - name: Run EPG Script
         run: python generate_epg.py
 
-      - name: Commit and Push
+      - name: Commit and Push epg.xml
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           git add epg.xml
           git commit -m "Auto update EPG [skip ci]" || echo "No changes to commit"
           git push
-
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: '.'
-
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
