@@ -29,7 +29,6 @@ KEIBA_MAP = {
     "笠松競馬": "chihou.kasamatsu", "園田競馬": "chihou.sonoda",
     "姫路競馬": "chihou.himeji", "高知競馬": "chihou.kochi_keiba",
     "佐賀競馬": "chihou.saga", 
-    # JRAチャンネル（個別判定用リスト）
     "札幌競馬": "jra.sapporo", "函館競馬": "jra.hakodate_keiba", "福島競馬": "jra.fukushima",
     "新潟競馬": "jra.niigata", "東京競馬": "jra.tokyo", "中山競馬": "jra.nakayama",
     "中京競馬": "jra.chukyo", "京都競馬": "jra.kyoto", "阪神競馬": "jra.hanshin",
@@ -46,35 +45,32 @@ HEADERS = {
 }
 
 
-def fetch_netkeirin_keirin():
-    """netkeirinから競輪の開催状況を抽出"""
+def fetch_keirin(today_str):
+    """KEIRIN.JP公式APIから確実・高速に取得"""
     active = {}
+    url = f"https://keirin.jp/pc/dfw/datainfo/SCHEDULE/schedule_{today_str[:6]}.json"
     try:
-        url = "https://keirin.netkeirin.com/?rf=navi"
-        res = requests.get(url, headers=HEADERS, timeout=6)
+        res = requests.get(url, headers=HEADERS, timeout=5)
         if res.status_code == 200:
-            html = res.text
-            for v_name in KEIRIN_MAP.keys():
-                if v_name in html:
-                    idx = html.find(v_name)
-                    snippet = html[idx:idx + 300]
-                    if "開催終了" in snippet:
-                        active[v_name] = "【本日開催】 (開催終了)"
-                    else:
-                        match_r = re.search(r'(\d+R)', snippet)
-                        r_info = match_r.group(1) if match_r else "開催中"
-                        active[v_name] = f"【本日開催】 ({r_info})"
+            for item in res.json():
+                if str(item.get("hd")) == today_str:
+                    v_name = str(item.get("joName", "")).strip()
+                    if v_name in KEIRIN_MAP:
+                        if str(item.get("status")) == "1" or item.get("betFlg") is True:
+                            active[v_name] = "【本日開催】 (発売中)"
+                        else:
+                            active[v_name] = "【本日開催】 (開催終了)"
     except Exception as e:
         print(f"競輪取得エラー: {e}")
     return active
 
 
-def fetch_keibagojp_keiba():
-    """KEIBAG.JPから地方競馬の開催状況を抽出"""
+def fetch_keiba():
+    """KEIBAG.JPから地方競馬の開催状況・R数を抽出"""
     active = {}
     try:
         url = "https://www.keiba.go.jp/"
-        res = requests.get(url, headers=HEADERS, timeout=6)
+        res = requests.get(url, headers=HEADERS, timeout=5)
         if res.status_code == 200:
             html = res.text
             for map_key in KEIBA_MAP.keys():
@@ -91,18 +87,12 @@ def fetch_keibagojp_keiba():
                             active[map_key] = f"【本日開催】 ({r_info})"
     except Exception as e:
         print(f"地方競馬取得エラー: {e}")
-    return active
 
-
-def fetch_jra_official():
-    """JRA公式ホームページから中央競馬の開催場・R進行状況を抽出"""
-    active = {}
+    # JRA（土日判定）
     now = datetime.datetime.now()
-    # 土日の場合のみJRAサイトを解析
     if now.weekday() in [5, 6]:
         try:
-            url = "https://www.jra.go.jp/"
-            res = requests.get(url, headers=HEADERS, timeout=6)
+            res = requests.get("https://www.jra.go.jp/", headers=HEADERS, timeout=5)
             if res.status_code == 200:
                 html = res.text
                 jra_venues = ["札幌", "函館", "福島", "新潟", "東京", "中山", "中京", "京都", "阪神", "小倉"]
@@ -117,27 +107,21 @@ def fetch_jra_official():
                             match_r = re.search(r'(\d+R)', snippet)
                             r_info = match_r.group(1) if match_r else "開催中"
                             active[key] = f"【本日開催】 ({r_info})"
-                
-                # 総合枠（JRA公式・グリーンチャンネル用）
-                if active:
-                    active["ＪＲＡ公式"] = "【本日開催】 (中央競馬開催中)"
-                    active["ＪＲＡグリーン"] = "【本日開催】 (中央競馬中継)"
-                else:
-                    active["ＪＲＡ公式"] = "【本日開催】 (中央競馬)"
-                    active["ＪＲＡグリーン"] = "【本日開催】 (中央競馬)"
-        except Exception as e:
-            print(f"JRA取得エラー: {e}")
+                active["ＪＲＡ公式"] = "【本日開催】 (中央競馬開催中)"
+                active["ＪＲＡグリーン"] = "【本日開催】 (中央競馬中継)"
+        except Exception:
             active["ＪＲＡ公式"] = "【本日開催】 (中央競馬)"
             active["ＪＲＡグリーン"] = "【本日開催】 (中央競馬)"
+
     return active
 
 
-def fetch_gendai_autorace():
+def fetch_autorace():
     """日刊ゲンダイ オートレースから抽出"""
     active = {}
     try:
         url = "https://keirin-autorace.nikkan-gendai.com/Autorace"
-        res = requests.get(url, headers=HEADERS, timeout=6)
+        res = requests.get(url, headers=HEADERS, timeout=5)
         if res.status_code == 200:
             html = res.text
             for k in AUTO_MAP.keys():
@@ -162,13 +146,13 @@ def build_epg_xml():
 
     tv = ET.Element("tv", {"generator-info-name": "CombinedEPGGenerator"})
 
-    keirin_active = fetch_netkeirin_keirin()
-    keiba_active = fetch_keibagojp_keiba()
-    jra_active = fetch_jra_official()
-    auto_active = fetch_gendai_autorace()
+    keirin_active = fetch_keirin(today_str)
+    keiba_active = fetch_keiba()
+    auto_active = fetch_autorace()
 
-    # JRAデータを地方競馬マップに統合
-    keiba_active.update(jra_active)
+    print(f"競輪検出: {keirin_active}")
+    print(f"地方競馬検出: {keiba_active}")
+    print(f"オートレース検出: {auto_active}")
 
     def add_channels(map_dict, active_data):
         for v_name, tvg_id in map_dict.items():
