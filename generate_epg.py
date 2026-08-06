@@ -1,5 +1,4 @@
 import datetime
-import re
 import xml.etree.ElementTree as ET
 import requests
 
@@ -40,66 +39,31 @@ AUTO_MAP = {
 }
 
 HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
 }
 
 
 def fetch_keirin_schedule(date_str):
-    """KEIRIN.JP公式および楽天Kドリームスから競輪開催情報を取得"""
     active = {}
-    # ルート1: KEIRIN.JP公式
     url = f"https://keirin.jp/pc/dfw/datainfo/SCHEDULE/schedule_{date_str[:6]}.json"
     try:
         res = requests.get(url, headers=HEADERS, timeout=10)
         if res.status_code == 200:
             for item in res.json():
                 if str(item.get("hd")) == date_str:
-                    v_name = item.get("joName", "").strip()
+                    v_name = str(item.get("joName", "")).strip()
                     if v_name in KEIRIN_MAP:
                         active[v_name] = {
-                            "day_num": item.get("kaiDayName", ""),
-                            "grade": item.get("gradeName", ""),
-                            "last_time": item.get("lastRaceTime", "")
+                            "day_num": str(item.get("kaiDayName", "")),
+                            "grade": str(item.get("gradeName", "")),
+                            "last_time": str(item.get("lastRaceTime", ""))
                         }
     except Exception as e:
-        print(f"競輪公式取得エラー: {e}")
-
-    # ルート2: Kドリームス（フォールバック）
-    if not active:
-        try:
-            url2 = "https://kdr.goforit.jp/race/today"
-            res2 = requests.get(url2, headers=HEADERS, timeout=10)
-            if res2.status_code == 200:
-                for k in KEIRIN_MAP.keys():
-                    if k in res2.text:
-                        active[k] = {"day_num": "本日開催", "grade": "", "last_time": ""}
-        except Exception:
-            pass
-
+        print(f"競輪取得エラー: {e}")
     return active
 
 
-def fetch_jra_official_schedule():
-    """JRA（www.jra.go.jp）公式サイトから本日の開催場一覧を直接抽出"""
-    jra_venues = []
-    try:
-        url = "https://www.jra.go.jp/keiba/"
-        res = requests.get(url, headers=HEADERS, timeout=10)
-        res.encoding = res.apparent_encoding
-        if res.status_code == 200:
-            html = res.text
-            matches = re.findall(r'(\d+回(札幌|函館|福島|新潟|東京|中山|中京|京都|阪神|小倉)\d+日)', html)
-            found_set = set()
-            for m in matches:
-                found_set.add(m[1])
-            jra_venues = sorted(list(found_set))
-    except Exception as e:
-        print(f"JRA公式取得エラー: {e}")
-    return jra_venues
-
-
-def fetch_keiba_schedule(date_str):
-    """地方競馬およびJRAの開催情報を取得"""
+def fetch_keiba_schedule():
     active = {}
     try:
         url = "https://www.oddspark.com/keiba/JsonObject.do"
@@ -107,29 +71,20 @@ def fetch_keiba_schedule(date_str):
         if res.status_code == 200:
             data = res.json()
             for item in data.get("joList", []):
-                v_name = item.get("joName", "").strip()
+                v_name = str(item.get("joName", "")).strip()
                 for map_key in KEIBA_MAP.keys():
                     if "ＪＲＡ" not in map_key and v_name in map_key:
                         active[map_key] = {
-                            "day_num": item.get("day", ""),
-                            "grade": item.get("title", ""),
-                            "last_time": item.get("lastRaceTime", "")
+                            "day_num": str(item.get("day", "")),
+                            "grade": str(item.get("title", "")),
+                            "last_time": str(item.get("lastRaceTime", ""))
                         }
     except Exception as e:
         print(f"地方競馬取得エラー: {e}")
-
-    # JRA公式サイトから直接抽出
-    jra_venues = fetch_jra_official_schedule()
-    if jra_venues:
-        jra_desc = "・".join(jra_venues) + "競馬"
-        active["ＪＲＡ公式"] = {"day_num": "中央競馬", "grade": jra_desc, "last_time": "16:30"}
-        active["ＪＲＡグリーン"] = {"day_num": "中央競馬", "grade": jra_desc, "last_time": "16:30"}
-
     return active
 
 
-def fetch_auto_schedule(date_str):
-    """オートレース公式から本日の開催日程を取得"""
+def fetch_auto_schedule():
     active = {}
     try:
         url = "https://www.oddspark.com/autorace/JsonObject.do"
@@ -137,12 +92,12 @@ def fetch_auto_schedule(date_str):
         if res.status_code == 200:
             data = res.json()
             for item in data.get("joList", []):
-                v_name = item.get("joName", "").strip()
+                v_name = str(item.get("joName", "")).strip()
                 if v_name in AUTO_MAP:
                     active[v_name] = {
-                        "day_num": item.get("day", ""),
-                        "grade": item.get("title", ""),
-                        "last_time": item.get("lastRaceTime", "")
+                        "day_num": str(item.get("day", "")),
+                        "grade": str(item.get("title", "")),
+                        "last_time": str(item.get("lastRaceTime", ""))
                     }
     except Exception as e:
         print(f"オートレース取得エラー: {e}")
@@ -166,30 +121,14 @@ def add_channel_program(tv, map_dict, active_dict, today_str, now):
             grade = info.get("grade", "").strip()
             last_time = info.get("last_time", "").strip()
 
-            is_finished = False
+            title_parts = [p for p in [day_num, grade] if p]
+            suffix = f" ({' '.join(title_parts)})" if title_parts else ""
+            title_text = f"【開催】{suffix}".strip()
+            if title_text in ["【開催】 ()", "【開催】"]:
+                title_text = "【本日開催】"
+            desc_text = f"{today_display} {v_name} 開催中"
             if last_time:
-                try:
-                    lh, lm = map(int, last_time.split(":"))
-                    last_dt = now.replace(hour=lh, minute=lm, second=0) + datetime.timedelta(minutes=30)
-                    if now > last_dt:
-                        is_finished = True
-                except ValueError:
-                    pass
-
-            if is_finished:
-                title_text = "本日のレースは全レース終了しました"
-                desc_text = f"{today_display} {day_num} ({grade}) の全レースおよび払戻は終了いたしました。"
-            else:
-                title_parts = [p for p in [day_num, grade] if p]
-                suffix = f" ({' '.join(title_parts)})" if title_parts else ""
-                title_text = f"【開催】{suffix}".strip()
-                if title_text in ["【開催】 ()", "【開催】"]:
-                    title_text = "【本日開催】"
-                desc_text = f"{today_display} {v_name} 開催中"
-                if grade:
-                    desc_text += f"（{grade}）"
-                if last_time:
-                    desc_text += f" [最終R発走予定 {last_time} 頃]"
+                desc_text += f" [最終R発走予定 {last_time} 頃]"
         else:
             title_text = "本日非開催"
             desc_text = f"{today_display} 本日のレース開催はありません。"
@@ -208,15 +147,16 @@ def build_epg_xml():
     tv = ET.Element("tv", {"generator-info-name": "CombinedEPGGenerator"})
 
     keirin_active = fetch_keirin_schedule(today_str)
-    keiba_active = fetch_keiba_schedule(today_str)
-    auto_active = fetch_auto_schedule(today_str)
+    keiba_active = fetch_keiba_schedule()
+    auto_active = fetch_auto_schedule()
 
     add_channel_program(tv, KEIRIN_MAP, keirin_active, today_str, now)
     add_channel_program(tv, KEIBA_MAP, keiba_active, today_str, now)
     add_channel_program(tv, AUTO_MAP, auto_active, today_str, now)
 
     tree = ET.ElementTree(tv)
-    ET.indent(tree, space="  ")
+    if hasattr(ET, "indent"):
+        ET.indent(tree, space="  ")
     tree.write("epg.xml", encoding="utf-8", xml_declaration=True)
     print("epg.xml の生成が完了しました。")
 
