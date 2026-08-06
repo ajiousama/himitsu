@@ -9,7 +9,7 @@ KEIRIN_MAP = {
     "宇都宮": "keirin.utsunomiya", "大宮": "keirin.omiya", "西武園": "keirin.seibuen",
     "京王閣": "keirin.keiogatsu", "立川": "keirin.tachikawa", "松戸": "keirin.matsudo",
     "川崎": "keirin.kawasaki", "平塚": "keirin.hiratsuka", "小田原": "keirin.odawara",
-    "伊東温泉": "keirin.ito", "静岡": "keirin.shizuoka", "名古屋": "keirin.nagoya",
+    "伊東": "keirin.ito", "静岡": "keirin.shizuoka", "名古屋": "keirin.nagoya",
     "岐阜": "keirin.gifu", "大垣": "keirin.ogaki", "豊橋": "keirin.toyohashi",
     "松阪": "keirin.matsusaka", "四日市": "keirin.yokkaichi", "富山": "keirin.toyama",
     "福井": "keirin.fukui", "奈良": "keirin.nara", "岸和田": "keirin.kishiwada",
@@ -41,73 +41,63 @@ HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
 }
 
-def parse_status(snippet):
-    """取得したHTMLスニペットから時間帯・種別・R数を解析する"""
-    if not snippet or "非開催" in snippet:
-        return None
-
-    tags = []
-    if "モーニング" in snippet:
-        tags.append("モーニング🌅")
-    elif "ミッドナイト" in snippet:
-        tags.append("ミッドナイト⭐")
-    elif "ナイター" in snippet:
-        tags.append("ナイター🌙")
-    else:
-        tags.append("デイ")
-
-    if "ガールズ" in snippet or "L級" in snippet:
-        tags.append("ガールズ💛")
-
-    tag_str = " ".join(tags)
-
-    if "終了" in snippet or "発売終了" in snippet:
-        return f"【本日開催】 ({tag_str}) (開催終了)"
-    else:
-        match_r = re.search(r'(\d+R)', snippet)
-        r_info = match_r.group(1) if match_r else "発売中"
-        return f"【本日開催】 ({tag_str}) ({r_info})"
-
 def fetch_keirin():
-    """日刊ゲンダイ 競輪から確実・堅牢に抽出"""
+    """LotoPlace 競輪カレンダーから取得"""
     active = {}
     try:
-        url = "https://keirin-autorace.nikkan-gendai.com/Keirin"
+        url = "https://www.lotoplace.jp/keirin/calendars"
         res = requests.get(url, headers=HEADERS, timeout=5)
         if res.status_code == 200:
             html = res.text
             for k in KEIRIN_MAP.keys():
-                # 会場名がHTML内に含まれているか確認
                 if k in html:
-                    # 会場名の周辺（前後500文字）を切り出す
                     idx = html.find(k)
-                    snippet = html[max(0, idx - 100):idx + 400]
-                    
-                    # 非開催の文字が近くになければ開催中とみなす
-                    if "非開催" not in snippet:
-                        status = parse_status(snippet)
-                        if status:
-                            active[k] = status
+                    snippet = html[idx:idx + 1500]
+                    if "FII" in snippet or "FI" in snippet or "GIII" in snippet or "GII" in snippet or "GI" in snippet or "GP" in snippet or "開催" in snippet:
+                        tags = []
+                        if "モーニング" in snippet or "🌅" in snippet:
+                            tags.append("モーニング🌅")
+                        elif "ミッドナイト" in snippet or "⭐" in snippet:
+                            tags.append("ミッドナイト⭐")
+                        elif "ナイター" in snippet or "🌙" in snippet:
+                            tags.append("ナイター🌙")
+                        else:
+                            tags.append("デイ")
+
+                        if "ガールズ" in snippet or "💛" in snippet or "L級" in snippet:
+                            tags.append("ガールズ💛")
+
+                        tag_str = " ".join(tags)
+                        active[k] = f"【本日開催】 ({tag_str}) (発売中)"
     except Exception as e:
         print(f"競輪取得エラー: {e}")
     return active
 
 def fetch_keiba():
+    """楽天競馬 カレンダーから取得"""
     active = {}
     try:
-        url = "https://www.keiba.go.jp/"
+        url = "https://keiba.rakuten.co.jp/calendar"
         res = requests.get(url, headers=HEADERS, timeout=5)
         if res.status_code == 200:
             html = res.text
             for map_key in KEIBA_MAP.keys():
                 if "ＪＲＡ" not in map_key and "競馬" in map_key:
-                    short = map_key.replace("競馬", "")
-                    if short in html:
-                        idx = html.find(short)
-                        snippet = html[idx:idx + 400]
-                        status = parse_status(snippet)
-                        if status:
-                            active[map_key] = status
+                    if map_key in html:
+                        idx = html.find(map_key)
+                        snippet = html[idx:idx + 1500]
+                        if "開催" in snippet or "重賞" in snippet or "Jpn" in snippet:
+                            tags = []
+                            if "ナイター" in snippet or "🌙" in snippet:
+                                tags.append("ナイター🌙")
+                            else:
+                                tags.append("デイ")
+                                
+                            if "重賞" in snippet or "Jpn" in snippet:
+                                tags.append("重賞🔥")
+                                
+                            tag_str = " ".join(tags)
+                            active[map_key] = f"【本日開催】 ({tag_str}) (発売中)"
     except Exception as e:
         print(f"地方競馬取得エラー: {e}")
 
@@ -119,19 +109,33 @@ def fetch_keiba():
     return active
 
 def fetch_autorace():
+    """AutoRace.JP 公式カレンダーから取得"""
     active = {}
     try:
-        url = "https://keirin-autorace.nikkan-gendai.com/Autorace"
+        url = "https://autorace.jp/calendar/first/"
         res = requests.get(url, headers=HEADERS, timeout=5)
         if res.status_code == 200:
             html = res.text
             for k in AUTO_MAP.keys():
                 if k in html:
                     idx = html.find(k)
-                    snippet = html[idx:idx + 400]
-                    status = parse_status(snippet)
-                    if status:
-                        active[k] = status
+                    snippet = html[idx:idx + 1500]
+                    if "開催" in snippet or "ナイター" in snippet or "ミッドナイト" in snippet or "アーリー" in snippet or "アフター" in snippet or "SG" in snippet or "GI" in snippet or "GII" in snippet or "GIII" in snippet:
+                        tags = []
+                        if "ナイター" in snippet:
+                            tags.append("ナイター🌙")
+                        elif "ミッドナイト" in snippet:
+                            tags.append("ミッドナイト⭐")
+                        elif "アーリー" in snippet:
+                            tags.append("モーニング🌅")
+                        else:
+                            tags.append("デイ")
+
+                        if "SG" in snippet or "GI" in snippet or "GII" in snippet or "GIII" in snippet:
+                            tags.append("重賞🔥")
+
+                        tag_str = " ".join(tags)
+                        active[k] = f"【本日開催】 ({tag_str}) (発売中)"
     except Exception as e:
         print(f"オートレース取得エラー: {e}")
     return active
