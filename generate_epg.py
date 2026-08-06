@@ -41,60 +41,63 @@ HEADERS = {
 }
 
 
-def fetch_fast(url):
-    """爆速・海外IP制限回避取得（タイムアウト3秒）"""
-    endpoints = [
-        f"https://corsproxy.io/?{url}",
-        url
-    ]
-    for ep in endpoints:
+def fetch_speedchannel(today_str):
+    """スピードチャンネルの番組表JSONから競輪開催場を抽出"""
+    active = {}
+    url = f"https://www.speedchannel.co.jp/program/json/{today_str}.json"
+    try:
+        res = requests.get(url, headers=HEADERS, timeout=5)
+        if res.status_code == 200:
+            data = res.json()
+            for item in data.get("programs", []):
+                title = item.get("title", "") + item.get("detail", "")
+                for v_name in KEIRIN_MAP.keys():
+                    if v_name in title or v_name.replace("温泉", "") in title:
+                        if "終了" in title or "発売終了" in title:
+                            active[v_name] = "【本日開催】 (発売終了)"
+                        else:
+                            active[v_name] = "【本日開催】 (中継中)"
+    except Exception:
+        pass
+
+    # フォールバック（オッズパーク競輪）
+    if not active:
         try:
-            res = requests.get(ep, headers=HEADERS, timeout=3)
-            if res.status_code == 200 and len(res.text) > 100:
-                return res.text
+            res = requests.get("https://www.oddspark.com/keirin/", headers=HEADERS, timeout=5)
+            if res.status_code == 200:
+                html = res.text
+                for k in KEIRIN_MAP.keys():
+                    if f">{k}<" in html or f'"{k}"' in html or f"{k}競輪" in html:
+                        active[k] = "【本日開催】"
         except Exception:
             pass
-    return ""
 
-
-def fetch_keirin(today_str):
-    active = {}
-    url = f"https://keirin.jp/pc/dfw/datainfo/SCHEDULE/schedule_{today_str[:6]}.json"
-    try:
-        res = requests.get(url, headers=HEADERS, timeout=3)
-        if res.status_code == 200:
-            for item in res.json():
-                if str(item.get("hd")) == today_str:
-                    v_name = str(item.get("joName", "")).strip()
-                    if v_name in KEIRIN_MAP:
-                        if str(item.get("status")) == "1" or item.get("betFlg") is True:
-                            active[v_name] = "【本日開催】 (発売中)"
-                        else:
-                            active[v_name] = "【本日開催】 (発売終了)"
-    except Exception as e:
-        print(f"競輪判定エラー: {e}")
     return active
 
 
-def fetch_keiba():
+def fetch_keiba_livemovie():
+    """楽天競馬 ライブ動画ページ（livemovie）から正確に抽出"""
     active = {}
-    html = fetch_fast("https://keiba.rakuten.co.jp/")
-    if html:
-        pos_start = html.find("本日の開催情報")
-        pos_end = html.find("明日の開催情報")
-        target_html = html[pos_start:pos_end] if (pos_start != -1 and pos_end != -1) else html
+    try:
+        url = "https://keiba.rakuten.co.jp/livemovie"
+        res = requests.get(url, headers=HEADERS, timeout=5)
+        if res.status_code == 200:
+            html = res.text
+            for map_key in KEIBA_MAP.keys():
+                if "ＪＲＡ" not in map_key:
+                    short = map_key.replace("競馬", "").replace("南関東", "").replace("ホッカイドウ", "").replace("岩手", "").replace("(ばんえい)", "").replace("(門別)", "").replace("(盛岡)", "").replace("(水沢)", "").replace("(浦和)", "").replace("(船橋)", "").replace("(大井)", "").replace("(川崎)", "")
+                    
+                    if short in html:
+                        idx = html.find(short)
+                        snippet = html[idx:idx + 300]
+                        if "本日発売終了" in snippet or "発売終了" in snippet:
+                            active[map_key] = "【本日開催】 (発売終了)"
+                        elif "発走" in snippet or "R" in snippet or "まもなく" in snippet or "ライブ映像" in snippet:
+                            active[map_key] = "【本日開催】 (発売中)"
+    except Exception as e:
+        print(f"地方競馬エラー: {e}")
 
-        for map_key in KEIBA_MAP.keys():
-            if "ＪＲＡ" not in map_key:
-                short = map_key.replace("競馬", "").replace("南関東", "").replace("ホッカイドウ", "").replace("岩手", "").replace("(ばんえい)", "").replace("(門別)", "").replace("(盛岡)", "").replace("(水沢)", "").replace("(浦和)", "").replace("(船橋)", "").replace("(大井)", "").replace("(川崎)", "")
-                if short in target_html:
-                    venue_idx = target_html.find(short)
-                    card_snippet = target_html[venue_idx:venue_idx + 600]
-                    if "本日発売終了" in card_snippet or "発売終了" in card_snippet:
-                        active[map_key] = "【本日開催】 (発売終了)"
-                    else:
-                        active[map_key] = "【本日開催】 (発売中)"
-
+    # JRA（土日判定）
     now = datetime.datetime.now()
     if now.weekday() in [5, 6]:
         active["ＪＲＡ公式"] = "【本日開催】 (中央競馬)"
@@ -104,65 +107,71 @@ def fetch_keiba():
 
 
 def fetch_auto():
+    """オッズパークからのオートレース判定"""
     active = set()
-    html = fetch_fast("https://tipstar.com/autorace/channels")
-    if html:
-        for k in AUTO_MAP.keys():
-            if f">{k}<" in html or f'"{k}"' in html or f"button>{k}" in html:
-                active.add(k)
+    try:
+        res = requests.get("https://www.oddspark.com/autorace/", headers=HEADERS, timeout=5)
+        if res.status_code == 200:
+            html = res.text
+            for k in AUTO_MAP.keys():
+                if k in html:
+                    idx = html.find(k)
+                    snippet = html[idx:idx + 250] if idx != -1 else ""
+                    if "R" in snippet or "前売" in snippet or "投票" in snippet or "発走" in snippet:
+                        active.add(k)
+    except Exception as e:
+        print(f"オートレースエラー: {e}")
     return active
-
-
-def add_channel_program(tv, map_dict, active_data, today_str, now):
-    today_display = now.strftime("%Y年%m月%d日")
-
-    for v_name, tvg_id in map_dict.items():
-        channel = ET.SubElement(tv, "channel", id=tvg_id)
-        disp = ET.SubElement(channel, "display-name")
-        disp.text = v_name
-
-        start_xml = f"{today_str}000000 +0900"
-        stop_xml = f"{today_str}235959 +0900"
-
-        is_active = False
-        title_text = "【本日開催】"
-
-        if isinstance(active_data, dict) and v_name in active_data:
-            is_active = True
-            title_text = active_data[v_name]
-        elif isinstance(active_data, set) and v_name in active_data:
-            is_active = True
-
-        if is_active:
-            desc_text = f"{today_display} {v_name} レース開催中 ({title_text})"
-        else:
-            title_text = "本日非開催"
-            desc_text = f"{today_display} 本日のレース開催はありません。"
-
-        prog = ET.SubElement(tv, "programme", start=start_xml, stop=stop_xml, channel=tvg_id)
-        t_elem = ET.SubElement(prog, "title", lang="ja")
-        t_elem.text = title_text
-        d_elem = ET.SubElement(prog, "desc", lang="ja")
-        d_elem.text = desc_text
 
 
 def build_epg_xml():
     now = datetime.datetime.now()
     today_str = now.strftime("%Y%m%d")
+    today_display = now.strftime("%Y年%m月%d日")
 
     tv = ET.Element("tv", {"generator-info-name": "CombinedEPGGenerator"})
 
-    keirin_active = fetch_keirin(today_str)
-    keiba_active = fetch_keiba()
+    keirin_active = fetch_speedchannel(today_str)
+    keiba_active = fetch_keiba_livemovie()
     auto_active = fetch_auto()
 
     print(f"競輪検出: {keirin_active}")
     print(f"地方競馬検出: {keiba_active}")
     print(f"オートレース検出: {list(auto_active)}")
 
-    add_channel_program(tv, KEIRIN_MAP, keirin_active, today_str, now)
-    add_channel_program(tv, KEIBA_MAP, keiba_active, today_str, now)
-    add_channel_program(tv, AUTO_MAP, auto_active, today_str, now)
+    def add_channels(map_dict, active_data):
+        for v_name, tvg_id in map_dict.items():
+            channel = ET.SubElement(tv, "channel", id=tvg_id)
+            disp = ET.SubElement(channel, "display-name")
+            disp.text = v_name
+
+            start_xml = f"{today_str}000000 +0900"
+            stop_xml = f"{today_str}235959 +0900"
+
+            is_active = False
+            title_text = "【本日開催】"
+
+            if isinstance(active_data, dict) and v_name in active_data:
+                is_active = True
+                title_text = active_data[v_name]
+            elif isinstance(active_data, set) and v_name in active_data:
+                is_active = True
+
+            if is_active:
+                desc_text = f"{today_display} {v_name} レース開催中 ({title_text})"
+            else:
+                title_text = "本日非開催"
+                desc_text = f"{today_display} 本日のレース開催はありません。"
+
+            prog = ET.SubElement(tv, "programme", start=start_xml, stop=stop_xml, channel=tvg_id)
+            t_elem = ET.SubElement(prog, "title", lang="ja")
+            t_elem.text = title_text
+            d_elem = ET.SubElement(prog, "desc", lang="ja")
+            d_elem.text = desc_text
+
+    add_channels(KEIRIN_MAP, keirin_active)
+    add_channels(KEIBA_MAP, keiba_active)
+    add_channels(AUTO_MAP, auto_active)
 
     tree = ET.ElementTree(tv)
     if hasattr(ET, "indent"):
