@@ -37,70 +37,67 @@ AUTO_MAP = {
 }
 
 HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-    "Accept": "*/*"
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
 }
 
 
-def fetch_keirin(today_str):
-    """KEIRIN.JPの月間スケジュール（本日開催の場だけ抽出）"""
+def fetch_keirin():
+    """netkeirin（海外IPブロックなし）から本日開催場を取得"""
     active = set()
-    url = f"https://keirin.jp/pc/dfw/datainfo/SCHEDULE/schedule_{today_str[:6]}.json"
     try:
+        url = "https://netkeirin.netkeiba.com/"
         res = requests.get(url, headers=HEADERS, timeout=10)
         if res.status_code == 200:
-            for item in res.json():
-                if str(item.get("hd")) == today_str:
-                    v_name = str(item.get("joName", "")).strip()
-                    if v_name in KEIRIN_MAP:
-                        active.add(v_name)
+            html = res.text
+            for k in KEIRIN_MAP.keys():
+                # 開催中の競輪場名を検索
+                if f"{k}競輪" in html or f">{k}<" in html or f'alt="{k}"' in html:
+                    active.add(k)
     except Exception as e:
-        print(f"競輪エラー: {e}")
+        print(f"競輪取得エラー: {e}")
     return active
 
 
-def fetch_keiba(today_str):
-    """地方競馬（楽天競馬の本日出走枠から厳密抽出）およびJRA"""
+def fetch_keiba():
+    """netkeiba地方競馬（海外IPブロックなし）およびJRA判定"""
     active = {}
     try:
-        url = "https://keiba.rakuten.co.jp/racecard/list"
+        url = "https://nar.netkeiba.com/top/"
         res = requests.get(url, headers=HEADERS, timeout=10)
         if res.status_code == 200:
             html = res.text
             for map_key in KEIBA_MAP.keys():
                 if "ＪＲＡ" not in map_key:
-                    # 地名部分
                     short = map_key.replace("競馬", "").replace("南関東", "").replace("ホッカイドウ", "").replace("岩手", "").replace("(ばんえい)", "").replace("(門別)", "").replace("(盛岡)", "").replace("(水沢)", "").replace("(浦和)", "").replace("(船橋)", "").replace("(大井)", "").replace("(川崎)", "")
-                    if short and short in html:
+                    if short and (f">{short}<" in html or f'alt="{short}"' in html or f"{short}競馬" in html):
                         active[map_key] = "【本日開催】"
     except Exception as e:
-        print(f"地方競馬エラー: {e}")
+        print(f"地方競馬取得エラー: {e}")
 
     # JRA（土日判定）
     now = datetime.datetime.now()
     if now.weekday() in [5, 6]:
         active["ＪＲＡ公式"] = "【本日開催】 (中央競馬)"
-        active["ＪＲＡグリーン"] = "【本日開催】 (中央競馬)"
+        active["ＪRAグリーン"] = "【本日開催】 (中央競馬)"
 
     return active
 
 
 def fetch_auto():
-    """オートレース（本日開催場のみ厳密判別）"""
+    """スマホ版オートレース公式（海外IPからの遮断がゆるいエンドポイント）"""
     active = set()
     try:
-        # オートレース公式の本日のレース一覧/開催情報エリアから抽出
-        url = "https://autorace.jp/netstadium/Live"
+        url = "https://sp.autorace.jp/"
         res = requests.get(url, headers=HEADERS, timeout=10)
         if res.status_code == 200:
             html = res.text
             for k in AUTO_MAP.keys():
-                # 「川口 ライブ」「伊勢崎 開催」など、ライブ/レース対象になっている表記を検索
-                pattern = f"{k}[^<]*?(ライブ|レース|開催中|本日のレース)"
-                if re.search(pattern, html):
-                    active.add(k)
+                if f"{k}" in html:
+                    # 開催表記の周辺文字列チェック
+                    if re.search(f"{k}[^<]*?(レース|ライブ|開催|本日)", html):
+                        active.add(k)
     except Exception as e:
-        print(f"オートレースエラー: {e}")
+        print(f"オートレース取得エラー: {e}")
     return active
 
 
@@ -143,13 +140,13 @@ def build_epg_xml():
 
     tv = ET.Element("tv", {"generator-info-name": "CombinedEPGGenerator"})
 
-    keirin_active = fetch_keirin(today_str)
-    keiba_active = fetch_keiba(today_str)
+    keirin_active = fetch_keirin()
+    keiba_active = fetch_keiba()
     auto_active = fetch_auto()
 
     print(f"競輪検出: {list(keirin_active)}")
-    print(f"競馬検出: {list(keiba_active.keys())}")
-    print(f"オート検出: {list(auto_active)}")
+    print(f"地方競馬検出: {list(keiba_active.keys())}")
+    print(f"オートレース検出: {list(auto_active)}")
 
     add_channel_program(tv, KEIRIN_MAP, keirin_active, today_str, now)
     add_channel_program(tv, KEIBA_MAP, keiba_active, today_str, now)
