@@ -21,14 +21,11 @@ KEIRIN_MAP = {
 }
 
 KEIBA_MAP = {
-    "帯広競馬(ばんえい)": "chihou.obihiro", "ホッカイドウ競馬(門別)": "chihou.mombetsu",
-    "岩手競馬(盛岡)": "chihou.morioka", "岩手競馬(水沢)": "chihou.mizusawa",
-    "南関東競馬(浦和)": "chihou.urawa", "南関東競馬(船橋)": "chihou.funabashi",
-    "南関東競馬(大井)": "chihou.oi", "南関東競馬(川崎)": "chihou.kawasaki_keiba",
-    "金沢競馬": "chihou.kanazawa", "名古屋競馬": "chihou.nagoya_keiba",
-    "笠松競馬": "chihou.kasamatsu", "園田競馬": "chihou.sonoda",
-    "姫路競馬": "chihou.himeji", "高知競馬": "chihou.kochi_keiba",
-    "佐賀競馬": "chihou.saga", 
+    "帯広": "chihou.obihiro", "門別": "chihou.mombetsu", "盛岡": "chihou.morioka",
+    "水沢": "chihou.mizusawa", "浦和": "chihou.urawa", "船橋": "chihou.funabashi",
+    "大井": "chihou.oi", "川崎": "chihou.kawasaki_keiba", "金沢": "chihou.kanazawa",
+    "名古屋": "chihou.nagoya_keiba", "笠松": "chihou.kasamatsu", "園田": "chihou.sonoda",
+    "姫路": "chihou.himeji", "高知": "chihou.kochi_keiba", "佐賀": "chihou.saga",
     "ＪＲＡ公式": "jra.official", "ＪＲＡグリーン": "jra.green"
 }
 
@@ -37,67 +34,55 @@ AUTO_MAP = {
     "飯塚": "auto.iizuka", "山陽": "auto.sanyo"
 }
 
-HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
-}
+HEADERS = {"User-Agent": "Mozilla/5.0"}
+
+def get_tags(snippet):
+    tags = []
+    if any(x in snippet for x in ["morning", "モーニング", "🌅"]): tags.append("モーニング🌅")
+    if any(x in snippet for x in ["night", "ナイター", "🌙", "☆"]): tags.append("ナイター🌙")
+    if any(x in snippet for x in ["midnight", "ミッドナイト", "⭐"]): tags.append("ミッドナイト⭐")
+    if any(x in snippet for x in ["girl", "ガールズ", "💛"]): tags.append("ガールズ💛")
+    if any(x in snippet for x in ["重賞", "Jpn", "SG", "GI", "重"]): tags.append("重賞🔥")
+    return tags
 
 def fetch_keirin():
-    """LotoPlace 競輪カレンダーから取得"""
     active = {}
     try:
-        url = "https://www.lotoplace.jp/keirin/calendars"
-        res = requests.get(url, headers=HEADERS, timeout=5)
+        url = "https://www.winticket.jp/keirin/schedules"
+        res = requests.get(url, headers=HEADERS, timeout=15)
         if res.status_code == 200:
-            html = res.text
+            today_day = str(datetime.datetime.now().day)
             for k in KEIRIN_MAP.keys():
-                if k in html:
-                    idx = html.find(k)
-                    snippet = html[idx:idx + 1500]
-                    if "FII" in snippet or "FI" in snippet or "GIII" in snippet or "GII" in snippet or "GI" in snippet or "GP" in snippet or "開催" in snippet:
-                        tags = []
-                        if "モーニング" in snippet or "🌅" in snippet:
-                            tags.append("モーニング🌅")
-                        elif "ミッドナイト" in snippet or "⭐" in snippet:
-                            tags.append("ミッドナイト⭐")
-                        elif "ナイター" in snippet or "🌙" in snippet:
-                            tags.append("ナイター🌙")
-                        else:
-                            tags.append("デイ")
-
-                        if "ガールズ" in snippet or "💛" in snippet or "L級" in snippet:
-                            tags.append("ガールズ💛")
-
-                        tag_str = " ".join(tags)
-                        active[k] = f"【本日開催】 ({tag_str}) (発売中)"
+                if k in res.text:
+                    idx = res.text.find(k)
+                    snippet = res.text[idx:idx+1500]
+                    if today_day in snippet or "開催" in snippet:
+                        tags = get_tags(snippet)
+                        if not tags: tags = ["デイ"]
+                        active[k] = f"【本日開催】 ({' '.join(tags)})"
     except Exception as e:
         print(f"競輪取得エラー: {e}")
     return active
 
 def fetch_keiba():
-    """楽天競馬 カレンダーから取得"""
     active = {}
     try:
-        url = "https://keiba.rakuten.co.jp/calendar"
-        res = requests.get(url, headers=HEADERS, timeout=5)
+        url = "https://nar.netkeiba.com/top/calendar.html"
+        res = requests.get(url, headers=HEADERS, timeout=15)
         if res.status_code == 200:
-            html = res.text
-            for map_key in KEIBA_MAP.keys():
-                if "ＪＲＡ" not in map_key and "競馬" in map_key:
-                    if map_key in html:
-                        idx = html.find(map_key)
-                        snippet = html[idx:idx + 1500]
-                        if "開催" in snippet or "重賞" in snippet or "Jpn" in snippet:
-                            tags = []
-                            if "ナイター" in snippet or "🌙" in snippet:
-                                tags.append("ナイター🌙")
-                            else:
-                                tags.append("デイ")
-                                
-                            if "重賞" in snippet or "Jpn" in snippet:
-                                tags.append("重賞🔥")
-                                
-                            tag_str = " ".join(tags)
-                            active[map_key] = f"【本日開催】 ({tag_str}) (発売中)"
+            today_day = datetime.datetime.now().day
+            pattern = f'>{today_day}</div>(.*?)</div>'
+            match = re.search(pattern, res.text, re.DOTALL)
+            if match:
+                snippet = match.group(1)
+                for name in KEIBA_MAP.keys():
+                    if name in res.text:
+                        # 各場の周辺情報も含めてタグ判定
+                        idx = res.text.find(name)
+                        sub_snippet = res.text[idx:idx+600]
+                        tags = get_tags(sub_snippet)
+                        if not tags: tags = ["デイ"]
+                        active[name] = f"【本日開催】 ({' '.join(tags)})"
     except Exception as e:
         print(f"地方競馬取得エラー: {e}")
 
@@ -109,86 +94,46 @@ def fetch_keiba():
     return active
 
 def fetch_autorace():
-    """AutoRace.JP 公式カレンダーから取得"""
     active = {}
     try:
         url = "https://autorace.jp/calendar/first/"
-        res = requests.get(url, headers=HEADERS, timeout=5)
+        res = requests.get(url, headers=HEADERS, timeout=15)
         if res.status_code == 200:
-            html = res.text
             for k in AUTO_MAP.keys():
-                if k in html:
-                    idx = html.find(k)
-                    snippet = html[idx:idx + 1500]
-                    if "開催" in snippet or "ナイター" in snippet or "ミッドナイト" in snippet or "アーリー" in snippet or "アフター" in snippet or "SG" in snippet or "GI" in snippet or "GII" in snippet or "GIII" in snippet:
-                        tags = []
-                        if "ナイター" in snippet:
-                            tags.append("ナイター🌙")
-                        elif "ミッドナイト" in snippet:
-                            tags.append("ミッドナイト⭐")
-                        elif "アーリー" in snippet:
-                            tags.append("モーニング🌅")
-                        else:
-                            tags.append("デイ")
-
-                        if "SG" in snippet or "GI" in snippet or "GII" in snippet or "GIII" in snippet:
-                            tags.append("重賞🔥")
-
-                        tag_str = " ".join(tags)
-                        active[k] = f"【本日開催】 ({tag_str}) (発売中)"
+                if k in res.text:
+                    idx = res.text.find(k)
+                    snippet = res.text[idx:idx+1000]
+                    if "開催" in snippet or "レース" in snippet:
+                        tags = get_tags(snippet)
+                        if not tags: tags = ["デイ"]
+                        active[k] = f"【本日開催】 ({' '.join(tags)})"
     except Exception as e:
         print(f"オートレース取得エラー: {e}")
     return active
 
 def build_epg_xml():
-    now = datetime.datetime.now()
-    today_str = now.strftime("%Y%m%d")
-    today_display = now.strftime("%Y年%m月%d日")
-
     tv = ET.Element("tv", {"generator-info-name": "CombinedEPGGenerator"})
+    today = datetime.datetime.now().strftime("%Y%m%d")
+    today_display = datetime.datetime.now().strftime("%Y年%m月%d日")
 
-    keirin_active = fetch_keirin()
-    keiba_active = fetch_keiba()
-    auto_active = fetch_autorace()
+    keirin = fetch_keirin()
+    keiba = fetch_keiba()
+    auto = fetch_autorace()
 
-    print(f"競輪検出: {keirin_active}")
-    print(f"地方競馬検出: {keiba_active}")
-    print(f"オートレース検出: {auto_active}")
+    all_data = {**keirin, **keiba, **auto}
+    all_maps = {**KEIRIN_MAP, **KEIBA_MAP, **AUTO_MAP}
 
-    def add_channels(map_dict, active_data):
-        for v_name, tvg_id in map_dict.items():
-            channel = ET.SubElement(tv, "channel", id=tvg_id)
-            disp = ET.SubElement(channel, "display-name")
-            disp.text = v_name
+    for v_name, tvg_id in all_maps.items():
+        channel = ET.SubElement(tv, "channel", id=tvg_id)
+        ET.SubElement(channel, "display-name").text = v_name
 
-            start_xml = f"{today_str}000000 +0900"
-            stop_xml = f"{today_str}235959 +0900"
-
-            is_active = False
-            title_text = "本日非開催"
-
-            if v_name in active_data:
-                is_active = True
-                title_text = active_data[v_name]
-
-            if is_active:
-                desc_text = f"{today_display} {v_name} ステータス: {title_text}"
-            else:
-                desc_text = f"{today_display} 本日のレース開催はありません。"
-
-            prog = ET.SubElement(tv, "programme", start=start_xml, stop=stop_xml, channel=tvg_id)
-            t_elem = ET.SubElement(prog, "title", lang="ja")
-            t_elem.text = title_text
-            d_elem = ET.SubElement(prog, "desc", lang="ja")
-            d_elem.text = desc_text
-
-    add_channels(KEIRIN_MAP, keirin_active)
-    add_channels(KEIBA_MAP, keiba_active)
-    add_channels(AUTO_MAP, auto_active)
+        status = all_data.get(v_name, "本日非開催")
+        prog = ET.SubElement(tv, "programme", start=f"{today}000000 +0900", stop=f"{today}235959 +0900", channel=tvg_id)
+        ET.SubElement(prog, "title", lang="ja").text = status
+        ET.SubElement(prog, "desc", lang="ja").text = f"{today_display} {v_name} ステータス: {status}"
 
     tree = ET.ElementTree(tv)
-    if hasattr(ET, "indent"):
-        ET.indent(tree, space="  ")
+    if hasattr(ET, "indent"): ET.indent(tree, space="  ")
     tree.write("epg.xml", encoding="utf-8", xml_declaration=True)
     print("epg.xml の生成が完了しました。")
 
