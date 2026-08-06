@@ -34,7 +34,7 @@ AUTO_MAP = {
     "飯塚": "auto.iizuka", "山陽": "auto.sanyo"
 }
 
-HEADERS = {"User-Agent": "Mozilla/5.0"}
+HEADERS = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
 
 def get_tags(snippet):
     tags = []
@@ -48,8 +48,7 @@ def get_tags(snippet):
 def fetch_keirin():
     active = {}
     try:
-        url = "https://www.winticket.jp/keirin/schedules"
-        res = requests.get(url, headers=HEADERS, timeout=15)
+        res = requests.get("https://www.winticket.jp/keirin/schedules", headers=HEADERS, timeout=5)
         if res.status_code == 200:
             today_day = str(datetime.datetime.now().day)
             for k in KEIRIN_MAP.keys():
@@ -61,14 +60,13 @@ def fetch_keirin():
                         if not tags: tags = ["デイ"]
                         active[k] = f"【本日開催】 ({' '.join(tags)})"
     except Exception as e:
-        print(f"競輪取得エラー: {e}")
+        print(f"競輪取得スキップ: {e}")
     return active
 
 def fetch_keiba():
     active = {}
     try:
-        url = "https://nar.netkeiba.com/top/calendar.html"
-        res = requests.get(url, headers=HEADERS, timeout=15)
+        res = requests.get("https://nar.netkeiba.com/top/calendar.html", headers=HEADERS, timeout=5)
         if res.status_code == 200:
             today_day = datetime.datetime.now().day
             pattern = f'>{today_day}</div>(.*?)</div>'
@@ -77,14 +75,13 @@ def fetch_keiba():
                 snippet = match.group(1)
                 for name in KEIBA_MAP.keys():
                     if name in res.text:
-                        # 各場の周辺情報も含めてタグ判定
                         idx = res.text.find(name)
                         sub_snippet = res.text[idx:idx+600]
                         tags = get_tags(sub_snippet)
                         if not tags: tags = ["デイ"]
                         active[name] = f"【本日開催】 ({' '.join(tags)})"
     except Exception as e:
-        print(f"地方競馬取得エラー: {e}")
+        print(f"地方競馬取得スキップ: {e}")
 
     now = datetime.datetime.now()
     if now.weekday() in [5, 6]:
@@ -96,8 +93,7 @@ def fetch_keiba():
 def fetch_autorace():
     active = {}
     try:
-        url = "https://autorace.jp/calendar/first/"
-        res = requests.get(url, headers=HEADERS, timeout=15)
+        res = requests.get("https://autorace.jp/calendar/first/", headers=HEADERS, timeout=5)
         if res.status_code == 200:
             for k in AUTO_MAP.keys():
                 if k in res.text:
@@ -108,7 +104,7 @@ def fetch_autorace():
                         if not tags: tags = ["デイ"]
                         active[k] = f"【本日開催】 ({' '.join(tags)})"
     except Exception as e:
-        print(f"オートレース取得エラー: {e}")
+        print(f"オートレース取得スキップ: {e}")
     return active
 
 def build_epg_xml():
