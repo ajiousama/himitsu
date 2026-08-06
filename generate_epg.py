@@ -21,14 +21,11 @@ KEIRIN_MAP = {
 }
 
 KEIBA_MAP = {
-    "帯広競馬(ばんえい)": "chihou.obihiro", "ホッカイドウ競馬(門別)": "chihou.mombetsu",
-    "岩手競馬(盛岡)": "chihou.morioka", "岩手競馬(水沢)": "chihou.mizusawa",
-    "南関東競馬(浦和)": "chihou.urawa", "南関東競馬(船橋)": "chihou.funabashi",
-    "南関東競馬(大井)": "chihou.oi", "南関東競馬(川崎)": "chihou.kawasaki_keiba",
-    "金沢競馬": "chihou.kanazawa", "名古屋競馬": "chihou.nagoya_keiba",
-    "笠松競馬": "chihou.kasamatsu", "園田競馬": "chihou.sonoda",
-    "姫路競馬": "chihou.himeji", "高知競馬": "chihou.kochi_keiba",
-    "佐賀競馬": "chihou.saga", 
+    "帯広": "chihou.obihiro", "門別": "chihou.mombetsu", "盛岡": "chihou.morioka",
+    "水沢": "chihou.mizusawa", "浦和": "chihou.urawa", "船橋": "chihou.funabashi",
+    "大井": "chihou.oi", "川崎": "chihou.kawasaki_keiba", "金沢": "chihou.kanazawa",
+    "名古屋": "chihou.nagoya_keiba", "笠松": "chihou.kasamatsu", "園田": "chihou.sonoda",
+    "姫路": "chihou.himeji", "高知": "chihou.kochi_keiba", "佐賀": "chihou.saga",
     "ＪＲＡ公式": "jra.official", "ＪＲＡグリーン": "jra.green"
 }
 
@@ -37,7 +34,9 @@ AUTO_MAP = {
     "飯塚": "auto.iizuka", "山陽": "auto.sanyo"
 }
 
-HEADERS = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
+HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
+}
 
 def get_tags(snippet):
     tags = []
@@ -75,18 +74,18 @@ def fetch_keirin():
 def fetch_keiba():
     active = {}
     try:
-        res = requests.get("https://keiba.rakuten.co.jp/calendar", headers=HEADERS, timeout=5)
+        # netkeibaのカレンダーから確実に取得（timeoutを5秒に設定して絶対に固まらないようにする）
+        res = requests.get("https://nar.netkeiba.com/top/calendar.html", headers=HEADERS, timeout=5)
         if res.status_code == 200:
             html = res.text
-            for map_key in KEIBA_MAP.keys():
-                if "ＪＲＡ" not in map_key and "競馬" in map_key:
-                    if map_key in html:
-                        idx = html.find(map_key)
-                        snippet = html[idx:idx + 1500]
-                        if "開催" in snippet or "重賞" in snippet or "Jpn" in snippet:
-                            tags = get_tags(snippet)
-                            if not tags: tags = ["デイ"]
-                            active[map_key] = f"【本日開催】 ({' '.join(tags)})"
+            for name in KEIBA_MAP.keys():
+                if name in html:
+                    idx = html.find(name)
+                    snippet = html[max(0, idx-100):idx+600]
+                    if "開催" in snippet or "重" in snippet or "☆" in snippet or "IPAT" in snippet:
+                        tags = get_tags(snippet)
+                        if not tags: tags = ["デイ"]
+                        active[name] = f"【本日開催】 ({' '.join(tags)})"
     except Exception as e:
         print(f"地方競馬取得スキップ: {e}")
 
@@ -106,7 +105,7 @@ def fetch_autorace():
             for k in AUTO_MAP.keys():
                 if k in html:
                     idx = html.find(k)
-                    snippet = html[idx:idx + 1500]
+                    snippet = html[idx:idx + 1000]
                     if "開催" in snippet or "ナイター" in snippet or "ミッドナイト" in snippet or "SG" in snippet or "GI" in snippet:
                         tags = get_tags(snippet)
                         if not tags: tags = ["デイ"]
