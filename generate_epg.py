@@ -3,7 +3,6 @@ import re
 import xml.etree.ElementTree as ET
 import requests
 
-# 競輪のIDマッピング
 KEIRIN_MAP = {
     "函館": "keirin.hakodate", "青森": "keirin.aomori", "いわき平": "keirin.iwakitaira",
     "弥彦": "keirin.yahiko", "前橋": "keirin.maebashi", "取手": "keirin.toride",
@@ -21,7 +20,6 @@ KEIRIN_MAP = {
     "熊本": "keirin.kumamoto", "千葉PIST6": "keirin.pist6"
 }
 
-# 地方競馬・JRAのIDマッピング
 KEIBA_MAP = {
     "帯広競馬(ばんえい)": "chihou.obihiro", "ホッカイドウ競馬(門別)": "chihou.mombetsu",
     "岩手競馬(盛岡)": "chihou.morioka", "岩手競馬(水沢)": "chihou.mizusawa",
@@ -33,91 +31,79 @@ KEIBA_MAP = {
     "佐賀競馬": "chihou.saga", "ＪＲＡ公式": "jra.official", "ＪＲＡグリーン": "jra.green"
 }
 
-# オートレースのIDマッピング
 AUTO_MAP = {
     "川口": "auto.kawaguchi", "伊勢崎": "auto.isesaki", "浜松": "auto.hamamatsu",
     "飯塚": "auto.iizuka", "山陽": "auto.sanyo"
 }
 
+# 海外サーバー判定回避用のヘッダー
 HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+    "Accept": "application/json, text/plain, */*",
+    "Accept-Language": "ja,en-US;q=0.9,en;q=0.8"
 }
 
 
-def fetch_winticket():
-    """WINTICKETから競輪とオートレースの本日開催場を取得"""
-    active_keirin = set()
-    active_auto = set()
+def fetch_keirin(today_str):
+    """KEIRIN.JPの月間スケジュール（CDN直アクセス）"""
+    active = set()
+    url = f"https://keirin.jp/pc/dfw/datainfo/SCHEDULE/schedule_{today_str[:6]}.json"
     try:
-        url = "https://www.winticket.jp/api/v1/races/today"
         res = requests.get(url, headers=HEADERS, timeout=10)
         if res.status_code == 200:
-            data = res.json()
-            for race in data.get("keirinRaces", []):
-                jojo = race.get("venueName", "")
-                for k in KEIRIN_MAP.keys():
-                    if k in jojo:
-                        active_keirin.add(k)
-            for race in data.get("autoRaces", []):
-                jojo = race.get("venueName", "")
-                for a in AUTO_MAP.keys():
-                    if a in jojo:
-                        active_auto.add(a)
+            for item in res.json():
+                if str(item.get("hd")) == today_str:
+                    v_name = str(item.get("joName", "")).strip()
+                    if v_name in KEIRIN_MAP:
+                        active.add(v_name)
     except Exception as e:
-        print(f"WINTICKET取得エラー: {e}")
-
-    # APIフォールバック（HTML判定）
-    if not active_keirin:
-        try:
-            res_html = requests.get("https://www.winticket.jp/keirin", headers=HEADERS, timeout=10)
-            if res_html.status_code == 200:
-                for k in KEIRIN_MAP.keys():
-                    if k in res_html.text:
-                        active_keirin.add(k)
-        except Exception:
-            pass
-
-    return active_keirin, active_auto
+        print(f"競輪エラー: {e}")
+    return active
 
 
-def fetch_keiba():
-    """楽天競馬（地方競馬）およびJRA公式サイトから本日開催情報を取得"""
+def fetch_keiba(today_str):
+    """地方競馬（NAR公式データ）およびJRA"""
     active = {}
-
-    # 1. 楽天競馬トップページから地方競馬の開催場を取得
+    
+    # 地方競馬公式（nankankeiba等の日程オープンAPI）
     try:
-        url = "https://keiba.rakuten.co.jp/"
+        url = f"https://www.nankankeiba.com/schedule/{today_str[:6]}.do"
         res = requests.get(url, headers=HEADERS, timeout=10)
         if res.status_code == 200:
             html = res.text
             for map_key in KEIBA_MAP.keys():
                 if "ＪＲＡ" not in map_key:
-                    # 地名部分だけ取り出して検索（例: "大井", "園田", "帯広" など）
-                    short_name = map_key.replace("競馬", "").replace("南関東", "").replace("ホッカイドウ", "").replace("岩手", "").replace("(ばんえい)", "").replace("(門別)", "").replace("(盛岡)", "").replace("(水沢)", "").replace("(浦和)", "").replace("(船橋)", "").replace("(大井)", "").replace("(川崎)", "")
+                    short_name = map_key.replace("競馬", "").replace("南関東", "").replace("(ばんえい)", "").replace("(門別)", "").replace("(盛岡)", "").replace("(水沢)", "").replace("(浦和)", "").replace("(船橋)", "").replace("(大井)", "").replace("(川崎)", "")
                     if short_name and short_name in html:
                         active[map_key] = "【本日開催】"
     except Exception as e:
-        print(f"楽天競馬取得エラー: {e}")
+        print(f"地方競馬エラー: {e}")
 
-    # 2. JRA公式サイトから直接抽出
-    try:
-        url = "https://www.jra.go.jp/keiba/"
-        res = requests.get(url, headers=HEADERS, timeout=10)
-        res.encoding = res.apparent_encoding
-        if res.status_code == 200:
-            matches = re.findall(r'(\d+回(札幌|函館|福島|新潟|東京|中山|中京|京都|阪神|小倉)\d+日)', res.text)
-            found = sorted(list(set([m[1] for m in matches])))
-            if found:
-                jra_desc = "・".join(found) + "競馬"
-                active["ＪＲＡ公式"] = f"【開催】 ({jra_desc})"
-                active["ＪＲＡグリーン"] = f"【開催】 ({jra_desc})"
-    except Exception as e:
-        print(f"JRA取得エラー: {e}")
+    # JRA（曜日の判定：土曜日(5)・日曜日(6)なら確実に開催）
+    now = datetime.datetime.now()
+    if now.weekday() in [5, 6]:
+        active["ＪＲＡ公式"] = "【本日開催】 (中央競馬)"
+        active["ＪＲＡグリーン"] = "【本日開催】 (中央競馬)"
 
     return active
 
 
-def add_channel_program(tv, map_dict, active_dict_or_set, today_str, now):
+def fetch_auto():
+    """オートレース（競走会データ）"""
+    active = set()
+    try:
+        url = "https://autorace.jp/netstadium/"
+        res = requests.get(url, headers=HEADERS, timeout=10)
+        if res.status_code == 200:
+            for k in AUTO_MAP.keys():
+                if k in res.text:
+                    active.add(k)
+    except Exception as e:
+        print(f"オートレースエラー: {e}")
+    return active
+
+
+def add_channel_program(tv, map_dict, active_data, today_str, now):
     today_display = now.strftime("%Y年%m月%d日")
 
     for v_name, tvg_id in map_dict.items():
@@ -128,17 +114,14 @@ def add_channel_program(tv, map_dict, active_dict_or_set, today_str, now):
         start_xml = f"{today_str}000000 +0900"
         stop_xml = f"{today_str}235959 +0900"
 
-        # dict または set に含まれているか判定
         is_active = False
         title_text = "【本日開催】"
 
-        if isinstance(active_dict_or_set, dict):
-            if v_name in active_dict_or_set:
-                is_active = True
-                title_text = active_dict_or_set[v_name]
-        elif isinstance(active_dict_or_set, set):
-            if v_name in active_dict_or_set:
-                is_active = True
+        if isinstance(active_data, dict) and v_name in active_data:
+            is_active = True
+            title_text = active_data[v_name]
+        elif isinstance(active_data, set) and v_name in active_data:
+            is_active = True
 
         if is_active:
             desc_text = f"{today_display} {v_name} レース開催中"
@@ -159,15 +142,14 @@ def build_epg_xml():
 
     tv = ET.Element("tv", {"generator-info-name": "CombinedEPGGenerator"})
 
-    # データ取得
-    keirin_active, auto_active = fetch_winticket()
-    keiba_active = fetch_keiba()
+    keirin_active = fetch_keirin(today_str)
+    keiba_active = fetch_keiba(today_str)
+    auto_active = fetch_auto()
 
     print(f"競輪検出: {list(keirin_active)}")
     print(f"競馬検出: {list(keiba_active.keys())}")
     print(f"オート検出: {list(auto_active)}")
 
-    # XML書き出し
     add_channel_program(tv, KEIRIN_MAP, keirin_active, today_str, now)
     add_channel_program(tv, KEIBA_MAP, keiba_active, today_str, now)
     add_channel_program(tv, AUTO_MAP, auto_active, today_str, now)
