@@ -36,16 +36,14 @@ AUTO_MAP = {
     "飯塚": "auto.iizuka", "山陽": "auto.sanyo"
 }
 
-# 海外サーバー判定回避用のヘッダー
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-    "Accept": "application/json, text/plain, */*",
-    "Accept-Language": "ja,en-US;q=0.9,en;q=0.8"
+    "Accept": "*/*"
 }
 
 
 def fetch_keirin(today_str):
-    """KEIRIN.JPの月間スケジュール（CDN直アクセス）"""
+    """KEIRIN.JPの月間スケジュール（本日開催の場だけ抽出）"""
     active = set()
     url = f"https://keirin.jp/pc/dfw/datainfo/SCHEDULE/schedule_{today_str[:6]}.json"
     try:
@@ -62,24 +60,23 @@ def fetch_keirin(today_str):
 
 
 def fetch_keiba(today_str):
-    """地方競馬（NAR公式データ）およびJRA"""
+    """地方競馬（楽天競馬の本日出走枠から厳密抽出）およびJRA"""
     active = {}
-    
-    # 地方競馬公式（nankankeiba等の日程オープンAPI）
     try:
-        url = f"https://www.nankankeiba.com/schedule/{today_str[:6]}.do"
+        url = "https://keiba.rakuten.co.jp/racecard/list"
         res = requests.get(url, headers=HEADERS, timeout=10)
         if res.status_code == 200:
             html = res.text
             for map_key in KEIBA_MAP.keys():
                 if "ＪＲＡ" not in map_key:
-                    short_name = map_key.replace("競馬", "").replace("南関東", "").replace("(ばんえい)", "").replace("(門別)", "").replace("(盛岡)", "").replace("(水沢)", "").replace("(浦和)", "").replace("(船橋)", "").replace("(大井)", "").replace("(川崎)", "")
-                    if short_name and short_name in html:
+                    # 地名部分
+                    short = map_key.replace("競馬", "").replace("南関東", "").replace("ホッカイドウ", "").replace("岩手", "").replace("(ばんえい)", "").replace("(門別)", "").replace("(盛岡)", "").replace("(水沢)", "").replace("(浦和)", "").replace("(船橋)", "").replace("(大井)", "").replace("(川崎)", "")
+                    if short and short in html:
                         active[map_key] = "【本日開催】"
     except Exception as e:
         print(f"地方競馬エラー: {e}")
 
-    # JRA（曜日の判定：土曜日(5)・日曜日(6)なら確実に開催）
+    # JRA（土日判定）
     now = datetime.datetime.now()
     if now.weekday() in [5, 6]:
         active["ＪＲＡ公式"] = "【本日開催】 (中央競馬)"
@@ -89,14 +86,18 @@ def fetch_keiba(today_str):
 
 
 def fetch_auto():
-    """オートレース（競走会データ）"""
+    """オートレース（本日開催場のみ厳密判別）"""
     active = set()
     try:
-        url = "https://autorace.jp/netstadium/"
+        # オートレース公式の本日のレース一覧/開催情報エリアから抽出
+        url = "https://autorace.jp/netstadium/Live"
         res = requests.get(url, headers=HEADERS, timeout=10)
         if res.status_code == 200:
+            html = res.text
             for k in AUTO_MAP.keys():
-                if k in res.text:
+                # 「川口 ライブ」「伊勢崎 開催」など、ライブ/レース対象になっている表記を検索
+                pattern = f"{k}[^<]*?(ライブ|レース|開催中|本日のレース)"
+                if re.search(pattern, html):
                     active.add(k)
     except Exception as e:
         print(f"オートレースエラー: {e}")
