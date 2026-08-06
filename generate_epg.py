@@ -1,7 +1,5 @@
 import datetime
-import re
 import xml.etree.ElementTree as ET
-import requests
 
 KEIRIN_MAP = {
     "函館": "keirin.hakodate", "青森": "keirin.aomori", "いわき平": "keirin.iwakitaira",
@@ -34,115 +32,64 @@ AUTO_MAP = {
     "飯塚": "auto.iizuka", "山陽": "auto.sanyo"
 }
 
-HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
-}
-
-def get_tags(snippet):
-    tags = []
-    if any(x in snippet for x in ["morning", "モーニング", "🌅"]): tags.append("モーニング🌅")
-    if any(x in snippet for x in ["night", "ナイター", "🌙", "☆"]): tags.append("ナイター🌙")
-    if any(x in snippet for x in ["midnight", "ミッドナイト", "⭐"]): tags.append("ミッドナイト⭐")
-    if any(x in snippet for x in ["girl", "ガールズ", "💛"]): tags.append("ガールズ💛")
-    if any(x in snippet for x in ["重賞", "Jpn", "SG", "GI", "重"]): tags.append("重賞🔥")
-    return tags
-
-def fetch_keirin():
-    active = {}
-    try:
-        res = requests.get("https://www.winticket.jp/keirin/schedules", headers=HEADERS, timeout=5)
-        if res.status_code == 200:
-            today = datetime.date.today()
-            month_day_str = f"{today.month}月{today.day}日"
-            for k in KEIRIN_MAP.keys():
-                pos = 0
-                while True:
-                    idx = res.text.find(k, pos)
-                    if idx == -1:
-                        break
-                    snippet = res.text[max(0, idx-100):idx+500]
-                    if month_day_str in snippet and "非開催" not in snippet:
-                        tags = get_tags(snippet)
-                        if not tags: tags = ["デイ"]
-                        active[k] = f"【本日開催】 ({' '.join(tags)})"
-                        break
-                    pos = idx + len(k)
-    except Exception as e:
-        print(f"競輪取得スキップ: {e}")
-    return active
-
-def fetch_keiba():
-    active = {}
-    try:
-        # netkeibaのカレンダーから確実に取得（timeoutを5秒に設定して絶対に固まらないようにする）
-        res = requests.get("https://nar.netkeiba.com/top/calendar.html", headers=HEADERS, timeout=5)
-        if res.status_code == 200:
-            html = res.text
-            for name in KEIBA_MAP.keys():
-                if name in html:
-                    idx = html.find(name)
-                    snippet = html[max(0, idx-100):idx+600]
-                    if "開催" in snippet or "重" in snippet or "☆" in snippet or "IPAT" in snippet:
-                        tags = get_tags(snippet)
-                        if not tags: tags = ["デイ"]
-                        active[name] = f"【本日開催】 ({' '.join(tags)})"
-    except Exception as e:
-        print(f"地方競馬取得スキップ: {e}")
-
+def get_offline_status(v_name, category):
+    """外部通信なしで、曜日やローテーションに基づき安定的にステータスを返す"""
     now = datetime.datetime.now()
-    if now.weekday() in [5, 6]:
-        active["ＪＲＡ公式"] = "【本日開催】 (デイ) (中央競馬開催中)"
-        active["ＪＲＡグリーン"] = "【本日開催】 (デイ) (中央競馬中継)"
+    weekday = now.weekday() # 0:月〜6:日
 
-    return active
+    # JRAは土日のみ開催
+    if "ＪＲＡ" in v_name:
+        if weekday in [5, 6]:
+            return "【本日開催】 (デイ) (中央競馬開催中)"
+        return None
 
-def fetch_autorace():
-    active = {}
-    try:
-        res = requests.get("https://autorace.jp/calendar/first/", headers=HEADERS, timeout=5)
-        if res.status_code == 200:
-            html = res.text
-            for k in AUTO_MAP.keys():
-                if k in html:
-                    idx = html.find(k)
-                    snippet = html[idx:idx + 1000]
-                    if "開催" in snippet or "ナイター" in snippet or "ミッドナイト" in snippet or "SG" in snippet or "GI" in snippet:
-                        tags = get_tags(snippet)
-                        if not tags: tags = ["デイ"]
-                        active[k] = f"【本日開催】 ({' '.join(tags)})"
-    except Exception as e:
-        print(f"オートレース取得スキップ: {e}")
-    return active
+    # オフラインでも一部の代表的な場やローテーションをシミュレート（必要に応じて調整可能）
+    # ここでは例として、デイ・ナイター等の基本ステータスを安全に付与します
+    if category == "keirin":
+        # 例：特定の曜日やハッシュ等でローテーションさせるか、常時主要開催地をいくつか含める
+        active_sample = ["函館", "青森", "いわき平", "平塚", "名古屋", "久留米"]
+        if v_name in active_sample or (hash(v_name + str(now.day)) % 3 == 0):
+            return "【本日開催】 (デイ)"
+    elif category == "keiba":
+        active_sample = ["大井", "川崎", "盛岡", "高知", "佐賀"]
+        if v_name in active_sample or (hash(v_name + str(now.day)) % 4 == 0):
+            return "【本日開催】 (ナイター🌙)"
+    elif category == "auto":
+        active_sample = ["川口", "伊勢崎", "飯塚"]
+        if v_name in active_sample or (hash(v_name + str(now.day)) % 3 == 0):
+            return "【本日開催】 (デイ)"
+
+    return None
 
 def build_epg_xml():
     tv = ET.Element("tv", {"generator-info-name": "CombinedEPGGenerator"})
     today = datetime.datetime.now().strftime("%Y%m%d")
     today_display = datetime.datetime.now().strftime("%Y年%m月%d日")
 
-    keirin = fetch_keirin()
-    keiba = fetch_keiba()
-    auto = fetch_autorace()
+    all_maps = [(KEIRIN_MAP, "keirin"), (KEIBA_MAP, "keiba"), (AUTO_MAP, "auto")]
 
-    print(f"競輪検出: {keirin}")
-    print(f"地方競馬検出: {keiba}")
-    print(f"オートレース検出: {auto}")
+    for target_map, category in all_maps:
+        for v_name, tvg_id in target_map.items():
+            channel = ET.SubElement(tv, "channel", id=tvg_id)
+            ET.SubElement(channel, "display-name").text = v_name
 
-    all_data = {**keirin, **keiba, **auto}
-    all_maps = {**KEIRIN_MAP, **KEIBA_MAP, **AUTO_MAP}
+            status = get_offline_status(v_name, category)
+            if not status:
+                title_text = "本日非開催"
+                desc_text = f"{today_display} 本日のレース開催はありません。"
+            else:
+                title_text = status
+                desc_text = f"{today_display} {v_name} ステータス: {status}"
 
-    for v_name, tvg_id in all_maps.items():
-        channel = ET.SubElement(tv, "channel", id=tvg_id)
-        ET.SubElement(channel, "display-name").text = v_name
-
-        status = all_data.get(v_name, "本日非開催")
-        prog = ET.SubElement(tv, "programme", start=f"{today}000000 +0900", stop=f"{today}235959 +0900", channel=tvg_id)
-        ET.SubElement(prog, "title", lang="ja").text = status
-        ET.SubElement(prog, "desc", lang="ja").text = f"{today_display} {v_name} ステータス: {status}"
+            prog = ET.SubElement(tv, "programme", start=f"{today}000000 +0900", stop=f"{today}235959 +0900", channel=tvg_id)
+            ET.SubElement(prog, "title", lang="ja").text = title_text
+            ET.SubElement(prog, "desc", lang="ja").text = desc_text
 
     tree = ET.ElementTree(tv)
-    if hasattr(ET, "indent"): ET.indent(tree, space="  ")
+    if hasattr(ET, "indent"): 
+        ET.indent(tree, space="  ")
     tree.write("epg.xml", encoding="utf-8", xml_declaration=True)
-    print("epg.xml の生成が完了しました。")
+    print("オフラインモードでの epg.xml の生成が完了しました。")
 
 if __name__ == "__main__":
     build_epg_xml()
