@@ -29,10 +29,7 @@ KEIBA_MAP = {
     "笠松競馬": "chihou.kasamatsu", "園田競馬": "chihou.sonoda",
     "姫路競馬": "chihou.himeji", "高知競馬": "chihou.kochi_keiba",
     "佐賀競馬": "chihou.saga", 
-    "札幌競馬": "jra.sapporo", "函館競馬": "jra.hakodate_keiba", "福島競馬": "jra.fukushima",
-    "新潟競馬": "jra.niigata", "東京競馬": "jra.tokyo", "中山競馬": "jra.nakayama",
-    "中京競馬": "jra.chukyo", "京都競馬": "jra.kyoto", "阪神競馬": "jra.hanshin",
-    "小倉競馬": "jra.kokura_keiba", "ＪＲＡ公式": "jra.official", "ＪＲＡグリーン": "jra.green"
+    "ＪＲＡ公式": "jra.official", "ＪＲＡグリーン": "jra.green"
 }
 
 AUTO_MAP = {
@@ -44,29 +41,52 @@ HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
 }
 
+def parse_status(snippet):
+    """取得したHTMLスニペットから時間帯・種別・R数を解析する"""
+    if not snippet or "非開催" in snippet:
+        return None
 
-def fetch_keirin(today_str):
-    """KEIRIN.JP公式APIから確実・高速に取得"""
+    tags = []
+    if "モーニング" in snippet:
+        tags.append("モーニング🌅")
+    elif "ミッドナイト" in snippet:
+        tags.append("ミッドナイト⭐")
+    elif "ナイター" in snippet:
+        tags.append("ナイター🌙")
+    else:
+        tags.append("デイ")
+
+    if "ガールズ" in snippet or "L級" in snippet:
+        tags.append("ガールズ💛")
+
+    tag_str = " ".join(tags)
+
+    if "終了" in snippet or "発売終了" in snippet:
+        return f"【本日開催】 ({tag_str}) (開催終了)"
+    else:
+        match_r = re.search(r'(\d+R)', snippet)
+        r_info = match_r.group(1) if match_r else "発売中"
+        return f"【本日開催】 ({tag_str}) ({r_info})"
+
+def fetch_keirin():
     active = {}
-    url = f"https://keirin.jp/pc/dfw/datainfo/SCHEDULE/schedule_{today_str[:6]}.json"
     try:
+        url = "https://keirin-autorace.nikkan-gendai.com/Keirin"
         res = requests.get(url, headers=HEADERS, timeout=5)
         if res.status_code == 200:
-            for item in res.json():
-                if str(item.get("hd")) == today_str:
-                    v_name = str(item.get("joName", "")).strip()
-                    if v_name in KEIRIN_MAP:
-                        if str(item.get("status")) == "1" or item.get("betFlg") is True:
-                            active[v_name] = "【本日開催】 (発売中)"
-                        else:
-                            active[v_name] = "【本日開催】 (開催終了)"
+            html = res.text
+            for k in KEIRIN_MAP.keys():
+                if k in html:
+                    idx = html.find(k)
+                    snippet = html[idx:idx + 400]
+                    status = parse_status(snippet)
+                    if status:
+                        active[k] = status
     except Exception as e:
         print(f"競輪取得エラー: {e}")
     return active
 
-
 def fetch_keiba():
-    """KEIBAG.JPから地方競馬の開催状況・R数を抽出"""
     active = {}
     try:
         url = "https://www.keiba.go.jp/"
@@ -78,46 +98,21 @@ def fetch_keiba():
                     short = map_key.replace("競馬", "")
                     if short in html:
                         idx = html.find(short)
-                        snippet = html[idx:idx + 350]
-                        if "終了" in snippet or "発売終了" in snippet:
-                            active[map_key] = "【本日開催】 (開催終了)"
-                        else:
-                            match_r = re.search(r'(\d+R)', snippet)
-                            r_info = match_r.group(1) if match_r else "開催中"
-                            active[map_key] = f"【本日開催】 ({r_info})"
+                        snippet = html[idx:idx + 400]
+                        status = parse_status(snippet)
+                        if status:
+                            active[map_key] = status
     except Exception as e:
         print(f"地方競馬取得エラー: {e}")
 
-    # JRA（土日判定）
     now = datetime.datetime.now()
     if now.weekday() in [5, 6]:
-        try:
-            res = requests.get("https://www.jra.go.jp/", headers=HEADERS, timeout=5)
-            if res.status_code == 200:
-                html = res.text
-                jra_venues = ["札幌", "函館", "福島", "新潟", "東京", "中山", "中京", "京都", "阪神", "小倉"]
-                for v in jra_venues:
-                    key = f"{v}競馬"
-                    if v in html:
-                        idx = html.find(v)
-                        snippet = html[idx:idx + 300]
-                        if "終了" in snippet:
-                            active[key] = "【本日開催】 (開催終了)"
-                        else:
-                            match_r = re.search(r'(\d+R)', snippet)
-                            r_info = match_r.group(1) if match_r else "開催中"
-                            active[key] = f"【本日開催】 ({r_info})"
-                active["ＪＲＡ公式"] = "【本日開催】 (中央競馬開催中)"
-                active["ＪＲＡグリーン"] = "【本日開催】 (中央競馬中継)"
-        except Exception:
-            active["ＪＲＡ公式"] = "【本日開催】 (中央競馬)"
-            active["ＪＲＡグリーン"] = "【本日開催】 (中央競馬)"
+        active["ＪＲＡ公式"] = "【本日開催】 (デイ) (中央競馬開催中)"
+        active["ＪＲＡグリーン"] = "【本日開催】 (デイ) (中央競馬中継)"
 
     return active
 
-
 def fetch_autorace():
-    """日刊ゲンダイ オートレースから抽出"""
     active = {}
     try:
         url = "https://keirin-autorace.nikkan-gendai.com/Autorace"
@@ -127,17 +122,13 @@ def fetch_autorace():
             for k in AUTO_MAP.keys():
                 if k in html:
                     idx = html.find(k)
-                    snippet = html[idx:idx + 350]
-                    if "終了" in snippet:
-                        active[k] = "【本日開催】 (開催終了)"
-                    else:
-                        match_r = re.search(r'(\d+R)', snippet)
-                        r_info = match_r.group(1) if match_r else "開催中"
-                        active[k] = f"【本日開催】 ({r_info})"
+                    snippet = html[idx:idx + 400]
+                    status = parse_status(snippet)
+                    if status:
+                        active[k] = status
     except Exception as e:
         print(f"オートレース取得エラー: {e}")
     return active
-
 
 def build_epg_xml():
     now = datetime.datetime.now()
@@ -146,7 +137,7 @@ def build_epg_xml():
 
     tv = ET.Element("tv", {"generator-info-name": "CombinedEPGGenerator"})
 
-    keirin_active = fetch_keirin(today_str)
+    keirin_active = fetch_keirin()
     keiba_active = fetch_keiba()
     auto_active = fetch_autorace()
 
@@ -190,7 +181,6 @@ def build_epg_xml():
         ET.indent(tree, space="  ")
     tree.write("epg.xml", encoding="utf-8", xml_declaration=True)
     print("epg.xml の生成が完了しました。")
-
 
 if __name__ == "__main__":
     build_epg_xml()
