@@ -2,8 +2,9 @@ name: Auto Generate Keirin EPG
 
 on:
   schedule:
-    # 5分おきに実行
-    - cron: '*/5 * * * *'
+    # 1日5回実行 (JST: 09:00, 12:00, 17:00, 20:00, 24:00)
+    # ※UTC時間で指定するため、JSTから9時間引いた時間を設定しています
+    - cron: '0 0,3,8,11,15 * * *'
   workflow_dispatch:
 
 permissions:
