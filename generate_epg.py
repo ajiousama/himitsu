@@ -24,7 +24,6 @@ KEIBA_MAP = {
     "大井": "chihou.oi", "川崎": "chihou.kawasaki_keiba", "金沢": "chihou.kanazawa",
     "名古屋": "chihou.nagoya_keiba", "笠松": "chihou.kasamatsu", "園田": "chihou.sonoda",
     "姫路": "chihou.himeji", "高知": "chihou.kochi_keiba", "佐賀": "chihou.saga",
-    "新潟": "jra.niigata", "中京": "jra.chukyo", "札幌": "jra.sapporo",
     "ＪＲＡ公式": "jra.official", "ＪＲＡグリーン": "jra.green"
 }
 
@@ -37,20 +36,6 @@ AUTO_MAP = {
 # 【スケジュール管理エリア】
 # ==========================================
 SCHEDULES = {
-    "20260807": {
-        "keirin": {
-            "いわき平": "ナイター🌙 💛", "佐世保": "G1 ナイター🌙 💛",
-            "宇都宮": "ミッドナイト⭐ 💛", "伊東": "ミッドナイト⭐",
-            "和歌山": "G3 デイ☀", "豊橋": "デイ☀ 💛",
-            "岐阜": "モーニング🌅"
-        },
-        "keiba": {
-            "園田": "ナイター🌙", "浦和": "薄暮🌇"
-        },
-        "auto": {
-            "川口": "デイ☀", "伊勢崎": "ナイター🌙", "山陽": "ミッドナイト⭐"
-        }
-    },
     "20260808": {
         "keirin": {
             "岐阜": "モーニング🌅",
@@ -112,52 +97,68 @@ SCHEDULES = {
             "浜松": "デイ☀",
             "伊勢崎": "SG ナイター🌙"
         }
+    },
+    "20260812": {
+        "keirin": {
+            "岐阜": "モーニング🌅",
+            "弥彦": "デイ☀", "富山": "デイ☀", "熊本": "デイ☀",
+            "松山": "G1 ナイター🌙",
+            "青森": "ミッドナイト⭐ 💛", "武雄": "ミッドナイト⭐ 💛"
+        },
+        "keiba": {
+            "笠松": "デイ☀",
+            "園田": "薄暮🌇", "浦和": "薄暮🌇",
+            "門別": "ナイター🌙", "大井": "ナイター🌙"
+        },
+        "auto": {
+            "浜松": "デイ☀",
+            "伊勢崎": "SG ナイター🌙"
+        }
     }
 }
-
-def get_offline_status(v_name, category, date_str):
-    if date_str in SCHEDULES:
-        cat_data = SCHEDULES[date_str].get(category, {})
-        if v_name in cat_data:
-            return f"【本日開催】 ({cat_data[v_name]})"
-    return None
 
 def build_epg_xml():
     tv = ET.Element("tv", {"generator-info-name": "CombinedEPGGenerator"})
     
-    # 実行時の「今日」の日付文字列を取得 (例: "20260808")
     today_str = datetime.datetime.now().strftime("%Y%m%d")
+    dt_obj = datetime.datetime.strptime(today_str, "%Y%m%d")
+    today_display = dt_obj.strftime("%Y年%m月%d日")
 
-    for date_str in sorted(SCHEDULES.keys()):
-        # 【自動削除の仕組み】今日より前の日付（過去の日付）ならスキップして出力しない
-        if date_str < today_str:
-            continue
+    day_schedules = SCHEDULES.get(today_str, {})
 
-        dt_obj = datetime.datetime.strptime(date_str, "%Y%m%d")
-        today_display = dt_obj.strftime("%Y年%m月%d日")
-
-        for target_map, category in [(KEIRIN_MAP, "keirin"), (KEIBA_MAP, "keiba"), (AUTO_MAP, "auto")]:
-            for v_name, tvg_id in target_map.items():
-                status = get_offline_status(v_name, category, date_str)
-                title_text = status if status else "本日非開催"
-                desc_text = f"{today_display} {v_name} ステータス: {title_text}"
-
-                prog = ET.SubElement(tv, "programme", start=f"{date_str}000000 +0900", stop=f"{date_str}235959 +0900", channel=tvg_id)
-                ET.SubElement(prog, "title", lang="ja").text = title_text
-                ET.SubElement(prog, "desc", lang="ja").text = desc_text
-
-    added_channels = set()
-    for target_map, _ in [(KEIRIN_MAP, "keirin"), (KEIBA_MAP, "keiba"), (AUTO_MAP, "auto")]:
+    for target_map, category in [(KEIRIN_MAP, "keirin"), (KEIBA_MAP, "keiba"), (AUTO_MAP, "auto")]:
+        cat_data = day_schedules.get(category, {})
         for v_name, tvg_id in target_map.items():
-            if tvg_id not in added_channels:
-                channel = ET.SubElement(tv, "channel", id=tvg_id)
-                ET.SubElement(channel, "display-name").text = v_name
-                added_channels.add(tvg_id)
+            channel = ET.SubElement(tv, "channel", id=tvg_id)
+            ET.SubElement(channel, "display-name").text = v_name
+
+            if v_name in ["ＪＲＡ公式", "ＪＲＡグリーン"]:
+                jra_items = []
+                for j_name, j_status in cat_data.items():
+                    if j_name in ["新潟", "中京", "札幌"]:
+                        jra_items.append(f"{j_name}{j_status}")
+                
+                if jra_items:
+                    title_text = f"【本日開催】 " + " ".join(jra_items)
+                else:
+                    title_text = "本日非開催"
+            else:
+                if v_name in cat_data:
+                    status_val = cat_data[v_name]
+                    title_text = f"【本日開催】 ({status_val})"
+                else:
+                    title_text = "本日非開催"
+
+            desc_text = f"{today_display} {v_name} ステータス: {title_text}"
+
+            prog = ET.SubElement(tv, "programme", start=f"{today_str}000000 +0900", stop=f"{today_str}235959 +0900", channel=tvg_id)
+            ET.SubElement(prog, "title", lang="ja").text = title_text
+            ET.SubElement(prog, "desc", lang="ja").text = desc_text
 
     tree = ET.ElementTree(tv)
     if hasattr(ET, "indent"): ET.indent(tree, space="  ")
     tree.write("epg.xml", encoding="utf-8", xml_declaration=True)
-    print("EPG生成完了（過去分自動除外）")
+    print("本日のEPG生成完了")
 
 if __name__ == "__main__":
     build_epg_xml()
