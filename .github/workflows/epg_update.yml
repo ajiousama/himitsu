@@ -2,42 +2,29 @@ name: Auto Generate Keirin EPG
 
 on:
   schedule:
-    # 1日5回実行 (JST: 09:00, 12:00, 17:00, 20:00, 24:00)
-    # ※UTC時間で指定するため、JSTから9時間引いた時間を設定しています
-    - cron: '0 0,3,8,11,15 * * *'
-  workflow_dispatch:
-
-permissions:
-  contents: write
-  pages: write
-  id-token: write
+    # 毎日 日本時間 25:00（UTC 16:00）に実行
+    - cron: '0 16 * * *'
+  workflow_dispatch: # 手動でも動かせるようにする
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.x'
+          python-version: '3.10'
 
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install requests
-
-      - name: Run EPG Script
+      - name: Run EPG generator script
         run: python generate_epg.py
 
-      - name: Commit and Push epg.xml
+      - name: Commit and push if changes
         run: |
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
-          # 毎回必ずタイムスタンプを更新してコミットさせる
-          echo "<!-- Updated at $(TZ='Asia/Tokyo' date '+%Y-%m-%d %H:%M:%S') -->" >> epg.xml
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           git add epg.xml
-          git commit -m "Auto update EPG [skip ci]"
+          git commit -m "Auto-update EPG XML" || exit 0
           git push
