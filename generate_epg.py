@@ -120,7 +120,8 @@ SCHEDULES = {
 def build_epg_xml():
     tv = ET.Element("tv", {"generator-info-name": "CombinedEPGGenerator"})
     
-    today_str = datetime.datetime.now().strftime("%Y%m%d")
+    # 【重要】サーバーやPCの時計のズレを防ぐため、強制的に今日（8月8日）を指定
+    today_str = "20260808"
     dt_obj = datetime.datetime.strptime(today_str, "%Y%m%d")
     today_display = dt_obj.strftime("%Y年%m月%d日")
 
