@@ -1,7 +1,6 @@
 import datetime
 import xml.etree.ElementTree as ET
 
-# 各マップは変更せずそのまま使用
 KEIRIN_MAP = {
     "函館": "keirin.hakodate", "青森": "keirin.aomori", "いわき平": "keirin.iwakitaira",
     "弥彦": "keirin.yahiko", "前橋": "keirin.maebashi", "取手": "keirin.toride",
@@ -34,37 +33,63 @@ AUTO_MAP = {
     "飯塚": "auto.iizuka", "山陽": "auto.sanyo"
 }
 
+# ==========================================
+# 【3日分の手入力スケジュール管理エリア】
+# ==========================================
+SCHEDULES = {
+    "20260807": {
+        "keirin": {
+            "いわき平": "ナイター🌙 💛", "佐世保": "G1 ナイター🌙 💛",
+            "宇都宮": "ミッドナイト⭐ 💛", "伊東": "ミッドナイト⭐",
+            "和歌山": "G3 デイ☀", "豊橋": "デイ☀ 💛",
+            "岐阜": "モーニング🌅"
+        },
+        "keiba": {
+            "園田": "ナイター🌙", "浦和": "薄暮🌇"
+        },
+        "auto": {
+            "川口": "デイ☀", "伊勢崎": "ナイター🌙", "山陽": "ミッドナイト⭐"
+        }
+    },
+    "20260808": {
+        "keirin": {
+            "岐阜": "モーニング🌅",
+            "和歌山": "G3 デイ☀", "立川": "デイ☀",
+            "佐世保": "G1 ナイター🌙 💛", "いわき平": "ナイター🌙 💛",
+            "宇都宮": "ミッドナイト⭐ 💛", "伊東": "ミッドナイト⭐"
+        },
+        "keiba": {
+            "新潟": "薄暮🌇", "中京": "薄暮🌇", "札幌": "デイ☀",
+            "帯広": "ナイター🌙", "佐賀": "ナイター🌙"
+        },
+        "auto": {
+            "川口": "デイ☀", "飯塚": "ミッドナイト⭐"
+        }
+    },
+    "20260809": {
+        "keirin": {
+            "岐阜": "モーニング🌅", "平塚": "モーニング🌅",
+            "和歌山": "G3 デイ☀ 💛", "立川": "デイ☀",
+            "佐世保": "G1 ナイター🌙 💛", "前橋": "ナイター🌙",
+            "川崎": "ミッドナイト⭐ 💛", "四日市": "ミッドナイト⭐"
+        },
+        "keiba": {
+            "新潟": "薄暮🌇", "中京": "薄暮🌇", "札幌": "デイ☀",
+            "盛岡": "薄暮🌇", "帯広": "ナイター🌙", "佐賀": "ナイター🌙", "金沢": "ナイター🌙"
+        },
+        "auto": {
+            "川口": "デイ☀", "飯塚": "ミッドナイト⭐"
+        }
+    }
+}
+
 def get_offline_status(v_name, category):
     today_str = datetime.datetime.now().strftime("%Y%m%d")
     
-    # 本日（8/7）の開催
-    if today_str == "20260807":
-        if category == "keirin":
-            if v_name in ["いわき平", "佐世保"]: return "【本日開催】 (ナイター🌙)"
-            if v_name in ["宇都宮", "伊東"]: return "【本日開催】 (ミッドナイト⭐)"
-            if v_name in ["和歌山", "豊橋"]: return "【本日開催】 (デイ)"
-            if v_name == "岐阜": return "【本日開催】 (モーニング🌅)"
-        elif category == "keiba":
-            if v_name == "園田": return "【本日開催】 (ナイター🌙)"
-            if v_name == "浦和": return "【本日開催】 (デイ)"
-        elif category == "auto":
-            if v_name == "川口": return "【本日開催】 (デイ)"
-            if v_name == "伊勢崎": return "【本日開催】 (ナイター🌙)"
-            if v_name == "山陽": return "【本日開催】 (ミッドナイト⭐)"
-
-    # 明日（8/8）の開催
-    elif today_str == "20260808":
-        if category == "keirin":
-            if v_name == "岐阜": return "【本日開催】 (モーニング🌅)"
-            if v_name in ["和歌山", "立川"]: return "【本日開催】 (デイ)"
-            if v_name in ["佐世保", "いわき平"]: return "【本日開催】 (ナイター🌙)"
-            if v_name in ["宇都宮", "伊東"]: return "【本日開催】 (ミッドナイト⭐)"
-        elif category == "keiba":
-            if v_name in ["新潟", "中京", "札幌"]: return "【本日開催】 (デイ) (中央競馬)"
-            if v_name in ["帯広", "佐賀"]: return "【本日開催】 (ナイター🌙)"
-        elif category == "auto":
-            if v_name == "川口": return "【本日開催】 (デイ)"
-            if v_name == "飯塚": return "【本日開催】 (ミッドナイト⭐)"
+    if today_str in SCHEDULES:
+        cat_data = SCHEDULES[today_str].get(category, {})
+        if v_name in cat_data:
+            return f"【本日開催】 ({cat_data[v_name]})"
             
     return None
 
