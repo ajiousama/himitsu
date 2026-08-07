@@ -115,38 +115,49 @@ SCHEDULES = {
     }
 }
 
-def get_offline_status(v_name, category):
-    today_str = datetime.datetime.now().strftime("%Y%m%d")
-    
-    if today_str in SCHEDULES:
-        cat_data = SCHEDULES[today_str].get(category, {})
+def get_offline_status(v_name, category, date_str):
+    if date_str in SCHEDULES:
+        cat_data = SCHEDULES[date_str].get(category, {})
         if v_name in cat_data:
             return f"【本日開催】 ({cat_data[v_name]})"
-            
     return None
 
 def build_epg_xml():
     tv = ET.Element("tv", {"generator-info-name": "CombinedEPGGenerator"})
-    today = datetime.datetime.now().strftime("%Y%m%d")
-    today_display = datetime.datetime.now().strftime("%Y年%m月%d日")
+    
+    # 実行時の「今日」の日付文字列を取得 (例: "20260808")
+    today_str = datetime.datetime.now().strftime("%Y%m%d")
 
-    for target_map, category in [(KEIRIN_MAP, "keirin"), (KEIBA_MAP, "keiba"), (AUTO_MAP, "auto")]:
+    for date_str in sorted(SCHEDULES.keys()):
+        # 【自動削除の仕組み】今日より前の日付（過去の日付）ならスキップして出力しない
+        if date_str < today_str:
+            continue
+
+        dt_obj = datetime.datetime.strptime(date_str, "%Y%m%d")
+        today_display = dt_obj.strftime("%Y年%m月%d日")
+
+        for target_map, category in [(KEIRIN_MAP, "keirin"), (KEIBA_MAP, "keiba"), (AUTO_MAP, "auto")]:
+            for v_name, tvg_id in target_map.items():
+                status = get_offline_status(v_name, category, date_str)
+                title_text = status if status else "本日非開催"
+                desc_text = f"{today_display} {v_name} ステータス: {title_text}"
+
+                prog = ET.SubElement(tv, "programme", start=f"{date_str}000000 +0900", stop=f"{date_str}235959 +0900", channel=tvg_id)
+                ET.SubElement(prog, "title", lang="ja").text = title_text
+                ET.SubElement(prog, "desc", lang="ja").text = desc_text
+
+    added_channels = set()
+    for target_map, _ in [(KEIRIN_MAP, "keirin"), (KEIBA_MAP, "keiba"), (AUTO_MAP, "auto")]:
         for v_name, tvg_id in target_map.items():
-            channel = ET.SubElement(tv, "channel", id=tvg_id)
-            ET.SubElement(channel, "display-name").text = v_name
-
-            status = get_offline_status(v_name, category)
-            title_text = status if status else "本日非開催"
-            desc_text = f"{today_display} {v_name} ステータス: {title_text}"
-
-            prog = ET.SubElement(tv, "programme", start=f"{today}000000 +0900", stop=f"{today}235959 +0900", channel=tvg_id)
-            ET.SubElement(prog, "title", lang="ja").text = title_text
-            ET.SubElement(prog, "desc", lang="ja").text = desc_text
+            if tvg_id not in added_channels:
+                channel = ET.SubElement(tv, "channel", id=tvg_id)
+                ET.SubElement(channel, "display-name").text = v_name
+                added_channels.add(tvg_id)
 
     tree = ET.ElementTree(tv)
     if hasattr(ET, "indent"): ET.indent(tree, space="  ")
     tree.write("epg.xml", encoding="utf-8", xml_declaration=True)
-    print("EPG生成完了")
+    print("EPG生成完了（過去分自動除外）")
 
 if __name__ == "__main__":
     build_epg_xml()
