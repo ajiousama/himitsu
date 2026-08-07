@@ -1,6 +1,7 @@
 import datetime
 import xml.etree.ElementTree as ET
 
+# 各マップは変更せずそのまま使用
 KEIRIN_MAP = {
     "函館": "keirin.hakodate", "青森": "keirin.aomori", "いわき平": "keirin.iwakitaira",
     "弥彦": "keirin.yahiko", "前橋": "keirin.maebashi", "取手": "keirin.toride",
@@ -24,6 +25,7 @@ KEIBA_MAP = {
     "大井": "chihou.oi", "川崎": "chihou.kawasaki_keiba", "金沢": "chihou.kanazawa",
     "名古屋": "chihou.nagoya_keiba", "笠松": "chihou.kasamatsu", "園田": "chihou.sonoda",
     "姫路": "chihou.himeji", "高知": "chihou.kochi_keiba", "佐賀": "chihou.saga",
+    "新潟": "jra.niigata", "中京": "jra.chukyo", "札幌": "jra.sapporo",
     "ＪＲＡ公式": "jra.official", "ＪＲＡグリーン": "jra.green"
 }
 
@@ -33,32 +35,37 @@ AUTO_MAP = {
 }
 
 def get_offline_status(v_name, category):
-    """外部通信なしで、曜日やローテーションに基づき安定的にステータスを返す"""
-    now = datetime.datetime.now()
-    weekday = now.weekday() # 0:月〜6:日
+    today_str = datetime.datetime.now().strftime("%Y%m%d")
+    
+    # 本日（8/7）の開催
+    if today_str == "20260807":
+        if category == "keirin":
+            if v_name in ["いわき平", "佐世保"]: return "【本日開催】 (ナイター🌙)"
+            if v_name in ["宇都宮", "伊東"]: return "【本日開催】 (ミッドナイト⭐)"
+            if v_name in ["和歌山", "豊橋"]: return "【本日開催】 (デイ)"
+            if v_name == "岐阜": return "【本日開催】 (モーニング🌅)"
+        elif category == "keiba":
+            if v_name == "園田": return "【本日開催】 (ナイター🌙)"
+            if v_name == "浦和": return "【本日開催】 (デイ)"
+        elif category == "auto":
+            if v_name == "川口": return "【本日開催】 (デイ)"
+            if v_name == "伊勢崎": return "【本日開催】 (ナイター🌙)"
+            if v_name == "山陽": return "【本日開催】 (ミッドナイト⭐)"
 
-    # JRAは土日のみ開催
-    if "ＪＲＡ" in v_name:
-        if weekday in [5, 6]:
-            return "【本日開催】 (デイ) (中央競馬開催中)"
-        return None
-
-    # オフラインでも一部の代表的な場やローテーションをシミュレート（必要に応じて調整可能）
-    # ここでは例として、デイ・ナイター等の基本ステータスを安全に付与します
-    if category == "keirin":
-        # 例：特定の曜日やハッシュ等でローテーションさせるか、常時主要開催地をいくつか含める
-        active_sample = ["函館", "青森", "いわき平", "平塚", "名古屋", "久留米"]
-        if v_name in active_sample or (hash(v_name + str(now.day)) % 3 == 0):
-            return "【本日開催】 (デイ)"
-    elif category == "keiba":
-        active_sample = ["大井", "川崎", "盛岡", "高知", "佐賀"]
-        if v_name in active_sample or (hash(v_name + str(now.day)) % 4 == 0):
-            return "【本日開催】 (ナイター🌙)"
-    elif category == "auto":
-        active_sample = ["川口", "伊勢崎", "飯塚"]
-        if v_name in active_sample or (hash(v_name + str(now.day)) % 3 == 0):
-            return "【本日開催】 (デイ)"
-
+    # 明日（8/8）の開催
+    elif today_str == "20260808":
+        if category == "keirin":
+            if v_name == "岐阜": return "【本日開催】 (モーニング🌅)"
+            if v_name in ["和歌山", "立川"]: return "【本日開催】 (デイ)"
+            if v_name in ["佐世保", "いわき平"]: return "【本日開催】 (ナイター🌙)"
+            if v_name in ["宇都宮", "伊東"]: return "【本日開催】 (ミッドナイト⭐)"
+        elif category == "keiba":
+            if v_name in ["新潟", "中京", "札幌"]: return "【本日開催】 (デイ) (中央競馬)"
+            if v_name in ["帯広", "佐賀"]: return "【本日開催】 (ナイター🌙)"
+        elif category == "auto":
+            if v_name == "川口": return "【本日開催】 (デイ)"
+            if v_name == "飯塚": return "【本日開催】 (ミッドナイト⭐)"
+            
     return None
 
 def build_epg_xml():
@@ -66,30 +73,23 @@ def build_epg_xml():
     today = datetime.datetime.now().strftime("%Y%m%d")
     today_display = datetime.datetime.now().strftime("%Y年%m月%d日")
 
-    all_maps = [(KEIRIN_MAP, "keirin"), (KEIBA_MAP, "keiba"), (AUTO_MAP, "auto")]
-
-    for target_map, category in all_maps:
+    for target_map, category in [(KEIRIN_MAP, "keirin"), (KEIBA_MAP, "keiba"), (AUTO_MAP, "auto")]:
         for v_name, tvg_id in target_map.items():
             channel = ET.SubElement(tv, "channel", id=tvg_id)
             ET.SubElement(channel, "display-name").text = v_name
 
             status = get_offline_status(v_name, category)
-            if not status:
-                title_text = "本日非開催"
-                desc_text = f"{today_display} 本日のレース開催はありません。"
-            else:
-                title_text = status
-                desc_text = f"{today_display} {v_name} ステータス: {status}"
+            title_text = status if status else "本日非開催"
+            desc_text = f"{today_display} {v_name} ステータス: {title_text}"
 
             prog = ET.SubElement(tv, "programme", start=f"{today}000000 +0900", stop=f"{today}235959 +0900", channel=tvg_id)
             ET.SubElement(prog, "title", lang="ja").text = title_text
             ET.SubElement(prog, "desc", lang="ja").text = desc_text
 
     tree = ET.ElementTree(tv)
-    if hasattr(ET, "indent"): 
-        ET.indent(tree, space="  ")
+    if hasattr(ET, "indent"): ET.indent(tree, space="  ")
     tree.write("epg.xml", encoding="utf-8", xml_declaration=True)
-    print("オフラインモードでの epg.xml の生成が完了しました。")
+    print("EPG生成完了")
 
 if __name__ == "__main__":
     build_epg_xml()
