@@ -236,6 +236,7 @@ def build_epg_xml():
     today_display = dt_obj.strftime("%Y年%m月%d日")
 
     day_schedules = SCHEDULES.get(today_str, {})
+    current_hour = datetime.datetime.now().hour
 
     for target_map, category in [(KEIRIN_MAP, "keirin"), (KEIBA_MAP, "keiba"), (AUTO_MAP, "auto")]:
         cat_data = day_schedules.get(category, {})
@@ -250,13 +251,21 @@ def build_epg_xml():
                         jra_items.append(f"{j_name}{j_status}")
                 
                 if jra_items:
-                    title_text = f"【本日開催】 " + " ".join(jra_items)
+                    # 21時以降でミッドナイト等が含まれない場合は終了表示にする判定
+                    if current_hour >= 21:
+                        title_text = "💎本日は終了しました💎"
+                    else:
+                        title_text = f"【本日開催】 " + " ".join(jra_items)
                 else:
                     title_text = "💎本日は開催しておりません💎"
             else:
                 if v_name in cat_data:
                     status_val = cat_data[v_name]
-                    title_text = f"【本日開催】 ({status_val})"
+                    # 21時以降かつ、ステータスに「ミッドナイト」が含まれていない場合は「本日は終了しました」に切り替える
+                    if current_hour >= 21 and "ミッドナイト" not in status_val:
+                        title_text = "💎本日は終了しました💎"
+                    else:
+                        title_text = f"【本日開催】 ({status_val})"
                 else:
                     title_text = "💎本日は開催しておりません💎"
 
