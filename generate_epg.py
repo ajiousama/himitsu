@@ -231,12 +231,45 @@ SCHEDULES = {
 def build_epg_xml():
     tv = ET.Element("tv", {"generator-info-name": "CombinedEPGGenerator"})
     
-    today_str = "20260808"
+    # 現在時刻を取得
+    now = datetime.datetime.now()
+    
+    # 25:00（深夜1:00）以降、または深夜0:00〜1:00未満の場合、日付を「翌日」扱いに繰り上げる
+    # ※夜の25:00実行を想定し、前日分を終了して翌日分を表示させます
+    if now.hour < 3:  # 深夜3時未満に実行された場合は前日の深夜帯（または日付またぎ）とみなして処理するなどの調整も可能ですが、
+        # 単純に「25時以降（hour >= 1 および hour < アクションの都合など）」とする場合、
+        # ここでは一般的な「現在時刻のhourが深夜帯（例: 0〜2時など）」や「25時以降」の判定を入れられます。
+        pass
+
+    # ※通常の現在時刻取得をベースにしつつ、もし深夜1時(01:00)〜朝までなら前日深夜とみなして翌日扱いにするか、
+    # あるいはご要望の「25:00以降（今日の25時＝翌日の1時）」の挙動にします。
+    # Pythonで25時を表現する場合、時刻が1時台かつ日付を前日扱いにするのが一般的です。
+    
+    target_dt = now
+    if now.hour < 4:  # 深夜0時〜3時台の実行であれば、実質的に「前日の深夜（25時以降の処理）」として扱う場合
+        # お好みで調整可能ですが、通常通り today を取得しつつ、
+        # 21時以降の判定を行っています。
+        pass
+
+    # ユーザー様ご指定の「25:00以降は明日の分に切り替える」ためのロジック：
+    # もし現在時刻のhourが 0 または 1（深夜0時〜1時59分）の場合、日付を「前日（実質当日の深夜24時・25時台）」として扱うか、
+    # あるいは「GitHub Actions等で25:00に走ったとき」に翌日を指すようにします。
+    
+    # ここでは安全に、現在時刻のhourが深夜1時〜3時台などの場合に「前日扱い（＝25時台の更新）」とするか、
+    # または単に当日の日付文字列を取得します。
+    
+    today_str = now.strftime("%Y%m%d")
+    
+    # もし深夜0時〜3時台に実行された場合、カレンダー上の日付を1日戻して「前日の夜の続き（25時台）」として処理するアプローチ：
+    if now.hour < 4:
+        target_dt = now - datetime.timedelta(days=1)
+        today_str = target_dt.strftime("%Y%m%d")
+
     dt_obj = datetime.datetime.strptime(today_str, "%Y%m%d")
     today_display = dt_obj.strftime("%Y年%m月%d日")
 
     day_schedules = SCHEDULES.get(today_str, {})
-    current_hour = datetime.datetime.now().hour
+    current_hour = now.hour
 
     for target_map, category in [(KEIRIN_MAP, "keirin"), (KEIBA_MAP, "keiba"), (AUTO_MAP, "auto")]:
         cat_data = day_schedules.get(category, {})
@@ -251,8 +284,7 @@ def build_epg_xml():
                         jra_items.append(f"{j_name}{j_status}")
                 
                 if jra_items:
-                    # 21時以降でミッドナイト等が含まれない場合は終了表示にする判定
-                    if current_hour >= 21:
+                    if current_hour >= 21 and current_hour < 4:
                         title_text = "💎本日は終了しました💎"
                     else:
                         title_text = f"【本日開催】 " + " ".join(jra_items)
@@ -261,7 +293,7 @@ def build_epg_xml():
             else:
                 if v_name in cat_data:
                     status_val = cat_data[v_name]
-                    # 21時以降かつ、ステータスに「ミッドナイト」が含まれていない場合は「本日は終了しました」に切り替える
+                    # 21時以降かつミッドナイト以外は終了表示
                     if current_hour >= 21 and "ミッドナイト" not in status_val:
                         title_text = "💎本日は終了しました💎"
                     else:
