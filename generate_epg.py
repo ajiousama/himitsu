@@ -231,7 +231,10 @@ SCHEDULES = {
 def build_epg_xml():
     tv = ET.Element("tv", {"generator-info-name": "CombinedEPGGenerator"})
     
-    now = datetime.datetime.now()
+    # 💡 修正：日本時間（JST = UTC+9）を明示的に取得する
+    JST = datetime.timezone(datetime.timedelta(hours=9))
+    now = datetime.datetime.now(JST)
+    
     today_str = now.strftime("%Y%m%d")
     
     if now.hour < 4:
@@ -266,7 +269,6 @@ def build_epg_xml():
             else:
                 if v_name in cat_data:
                     status_val = cat_data[v_name]
-                    # 💡変更点：「ミッドナイト」が含まれる場合のみ21時以降も残し、ナイター等は21時以降に終了表示にする
                     if current_hour >= 21 and "ミッドナイト" not in status_val:
                         title_text = "💎本日は終了しました💎"
                     else:
