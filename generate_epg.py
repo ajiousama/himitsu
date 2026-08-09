@@ -21,13 +21,17 @@ KEIRIN_MAP = {
 
 KEIBA_MAP = {
     "帯広": "chihou.obihiro", "門別": "chihou.mombetsu", "盛岡": "chihou.morioka",
-    "浦和": "chihou.urawa", "大井": "chihou.oi", "金沢": "chihou.kanazawa",
-    "笠松": "chihou.kasamatsu", "園田": "chihou.sonoda", "佐賀": "chihou.saga",
-    "札幌": "jra.sapporo", "新潟": "jra.niigata", "中京": "jra.chukyo"
+    "水沢": "chihou.mizusawa", "浦和": "chihou.urawa", "船橋": "chihou.funabashi",
+    "大井": "chihou.oi", "川崎": "chihou.kawasaki_keiba", "金沢": "chihou.kanazawa",
+    "名古屋": "chihou.nagoya_keiba", "笠松": "chihou.kasamatsu", "園田": "chihou.sonoda",
+    "姫路": "chihou.himeji", "高知": "chihou.kochi_keiba", "佐賀": "chihou.saga",
+    "札幌": "jra.sapporo", "新潟": "jra.niigata", "中京": "jra.chukyo",
+    "ＪＲＡ公式": "jra.official", "ＪＲＡグリーン": "jra.green"
 }
 
 AUTO_MAP = {
-    "伊勢崎": "auto.isesaki", "飯塚": "auto.iizuka"
+    "川口": "auto.kawaguchi", "伊勢崎": "auto.isesaki", "浜松": "auto.hamamatsu",
+    "飯塚": "auto.iizuka", "山陽": "auto.sanyo"
 }
 
 SCHEDULES = {
@@ -170,7 +174,7 @@ def build_epg_xml():
     tv = ET.Element("tv", {"generator-info-name": "CombinedEPGGenerator"})
     JST = datetime.timezone(datetime.timedelta(hours=9))
 
-    # チャンネル要素の定義（全マップを一意に登録）
+    # 全マップ（競輪・地方競馬/JRA・オートレース）を統合してすべてのチャンネル要素を必ず生成
     all_channels = {}
     for m in [KEIRIN_MAP, KEIBA_MAP, AUTO_MAP]:
         all_channels.update(m)
@@ -218,7 +222,7 @@ def build_epg_xml():
                         ET.SubElement(prog3, "title", lang="ja").text = t3
                         ET.SubElement(prog3, "desc", lang="ja").text = f"{today_display} {v_name} ステータス: {t3}"
                 else:
-                    # 開催なし
+                    # 開催がない場・日の処理（省略せず「本日は開催しておりません」を出力）
                     prog = ET.SubElement(tv, "programme", start=format_time_xml(day_start), stop=format_time_xml(day_end), channel=tvg_id)
                     t_none = "💎本日は開催しておりません💎"
                     ET.SubElement(prog, "title", lang="ja").text = t_none
