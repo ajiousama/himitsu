@@ -24,23 +24,6 @@ KEIBA_MAP = {
 AUTO_MAP = {"川口": "auto.kawaguchi", "伊勢崎": "auto.isesaki", "浜松": "auto.hamamatsu", "飯塚": "auto.iizuka", "山陽": "auto.sanyo"}
 
 SCHEDULES = {
-   "20260810": {
-        "keirin": {
-            "立川": {"desc": "FI スポーツニッポン杯 最終日", "start": "10:30", "end": "16:30", "is_girls": False, "day_type": "デイ"},
-            "前橋": {"desc": "FII ティーネットエンタープライ즈C 2日目", "start": "15:00", "end": "20:25", "is_girls": False, "day_type": "ナイター"},
-            "川崎": {"desc": "FII チャリロト杯 2日目", "start": "20:40", "end": "23:40", "is_girls": True, "day_type": "ミッドナイト"},
-            "平塚": {"desc": "FII 楽天Kドリームス杯 2日目", "start": "08:30", "end": "11:55", "is_girls": False, "day_type": "モーニング"},
-            "富山": {"desc": "FI 仲間と繋がるTIPSTAR杯 初日", "start": "10:30", "end": "16:30", "is_girls": False, "day_type": "デイ"},
-            "四日市": {"desc": "FII 前検日コメならウィンチケット杯 2日目", "start": "20:40", "end": "23:40", "is_girls": False, "day_type": "ミッドナイト"}
-        },
-        "keiba": {
-            "帯広": {"desc": "ナイター", "start": "14:20", "end": "20:40", "day_type": "ナイター"},
-            "盛岡": {"desc": "薄暮", "start": "11:40", "end": "18:10", "day_type": "薄暮"},
-            "浦和": {"desc": "薄暮", "start": "13:30", "end": "19:30", "day_type": "薄暮"},
-            "金沢": {"desc": "ナイター", "start": "15:05", "end": "20:50", "day_type": "ナイター"}
-        },
-        "auto": {"飯塚": {"desc": "ミッドナイト", "start": "20:19", "end": "23:45", "day_type": "ミッドナイト"}}
-    },
     "20260811": {
         "keirin": {
             "松山": {"desc": "GI オールスター競輪 初日", "start": "15:15", "end": "20:50", "is_girls": True, "day_type": "ナイター"},
@@ -214,6 +197,8 @@ def build_epg_xml():
 
         for target_map, category in [(KEIRIN_MAP, "keirin"), (KEIBA_MAP, "keiba"), (AUTO_MAP, "auto")]:
             cat_data = day_schedules.get(category, {})
+            cat_label = {"keirin": "競輪", "keiba": "競馬", "auto": "オートレース"}.get(category, "")
+
             for v_name, tvg_id in target_map.items():
                 day_start = datetime.datetime.strptime(f"{date_str} 01:00", "%Y%m%d %H:%M").replace(tzinfo=JST)
                 day_end = datetime.datetime.strptime(f"{date_str} 23:59", "%Y%m%d %H:%M").replace(tzinfo=JST)
@@ -222,11 +207,39 @@ def build_epg_xml():
                     info = cat_data[v_name]
                     is_girls = info.get("is_girls", False)
                     day_type = info.get("day_type", "デイ")
-                    girls_tag = "[ガールズ💛]" if is_girls else ""
+                    
+                    type_emoji = "🌞"
+                    if day_type == "ナイター":
+                        type_emoji = "🌙"
+                    elif day_type == "ミッドナイト":
+                        type_emoji = "🌟"
+                    elif day_type == "モーニング":
+                        type_emoji = "🌅"
+
+                    girls_tag = "💛ガールズ" if is_girls else ""
 
                     grade_list = ["GI", "GII", "GIII", "FI", "FII", "SG", "JpnI", "JpnII", "JpnIII"]
                     grade_found = next((g for g in grade_list if g in info['desc']), "")
-                    grade_display = f"【{grade_found}】" if grade_found else ""
+                    
+                    day_match_str = ""
+                    for term in ["初日", "2日目", "3日目", "4日目", "5日目", "決勝戦", "最終日"]:
+                        if term in info['desc']:
+                            day_match_str = term
+                            break
+
+                    match_emoji_str = "🏆 決勝戦" if "決勝戦" in info['desc'] else day_match_str
+                    grade_prefix = f"【{grade_found}】" if grade_found else ""
+                    
+                    title_parts = [
+                        grade_prefix,
+                        "🔴 LIVE",
+                        v_name,
+                        f"{type_emoji}{day_type}",
+                        match_emoji_str,
+                        girls_tag,
+                        f"（{cat_label}）"
+                    ]
+                    title_live = " ".join([p for p in title_parts if p])
 
                     start_dt = datetime.datetime.strptime(f"{date_str} {info['start']}", "%Y%m%d %H:%M").replace(tzinfo=JST)
                     end_dt = datetime.datetime.strptime(f"{date_str} {info['end']}", "%Y%m%d %H:%M").replace(tzinfo=JST)
@@ -234,8 +247,6 @@ def build_epg_xml():
                     pre_start = start_dt - datetime.timedelta(minutes=10)
                     post_end = end_dt + datetime.timedelta(minutes=10)
 
-                    title_live = f"{grade_display} 🔴 LIVE {v_name} ({day_type}) {girls_tag}"
-                    
                     desc_text = (
                         f"{ICON_MAP.get(category, '⭐')} 開催地: {v_name} ({day_type})\n"
                         f"🏆 グレード: {grade_found if grade_found else '通常開催'}\n"
@@ -247,7 +258,7 @@ def build_epg_xml():
 
                     if day_start < pre_start:
                         prog1 = ET.SubElement(tv, "programme", start=format_time_xml(day_start), stop=format_time_xml(pre_start), channel=tvg_id)
-                        ET.SubElement(prog1, "title", lang="ja").text = f"⏳ 待機 {v_name} ({day_type} 1R {info['start']}開始)"
+                        ET.SubElement(prog1, "title", lang="ja").text = f"⏳ 待機 {v_name} ({type_emoji}{day_type} 1R {info['start']}開始)（{cat_label}）"
                         ET.SubElement(prog1, "desc", lang="ja").text = desc_text
 
                     prog2 = ET.SubElement(tv, "programme", start=format_time_xml(pre_start), stop=format_time_xml(post_end), channel=tvg_id)
@@ -256,11 +267,11 @@ def build_epg_xml():
 
                     if post_end < day_end:
                         prog3 = ET.SubElement(tv, "programme", start=format_time_xml(post_end), stop=format_time_xml(day_end), channel=tvg_id)
-                        ET.SubElement(prog3, "title", lang="ja").text = f"🏁 終了 {v_name} ({day_type})"
+                        ET.SubElement(prog3, "title", lang="ja").text = f"🏁 終了 {v_name} ({type_emoji}{day_type})（{cat_label}）"
                         ET.SubElement(prog3, "desc", lang="ja").text = f"{v_name} ({day_type}) の放送は終了しました。"
                 else:
                     prog = ET.SubElement(tv, "programme", start=format_time_xml(day_start), stop=format_time_xml(day_end), channel=tvg_id)
-                    ET.SubElement(prog, "title", lang="ja").text = f"💎 開催なし {v_name}"
+                    ET.SubElement(prog, "title", lang="ja").text = f"💤 本日非開催 {v_name}（{cat_label}）"
                     ET.SubElement(prog, "desc", lang="ja").text = f"本日は{v_name}での開催予定はありません。"
 
     tree = ET.ElementTree(tv)
