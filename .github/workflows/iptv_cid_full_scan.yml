@@ -1,4 +1,4 @@
-name: IPTV Full Scan
+name: HARUKA 201-500 Scan
 
 on:
   workflow_dispatch:
@@ -9,7 +9,7 @@ permissions:
 jobs:
   scan:
     runs-on: ubuntu-latest
-    timeout-minutes: 55
+    timeout-minutes: 45
 
     steps:
       - name: Set up Python
@@ -17,47 +17,21 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Run full scan
+      - name: Scan HARUKA 201-500
         shell: bash
         run: |
-          cat > scan_iptv_all.py <<'PY'
+          cat > scan_haruka_201_500.py <<'PY'
           import csv, json, time
           from pathlib import Path
           from urllib.request import Request, urlopen
           from urllib.error import HTTPError, URLError
 
+          BASE = "http://ha-ip.f5.si:9394/stream/{}.m3u8"
           TIMEOUT = 7
           UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/151 Safari/537.36"
 
-          LONG_TAIL = (
-              "isp=5&bind=0&uin=159413&playseek=0&"
-              "timestamp=1732380893&"
-              "sign=ca849dc6608a1dc0afb2559343d13bf779f7a6542b2ec260d8e8887f8c2e03cf"
-          )
-
-          checks = []
-
-          # bs01～bs99 / cs01～cs99 × 3系統
-          cids = [f"bs{i:02d}" for i in range(1,100)] + [f"cs{i:02d}" for i in range(1,100)]
-          for cid in cids:
-              checks.extend([
-                  (cid, "kaitekitv",
-                   f"http://cdns.kaitekitv.com:8000/zhongying/live/playlist.m3u8?cid={cid}&isp=5-15"),
-                  (cid, "primehome_short",
-                   f"http://cdns.jp-primehome.com:8000/zhongying/live/playlist.m3u8?cid={cid}&isp=5"),
-                  (cid, "primehome_long",
-                   f"http://cdns.jp-primehome.com:8000/zhongying/live/playlist.m3u8?cid={cid}&{LONG_TAIL}"),
-              ])
-
-          # HARUKA stream/1.m3u8 ～ stream/200.m3u8
-          for n in range(1,201):
-              checks.append((
-                  f"haruka{n:03d}",
-                  "haruka",
-                  f"http://ha-ip.f5.si:9394/stream/{n}.m3u8"
-              ))
-
-          def probe(key, source, url):
+          def probe(n):
+              url = BASE.format(n)
               t0 = time.time()
               try:
                   req = Request(url, headers={
@@ -70,107 +44,117 @@ jobs:
                       code = getattr(r, "status", 200)
                       final_url = r.geturl()
                       ctype = r.headers.get("Content-Type", "")
+
                   text = body.decode("utf-8", errors="replace")
                   is_m3u8 = "#EXTM3U" in text or "mpegurl" in ctype.lower()
-                  media = [x.strip() for x in text.splitlines()
-                           if x.strip() and not x.startswith("#")]
+                  media = [
+                      x.strip() for x in text.splitlines()
+                      if x.strip() and not x.startswith("#")
+                  ]
+
                   return {
-                      "key": key, "source": source,
+                      "number": n,
                       "ok": bool(code == 200 and is_m3u8),
                       "http": code,
-                      "elapsed_sec": round(time.time()-t0,3),
+                      "elapsed_sec": round(time.time() - t0, 3),
                       "content_type": ctype,
                       "url": url,
                       "final_url": final_url,
                       "first_media": media[0] if media else "",
                       "error": "",
                   }
+
               except HTTPError as e:
-                  err, code = f"HTTPError: {e}", e.code
+                  code, err = e.code, f"HTTPError: {e}"
               except URLError as e:
-                  err, code = f"URLError: {e}", ""
+                  code, err = "", f"URLError: {e}"
               except Exception as e:
-                  err, code = f"{type(e).__name__}: {e}", ""
+                  code, err = "", f"{type(e).__name__}: {e}"
+
               return {
-                  "key": key, "source": source, "ok": False,
+                  "number": n,
+                  "ok": False,
                   "http": code,
-                  "elapsed_sec": round(time.time()-t0,3),
-                  "content_type": "", "url": url, "final_url": "",
-                  "first_media": "", "error": err,
+                  "elapsed_sec": round(time.time() - t0, 3),
+                  "content_type": "",
+                  "url": url,
+                  "final_url": "",
+                  "first_media": "",
+                  "error": err,
               }
 
-          rows, alive = [], []
-          total = len(checks)
+          rows = []
+          alive = []
 
-          for i, (key, source, url) in enumerate(checks, 1):
-              print(f"[{i}/{total}] {source} {key}", flush=True)
-              r = probe(key, source, url)
+          for i, n in enumerate(range(201, 501), 1):
+              print(f"[{i}/300] HARUKA stream/{n}.m3u8", flush=True)
+              r = probe(n)
               rows.append(r)
               if r["ok"]:
                   alive.append(r)
                   print(f"  >>> ALIVE HTTP {r['http']}", flush=True)
 
-          fields = ["key","source","ok","http","elapsed_sec","content_type",
-                    "url","final_url","first_media","error"]
+          fields = [
+              "number", "ok", "http", "elapsed_sec", "content_type",
+              "url", "final_url", "first_media", "error"
+          ]
 
-          with open("iptv_full_scan.csv","w",encoding="utf-8-sig",newline="") as f:
+          with open("haruka_201_500_scan.csv", "w",
+                    encoding="utf-8-sig", newline="") as f:
               w = csv.DictWriter(f, fieldnames=fields)
               w.writeheader()
               w.writerows(rows)
 
-          Path("iptv_full_scan.json").write_text(
-              json.dumps(rows, ensure_ascii=False, indent=2), encoding="utf-8"
+          Path("haruka_201_500_scan.json").write_text(
+              json.dumps(rows, ensure_ascii=False, indent=2),
+              encoding="utf-8"
           )
 
-          txt = [f'{r["source"]:18} {r["key"]:12} HTTP={r["http"]} {r["url"]}'
-                 for r in alive]
-          Path("iptv_alive.txt").write_text(
-              "\n".join(txt) + ("\n" if txt else ""), encoding="utf-8"
+          Path("haruka_201_500_alive.txt").write_text(
+              "\n".join(
+                  f'{r["number"]}: {r["url"]}'
+                  for r in alive
+              ) + ("\n" if alive else ""),
+              encoding="utf-8"
           )
 
           m3u = ["#EXTM3U", ""]
           for r in alive:
               m3u += [
-                  f'#EXTINF:-1 group-title="SCAN {r["source"]}",{r["key"]} ({r["source"]})',
-                  r["url"], ""
+                  f'#EXTINF:-1 group-title="HARUKA SCAN",HARUKA {r["number"]}',
+                  r["url"],
+                  ""
               ]
-          Path("iptv_alive.m3u").write_text("\n".join(m3u), encoding="utf-8-sig")
 
-          # HARUKAだけの生存番号
-          haruka = [r for r in alive if r["source"] == "haruka"]
-          Path("haruka_alive.txt").write_text(
-              "\n".join(f'{r["key"]}: {r["url"]}' for r in haruka)
-              + ("\n" if haruka else ""), encoding="utf-8"
+          Path("haruka_201_500_alive.m3u").write_text(
+              "\n".join(m3u),
+              encoding="utf-8-sig"
           )
 
-          print("\n===== SUMMARY =====")
-          print(f"TOTAL CHECKS : {len(rows)}")
-          print(f"TOTAL ALIVE  : {len(alive)}")
-          print(f"HARUKA ALIVE : {len(haruka)}")
+          print()
+          print("===== SUMMARY =====")
+          print("CHECKED :", len(rows))
+          print("ALIVE   :", len(alive))
           print("===================")
           PY
 
-          python scan_iptv_all.py
+          python scan_haruka_201_500.py
 
-      - name: Show results
+      - name: Show alive HARUKA
         if: always()
         run: |
-          echo "===== HARUKA ALIVE ====="
-          cat haruka_alive.txt || true
-          echo
-          echo "===== ALL ALIVE ====="
-          cat iptv_alive.txt || true
+          echo "===== HARUKA 201-500 ALIVE ====="
+          cat haruka_201_500_alive.txt || true
 
       - name: Upload results
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: iptv-full-scan-results
+          name: haruka-201-500-scan-results
           path: |
-            iptv_full_scan.csv
-            iptv_full_scan.json
-            iptv_alive.txt
-            iptv_alive.m3u
-            haruka_alive.txt
+            haruka_201_500_scan.csv
+            haruka_201_500_scan.json
+            haruka_201_500_alive.txt
+            haruka_201_500_alive.m3u
           retention-days: 7
           if-no-files-found: warn
