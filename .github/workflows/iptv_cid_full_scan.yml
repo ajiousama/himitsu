@@ -1,0 +1,208 @@
+name: IPTV CID Full Scan
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Scan bs01-bs99 / cs01-cs99
+        shell: bash
+        run: |
+          cat > scan_iptv_cids.py <<'PY'
+          import csv
+          import json
+          import re
+          import time
+          from pathlib import Path
+          from urllib.request import Request, urlopen
+          from urllib.error import HTTPError, URLError
+
+          OUT_CSV = Path("iptv_cid_scan.csv")
+          OUT_TXT = Path("iptv_cid_alive.txt")
+          OUT_JSON = Path("iptv_cid_scan.json")
+          OUT_M3U = Path("iptv_cid_alive.m3u")
+
+          UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/140 Safari/537.36"
+          TIMEOUT = 8
+
+          # 現在 Free WiFi で通っている長URL形式
+          LONG_TAIL = (
+              "isp=5&bind=0&uin=159413&playseek=0&"
+              "timestamp=1732380893&"
+              "sign=ca849dc6608a1dc0afb2559343d13bf779f7a6542b2ec260d8e8887f8c2e03cf"
+          )
+
+          def urls_for(cid):
+              return {
+                  "kaitekitv": (
+                      "http://cdns.kaitekitv.com:8000/zhongying/live/"
+                      f"playlist.m3u8?cid={cid}&isp=5-15"
+                  ),
+                  # PrimeHome短URL候補
+                  "primehome_short": (
+                      "http://cdns.jp-primehome.com:8000/zhongying/live/"
+                      f"playlist.m3u8?cid={cid}&isp=5"
+                  ),
+                  # PrimeHome長URL
+                  "primehome_long": (
+                      "http://cdns.jp-primehome.com:8000/zhongying/live/"
+                      f"playlist.m3u8?cid={cid}&{LONG_TAIL}"
+                  ),
+              }
+
+          def fetch(url):
+              req = Request(
+                  url,
+                  headers={
+                      "User-Agent": UA,
+                      "Accept": "*/*",
+                      "Connection": "close",
+                  },
+              )
+              t0 = time.time()
+              try:
+                  with urlopen(req, timeout=TIMEOUT) as r:
+                      body = r.read(65536)
+                      code = getattr(r, "status", 200)
+                      final_url = r.geturl()
+                      ctype = r.headers.get("Content-Type", "")
+                  elapsed = round(time.time() - t0, 3)
+                  text = body.decode("utf-8", errors="replace")
+
+                  is_m3u8 = (
+                      "#EXTM3U" in text
+                      or "application/vnd.apple.mpegurl" in ctype.lower()
+                      or "application/x-mpegurl" in ctype.lower()
+                  )
+                  media_lines = [x.strip() for x in text.splitlines() if x.strip() and not x.startswith("#")]
+                  first_media = media_lines[0] if media_lines else ""
+
+                  return {
+                      "ok": bool(code == 200 and is_m3u8),
+                      "http": code,
+                      "elapsed": elapsed,
+                      "content_type": ctype,
+                      "final_url": final_url,
+                      "is_m3u8": is_m3u8,
+                      "first_media": first_media,
+                      "error": "",
+                  }
+              except HTTPError as e:
+                  return {
+                      "ok": False, "http": e.code, "elapsed": round(time.time() - t0, 3),
+                      "content_type": "", "final_url": url, "is_m3u8": False,
+                      "first_media": "", "error": f"HTTPError: {e}",
+                  }
+              except URLError as e:
+                  return {
+                      "ok": False, "http": "", "elapsed": round(time.time() - t0, 3),
+                      "content_type": "", "final_url": url, "is_m3u8": False,
+                      "first_media": "", "error": f"URLError: {e}",
+                  }
+              except Exception as e:
+                  return {
+                      "ok": False, "http": "", "elapsed": round(time.time() - t0, 3),
+                      "content_type": "", "final_url": url, "is_m3u8": False,
+                      "first_media": "", "error": f"{type(e).__name__}: {e}",
+                  }
+
+          rows = []
+          alive = []
+
+          cids = [f"bs{i:02d}" for i in range(1, 100)] + [f"cs{i:02d}" for i in range(1, 100)]
+
+          for idx, cid in enumerate(cids, 1):
+              print(f"[{idx}/{len(cids)}] {cid}", flush=True)
+              for source, url in urls_for(cid).items():
+                  r = fetch(url)
+                  row = {
+                      "cid": cid,
+                      "source": source,
+                      "ok": r["ok"],
+                      "http": r["http"],
+                      "elapsed_sec": r["elapsed"],
+                      "content_type": r["content_type"],
+                      "is_m3u8": r["is_m3u8"],
+                      "url": url,
+                      "final_url": r["final_url"],
+                      "first_media": r["first_media"],
+                      "error": r["error"],
+                  }
+                  rows.append(row)
+                  if r["ok"]:
+                      alive.append(row)
+                      print(f"  OK {source} HTTP {r['http']} {r['elapsed']}s", flush=True)
+
+          fields = [
+              "cid","source","ok","http","elapsed_sec","content_type",
+              "is_m3u8","url","final_url","first_media","error"
+          ]
+          with OUT_CSV.open("w", encoding="utf-8-sig", newline="") as f:
+              w = csv.DictWriter(f, fieldnames=fields)
+              w.writeheader()
+              w.writerows(rows)
+
+          OUT_JSON.write_text(
+              json.dumps(rows, ensure_ascii=False, indent=2),
+              encoding="utf-8"
+          )
+
+          by_cid = {}
+          for r in alive:
+              by_cid.setdefault(r["cid"], []).append(r["source"])
+
+          txt = []
+          for cid in sorted(by_cid):
+              txt.append(f"{cid}: {', '.join(by_cid[cid])}")
+          OUT_TXT.write_text("\n".join(txt) + ("\n" if txt else ""), encoding="utf-8")
+
+          m3u = ["#EXTM3U", ""]
+          for r in alive:
+              m3u.append(
+                  f'#EXTINF:-1 group-title="CID_SCAN {r["source"]}",'
+                  f'{r["cid"]} ({r["source"]})'
+              )
+              m3u.append(r["url"])
+              m3u.append("")
+          OUT_M3U.write_text("\n".join(m3u), encoding="utf-8-sig")
+
+          print()
+          print("===== SUMMARY =====")
+          print(f"total checks : {len(rows)}")
+          print(f"alive        : {len(alive)}")
+          print(f"alive cid    : {len(by_cid)}")
+          print("===================")
+          PY
+
+          python scan_iptv_cids.py
+
+      - name: Show alive list
+        if: always()
+        run: |
+          echo "===== ALIVE CID ====="
+          cat iptv_cid_alive.txt || true
+
+      - name: Upload scan results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: iptv-cid-scan-results
+          path: |
+            iptv_cid_scan.csv
+            iptv_cid_scan.json
+            iptv_cid_alive.txt
+            iptv_cid_alive.m3u
+          if-no-files-found: warn
+          retention-days: 7
