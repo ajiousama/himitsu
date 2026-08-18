@@ -4,6 +4,12 @@ on:
   workflow_dispatch:
   schedule:
     - cron: "17 * * * *"
+  push:
+    branches:
+      - main
+    paths:
+      - "epg_build.py"
+      - ".github/workflows/update_freewifi_epg.yml"
 
 permissions:
   contents: write
