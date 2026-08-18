@@ -1,0 +1,50 @@
+name: Update FreeWiFi EPG
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 * * * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: freewifi-epg
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Build merged EPG
+        run: python epg_build.py
+
+      - name: Validate XML
+        run: python -c "import xml.etree.ElementTree as ET; ET.parse('guides.xml'); print('XML OK')"
+
+      - name: Show coverage summary
+        run: |
+          head -n 12 epg_coverage.txt || true
+          grep -c '^OK' epg_coverage.txt || true
+          grep -c '^MISS' epg_coverage.txt || true
+
+      - name: Commit generated EPG
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add guides.xml epg_coverage.txt
+          if git diff --cached --quiet; then
+            echo "No EPG changes"
+            exit 0
+          fi
+          git commit -m "Update FreeWiFi EPG"
+          git push
