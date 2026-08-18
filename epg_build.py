@@ -6,6 +6,7 @@ import unicodedata
 import urllib.request
 import xml.etree.ElementTree as ET
 from collections import defaultdict
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 FREEWIFI = Path("freewifi")
@@ -36,13 +37,15 @@ EXPLICIT = {
     "フジテレビTWO_jp": ["FujiTVTWO.jp", "CS308"],
     "フジテレビNEXT_jp": ["FujiTVNEXT.jp", "CS309"],
     "ヒストリーチャンネル_jp": ["HistoryChannel.jp", "History.jp"],
+    "rch_102": ["QVC.jp", "CS161", "Ch.525"],
 }
 
 SOURCE_PRIORITY = {name: i for i, (name, _) in enumerate(SOURCES)}
+JST = timezone(timedelta(hours=9))
 
 
 def fetch_bytes(url):
-    req = urllib.request.Request(url, headers={"User-Agent": "FreeWiFi-EPG/1.1"})
+    req = urllib.request.Request(url, headers={"User-Agent": "FreeWiFi-EPG/1.2"})
     with urllib.request.urlopen(req, timeout=90) as r:
         return r.read()
 
@@ -92,6 +95,32 @@ def clone(el):
     return ET.fromstring(ET.tostring(el, encoding="utf-8"))
 
 
+def xmltv_time(dt):
+    return dt.strftime("%Y%m%d%H%M%S +0900")
+
+
+def add_fallback(out_root, target_id, target_name):
+    ch = ET.SubElement(out_root, "channel", {"id": target_id})
+    ET.SubElement(ch, "display-name").text = target_name
+
+    now = datetime.now(JST)
+    start_day = datetime(now.year, now.month, now.day, tzinfo=JST)
+    # 3日分、6時間単位の簡易EPG。実番組表ではないことを明記。
+    for d in range(3):
+        day = start_day + timedelta(days=d)
+        for h in (0, 6, 12, 18):
+            st = day + timedelta(hours=h)
+            en = st + timedelta(hours=6)
+            p = ET.SubElement(out_root, "programme", {
+                "start": xmltv_time(st),
+                "stop": xmltv_time(en),
+                "channel": target_id,
+            })
+            ET.SubElement(p, "title", {"lang": "ja"}).text = target_name
+            ET.SubElement(p, "desc", {"lang": "ja"}).text = "番組詳細EPG未取得のため、チャンネル名を表示しています。"
+            ET.SubElement(p, "category", {"lang": "ja"}).text = "その他"
+
+
 def main():
     wanted = parse_freewifi()
     loaded, errors = [], []
@@ -122,6 +151,7 @@ def main():
     out_root = ET.Element("tv", {"generator-info-name":"FreeWiFi merged EPG", "generator-info-url":"https://github.com/ajiousama/himitsu"})
     coverage, missing = [], []
     matched = 0
+    fallback = 0
 
     for target_id, target_name in wanted.items():
         candidates = []
@@ -136,7 +166,6 @@ def main():
             if key not in seen:
                 seen.add(key); uniq.append(item)
 
-        # 名前一致候補のうち「番組が実際に入っているもの」を優先する。
         usable = []
         for item in uniq:
             _, sn, sid = item
@@ -145,7 +174,11 @@ def main():
         usable.sort()
 
         if not usable:
-            missing.append((target_id, target_name)); coverage.append(f"MISS\t{target_id}\t{target_name}"); continue
+            add_fallback(out_root, target_id, target_name)
+            fallback += 1
+            missing.append((target_id, target_name))
+            coverage.append(f"FALLBACK\t{target_id}\t{target_name}\t12 programmes")
+            continue
 
         _, _, _, source_name, source_id = usable[0]
         _, by_id, _, programmes = source_map[source_name]
@@ -163,9 +196,22 @@ def main():
 
     ET.indent(out_root, space="  ")
     OUT_XML.write_bytes(ET.tostring(out_root, encoding="utf-8", xml_declaration=True))
-    report = ["FreeWiFi merged EPG coverage", f"wanted={len(wanted)}", f"matched={matched}", f"missing={len(missing)}", f"output_bytes={OUT_XML.stat().st_size}", "", "[source errors]", *(errors or ["none"]), "", "[coverage]", *coverage]
+    report = [
+        "FreeWiFi merged EPG coverage",
+        f"wanted={len(wanted)}",
+        f"matched_real={matched}",
+        f"fallback={fallback}",
+        f"unmatched_real={len(missing)}",
+        f"covered_total={matched + fallback}",
+        f"output_bytes={OUT_XML.stat().st_size}",
+        "",
+        "[source errors]",
+        *(errors or ["none"]),
+        "",
+        "[coverage]",
+        *coverage,
+    ]
     REPORT.write_text("\n".join(report)+"\n", encoding="utf-8")
-    print(f"matched: {matched}/{len(wanted)}; bytes={OUT_XML.stat().st_size:,}")
-    for tid, name in missing: print(f"MISS {tid} | {name}")
+    print(f"real={matched}/{len(wanted)} fallback={fallback} covered={matched+fallback}/{len(wanted)} bytes={OUT_XML.stat().st_size:,}")
 
 if __name__ == "__main__": main()
