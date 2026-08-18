@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import gzip
-import io
 import re
 import unicodedata
 import urllib.request
@@ -23,223 +22,150 @@ SOURCES = [
     ("epgshare_jp2", "https://epgshare01.online/epgshare01/epg_ripper_JP2.xml.gz"),
 ]
 
-# FreeWiFi のIDと外部EPGのIDが明確に違うもの。
-# 局名自動照合で拾えないものをここで優先的に合わせる。
 EXPLICIT = {
-    "tver_ntv": ["ntv"],
-    "tver_ex": ["ex"],
-    "tver_tbs": ["tbs"],
-    "tver_tx": ["tx"],
-    "tver_cx": ["cx"],
+    "tver_ntv": ["ntv"], "tver_ex": ["ex"], "tver_tbs": ["tbs"], "tver_tx": ["tx"], "tver_cx": ["cx"],
     "日本テレビ_jp": ["JOAXDTV.jp", "jcom_2_1040_32738"],
     "TBS_jp": ["JORXDTV.jp", "jcom_2_1048_32739"],
     "フジテレビ_jp": ["JOCXDTV.jp", "jcom_2_1056_32740"],
     "テレビ朝日_jp": ["JOEXDTV.jp", "jcom_2_1064_32741"],
     "テレビ東京_jp": ["JOTXDTV.jp", "jcom_2_1072_32742"],
-    "TBS-NEWS_jp": ["CS351", "Ch.572", "TBSNews.jp"],
+    "TBS-NEWS_jp": ["CS351", "Ch.572", "TBSNewsCS.jp", "TBSNews.jp"],
     "グリーンチャンネル_jp": ["BS234", "Ch.688", "GreenChannel.jp"],
     "グリーンチャンネル2_jp": ["Ch.689", "GreenChannel2.jp"],
+    "フジテレビONE_jp": ["FujiTVONE.jp", "CS307"],
+    "フジテレビTWO_jp": ["FujiTVTWO.jp", "CS308"],
+    "フジテレビNEXT_jp": ["FujiTVNEXT.jp", "CS309"],
+    "ヒストリーチャンネル_jp": ["HistoryChannel.jp", "History.jp"],
 }
 
-SOURCE_PRIORITY = {
-    "japanterebi": 0,
-    "jcom": 1,
-    "sky": 2,
-    "tver": 3,
-    "abema": 4,
-    "epgshare_jp1": 5,
-    "epgshare_jp2": 6,
-}
+SOURCE_PRIORITY = {name: i for i, (name, _) in enumerate(SOURCES)}
 
 
-def fetch_bytes(url: str) -> bytes:
-    req = urllib.request.Request(url, headers={"User-Agent": "FreeWiFi-EPG/1.0"})
+def fetch_bytes(url):
+    req = urllib.request.Request(url, headers={"User-Agent": "FreeWiFi-EPG/1.1"})
     with urllib.request.urlopen(req, timeout=90) as r:
         return r.read()
 
 
-def fetch_xml(url: str) -> ET.Element:
+def fetch_xml(url):
     data = fetch_bytes(url)
     if url.endswith(".gz"):
         data = gzip.decompress(data)
     return ET.fromstring(data)
 
 
-def norm(s: str) -> str:
+def norm(s):
     s = unicodedata.normalize("NFKC", s or "").lower()
     s = s.replace("_jp", "").replace(".jp", "")
-    s = re.sub(r"\([^)]*\)", "", s)
-    s = re.sub(r"（[^）]*）", "", s)
-    s = s.replace("テレビジョン", "テレビ")
-    s = s.replace("放送", "")
-    s = s.replace("hd", "")
-    s = s.replace("４ｋ", "").replace("4k", "")
-    s = re.sub(r"[\s\-‐‑‒–—―・･:：/／!！?？☆★♪#＃]+", "", s)
+    s = re.sub(r"\([^)]*\)|（[^）]*）", "", s)
+    for a, b in [("テレビジョン", "テレビ"), ("放送", ""), ("チャンネル", ""), ("channel", ""), ("hd", ""), ("4k", "")]:
+        s = s.replace(a, b)
+    s = re.sub(r"[\s\-‐‑‒–—―・･:：/／!！?？☆★♪#＃+＋]+", "", s)
     return s
+
+
+def aliases(s):
+    n = norm(s)
+    out = {n}
+    repl = [("フジテレビ", "フジ"), ("テレビ朝日", "テレ朝"), ("日本テレビ", "日テレ"), ("スペースシャワーtv", "スペシャ"), ("ヒストリー", "history")]
+    for a, b in repl:
+        if a in n: out.add(n.replace(a, b))
+        if b in n: out.add(n.replace(b, a))
+    return {x for x in out if x}
 
 
 def parse_freewifi():
     text = FREEWIFI.read_text(encoding="utf-8-sig", errors="replace")
-    entries = []
-    for line in text.splitlines():
-        if not line.startswith("#EXTINF:"):
-            continue
-        m_id = re.search(r'tvg-id="([^"]+)"', line)
-        if not m_id:
-            continue
-        tvg_id = m_id.group(1).strip()
-        name = line.rsplit(",", 1)[-1].strip() if "," in line else tvg_id
-        # ソース名などの括弧を除去した表示名も保持
-        clean_name = re.sub(r"\([^)]*\)$", "", name).strip()
-        entries.append((tvg_id, clean_name))
-    # 同じ tvg-id は1回だけ
     out = {}
-    for tvg_id, name in entries:
-        out.setdefault(tvg_id, name)
+    for line in text.splitlines():
+        if not line.startswith("#EXTINF:"): continue
+        m = re.search(r'tvg-id="([^"]+)"', line)
+        if not m: continue
+        tid = m.group(1).strip()
+        name = line.rsplit(",", 1)[-1].strip() if "," in line else tid
+        name = re.sub(r"\([^)]*\)$", "", name).strip()
+        out.setdefault(tid, name)
     return out
 
 
-def source_channels(root: ET.Element):
-    by_id = {}
-    by_name = defaultdict(list)
-    for ch in root.findall("channel"):
-        cid = ch.get("id")
-        if not cid:
-            continue
-        names = [x.text.strip() for x in ch.findall("display-name") if x.text and x.text.strip()]
-        by_id[cid] = ch
-        for name in names:
-            by_name[norm(name)].append(cid)
-    return by_id, by_name
-
-
-def clone(el: ET.Element) -> ET.Element:
+def clone(el):
     return ET.fromstring(ET.tostring(el, encoding="utf-8"))
 
 
 def main():
     wanted = parse_freewifi()
-    print(f"FreeWiFi tvg-id: {len(wanted)}")
-
-    loaded = []
-    errors = []
+    loaded, errors = [], []
     for source_name, url in SOURCES:
         try:
             root = fetch_xml(url)
-            by_id, by_name = source_channels(root)
-            programmes = defaultdict(list)
+            by_id, by_name, programmes = {}, defaultdict(list), defaultdict(list)
+            for ch in root.findall("channel"):
+                cid = ch.get("id")
+                if not cid: continue
+                by_id[cid] = ch
+                vals = [cid] + [x.text.strip() for x in ch.findall("display-name") if x.text and x.text.strip()]
+                for val in vals:
+                    for a in aliases(val): by_name[a].append(cid)
             for p in root.findall("programme"):
-                cid = p.get("channel")
-                if cid:
-                    programmes[cid].append(p)
+                if p.get("channel"): programmes[p.get("channel")].append(p)
             loaded.append((source_name, by_id, by_name, programmes))
-            print(f"{source_name}: {len(by_id)} channels")
         except Exception as e:
             errors.append(f"{source_name}: {type(e).__name__}: {e}")
-            print(f"WARN {errors[-1]}")
 
-    # 全ソースID索引
-    id_index = defaultdict(list)
-    name_index = defaultdict(list)
+    id_index, name_index = defaultdict(list), defaultdict(list)
+    source_map = {x[0]: x for x in loaded}
     for source_name, by_id, by_name, programmes in loaded:
-        for cid in by_id:
-            id_index[cid].append((SOURCE_PRIORITY[source_name], source_name, cid))
+        for cid in by_id: id_index[cid].append((SOURCE_PRIORITY[source_name], source_name, cid))
         for n, ids in by_name.items():
-            for cid in ids:
-                name_index[n].append((SOURCE_PRIORITY[source_name], source_name, cid))
+            for cid in ids: name_index[n].append((SOURCE_PRIORITY[source_name], source_name, cid))
 
-    out_root = ET.Element("tv", {
-        "generator-info-name": "FreeWiFi merged EPG",
-        "generator-info-url": "https://github.com/ajiousama/himitsu",
-    })
-
-    coverage = []
-    missing = []
-    matched_count = 0
+    out_root = ET.Element("tv", {"generator-info-name":"FreeWiFi merged EPG", "generator-info-url":"https://github.com/ajiousama/himitsu"})
+    coverage, missing = [], []
+    matched = 0
 
     for target_id, target_name in wanted.items():
         candidates = []
+        for sid in EXPLICIT.get(target_id, []): candidates += id_index.get(sid, [])
+        candidates += id_index.get(target_id, [])
+        for val in (target_name, target_id):
+            for a in aliases(val): candidates += name_index.get(a, [])
 
-        # 1) 明示ID
-        for source_id in EXPLICIT.get(target_id, []):
-            candidates.extend(id_index.get(source_id, []))
-
-        # 2) target_id 自体が外部IDと一致
-        candidates.extend(id_index.get(target_id, []))
-
-        # 3) FreeWiFiの表示名で自動照合
-        n = norm(target_name)
-        candidates.extend(name_index.get(n, []))
-
-        # 4) tvg-id自体を名称扱いして照合
-        candidates.extend(name_index.get(norm(target_id), []))
-
-        # 重複排除して優先順位順
-        uniq = []
-        seen = set()
+        uniq, seen = [], set()
         for item in sorted(candidates):
             key = (item[1], item[2])
             if key not in seen:
-                seen.add(key)
-                uniq.append(item)
+                seen.add(key); uniq.append(item)
 
-        if not uniq:
-            missing.append((target_id, target_name))
-            coverage.append(f"MISS\t{target_id}\t{target_name}")
-            continue
+        # 名前一致候補のうち「番組が実際に入っているもの」を優先する。
+        usable = []
+        for item in uniq:
+            _, sn, sid = item
+            pc = len(source_map[sn][3].get(sid, []))
+            usable.append((0 if pc else 1, item[0], -pc, sn, sid))
+        usable.sort()
 
-        _, source_name, source_id = uniq[0]
-        source_tuple = next(x for x in loaded if x[0] == source_name)
-        _, by_id, _, programmes = source_tuple
+        if not usable:
+            missing.append((target_id, target_name)); coverage.append(f"MISS\t{target_id}\t{target_name}"); continue
 
+        _, _, _, source_name, source_id = usable[0]
+        _, by_id, _, programmes = source_map[source_name]
         src_ch = by_id[source_id]
-        ch = clone(src_ch)
-        ch.set("id", target_id)
-        out_root.append(ch)
+        ch = clone(src_ch); ch.set("id", target_id); out_root.append(ch)
 
-        # 同一局は最優先ソースの番組のみ採用。重複を避ける。
-        plist = programmes.get(source_id, [])
-        seen_programmes = set()
-        added = 0
-        for p in plist:
-            q = clone(p)
-            q.set("channel", target_id)
+        seenp, added = set(), 0
+        for p in programmes.get(source_id, []):
+            q = clone(p); q.set("channel", target_id)
             key = (q.get("start"), q.get("stop"), (q.findtext("title") or "").strip())
-            if key in seen_programmes:
-                continue
-            seen_programmes.add(key)
-            out_root.append(q)
-            added += 1
-
-        matched_count += 1
+            if key in seenp: continue
+            seenp.add(key); out_root.append(q); added += 1
+        matched += 1
         coverage.append(f"OK\t{target_id}\t{target_name}\t{source_name}\t{source_id}\t{added} programmes")
 
     ET.indent(out_root, space="  ")
-    xml_body = ET.tostring(out_root, encoding="utf-8", xml_declaration=True)
-    OUT_XML.write_bytes(xml_body)
+    OUT_XML.write_bytes(ET.tostring(out_root, encoding="utf-8", xml_declaration=True))
+    report = ["FreeWiFi merged EPG coverage", f"wanted={len(wanted)}", f"matched={matched}", f"missing={len(missing)}", f"output_bytes={OUT_XML.stat().st_size}", "", "[source errors]", *(errors or ["none"]), "", "[coverage]", *coverage]
+    REPORT.write_text("\n".join(report)+"\n", encoding="utf-8")
+    print(f"matched: {matched}/{len(wanted)}; bytes={OUT_XML.stat().st_size:,}")
+    for tid, name in missing: print(f"MISS {tid} | {name}")
 
-    report = [
-        "FreeWiFi merged EPG coverage",
-        f"wanted={len(wanted)}",
-        f"matched={matched_count}",
-        f"missing={len(missing)}",
-        f"output_bytes={OUT_XML.stat().st_size}",
-        "",
-        "[source errors]",
-        *(errors or ["none"]),
-        "",
-        "[coverage]",
-        *coverage,
-    ]
-    REPORT.write_text("\n".join(report) + "\n", encoding="utf-8")
-
-    print(f"matched: {matched_count}/{len(wanted)}")
-    print(f"guides.xml: {OUT_XML.stat().st_size:,} bytes")
-    if missing:
-        print("missing IDs:")
-        for tvg_id, name in missing:
-            print(f"  {tvg_id} | {name}")
-
-
-if __name__ == "__main__":
-    main()
+if __name__ == "__main__": main()
