@@ -1,8 +1,10 @@
 FreeWiFi merged EPG coverage
 wanted=204
-matched=156
-missing=48
-output_bytes=10152464
+matched_real=157
+fallback=47
+unmatched_real=47
+covered_total=204
+output_bytes=10382299
 
 [source errors]
 none
@@ -74,7 +76,7 @@ OK	映画・チャンネルNECO_jp	チャンネルＮＥＣＯ	japanterebi	Chann
 OK	Dlife(ディーライフ)_jp	Dlife(ディーライフ)	japanterebi	Dlife.jp	167 programmes
 OK	東映チャンネル_jp	東映チャンネル	japanterebi	ToeiChannel.jp	197 programmes
 OK	FIGHTING-TV-サムライ_jp	ファイティングＴＶサムライ	japanterebi	FIGHTINGTVSamurai.jp	126 programmes
-MISS	メ～テレNEXT_jp	メ～テレNEXT
+FALLBACK	メ～テレNEXT_jp	メ～テレNEXT	12 programmes
 OK	スポーツライブ+_jp	スポーツライブ＋	japanterebi	SportsLivePlus.jp	166 programmes
 OK	ホームドラマチャンネル_jp	ホームドラマチャンネル	epgshare_jp2	ホームドラマチャンネル.jp	0 programmes
 OK	チャンネル銀河_jp	チャンネル銀河	epgshare_jp2	チャンネル銀河.jp	0 programmes
@@ -106,61 +108,61 @@ OK	ヒストリーチャンネル_jp	ヒストリーチャンネル	japanterebi	
 OK	CNNj_jp	CNNj	japanterebi	CNNj.jp	264 programmes
 OK	ミステリーチャンネル_jp	Mystery Channel	japanterebi	MysteryChannel.jp	147 programmes
 OK	BBCニュース_jp	BBCニュース	japanterebi	BBCNews.uk@AsiaPacific	445 programmes
-MISS	rch_47	日テレNEWS
-MISS	rch_108	FNNプライムオンライン
-MISS	rch_115	MBS ニュース
-MISS	rch_45	ウェザーニュース LIVE
+FALLBACK	rch_47	日テレNEWS	12 programmes
+FALLBACK	rch_108	FNNプライムオンライン	12 programmes
+FALLBACK	rch_115	MBS ニュース	12 programmes
+FALLBACK	rch_45	ウェザーニュース LIVE	12 programmes
 OK	rch_88	TOKYOMX チャンネル	japanterebi	TokyoMX1.jp	110 programmes
-MISS	rch_56	共同通信News
-MISS	rch_101	日テレNEWSセレクト
-MISS	rch_54	オリコンニュース
-MISS	rch_83	STOCK VOICE
-MISS	rch_103	Newsworld
-MISS	rch_70	Bloomberg TV+
-MISS	rch_90	ユーロニュース
-MISS	rch_102	QVC Japan
+FALLBACK	rch_56	共同通信News	12 programmes
+FALLBACK	rch_101	日テレNEWSセレクト	12 programmes
+FALLBACK	rch_54	オリコンニュース	12 programmes
+FALLBACK	rch_83	STOCK VOICE	12 programmes
+FALLBACK	rch_103	Newsworld	12 programmes
+FALLBACK	rch_70	Bloomberg TV+	12 programmes
+FALLBACK	rch_90	ユーロニュース	12 programmes
+OK	rch_102	QVC Japan	japanterebi	QVC.jp	213 programmes
 OK	rch_112	GSTV（宝石専門 CH)	japanterebi	GSTV.jp	191 programmes
-MISS	rch_89	TOP BARÇA
-MISS	rch_75	ゴルフ
-MISS	rch_97	日ﾃﾚﾌﾟﾛﾚｽ ｱｰｶｲ部
-MISS	rch_49	スカイ A - サプリ
-MISS	rch_51	GAORA ZERO
-MISS	rch_64	FUELTV
-MISS	rch_73	手塚プロダクションTV
-MISS	rch_65	キッズ
-MISS	rch_34	ムビドラTV
+FALLBACK	rch_89	TOP BARÇA	12 programmes
+FALLBACK	rch_75	ゴルフ	12 programmes
+FALLBACK	rch_97	日ﾃﾚﾌﾟﾛﾚｽ ｱｰｶｲ部	12 programmes
+FALLBACK	rch_49	スカイ A - サプリ	12 programmes
+FALLBACK	rch_51	GAORA ZERO	12 programmes
+FALLBACK	rch_64	FUELTV	12 programmes
+FALLBACK	rch_73	手塚プロダクションTV	12 programmes
+FALLBACK	rch_65	キッズ	12 programmes
+FALLBACK	rch_34	ムビドラTV	12 programmes
 OK	rch_43	HISTORY CHANNEL	japanterebi	History.jp	172 programmes
-MISS	rch_30	鉄道・旅
-MISS	rch_86	ワンニャンチャンネル
-MISS	rch_113	- ぷれいば！～ゲーム専門チャンネル～
-MISS	rch_46	釣り
-MISS	rch_100	囲碁・将棋ライト
+FALLBACK	rch_30	鉄道・旅	12 programmes
+FALLBACK	rch_86	ワンニャンチャンネル	12 programmes
+FALLBACK	rch_113	- ぷれいば！～ゲーム専門チャンネル～	12 programmes
+FALLBACK	rch_46	釣り	12 programmes
+FALLBACK	rch_100	囲碁・将棋ライト	12 programmes
 OK	rch_36	将棋	abema	shogi	40 programmes
 OK	rch_74	麻雀	abema	mahjong	134 programmes
-MISS	rch_35	パチンコ・パチスロ
-MISS	rch_37	エンタメ～テレ DEEP
-MISS	rch_104	That's 70s
-MISS	rch_105	That's 80s
-MISS	rch_106	That's 90s & 00s
-MISS	rch_107	That's ROCK
-MISS	rch_85	演歌・歌謡
-MISS	rch_98	セクシーエンタメチャンネル
-MISS	rch_59	おとなの歓楽街 by MEN'S NECO
-MISS	rch_41	アイドル・グラビア
+FALLBACK	rch_35	パチンコ・パチスロ	12 programmes
+FALLBACK	rch_37	エンタメ～テレ DEEP	12 programmes
+FALLBACK	rch_104	That's 70s	12 programmes
+FALLBACK	rch_105	That's 80s	12 programmes
+FALLBACK	rch_106	That's 90s & 00s	12 programmes
+FALLBACK	rch_107	That's ROCK	12 programmes
+FALLBACK	rch_85	演歌・歌謡	12 programmes
+FALLBACK	rch_98	セクシーエンタメチャンネル	12 programmes
+FALLBACK	rch_59	おとなの歓楽街 by MEN'S NECO	12 programmes
+FALLBACK	rch_41	アイドル・グラビア	12 programmes
 OK	rch_40	刺激ストロング	japanterebi	ShigekiStrong.jp	226 programmes
-MISS	rch_42	映画
+FALLBACK	rch_42	映画	12 programmes
 OK	abema-anime	ABEMA アニメチャンネル	abema	abema-anime	273 programmes
-MISS	poker	ポーカーチャンネル
+FALLBACK	poker	ポーカーチャンネル	12 programmes
 OK	abema-news	ABEMA NEWSチャンネル	abema	abema-news	241 programmes
 OK	news-plus	ABEMA NEWS会見チャンネル	abema	news-plus	360 programmes
 OK	abema-anime-2	ABEMA アニメチャンネル2	abema	abema-anime-2	47 programmes
-MISS	keroro	ケロロ軍曹チャンネル
+FALLBACK	keroro	ケロロ軍曹チャンネル	12 programmes
 OK	abema-anime-3	ABEMA アニメチャンネル3	abema	abema-anime-3	96 programmes
 OK	special-plus-7	アニメSPECIALチャンネル	abema	special-plus-7	38 programmes
 OK	abema-special	ABEMA SPECIALチャンネル	abema	abema-special	178 programmes
 OK	anime-special-2	アニメSPECIAL2チャンネル	abema	anime-special-2	35 programmes
 OK	special-plus	ABEMA SPECIAL 2チャンネル	abema	special-plus	181 programmes
-MISS	naruto	NARUTOチャンネル
+FALLBACK	naruto	NARUTOチャンネル	12 programmes
 OK	anime-live	アニメLIVEチャンネル	abema	anime-live	136 programmes
 OK	anime-live2	アニメLIVEチャンネル2	abema	anime-live2	36 programmes
 OK	80s-anime-1	なつかしアニメ80's	abema	80s-anime-1	69 programmes
@@ -176,7 +178,7 @@ OK	conan	名探偵コナンチャンネル	abema	conan	54 programmes
 OK	isekai-anime-3	異世界・ファンタジーアニメ3チャンネル	abema	isekai-anime-3	54 programmes
 OK	onepiece	ONE PIECEチャンネル	abema	onepiece	49 programmes
 OK	family-anime-1	ファミリーアニメ	abema	family-anime-1	190 programmes
-MISS	mushokutensei	無職転生チャンネル
+FALLBACK	mushokutensei	無職転生チャンネル	12 programmes
 OK	family-anime-2	ファミリーアニメ2チャンネル	abema	family-anime-2	65 programmes
 OK	lovecomedy-anime	ラブコメアニメチャンネル	abema	lovecomedy-anime	54 programmes
 OK	dailylife-anime	日常・青春アニメチャンネル	abema	dailylife-anime	49 programmes
@@ -199,16 +201,16 @@ OK	motor-sport	MOTOR SPORTチャンネル	abema	motor-sport	38 programmes
 OK	fighting-sports	格闘チャンネル	abema	fighting-sports	92 programmes
 OK	hiphop	HIPHOPチャンネル	abema	hiphop	79 programmes
 OK	commercial	CMチャンネル	abema	commercial	360 programmes
-MISS	boatrace	BOATRACEチャンネル
+FALLBACK	boatrace	BOATRACEチャンネル	12 programmes
 OK	keirin-auto	競輪・オートレースチャンネル	abema	keirin-auto	76 programmes
 OK	BS10_jp	BS10 Orange	jcom	jcom_3_200_4	102 programmes
-MISS	gmt+9	Anime 24/7
-MISS	ES300029LP	Anime Visión
-MISS	ES3000288I	Anime Visión Classics
+FALLBACK	gmt+9	Anime 24/7	12 programmes
+FALLBACK	ES300029LP	Anime Visión	12 programmes
+FALLBACK	ES3000288I	Anime Visión Classics	12 programmes
 OK	NHKワールド-JAPAN_jp	NHK World Japan	japanterebi	NHKWorldJapan.jp	614 programmes
 OK	ショップチャンネル_jp	Shop Channel Japan	japanterebi	ShopChannel.jp	217 programmes
 OK	CH.523	Shop Channel Japan	sky	Ch.523	163 programmes
-MISS	gmt+8	TCL Anime
+FALLBACK	gmt+8	TCL Anime	12 programmes
 OK	Pigoo_jp	アイドル専門チャンネルＰｉｇｏｏ	japanterebi	Pigoo.jp	76 programmes
 OK	NHK京都・総合_jp	NHK G Kyoto	japanterebi	JOOKDTV.jp	131 programmes
-MISS	ZooMoo_jp	ZooMoo
+FALLBACK	ZooMoo_jp	ZooMoo	12 programmes
