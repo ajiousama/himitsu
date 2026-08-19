@@ -111,6 +111,16 @@ def add_fallback(out_root, target_id, target_name):
     ch = ET.SubElement(out_root, "channel", {"id": target_id})
     ET.SubElement(ch, "display-name").text = target_name
 
+    is_youtube_live = target_id.startswith("youtube.")
+    if is_youtube_live:
+        title = "📡✨ ただいまYouTubeよりライブカメラ中継中 ✨📡"
+        desc = f"🎥 LIVE CAMERA ON AIR 🎥\n📺 YouTubeからライブ映像を中継しています。\n📍 {target_name}"
+        category = "ライブカメラ"
+    else:
+        title = target_name
+        desc = "番組詳細EPG未取得のため、チャンネル名を表示しています。"
+        category = "その他"
+
     now = datetime.now(JST)
     start_day = datetime(now.year, now.month, now.day, tzinfo=JST)
     for d in range(3):
@@ -123,9 +133,9 @@ def add_fallback(out_root, target_id, target_name):
                 "stop": xmltv_time(en),
                 "channel": target_id,
             })
-            ET.SubElement(p, "title", {"lang": "ja"}).text = target_name
-            ET.SubElement(p, "desc", {"lang": "ja"}).text = "番組詳細EPG未取得のため、チャンネル名を表示しています。"
-            ET.SubElement(p, "category", {"lang": "ja"}).text = "その他"
+            ET.SubElement(p, "title", {"lang": "ja"}).text = title
+            ET.SubElement(p, "desc", {"lang": "ja"}).text = desc
+            ET.SubElement(p, "category", {"lang": "ja"}).text = category
 
 
 def main():
