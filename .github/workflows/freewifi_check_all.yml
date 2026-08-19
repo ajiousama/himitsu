@@ -9,63 +9,127 @@ permissions:
 jobs:
   check:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
 
     steps:
       - name: Checkout
         uses: actions/checkout@v5
 
-      - name: Install ffmpeg
-        run: sudo apt-get update && sudo apt-get install -y ffmpeg
-
       - name: Check all stream URLs in freewifi
         shell: python
         run: |
-          import re
-          import subprocess
+          import csv
+          import socket
+          from concurrent.futures import ThreadPoolExecutor, as_completed
           from pathlib import Path
+          from urllib.request import Request, urlopen
+          from urllib.error import HTTPError, URLError
 
-          src = Path('freewifi').read_text(encoding='utf-8-sig', errors='replace')
-          lines = src.replace('\r\n','\n').split('\n')
+          TIMEOUT = 8
+          WORKERS = 16
+          UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/151 Safari/537.36"
+
+          src = Path("freewifi").read_text(encoding="utf-8-sig", errors="replace")
+          lines = src.replace("\r\n", "\n").split("\n")
 
           entries = []
           current = None
           for line in lines:
               s = line.strip()
-              if s.startswith('#EXTINF:'):
+              if s.startswith("#EXTINF:"):
                   current = s
-              elif current and s and not s.startswith('#') and (s.startswith('http://') or s.startswith('https://')):
-                  name = current.split(',',1)[1].strip() if ',' in current else '(no name)'
-                  entries.append((name, s))
+              elif current and s and not s.startswith("#") and s.startswith(("http://", "https://")):
+                  name = current.split(",", 1)[1].strip() if "," in current else "(no name)"
+                  entries.append((len(entries) + 1, name, s))
                   current = None
 
-          print(f'TOTAL={len(entries)}')
-          print('STATUS\tNAME\tURL')
-
-          ok = 0
-          ng = 0
-          for i, (name, url) in enumerate(entries, 1):
-              cmd = [
-                  'ffprobe', '-v', 'error',
-                  '-rw_timeout', '12000000',
-                  '-timeout', '12000000',
-                  '-show_entries', 'format=format_name,duration',
-                  '-of', 'default=noprint_wrappers=1:nokey=1',
-                  url,
-              ]
+          def check(item):
+              idx, name, url = item
               try:
-                  p = subprocess.run(cmd, capture_output=True, text=True, timeout=18)
-                  good = (p.returncode == 0)
-                  detail = (p.stdout.strip() or p.stderr.strip()).replace('\n',' | ')[:300]
-              except subprocess.TimeoutExpired:
-                  good = False
-                  detail = 'TIMEOUT'
+                  req = Request(url, headers={
+                      "User-Agent": UA,
+                      "Accept": "*/*",
+                      "Connection": "close",
+                  })
+                  with urlopen(req, timeout=TIMEOUT) as r:
+                      code = getattr(r, "status", 200)
+                      ctype = r.headers.get("Content-Type", "")
+                      final_url = r.geturl()
+                      body = r.read(65536)
+
+                  text = body.decode("utf-8", errors="replace")
+                  hls = "#EXTM3U" in text or "mpegurl" in ctype.lower()
+                  media_like = hls or ctype.lower().startswith(("video/", "audio/"))
+                  status = "OK" if code == 200 and media_like else "CHECK"
+                  detail = f"HTTP {code} {ctype}".strip()
+                  if code == 200 and not media_like:
+                      detail += " / response is not clearly HLS/media"
+                  return [idx, status, name, url, final_url, code, ctype, detail]
+
+              except HTTPError as e:
+                  return [idx, "NG", name, url, "", e.code, "", f"HTTPError {e.code}"]
+              except (URLError, socket.timeout, TimeoutError) as e:
+                  reason = getattr(e, "reason", e)
+                  return [idx, "TIMEOUT", name, url, "", "", "", str(reason)]
               except Exception as e:
-                  good = False
-                  detail = f'ERROR {e}'
+                  return [idx, "NG", name, url, "", "", "", f"{type(e).__name__}: {e}"]
 
-              status = 'OK' if good else 'NG'
-              ok += int(good)
-              ng += int(not good)
-              print(f'{status}\t{name}\t{url}\t{detail}')
+          print(f"TOTAL={len(entries)}", flush=True)
+          results = []
 
-          print(f'\nSUMMARY OK={ok} NG={ng} TOTAL={len(entries)}')
+          with ThreadPoolExecutor(max_workers=WORKERS) as ex:
+              futures = {ex.submit(check, item): item for item in entries}
+              for n, future in enumerate(as_completed(futures), 1):
+                  row = future.result()
+                  results.append(row)
+                  print(f"[{n}/{len(entries)}] {row[1]}\t{row[2]}\t{row[3]}\t{row[7]}", flush=True)
+
+          results.sort(key=lambda x: x[0])
+
+          with open("freewifi_stream_check.csv", "w", encoding="utf-8-sig", newline="") as f:
+              w = csv.writer(f)
+              w.writerow(["No", "Status", "Name", "URL", "FinalURL", "HTTP", "ContentType", "Detail"])
+              w.writerows(results)
+
+          ok = [r for r in results if r[1] == "OK"]
+          ng = [r for r in results if r[1] == "NG"]
+          timeout = [r for r in results if r[1] == "TIMEOUT"]
+          check = [r for r in results if r[1] == "CHECK"]
+
+          def write_list(path, rows):
+              Path(path).write_text(
+                  "\n".join(f"{r[1]}\t{r[2]}\t{r[3]}\t{r[7]}" for r in rows) + ("\n" if rows else ""),
+                  encoding="utf-8"
+              )
+
+          write_list("freewifi_OK.txt", ok)
+          write_list("freewifi_NG.txt", ng)
+          write_list("freewifi_TIMEOUT.txt", timeout)
+          write_list("freewifi_CHECK.txt", check)
+
+          summary = (
+              f"OK={len(ok)}\n"
+              f"NG={len(ng)}\n"
+              f"TIMEOUT={len(timeout)}\n"
+              f"CHECK={len(check)}\n"
+              f"TOTAL={len(results)}\n"
+          )
+          Path("freewifi_summary.txt").write_text(summary, encoding="utf-8")
+
+          print("\n===== SUMMARY =====")
+          print(summary)
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: freewifi-stream-check-results
+          path: |
+            freewifi_stream_check.csv
+            freewifi_OK.txt
+            freewifi_NG.txt
+            freewifi_TIMEOUT.txt
+            freewifi_CHECK.txt
+            freewifi_summary.txt
+          retention-days: 7
+          if-no-files-found: warn
