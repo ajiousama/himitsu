@@ -1,0 +1,71 @@
+name: Check All FreeWiFi Streams
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Install ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+
+      - name: Check all stream URLs in freewifi
+        shell: python
+        run: |
+          import re
+          import subprocess
+          from pathlib import Path
+
+          src = Path('freewifi').read_text(encoding='utf-8-sig', errors='replace')
+          lines = src.replace('\r\n','\n').split('\n')
+
+          entries = []
+          current = None
+          for line in lines:
+              s = line.strip()
+              if s.startswith('#EXTINF:'):
+                  current = s
+              elif current and s and not s.startswith('#') and (s.startswith('http://') or s.startswith('https://')):
+                  name = current.split(',',1)[1].strip() if ',' in current else '(no name)'
+                  entries.append((name, s))
+                  current = None
+
+          print(f'TOTAL={len(entries)}')
+          print('STATUS\tNAME\tURL')
+
+          ok = 0
+          ng = 0
+          for i, (name, url) in enumerate(entries, 1):
+              cmd = [
+                  'ffprobe', '-v', 'error',
+                  '-rw_timeout', '12000000',
+                  '-timeout', '12000000',
+                  '-show_entries', 'format=format_name,duration',
+                  '-of', 'default=noprint_wrappers=1:nokey=1',
+                  url,
+              ]
+              try:
+                  p = subprocess.run(cmd, capture_output=True, text=True, timeout=18)
+                  good = (p.returncode == 0)
+                  detail = (p.stdout.strip() or p.stderr.strip()).replace('\n',' | ')[:300]
+              except subprocess.TimeoutExpired:
+                  good = False
+                  detail = 'TIMEOUT'
+              except Exception as e:
+                  good = False
+                  detail = f'ERROR {e}'
+
+              status = 'OK' if good else 'NG'
+              ok += int(good)
+              ng += int(not good)
+              print(f'{status}\t{name}\t{url}\t{detail}')
+
+          print(f'\nSUMMARY OK={ok} NG={ng} TOTAL={len(entries)}')
