@@ -9,7 +9,10 @@ from collections import defaultdict
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-FREEWIFI = Path("freewifi")
+PLAYLISTS = [
+    Path("freewifi"),
+    Path("other_live.m3u"),
+]
 OUT_XML = Path("guides.xml")
 REPORT = Path("epg_coverage.txt")
 
@@ -77,17 +80,22 @@ def aliases(s):
     return {x for x in out if x}
 
 
-def parse_freewifi():
-    text = FREEWIFI.read_text(encoding="utf-8-sig", errors="replace")
+def parse_playlists():
     out = {}
-    for line in text.splitlines():
-        if not line.startswith("#EXTINF:"): continue
-        m = re.search(r'tvg-id="([^"]+)"', line)
-        if not m: continue
-        tid = m.group(1).strip()
-        name = line.rsplit(",", 1)[-1].strip() if "," in line else tid
-        name = re.sub(r"\([^)]*\)$", "", name).strip()
-        out.setdefault(tid, name)
+    for path in PLAYLISTS:
+        if not path.exists():
+            continue
+        text = path.read_text(encoding="utf-8-sig", errors="replace")
+        for line in text.splitlines():
+            if not line.startswith("#EXTINF:"):
+                continue
+            m = re.search(r'tvg-id="([^"]+)"', line)
+            if not m:
+                continue
+            tid = m.group(1).strip()
+            name = line.rsplit(",", 1)[-1].strip() if "," in line else tid
+            name = re.sub(r"\([^)]*\)$", "", name).strip()
+            out.setdefault(tid, name)
     return out
 
 
@@ -105,7 +113,6 @@ def add_fallback(out_root, target_id, target_name):
 
     now = datetime.now(JST)
     start_day = datetime(now.year, now.month, now.day, tzinfo=JST)
-    # 3日分、6時間単位の簡易EPG。実番組表ではないことを明記。
     for d in range(3):
         day = start_day + timedelta(days=d)
         for h in (0, 6, 12, 18):
@@ -122,7 +129,7 @@ def add_fallback(out_root, target_id, target_name):
 
 
 def main():
-    wanted = parse_freewifi()
+    wanted = parse_playlists()
     loaded, errors = [], []
     for source_name, url in SOURCES:
         try:
