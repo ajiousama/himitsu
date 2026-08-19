@@ -8,6 +8,8 @@ on:
     branches:
       - main
     paths:
+      - "freewifi"
+      - "other_live.m3u"
       - "epg_build.py"
       - ".github/workflows/update_freewifi_epg.yml"
 
@@ -41,7 +43,7 @@ jobs:
         run: |
           head -n 12 epg_coverage.txt || true
           grep -c '^OK' epg_coverage.txt || true
-          grep -c '^MISS' epg_coverage.txt || true
+          grep -c '^FALLBACK' epg_coverage.txt || true
 
       - name: Commit generated EPG
         run: |
