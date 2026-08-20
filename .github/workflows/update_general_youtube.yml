@@ -1,0 +1,86 @@
+name: Update General YouTube LIVE
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/general_youtube_update.trigger'
+      - 'general_youtube_sources.json'
+      - 'general_youtube_update.py'
+  schedule:
+    - cron: '*/15 * * * *'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: himitsu-general-youtube
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install latest yt-dlp
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install --upgrade --pre 'yt-dlp[default]'
+          yt-dlp --version
+
+      - name: Restore YouTube cookies if available
+        shell: bash
+        env:
+          YOUTUBE_COOKIES: ${{ secrets.YOUTUBE_COOKIES }}
+        run: |
+          if [ -n "$YOUTUBE_COOKIES" ]; then
+            printf '%s' "$YOUTUBE_COOKIES" > youtube_cookies.txt
+            chmod 600 youtube_cookies.txt
+            echo "Cookie restored: $(wc -c < youtube_cookies.txt) bytes"
+          else
+            echo 'YOUTUBE_COOKIES is not set; continuing without cookies'
+          fi
+
+      - name: Sync latest main
+        run: git pull --ff-only origin main
+
+      - name: Refresh general YouTube LIVE
+        run: python general_youtube_update.py
+
+      - name: Validate
+        shell: bash
+        run: |
+          test -s general_youtube.m3u
+          test -s freewifi
+          COUNT=$(grep -c '^#EXTINF:' general_youtube.m3u || true)
+          echo "General YouTube LIVE count: $COUNT"
+          grep -q '# === GENERAL_YOUTUBE_MANAGED_START ===' freewifi
+          grep -q '# === GENERAL_YOUTUBE_MANAGED_END ===' freewifi
+
+      - name: Commit updated LIVE URLs
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add general_youtube.m3u freewifi
+          if git diff --cached --quiet; then
+            echo 'No changes'
+            exit 0
+          fi
+          git commit -m 'Update general YouTube LIVE URLs'
+          git pull --rebase origin main
+          git push origin main
