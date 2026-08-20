@@ -9,7 +9,7 @@ COOKIES = Path('youtube_cookies.txt')
 LOG = Path('general_youtube_run_latest.txt')
 START = '# === GENERAL_YOUTUBE_MANAGED_START ==='
 END = '# === GENERAL_YOUTUBE_MANAGED_END ==='
-MAX_WORKERS = 6
+MAX_WORKERS = 1
 
 
 def run(cmd, timeout=45):
@@ -24,11 +24,7 @@ def base_cmd():
 
 
 def direct_url(page):
-    selectors = [
-        'best[protocol^=m3u8]',
-        '96/95/94/93/92/91',
-        'best',
-    ]
+    selectors = ['best[protocol^=m3u8]', '96/95/94/93/92/91', 'best']
     errors = []
     for sel in selectors:
         try:
@@ -54,7 +50,7 @@ def direct_url(page):
 def search_live(query):
     try:
         p = run(base_cmd() + [
-            '--flat-playlist', '--dump-json', '--playlist-end', '4', f'ytsearch4:{query}'
+            '--flat-playlist', '--dump-json', '--playlist-end', '2', f'ytsearch2:{query}'
         ], 30)
     except subprocess.TimeoutExpired:
         return None, 'search timeout'
@@ -86,7 +82,7 @@ def resolve_item(index, item):
             url, error = direct_url(page)
         except Exception as e:
             error = str(e)
-    if not url:
+    if not url and not item.get('direct_only', False):
         q = item.get('query') or item.get('name')
         try:
             url, error = search_live(q)
@@ -98,7 +94,6 @@ def resolve_item(index, item):
 def build():
     items = json.loads(SRC.read_text(encoding='utf-8'))
     results = [None] * len(items)
-
     with ThreadPoolExecutor(max_workers=MAX_WORKERS) as pool:
         futures = [pool.submit(resolve_item, i, item) for i, item in enumerate(items)]
         for future in as_completed(futures):
@@ -125,7 +120,6 @@ def build():
         out.append(url)
         out.append('')
         got.append(name)
-
     text = '\n'.join(out).rstrip() + '\n'
     return text, got, failed
 
