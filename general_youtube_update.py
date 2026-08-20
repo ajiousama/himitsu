@@ -45,8 +45,26 @@ def search_live(query):
     return None
 
 
+def existing_logos():
+    """FreeWiFi/既存general_youtube.m3uから tvg-id -> tvg-logo を回収する。"""
+    logos={}
+    for path in (FREEWIFI, OUT):
+        if not path.exists():
+            continue
+        text=path.read_text(encoding='utf-8-sig',errors='replace')
+        for line in text.splitlines():
+            if not line.startswith('#EXTINF:'):
+                continue
+            mid=re.search(r'tvg-id="([^"]+)"',line)
+            mlogo=re.search(r'tvg-logo="([^"]+)"',line)
+            if mid and mlogo and mlogo.group(2 if False else 1).strip():
+                logos.setdefault(mid.group(1).strip(),mlogo.group(1).strip())
+    return logos
+
+
 def build():
     items=json.loads(SRC.read_text(encoding='utf-8'))
+    old_logos=existing_logos()
     out=['#EXTM3U','']
     got=[]
     seen=set()
@@ -65,7 +83,12 @@ def build():
         if key in seen: continue
         seen.add(key)
         tvg=item['id']; name=item['name']; group=item.get('group','一般YouTube LIVE')
-        out.append(f'#EXTINF:-1 tvg-id="{tvg}" tvg-name="{name}" group-title="{group}",{name}')
+        logo=(item.get('logo') or old_logos.get(tvg) or '').strip()
+        attrs=f'tvg-id="{tvg}" tvg-name="{name}"'
+        if logo:
+            attrs+=f' tvg-logo="{logo}"'
+        attrs+=f' group-title="{group}"'
+        out.append(f'#EXTINF:-1 {attrs},{name}')
         out.append(url); out.append('')
         got.append(name)
     text='\n'.join(out).rstrip()+'\n'
