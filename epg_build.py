@@ -59,6 +59,14 @@ EXPLICIT = {
     "フジテレビNEXT_jp": ["FujiTVNEXT.jp", "CS309"],
     "ヒストリーチャンネル_jp": ["HistoryChannel.jp", "History.jp"],
     "rch_102": ["QVC.jp", "CS161", "Ch.525"],
+
+    # 0-programme候補を誤選択していた6局は、実番組を持つIDへ固定。
+    "スペースシャワーTV_jp": ["SpaceShowerTV.jp"],
+    "WOWOWプラス_jp": ["WOWOWPlus.jp"],
+    "カートゥーン-ネットワーク_jp": ["CartoonNetwork.jp"],
+    "ホームドラマチャンネル_jp": ["HomeDramaChannel.jp"],
+    "チャンネル銀河_jp": ["ChannelGinga.jp"],
+    "日テレプラス_jp": ["NipponTVPlus.jp", "NittelePlus.jp"],
 }
 
 SOURCE_PRIORITY = {name: i for i, (name, _) in enumerate(SOURCES)}
@@ -66,7 +74,7 @@ JST = timezone(timedelta(hours=9))
 
 
 def fetch_bytes(url):
-    req = urllib.request.Request(url, headers={"User-Agent": "FreeWiFi-EPG/1.3"})
+    req = urllib.request.Request(url, headers={"User-Agent": "FreeWiFi-EPG/1.4"})
     with urllib.request.urlopen(req, timeout=90) as r:
         return r.read()
 
@@ -97,8 +105,10 @@ def aliases(s):
     out = {n}
     repl = [("フジテレビ", "フジ"), ("テレビ朝日", "テレ朝"), ("日本テレビ", "日テレ"), ("スペースシャワーtv", "スペシャ"), ("ヒストリー", "history")]
     for a, b in repl:
-        if a in n: out.add(n.replace(a, b))
-        if b in n: out.add(n.replace(b, a))
+        if a in n:
+            out.add(n.replace(a, b))
+        if b in n:
+            out.add(n.replace(b, a))
     return {x for x in out if x}
 
 
@@ -117,7 +127,9 @@ def parse_playlists():
             tid = m.group(1).strip()
             name = line.rsplit(",", 1)[-1].strip() if "," in line else tid
             name = re.sub(r"\([^)]*\)$", "", name).strip()
-            out.setdefault(tid, name)
+            gm = re.search(r'group-title="([^"]*)"', line)
+            group = gm.group(1).strip() if gm else ""
+            out.setdefault(tid, (name, group))
     return out
 
 
@@ -151,8 +163,6 @@ def load_ecatv_epg():
             data = fetch_json(url)
             items = []
 
-            # API is {"YYYY-MM-DD": [programme, ...], ...}.
-            # Flatten and rely on sdate/stime, which are the actual broadcast timestamps.
             if isinstance(data, dict):
                 groups = data.values()
             elif isinstance(data, list):
@@ -171,7 +181,6 @@ def load_ecatv_epg():
                     if start and title:
                         items.append((start, title))
 
-            # Same timestamp can appear more than once in malformed/duplicated payloads.
             dedup = {}
             for start, title in items:
                 dedup[(start, title)] = (start, title)
@@ -184,7 +193,6 @@ def load_ecatv_epg():
                 else:
                     stop = start + timedelta(hours=1)
 
-                # Protect XMLTV from a bad next timestamp or a cross-channel/month artifact.
                 if stop <= start or stop - start > timedelta(hours=8):
                     stop = start + timedelta(hours=1)
                 programmes.append((start, stop, title))
@@ -213,15 +221,22 @@ def add_ecatv_channel(out_root, target_id, display_name, programmes):
         ET.SubElement(p, "category", {"lang": "ja"}).text = "地域情報"
 
 
-def add_fallback(out_root, target_id, target_name):
+def add_fallback(out_root, target_id, target_name, target_group=""):
     ch = ET.SubElement(out_root, "channel", {"id": target_id})
     ET.SubElement(ch, "display-name").text = target_name
 
     is_youtube_live = target_id.startswith("youtube.")
+    group_norm = unicodedata.normalize("NFKC", target_group or "").upper()
+    is_24h_name = ("CATV" in group_norm) or ("ABEMA" in group_norm)
+
     if is_youtube_live:
         title = "📡✨ ただいまYouTubeよりライブカメラ中継中 ✨📡"
         desc = f"🎥 LIVE CAMERA ON AIR 🎥\n📺 YouTubeからライブ映像を中継しています。\n📍 {target_name}"
         category = "ライブカメラ"
+    elif is_24h_name:
+        title = f"24H＋{target_name}"
+        desc = "実EPG未対応のため、24時間枠でチャンネル名を表示しています。"
+        category = "24H"
     else:
         title = target_name
         desc = "番組詳細EPG未取得のため、チャンネル名を表示しています。"
@@ -248,7 +263,6 @@ def main():
     wanted = parse_playlists()
     loaded, errors = [], []
 
-    # 愛媛CATVは公式JSONを最優先で使用。
     ecatv_epg, ecatv_errors = load_ecatv_epg()
     errors.extend(ecatv_errors)
 
@@ -258,13 +272,16 @@ def main():
             by_id, by_name, programmes = {}, defaultdict(list), defaultdict(list)
             for ch in root.findall("channel"):
                 cid = ch.get("id")
-                if not cid: continue
+                if not cid:
+                    continue
                 by_id[cid] = ch
                 vals = [cid] + [x.text.strip() for x in ch.findall("display-name") if x.text and x.text.strip()]
                 for val in vals:
-                    for a in aliases(val): by_name[a].append(cid)
+                    for a in aliases(val):
+                        by_name[a].append(cid)
             for p in root.findall("programme"):
-                if p.get("channel"): programmes[p.get("channel")].append(p)
+                if p.get("channel"):
+                    programmes[p.get("channel")].append(p)
             loaded.append((source_name, by_id, by_name, programmes))
         except Exception as e:
             errors.append(f"{source_name}: {type(e).__name__}: {e}")
@@ -272,17 +289,18 @@ def main():
     id_index, name_index = defaultdict(list), defaultdict(list)
     source_map = {x[0]: x for x in loaded}
     for source_name, by_id, by_name, programmes in loaded:
-        for cid in by_id: id_index[cid].append((SOURCE_PRIORITY[source_name], source_name, cid))
+        for cid in by_id:
+            id_index[cid].append((SOURCE_PRIORITY[source_name], source_name, cid))
         for n, ids in by_name.items():
-            for cid in ids: name_index[n].append((SOURCE_PRIORITY[source_name], source_name, cid))
+            for cid in ids:
+                name_index[n].append((SOURCE_PRIORITY[source_name], source_name, cid))
 
-    out_root = ET.Element("tv", {"generator-info-name":"FreeWiFi merged EPG", "generator-info-url":"https://github.com/ajiousama/himitsu"})
+    out_root = ET.Element("tv", {"generator-info-name": "FreeWiFi merged EPG", "generator-info-url": "https://github.com/ajiousama/himitsu"})
     coverage, missing = [], []
     matched = 0
     fallback = 0
 
-    for target_id, target_name in wanted.items():
-        # Official eCATV source wins over all generic sources.
+    for target_id, (target_name, target_group) in wanted.items():
         if target_id in ecatv_epg:
             display_name, programmes = ecatv_epg[target_id]
             add_ecatv_channel(out_root, target_id, display_name, programmes)
@@ -291,16 +309,19 @@ def main():
             continue
 
         candidates = []
-        for sid in EXPLICIT.get(target_id, []): candidates += id_index.get(sid, [])
+        for sid in EXPLICIT.get(target_id, []):
+            candidates += id_index.get(sid, [])
         candidates += id_index.get(target_id, [])
         for val in (target_name, target_id):
-            for a in aliases(val): candidates += name_index.get(a, [])
+            for a in aliases(val):
+                candidates += name_index.get(a, [])
 
         uniq, seen = [], set()
         for item in sorted(candidates):
             key = (item[1], item[2])
             if key not in seen:
-                seen.add(key); uniq.append(item)
+                seen.add(key)
+                uniq.append(item)
 
         usable = []
         for item in uniq:
@@ -310,23 +331,29 @@ def main():
         usable.sort()
 
         if not usable:
-            add_fallback(out_root, target_id, target_name)
+            add_fallback(out_root, target_id, target_name, target_group)
             fallback += 1
             missing.append((target_id, target_name))
-            coverage.append(f"FALLBACK\t{target_id}\t{target_name}\t12 programmes")
+            coverage.append(f"FALLBACK\t{target_id}\t{target_name}\t{target_group}\t12 programmes")
             continue
 
         _, _, _, source_name, source_id = usable[0]
         _, by_id, _, programmes = source_map[source_name]
         src_ch = by_id[source_id]
-        ch = clone(src_ch); ch.set("id", target_id); out_root.append(ch)
+        ch = clone(src_ch)
+        ch.set("id", target_id)
+        out_root.append(ch)
 
         seenp, added = set(), 0
         for p in programmes.get(source_id, []):
-            q = clone(p); q.set("channel", target_id)
+            q = clone(p)
+            q.set("channel", target_id)
             key = (q.get("start"), q.get("stop"), (q.findtext("title") or "").strip())
-            if key in seenp: continue
-            seenp.add(key); out_root.append(q); added += 1
+            if key in seenp:
+                continue
+            seenp.add(key)
+            out_root.append(q)
+            added += 1
         matched += 1
         coverage.append(f"OK\t{target_id}\t{target_name}\t{source_name}\t{source_id}\t{added} programmes")
 
@@ -347,8 +374,8 @@ def main():
         "[coverage]",
         *coverage,
     ]
-    REPORT.write_text("\n".join(report)+"\n", encoding="utf-8")
-    print(f"real={matched}/{len(wanted)} fallback={fallback} covered={matched+fallback}/{len(wanted)} bytes={OUT_XML.stat().st_size:,}")
+    REPORT.write_text("\n".join(report) + "\n", encoding="utf-8")
+    print(f"real={matched}/{len(wanted)} fallback={fallback} covered={matched + fallback}/{len(wanted)} bytes={OUT_XML.stat().st_size:,}")
 
 
 if __name__ == "__main__":
