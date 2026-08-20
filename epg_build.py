@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import gzip
+import json
 import re
 import unicodedata
 import urllib.request
@@ -26,6 +27,23 @@ SOURCES = [
     ("epgshare_jp2", "https://epgshare01.online/epgshare01/epg_ripper_JP2.xml.gz"),
 ]
 
+# 愛媛CATV 公式「地域情報チャンネル番組表」JSON。
+# 愛南たうんチャンネル(52350)は松山側TS-401で配信URL未確認のため対象外。
+# 公式ページの表示順:
+#   52344 = たうんプレミアム (111ch)
+#   52330 = イベントセレクション (123ch)
+#   52329 = イベントプレミアム (122ch)
+#   52345 = たうんNews24
+#   115   = 防災チャンネル (112ch)
+ECATV_CHANNELS = {
+    "ecatv.town_premium": ("たうんプレミアム", "52344"),
+    "ecatv.event_selection": ("イベントセレクション", "52330"),
+    "ecatv.event_premium": ("イベントプレミアム", "52329"),
+    "ecatv.town_news24": ("たうんNews24", "52345"),
+    "ecatv.bousai": ("えひめ・防災チャンネル", "115"),
+}
+ECATV_JSON_BASE = "https://www.e-catv.ne.jp/epg/json"
+
 EXPLICIT = {
     "tver_ntv": ["ntv"], "tver_ex": ["ex"], "tver_tbs": ["tbs"], "tver_tx": ["tx"], "tver_cx": ["cx"],
     "日本テレビ_jp": ["JOAXDTV.jp", "jcom_2_1040_32738"],
@@ -48,7 +66,7 @@ JST = timezone(timedelta(hours=9))
 
 
 def fetch_bytes(url):
-    req = urllib.request.Request(url, headers={"User-Agent": "FreeWiFi-EPG/1.2"})
+    req = urllib.request.Request(url, headers={"User-Agent": "FreeWiFi-EPG/1.3"})
     with urllib.request.urlopen(req, timeout=90) as r:
         return r.read()
 
@@ -58,6 +76,10 @@ def fetch_xml(url):
     if url.endswith(".gz"):
         data = gzip.decompress(data)
     return ET.fromstring(data)
+
+
+def fetch_json(url):
+    return json.loads(fetch_bytes(url).decode("utf-8-sig"))
 
 
 def norm(s):
@@ -107,6 +129,90 @@ def xmltv_time(dt):
     return dt.strftime("%Y%m%d%H%M%S +0900")
 
 
+def parse_ecatv_datetime(item):
+    sdate = str(item.get("sdate") or "").strip()
+    stime = str(item.get("stime") or "").strip()
+    if not (re.fullmatch(r"\d{8}", sdate) and re.fullmatch(r"\d{6}", stime)):
+        return None
+    try:
+        return datetime.strptime(sdate + stime, "%Y%m%d%H%M%S").replace(tzinfo=JST)
+    except ValueError:
+        return None
+
+
+def load_ecatv_epg():
+    """Return {target_id: [(start, stop, title), ...]}, errors."""
+    result = {}
+    errors = []
+
+    for target_id, (display_name, source_id) in ECATV_CHANNELS.items():
+        url = f"{ECATV_JSON_BASE}/{source_id}.json"
+        try:
+            data = fetch_json(url)
+            items = []
+
+            # API is {"YYYY-MM-DD": [programme, ...], ...}.
+            # Flatten and rely on sdate/stime, which are the actual broadcast timestamps.
+            if isinstance(data, dict):
+                groups = data.values()
+            elif isinstance(data, list):
+                groups = [data]
+            else:
+                raise ValueError(f"unexpected JSON root: {type(data).__name__}")
+
+            for group in groups:
+                if not isinstance(group, list):
+                    continue
+                for item in group:
+                    if not isinstance(item, dict):
+                        continue
+                    start = parse_ecatv_datetime(item)
+                    title = str(item.get("title") or "").strip()
+                    if start and title:
+                        items.append((start, title))
+
+            # Same timestamp can appear more than once in malformed/duplicated payloads.
+            dedup = {}
+            for start, title in items:
+                dedup[(start, title)] = (start, title)
+            items = sorted(dedup.values(), key=lambda x: x[0])
+
+            programmes = []
+            for i, (start, title) in enumerate(items):
+                if i + 1 < len(items):
+                    stop = items[i + 1][0]
+                else:
+                    stop = start + timedelta(hours=1)
+
+                # Protect XMLTV from a bad next timestamp or a cross-channel/month artifact.
+                if stop <= start or stop - start > timedelta(hours=8):
+                    stop = start + timedelta(hours=1)
+                programmes.append((start, stop, title))
+
+            if not programmes:
+                raise ValueError("no programmes parsed")
+
+            result[target_id] = (display_name, programmes)
+        except Exception as e:
+            errors.append(f"ecatv/{source_id}: {type(e).__name__}: {e}")
+
+    return result, errors
+
+
+def add_ecatv_channel(out_root, target_id, display_name, programmes):
+    ch = ET.SubElement(out_root, "channel", {"id": target_id})
+    ET.SubElement(ch, "display-name").text = display_name
+
+    for start, stop, title in programmes:
+        p = ET.SubElement(out_root, "programme", {
+            "start": xmltv_time(start),
+            "stop": xmltv_time(stop),
+            "channel": target_id,
+        })
+        ET.SubElement(p, "title", {"lang": "ja"}).text = title
+        ET.SubElement(p, "category", {"lang": "ja"}).text = "地域情報"
+
+
 def add_fallback(out_root, target_id, target_name):
     ch = ET.SubElement(out_root, "channel", {"id": target_id})
     ET.SubElement(ch, "display-name").text = target_name
@@ -141,6 +247,11 @@ def add_fallback(out_root, target_id, target_name):
 def main():
     wanted = parse_playlists()
     loaded, errors = [], []
+
+    # 愛媛CATVは公式JSONを最優先で使用。
+    ecatv_epg, ecatv_errors = load_ecatv_epg()
+    errors.extend(ecatv_errors)
+
     for source_name, url in SOURCES:
         try:
             root = fetch_xml(url)
@@ -171,6 +282,14 @@ def main():
     fallback = 0
 
     for target_id, target_name in wanted.items():
+        # Official eCATV source wins over all generic sources.
+        if target_id in ecatv_epg:
+            display_name, programmes = ecatv_epg[target_id]
+            add_ecatv_channel(out_root, target_id, display_name, programmes)
+            matched += 1
+            coverage.append(f"OK\t{target_id}\t{target_name}\tecatv\t{ECATV_CHANNELS[target_id][1]}\t{len(programmes)} programmes")
+            continue
+
         candidates = []
         for sid in EXPLICIT.get(target_id, []): candidates += id_index.get(sid, [])
         candidates += id_index.get(target_id, [])
@@ -231,4 +350,6 @@ def main():
     REPORT.write_text("\n".join(report)+"\n", encoding="utf-8")
     print(f"real={matched}/{len(wanted)} fallback={fallback} covered={matched+fallback}/{len(wanted)} bytes={OUT_XML.stat().st_size:,}")
 
-if __name__ == "__main__": main()
+
+if __name__ == "__main__":
+    main()
