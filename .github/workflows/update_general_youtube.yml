@@ -7,6 +7,7 @@ on:
       - '.github/general_youtube_update.trigger'
       - 'general_youtube_sources.json'
       - 'general_youtube_update.py'
+      - 'jra_freewifi_finalize.py'
   schedule:
     - cron: '*/15 * * * *'
 
@@ -61,6 +62,9 @@ jobs:
       - name: Refresh general YouTube LIVE
         run: python general_youtube_update.py
 
+      - name: Put JRA official LIVE in race section
+        run: python jra_freewifi_finalize.py
+
       - name: Validate
         shell: bash
         run: |
@@ -76,6 +80,8 @@ jobs:
             GCOUNT=$(grep -F "group-title=\"$GROUP\"" general_youtube.m3u | wc -l | tr -d ' ')
             echo "$GROUP: $GCOUNT"
           done
+          JRA_COUNT=$(grep -F 'tvg-id="jra.official"' freewifi | wc -l | tr -d ' ')
+          echo "JRA official LIVE in FreeWiFi: $JRA_COUNT"
 
       - name: Commit updated LIVE URLs
         shell: bash
