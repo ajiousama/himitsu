@@ -77,10 +77,10 @@ jobs:
 
           echo '--- group counts ---'
           for GROUP in '愛媛県内ライブカメラ' '交通' '動物' 'その他LIVE'; do
-            GCOUNT=$(grep -F "group-title=\"$GROUP\"" general_youtube.m3u | wc -l | tr -d ' ')
+            GCOUNT=$(grep -F "group-title=\"$GROUP\"" general_youtube.m3u | wc -l | tr -d ' ' || true)
             echo "$GROUP: $GCOUNT"
           done
-          JRA_COUNT=$(grep -F 'tvg-id="jra.official"' freewifi | wc -l | tr -d ' ')
+          JRA_COUNT=$(grep -F 'tvg-id="jra.official"' freewifi | wc -l | tr -d ' ' || true)
           echo "JRA official LIVE in FreeWiFi: $JRA_COUNT"
 
       - name: Commit updated LIVE URLs
