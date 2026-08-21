@@ -11,6 +11,8 @@ on:
       - "freewifi"
       - "other_live.m3u"
       - "epg_build.py"
+      - "jra_epg_merge.py"
+      - "jra_freewifi_finalize.py"
       - ".github/workflows/update_freewifi_epg.yml"
 
 permissions:
@@ -35,7 +37,6 @@ jobs:
         with:
           python-version: "3.12"
 
-      # 手動で「Run workflow」を押した時だけ YouTube LIVE も一括更新
       - name: Set up Node.js for manual YouTube refresh
         if: github.event_name == 'workflow_dispatch'
         uses: actions/setup-node@v4
@@ -65,7 +66,9 @@ jobs:
 
       - name: Refresh all general YouTube LIVE (manual only)
         if: github.event_name == 'workflow_dispatch'
-        run: python general_youtube_update.py
+        run: |
+          python general_youtube_update.py
+          python jra_freewifi_finalize.py
 
       - name: Show YouTube group summary (manual only)
         if: github.event_name == 'workflow_dispatch'
@@ -80,9 +83,11 @@ jobs:
           grep -q '# === GENERAL_YOUTUBE_MANAGED_START ===' freewifi
           grep -q '# === GENERAL_YOUTUBE_MANAGED_END ===' freewifi
 
-      # YouTube更新後の freewifi を使って EPG を生成
       - name: Build merged EPG
         run: python epg_build.py
+
+      - name: Merge JRA race EPG for official YouTube
+        run: python jra_epg_merge.py
 
       - name: Validate XML
         run: python -c "import xml.etree.ElementTree as ET; ET.parse('guides.xml'); print('XML OK')"
@@ -92,6 +97,7 @@ jobs:
           head -n 12 epg_coverage.txt || true
           grep -c '^OK' epg_coverage.txt || true
           grep -c '^FALLBACK' epg_coverage.txt || true
+          echo "JRA official EPG programmes: $(grep -c 'channel=\"jra.official\"' guides.xml || true)"
 
       - name: Commit generated files
         shell: bash
