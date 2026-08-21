@@ -71,6 +71,12 @@ jobs:
           grep -q '# === GENERAL_YOUTUBE_MANAGED_START ===' freewifi
           grep -q '# === GENERAL_YOUTUBE_MANAGED_END ===' freewifi
 
+          echo '--- group counts ---'
+          for GROUP in '愛媛県内ライブカメラ' '交通' '動物' 'その他LIVE'; do
+            GCOUNT=$(grep -F "group-title=\"$GROUP\"" general_youtube.m3u | wc -l | tr -d ' ')
+            echo "$GROUP: $GCOUNT"
+          done
+
       - name: Commit updated LIVE URLs
         shell: bash
         run: |
