@@ -1,0 +1,40 @@
+name: Install YouTube 43 Logos
+
+on:
+  push:
+    paths:
+      - '.github/assets/youtube43_payload.zip'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Extract logos
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/yt43
+          mkdir -p /tmp/yt43 logos/youtube
+          unzip -q .github/assets/youtube43_payload.zip -d /tmp/yt43
+          for f in /tmp/yt43/*.png; do
+            n="$(basename "$f")"
+            cp "$f" "logos/youtube/yt43_${n}"
+          done
+          test "$(find logos/youtube -maxdepth 1 -name 'yt43_*.png' | wc -l)" -eq 43
+      - name: Commit installed logos
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add logos/youtube/yt43_*.png
+          if git diff --cached --quiet; then
+            echo 'No logo changes'
+          else
+            git commit -m 'Install final YouTube 43 logos'
+            git push
+          fi
