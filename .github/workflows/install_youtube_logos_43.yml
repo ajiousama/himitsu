@@ -1,0 +1,182 @@
+name: Install YouTube Logos 43
+
+on:
+  push:
+    paths:
+      - '.tmp/youtube_logos_43_upload.zip.b64'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Decode and install logos
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s .tmp/youtube_logos_43_upload.zip.b64
+          base64 -d .tmp/youtube_logos_43_upload.zip.b64 > /tmp/youtube_logos.zip
+          rm -rf /tmp/youtube_logos
+          mkdir -p /tmp/youtube_logos logos/youtube
+          unzip -q /tmp/youtube_logos.zip -d /tmp/youtube_logos
+          python - <<'PY'
+          from pathlib import Path
+          import json, re, shutil
+
+          RAW = 'https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/youtube/'
+          ORDER = [
+            ('youtube.kana_tube','yt43_01_kana_tube.png'),
+            ('youtube.natsu_shiba','yt43_02_natsu_shiba.png'),
+            ('youtube.konodo1','yt43_03_konodo_horse_1.png'),
+            ('youtube.konodo2','yt43_04_konodo_horse_2.png'),
+            ('youtube.osaka_station','yt43_05_jr_osaka.png'),
+            ('youtube.kobe_waterfront','yt43_06_kobe_waterfront.png'),
+            ('youtube.kyoto_rail','yt43_07_kyoto_rail_4k.png'),
+            ('youtube.kyoto_station','yt43_08_kyoto_bus_terminal.png'),
+            ('youtube.itami_airport','yt43_09_itami_airport.png'),
+            ('youtube.haneda_t2','yt43_10_haneda_t2.png'),
+            ('youtube.centrair','yt43_11_centrair.png'),
+            ('youtube.new_chitose','yt43_12_new_chitose.png'),
+            ('youtube.fukuoka_ube','yt43_13_fukuoka_ube.png'),
+            ('youtube.narita_a','yt43_14_narita_a.png'),
+            ('youtube.kix','yt43_15_kix_t1.png'),
+            ('youtube.muko','yt43_16_muko.png'),
+            ('youtube.katsuragawa','yt43_17_katsuragawa.png'),
+            ('youtube.matsuyama_airport_ebc','yt43_18_matsuyama_airport_ebc.png'),
+            ('youtube.matsuyama_castle_rnb','yt43_19_matsuyama_castle_rnb.png'),
+            ('youtube.matsuyama_clean','yt43_20_matsuyama_clean.png'),
+            ('youtube.namibia','yt43_21_namibia.png'),
+            ('youtube.dogo','yt43_22_dogo.png'),
+            ('youtube.honmachi','yt43_23_matsuyama_honmachi.png'),
+            ('youtube.yawatahama_sea','yt43_24_yawatahama_sea.png'),
+            ('youtube.yawatahama_parking','yt43_25_yawatahama_parking.png'),
+            ('youtube.uwajima','yt43_26_uwajima.png'),
+            ('youtube.shimanami','yt43_27_shimanami.png'),
+            ('youtube.beppu_matsuyama','yt43_28_matsuyama_beppu.png'),
+            ('youtube.akashi_sa_up','yt43_29_akashi_sa_up.png'),
+            ('youtube.kbn_seto_bridge','yt43_30_kbn_seto_bridge.png'),
+            ('youtube.awaji_monkey','yt43_31_awaji_monkey.png'),
+            ('youtube.ehime_mandarin','yt43_32_ehime_mandarin.png'),
+            ('youtube.chinchilla_room','yt43_33_chinchilla_room.png'),
+            ('youtube.kobe_airport_ytv','yt43_34_kobe_airport_ytv.png'),
+            ('youtube.narita_t1','yt43_35_narita_t1.png'),
+            ('youtube.kix_mbs','yt43_36_kix_mbs.png'),
+            ('youtube.kix_ytv','yt43_37_kix_ytv.png'),
+            ('youtube.tokyo_haneda','yt43_38_tokyo_haneda.png'),
+            ('youtube.kurushima_bridge','yt43_39_kurushima_bridge.png'),
+            ('youtube.akashi_bridge','yt43_40_akashi_bridge.png'),
+            ('youtube.kobe_waterfront2','yt43_41_kobe_waterfront2.png'),
+            ('youtube.osaka_loop','yt43_42_osaka_loop.png'),
+            ('youtube.nomura_dam','yt43_43_nomura_dam.png'),
+          ]
+          EXCLUDE = {
+            'youtube.ehime_ch','youtube.ehime_bousai','youtube.nikkei_cnbc',
+            'youtube.town_premium','youtube.town_news24','youtube.machikame24',
+            'youtube.hakodate_airport','youtube.ishigaki_airport',
+            'youtube.odaigahara','youtube.suzuka'
+          }
+          logo_by_id = {i: RAW+f for i,f in ORDER}
+          name_fix = {
+            'youtube.kyoto_station':'京都駅前バス乗り場ライブカメラ'
+          }
+
+          for idx, (_, filename) in enumerate(ORDER, 1):
+            src = Path('/tmp/youtube_logos') / f'{idx:02d}.png'
+            if not src.exists():
+              raise SystemExit(f'missing {src}')
+            shutil.copy2(src, Path('logos/youtube') / filename)
+
+          src_json = Path('general_youtube_sources.json')
+          items = json.loads(src_json.read_text(encoding='utf-8'))
+          by_id = {x.get('id'): x for x in items if x.get('id') not in EXCLUDE}
+          missing = [i for i,_ in ORDER if i not in by_id]
+          extra = [i for i in by_id if i not in logo_by_id]
+          if missing or extra:
+            raise SystemExit(f'ID mismatch missing={missing} extra={extra}')
+          new_items = []
+          for id_, _ in ORDER:
+            x = by_id[id_]
+            if id_ in name_fix:
+              x['name'] = name_fix[id_]
+              x['query'] = '京都駅前 バス乗り場 ライブカメラ LIVE YouTube'
+            x['logo'] = logo_by_id[id_]
+            new_items.append(x)
+          src_json.write_text(json.dumps(new_items, ensure_ascii=False, indent=2)+'\n', encoding='utf-8')
+
+          def patch_extinf(line, id_):
+            if id_ not in logo_by_id:
+              return line
+            logo = logo_by_id[id_]
+            name = name_fix.get(id_)
+            line = re.sub(r'\s+tvg-logo="[^"]*"', '', line)
+            if name:
+              line = re.sub(r'tvg-name="[^"]*"', f'tvg-name="{name}"', line)
+              line = re.sub(r',.*$', ','+name, line)
+            if ' group-title=' in line:
+              line = line.replace(' group-title=', f' tvg-logo="{logo}" group-title=', 1)
+            else:
+              comma = line.rfind(',')
+              line = line[:comma] + f' tvg-logo="{logo}"' + line[comma:]
+            return line
+
+          def patch_m3u_text(text):
+            lines = text.splitlines()
+            out=[]; skip=False
+            for line in lines:
+              if line.startswith('#EXTINF:'):
+                m = re.search(r'tvg-id="([^"]+)"', line)
+                id_ = m.group(1) if m else None
+                skip = id_ in EXCLUDE
+                if skip:
+                  continue
+                if id_ in logo_by_id:
+                  line = patch_extinf(line,id_)
+                out.append(line)
+              elif skip:
+                if line.strip()=='' or line.startswith('http://') or line.startswith('https://'):
+                  if line.strip()=='': skip=False
+                  continue
+                skip=False; out.append(line)
+              else:
+                out.append(line)
+            return '\n'.join(out).rstrip()+'\n'
+
+          gy = Path('general_youtube.m3u')
+          if gy.exists():
+            gy.write_text(patch_m3u_text(gy.read_text(encoding='utf-8-sig', errors='replace')), encoding='utf-8')
+
+          fw = Path('freewifi')
+          if fw.exists():
+            txt=fw.read_text(encoding='utf-8-sig', errors='replace')
+            start='# === GENERAL_YOUTUBE_MANAGED_START ==='
+            end='# === GENERAL_YOUTUBE_MANAGED_END ==='
+            if start in txt and end in txt:
+              a,b=txt.split(start,1); body,c=b.split(end,1)
+              body=patch_m3u_text(body)
+              fw.write_text(a+start+'\n'+body.rstrip()+'\n'+end+c, encoding='utf-8')
+
+          print('Installed logos:', len(ORDER))
+          print('YouTube sources:', len(new_items))
+          PY
+
+      - name: Commit installed logos
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add logos/youtube/yt43_*.png general_youtube_sources.json general_youtube.m3u freewifi
+          if git diff --cached --quiet; then
+            echo 'No changes'
+            exit 0
+          fi
+          git commit -m 'Install final YouTube logos 43'
+          git push
