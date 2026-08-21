@@ -1,4 +1,4 @@
-name: Update FreeWiFi EPG
+name: Update FreeWiFi ALL（手動一発 / 自動EPG）
 
 on:
   workflow_dispatch:
@@ -17,8 +17,8 @@ permissions:
   contents: write
 
 concurrency:
-  group: freewifi-epg
-  cancel-in-progress: true
+  group: freewifi-all
+  cancel-in-progress: false
 
 jobs:
   build:
@@ -27,12 +27,60 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
+      # 手動で「Run workflow」を押した時だけ YouTube LIVE も一括更新
+      - name: Set up Node.js for manual YouTube refresh
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install latest yt-dlp for manual YouTube refresh
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install --upgrade --pre 'yt-dlp[default]'
+          yt-dlp --version
+
+      - name: Restore YouTube cookies for manual refresh
+        if: github.event_name == 'workflow_dispatch'
+        shell: bash
+        env:
+          YOUTUBE_COOKIES: ${{ secrets.YOUTUBE_COOKIES }}
+        run: |
+          if [ -n "$YOUTUBE_COOKIES" ]; then
+            printf '%s' "$YOUTUBE_COOKIES" > youtube_cookies.txt
+            chmod 600 youtube_cookies.txt
+            echo "Cookie restored: $(wc -c < youtube_cookies.txt) bytes"
+          else
+            echo 'YOUTUBE_COOKIES is not set; continuing without cookies'
+          fi
+
+      - name: Refresh all general YouTube LIVE (manual only)
+        if: github.event_name == 'workflow_dispatch'
+        run: python general_youtube_update.py
+
+      - name: Show YouTube group summary (manual only)
+        if: github.event_name == 'workflow_dispatch'
+        shell: bash
+        run: |
+          test -s general_youtube.m3u
+          echo "General YouTube LIVE total: $(grep -c '^#EXTINF:' general_youtube.m3u || true)"
+          for G in '愛媛県内ライブカメラ' '交通' '動物' 'その他LIVE'; do
+            C=$(grep -F 'group-title="'"$G"'"' general_youtube.m3u | wc -l || true)
+            echo "$G: $C"
+          done
+          grep -q '# === GENERAL_YOUTUBE_MANAGED_START ===' freewifi
+          grep -q '# === GENERAL_YOUTUBE_MANAGED_END ===' freewifi
+
+      # YouTube更新後の freewifi を使って EPG を生成
       - name: Build merged EPG
         run: python epg_build.py
 
@@ -45,14 +93,23 @@ jobs:
           grep -c '^OK' epg_coverage.txt || true
           grep -c '^FALLBACK' epg_coverage.txt || true
 
-      - name: Commit generated EPG
+      - name: Commit generated files
+        shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add guides.xml epg_coverage.txt
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            git add general_youtube.m3u freewifi
+          fi
           if git diff --cached --quiet; then
-            echo "No EPG changes"
+            echo "No changes"
             exit 0
           fi
-          git commit -m "Update FreeWiFi EPG"
-          git push
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            git commit -m "Update FreeWiFi YouTube and EPG"
+          else
+            git commit -m "Update FreeWiFi EPG"
+          fi
+          git pull --rebase origin main
+          git push origin main
