@@ -7,6 +7,7 @@ FREEWIFI=Path('freewifi')
 COOKIES=Path('youtube_cookies.txt')
 START='# === GENERAL_YOUTUBE_MANAGED_START ==='
 END='# === GENERAL_YOUTUBE_MANAGED_END ==='
+SKIP_IDS={'youtube.kobe_waterfront2','youtube.narita_t1'}
 
 
 def run(cmd, timeout=90):
@@ -120,6 +121,8 @@ def build():
     seen=set()
 
     for item in items:
+        if item.get('id') in SKIP_IDS:
+            continue
         name=item['name']
         url=None
         reason=None
