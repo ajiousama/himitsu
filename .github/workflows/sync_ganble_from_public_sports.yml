@@ -1,0 +1,46 @@
+name: Sync ganble from public_sports.m3u
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 */2 * * *"
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download latest public_sports.m3u
+        run: |
+          curl -fL \
+            "https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports.m3u" \
+            -o ganble.new
+
+          test -s ganble.new
+          grep -q '^#EXTM3U' ganble.new
+
+      - name: Check for update
+        id: check
+        run: |
+          if [ ! -f ganble ] || ! cmp -s ganble ganble.new; then
+            mv ganble.new ganble
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            rm ganble.new
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Commit updated ganble
+        if: steps.check.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add ganble
+          git commit -m "Sync ganble from public_sports.m3u"
+          git push
