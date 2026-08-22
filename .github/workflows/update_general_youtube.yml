@@ -8,6 +8,7 @@ on:
       - 'general_youtube_sources.json'
       - 'general_youtube_update.py'
       - 'jra_freewifi_finalize.py'
+      - 'freewifi_custom_channels.py'
   schedule:
     - cron: '*/15 * * * *'
 
@@ -65,6 +66,9 @@ jobs:
       - name: Put JRA official LIVE in race section
         run: python jra_freewifi_finalize.py
 
+      - name: Apply custom FreeWiFi channels
+        run: python freewifi_custom_channels.py
+
       - name: Validate
         shell: bash
         run: |
@@ -74,6 +78,8 @@ jobs:
           echo "General YouTube LIVE count: $COUNT"
           grep -q '# === GENERAL_YOUTUBE_MANAGED_START ===' freewifi
           grep -q '# === GENERAL_YOUTUBE_MANAGED_END ===' freewifi
+          grep -q 'JRA公式（YouTube）無料版' freewifi
+          grep -q 'JRA公式（GCH）無料版【開催中のみ】' freewifi
 
           echo '--- group counts ---'
           for GROUP in '愛媛県内ライブカメラ' '交通' '動物' 'その他LIVE'; do
