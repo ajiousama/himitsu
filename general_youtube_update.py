@@ -96,6 +96,79 @@ def search_live(query, label=''):
     return None, ('NO_LIVE','LIVE URL取得なし')
 
 
+def jra_channel_live():
+    """JRA公式だけは検索順位に依存せず公式チャンネルの配信一覧から探す。"""
+    candidates=[]
+    sources=[
+        'https://www.youtube.com/@jraofficial/streams',
+        'https://www.youtube.com/@jraofficial/live',
+    ]
+    last_err=''
+
+    for source in sources:
+        try:
+            p=run(base_cmd()+['--flat-playlist','--dump-json','--playlist-end','24',source],120)
+        except subprocess.TimeoutExpired:
+            last_err='channel scan timeout'
+            continue
+        if p.stderr:
+            last_err=p.stderr
+        for line in p.stdout.splitlines():
+            try:
+                item=json.loads(line)
+            except Exception:
+                continue
+            vid=item.get('id')
+            if vid:
+                page='https://www.youtube.com/watch?v='+vid
+                if page not in candidates:
+                    candidates.append(page)
+
+    # チャンネル一覧取得が不調でも、JRA名を強く限定した検索を追加で使う。
+    try:
+        p=run(base_cmd()+['--flat-playlist','--dump-json','--playlist-end','15',
+                          'ytsearch15:JRA公式チャンネル 中央競馬 ライブ'],90)
+        if p.stderr:
+            last_err=p.stderr
+        for line in p.stdout.splitlines():
+            try:
+                item=json.loads(line)
+            except Exception:
+                continue
+            vid=item.get('id')
+            channel=(item.get('channel') or item.get('uploader') or '').lower()
+            title=(item.get('title') or '').lower()
+            if vid and ('jra' in channel or 'jra' in title or '中央競馬' in title):
+                page='https://www.youtube.com/watch?v='+vid
+                if page not in candidates:
+                    candidates.append(page)
+    except subprocess.TimeoutExpired:
+        pass
+
+    reasons=[]
+    for page in candidates:
+        try:
+            u, err=direct_url(page,'JRA公式YouTube')
+        except subprocess.TimeoutExpired:
+            reasons.append(('TIMEOUT','JRA candidate timeout'))
+            continue
+        except Exception as e:
+            reasons.append(('EXCEPTION',str(e)[:300]))
+            continue
+        if u:
+            return u, None
+        if err:
+            reasons.append(err)
+
+    if reasons:
+        priority=['RATE_LIMIT','BOT_CHECK','COOKIE_ERROR','NOT_STARTED','NOT_LIVE','PRIVATE','UNAVAILABLE','UNSUPPORTED','OTHER']
+        for code in priority:
+            for r in reasons:
+                if r[0]==code:
+                    return None, r
+    return None, ('JRA_SCAN_EMPTY', short_error(last_err) or 'JRA公式チャンネルからLIVE取得なし')
+
+
 def existing_logos():
     logos={}
     for path in (FREEWIFI, OUT):
@@ -128,7 +201,15 @@ def build():
         reason=None
         page=item.get('page')
 
-        if page:
+        if item.get('id') == 'jra.official':
+            try:
+                url, reason=jra_channel_live()
+            except subprocess.TimeoutExpired:
+                reason=('TIMEOUT','JRA channel scan timeout')
+            except Exception as e:
+                reason=('EXCEPTION',str(e)[:300])
+
+        if not url and page:
             try:
                 url, reason=direct_url(page,name)
             except subprocess.TimeoutExpired:
