@@ -1,0 +1,34 @@
+name: Remove mislabeled KIX MBS entry
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/remove_kix_mbs.trigger'
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Remove mislabeled source entry
+        shell: python
+        run: |
+          import json
+          from pathlib import Path
+          p=Path('general_youtube_sources.json')
+          data=json.loads(p.read_text(encoding='utf-8'))
+          data=[x for x in data if x.get('id')!='youtube.kix_mbs']
+          p.write_text(json.dumps(data,ensure_ascii=False,separators=(',',':')),encoding='utf-8')
+      - name: Commit
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add general_youtube_sources.json
+          git commit -m 'Remove mislabeled KIX MBS source' || exit 0
+          git push origin main
