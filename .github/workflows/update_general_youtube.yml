@@ -120,12 +120,15 @@ jobs:
           fi
 
       - name: Put JRA official LIVE in race section
+        if: env.YOUTUBE_ZERO_UNRECOVERABLE != '1'
         run: python jra_freewifi_finalize.py
 
       - name: Apply custom FreeWiFi channels
+        if: env.YOUTUBE_ZERO_UNRECOVERABLE != '1'
         run: python freewifi_custom_channels.py
 
       - name: Repair General YouTube managed block if needed
+        if: env.YOUTUBE_ZERO_UNRECOVERABLE != '1'
         shell: bash
         run: |
           if ! grep -q '# === GENERAL_YOUTUBE_MANAGED_START ===' freewifi || ! grep -q '# === GENERAL_YOUTUBE_MANAGED_END ===' freewifi; then
@@ -147,7 +150,9 @@ jobs:
           COUNT=$(grep -c '^#EXTINF:' general_youtube.m3u || true)
           echo "General YouTube LIVE count: $COUNT"
           if [ "$COUNT" -eq 0 ]; then
-            echo '::warning::General YouTube playlist is still empty, but the workflow will not overwrite FreeWiFi with an empty managed block.'
+            echo '::warning::General YouTube playlist is still empty; repository FreeWiFi was kept unchanged and this refresh is skipped.'
+            echo 'Validation OK (zero-result refresh safely skipped)'
+            exit 0
           fi
           grep -q '# === GENERAL_YOUTUBE_MANAGED_START ===' freewifi
           grep -q '# === GENERAL_YOUTUBE_MANAGED_END ===' freewifi
