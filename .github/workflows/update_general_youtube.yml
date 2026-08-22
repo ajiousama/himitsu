@@ -47,8 +47,33 @@ jobs:
       - name: Sync latest main
         run: git pull --ff-only origin main
 
+      - name: Backup last good playlist
+        shell: bash
+        run: |
+          cp general_youtube.m3u general_youtube.prev.m3u
+          cp freewifi freewifi.prev
+
       - name: Refresh general YouTube LIVE
         run: python general_youtube_update.py
+
+      - name: Restore last good playlist if refresh returned zero
+        shell: bash
+        run: |
+          COUNT=$(grep -c '^#EXTINF:' general_youtube.m3u || true)
+          if [ "$COUNT" -eq 0 ]; then
+            PREV_COUNT=$(grep -c '^#EXTINF:' general_youtube.prev.m3u || true)
+            if [ "$PREV_COUNT" -gt 0 ]; then
+              echo "YouTube refresh returned 0 entries; restoring previous good playlist ($PREV_COUNT entries)."
+              mv general_youtube.prev.m3u general_youtube.m3u
+              mv freewifi.prev freewifi
+            else
+              echo 'YouTube refresh returned 0 entries and no previous good playlist exists.'
+              exit 1
+            fi
+          else
+            echo "YouTube refresh generated $COUNT entries."
+            rm -f general_youtube.prev.m3u freewifi.prev
+          fi
 
       - name: Put JRA official LIVE in race section
         run: python jra_freewifi_finalize.py
@@ -100,6 +125,7 @@ jobs:
       - name: Commit updated LIVE URLs
         shell: bash
         run: |
+          rm -f general_youtube.prev.m3u freewifi.prev
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add general_youtube.m3u freewifi
