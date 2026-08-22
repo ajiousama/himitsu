@@ -1,11 +1,42 @@
 from pathlib import Path
-import re
+import json, re, subprocess
 
 FREEWIFI = Path('freewifi')
 GENERAL = Path('general_youtube.m3u')
 START = '# === JRA_OFFICIAL_YOUTUBE_START ==='
 END = '# === JRA_OFFICIAL_YOUTUBE_END ==='
 JRA_ID = 'jra.official'
+SEARCH_TITLE = '中央競馬全レース中継'
+
+
+def find_jra_live_by_title():
+    """YouTubeでタイトルを検索し、JRA公式の放送中LIVEだけを採用する。"""
+    try:
+        p = subprocess.run(
+            ['yt-dlp', '--flat-playlist', '--dump-json', '--playlist-end', '10',
+             f'ytsearch10:{SEARCH_TITLE} JRA公式'],
+            capture_output=True, text=True, timeout=90
+        )
+        candidates = []
+        for line in p.stdout.splitlines():
+            try:
+                item = json.loads(line)
+            except Exception:
+                continue
+            title = item.get('title') or ''
+            channel = item.get('channel') or item.get('uploader') or ''
+            vid = item.get('id')
+            if vid and SEARCH_TITLE in title and ('JRA' in channel.upper() or 'JRA公式' in title):
+                candidates.append('https://www.youtube.com/watch?v=' + vid)
+
+        from general_youtube_update import direct_url
+        for page in candidates:
+            url, _ = direct_url(page, 'JRA公式（YouTube）無料版')
+            if url:
+                return url
+    except Exception as e:
+        print('JRA title search failed:', e)
+    return None
 
 
 def extract_jra_entry(text):
@@ -39,21 +70,25 @@ def main():
 
     base = FREEWIFI.read_text(encoding='utf-8-sig', errors='replace')
     general = GENERAL.read_text(encoding='utf-8-sig', errors='replace') if GENERAL.exists() else ''
-    entry = extract_jra_entry(general)
 
-    # Remove a previously managed JRA block first. If today's LIVE is absent,
-    # the JRA item simply disappears instead of leaving an expired HLS URL.
+    # 固定URLや検索順位ではなく「中央競馬全レース中継」をYouTube内検索して
+    # JRA公式かつ現在LIVEの動画を優先する。
+    title_url = find_jra_live_by_title()
+    entry = extract_jra_entry(general)
+    if title_url:
+        if entry:
+            extinf, _ = entry
+        else:
+            extinf = '#EXTINF:-1 tvg-id="jra.official" tvg-name="JRA公式（YouTube）無料版" group-title="競馬",JRA公式（YouTube）無料版'
+        entry = (extinf, title_url)
+
     managed_pat = re.compile(re.escape(START) + r'.*?' + re.escape(END) + r'\n?', re.S)
     had_managed = bool(managed_pat.search(base))
     base = managed_pat.sub('', base)
-
-    # The general YouTube managed area must not contain a duplicate JRA entry.
     base = remove_jra_from_managed(base)
 
     if entry:
         extinf, url = entry
-        # Preserve the old FreeWiFi race-section position: replace the legacy
-        # Green Channel free-version entry on the first successful JRA LIVE.
         legacy = re.compile(
             r'#EXTINF:[^\n]*グリーンチャンネル\(無料版\)[^\n]*\n[^\n]*\n?', re.M
         )
@@ -61,13 +96,12 @@ def main():
         if legacy.search(base):
             base = legacy.sub(block, base, count=1)
         else:
-            # After the first replacement, insert back into the race section.
             race_header = '## 競馬\n'
             if race_header in base:
                 base = base.replace(race_header, race_header + '\n' + block, 1)
             else:
                 base = base.rstrip() + '\n\n' + block
-        print('JRA official YouTube LIVE installed in FreeWiFi race section')
+        print('JRA official YouTube LIVE installed by title search:', SEARCH_TITLE)
     elif had_managed:
         print('JRA official YouTube is not LIVE; expired managed entry removed')
     else:
