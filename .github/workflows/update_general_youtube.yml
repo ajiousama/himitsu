@@ -44,19 +44,6 @@ jobs:
           python -m pip install --upgrade --pre 'yt-dlp[default]'
           yt-dlp --version
 
-      - name: Restore YouTube cookies if available
-        shell: bash
-        env:
-          YOUTUBE_COOKIES: ${{ secrets.YOUTUBE_COOKIES }}
-        run: |
-          if [ -n "$YOUTUBE_COOKIES" ]; then
-            printf '%s' "$YOUTUBE_COOKIES" > youtube_cookies.txt
-            chmod 600 youtube_cookies.txt
-            echo "Cookie restored: $(wc -c < youtube_cookies.txt) bytes"
-          else
-            echo 'YOUTUBE_COOKIES is not set; continuing without cookies'
-          fi
-
       - name: Sync latest main
         run: git pull --ff-only origin main
 
@@ -69,6 +56,20 @@ jobs:
       - name: Apply custom FreeWiFi channels
         run: python freewifi_custom_channels.py
 
+      - name: Repair General YouTube managed block if needed
+        shell: bash
+        run: |
+          if ! grep -q '# === GENERAL_YOUTUBE_MANAGED_START ===' freewifi || ! grep -q '# === GENERAL_YOUTUBE_MANAGED_END ===' freewifi; then
+            python - <<'PY'
+          from pathlib import Path
+          from general_youtube_update import merge_freewifi
+          general = Path('general_youtube.m3u').read_text(encoding='utf-8-sig', errors='replace')
+          merge_freewifi(general)
+          PY
+            python jra_freewifi_finalize.py
+            python freewifi_custom_channels.py
+          fi
+
       - name: Validate
         shell: bash
         run: |
@@ -76,9 +77,9 @@ jobs:
           test -s freewifi
           COUNT=$(grep -c '^#EXTINF:' general_youtube.m3u || true)
           echo "General YouTube LIVE count: $COUNT"
+          [ "$COUNT" -gt 0 ]
           grep -q '# === GENERAL_YOUTUBE_MANAGED_START ===' freewifi
           grep -q '# === GENERAL_YOUTUBE_MANAGED_END ===' freewifi
-          grep -q 'JRA公式（YouTube）無料版' freewifi
           grep -q 'JRA公式（GCH）無料版【開催中のみ】' freewifi
 
           echo '--- group counts ---'
@@ -86,8 +87,15 @@ jobs:
             GCOUNT=$(grep -F "group-title=\"$GROUP\"" general_youtube.m3u | wc -l | tr -d ' ' || true)
             echo "$GROUP: $GCOUNT"
           done
-          JRA_COUNT=$(grep -F 'tvg-id="jra.official"' freewifi | wc -l | tr -d ' ' || true)
-          echo "JRA official LIVE in FreeWiFi: $JRA_COUNT"
+
+          JRA_GENERAL_COUNT=$(grep -F 'tvg-id="jra.official"' general_youtube.m3u | wc -l | tr -d ' ' || true)
+          JRA_FREEWIFI_COUNT=$(grep -F 'tvg-id="jra.official"' freewifi | wc -l | tr -d ' ' || true)
+          echo "JRA official LIVE generated: $JRA_GENERAL_COUNT"
+          echo "JRA official LIVE in FreeWiFi: $JRA_FREEWIFI_COUNT"
+          if [ "$JRA_GENERAL_COUNT" -gt 0 ] && [ "$JRA_FREEWIFI_COUNT" -lt 1 ]; then
+            exit 1
+          fi
+          echo 'Validation OK'
 
       - name: Commit updated LIVE URLs
         shell: bash
