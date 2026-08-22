@@ -22,6 +22,7 @@ concurrency:
 jobs:
   update:
     runs-on: ubuntu-latest
+    timeout-minutes: 6
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -63,8 +64,8 @@ jobs:
       - name: Refresh general YouTube LIVE
         shell: bash
         run: |
-          if ! python general_youtube_update.py; then
-            echo '::warning::YouTube refresh command failed; fallback recovery will keep the last good playlist.'
+          if ! timeout 5m python general_youtube_update.py; then
+            echo '::warning::YouTube refresh failed or timed out; fallback recovery will keep the last good playlist.'
           fi
 
       - name: Restore last good playlist if refresh returned zero
@@ -78,7 +79,6 @@ jobs:
           fi
 
           echo '::warning::YouTube refresh returned 0 entries. Restoring the last known good playlist.'
-
           PREV_COUNT=0
           if [ -f general_youtube.prev.m3u ]; then
             PREV_COUNT=$(grep -c '^#EXTINF:' general_youtube.prev.m3u || true)
@@ -86,9 +86,7 @@ jobs:
           if [ "$PREV_COUNT" -gt 0 ]; then
             echo "Restoring pre-refresh backup ($PREV_COUNT entries)."
             mv general_youtube.prev.m3u general_youtube.m3u
-            if [ -f freewifi.prev ]; then
-              mv freewifi.prev freewifi
-            fi
+            if [ -f freewifi.prev ]; then mv freewifi.prev freewifi; fi
             exit 0
           fi
 
@@ -99,19 +97,13 @@ jobs:
               if [ "$HIST_COUNT" -gt 0 ]; then
                 echo "Restoring historical good playlist from $COMMIT ($HIST_COUNT entries)."
                 git show "$COMMIT:general_youtube.m3u" > general_youtube.m3u
-                if git cat-file -e "$COMMIT:freewifi" 2>/dev/null; then
-                  git show "$COMMIT:freewifi" > freewifi
-                else
-                  git show HEAD:freewifi > freewifi
-                fi
+                if git cat-file -e "$COMMIT:freewifi" 2>/dev/null; then git show "$COMMIT:freewifi" > freewifi; else git show HEAD:freewifi > freewifi; fi
                 RESTORED=1
                 break
               fi
             fi
           done
-
           rm -f general_youtube.prev.m3u freewifi.prev
-
           if [ "$RESTORED" -eq 0 ]; then
             echo '::warning::No historical non-empty YouTube playlist was found. Keeping repository files unchanged and skipping this refresh.'
             git show HEAD:general_youtube.m3u > general_youtube.m3u
@@ -157,20 +149,16 @@ jobs:
           grep -q '# === GENERAL_YOUTUBE_MANAGED_START ===' freewifi
           grep -q '# === GENERAL_YOUTUBE_MANAGED_END ===' freewifi
           grep -q 'JRA公式（GCH）無料版【開催中のみ】' freewifi
-
           echo '--- group counts ---'
           for GROUP in '愛媛県内ライブカメラ' '交通' '動物' 'その他LIVE'; do
             GCOUNT=$(grep -F "group-title=\"$GROUP\"" general_youtube.m3u | wc -l | tr -d ' ' || true)
             echo "$GROUP: $GCOUNT"
           done
-
           JRA_GENERAL_COUNT=$(grep -F 'tvg-id="jra.official"' general_youtube.m3u | wc -l | tr -d ' ' || true)
           JRA_FREEWIFI_COUNT=$(grep -F 'tvg-id="jra.official"' freewifi | wc -l | tr -d ' ' || true)
           echo "JRA official LIVE generated: $JRA_GENERAL_COUNT"
           echo "JRA official LIVE in FreeWiFi: $JRA_FREEWIFI_COUNT"
-          if [ "$JRA_GENERAL_COUNT" -gt 0 ] && [ "$JRA_FREEWIFI_COUNT" -lt 1 ]; then
-            exit 1
-          fi
+          if [ "$JRA_GENERAL_COUNT" -gt 0 ] && [ "$JRA_FREEWIFI_COUNT" -lt 1 ]; then exit 1; fi
           echo 'Validation OK'
 
       - name: Commit updated LIVE URLs
