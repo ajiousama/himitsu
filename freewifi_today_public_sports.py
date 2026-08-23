@@ -13,7 +13,7 @@ GROUP = '今日の開催場'
 JST = timezone(timedelta(hours=9))
 TARGET_SECTIONS = {'競輪', '地方競馬', 'ボートレース', 'オートレース'}
 DISPLAY_NAMES = {'地方競馬':'地方競馬','競輪':'競輪','ボートレース':'ボート','オートレース':'オート'}
-NON_EVENT_WORDS = ('本日非開催', '非開催', '次回開催', 'データ取得準備中', '休止中', '休止')
+NON_EVENT_WORDS = ('本日非開催', '非開催', '次回開催', 'データ取得準備中', '休止中', '休止', '準備中')
 
 
 def fetch_text(url):
@@ -67,18 +67,31 @@ def parse_xmltv_time(s):
 def active_channels(epg_text):
     root = ET.fromstring(epg_text)
     today = datetime.now(JST).date()
+
+    # チャンネル名自体が休止扱いなら除外。
+    disabled = set()
+    for ch in root.findall('channel'):
+        cid = ch.get('id') or ''
+        name = ''.join((ch.findtext('display-name') or '').split())
+        if any(word in name for word in ('休止中', '休止', '非開催')):
+            disabled.add(cid)
+
+    # 「今日開始する実番組」が1本でもあるチャンネルだけ採用。
+    # 前日から跨いだ古い枠や、準備中・非開催などの案内枠は採用しない。
     active = set()
     for p in root.findall('programme'):
         ch = p.get('channel') or ''
+        if ch in disabled:
+            continue
         start = parse_xmltv_time(p.get('start'))
-        stop = parse_xmltv_time(p.get('stop'))
         if not start:
             continue
         ls = start.astimezone(JST)
-        le = stop.astimezone(JST) if stop else ls
-        if ls.date() != today and le.date() != today:
+        if ls.date() != today:
             continue
         title = ''.join((p.findtext('title') or '').split())
+        if not title:
+            continue
         if any(word in title for word in NON_EVENT_WORDS):
             continue
         active.add(ch)
