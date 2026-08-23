@@ -11,6 +11,7 @@ on:
       - "freewifi"
       - "other_live.m3u"
       - "epg_build.py"
+      - "public_sports_epg_merge.py"
       - "jra_epg_merge.py"
       - "jra_freewifi_finalize.py"
       - ".github/workflows/update_freewifi_epg.yml"
@@ -86,6 +87,9 @@ jobs:
       - name: Build merged EPG
         run: python epg_build.py
 
+      - name: Merge public sports EPG for today's venues
+        run: python public_sports_epg_merge.py
+
       - name: Merge JRA race EPG for official YouTube
         run: python jra_epg_merge.py
 
@@ -98,6 +102,7 @@ jobs:
           grep -c '^OK' epg_coverage.txt || true
           grep -c '^FALLBACK' epg_coverage.txt || true
           echo "JRA official EPG programmes: $(grep -c 'channel=\"jra.official\"' guides.xml || true)"
+          echo "Public sports EPG programmes: $(grep -E -c 'channel=\"(keirin|chihou|boat|auto)\.' guides.xml || true)"
 
       - name: Commit generated files
         shell: bash
