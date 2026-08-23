@@ -1,10 +1,13 @@
 from pathlib import Path
 from datetime import datetime, timezone, timedelta
+from html import unescape
+import json
 import re
 import urllib.request
 import xml.etree.ElementTree as ET
 
 FREEWIFI = Path('freewifi')
+STATUS_JSON = Path('today_public_sports_status.json')
 PUBLIC_M3U_URL = 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports.m3u'
 PUBLIC_EPG_URL = 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/epg.xml'
 START = '# === TODAY_PUBLIC_SPORTS_START ==='
@@ -14,18 +17,28 @@ JST = timezone(timedelta(hours=9))
 TARGET_SECTIONS = {'競輪', '地方競馬', 'ボートレース', 'オートレース'}
 DISPLAY_NAMES = {'地方競馬':'地方競馬','競輪':'競輪','ボートレース':'ボート','オートレース':'オート'}
 NON_EVENT_WORDS = (
-    '本日非開催', '非開催',
-    '本日は開催していません', '開催していません',
-    '開催予定はありません', '本日開催なし', '開催なし',
-    '次回開催', 'データ取得準備中',
-    '休止中', '休止', '準備中'
+    '本日非開催', '非開催', '開催していません', '開催予定はありません',
+    '本日開催なし', '開催なし', '次回開催', 'データ取得準備中',
+    '休止中', '休止', '準備中', '現在準備中'
 )
+OFFICIAL_URLS = {
+    '競輪': 'https://www.keirin.jp/sp/raceschedule',
+    '地方競馬': 'https://sp.keiba.go.jp/KeibaWebSP/TodayRaceInfo/S_TodayRaceInfoTop',
+    'オートレース': 'https://autorace.jp/race_info/',
+}
 
 
-def fetch_text(url):
-    req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
-    with urllib.request.urlopen(req, timeout=30) as r:
+def fetch_text(url, timeout=30):
+    req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0 (FreeWiFi venue checker)'})
+    with urllib.request.urlopen(req, timeout=timeout) as r:
         return r.read().decode('utf-8-sig', errors='replace')
+
+
+def html_text(s):
+    s = re.sub(r'(?is)<script.*?</script>|<style.*?</style>', ' ', s)
+    s = re.sub(r'(?s)<[^>]+>', ' ', s)
+    s = unescape(s)
+    return re.sub(r'\s+', ' ', s).strip()
 
 
 def parse_m3u(text):
@@ -70,74 +83,136 @@ def parse_xmltv_time(s):
     return base.replace(tzinfo=JST)
 
 
-def active_channels(epg_text):
+def epg_state(epg_text):
     root = ET.fromstring(epg_text)
-    today = datetime.now(JST).date()
-
-    # チャンネル名自体が休止扱いなら除外。
-    disabled = set()
-    for ch in root.findall('channel'):
-        cid = ch.get('id') or ''
-        name = ''.join((ch.findtext('display-name') or '').split())
-        if any(word in name for word in ('休止中', '休止', '非開催')):
-            disabled.add(cid)
-
-    # 「今日開始する実番組」が1本でもあるチャンネルだけ採用。
-    # 前日から跨いだ古い枠や、準備中・非開催などの案内枠は採用しない。
-    active = set()
+    now = datetime.now(JST)
+    today = now.date()
+    real = set()
+    last_stop = {}
+    modes = {}
     for p in root.findall('programme'):
-        ch = p.get('channel') or ''
-        if ch in disabled:
-            continue
+        cid = p.get('channel') or ''
         start = parse_xmltv_time(p.get('start'))
-        if not start:
-            continue
-        ls = start.astimezone(JST)
-        if ls.date() != today:
+        stop = parse_xmltv_time(p.get('stop'))
+        if not start or start.astimezone(JST).date() != today:
             continue
         title = ''.join((p.findtext('title') or '').split())
-        if not title:
+        if not title or any(w in title for w in NON_EVENT_WORDS):
             continue
-        if any(word in title for word in NON_EVENT_WORDS):
-            continue
-        active.add(ch)
-    return active
+        real.add(cid)
+        if stop:
+            ls = stop.astimezone(JST)
+            if cid not in last_stop or ls > last_stop[cid]:
+                last_stop[cid] = ls
+        joined = title + ' ' + (p.findtext('desc') or '')
+        if 'オーバーミッドナイト' in joined:
+            modes[cid] = 'overnight'
+        elif 'ミッドナイト' in joined:
+            modes[cid] = 'midnight'
+        elif 'ナイター' in joined:
+            modes[cid] = 'night'
+        elif cid not in modes:
+            modes[cid] = 'day'
+    return root, real, last_stop, modes
+
+
+def entry_name(block):
+    line = block[0]
+    m = re.search(r'tvg-name="([^"]+)"', line)
+    if m:
+        return m.group(1)
+    return line.rsplit(',', 1)[-1].strip()
+
+
+def aliases(section, name):
+    n = re.sub(r'[（(].*?[）)]', '', name).strip()
+    vals = {n}
+    if section == '競輪':
+        vals |= {n.replace('けいりん',''), n.replace('競輪',''), n.replace('温泉','')}
+    elif section == '地方競馬':
+        vals |= {n.replace('競馬',''), n.replace('競馬場','')}
+        if '帯広' in n:
+            vals.add('帯広ば')
+    elif section == 'オートレース':
+        vals |= {n.replace('オートレース',''), n.replace('オート','')}
+    return sorted({v.strip() for v in vals if len(v.strip()) >= 2}, key=len, reverse=True)
+
+
+def in_mmdd_range(today, a_m, a_d, b_m, b_d):
+    y = today.year
+    a = datetime(y, int(a_m), int(a_d)).date()
+    b = datetime(y, int(b_m), int(b_d)).date()
+    if b < a:
+        b = datetime(y + 1, int(b_m), int(b_d)).date()
+        if today < a:
+            today = datetime(y + 1, today.month, today.day).date()
+    return a <= today <= b
+
+
+def official_keirin(text, name, today):
+    for a in aliases('競輪', name):
+        pos = text.find(a)
+        while pos >= 0:
+            chunk = text[pos:pos + 1400]
+            for m in re.finditer(r'(\d{1,2})/(\d{1,2})\s*[～〜~-]\s*(\d{1,2})/(\d{1,2})', chunk):
+                if in_mmdd_range(today, *m.groups()):
+                    mode = 'overnight' if 'オーバーミッドナイト' in chunk else ('midnight' if 'ミッドナイト' in chunk else ('night' if 'ナイター' in chunk else ('morning' if 'モーニング' in chunk else 'day')))
+                    return True, mode
+            pos = text.find(a, pos + len(a))
+    return False, None
+
+
+def dated_window(text, today):
+    pats = [
+        f'{today.year}年{today.month}月{today.day}日',
+        f'{today.year}/{today.month:02d}/{today.day:02d}',
+        f'{today.month}/{today.day}',
+    ]
+    starts = [text.find(p) for p in pats if text.find(p) >= 0]
+    if not starts:
+        return text
+    s = min(starts)
+    # 次の日付見出しまで。見つからなければ十分広い範囲。
+    nxt = today + timedelta(days=1)
+    end_candidates = [text.find(f'{nxt.year}年{nxt.month}月{nxt.day}日', s + 10), text.find(f'{nxt.year}/{nxt.month:02d}/{nxt.day:02d}', s + 10)]
+    end_candidates = [x for x in end_candidates if x >= 0]
+    e = min(end_candidates) if end_candidates else min(len(text), s + 6000)
+    return text[s:e]
+
+
+def official_simple(section, text, name, today):
+    window = dated_window(text, today)
+    ok = any(a in window for a in aliases(section, name))
+    if not ok:
+        return False, None
+    mode = 'overnight' if 'オーバーミッドナイト' in window else ('midnight' if 'ミッドナイト' in window else ('night' if ('ナイター' in window or '☆' in window) else 'day'))
+    return True, mode
 
 
 def rewrite_group(extinf):
     if 'group-title=' in extinf:
         return re.sub(r'group-title="[^"]*"', f'group-title="{GROUP}"', extinf, count=1)
     comma = extinf.find(',')
-    if comma >= 0:
-        return extinf[:comma] + f' group-title="{GROUP}"' + extinf[comma:]
-    return extinf + f' group-title="{GROUP}"'
+    return extinf[:comma] + f' group-title="{GROUP}"' + extinf[comma:] if comma >= 0 else extinf + f' group-title="{GROUP}"'
 
 
 def prune_abema_rakuten(text):
-    lines = text.splitlines()
-    out = []
-    i = 0
+    lines = text.splitlines(); out = []; i = 0
     while i < len(lines):
         line = lines[i]
         if not line.startswith('#EXTINF:'):
-            out.append(line)
-            i += 1
-            continue
-        block = [line]
-        j = i + 1
+            out.append(line); i += 1; continue
+        block = [line]; j = i + 1
         while j < len(lines) and not lines[j].startswith('#EXTINF:') and not lines[j].startswith('## '):
-            block.append(lines[j])
-            j += 1
-        low = line.lower()
-        drop = False
+            block.append(lines[j]); j += 1
+        low = line.lower(); drop = False
         if 'abema' in low or 'アベマ' in line:
             drop = not ('アニメ' in line or 'anime' in low)
         elif 'rakuten' in low or '楽天' in line:
-            keep_rail = any(k in line for k in ('鉄道', '電車', '列車')) or 'rail' in low or 'train' in low
-            keep_adult = any(k in line for k in ('アダルト', '成人', 'R18', 'R-18', '18禁')) or 'adult' in low
+            keep_rail = any(k in line for k in ('鉄道','電車','列車')) or 'rail' in low or 'train' in low
+            keep_adult = any(k in line for k in ('アダルト','成人','R18','R-18','18禁')) or 'adult' in low
             drop = not (keep_rail or keep_adult)
-        if not drop:
-            out.extend(block)
+        if not drop: out.extend(block)
         i = j
     return '\n'.join(out).rstrip() + '\n'
 
@@ -146,33 +221,64 @@ def replace_block(text, block):
     pat = re.compile(re.escape(START) + r'.*?' + re.escape(END) + r'\n?', re.S)
     text = pat.sub('', text)
     anchor = '# === GENERAL_YOUTUBE_MANAGED_START ==='
-    if anchor in text:
-        return text.replace(anchor, block + '\n\n' + anchor, 1)
-    return text.rstrip() + '\n\n' + block + '\n'
+    return text.replace(anchor, block + '\n\n' + anchor, 1) if anchor in text else text.rstrip() + '\n\n' + block + '\n'
 
 
 def main():
-    base = FREEWIFI.read_text(encoding='utf-8-sig', errors='replace')
-    base = prune_abema_rakuten(base)
+    now = datetime.now(JST); today = now.date()
+    base = prune_abema_rakuten(FREEWIFI.read_text(encoding='utf-8-sig', errors='replace'))
     entries = parse_m3u(fetch_text(PUBLIC_M3U_URL))
-    active = active_channels(fetch_text(PUBLIC_EPG_URL))
-    selected = []
-    counts = {k: 0 for k in TARGET_SECTIONS}
-    for tvg, (section, block) in entries.items():
-        if tvg not in active:
-            continue
-        block = block[:]
-        block[0] = rewrite_group(block[0])
-        selected.extend(block)
-        selected.append('')
-        counts[section] += 1
-    body = '\n'.join(selected).rstrip()
-    block = START + '\n## 今日の開催場\n' + body + ('\n' if body else '') + END
-    FREEWIFI.write_text(replace_block(base, block).rstrip() + '\n', encoding='utf-8')
-    print('Today public sports synced:', sum(counts.values()))
-    for section in ('地方競馬', '競輪', 'ボートレース', 'オートレース'):
-        print(f'{DISPLAY_NAMES[section]}: {counts.get(section, 0)}')
+    epg_text = fetch_text(PUBLIC_EPG_URL)
+    _, epg_real, last_stop, epg_modes = epg_state(epg_text)
 
+    official = {}
+    for section, url in OFFICIAL_URLS.items():
+        try:
+            official[section] = html_text(fetch_text(url))
+            print(f'Official schedule OK: {section}')
+        except Exception as e:
+            official[section] = ''
+            print(f'Official schedule NG: {section}: {e}')
+
+    selected = []; counts = {k: 0 for k in TARGET_SECTIONS}; status = {}
+    for tvg, (section, block) in entries.items():
+        name = entry_name(block)
+        active = False; mode = epg_modes.get(tvg, 'day'); source = ''
+
+        if section == 'ボートレース':
+            # ボートはearphone1981側と同じ開催/EPGを基準にし、最終番組終了30分後に消す。
+            active = tvg in epg_real
+            stop = last_stop.get(tvg)
+            if active and stop and now >= stop + timedelta(minutes=30):
+                active = False
+            source = 'earphone1981 EPG + 30min'
+        else:
+            page = official.get(section, '')
+            if page:
+                if section == '競輪':
+                    active, found_mode = official_keirin(page, name, today)
+                else:
+                    active, found_mode = official_simple(section, page, name, today)
+                if found_mode:
+                    mode = found_mode
+                source = 'official schedule'
+            # 公式で開催確認できた場でも、本日の最終EPG終了後はFreeWiFiから消す。
+            if active and tvg in last_stop and now >= last_stop[tvg]:
+                active = False
+
+        if not active:
+            continue
+        b = block[:]; b[0] = rewrite_group(b[0]); selected.extend(b); selected.append('')
+        counts[section] += 1
+        status[tvg] = {'section': section, 'name': name, 'mode': mode, 'source': source, 'epg_available': tvg in epg_real}
+
+    body = '\n'.join(selected).rstrip()
+    managed = START + '\n## 今日の開催場\n' + body + ('\n' if body else '') + END
+    FREEWIFI.write_text(replace_block(base, managed).rstrip() + '\n', encoding='utf-8')
+    STATUS_JSON.write_text(json.dumps({'generated_at': now.isoformat(), 'channels': status}, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+    print('Today public sports synced:', sum(counts.values()))
+    for section in ('地方競馬','競輪','ボートレース','オートレース'):
+        print(f'{DISPLAY_NAMES[section]}: {counts.get(section, 0)}')
 
 if __name__ == '__main__':
     main()
