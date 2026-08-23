@@ -16,6 +16,7 @@ on:
       - "jra_freewifi_finalize.py"
       - "freewifi_today_public_sports.py"
       - "freewifi_today_jra.py"
+      - "build_today_event_counts.py"
       - ".github/workflows/update_freewifi_epg.yml"
 
 permissions:
@@ -92,6 +93,12 @@ jobs:
       - name: Sync today's JRA channels into FreeWiFi
         run: python freewifi_today_jra.py
 
+      - name: Build compact current event counts
+        run: python build_today_event_counts.py
+
+      - name: Show current event counts
+        run: cat today_event_counts.json
+
       - name: Build merged EPG
         run: python epg_build.py
 
@@ -117,7 +124,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add guides.xml epg_coverage.txt freewifi
+          git add guides.xml epg_coverage.txt freewifi today_public_sports_status.json today_jra_status.json today_event_counts.json
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             git add general_youtube.m3u
           fi
