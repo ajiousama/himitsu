@@ -173,5 +173,14 @@ jobs:
             exit 0
           fi
           git commit -m 'Update general YouTube LIVE URLs'
+
+          echo '--- runtime changes left after output commit ---'
+          git status --short || true
+
+          # The only intended persistent outputs are general_youtube.m3u and freewifi.
+          # Discard runtime/cache changes before rebasing so they cannot block git pull.
+          git reset --hard HEAD
+          git clean -fd
+
           git pull --rebase origin main
           git push origin main
