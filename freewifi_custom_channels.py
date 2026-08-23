@@ -42,7 +42,7 @@ def patch_jra_youtube(text):
 def get_guinea_hls():
     try:
         from general_youtube_update import direct_url
-        url, _ = direct_url(GUINEA_PAGE, 'モルモット配信（YouTube）')
+        url, _ = direct_url(GUINEA_PAGE)
         return url
     except Exception as e:
         print('Guinea LIVE lookup failed:', e)
@@ -77,6 +77,12 @@ def main():
 
     FREEWIFI.write_text(text.rstrip() + '\n', encoding='utf-8')
     print('Custom FreeWiFi channels applied')
+
+    try:
+        from freewifi_today_public_sports import main as sync_today_public_sports
+        sync_today_public_sports()
+    except Exception as e:
+        print('Today public sports sync failed:', e)
 
 
 if __name__ == '__main__':
