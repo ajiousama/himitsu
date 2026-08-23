@@ -10,21 +10,22 @@ START='# === GENERAL_YOUTUBE_MANAGED_START ==='
 END='# === GENERAL_YOUTUBE_MANAGED_END ==='
 SKIP_IDS={'youtube.kobe_waterfront2','youtube.narita_t1'}
 
-# 1局が詰まっても全体を長時間止めない。
-CMD_TIMEOUT=12
-SEARCH_TIMEOUT=10
-MAX_WORKERS=4
+# GitHub Actions上でYouTube応答が遅い時でも、短すぎる打切りで
+# 全局0件→古いプレイリスト復元にならないよう余裕を持たせる。
+CMD_TIMEOUT=22
+SEARCH_TIMEOUT=18
+MAX_WORKERS=6
 
 
 def run(cmd, timeout):
     safe=list(cmd)
     if safe and safe[0]=='yt-dlp':
-        safe[1:1]=['--socket-timeout','6','--retries','0','--fragment-retries','0']
+        safe[1:1]=['--socket-timeout','10','--retries','1','--fragment-retries','1']
     return subprocess.run(safe,capture_output=True,text=True,timeout=timeout)
 
 
 def base_cmd():
-    cmd=['yt-dlp','--js-runtimes','node','--no-warnings']
+    cmd=['yt-dlp','--js-runtimes','node','--no-warnings','--no-cache-dir']
     if COOKIES.exists() and COOKIES.stat().st_size>20:
         cmd += ['--cookies',str(COOKIES)]
     return cmd
@@ -49,34 +50,51 @@ def short_error(stderr):
 
 
 def direct_url(page):
-    try:
-        p=run(base_cmd()+['--extractor-args','youtube:player_client=default,web_safari','--no-playlist','--match-filter','is_live','-f','best[protocol^=m3u8]/best','-g',page],CMD_TIMEOUT)
-    except subprocess.TimeoutExpired:
-        return None,('TIMEOUT','direct URL timeout')
-    urls=[x.strip() for x in p.stdout.splitlines() if x.strip().startswith(('http://','https://'))]
-    if p.returncode==0 and len(urls)==1:
-        return urls[0],None
-    return None,(classify_error(p.stderr),short_error(p.stderr))
+    selectors=['best[protocol^=m3u8]','best']
+    last_reason=None
+    for sel in selectors:
+        try:
+            p=run(base_cmd()+[
+                '--extractor-args','youtube:player_client=default,web_safari,web',
+                '--no-playlist','--match-filter','is_live','-f',sel,'-g',page
+            ],CMD_TIMEOUT)
+        except subprocess.TimeoutExpired:
+            last_reason=('TIMEOUT','direct URL timeout')
+            continue
+        urls=[x.strip() for x in p.stdout.splitlines() if x.strip().startswith(('http://','https://'))]
+        if p.returncode==0 and len(urls)==1:
+            return urls[0],None
+        last_reason=(classify_error(p.stderr),short_error(p.stderr))
+    return None,last_reason or ('OTHER','direct URL取得失敗')
 
 
 def search_live(query):
     try:
-        p=run(base_cmd()+['--flat-playlist','--dump-json','--playlist-end','1',f'ytsearch1:{query}'],SEARCH_TIMEOUT)
+        p=run(base_cmd()+['--flat-playlist','--dump-json','--playlist-end','3',f'ytsearch3:{query}'],SEARCH_TIMEOUT)
     except subprocess.TimeoutExpired:
         return None,('TIMEOUT','search timeout')
     if p.returncode!=0:
         return None,('SEARCH_ERROR',short_error(p.stderr))
-    page=None
+    reasons=[]
     for line in p.stdout.splitlines():
         try: item=json.loads(line)
         except Exception: continue
         vid=item.get('id')
-        if vid:
-            page='https://www.youtube.com/watch?v='+vid
-            break
-    if not page:
+        if not vid: continue
+        page='https://www.youtube.com/watch?v='+vid
+        try:
+            url,reason=direct_url(page)
+        except Exception as e:
+            reasons.append(('EXCEPTION',str(e)[:300])); continue
+        if url: return url,None
+        if reason: reasons.append(reason)
+    if not reasons:
         return None,('SEARCH_EMPTY','検索結果なし')
-    return direct_url(page)
+    priority=['RATE_LIMIT','BOT_CHECK','COOKIE_ERROR','TIMEOUT','NOT_STARTED','NOT_LIVE','PRIVATE','UNAVAILABLE','UNSUPPORTED','OTHER']
+    for code in priority:
+        for r in reasons:
+            if r[0]==code: return None,r
+    return None,reasons[0]
 
 
 def existing_logos():
@@ -104,7 +122,7 @@ def resolve_item(index,item):
             url,reason=search_live(item.get('query') or name)
     except Exception as e:
         reason=('EXCEPTION',str(e)[:300])
-    print(('OK   ' if url else 'FAIL ')+name,flush=True)
+    print(('OK   ' if url else 'FAIL ')+name+(f' [{reason[0]}]' if reason and not url else ''),flush=True)
     return index,item,url,reason
 
 
