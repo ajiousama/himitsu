@@ -14,6 +14,7 @@ on:
       - "public_sports_epg_merge.py"
       - "jra_epg_merge.py"
       - "jra_freewifi_finalize.py"
+      - "freewifi_today_public_sports.py"
       - ".github/workflows/update_freewifi_epg.yml"
 
 permissions:
@@ -84,6 +85,9 @@ jobs:
           grep -q '# === GENERAL_YOUTUBE_MANAGED_START ===' freewifi
           grep -q '# === GENERAL_YOUTUBE_MANAGED_END ===' freewifi
 
+      - name: Sync today's public sports venues into FreeWiFi
+        run: python freewifi_today_public_sports.py
+
       - name: Build merged EPG
         run: python epg_build.py
 
@@ -109,9 +113,9 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add guides.xml epg_coverage.txt
+          git add guides.xml epg_coverage.txt freewifi
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            git add general_youtube.m3u freewifi
+            git add general_youtube.m3u
           fi
           if git diff --cached --quiet; then
             echo "No changes"
@@ -120,7 +124,7 @@ jobs:
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             git commit -m "Update FreeWiFi YouTube and EPG"
           else
-            git commit -m "Update FreeWiFi EPG"
+            git commit -m "Update FreeWiFi EPG and today's public sports"
           fi
           git pull --rebase origin main
           git push origin main
