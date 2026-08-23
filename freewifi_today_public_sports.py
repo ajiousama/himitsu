@@ -11,7 +11,8 @@ START = '# === TODAY_PUBLIC_SPORTS_START ==='
 END = '# === TODAY_PUBLIC_SPORTS_END ==='
 GROUP = '今日の開催場'
 JST = timezone(timedelta(hours=9))
-TARGET_SECTIONS = {'競輪', '地方競馬', 'ボート', 'オート'}
+TARGET_SECTIONS = {'競輪', '地方競馬', 'ボートレース', 'オートレース'}
+DISPLAY_NAMES = {'地方競馬':'地方競馬','競輪':'競輪','ボートレース':'ボート','オートレース':'オート'}
 NON_EVENT_WORDS = ('本日非開催', '非開催', '次回開催', 'データ取得準備中', '休止中', '休止')
 
 
@@ -51,16 +52,14 @@ def parse_m3u(text):
 def parse_xmltv_time(s):
     if not s:
         return None
-    s = s.strip()
-    m = re.match(r'^(\d{14})\s*([+-]\d{4})?', s)
+    m = re.match(r'^(\d{14})\s*([+-]\d{4})?', s.strip())
     if not m:
         return None
     base = datetime.strptime(m.group(1), '%Y%m%d%H%M%S')
     off = m.group(2)
     if off:
         sign = 1 if off[0] == '+' else -1
-        hh = int(off[1:3]); mm = int(off[3:5])
-        tz = timezone(sign * timedelta(hours=hh, minutes=mm))
+        tz = timezone(sign * timedelta(hours=int(off[1:3]), minutes=int(off[3:5])))
         return base.replace(tzinfo=tz)
     return base.replace(tzinfo=JST)
 
@@ -75,9 +74,9 @@ def active_channels(epg_text):
         stop = parse_xmltv_time(p.get('stop'))
         if not start:
             continue
-        local_start = start.astimezone(JST)
-        local_stop = stop.astimezone(JST) if stop else local_start
-        if local_start.date() != today and local_stop.date() != today:
+        ls = start.astimezone(JST)
+        le = stop.astimezone(JST) if stop else ls
+        if ls.date() != today and le.date() != today:
             continue
         title = ''.join((p.findtext('title') or '').split())
         if any(word in title for word in NON_EVENT_WORDS):
@@ -129,20 +128,15 @@ def replace_block(text, block):
     text = pat.sub('', text)
     anchor = '# === GENERAL_YOUTUBE_MANAGED_START ==='
     if anchor in text:
-        text = text.replace(anchor, block + '\n\n' + anchor, 1)
-    else:
-        text = text.rstrip() + '\n\n' + block + '\n'
-    return text
+        return text.replace(anchor, block + '\n\n' + anchor, 1)
+    return text.rstrip() + '\n\n' + block + '\n'
 
 
 def main():
     base = FREEWIFI.read_text(encoding='utf-8-sig', errors='replace')
     base = prune_abema_rakuten(base)
-    m3u = fetch_text(PUBLIC_M3U_URL)
-    epg = fetch_text(PUBLIC_EPG_URL)
-    entries = parse_m3u(m3u)
-    active = active_channels(epg)
-
+    entries = parse_m3u(fetch_text(PUBLIC_M3U_URL))
+    active = active_channels(fetch_text(PUBLIC_EPG_URL))
     selected = []
     counts = {k: 0 for k in TARGET_SECTIONS}
     for tvg, (section, block) in entries.items():
@@ -153,15 +147,12 @@ def main():
         selected.extend(block)
         selected.append('')
         counts[section] += 1
-
     body = '\n'.join(selected).rstrip()
     block = START + '\n## 今日の開催場\n' + body + ('\n' if body else '') + END
-    base = replace_block(base, block)
-    FREEWIFI.write_text(base.rstrip() + '\n', encoding='utf-8')
-
+    FREEWIFI.write_text(replace_block(base, block).rstrip() + '\n', encoding='utf-8')
     print('Today public sports synced:', sum(counts.values()))
-    for k in ('地方競馬', '競輪', 'ボート', 'オート'):
-        print(f'{k}: {counts.get(k, 0)}')
+    for section in ('地方競馬', '競輪', 'ボートレース', 'オートレース'):
+        print(f'{DISPLAY_NAMES[section]}: {counts.get(section, 0)}')
 
 
 if __name__ == '__main__':
