@@ -187,6 +187,12 @@ def main():
         print('Today public sports sync failed:', e)
 
     try:
+        from apply_verified_status import main as apply_verified_status
+        apply_verified_status()
+    except Exception as e:
+        print('Verified status override failed:', e)
+
+    try:
         from freewifi_keirin_repair import main as repair_keirin
         repair_keirin()
     except Exception as e:
