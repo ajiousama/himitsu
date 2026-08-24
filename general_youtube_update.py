@@ -1,5 +1,7 @@
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from datetime import datetime
+from zoneinfo import ZoneInfo
 import json, re, subprocess
 
 SRC=Path('general_youtube_sources.json')
@@ -12,6 +14,14 @@ SKIP_IDS={'youtube.kobe_waterfront2','youtube.narita_t1'}
 CMD_TIMEOUT=22
 SEARCH_TIMEOUT=18
 MAX_WORKERS=6
+JST=ZoneInfo('Asia/Tokyo')
+
+
+def kana_focus_time():
+    """華奈tubeの通常配信帯。開始終了のズレを考慮して少し広めに重点監視する。"""
+    now=datetime.now(JST)
+    minute=now.hour*60+now.minute
+    return (12*60+45 <= minute <= 16*60+45) or (20*60+15 <= minute <= 23*60+45)
 
 
 def run(cmd, timeout):
@@ -64,7 +74,6 @@ def channel_live(page, scan=30):
     base=page.rstrip('/')
     if base.endswith('/live'): base=base[:-5]
     reasons=[]
-    # /live 自体の解決に失敗しても、streams/videos の新着を広めに検査する。
     for listing in [base+'/streams',base+'/videos']:
         try:
             p=run(base_cmd()+['--flat-playlist','--dump-json','--playlist-end',str(scan),listing],SEARCH_TIMEOUT)
@@ -80,7 +89,6 @@ def channel_live(page, scan=30):
             if not vid: continue
             status=(item.get('live_status') or '').lower()
             (live_first if status=='is_live' else others).append(vid)
-        # live_status が欠落するケースもあるので新着候補も直接 is_live 判定する。
         for vid in live_first+others[:15]:
             url,reason=direct_url('https://www.youtube.com/watch?v='+vid)
             if url: return url,None
@@ -127,12 +135,15 @@ def resolve_item(index,item):
     try:
         if page: url,reason=direct_url(page)
         if not url and item.get('id')=='youtube.kana_tube':
-            # 華奈tube専用: /live -> streams/videos -> 複数検索語 の順で粘る。
-            url,reason=channel_live(page,30)
+            focus=kana_focus_time()
+            print(f' KANA focus={focus}',flush=True)
+            # 通常帯 13:00頃-16:30 / 20:30頃-23:30 は候補数を増やして重点検出。
+            url,reason=channel_live(page,40 if focus else 15)
             if not url:
-                for q in [item.get('query'),'華奈tube LIVE','かなチューブ 競輪 LIVE','華奈tube 競輪']:
+                queries=[item.get('query'),'華奈tube LIVE','かなチューブ 競輪 LIVE','華奈tube 競輪']
+                for q in queries:
                     if not q: continue
-                    url,reason=search_live(q,15)
+                    url,reason=search_live(q,20 if focus else 8)
                     if url: break
         elif not url:
             url,reason=search_live(item.get('query') or name,10)
