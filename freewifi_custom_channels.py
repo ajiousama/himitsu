@@ -1,5 +1,8 @@
 from pathlib import Path
+from datetime import datetime, timezone, timedelta
 import re
+import urllib.request
+import xml.etree.ElementTree as ET
 
 FREEWIFI = Path('freewifi')
 
@@ -8,6 +11,8 @@ JRA_GCH_LOGO = 'https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/y
 GUINEA_LOGO = 'https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/youtube/guinea_youtube.jpg'
 GUINEA_PAGE = 'https://www.youtube.com/watch?v=sYCG1BPYWXk'
 GCH_URL = 'https://manifest.streaks.jp/v4/gch-jra/97d99803d82b49bd9fc73cb568b219df/a214b09df7e04c22a15b4feba869b01d/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwcCI6IjNhZWVhMzU2ZmQ0MzQyMzE4ZjRhNDg2OWUwMzFiMDZiIiwiZGMiOiJjYTlmZDAwYTRiMmU0YTg1OGEyNmM1MTY5ZDIwY2U0ZiIsImVkZ2UiOiIzYjY5ZGJiYjYwMmI0M2NlODFmYjdkNGI3NjE0NjEzMCIsImNvZGVjcyI6ImF1dG8iLCJleHAiOjE3ODc1NDA0MDAsImlvcyI6MTgsInBwdyI6IjRwaiJ9.5EL6z0Gaoaj0haNQ3B1tui-B5vpNbxdb0t3dTHYFySE'
+PUBLIC_EPG_URL = 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/epg.xml'
+JST = timezone(timedelta(hours=9))
 
 GCH_START = '# === JRA_GCH_FREE_START ==='
 GCH_END = '# === JRA_GCH_FREE_END ==='
@@ -93,6 +98,43 @@ def patch_jra_youtube(text):
     return '\n'.join(lines).rstrip() + '\n'
 
 
+def parse_xmltv_time(s):
+    if not s:
+        return None
+    m = re.match(r'^(\d{14})\s*([+-]\d{4})?', s.strip())
+    if not m:
+        return None
+    base = datetime.strptime(m.group(1), '%Y%m%d%H%M%S')
+    off = m.group(2)
+    if off:
+        sign = 1 if off[0] == '+' else -1
+        tz = timezone(sign * timedelta(hours=int(off[1:3]), minutes=int(off[3:5])))
+        return base.replace(tzinfo=tz)
+    return base.replace(tzinfo=JST)
+
+
+def is_jra_race_day():
+    try:
+        req = urllib.request.Request(PUBLIC_EPG_URL, headers={'User-Agent': 'FreeWiFi-GCH-DayCheck/1.0', 'Cache-Control': 'no-cache'})
+        with urllib.request.urlopen(req, timeout=60) as r:
+            root = ET.fromstring(r.read())
+        today = datetime.now(JST).date()
+        source_ids = {'jra.east', 'jra.west', 'jra.hokkaido'}
+        for p in root.findall('programme'):
+            if (p.get('channel') or '') not in source_ids:
+                continue
+            start = parse_xmltv_time(p.get('start'))
+            if not start or start.astimezone(JST).date() != today:
+                continue
+            title = (p.findtext('title') or '').strip()
+            if title and not any(w in title for w in ('非開催', '休止', '準備中', 'データ取得準備中')):
+                return True
+        return False
+    except Exception as e:
+        print('JRA race-day check failed:', e)
+        return False
+
+
 def get_guinea_hls():
     try:
         from general_youtube_update import direct_url
@@ -108,13 +150,18 @@ def main():
     text = patch_jra_youtube(text)
     text = ensure_ecatv(text)
 
-    gch_extinf = (
-        '#EXTINF:-1 tvg-id="jra.gch.free" '
-        'tvg-name="JRA公式（GCH）無料版【開催中のみ】" '
-        f'tvg-logo="{JRA_GCH_LOGO}" group-title="競馬",'
-        'JRA公式（GCH）無料版【開催中のみ】'
-    )
-    gch_block = f'{GCH_START}\n{gch_extinf}\n{GCH_URL}\n{GCH_END}'
+    if is_jra_race_day():
+        gch_extinf = (
+            '#EXTINF:-1 tvg-id="jra.gch.free" '
+            'tvg-name="JRA公式（GCH）無料版【開催中のみ】" '
+            f'tvg-logo="{JRA_GCH_LOGO}" group-title="競馬",'
+            'JRA公式（GCH）無料版【開催中のみ】'
+        )
+        gch_block = f'{GCH_START}\n{gch_extinf}\n{GCH_URL}\n{GCH_END}'
+        print('JRA GCH free: enabled for race day')
+    else:
+        gch_block = ''
+        print('JRA GCH free: disabled (non-race day)')
     text = replace_managed_block(text, GCH_START, GCH_END, gch_block, '## 競馬\n')
 
     guinea_url = get_guinea_hls()
