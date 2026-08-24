@@ -70,20 +70,28 @@ def parse_xmltv_time(s):
 
 
 def epg_state(text):
-    root=ET.fromstring(text); today=datetime.now(JST).date()
-    real=set(); last_stop={}; modes={}
+    root=ET.fromstring(text); today=datetime.now(JST).date(); now=datetime.now(JST)
+    real=set(); last_stop={}; modes={}; next_race={}
     for p in root.findall('programme'):
         cid=p.get('channel') or ''; start=parse_xmltv_time(p.get('start')); stop=parse_xmltv_time(p.get('stop'))
         if not start or start.astimezone(JST).date()!=today: continue
-        title=''.join((p.findtext('title') or '').split())
-        if not title or any(w in title for w in NON_EVENT_WORDS): continue
+        title=(p.findtext('title') or '').strip(); compact=''.join(title.split())
+        if not compact or any(w in compact for w in NON_EVENT_WORDS): continue
         real.add(cid)
+        sj=start.astimezone(JST)
         if stop:
             ls=stop.astimezone(JST)
             if cid not in last_stop or ls>last_stop[cid]: last_stop[cid]=ls
         joined=title+' '+(p.findtext('desc') or '')
         modes[cid]='overnight' if 'オーバーミッドナイト' in joined else ('midnight' if 'ミッドナイト' in joined else ('night' if 'ナイター' in joined else modes.get(cid,'day')))
-    return real,last_stop,modes
+        if sj >= now:
+            m=re.search(r'(?<!\d)(\d{1,2})R(?!\w)', title, re.I)
+            if m:
+                item={'race':int(m.group(1)),'start':sj.strftime('%H:%M'),'title':title}
+                if cid not in next_race or sj < next_race[cid]['_dt']:
+                    item['_dt']=sj; next_race[cid]=item
+    for v in next_race.values(): v.pop('_dt',None)
+    return real,last_stop,modes,next_race
 
 
 def entry_name(block):
@@ -179,7 +187,7 @@ def main():
     now=datetime.now(JST); today=now.date()
     base=prune_abema_rakuten(FREEWIFI.read_text(encoding='utf-8-sig',errors='replace'))
     entries=parse_m3u(fetch_text(PUBLIC_M3U_URL))
-    epg_real,last_stop,epg_modes=epg_state(fetch_text(PUBLIC_EPG_URL))
+    epg_real,last_stop,epg_modes,next_race=epg_state(fetch_text(PUBLIC_EPG_URL))
     official={}
     for section,url in OFFICIAL_URLS.items():
         try:
@@ -205,23 +213,21 @@ def main():
             else: active,found_mode=official_simple(section,page,name,today)
             if found_mode: mode=found_mode
             source='official schedule'
-            # The official pages occasionally change markup and can fail to identify
-            # individual venues. If the upstream EPG has real programmes for today,
-            # keep the venue active rather than dropping it from FreeWiFi.
             if not active and tvg in epg_real:
                 active=True
                 source='earphone1981 EPG fallback after official miss'
             if active and tvg in last_stop and now>=last_stop[tvg]: active=False
         else:
-            # Official schedule fetch failed completely: use real upstream EPG as the
-            # authoritative fallback for keirin/autorace/local racing.
             active=tvg in epg_real
             found_mode=None
             source='earphone1981 EPG fallback'
         if not active: continue
         b=block[:]; b[0]=rewrite_group(b[0]); selected.extend(b); selected.append('')
         counts[section]+=1
-        status[tvg]={'section':section,'name':name,'mode':mode,'source':source,'epg_available':tvg in epg_real}
+        nr=next_race.get(tvg)
+        status[tvg]={'section':section,'name':name,'mode':mode,'source':source,'epg_available':tvg in epg_real,
+                     'next_race': nr,
+                     'next_race_text': (f"次は {nr['race']}R {nr['start']}発走" if nr else '本日開催終了')}
 
     body='\n'.join(selected).rstrip(); managed=START+'\n## 今日の開催場\n'+body+('\n' if body else '')+END
     FREEWIFI.write_text(replace_block(base,managed).rstrip()+'\n',encoding='utf-8')
