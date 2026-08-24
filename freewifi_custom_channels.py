@@ -72,7 +72,6 @@ def replace_managed_block(text, start, end, block, anchor='## 競馬\n'):
 
 
 def ensure_ecatv(text):
-    # Remove both the new managed block and any old unmanaged CATV section, then add one clean copy.
     text = re.sub(re.escape(ECATV_START) + r'.*?' + re.escape(ECATV_END) + r'\n?', '', text, flags=re.S)
     text = re.sub(r'\n## 愛媛CATV\n.*?(?=\n## |\n# === GENERAL_YOUTUBE_MANAGED_START ===|\Z)', '\n', text, flags=re.S)
     anchor = '# === GENERAL_YOUTUBE_MANAGED_START ==='
@@ -139,6 +138,12 @@ def main():
         sync_today_public_sports()
     except Exception as e:
         print('Today public sports sync failed:', e)
+
+    try:
+        from freewifi_keirin_repair import main as repair_keirin
+        repair_keirin()
+    except Exception as e:
+        print('Keirin fallback repair failed:', e)
 
 
 if __name__ == '__main__':
