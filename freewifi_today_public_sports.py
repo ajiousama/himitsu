@@ -205,7 +205,19 @@ def main():
             else: active,found_mode=official_simple(section,page,name,today)
             if found_mode: mode=found_mode
             source='official schedule'
+            # The official pages occasionally change markup and can fail to identify
+            # individual venues. If the upstream EPG has real programmes for today,
+            # keep the venue active rather than dropping it from FreeWiFi.
+            if not active and tvg in epg_real:
+                active=True
+                source='earphone1981 EPG fallback after official miss'
             if active and tvg in last_stop and now>=last_stop[tvg]: active=False
+        else:
+            # Official schedule fetch failed completely: use real upstream EPG as the
+            # authoritative fallback for keirin/autorace/local racing.
+            active=tvg in epg_real
+            found_mode=None
+            source='earphone1981 EPG fallback'
         if not active: continue
         b=block[:]; b[0]=rewrite_group(b[0]); selected.extend(b); selected.append('')
         counts[section]+=1
