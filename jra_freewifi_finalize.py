@@ -3,10 +3,19 @@ import json, re, subprocess
 
 FREEWIFI = Path('freewifi')
 GENERAL = Path('general_youtube.m3u')
+JRA_STATUS = Path('today_jra_status.json')
 START = '# === JRA_OFFICIAL_YOUTUBE_START ==='
 END = '# === JRA_OFFICIAL_YOUTUBE_END ==='
 JRA_ID = 'jra.official'
 SEARCH_TITLE = '中央競馬全レース中継'
+
+
+def jra_active_today():
+    try:
+        data = json.loads(JRA_STATUS.read_text(encoding='utf-8-sig'))
+        return int(data.get('active_count', 0)) > 0
+    except Exception:
+        return False
 
 
 def find_jra_live_by_title():
@@ -71,8 +80,17 @@ def main():
     base = FREEWIFI.read_text(encoding='utf-8-sig', errors='replace')
     general = GENERAL.read_text(encoding='utf-8-sig', errors='replace') if GENERAL.exists() else ''
 
-    # 固定URLや検索順位ではなく「中央競馬全レース中継」をYouTube内検索して
-    # JRA公式かつ現在LIVEの動画を優先する。
+    managed_pat = re.compile(re.escape(START) + r'.*?' + re.escape(END) + r'\n?', re.S)
+    had_managed = bool(managed_pat.search(base))
+    base = managed_pat.sub('', base)
+    base = remove_jra_from_managed(base)
+
+    # JRA非開催日は、YouTube上にLIVE判定できる動画が残っていてもFreeWiFiへ入れない。
+    if not jra_active_today():
+        FREEWIFI.write_text(base.rstrip() + '\n', encoding='utf-8')
+        print('JRA is not active today; JRA official YouTube entry removed')
+        return
+
     title_url = find_jra_live_by_title()
     entry = extract_jra_entry(general)
     if title_url:
@@ -81,11 +99,6 @@ def main():
         else:
             extinf = '#EXTINF:-1 tvg-id="jra.official" tvg-name="JRA公式（YouTube）無料版" group-title="競馬",JRA公式（YouTube）無料版'
         entry = (extinf, title_url)
-
-    managed_pat = re.compile(re.escape(START) + r'.*?' + re.escape(END) + r'\n?', re.S)
-    had_managed = bool(managed_pat.search(base))
-    base = managed_pat.sub('', base)
-    base = remove_jra_from_managed(base)
 
     if entry:
         extinf, url = entry
@@ -105,7 +118,7 @@ def main():
     elif had_managed:
         print('JRA official YouTube is not LIVE; expired managed entry removed')
     else:
-        print('JRA official YouTube is not LIVE yet; legacy free-version entry kept until first successful LIVE')
+        print('JRA official YouTube is not LIVE yet')
 
     FREEWIFI.write_text(base.rstrip() + '\n', encoding='utf-8')
 
