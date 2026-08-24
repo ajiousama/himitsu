@@ -68,9 +68,46 @@ def direct_url(page):
     return None,last_reason or ('OTHER','direct URL取得失敗')
 
 
+def channel_live(page):
+    """チャンネルの配信一覧から現在LIVEの動画IDを拾う専用フォールバック。"""
+    if not page or '/@' not in page:
+        return None,('CHANNEL_SKIP','channel URLではない')
+    base=page.rstrip('/')
+    if base.endswith('/live'):
+        base=base[:-5]
+    candidates=[base+'/streams', base+'/videos']
+    reasons=[]
+    for listing in candidates:
+        try:
+            p=run(base_cmd()+['--flat-playlist','--dump-json','--playlist-end','12',listing],SEARCH_TIMEOUT)
+        except subprocess.TimeoutExpired:
+            reasons.append(('TIMEOUT','channel listing timeout'))
+            continue
+        if p.returncode!=0:
+            reasons.append((classify_error(p.stderr),short_error(p.stderr)))
+            continue
+        live_first=[]; others=[]
+        for line in p.stdout.splitlines():
+            try: item=json.loads(line)
+            except Exception: continue
+            vid=item.get('id')
+            if not vid: continue
+            status=(item.get('live_status') or '').lower()
+            target=(vid,status)
+            if status=='is_live': live_first.append(target)
+            else: others.append(target)
+        for vid,_ in live_first+others[:6]:
+            url,reason=direct_url('https://www.youtube.com/watch?v='+vid)
+            if url: return url,None
+            if reason: reasons.append(reason)
+    if reasons:
+        return None,reasons[-1]
+    return None,('CHANNEL_EMPTY','チャンネル配信一覧から候補なし')
+
+
 def search_live(query):
     try:
-        p=run(base_cmd()+['--flat-playlist','--dump-json','--playlist-end','3',f'ytsearch3:{query}'],SEARCH_TIMEOUT)
+        p=run(base_cmd()+['--flat-playlist','--dump-json','--playlist-end','5',f'ytsearch5:{query}'],SEARCH_TIMEOUT)
     except subprocess.TimeoutExpired:
         return None,('TIMEOUT','search timeout')
     if p.returncode!=0:
@@ -118,6 +155,10 @@ def resolve_item(index,item):
     try:
         if page:
             url,reason=direct_url(page)
+        # 華奈tubeは通常の /live が外れることがあるため、
+        # チャンネル配信一覧から現在LIVEの動画IDを直接拾う。
+        if not url and item.get('id')=='youtube.kana_tube':
+            url,reason=channel_live(page)
         if not url:
             url,reason=search_live(item.get('query') or name)
     except Exception as e:
