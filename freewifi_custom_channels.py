@@ -13,6 +13,51 @@ GCH_START = '# === JRA_GCH_FREE_START ==='
 GCH_END = '# === JRA_GCH_FREE_END ==='
 GUINEA_START = '# === GUINEA_YOUTUBE_START ==='
 GUINEA_END = '# === GUINEA_YOUTUBE_END ==='
+ECATV_START = '# === EHIME_CATV_START ==='
+ECATV_END = '# === EHIME_CATV_END ==='
+
+ECATV_BLOCK = '''# === EHIME_CATV_START ===
+## 愛媛CATV
+
+#EXTINF:-1 tvg-id="ecatv.town_premium" group-title="愛媛CATV" tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/ehime_catv/01_town_premium.png",たうんプレミアム
+https://cdn-ecatv-stream.durasite.net/live/plala.town/playlist.m3u8
+
+#EXTINF:-1 tvg-id="ecatv.town_news24" group-title="愛媛CATV" tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/ehime_catv/02_town_news24.png",たうんNews24
+https://cdn.e-catv.ne.jp/mpeg-dash/hc_town_news_24/dash.mpd
+
+#EXTINF:-1 group-title="愛媛CATV" tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/ehime_catv/03_machicam24.png",街カメ24
+https://cdn.e-catv.ne.jp/mpeg-dash/hc_machi_cam_24/dash.mpd
+
+#EXTINF:-1 group-title="愛媛CATV" tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/ehime_catv/04_info.png",お知らせチャンネル
+https://cdn-ecatv-stream.durasite.net/live/plala.info/playlist.m3u8
+
+#EXTINF:-1 group-title="愛媛CATV" tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/ehime_catv/05_program_promo.png",番組宣伝ch
+https://cdn-ecatv-stream.durasite.net/live/plala.machisuki/playlist.m3u8
+
+#EXTINF:-1 tvg-id="ecatv.event_premium" group-title="愛媛CATV" tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/ehime_catv/06_event_premium.png",イベントプレミアム
+https://cdn-ecatv-stream.durasite.net/live/plala.event/playlist.m3u8
+
+#EXTINF:-1 tvg-id="ecatv.event_selection" group-title="愛媛CATV" tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/ehime_catv/07_event_selection.png",イベントセレクション
+https://cdn.e-catv.ne.jp/mpeg-dash/hc_eventsel_channel/dash.mpd
+
+#EXTINF:-1 group-title="愛媛CATV" tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/ehime_catv/08_ehime_channel.png",えひめチャンネル
+https://cdn.e-catv.ne.jp/mpeg-dash/hc_ehime_channel/dash.mpd
+
+#EXTINF:-1 tvg-id="ecatv.bousai" group-title="愛媛CATV" tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/ehime_catv/09_ehime_bousai.png",えひめ・防災チャンネル
+https://cdn.e-catv.ne.jp/mpeg-dash/hc_bousai_channel/dash.mpd
+
+#EXTINF:-1 tvg-id="囲碁・将棋チャンネル_jp" group-title="愛媛CATV" tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/ehime_catv/10_igo_shogi.png",囲碁・将棋チャンネル(eCATV)
+https://cdn.e-catv.ne.jp/mpeg-dash/hc_gosho_channel/dash.mpd
+
+#EXTINF:-1 tvg-id="日経CNBC_jp" group-title="愛媛CATV" tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/ehime_catv/13_nikkei_cnbc.png",日経CNBC(eCATV)
+https://cdn4.nikkei-cnbc.co.jp/live-ch01/livestream/ts:playlist.m3u8
+
+#EXTINF:-1 group-title="愛媛CATV" tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/ehime_catv/14_matsuyama_gikai.png",松山市議会中継
+https://cdn-ecatv-stream.durasite.net/live/ms_gikai/chunklist_w152985868.m3u8
+
+#EXTINF:-1 group-title="愛媛CATV" tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/ehime_catv/15_ehime_gikai.png",愛媛県議会中継
+https://cdn-ecatv-stream.durasite.net/live/kengikai/chunklist_w1364306427.m3u8
+# === EHIME_CATV_END ==='''
 
 
 def replace_managed_block(text, start, end, block, anchor='## 競馬\n'):
@@ -24,6 +69,16 @@ def replace_managed_block(text, start, end, block, anchor='## 競馬\n'):
         else:
             text = text.rstrip() + '\n\n' + block + '\n'
     return text
+
+
+def ensure_ecatv(text):
+    # Remove both the new managed block and any old unmanaged CATV section, then add one clean copy.
+    text = re.sub(re.escape(ECATV_START) + r'.*?' + re.escape(ECATV_END) + r'\n?', '', text, flags=re.S)
+    text = re.sub(r'\n## 愛媛CATV\n.*?(?=\n## |\n# === GENERAL_YOUTUBE_MANAGED_START ===|\Z)', '\n', text, flags=re.S)
+    anchor = '# === GENERAL_YOUTUBE_MANAGED_START ==='
+    if anchor in text:
+        return text.replace(anchor, ECATV_BLOCK + '\n\n' + anchor, 1)
+    return text.rstrip() + '\n\n' + ECATV_BLOCK + '\n'
 
 
 def patch_jra_youtube(text):
@@ -52,6 +107,7 @@ def get_guinea_hls():
 def main():
     text = FREEWIFI.read_text(encoding='utf-8-sig', errors='replace')
     text = patch_jra_youtube(text)
+    text = ensure_ecatv(text)
 
     gch_extinf = (
         '#EXTINF:-1 tvg-id="jra.gch.free" '
