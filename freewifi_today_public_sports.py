@@ -20,7 +20,7 @@ NON_EVENT_WORDS = ('本日非開催','非開催','開催していません','開
 OFFICIAL_URLS = {
     '競輪': 'https://www.keirin.jp/sp/raceschedule',
     '地方競馬': 'https://sp.keiba.go.jp/KeibaWebSP/TodayRaceInfo/S_TodayRaceInfoTop',
-    'ボートレース': 'https://www.boatrace.jp/owpc/pc/race/monthlyschedule',
+    'ボートレース': 'https://www.boatrace.jp/owsp/sp/race/pay',
     'オートレース': 'https://autorace.jp/race_info/',
 }
 
@@ -142,15 +142,8 @@ def official_simple(section,text,name,today):
 
 
 def official_boat(text,name,today):
-    # BOATRACE月間日程は開催名の表構造が複雑なので、当月ページ内の場名＋当日列を利用する。
-    # 取得不能時だけEPGへフォールバックする。
     plain=html_text(text)
-    for a in aliases('ボートレース',name):
-        if a in plain:
-            # 当月日程に場名が存在し、当日24日の開催リンクがある場を候補にする。
-            # 個別開催の終了判定はEPG last_stopで行う。
-            return True,None
-    return False,None
+    return (any(a in plain for a in aliases('ボートレース',name)), None)
 
 
 def rewrite_group(extinf):
@@ -201,7 +194,7 @@ def main():
         page=official.get(section,'')
         if section=='ボートレース':
             if page:
-                active,found_mode=official_boat(page,name,today); source='BOATRACE official schedule'
+                active,found_mode=official_boat(page,name,today); source='BOATRACE official today page'
             else:
                 active=tvg in epg_real; found_mode=None; source='earphone1981 EPG fallback'
             if found_mode: mode=found_mode
