@@ -13,6 +13,7 @@ from pathlib import Path
 PLAYLISTS = [Path("freewifi"), Path("other_live.m3u")]
 OUT_XML = Path("guides.xml")
 REPORT = Path("epg_coverage.txt")
+STATUS_JSON = Path("today_public_sports_status.json")
 
 SOURCES = [
     ("japanterebi", "https://animenosekai.github.io/japanterebi-xmltv/guide.xml"),
@@ -21,6 +22,7 @@ SOURCES = [
     ("tver", "https://raw.githubusercontent.com/dbghelp/TVer-EPG/refs/heads/main/tver.xml"),
     ("abema", "https://raw.githubusercontent.com/dbghelp/Abema-TV-EPG/refs/heads/main/abema.xml"),
     ("karenda", "https://raw.githubusercontent.com/karenda-jp/etc/main/guides.xml"),
+    ("public_sports", "https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/epg.xml"),
     ("epgshare_jp1", "https://epgshare01.online/epgshare01/epg_ripper_JP1.xml.gz"),
     ("epgshare_jp2", "https://epgshare01.online/epgshare01/epg_ripper_JP2.xml.gz"),
 ]
@@ -61,6 +63,14 @@ def fetch_xml(url):
     return ET.fromstring(data)
 
 def fetch_json(url): return json.loads(fetch_bytes(url).decode("utf-8-sig"))
+
+def load_sports_status():
+    if not STATUS_JSON.exists(): return {}
+    try:
+        data = json.loads(STATUS_JSON.read_text(encoding="utf-8-sig"))
+        return data.get("channels", {}) if isinstance(data, dict) else {}
+    except Exception:
+        return {}
 
 def norm(s):
     s = unicodedata.normalize("NFKC", s or "").lower().replace("_jp", "").replace(".jp", "")
@@ -125,11 +135,17 @@ def add_ecatv_channel(out_root, target_id, display_name, programmes):
         p = ET.SubElement(out_root, "programme", {"start": xmltv_time(start), "stop": xmltv_time(stop), "channel": target_id})
         ET.SubElement(p, "title", {"lang": "ja"}).text = title; ET.SubElement(p, "category", {"lang": "ja"}).text = "地域情報"
 
-def add_fallback(out_root, target_id, target_name, target_group=""):
+def add_fallback(out_root, target_id, target_name, target_group="", sports_status=None):
     ch = ET.SubElement(out_root, "channel", {"id": target_id}); ET.SubElement(ch, "display-name").text = target_name
     is_youtube_live = target_id.startswith("youtube."); is_ecatv = target_id in ECATV_CHANNELS
     group_norm = unicodedata.normalize("NFKC", target_group or "").upper(); is_24h_name = ("CATV" in group_norm) or ("ABEMA" in group_norm)
-    if is_youtube_live:
+    sport = (sports_status or {}).get(target_id, {})
+    next_text = str(sport.get("next_race_text") or "").strip()
+    if target_group == "今日の開催場" and sport:
+        title = next_text or target_name
+        desc = f"{target_name} / {sport.get('section','公営競技')}。実レースEPG取得失敗時の案内です。"
+        category = str(sport.get("section") or "公営競技")
+    elif is_youtube_live:
         title = "📡✨ ただいまYouTubeよりライブカメラ中継中 ✨📡"; desc = f"🎥 LIVE CAMERA ON AIR 🎥\n📺 YouTubeからライブ映像を中継しています。\n📍 {target_name}"; category = "ライブカメラ"
     elif is_ecatv:
         title = "こちらのチャンネルは番組表がありません🙇"; desc = "愛媛CATV公式番組表を取得できなかったため、この案内を表示しています。"; category = "番組表なし"
@@ -147,6 +163,7 @@ def add_fallback(out_root, target_id, target_name, target_group=""):
 
 def main():
     wanted = parse_playlists(); loaded, errors = [], []
+    sports_status = load_sports_status()
     ecatv_epg, ecatv_errors = load_ecatv_epg(); errors.extend(ecatv_errors)
     for source_name, url in SOURCES:
         try:
@@ -186,7 +203,7 @@ def main():
             _, sn, sid = item; pc = len(source_map[sn][3].get(sid, [])); usable.append((0 if pc else 1, item[0], -pc, sn, sid))
         usable.sort()
         if not usable:
-            add_fallback(out_root, target_id, target_name, target_group); fallback += 1; missing.append((target_id, target_name)); coverage.append(f"FALLBACK\t{target_id}\t{target_name}\t{target_group}\t12 programmes"); continue
+            add_fallback(out_root, target_id, target_name, target_group, sports_status); fallback += 1; missing.append((target_id, target_name)); coverage.append(f"FALLBACK\t{target_id}\t{target_name}\t{target_group}\t12 programmes"); continue
         _, _, _, source_name, source_id = usable[0]; _, by_id, _, programmes = source_map[source_name]; ch = clone(by_id[source_id]); ch.set("id", target_id); out_root.append(ch)
         seenp, added = set(), 0
         for p in programmes.get(source_id, []):
