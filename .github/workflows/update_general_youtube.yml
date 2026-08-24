@@ -7,6 +7,7 @@ on:
       - '.github/general_youtube_update.trigger'
       - 'general_youtube_sources.json'
       - 'general_youtube_sources_ports.json'
+      - 'general_youtube_sources_airports.json'
       - 'general_youtube_update.py'
       - 'jra_freewifi_finalize.py'
       - 'freewifi_custom_channels.py'
@@ -49,20 +50,42 @@ jobs:
       - name: Sync latest main
         run: git pull --ff-only origin main
 
-      - name: Merge Ehime port camera sources
+      - name: Merge supplemental live-camera sources
         shell: bash
         run: |
           python - <<'PY'
           import json
           from pathlib import Path
+
           base_path = Path('general_youtube_sources.json')
-          ports_path = Path('general_youtube_sources_ports.json')
+          extra_paths = [
+              Path('general_youtube_sources_ports.json'),
+              Path('general_youtube_sources_airports.json'),
+          ]
+
           base = json.loads(base_path.read_text(encoding='utf-8'))
-          ports = json.loads(ports_path.read_text(encoding='utf-8')) if ports_path.exists() else []
           seen = {x.get('id') for x in base}
-          merged = base + [x for x in ports if x.get('id') not in seen]
-          base_path.write_text(json.dumps(merged, ensure_ascii=False, separators=(',', ':')), encoding='utf-8')
-          print(f'Base sources: {len(base)} / Ehime ports: {len(ports)} / merged: {len(merged)}')
+          merged = list(base)
+          counts = []
+
+          for path in extra_paths:
+              items = json.loads(path.read_text(encoding='utf-8')) if path.exists() else []
+              added = 0
+              for item in items:
+                  item_id = item.get('id')
+                  if item_id and item_id not in seen:
+                      merged.append(item)
+                      seen.add(item_id)
+                      added += 1
+              counts.append((path.name, len(items), added))
+
+          base_path.write_text(
+              json.dumps(merged, ensure_ascii=False, separators=(',', ':')),
+              encoding='utf-8'
+          )
+          print(f'Base sources: {len(base)} / merged total: {len(merged)}')
+          for name, total, added in counts:
+              print(f'{name}: {total} sources / {added} added')
           PY
 
       - name: Backup last good playlist
