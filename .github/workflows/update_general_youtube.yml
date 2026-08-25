@@ -9,6 +9,7 @@ on:
       - 'general_youtube_sources_ports.json'
       - 'general_youtube_sources_airports.json'
       - 'general_youtube_update.py'
+      - 'general_youtube_guard.py'
       - 'public_sports_youtube_fallback.py'
       - 'jra_freewifi_finalize.py'
       - 'freewifi_custom_channels.py'
@@ -89,6 +90,8 @@ jobs:
         shell: bash
         run: |
           if ! timeout 12m python general_youtube_update.py; then echo '::warning::YouTube refresh failed or timed out'; fi
+      - name: Enforce strict live-camera sources
+        run: python general_youtube_guard.py
       - name: Protect repository from empty refresh
         shell: bash
         run: |
