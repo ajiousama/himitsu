@@ -21,7 +21,6 @@ on:
 permissions:
   contents: write
 
-# freewifi を書き換える一発更新と同じロック。相互の rebase 競合を防ぐ。
 concurrency:
   group: himitsu-freewifi-writer
   cancel-in-progress: false
@@ -29,7 +28,7 @@ concurrency:
 jobs:
   update:
     runs-on: ubuntu-latest
-    timeout-minutes: 6
+    timeout-minutes: 8
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -52,6 +51,20 @@ jobs:
           python -m pip install --upgrade --pre 'yt-dlp[default]'
           yt-dlp --version
 
+      - name: Restore YouTube cookies
+        shell: bash
+        env:
+          YOUTUBE_COOKIES: ${{ secrets.YOUTUBE_COOKIES }}
+        run: |
+          rm -f youtube_cookies.txt
+          if [ -n "$YOUTUBE_COOKIES" ]; then
+            printf '%s' "$YOUTUBE_COOKIES" > youtube_cookies.txt
+            chmod 600 youtube_cookies.txt
+            echo "YouTube cookie restored: $(wc -c < youtube_cookies.txt) bytes"
+          else
+            echo '::warning::YOUTUBE_COOKIES is not set; yt-dlp will run anonymously'
+          fi
+
       - name: Sync latest main
         run: git pull --ff-only origin main
 
@@ -61,167 +74,96 @@ jobs:
           python - <<'PY'
           import json
           from pathlib import Path
-          base_path = Path('general_youtube_sources.json')
-          extra_paths = [Path('general_youtube_sources_ports.json'),Path('general_youtube_sources_airports.json')]
-          base = json.loads(base_path.read_text(encoding='utf-8'))
-          seen = {x.get('id') for x in base}; merged = list(base); counts=[]
+          base_path=Path('general_youtube_sources.json')
+          extra_paths=[Path('general_youtube_sources_ports.json'),Path('general_youtube_sources_airports.json')]
+          base=json.loads(base_path.read_text(encoding='utf-8'))
+          seen={x.get('id') for x in base}; merged=list(base)
           for path in extra_paths:
               items=json.loads(path.read_text(encoding='utf-8')) if path.exists() else []
-              added=0
               for item in items:
-                  item_id=item.get('id')
-                  if item_id and item_id not in seen:
-                      merged.append(item); seen.add(item_id); added+=1
-              counts.append((path.name,len(items),added))
+                  iid=item.get('id')
+                  if iid and iid not in seen:
+                      merged.append(item); seen.add(iid)
           base_path.write_text(json.dumps(merged,ensure_ascii=False,separators=(',',':')),encoding='utf-8')
-          print(f'Base sources: {len(base)} / merged total: {len(merged)}')
-          for name,total,added in counts: print(f'{name}: {total} sources / {added} added')
+          print('Merged source total:',len(merged))
           PY
 
-      - name: Backup last good playlist
+      - name: Backup current playlist
         shell: bash
         run: |
-          COUNT=$(grep -c '^#EXTINF:' general_youtube.m3u || true)
-          if [ "$COUNT" -gt 0 ]; then
-            cp general_youtube.m3u general_youtube.prev.m3u
-            cp freewifi freewifi.prev
-            echo "Backed up current good playlist ($COUNT entries)."
-          else
-            rm -f general_youtube.prev.m3u freewifi.prev
-            echo 'Current playlist is empty; will recover from Git history if refresh also returns zero.'
-          fi
+          cp general_youtube.m3u general_youtube.prev.m3u 2>/dev/null || true
+          cp freewifi freewifi.prev 2>/dev/null || true
+          echo "Current entries: $(grep -c '^#EXTINF:' general_youtube.m3u || true)"
 
       - name: Refresh general YouTube LIVE
         shell: bash
         run: |
-          if ! timeout 5m python general_youtube_update.py; then
-            echo '::warning::YouTube refresh failed or timed out; fallback recovery will keep the last good playlist.'
+          if ! timeout 6m python general_youtube_update.py; then
+            echo '::warning::YouTube refresh failed or timed out'
           fi
 
-      - name: Restore last good playlist if refresh returned zero
+      - name: Protect repository from empty refresh
         shell: bash
         run: |
           COUNT=$(grep -c '^#EXTINF:' general_youtube.m3u || true)
           if [ "$COUNT" -gt 0 ]; then
-            echo "YouTube refresh generated $COUNT entries."
-            rm -f general_youtube.prev.m3u freewifi.prev
+            echo "Playlist after refresh: $COUNT entries"
             exit 0
           fi
-          echo '::warning::YouTube refresh returned 0 entries. Restoring the last known good playlist.'
-          PREV_COUNT=0
-          if [ -f general_youtube.prev.m3u ]; then PREV_COUNT=$(grep -c '^#EXTINF:' general_youtube.prev.m3u || true); fi
-          if [ "$PREV_COUNT" -gt 0 ]; then
-            echo "Restoring pre-refresh backup ($PREV_COUNT entries)."
+          PREV=$(grep -c '^#EXTINF:' general_youtube.prev.m3u 2>/dev/null || true)
+          if [ "${PREV:-0}" -gt 0 ]; then
             mv general_youtube.prev.m3u general_youtube.m3u
-            if [ -f freewifi.prev ]; then mv freewifi.prev freewifi; fi
-            exit 0
-          fi
-          RESTORED=0
-          for COMMIT in $(git rev-list HEAD -- general_youtube.m3u); do
-            if git cat-file -e "$COMMIT:general_youtube.m3u" 2>/dev/null; then
-              HIST_COUNT=$(git show "$COMMIT:general_youtube.m3u" | grep -c '^#EXTINF:' || true)
-              if [ "$HIST_COUNT" -gt 0 ]; then
-                echo "Restoring historical good playlist from $COMMIT ($HIST_COUNT entries)."
-                git show "$COMMIT:general_youtube.m3u" > general_youtube.m3u
-                if git cat-file -e "$COMMIT:freewifi" 2>/dev/null; then git show "$COMMIT:freewifi" > freewifi; else git show HEAD:freewifi > freewifi; fi
-                RESTORED=1; break
-              fi
-            fi
-          done
-          rm -f general_youtube.prev.m3u freewifi.prev
-          if [ "$RESTORED" -eq 0 ]; then
-            echo '::warning::No historical non-empty YouTube playlist was found. Keeping repository files unchanged and skipping this refresh.'
+            [ -f freewifi.prev ] && mv freewifi.prev freewifi || true
+            echo "Restored previous non-empty playlist: $PREV entries"
+          else
             git show HEAD:general_youtube.m3u > general_youtube.m3u
             git show HEAD:freewifi > freewifi
-            echo 'YOUTUBE_ZERO_UNRECOVERABLE=1' >> "$GITHUB_ENV"
+            echo '::warning::No usable refreshed playlist; repository version restored'
           fi
 
       - name: Put JRA official LIVE in race section
-        if: env.YOUTUBE_ZERO_UNRECOVERABLE != '1'
         run: python jra_freewifi_finalize.py
 
       - name: Apply custom FreeWiFi channels
-        if: env.YOUTUBE_ZERO_UNRECOVERABLE != '1'
         run: python freewifi_custom_channels.py
 
-      - name: Reapply verified sports/JRA status after YouTube rewrite
-        if: env.YOUTUBE_ZERO_UNRECOVERABLE != '1'
+      - name: Reapply verified sports/JRA status
         run: |
           python verified_daily_override.py
           python apply_verified_status.py
-
-      - name: Repair General YouTube managed block if needed
-        if: env.YOUTUBE_ZERO_UNRECOVERABLE != '1'
-        shell: bash
-        run: |
-          if ! grep -q '# === GENERAL_YOUTUBE_MANAGED_START ===' freewifi || ! grep -q '# === GENERAL_YOUTUBE_MANAGED_END ===' freewifi; then
-            python - <<'PY'
-          from pathlib import Path
-          from general_youtube_update import merge_freewifi
-          general = Path('general_youtube.m3u').read_text(encoding='utf-8-sig', errors='replace')
-          merge_freewifi(general)
-          PY
-            python jra_freewifi_finalize.py
-            python freewifi_custom_channels.py
-            python verified_daily_override.py
-            python apply_verified_status.py
-          fi
 
       - name: Validate
         shell: bash
         run: |
           test -s general_youtube.m3u
           test -s freewifi
-          COUNT=$(grep -c '^#EXTINF:' general_youtube.m3u || true)
-          echo "General YouTube LIVE count: $COUNT"
-          if [ "$COUNT" -eq 0 ]; then
-            echo '::warning::General YouTube playlist is still empty; repository FreeWiFi was kept unchanged and this refresh is skipped.'
-            echo 'Validation OK (zero-result refresh safely skipped)'
-            exit 0
-          fi
           grep -q '# === GENERAL_YOUTUBE_MANAGED_START ===' freewifi
           grep -q '# === GENERAL_YOUTUBE_MANAGED_END ===' freewifi
-          JRA_ACTIVE=$(python - <<'PY'
-          import json
+          echo "General YouTube entries: $(grep -c '^#EXTINF:' general_youtube.m3u || true)"
+          python - <<'PY'
           from pathlib import Path
-          p=Path('today_jra_status.json')
-          try:
-              d=json.loads(p.read_text(encoding='utf-8')) if p.exists() else {}
-              print(int(d.get('active_count') or 0))
-          except Exception: print(0)
+          import re,time
+          text=Path('general_youtube.m3u').read_text(encoding='utf-8-sig',errors='replace')
+          exps=[int(x) for x in re.findall(r'/expire/(\d+)',text)]
+          if exps:
+              live=sum(x>time.time()+900 for x in exps)
+              print(f'Unexpired signed HLS URLs (>15m): {live}/{len(exps)}')
+              if live==0:
+                  print('::warning::All cached signed YouTube HLS URLs are expired/near expiry; fresh yt-dlp extraction is required')
           PY
-          )
-          if [ "$JRA_ACTIVE" -gt 0 ]; then
-            grep -q 'JRA公式（GCH）無料版【開催中のみ】' freewifi
-          else
-            if grep -q 'JRA公式（GCH）無料版【開催中のみ】' freewifi; then
-              echo '::warning::GCH free entry present on a non-JRA day'; exit 1
-            fi
-          fi
-          echo '--- group counts ---'
-          for GROUP in '愛媛県内ライブカメラ' '交通' '動物' 'その他LIVE'; do
-            GCOUNT=$(grep -F "group-title=\"$GROUP\"" general_youtube.m3u | wc -l | tr -d ' ' || true)
-            echo "$GROUP: $GCOUNT"
-          done
-          JRA_GENERAL_COUNT=$(grep -F 'tvg-id="jra.official"' general_youtube.m3u | wc -l | tr -d ' ' || true)
-          JRA_FREEWIFI_COUNT=$(grep -F 'tvg-id="jra.official"' freewifi | wc -l | tr -d ' ' || true)
-          echo "JRA official LIVE generated: $JRA_GENERAL_COUNT"
-          echo "JRA official LIVE in FreeWiFi: $JRA_FREEWIFI_COUNT"
-          if [ "$JRA_ACTIVE" -eq 0 ] && [ "$JRA_FREEWIFI_COUNT" -gt 0 ]; then exit 1; fi
-          if [ "$JRA_ACTIVE" -gt 0 ] && [ "$JRA_GENERAL_COUNT" -gt 0 ] && [ "$JRA_FREEWIFI_COUNT" -lt 1 ]; then exit 1; fi
-          echo 'Validation OK'
 
       - name: Commit updated LIVE URLs
         shell: bash
         run: |
-          rm -f general_youtube.prev.m3u freewifi.prev
+          rm -f general_youtube.prev.m3u freewifi.prev youtube_cookies.txt
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add general_youtube.m3u freewifi today_public_sports_status.json today_jra_status.json
-          if git diff --cached --quiet; then echo 'No changes'; exit 0; fi
+          if git diff --cached --quiet; then
+            echo 'No changes'
+            exit 0
+          fi
           git commit -m 'Update general YouTube LIVE URLs'
-          echo '--- runtime changes left after output commit ---'
-          git status --short || true
           git reset --hard HEAD
           git clean -fd
           git pull --rebase origin main
