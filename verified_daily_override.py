@@ -38,8 +38,7 @@ def parse_entries(text):
             j+=1
         mid=re.search(r'tvg-id="([^"]+)"',line)
         # Venue display name after the final comma is canonical for matching.
-        # tvg-name may intentionally be hiragana/branding (e.g. こうちけいりん),
-        # which caused verified venue names such as 高知 and 桐生 to miss.
+        # tvg-name may intentionally be hiragana/branding (e.g. こうちけいりん).
         display=line.rsplit(',',1)[-1].strip() if ',' in line else ''
         mn=re.search(r'tvg-name="([^"]+)"',line)
         name=display or (mn.group(1) if mn else '')
@@ -93,20 +92,22 @@ def main():
     for cid,section,name,block in entries:
         if section not in wanted:continue
         n=norm(name);target=None
+        # Canonical venue names must match exactly after normalization.
+        # Substring matching caused 津 to incorrectly match 唐津.
         for v in wanted.get(section,[]):
-            vn=norm(v)
-            if vn and (n==vn or vn in n or n in vn):target=v;break
+            if n and n==norm(v):target=v;break
         if target is None or cid in selected_ids:continue
         selected_ids.add(cid);selected.append(block);matched[section].append(target);status[cid]={'section':section,'name':name,'mode':mode_for(section,name),'source':'verified daily override','epg_available':True,'next_race':None,'next_race_text':'本日開催'}
     expected=sum(len(v) for v in wanted.values());missing=[]
     for section,vals in wanted.items():
         have={norm(x) for x in matched.get(section,[])};missing += [f'{section}:{v}' for v in vals if norm(v) not in have]
-    if missing:raise RuntimeError(f'Verified override incomplete: matched={len(selected)}/{expected}, missing={missing}')
+    if missing:
+        print(f'WARNING: verified upstream channels missing: matched={len(selected)}/{expected}, missing={missing}')
     text=FREEWIFI.read_text(encoding='utf-8-sig',errors='replace');text=replace_block(text,PSTART,PEND,'今日の開催場',selected)
     jra_ids=cfg.get('jra_active_ids') or []
     if not jra_ids:text=strip_jra_entries(text);text=replace_block(text,JSTART,JEND,'JRA',[])
     FREEWIFI.write_text(text.rstrip()+'\n',encoding='utf-8')
-    PUBLIC_STATUS.write_text(json.dumps({'generated_at':now.isoformat(),'verified_date':cfg['date'],'channels':status},ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    PUBLIC_STATUS.write_text(json.dumps({'generated_at':now.isoformat(),'verified_date':cfg['date'],'expected_count':expected,'matched_count':len(selected),'missing':missing,'channels':status},ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
     JRA_STATUS.write_text(json.dumps({'generated_at':now.isoformat(),'verified_date':cfg['date'],'active_count':len(jra_ids),'active_ids':jra_ids,'active_labels':[],'special_entries':0,'channels':{}},ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
     print('Verified daily override applied:',len(selected),'public sports; JRA=',len(jra_ids))
     for section in ('地方競馬','競輪','ボートレース','オートレース'):print(section,len(wanted.get(section,[])))
