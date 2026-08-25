@@ -18,23 +18,19 @@ JST=ZoneInfo('Asia/Tokyo')
 
 
 def kana_focus_time():
-    """華奈tubeの通常配信帯。開始終了のズレを考慮して少し広めに重点監視する。"""
-    now=datetime.now(JST)
-    minute=now.hour*60+now.minute
+    now=datetime.now(JST); minute=now.hour*60+now.minute
     return (12*60+45 <= minute <= 16*60+45) or (20*60+15 <= minute <= 23*60+45)
 
 
 def run(cmd, timeout):
     safe=list(cmd)
-    if safe and safe[0]=='yt-dlp':
-        safe[1:1]=['--socket-timeout','10','--retries','1','--fragment-retries','1']
+    if safe and safe[0]=='yt-dlp': safe[1:1]=['--socket-timeout','10','--retries','1','--fragment-retries','1']
     return subprocess.run(safe,capture_output=True,text=True,timeout=timeout)
 
 
 def base_cmd():
     cmd=['yt-dlp','--js-runtimes','node','--no-warnings','--no-cache-dir']
-    if COOKIES.exists() and COOKIES.stat().st_size>20:
-        cmd += ['--cookies',str(COOKIES)]
+    if COOKIES.exists() and COOKIES.stat().st_size>20: cmd += ['--cookies',str(COOKIES)]
     return cmd
 
 
@@ -59,46 +55,46 @@ def short_error(stderr):
 def direct_url(page):
     last_reason=None
     for sel in ['best[protocol^=m3u8]','best']:
-        try:
-            p=run(base_cmd()+['--extractor-args','youtube:player_client=default,web_safari,web','--no-playlist','--match-filter','is_live','-f',sel,'-g',page],CMD_TIMEOUT)
+        try: p=run(base_cmd()+['--extractor-args','youtube:player_client=default,web_safari,web','--no-playlist','--match-filter','is_live','-f',sel,'-g',page],CMD_TIMEOUT)
         except subprocess.TimeoutExpired:
             last_reason=('TIMEOUT','direct URL timeout'); continue
         urls=[x.strip() for x in p.stdout.splitlines() if x.strip().startswith(('http://','https://'))]
         if p.returncode==0 and len(urls)==1: return urls[0],None
         last_reason=(classify_error(p.stderr),short_error(p.stderr))
+        # BOT/429/cookie restriction will not improve by immediately retrying another format.
+        if last_reason[0] in ('BOT_CHECK','RATE_LIMIT','COOKIE_ERROR'): break
     return None,last_reason or ('OTHER','direct URL取得失敗')
 
 
 def channel_live(page, scan=30):
     if not page or '/@' not in page: return None,('CHANNEL_SKIP','channel URLではない')
-    base=page.rstrip('/')
-    if base.endswith('/live'): base=base[:-5]
-    reasons=[]
+    base=page.rstrip('/'); base=base[:-5] if base.endswith('/live') else base; reasons=[]
     for listing in [base+'/streams',base+'/videos']:
-        try:
-            p=run(base_cmd()+['--flat-playlist','--dump-json','--playlist-end',str(scan),listing],SEARCH_TIMEOUT)
+        try: p=run(base_cmd()+['--flat-playlist','--dump-json','--playlist-end',str(scan),listing],SEARCH_TIMEOUT)
         except subprocess.TimeoutExpired:
             reasons.append(('TIMEOUT','channel listing timeout')); continue
         if p.returncode!=0:
-            reasons.append((classify_error(p.stderr),short_error(p.stderr))); continue
+            r=(classify_error(p.stderr),short_error(p.stderr)); reasons.append(r)
+            if r[0] in ('BOT_CHECK','RATE_LIMIT','COOKIE_ERROR'): return None,r
+            continue
         live_first=[]; others=[]
         for line in p.stdout.splitlines():
             try: item=json.loads(line)
             except Exception: continue
             vid=item.get('id')
             if not vid: continue
-            status=(item.get('live_status') or '').lower()
-            (live_first if status=='is_live' else others).append(vid)
+            (live_first if (item.get('live_status') or '').lower()=='is_live' else others).append(vid)
         for vid in live_first+others[:15]:
             url,reason=direct_url('https://www.youtube.com/watch?v='+vid)
             if url: return url,None
-            if reason: reasons.append(reason)
+            if reason:
+                reasons.append(reason)
+                if reason[0] in ('BOT_CHECK','RATE_LIMIT','COOKIE_ERROR'): return None,reason
     return (None,reasons[-1]) if reasons else (None,('CHANNEL_EMPTY','チャンネル配信一覧から候補なし'))
 
 
 def search_live(query, count=10):
-    try:
-        p=run(base_cmd()+['--flat-playlist','--dump-json','--playlist-end',str(count),f'ytsearch{count}:{query}'],SEARCH_TIMEOUT)
+    try: p=run(base_cmd()+['--flat-playlist','--dump-json','--playlist-end',str(count),f'ytsearch{count}:{query}'],SEARCH_TIMEOUT)
     except subprocess.TimeoutExpired: return None,('TIMEOUT','search timeout')
     if p.returncode!=0: return None,('SEARCH_ERROR',short_error(p.stderr))
     reasons=[]
@@ -109,7 +105,9 @@ def search_live(query, count=10):
         if not vid: continue
         url,reason=direct_url('https://www.youtube.com/watch?v='+vid)
         if url: return url,None
-        if reason: reasons.append(reason)
+        if reason:
+            reasons.append(reason)
+            if reason[0] in ('BOT_CHECK','RATE_LIMIT','COOKIE_ERROR'): return None,reason
     if not reasons: return None,('SEARCH_EMPTY','検索結果なし')
     for code in ['RATE_LIMIT','BOT_CHECK','COOKIE_ERROR','TIMEOUT','NOT_STARTED','NOT_LIVE','PRIVATE','UNAVAILABLE','UNSUPPORTED','OTHER']:
         for r in reasons:
@@ -130,29 +128,28 @@ def existing_logos():
 
 
 def resolve_item(index,item):
-    name=item['name']; url=None; reason=None; page=item.get('page')
-    print(f'CHECK {index+1}: {name}',flush=True)
+    name=item['name']; url=None; reason=None; page=item.get('page'); print(f'CHECK {index+1}: {name}',flush=True)
     try:
         if page: url,reason=direct_url(page)
+        # Access restriction is global-ish on Actions IPs. Do not amplify it with searches.
+        if reason and reason[0] in ('BOT_CHECK','RATE_LIMIT','COOKIE_ERROR'):
+            print('FAIL '+name+f' [{reason[0]}]',flush=True); return index,item,None,reason
         if not url and item.get('id')=='youtube.kana_tube':
-            focus=kana_focus_time()
-            print(f' KANA focus={focus}',flush=True)
-            # 通常帯 13:00頃-16:30 / 20:30頃-23:30 は候補数を増やして重点検出。
-            url,reason=channel_live(page,40 if focus else 15)
-            if not url:
-                queries=[item.get('query'),'華奈tube LIVE','かなチューブ 競輪 LIVE','華奈tube 競輪']
-                for q in queries:
+            focus=kana_focus_time(); print(f' KANA focus={focus}',flush=True); url,reason=channel_live(page,40 if focus else 15)
+            if not url and not (reason and reason[0] in ('BOT_CHECK','RATE_LIMIT','COOKIE_ERROR')):
+                for q in [item.get('query'),'華奈tube LIVE','かなチューブ 競輪 LIVE','華奈tube 競輪']:
                     if not q: continue
                     url,reason=search_live(q,20 if focus else 8)
-                    if url: break
-        elif not url:
-            url,reason=search_live(item.get('query') or name,10)
+                    if url or (reason and reason[0] in ('BOT_CHECK','RATE_LIMIT','COOKIE_ERROR')): break
+        elif not url: url,reason=search_live(item.get('query') or name,10)
     except Exception as e: reason=('EXCEPTION',str(e)[:300])
     print(('OK   ' if url else 'FAIL ')+name+(f' [{reason[0]}]' if reason and not url else ''),flush=True)
     return index,item,url,reason
 
 
 def build():
+    old_text=OUT.read_text(encoding='utf-8-sig',errors='replace') if OUT.exists() else ''
+    old_count=old_text.count('#EXTINF:')
     items=json.loads(SRC.read_text(encoding='utf-8')); active=[(i,x) for i,x in enumerate(items) if x.get('id') not in SKIP_IDS]
     old_logos=existing_logos(); results=[]
     with ThreadPoolExecutor(max_workers=MAX_WORKERS) as ex:
@@ -165,10 +162,15 @@ def build():
         key=url.split('?')[0]
         if key in seen: failed.append((name,'DUPLICATE','同一LIVE URLのため重複除外')); continue
         seen.add(key); tvg=item['id']; group=item.get('group','一般YouTube LIVE'); logo=(item.get('logo') or old_logos.get(tvg) or '').strip()
-        attrs=f'tvg-id="{tvg}" tvg-name="{name}"'
-        if logo: attrs+=f' tvg-logo="{logo}"'
-        attrs+=f' group-title="{group}"'; out += [f'#EXTINF:-1 {attrs},{name}',url,'']; got.append((name,group))
-    text='\n'.join(out).rstrip()+'\n'; OUT.write_text(text,encoding='utf-8'); return text,got,failed
+        attrs=f'tvg-id="{tvg}" tvg-name="{name}"'+(f' tvg-logo="{logo}"' if logo else '')+f' group-title="{group}"'
+        out += [f'#EXTINF:-1 {attrs},{name}',url,'']; got.append((name,group))
+    text='\n'.join(out).rstrip()+'\n'
+    serious=[x for x in failed if x[1] in ('RATE_LIMIT','BOT_CHECK','COOKIE_ERROR')]
+    # Never replace a known-good playlist with a degraded result caused by YouTube access restrictions.
+    if old_count>0 and serious and len(got)<old_count:
+        print(f'QUALITY GATE: keeping previous playlist ({old_count}) because refresh got {len(got)} with {len(serious)} access restrictions.',flush=True)
+        return old_text,got,failed
+    OUT.write_text(text,encoding='utf-8'); return text,got,failed
 
 
 def merge_freewifi(general):
@@ -179,19 +181,15 @@ def merge_freewifi(general):
 
 def main():
     text,got,failed=build(); merge_freewifi(text)
-    print('=== General YouTube LIVE diagnostic ==='); print('SUCCESS:',len(got))
+    print('=== General YouTube LIVE diagnostic ==='); print('SUCCESS THIS SCAN:',len(got))
     for n,g in got: print(f' + OK [{g}] {n}')
     print('SKIP/FAIL:',len(failed))
     for n,code,detail in failed:
         print(f' - {code}: {n}')
         if detail: print('   ',detail)
-    groups={}
-    for _,g in got: groups[g]=groups.get(g,0)+1
-    print('=== GROUP COUNTS ===')
-    for g in ['愛媛県内ライブカメラ','交通','動物','その他LIVE','かなチューブ']: print(f'{g}: {groups.get(g,0)}')
     serious=[x for x in failed if x[1] in ('RATE_LIMIT','BOT_CHECK','COOKIE_ERROR')]
     if serious:
-        print('=== WARNING: YouTube access restriction suspected ===')
+        print('=== WARNING: YouTube access restriction suspected; quality gate protects last good playlist ===')
         for n,code,detail in serious: print(f' ! {code}: {n} :: {detail}')
 
 if __name__=='__main__': main()
