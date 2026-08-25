@@ -25,7 +25,6 @@ on:
 permissions:
   contents: write
 
-# freewifi を書き換える YouTube 更新と同じロックを使い、同時 push/rebase を禁止する。
 concurrency:
   group: himitsu-freewifi-writer
   cancel-in-progress: false
@@ -84,7 +83,7 @@ jobs:
         run: |
           test -s general_youtube.m3u
           echo "General YouTube LIVE total: $(grep -c '^#EXTINF:' general_youtube.m3u || true)"
-          for G in '愛媛県内ライブカメラ' '交通' '動物' 'その他LIVE'; do
+          for G in '愛媛県内ライブカメラ' '空港' '交通' '動物' 'その他LIVE'; do
             C=$(grep -F 'group-title="'"$G"'"' general_youtube.m3u | wc -l || true)
             echo "$G: $C"
           done
