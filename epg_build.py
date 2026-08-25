@@ -1,4 +1,5 @@
 from __future__ import annotations
+# Public-sports fallback changes also use this file to trigger a full EPG rebuild.
 
 import gzip
 import json
