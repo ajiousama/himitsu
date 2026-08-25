@@ -56,6 +56,19 @@ jobs:
         run: git pull --ff-only origin main
       - name: Refresh public sports YouTube fallbacks
         run: python public_sports_youtube_fallback.py
+      - name: Commit public sports fallbacks immediately
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add public_sports_youtube_fallback.m3u
+          if git diff --cached --quiet; then
+            echo 'No public sports fallback changes'
+          else
+            git commit -m 'Refresh public sports YouTube fallbacks'
+            git pull --rebase origin main
+            git push origin main
+          fi
       - name: Merge supplemental live-camera sources
         shell: bash
         run: |
