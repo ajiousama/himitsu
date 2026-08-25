@@ -10,7 +10,7 @@ FREEWIFI = Path('freewifi')
 STATUS_JSON = Path('today_public_sports_status.json')
 PUBLIC_M3U_URL = 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports.m3u'
 PUBLIC_EPG_URL = 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/epg.xml'
-GENERAL_YOUTUBE = Path('general_youtube.m3u')
+GENERAL_YOUTUBE = Path('public_sports_youtube_fallback.m3u')
 FALLBACK_ENTRIES = {
     'boat.kiryu': {
         'source_id': 'youtube.boat_kiryu', 'section': 'ボートレース', 'name': 'BOATRACE桐生',

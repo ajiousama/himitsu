@@ -15,6 +15,7 @@ on:
       - "jra_epg_merge.py"
       - "jra_freewifi_finalize.py"
       - "freewifi_today_public_sports.py"
+      - "public_sports_youtube_fallback.py"
       - "freewifi_today_jra.py"
       - "verified_daily_status.json"
       - "verified_daily_override.py"
@@ -70,6 +71,10 @@ jobs:
           else
             echo 'YOUTUBE_COOKIES is not set; continuing without cookies'
           fi
+
+      - name: Refresh public sports YouTube fallbacks (manual only)
+        if: github.event_name == 'workflow_dispatch'
+        run: python public_sports_youtube_fallback.py
 
       - name: Refresh all general YouTube LIVE (manual only)
         if: github.event_name == 'workflow_dispatch'
@@ -158,6 +163,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add guides.xml epg_coverage.txt freewifi today_public_sports_status.json today_jra_status.json today_event_counts.json
+          [ ! -f public_sports_youtube_fallback.m3u ] || git add public_sports_youtube_fallback.m3u
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             git add general_youtube.m3u
           fi

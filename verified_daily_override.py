@@ -10,7 +10,7 @@ VERIFY = Path('verified_daily_status.json')
 PUBLIC_STATUS = Path('today_public_sports_status.json')
 JRA_STATUS = Path('today_jra_status.json')
 PUBLIC_M3U_URL = 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports.m3u'
-GENERAL_YOUTUBE = Path('general_youtube.m3u')
+GENERAL_YOUTUBE = Path('public_sports_youtube_fallback.m3u')
 FALLBACK_ENTRIES = {
     ('ボートレース', '桐生'): {
         'source_id': 'youtube.boat_kiryu', 'tvg_id': 'boat.kiryu', 'name': 'BOATRACE桐生',

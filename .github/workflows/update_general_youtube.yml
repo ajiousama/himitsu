@@ -9,6 +9,7 @@ on:
       - 'general_youtube_sources_ports.json'
       - 'general_youtube_sources_airports.json'
       - 'general_youtube_update.py'
+      - 'public_sports_youtube_fallback.py'
       - 'jra_freewifi_finalize.py'
       - 'freewifi_custom_channels.py'
       - 'verified_daily_status.json'
@@ -53,6 +54,8 @@ jobs:
           if [ -n "$YOUTUBE_COOKIES" ]; then printf '%s' "$YOUTUBE_COOKIES" > youtube_cookies.txt; chmod 600 youtube_cookies.txt; echo "YouTube cookie restored: $(wc -c < youtube_cookies.txt) bytes"; else echo '::warning::YOUTUBE_COOKIES is not set'; fi
       - name: Sync latest main
         run: git pull --ff-only origin main
+      - name: Refresh public sports YouTube fallbacks
+        run: python public_sports_youtube_fallback.py
       - name: Merge supplemental live-camera sources
         shell: bash
         run: |
@@ -100,7 +103,7 @@ jobs:
           rm -f general_youtube.prev.m3u freewifi.prev youtube_cookies.txt
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add general_youtube.m3u freewifi today_public_sports_status.json today_jra_status.json
+          git add general_youtube.m3u public_sports_youtube_fallback.m3u freewifi today_public_sports_status.json today_jra_status.json
           if git diff --cached --quiet; then echo 'No changes'; exit 0; fi
           git commit -m 'Update general YouTube LIVE URLs'
           git reset --hard HEAD
