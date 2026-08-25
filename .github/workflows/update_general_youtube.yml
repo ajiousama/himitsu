@@ -188,7 +188,25 @@ jobs:
           fi
           grep -q '# === GENERAL_YOUTUBE_MANAGED_START ===' freewifi
           grep -q '# === GENERAL_YOUTUBE_MANAGED_END ===' freewifi
-          grep -q 'JRA公式（GCH）無料版【開催中のみ】' freewifi
+          JRA_ACTIVE=$(python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('today_jra_status.json')
+          try:
+              d=json.loads(p.read_text(encoding='utf-8')) if p.exists() else {}
+              print(int(d.get('active_count') or 0))
+          except Exception:
+              print(0)
+          PY
+          )
+          if [ "$JRA_ACTIVE" -gt 0 ]; then
+            grep -q 'JRA公式（GCH）無料版【開催中のみ】' freewifi
+          else
+            if grep -q 'JRA公式（GCH）無料版【開催中のみ】' freewifi; then
+              echo '::warning::GCH free entry present on a non-JRA day'
+              exit 1
+            fi
+          fi
           echo '--- group counts ---'
           for GROUP in '愛媛県内ライブカメラ' '交通' '動物' 'その他LIVE'; do
             GCOUNT=$(grep -F "group-title=\"$GROUP\"" general_youtube.m3u | wc -l | tr -d ' ' || true)
