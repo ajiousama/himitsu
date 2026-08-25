@@ -36,8 +36,13 @@ def parse_entries(text):
         while j<len(lines) and not lines[j].startswith('#EXTINF:') and not lines[j].startswith('## '):
             if lines[j].strip():block.append(lines[j])
             j+=1
-        mid=re.search(r'tvg-id="([^"]+)"',line);mn=re.search(r'tvg-name="([^"]+)"',line)
-        name=mn.group(1) if mn else line.rsplit(',',1)[-1].strip()
+        mid=re.search(r'tvg-id="([^"]+)"',line)
+        # Venue display name after the final comma is canonical for matching.
+        # tvg-name may intentionally be hiragana/branding (e.g. こうちけいりん),
+        # which caused verified venue names such as 高知 and 桐生 to miss.
+        display=line.rsplit(',',1)[-1].strip() if ',' in line else ''
+        mn=re.search(r'tvg-name="([^"]+)"',line)
+        name=display or (mn.group(1) if mn else '')
         if mid:out.append((mid.group(1),section,name,block))
         i=j
     return out
