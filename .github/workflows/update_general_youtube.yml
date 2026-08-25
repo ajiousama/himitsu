@@ -11,14 +11,19 @@ on:
       - 'general_youtube_update.py'
       - 'jra_freewifi_finalize.py'
       - 'freewifi_custom_channels.py'
+      - 'verified_daily_status.json'
+      - 'verified_daily_override.py'
+      - 'apply_verified_status.py'
+      - '.github/workflows/update_general_youtube.yml'
   schedule:
     - cron: '*/15 * * * *'
 
 permissions:
   contents: write
 
+# freewifi を書き換える一発更新と同じロック。相互の rebase 競合を防ぐ。
 concurrency:
-  group: himitsu-general-youtube
+  group: himitsu-freewifi-writer
   cancel-in-progress: false
 
 jobs:
@@ -56,36 +61,21 @@ jobs:
           python - <<'PY'
           import json
           from pathlib import Path
-
           base_path = Path('general_youtube_sources.json')
-          extra_paths = [
-              Path('general_youtube_sources_ports.json'),
-              Path('general_youtube_sources_airports.json'),
-          ]
-
+          extra_paths = [Path('general_youtube_sources_ports.json'),Path('general_youtube_sources_airports.json')]
           base = json.loads(base_path.read_text(encoding='utf-8'))
-          seen = {x.get('id') for x in base}
-          merged = list(base)
-          counts = []
-
+          seen = {x.get('id') for x in base}; merged = list(base); counts=[]
           for path in extra_paths:
-              items = json.loads(path.read_text(encoding='utf-8')) if path.exists() else []
-              added = 0
+              items=json.loads(path.read_text(encoding='utf-8')) if path.exists() else []
+              added=0
               for item in items:
-                  item_id = item.get('id')
+                  item_id=item.get('id')
                   if item_id and item_id not in seen:
-                      merged.append(item)
-                      seen.add(item_id)
-                      added += 1
-              counts.append((path.name, len(items), added))
-
-          base_path.write_text(
-              json.dumps(merged, ensure_ascii=False, separators=(',', ':')),
-              encoding='utf-8'
-          )
+                      merged.append(item); seen.add(item_id); added+=1
+              counts.append((path.name,len(items),added))
+          base_path.write_text(json.dumps(merged,ensure_ascii=False,separators=(',',':')),encoding='utf-8')
           print(f'Base sources: {len(base)} / merged total: {len(merged)}')
-          for name, total, added in counts:
-              print(f'{name}: {total} sources / {added} added')
+          for name,total,added in counts: print(f'{name}: {total} sources / {added} added')
           PY
 
       - name: Backup last good playlist
@@ -117,19 +107,15 @@ jobs:
             rm -f general_youtube.prev.m3u freewifi.prev
             exit 0
           fi
-
           echo '::warning::YouTube refresh returned 0 entries. Restoring the last known good playlist.'
           PREV_COUNT=0
-          if [ -f general_youtube.prev.m3u ]; then
-            PREV_COUNT=$(grep -c '^#EXTINF:' general_youtube.prev.m3u || true)
-          fi
+          if [ -f general_youtube.prev.m3u ]; then PREV_COUNT=$(grep -c '^#EXTINF:' general_youtube.prev.m3u || true); fi
           if [ "$PREV_COUNT" -gt 0 ]; then
             echo "Restoring pre-refresh backup ($PREV_COUNT entries)."
             mv general_youtube.prev.m3u general_youtube.m3u
             if [ -f freewifi.prev ]; then mv freewifi.prev freewifi; fi
             exit 0
           fi
-
           RESTORED=0
           for COMMIT in $(git rev-list HEAD -- general_youtube.m3u); do
             if git cat-file -e "$COMMIT:general_youtube.m3u" 2>/dev/null; then
@@ -138,8 +124,7 @@ jobs:
                 echo "Restoring historical good playlist from $COMMIT ($HIST_COUNT entries)."
                 git show "$COMMIT:general_youtube.m3u" > general_youtube.m3u
                 if git cat-file -e "$COMMIT:freewifi" 2>/dev/null; then git show "$COMMIT:freewifi" > freewifi; else git show HEAD:freewifi > freewifi; fi
-                RESTORED=1
-                break
+                RESTORED=1; break
               fi
             fi
           done
@@ -159,6 +144,12 @@ jobs:
         if: env.YOUTUBE_ZERO_UNRECOVERABLE != '1'
         run: python freewifi_custom_channels.py
 
+      - name: Reapply verified sports/JRA status after YouTube rewrite
+        if: env.YOUTUBE_ZERO_UNRECOVERABLE != '1'
+        run: |
+          python verified_daily_override.py
+          python apply_verified_status.py
+
       - name: Repair General YouTube managed block if needed
         if: env.YOUTUBE_ZERO_UNRECOVERABLE != '1'
         shell: bash
@@ -172,6 +163,8 @@ jobs:
           PY
             python jra_freewifi_finalize.py
             python freewifi_custom_channels.py
+            python verified_daily_override.py
+            python apply_verified_status.py
           fi
 
       - name: Validate
@@ -195,16 +188,14 @@ jobs:
           try:
               d=json.loads(p.read_text(encoding='utf-8')) if p.exists() else {}
               print(int(d.get('active_count') or 0))
-          except Exception:
-              print(0)
+          except Exception: print(0)
           PY
           )
           if [ "$JRA_ACTIVE" -gt 0 ]; then
             grep -q 'JRA公式（GCH）無料版【開催中のみ】' freewifi
           else
             if grep -q 'JRA公式（GCH）無料版【開催中のみ】' freewifi; then
-              echo '::warning::GCH free entry present on a non-JRA day'
-              exit 1
+              echo '::warning::GCH free entry present on a non-JRA day'; exit 1
             fi
           fi
           echo '--- group counts ---'
@@ -216,7 +207,8 @@ jobs:
           JRA_FREEWIFI_COUNT=$(grep -F 'tvg-id="jra.official"' freewifi | wc -l | tr -d ' ' || true)
           echo "JRA official LIVE generated: $JRA_GENERAL_COUNT"
           echo "JRA official LIVE in FreeWiFi: $JRA_FREEWIFI_COUNT"
-          if [ "$JRA_GENERAL_COUNT" -gt 0 ] && [ "$JRA_FREEWIFI_COUNT" -lt 1 ]; then exit 1; fi
+          if [ "$JRA_ACTIVE" -eq 0 ] && [ "$JRA_FREEWIFI_COUNT" -gt 0 ]; then exit 1; fi
+          if [ "$JRA_ACTIVE" -gt 0 ] && [ "$JRA_GENERAL_COUNT" -gt 0 ] && [ "$JRA_FREEWIFI_COUNT" -lt 1 ]; then exit 1; fi
           echo 'Validation OK'
 
       - name: Commit updated LIVE URLs
@@ -225,18 +217,12 @@ jobs:
           rm -f general_youtube.prev.m3u freewifi.prev
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add general_youtube.m3u freewifi
-          if git diff --cached --quiet; then
-            echo 'No changes'
-            exit 0
-          fi
+          git add general_youtube.m3u freewifi today_public_sports_status.json today_jra_status.json
+          if git diff --cached --quiet; then echo 'No changes'; exit 0; fi
           git commit -m 'Update general YouTube LIVE URLs'
-
           echo '--- runtime changes left after output commit ---'
           git status --short || true
-
           git reset --hard HEAD
           git clean -fd
-
           git pull --rebase origin main
           git push origin main
