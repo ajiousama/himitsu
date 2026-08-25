@@ -127,6 +127,26 @@ def existing_logos():
     return logos
 
 
+def apply_source_logos(text):
+    """Refresh logo attributes even when the URL quality gate keeps old streams."""
+    wanted={}
+    for item in json.loads(SRC.read_text(encoding='utf-8')):
+        channel_id=(item.get('id') or '').strip(); logo=(item.get('logo') or '').strip()
+        if channel_id and logo: wanted[channel_id]=logo
+    out=[]
+    for line in text.splitlines():
+        if line.startswith('#EXTINF:'):
+            match=re.search(r'tvg-id="([^"]+)"',line)
+            logo=wanted.get(match.group(1)) if match else None
+            if logo:
+                if re.search(r'tvg-logo="[^"]*"',line):
+                    line=re.sub(r'tvg-logo="[^"]*"',f'tvg-logo="{logo}"',line,count=1)
+                else:
+                    line=line.replace(' group-title=',f' tvg-logo="{logo}" group-title=',1)
+        out.append(line)
+    return '\n'.join(out).rstrip()+'\n'
+
+
 def resolve_item(index,item):
     name=item['name']; url=None; reason=None; page=item.get('page'); print(f'CHECK {index+1}: {name}',flush=True)
     try:
@@ -169,7 +189,9 @@ def build():
     # Never replace a known-good playlist with a degraded result caused by YouTube access restrictions.
     if old_count>0 and serious and len(got)<old_count:
         print(f'QUALITY GATE: keeping previous playlist ({old_count}) because refresh got {len(got)} with {len(serious)} access restrictions.',flush=True)
-        return old_text,got,failed
+        kept=apply_source_logos(old_text)
+        OUT.write_text(kept,encoding='utf-8')
+        return kept,got,failed
     OUT.write_text(text,encoding='utf-8'); return text,got,failed
 
 
