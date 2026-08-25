@@ -76,9 +76,11 @@ def main():
     text = FREEWIFI.read_text(encoding='utf-8-sig', errors='replace')
     status = json.loads(PUBLIC_STATUS.read_text(encoding='utf-8-sig'))
     wanted = list((status.get('channels') or {}).keys())
-    entries = parse_entries(fetch_text(PUBLIC_M3U_URL))
+    entries = parse_entries(text)
+    entries.update(parse_entries(fetch_text(PUBLIC_M3U_URL)))
     blocks = [entries[cid] for cid in wanted if cid in entries]
     text = replace_public_block(text, blocks)
+    text = strip_entries(text, {'youtube.boat_kiryu', 'youtube.boat_suminoe'})
 
     jra = {}
     if JRA_STATUS.exists():

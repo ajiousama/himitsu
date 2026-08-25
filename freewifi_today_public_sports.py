@@ -10,6 +10,17 @@ FREEWIFI = Path('freewifi')
 STATUS_JSON = Path('today_public_sports_status.json')
 PUBLIC_M3U_URL = 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports.m3u'
 PUBLIC_EPG_URL = 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/epg.xml'
+GENERAL_YOUTUBE = Path('general_youtube.m3u')
+FALLBACK_ENTRIES = {
+    'boat.kiryu': {
+        'source_id': 'youtube.boat_kiryu', 'section': 'ボートレース', 'name': 'BOATRACE桐生',
+        'logo': 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports_logos_github_43/boatrace_24_spaced_cut_1024/kiryu.png',
+    },
+    'boat.suminoe': {
+        'source_id': 'youtube.boat_suminoe', 'section': 'ボートレース', 'name': 'BOATRACE住之江',
+        'logo': 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports_logos_github_43/boatrace_24_spaced_cut_1024/suminoe.png',
+    },
+}
 START = '# === TODAY_PUBLIC_SPORTS_START ==='
 END = '# === TODAY_PUBLIC_SPORTS_END ==='
 GROUP = '今日の開催場'
@@ -55,6 +66,45 @@ def parse_m3u(text):
         i += 1
     return entries
 
+
+def parse_all_entries(text):
+    out={};lines=text.splitlines();i=0
+    while i<len(lines):
+        line=lines[i]
+        if not line.startswith('#EXTINF:'):
+            i+=1;continue
+        block=[line];j=i+1
+        while j<len(lines) and not lines[j].startswith('#EXTINF:') and not lines[j].startswith('## ') and not lines[j].startswith('# ==='):
+            if lines[j].strip():block.append(lines[j])
+            j+=1
+        m=re.search(r'tvg-id="([^"]+)"',line)
+        if m:out[m.group(1)]=block
+        i=j
+    return out
+
+def materialize_fallback(cid,sources):
+    spec=FALLBACK_ENTRIES[cid];block=sources.get(spec['source_id'])
+    if not block:return None
+    b=block[:];line=b[0]
+    line=re.sub(r'tvg-id="[^"]+"',f'tvg-id="{cid}"',line,count=1)
+    if 'tvg-name=' in line:line=re.sub(r'tvg-name="[^"]*"',f'tvg-name="{spec["name"]}"',line,count=1)
+    else:line=line.replace('#EXTINF:-1',f'#EXTINF:-1 tvg-name="{spec["name"]}"',1)
+    if 'tvg-logo=' in line:line=re.sub(r'tvg-logo="[^"]*"',f'tvg-logo="{spec["logo"]}"',line,count=1)
+    else:line=line.replace(' group-title=',f' tvg-logo="{spec["logo"]}" group-title=',1)
+    line=re.sub(r',.*$',','+spec['name'],line,count=1);b[0]=line
+    return b
+
+def strip_tvg_ids(text,ids):
+    lines=text.splitlines();out=[];i=0
+    while i<len(lines):
+        line=lines[i]
+        if line.startswith('#EXTINF:') and any(f'tvg-id="{cid}"' in line for cid in ids):
+            i+=1
+            while i<len(lines) and not lines[i].startswith('#EXTINF:') and not lines[i].startswith('## ') and not lines[i].startswith('# ==='):
+                i+=1
+            continue
+        out.append(line);i+=1
+    return '\n'.join(out).rstrip()+'\n'
 
 def parse_xmltv_time(s):
     if not s: return None
@@ -186,41 +236,12 @@ def replace_block(text,block):
 def main():
     now=datetime.now(JST); today=now.date()
     base=prune_abema_rakuten(FREEWIFI.read_text(encoding='utf-8-sig',errors='replace'))
+    base=strip_tvg_ids(base,{x['source_id'] for x in FALLBACK_ENTRIES.values()})
     entries=parse_m3u(fetch_text(PUBLIC_M3U_URL))
     epg_real,last_stop,epg_modes,next_race=epg_state(fetch_text(PUBLIC_EPG_URL))
-    official={}
-    for section,url in OFFICIAL_URLS.items():
-        try:
-            raw=fetch_text(url); official[section]=raw if section=='ボートレース' else html_text(raw)
-            print(f'Official schedule OK: {section}')
-        except Exception as e:
-            official[section]=''; print(f'Official schedule NG: {section}: {e}')
-
     selected=[]; counts={k:0 for k in TARGET_SECTIONS}; status={}
     for tvg,(section,block) in entries.items():
-        name=entry_name(block); active=False; mode=epg_modes.get(tvg,'day'); source=''
-        page=official.get(section,'')
-        if section=='ボートレース':
-            if page:
-                active,found_mode=official_boat(page,name,today); source='BOATRACE official today page'
-            else:
-                active=tvg in epg_real; found_mode=None; source='earphone1981 EPG fallback'
-            if found_mode: mode=found_mode
-            stop=last_stop.get(tvg)
-            if active and stop and now>=stop+timedelta(minutes=30): active=False
-        elif page:
-            if section=='競輪': active,found_mode=official_keirin(page,name,today)
-            else: active,found_mode=official_simple(section,page,name,today)
-            if found_mode: mode=found_mode
-            source='official schedule'
-            if not active and tvg in epg_real:
-                active=True
-                source='earphone1981 EPG fallback after official miss'
-            if active and tvg in last_stop and now>=last_stop[tvg]: active=False
-        else:
-            active=tvg in epg_real
-            found_mode=None
-            source='earphone1981 EPG fallback'
+        name=entry_name(block); active=tvg in epg_real; mode=epg_modes.get(tvg,'day'); source='earphone1981 verified EPG'
         if not active: continue
         b=block[:]; b[0]=rewrite_group(b[0]); selected.extend(b); selected.append('')
         counts[section]+=1
@@ -228,6 +249,19 @@ def main():
         status[tvg]={'section':section,'name':name,'mode':mode,'source':source,'epg_available':tvg in epg_real,
                      'next_race': nr,
                      'next_race_text': (f"次は {nr['race']}R {nr['start']}発走" if nr else '本日開催終了')}
+
+    fallback_sources=parse_all_entries(GENERAL_YOUTUBE.read_text(encoding='utf-8-sig',errors='replace')) if GENERAL_YOUTUBE.exists() else {}
+    for cid,spec in FALLBACK_ENTRIES.items():
+        if cid not in epg_real or cid in status:
+            continue
+        block=materialize_fallback(cid,fallback_sources)
+        if not block:
+            print(f'Fallback LIVE missing: {cid}')
+            continue
+        block[0]=rewrite_group(block[0]);selected.extend(block);selected.append('')
+        section=spec['section'];counts[section]+=1;nr=next_race.get(cid)
+        status[cid]={'section':section,'name':spec['name'],'mode':epg_modes.get(cid,'night'),'source':'official YouTube fallback','epg_available':True,
+                     'next_race':nr,'next_race_text':(f"次は {nr['race']}R {nr['start']}発走" if nr else '本日開催終了')}
 
     body='\n'.join(selected).rstrip(); managed=START+'\n## 今日の開催場\n'+body+('\n' if body else '')+END
     FREEWIFI.write_text(replace_block(base,managed).rstrip()+'\n',encoding='utf-8')

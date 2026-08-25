@@ -10,6 +10,18 @@ VERIFY = Path('verified_daily_status.json')
 PUBLIC_STATUS = Path('today_public_sports_status.json')
 JRA_STATUS = Path('today_jra_status.json')
 PUBLIC_M3U_URL = 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports.m3u'
+GENERAL_YOUTUBE = Path('general_youtube.m3u')
+FALLBACK_ENTRIES = {
+    ('ボートレース', '桐生'): {
+        'source_id': 'youtube.boat_kiryu', 'tvg_id': 'boat.kiryu', 'name': 'BOATRACE桐生',
+        'logo': 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports_logos_github_43/boatrace_24_spaced_cut_1024/kiryu.png',
+    },
+    ('ボートレース', '住之江'): {
+        'source_id': 'youtube.boat_suminoe', 'tvg_id': 'boat.suminoe', 'name': 'BOATRACE住之江',
+        'logo': 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports_logos_github_43/boatrace_24_spaced_cut_1024/suminoe.png',
+    },
+}
+CANONICAL_ALIASES = {'こうち': '高知', 'からつ': '唐津'}
 PSTART = '# === TODAY_PUBLIC_SPORTS_START ==='
 PEND = '# === TODAY_PUBLIC_SPORTS_END ==='
 JSTART = '# === TODAY_JRA_START ==='
@@ -24,7 +36,8 @@ def norm(s):
     s=re.sub(r'[（(].*?[）)]','',s or '')
     for w in ('けいりん','競輪場','競輪','けいば','競馬場','競馬','ボートレース','BOATRACE','ボート','オートレース','オート','温泉'):
         s=s.replace(w,'')
-    return re.sub(r'[^0-9A-Za-z一-龥ぁ-んァ-ン]+','',s).lower()
+    value=re.sub(r'[^0-9A-Za-z一-龥ぁ-んァ-ン]+','',s).lower()
+    return CANONICAL_ALIASES.get(value,value)
 
 def parse_entries(text):
     out=[];section='';lines=text.splitlines();i=0
@@ -46,6 +59,33 @@ def parse_entries(text):
         i=j
     return out
 
+def fallback_source_entries():
+    if not GENERAL_YOUTUBE.exists():
+        return {}
+    parsed=parse_entries(GENERAL_YOUTUBE.read_text(encoding='utf-8-sig',errors='replace'))
+    return {cid:block for cid,_section,_name,block in parsed}
+
+def materialize_fallback(section,venue,sources):
+    spec=FALLBACK_ENTRIES.get((section,venue))
+    if not spec:
+        return None
+    block=sources.get(spec['source_id'])
+    if not block:
+        return None
+    b=block[:];line=b[0]
+    line=re.sub(r'tvg-id="[^"]+"',f'tvg-id="{spec["tvg_id"]}"',line,count=1)
+    if 'tvg-name=' in line:
+        line=re.sub(r'tvg-name="[^"]*"',f'tvg-name="{spec["name"]}"',line,count=1)
+    else:
+        line=line.replace('#EXTINF:-1',f'#EXTINF:-1 tvg-name="{spec["name"]}"',1)
+    if 'tvg-logo=' in line:
+        line=re.sub(r'tvg-logo="[^"]*"',f'tvg-logo="{spec["logo"]}"',line,count=1)
+    else:
+        line=line.replace(' group-title=',f' tvg-logo="{spec["logo"]}" group-title=',1)
+    line=re.sub(r',.*$',','+spec['name'],line,count=1)
+    b[0]=line
+    return spec['tvg_id'],spec['name'],b
+
 def rewrite_group(line):
     if 'group-title=' in line:return re.sub(r'group-title="[^"]*"',f'group-title="{GROUP}"',line,count=1)
     p=line.find(',');return line[:p]+f' group-title="{GROUP}"'+line[p:] if p>=0 else line
@@ -59,6 +99,18 @@ def replace_block(text,start,end,heading,blocks):
     if pat.search(text):return pat.sub(managed+'\n',text,count=1)
     anchor='# === GENERAL_YOUTUBE_MANAGED_START ==='
     return text.replace(anchor,managed+'\n\n'+anchor,1) if anchor in text else text.rstrip()+'\n\n'+managed+'\n'
+
+def strip_tvg_ids(text,ids):
+    lines=text.splitlines();out=[];i=0
+    while i<len(lines):
+        line=lines[i]
+        if line.startswith('#EXTINF:') and any(f'tvg-id="{cid}"' in line for cid in ids):
+            i+=1
+            while i<len(lines) and not lines[i].startswith('#EXTINF:') and not lines[i].startswith('## ') and not lines[i].startswith('# ==='):
+                i+=1
+            continue
+        out.append(line);i+=1
+    return '\n'.join(out).rstrip()+'\n'
 
 def strip_jra_entries(text):
     text=re.sub(re.escape(JSTART)+r'.*?'+re.escape(JEND)+r'\n?','',text,flags=re.S)
@@ -88,7 +140,7 @@ def main():
     if not VERIFY.exists() or not FREEWIFI.exists():return
     cfg=json.loads(VERIFY.read_text(encoding='utf-8-sig'))
     if cfg.get('date')!=now.date().isoformat():print('Verified daily override expired/not for today; skipped');return
-    wanted=cfg.get('public_sports') or {};entries=parse_entries(fetch_text(PUBLIC_M3U_URL));selected=[];status={};matched={k:[] for k in wanted};selected_ids=set()
+    wanted=cfg.get('public_sports') or {};entries=parse_entries(fetch_text(PUBLIC_M3U_URL));fallback_sources=fallback_source_entries();selected=[];status={};matched={k:[] for k in wanted};selected_ids=set()
     for cid,section,name,block in entries:
         if section not in wanted:continue
         n=norm(name);target=None
@@ -98,12 +150,25 @@ def main():
             if n and n==norm(v):target=v;break
         if target is None or cid in selected_ids:continue
         selected_ids.add(cid);selected.append(block);matched[section].append(target);status[cid]={'section':section,'name':name,'mode':mode_for(section,name),'source':'verified daily override','epg_available':True,'next_race':None,'next_race_text':'本日開催'}
+    for section,venues in wanted.items():
+        have={norm(x) for x in matched.get(section,[])}
+        for venue in venues:
+            if norm(venue) in have:
+                continue
+            fallback=materialize_fallback(section,venue,fallback_sources)
+            if not fallback:
+                continue
+            cid,name,block=fallback
+            if cid in selected_ids:
+                continue
+            selected_ids.add(cid);selected.append(block);matched[section].append(venue);have.add(norm(venue))
+            status[cid]={'section':section,'name':name,'mode':mode_for(section,name),'source':'official YouTube fallback','epg_available':True,'next_race':None,'next_race_text':'本日開催'}
     expected=sum(len(v) for v in wanted.values());missing=[]
     for section,vals in wanted.items():
         have={norm(x) for x in matched.get(section,[])};missing += [f'{section}:{v}' for v in vals if norm(v) not in have]
     if missing:
         print(f'WARNING: verified upstream channels missing: matched={len(selected)}/{expected}, missing={missing}')
-    text=FREEWIFI.read_text(encoding='utf-8-sig',errors='replace');text=replace_block(text,PSTART,PEND,'今日の開催場',selected)
+    text=FREEWIFI.read_text(encoding='utf-8-sig',errors='replace');text=strip_tvg_ids(text,{x['source_id'] for x in FALLBACK_ENTRIES.values()});text=replace_block(text,PSTART,PEND,'今日の開催場',selected)
     jra_ids=cfg.get('jra_active_ids') or []
     if not jra_ids:text=strip_jra_entries(text);text=replace_block(text,JSTART,JEND,'JRA',[])
     FREEWIFI.write_text(text.rstrip()+'\n',encoding='utf-8')
