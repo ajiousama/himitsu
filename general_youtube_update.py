@@ -17,6 +17,8 @@ MAX_WORKERS=2
 MIN_CALL_INTERVAL=1.25
 JST=ZoneInfo('Asia/Tokyo')
 SERIOUS_CODES={'RATE_LIMIT','BOT_CHECK','COOKIE_ERROR'}
+KANA_ID='youtube.kana_tube'
+KANA_PAGE='https://www.youtube.com/@kana_tube/live'
 _call_lock=threading.Lock()
 _last_call_at=0.0
 
@@ -31,8 +33,6 @@ def run(cmd, timeout):
     safe=list(cmd)
     if safe and safe[0]=='yt-dlp':
         safe[1:1]=['--socket-timeout','10','--retries','1','--fragment-retries','1']
-        # GitHub Actions の共有IPから短時間に大量アクセスすると YouTube が
-        # 1時間単位の制限を掛けるため、全 worker の yt-dlp 開始間隔を共通で絞る。
         with _call_lock:
             wait=MIN_CALL_INTERVAL-(time.monotonic()-_last_call_at)
             if wait>0: time.sleep(wait)
@@ -42,7 +42,8 @@ def run(cmd, timeout):
 
 def base_cmd():
     cmd=['yt-dlp','--js-runtimes','node','--no-warnings','--no-cache-dir']
-    if COOKIES.exists() and COOKIES.stat().st_size>20: cmd += ['--cookies',str(COOKIES)]
+    if COOKIES.exists() and COOKIES.stat().st_size>20:
+        cmd += ['--cookies',str(COOKIES)]
     return cmd
 
 
@@ -75,15 +76,21 @@ def direct_url(page):
         except subprocess.TimeoutExpired:
             last_reason=('TIMEOUT','direct URL timeout'); continue
         urls=[x.strip() for x in p.stdout.splitlines() if x.strip().startswith(('http://','https://'))]
-        if p.returncode==0 and len(urls)==1: return urls[0],None
+        if p.returncode==0 and len(urls)==1:
+            return urls[0],None
         last_reason=(classify_error(p.stderr),short_error(p.stderr))
-        if last_reason[0] in SERIOUS_CODES: break
+        if last_reason[0] in SERIOUS_CODES:
+            break
     return None,last_reason or ('OTHER','direct URL取得失敗')
 
 
-def channel_live(page, scan=30):
-    if not page or '/@' not in page: return None,('CHANNEL_SKIP','channel URLではない')
-    base=page.rstrip('/'); base=base[:-5] if base.endswith('/live') else base; reasons=[]
+def channel_live(page, scan=20, live_only=False):
+    if not page or '/@' not in page:
+        return None,('CHANNEL_SKIP','channel URLではない')
+    base=page.rstrip('/')
+    if base.endswith('/live'):
+        base=base[:-5]
+    reasons=[]
     for listing in [base+'/streams',base+'/videos']:
         try:
             p=run(base_cmd()+['--flat-playlist','--dump-json','--playlist-end',str(scan),listing],SEARCH_TIMEOUT)
@@ -91,22 +98,27 @@ def channel_live(page, scan=30):
             reasons.append(('TIMEOUT','channel listing timeout')); continue
         if p.returncode!=0:
             r=(classify_error(p.stderr),short_error(p.stderr)); reasons.append(r)
-            if r[0] in SERIOUS_CODES: return None,r
+            if r[0] in SERIOUS_CODES:
+                return None,r
             continue
-        live_first=[]; others=[]
+        live=[]; others=[]
         for line in p.stdout.splitlines():
             try: item=json.loads(line)
             except Exception: continue
             vid=item.get('id')
             if not vid: continue
-            (live_first if (item.get('live_status') or '').lower()=='is_live' else others).append(vid)
-        # 非LIVE候補を大量に直撃しない。LIVE表示優先＋保険5件まで。
-        for vid in live_first+others[:5]:
+            status=(item.get('live_status') or '').lower()
+            if status=='is_live': live.append(vid)
+            elif not live_only: others.append(vid)
+        for vid in live + ([] if live_only else others[:5]):
             url,reason=direct_url('https://www.youtube.com/watch?v='+vid)
             if url: return url,None
             if reason:
                 reasons.append(reason)
-                if reason[0] in SERIOUS_CODES: return None,reason
+                if reason[0] in SERIOUS_CODES:
+                    return None,reason
+    if live_only:
+        return None,('NOT_LIVE','公式チャンネル内に現在LIVEなし')
     return (None,reasons[-1]) if reasons else (None,('CHANNEL_EMPTY','チャンネル配信一覧から候補なし'))
 
 
@@ -127,8 +139,10 @@ def search_live(query, count=6):
         if url: return url,None
         if reason:
             reasons.append(reason)
-            if reason[0] in SERIOUS_CODES: return None,reason
-    if not reasons: return None,('SEARCH_EMPTY','検索結果なし')
+            if reason[0] in SERIOUS_CODES:
+                return None,reason
+    if not reasons:
+        return None,('SEARCH_EMPTY','検索結果なし')
     for code in ['RATE_LIMIT','BOT_CHECK','COOKIE_ERROR','TIMEOUT','NOT_STARTED','NOT_LIVE','PRIVATE','UNAVAILABLE','UNSUPPORTED','OTHER']:
         for r in reasons:
             if r[0]==code: return None,r
@@ -142,14 +156,15 @@ def existing_logos():
         text=path.read_text(encoding='utf-8-sig',errors='replace')
         for line in text.splitlines():
             if not line.startswith('#EXTINF:'): continue
-            mid=re.search(r'tvg-id="([^"]+)"',line); ml=re.search(r'tvg-logo="([^"]+)"',line)
-            if mid and ml and ml.group(1).strip(): logos.setdefault(mid.group(1).strip(),ml.group(1).strip())
+            mid=re.search(r'tvg-id="([^"]+)"',line)
+            ml=re.search(r'tvg-logo="([^"]+)"',line)
+            if mid and ml and ml.group(1).strip():
+                logos.setdefault(mid.group(1).strip(),ml.group(1).strip())
     return logos
 
 
 def old_urls_by_id(text):
-    result={}
-    lines=text.splitlines()
+    result={}; lines=text.splitlines()
     for i,line in enumerate(lines):
         if not line.startswith('#EXTINF:'): continue
         m=re.search(r'tvg-id="([^"]+)"',line)
@@ -171,13 +186,13 @@ def make_entry(item,url,old_logos):
 def apply_source_logos(text):
     wanted={}
     for item in json.loads(SRC.read_text(encoding='utf-8')):
-        channel_id=(item.get('id') or '').strip(); logo=(item.get('logo') or '').strip()
-        if channel_id and logo: wanted[channel_id]=logo
+        cid=(item.get('id') or '').strip(); logo=(item.get('logo') or '').strip()
+        if cid and logo: wanted[cid]=logo
     out=[]
     for line in text.splitlines():
         if line.startswith('#EXTINF:'):
-            match=re.search(r'tvg-id="([^"]+)"',line)
-            logo=wanted.get(match.group(1)) if match else None
+            m=re.search(r'tvg-id="([^"]+)"',line)
+            logo=wanted.get(m.group(1)) if m else None
             if logo:
                 if re.search(r'tvg-logo="[^"]*"',line):
                     line=re.sub(r'tvg-logo="[^"]*"',f'tvg-logo="{logo}"',line,count=1)
@@ -188,23 +203,22 @@ def apply_source_logos(text):
 
 
 def resolve_item(index,item):
-    name=item['name']; url=None; reason=None; page=item.get('page')
+    name=item['name']; tvg=item.get('id'); url=None; reason=None
+    page=item.get('page')
     print(f'CHECK {index+1}: {name}',flush=True)
     try:
-        if page: url,reason=direct_url(page)
-        if reason and reason[0] in SERIOUS_CODES:
-            print('FAIL '+name+f' [{reason[0]}]',flush=True); return index,item,None,reason
-        if not url and item.get('id')=='youtube.kana_tube':
-            focus=kana_focus_time(); print(f' KANA focus={focus}',flush=True)
-            url,reason=channel_live(page,24 if focus else 10)
+        if tvg==KANA_ID:
+            # 華奈tubeは公式 @kana_tube 内の現在LIVEだけを採用。
+            # 一般YouTube検索へは絶対にフォールバックしない。
+            focus=kana_focus_time()
+            print(f' KANA official-only focus={focus}',flush=True)
+            url,reason=direct_url(KANA_PAGE)
             if not url and not (reason and reason[0] in SERIOUS_CODES):
-                queries=[item.get('query'),'華奈tube LIVE','かなチューブ 競輪 LIVE','華奈tube 競輪']
-                for q in queries:
-                    if not q: continue
-                    url,reason=search_live(q,8 if focus else 5)
-                    if url or (reason and reason[0] in SERIOUS_CODES): break
-        elif not url:
-            url,reason=search_live(item.get('query') or name,6)
+                url,reason=channel_live(KANA_PAGE,30 if focus else 15,live_only=True)
+        else:
+            if page: url,reason=direct_url(page)
+            if not url and not (reason and reason[0] in SERIOUS_CODES):
+                url,reason=search_live(item.get('query') or name,6)
     except Exception as e:
         reason=('EXCEPTION',str(e)[:300])
     print(('OK   ' if url else 'FAIL ')+name+(f' [{reason[0]}]' if reason and not url else ''),flush=True)
@@ -219,15 +233,19 @@ def build():
     active=[(i,x) for i,x in enumerate(items) if x.get('id') not in SKIP_IDS]
     old_logos=existing_logos(); results=[]
     with ThreadPoolExecutor(max_workers=MAX_WORKERS) as ex:
-        for f in as_completed([ex.submit(resolve_item,i,item) for i,item in active]): results.append(f.result())
+        for f in as_completed([ex.submit(resolve_item,i,item) for i,item in active]):
+            results.append(f.result())
     results.sort(key=lambda x:x[0])
     out=['#EXTM3U','']; got=[]; failed=[]; seen=set(); fallback_count=0; duplicate_repairs=0
+    active_ids={x.get('id') for _,x in active}
+
     for _,item,url,reason in results:
         name=item['name']; tvg=item['id']; code=(reason or ('NO_LIVE',''))[0]
         old_url=old_urls.get(tvg)
 
-        # YouTube側の制限時はその局だけ前回URLを維持し、正常取得できた他局は更新する。
-        if not url and code in SERIOUS_CODES and old_url:
+        # 華奈tubeは終了時に消す。古いHLSを復活させない。
+        allow_old_fallback=(tvg!=KANA_ID and tvg in active_ids)
+        if not url and code in SERIOUS_CODES and old_url and allow_old_fallback:
             url=old_url; fallback_count+=1
             failed.append((name,code,(reason or ('',''))[1]+' [previous URL kept]'))
         elif not url:
@@ -235,8 +253,7 @@ def build():
 
         key=url.split('?')[0]
         if key in seen:
-            # 検索誤判定で別局が同じ動画を掴んだ場合、前回その局固有だったURLへ戻す。
-            if old_url and old_url.split('?')[0] not in seen:
+            if old_url and allow_old_fallback and old_url.split('?')[0] not in seen:
                 url=old_url; key=url.split('?')[0]; duplicate_repairs+=1
                 failed.append((name,'DUPLICATE_REPAIRED','新規検索が他局と重複したため前回URLを維持'))
             else:
@@ -249,7 +266,7 @@ def build():
     text='\n'.join(out).rstrip()+'\n'
     output_count=len(got)
     serious=[x for x in failed if x[1] in SERIOUS_CODES]
-    # 個別fallbackでも守れないほど減った場合のみ、最後の正常版を丸ごと保持。
+    # 品質ゲート。ただし華奈tubeの非LIVEだけを理由に古い版へ巻き戻さない。
     if old_count>0 and serious and output_count<old_count:
         print(f'QUALITY GATE: keeping previous playlist ({old_count}) because rebuilt output is {output_count}.',flush=True)
         kept=apply_source_logos(old_text)
@@ -286,7 +303,7 @@ def main():
         print(f'{g}: {groups.get(g,0)}')
     serious=[x for x in failed if x[1] in SERIOUS_CODES]
     if serious:
-        print('=== WARNING: YouTube access restriction detected; previous per-channel URLs were preferred where possible ===')
+        print('=== WARNING: YouTube access restriction detected; previous per-channel URLs were preferred where safe ===')
         for n,code,detail in serious: print(f' ! {code}: {n} :: {detail}')
 
 if __name__=='__main__': main()
