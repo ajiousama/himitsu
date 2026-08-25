@@ -17,141 +17,83 @@ on:
       - '.github/workflows/update_general_youtube.yml'
   schedule:
     - cron: '*/15 * * * *'
-
 permissions:
   contents: write
-
 concurrency:
   group: himitsu-freewifi-writer
   cancel-in-progress: false
-
 jobs:
   update:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@v5
         with:
           fetch-depth: 0
-
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
           python-version: '3.12'
-
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-
       - name: Install latest yt-dlp
         run: |
           python -m pip install --upgrade pip
           python -m pip install --upgrade --pre 'yt-dlp[default]'
           yt-dlp --version
-
       - name: Restore YouTube cookies
         shell: bash
         env:
           YOUTUBE_COOKIES: ${{ secrets.YOUTUBE_COOKIES }}
         run: |
           rm -f youtube_cookies.txt
-          if [ -n "$YOUTUBE_COOKIES" ]; then
-            printf '%s' "$YOUTUBE_COOKIES" > youtube_cookies.txt
-            chmod 600 youtube_cookies.txt
-            echo "YouTube cookie restored: $(wc -c < youtube_cookies.txt) bytes"
-          else
-            echo '::warning::YOUTUBE_COOKIES is not set; yt-dlp will run anonymously'
-          fi
-
+          if [ -n "$YOUTUBE_COOKIES" ]; then printf '%s' "$YOUTUBE_COOKIES" > youtube_cookies.txt; chmod 600 youtube_cookies.txt; echo "YouTube cookie restored: $(wc -c < youtube_cookies.txt) bytes"; else echo '::warning::YOUTUBE_COOKIES is not set'; fi
       - name: Sync latest main
         run: git pull --ff-only origin main
-
       - name: Merge supplemental live-camera sources
         shell: bash
         run: |
           python - <<'PY'
           import json
           from pathlib import Path
-          base_path=Path('general_youtube_sources.json')
-          extra_paths=[Path('general_youtube_sources_ports.json'),Path('general_youtube_sources_airports.json')]
-          base=json.loads(base_path.read_text(encoding='utf-8'))
-          seen={x.get('id') for x in base}; merged=list(base)
-          for path in extra_paths:
-              items=json.loads(path.read_text(encoding='utf-8')) if path.exists() else []
-              for item in items:
-                  iid=item.get('id')
-                  if iid and iid not in seen:
-                      merged.append(item); seen.add(iid)
-          base_path.write_text(json.dumps(merged,ensure_ascii=False,separators=(',',':')),encoding='utf-8')
-          print('Merged source total:',len(merged))
+          p=Path('general_youtube_sources.json'); base=json.loads(p.read_text(encoding='utf-8')); seen={x.get('id') for x in base}; merged=list(base)
+          for path in map(Path,['general_youtube_sources_ports.json','general_youtube_sources_airports.json']):
+              for item in (json.loads(path.read_text(encoding='utf-8')) if path.exists() else []):
+                  if item.get('id') and item['id'] not in seen: merged.append(item); seen.add(item['id'])
+          p.write_text(json.dumps(merged,ensure_ascii=False,separators=(',',':')),encoding='utf-8'); print('Merged source total:',len(merged))
           PY
-
       - name: Backup current playlist
-        shell: bash
         run: |
           cp general_youtube.m3u general_youtube.prev.m3u 2>/dev/null || true
           cp freewifi freewifi.prev 2>/dev/null || true
-          echo "Current entries: $(grep -c '^#EXTINF:' general_youtube.m3u || true)"
-
       - name: Refresh general YouTube LIVE
         shell: bash
         run: |
-          if ! timeout 6m python general_youtube_update.py; then
-            echo '::warning::YouTube refresh failed or timed out'
-          fi
-
+          if ! timeout 12m python general_youtube_update.py; then echo '::warning::YouTube refresh failed or timed out'; fi
       - name: Protect repository from empty refresh
         shell: bash
         run: |
           COUNT=$(grep -c '^#EXTINF:' general_youtube.m3u || true)
-          if [ "$COUNT" -gt 0 ]; then
-            echo "Playlist after refresh: $COUNT entries"
-            exit 0
-          fi
+          if [ "$COUNT" -gt 0 ]; then echo "Playlist after refresh: $COUNT entries"; exit 0; fi
           PREV=$(grep -c '^#EXTINF:' general_youtube.prev.m3u 2>/dev/null || true)
-          if [ "${PREV:-0}" -gt 0 ]; then
-            mv general_youtube.prev.m3u general_youtube.m3u
-            [ -f freewifi.prev ] && mv freewifi.prev freewifi || true
-            echo "Restored previous non-empty playlist: $PREV entries"
-          else
-            git show HEAD:general_youtube.m3u > general_youtube.m3u
-            git show HEAD:freewifi > freewifi
-            echo '::warning::No usable refreshed playlist; repository version restored'
-          fi
-
+          if [ "${PREV:-0}" -gt 0 ]; then mv general_youtube.prev.m3u general_youtube.m3u; [ -f freewifi.prev ] && mv freewifi.prev freewifi || true; else git show HEAD:general_youtube.m3u > general_youtube.m3u; git show HEAD:freewifi > freewifi; fi
       - name: Put JRA official LIVE in race section
         run: python jra_freewifi_finalize.py
-
       - name: Apply custom FreeWiFi channels
         run: python freewifi_custom_channels.py
-
       - name: Reapply verified sports/JRA status
         run: |
           python verified_daily_override.py
           python apply_verified_status.py
-
       - name: Validate
-        shell: bash
         run: |
           test -s general_youtube.m3u
           test -s freewifi
           grep -q '# === GENERAL_YOUTUBE_MANAGED_START ===' freewifi
           grep -q '# === GENERAL_YOUTUBE_MANAGED_END ===' freewifi
-          echo "General YouTube entries: $(grep -c '^#EXTINF:' general_youtube.m3u || true)"
-          python - <<'PY'
-          from pathlib import Path
-          import re,time
-          text=Path('general_youtube.m3u').read_text(encoding='utf-8-sig',errors='replace')
-          exps=[int(x) for x in re.findall(r'/expire/(\d+)',text)]
-          if exps:
-              live=sum(x>time.time()+900 for x in exps)
-              print(f'Unexpired signed HLS URLs (>15m): {live}/{len(exps)}')
-              if live==0:
-                  print('::warning::All cached signed YouTube HLS URLs are expired/near expiry; fresh yt-dlp extraction is required')
-          PY
-
       - name: Commit updated LIVE URLs
         shell: bash
         run: |
@@ -159,10 +101,7 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add general_youtube.m3u freewifi today_public_sports_status.json today_jra_status.json
-          if git diff --cached --quiet; then
-            echo 'No changes'
-            exit 0
-          fi
+          if git diff --cached --quiet; then echo 'No changes'; exit 0; fi
           git commit -m 'Update general YouTube LIVE URLs'
           git reset --hard HEAD
           git clean -fd
