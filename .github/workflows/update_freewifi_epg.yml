@@ -16,14 +16,18 @@ on:
       - "jra_freewifi_finalize.py"
       - "freewifi_today_public_sports.py"
       - "freewifi_today_jra.py"
+      - "verified_daily_status.json"
+      - "verified_daily_override.py"
+      - "apply_verified_status.py"
       - "build_today_event_counts.py"
       - ".github/workflows/update_freewifi_epg.yml"
 
 permissions:
   contents: write
 
+# freewifi を書き換える YouTube 更新と同じロックを使い、同時 push/rebase を禁止する。
 concurrency:
-  group: freewifi-all
+  group: himitsu-freewifi-writer
   cancel-in-progress: false
 
 jobs:
@@ -93,6 +97,11 @@ jobs:
       - name: Sync today's JRA channels into FreeWiFi
         run: python freewifi_today_jra.py
 
+      - name: Apply verified daily safety override
+        run: |
+          python verified_daily_override.py
+          python apply_verified_status.py
+
       - name: Build compact current event counts
         run: python build_today_event_counts.py
 
@@ -118,6 +127,31 @@ jobs:
           grep -c '^FALLBACK' epg_coverage.txt || true
           echo "JRA official EPG programmes: $(grep -c 'channel=\"jra.official\"' guides.xml || true)"
           echo "Public sports EPG programmes: $(grep -E -c 'channel=\"(keirin|chihou|boat|auto)\.' guides.xml || true)"
+
+      - name: Validate verified counts when override is active
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          from datetime import datetime, timezone, timedelta
+          from pathlib import Path
+          JST=timezone(timedelta(hours=9))
+          p=Path('verified_daily_status.json')
+          if not p.exists(): raise SystemExit(0)
+          cfg=json.loads(p.read_text(encoding='utf-8-sig'))
+          if cfg.get('date') != datetime.now(JST).date().isoformat(): raise SystemExit(0)
+          counts=json.loads(Path('today_event_counts.json').read_text(encoding='utf-8-sig'))['counts']
+          expected={
+            'keirin':len(cfg['public_sports'].get('競輪',[])),
+            'local_horse':len(cfg['public_sports'].get('地方競馬',[])),
+            'boat':len(cfg['public_sports'].get('ボートレース',[])),
+            'autorace':len(cfg['public_sports'].get('オートレース',[])),
+            'jra':len(cfg.get('jra_active_ids',[])),
+          }
+          if any(int(counts.get(k,-1)) != v for k,v in expected.items()):
+              raise SystemExit(f'Verified count mismatch: got={counts} expected={expected}')
+          print('Verified counts OK:',expected)
+          PY
 
       - name: Commit generated files
         shell: bash
