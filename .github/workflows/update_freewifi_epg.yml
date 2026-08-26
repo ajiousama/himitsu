@@ -9,6 +9,7 @@ on:
       - main
     paths:
       - "freewifi"
+      - "freewifi_naori.py"
       - "other_live.m3u"
       - "epg_build.py"
       - "public_sports_epg_merge.py"
@@ -98,6 +99,9 @@ jobs:
           done
           grep -q '# === GENERAL_YOUTUBE_MANAGED_START ===' freewifi
           grep -q '# === GENERAL_YOUTUBE_MANAGED_END ===' freewifi
+
+      - name: Sync NAORI channels into FreeWiFi
+        run: python freewifi_naori.py
 
       - name: Sync today's public sports venues into FreeWiFi
         run: python freewifi_today_public_sports.py
