@@ -7,6 +7,8 @@ import xml.etree.ElementTree as ET
 
 FREEWIFI = Path('freewifi')
 JRA_STATUS = Path('today_jra_status.json')
+HARUKA_OLD_BASE = 'http://ha-ip.f5.si:9394'
+HARUKA_DIRECT_BASE = 'http://42.118.247.37:9394'
 
 JRA_YT_LOGO = 'https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/youtube/jra_youtube_free.jpg'
 JRA_GCH_LOGO = 'https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/youtube/jra_gch_free.jpg'
@@ -67,6 +69,10 @@ https://cdn-ecatv-stream.durasite.net/live/kengikai/chunklist_w1364306427.m3u8
 # === EHIME_CATV_END ==='''
 
 
+def patch_haruka_direct(text):
+    return text.replace(HARUKA_OLD_BASE, HARUKA_DIRECT_BASE)
+
+
 def replace_managed_block(text, start, end, block, anchor='## 競馬\n'):
     pat = re.compile(re.escape(start) + r'.*?' + re.escape(end) + r'\n?', re.S)
     text = pat.sub('', text)
@@ -116,8 +122,6 @@ def parse_xmltv_time(s):
 
 
 def is_jra_race_day():
-    # Prefer the locally generated, officially verified JRA status. This avoids
-    # stale/upstream EPG entries incorrectly enabling GCH on non-race days.
     try:
         if JRA_STATUS.exists():
             data = json.loads(JRA_STATUS.read_text(encoding='utf-8'))
@@ -129,7 +133,6 @@ def is_jra_race_day():
     except Exception as e:
         print('JRA verified status check failed:', e)
 
-    # Fallback to upstream EPG only when today's verified status is unavailable.
     try:
         req = urllib.request.Request(PUBLIC_EPG_URL, headers={'User-Agent': 'FreeWiFi-GCH-DayCheck/1.0', 'Cache-Control': 'no-cache'})
         with urllib.request.urlopen(req, timeout=60) as r:
@@ -163,6 +166,7 @@ def get_guinea_hls():
 
 def main():
     text = FREEWIFI.read_text(encoding='utf-8-sig', errors='replace')
+    text = patch_haruka_direct(text)
     text = patch_jra_youtube(text)
     text = ensure_ecatv(text)
 
