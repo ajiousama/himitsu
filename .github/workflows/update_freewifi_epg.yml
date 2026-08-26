@@ -100,9 +100,6 @@ jobs:
           grep -q '# === GENERAL_YOUTUBE_MANAGED_START ===' freewifi
           grep -q '# === GENERAL_YOUTUBE_MANAGED_END ===' freewifi
 
-      - name: Sync NAORI channels into FreeWiFi
-        run: python freewifi_naori.py
-
       - name: Sync today's public sports venues into FreeWiFi
         run: python freewifi_today_public_sports.py
 
@@ -128,6 +125,16 @@ jobs:
 
       - name: Merge JRA race EPG for official YouTube
         run: python jra_epg_merge.py
+
+      - name: Sync NAORI channels into FreeWiFi (final pass)
+        run: python freewifi_naori.py
+
+      - name: Validate NAORI block
+        shell: bash
+        run: |
+          grep -q '# === NAORI_MANAGED_START ===' freewifi
+          grep -q '# === NAORI_MANAGED_END ===' freewifi
+          test "$(grep -c 'naori-test.netgenx.site/pxx.php?shk_cid=' freewifi || true)" -ge 30
 
       - name: Validate XML
         run: python -c "import xml.etree.ElementTree as ET; ET.parse('guides.xml'); print('XML OK')"
