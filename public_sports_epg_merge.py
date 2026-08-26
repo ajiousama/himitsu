@@ -27,6 +27,8 @@ MODE_LABELS = {
     'overnight': 'オーバーミッドナイト',
 }
 
+FULLWIDTH = str.maketrans('0123456789', '０１２３４５６７８９')
+
 
 def wanted_ids():
     ids = set()
@@ -88,6 +90,51 @@ def add_fallback(dst, cid, meta):
     dst.append(p)
 
 
+def _race_no(text):
+    # 【１Ｒ】/1R/１Ｒ/第1R/第１Ｒ を拾う。開催案内等は対象外。
+    if not text:
+        return None
+    norm = text.translate(str.maketrans('０１２３４５６７８９Ｒｒ', '0123456789Rr'))
+    m = re.search(r'(?:【\s*)?(?:第\s*)?(1[0-2]|[1-9])\s*[Rr](?:\s*】)?', norm)
+    return int(m.group(1)) if m else None
+
+
+def _departure_time(title, desc):
+    for text in (title or '', desc or ''):
+        m = re.search(r'([0-2]?\d:[0-5]\d)\s*(?:発走|発走予定)?', text)
+        if m:
+            return m.group(1)
+    return None
+
+
+def normalize_race_title(programme):
+    """FreeWiFiの公営競技レース番組を【○Ｒ】 発走時刻 … の順へ統一する。"""
+    title_el = programme.find('title')
+    if title_el is None or not (title_el.text or '').strip():
+        return
+    title = title_el.text.strip()
+    desc_el = programme.find('desc')
+    desc = (desc_el.text or '') if desc_el is not None else ''
+    n = _race_no(title) or _race_no(desc)
+    if not n:
+        return
+
+    marker = f'【{str(n).translate(FULLWIDTH)}Ｒ】'
+    tm = _departure_time(title, desc)
+
+    # 既存のレース番号表記は取り除き、残りの情報（レース名・実況表示等）は保持。
+    rest = re.sub(r'^\s*(?:【\s*)?(?:第\s*)?[０-９0-9]{1,2}\s*[ＲRｒr](?:\s*】)?\s*', '', title, count=1)
+    if rest == title:
+        rest = re.sub(r'(?:【\s*)?(?:第\s*)?[０-９0-9]{1,2}\s*[ＲRｒr](?:\s*】)?', '', title, count=1).strip()
+
+    # 発走時刻が既に後方にある場合は重複させない。
+    if tm:
+        rest = re.sub(rf'\s*{re.escape(tm)}\s*(?:発走|発走予定)?\s*', ' ', rest, count=1).strip()
+        title_el.text = f'{marker} {tm}発走' + (f'  {rest}' if rest else '')
+    else:
+        title_el.text = marker + (f'  {rest}' if rest else '')
+
+
 def main():
     wanted = wanted_ids()
     if not wanted:
@@ -119,13 +166,20 @@ def main():
     channels = 0
     programmes = 0
     fallbacks = 0
+    normalized = 0
     for cid in sorted(wanted):
         progs = source_programmes.get(cid, [])
         if cid in source_channels and progs:
             dst.append(ET.fromstring(ET.tostring(source_channels[cid], encoding='utf-8')))
             channels += 1
             for p in progs:
-                dst.append(ET.fromstring(ET.tostring(p, encoding='utf-8')))
+                copied = ET.fromstring(ET.tostring(p, encoding='utf-8'))
+                before = (copied.findtext('title') or '')
+                normalize_race_title(copied)
+                after = (copied.findtext('title') or '')
+                if before != after:
+                    normalized += 1
+                dst.append(copied)
                 programmes += 1
         else:
             meta = status.get(cid)
@@ -137,7 +191,7 @@ def main():
 
     ET.indent(dst, space='  ')
     GUIDES.write_bytes(ET.tostring(dst, encoding='utf-8', xml_declaration=True))
-    print(f'Public sports EPG merged: channels={channels}, programmes={programmes}, wanted={len(wanted)}, fallbacks={fallbacks}')
+    print(f'Public sports EPG merged: channels={channels}, programmes={programmes}, wanted={len(wanted)}, fallbacks={fallbacks}, race_titles_normalized={normalized}')
 
 
 if __name__ == '__main__':
