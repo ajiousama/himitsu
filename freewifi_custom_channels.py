@@ -8,7 +8,8 @@ import xml.etree.ElementTree as ET
 FREEWIFI = Path('freewifi')
 JRA_STATUS = Path('today_jra_status.json')
 HARUKA_OLD_BASE = 'http://ha-ip.f5.si:9394'
-HARUKA_DIRECT_BASE = 'http://42.118.247.37:9394'
+HARUKA_1_BASE = 'http://haruka-ip.f5.si:9394'
+HARUKA_2_BASE = 'http://42.118.247.37:9394'
 
 JRA_YT_LOGO = 'https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/youtube/jra_youtube_free.jpg'
 JRA_GCH_LOGO = 'https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/youtube/jra_gch_free.jpg'
@@ -69,8 +70,27 @@ https://cdn-ecatv-stream.durasite.net/live/kengikai/chunklist_w1364306427.m3u8
 # === EHIME_CATV_END ==='''
 
 
-def patch_haruka_direct(text):
-    return text.replace(HARUKA_OLD_BASE, HARUKA_DIRECT_BASE)
+def patch_haruka_sources(text):
+    """Keep both working HARUKA endpoints as separate playlist entries."""
+    lines = text.splitlines()
+    out = []
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        if line.startswith('#EXTINF:') and i + 1 < len(lines):
+            url = lines[i + 1].strip()
+            if any(base in url for base in (HARUKA_OLD_BASE, HARUKA_1_BASE, HARUKA_2_BASE)):
+                path = re.search(r'(/stream/[^\s]+)', url)
+                if path:
+                    stream_path = path.group(1)
+                    info1 = re.sub(r',([^,]*)$', lambda m: ',' + re.sub(r'\s*\(haruka[^)]*\)', '', m.group(1), flags=re.I) + ' (ハルカ1)', line)
+                    info2 = re.sub(r',([^,]*)$', lambda m: ',' + re.sub(r'\s*\(haruka[^)]*\)', '', m.group(1), flags=re.I) + ' (ハルカ2)', line)
+                    out.extend([info1, HARUKA_1_BASE + stream_path, info2, HARUKA_2_BASE + stream_path])
+                    i += 2
+                    continue
+        out.append(line)
+        i += 1
+    return '\n'.join(out).rstrip() + '\n'
 
 
 def replace_managed_block(text, start, end, block, anchor='## 競馬\n'):
@@ -97,21 +117,14 @@ def patch_jra_youtube(text):
     lines = text.splitlines()
     for i, line in enumerate(lines):
         if line.startswith('#EXTINF:') and 'tvg-id="jra.official"' in line:
-            lines[i] = (
-                '#EXTINF:-1 tvg-id="jra.official" '
-                'tvg-name="JRA公式（YouTube）無料版" '
-                f'tvg-logo="{JRA_YT_LOGO}" group-title="競馬",'
-                'JRA公式（YouTube）無料版'
-            )
+            lines[i] = '#EXTINF:-1 tvg-id="jra.official" tvg-name="JRA公式（YouTube）無料版" tvg-logo="%s" group-title="競馬",JRA公式（YouTube）無料版' % JRA_YT_LOGO
     return '\n'.join(lines).rstrip() + '\n'
 
 
 def parse_xmltv_time(s):
-    if not s:
-        return None
+    if not s: return None
     m = re.match(r'^(\d{14})\s*([+-]\d{4})?', s.strip())
-    if not m:
-        return None
+    if not m: return None
     base = datetime.strptime(m.group(1), '%Y%m%d%H%M%S')
     off = m.group(2)
     if off:
@@ -128,96 +141,59 @@ def is_jra_race_day():
             generated = data.get('generated_at')
             if generated:
                 stamp = datetime.fromisoformat(generated).astimezone(JST)
-                if stamp.date() == datetime.now(JST).date():
-                    return int(data.get('active_count') or 0) > 0
-    except Exception as e:
-        print('JRA verified status check failed:', e)
-
+                if stamp.date() == datetime.now(JST).date(): return int(data.get('active_count') or 0) > 0
+    except Exception as e: print('JRA verified status check failed:', e)
     try:
         req = urllib.request.Request(PUBLIC_EPG_URL, headers={'User-Agent': 'FreeWiFi-GCH-DayCheck/1.0', 'Cache-Control': 'no-cache'})
-        with urllib.request.urlopen(req, timeout=60) as r:
-            root = ET.fromstring(r.read())
-        today = datetime.now(JST).date()
-        source_ids = {'jra.east', 'jra.west', 'jra.hokkaido'}
+        with urllib.request.urlopen(req, timeout=60) as r: root = ET.fromstring(r.read())
+        today = datetime.now(JST).date(); source_ids = {'jra.east', 'jra.west', 'jra.hokkaido'}
         for p in root.findall('programme'):
-            if (p.get('channel') or '') not in source_ids:
-                continue
+            if (p.get('channel') or '') not in source_ids: continue
             start = parse_xmltv_time(p.get('start'))
-            if not start or start.astimezone(JST).date() != today:
-                continue
+            if not start or start.astimezone(JST).date() != today: continue
             title = (p.findtext('title') or '').strip()
-            if title and not any(w in title for w in ('非開催', '休止', '準備中', 'データ取得準備中')):
-                return True
+            if title and not any(w in title for w in ('非開催', '休止', '準備中', 'データ取得準備中')): return True
         return False
-    except Exception as e:
-        print('JRA race-day check failed:', e)
-        return False
+    except Exception as e: print('JRA race-day check failed:', e); return False
 
 
 def get_guinea_hls():
     try:
         from general_youtube_update import direct_url
-        url, _ = direct_url(GUINEA_PAGE)
-        return url
-    except Exception as e:
-        print('Guinea LIVE lookup failed:', e)
-        return None
+        url, _ = direct_url(GUINEA_PAGE); return url
+    except Exception as e: print('Guinea LIVE lookup failed:', e); return None
 
 
 def main():
     text = FREEWIFI.read_text(encoding='utf-8-sig', errors='replace')
-    text = patch_haruka_direct(text)
+    text = patch_haruka_sources(text)
     text = patch_jra_youtube(text)
     text = ensure_ecatv(text)
-
     if is_jra_race_day():
-        gch_extinf = (
-            '#EXTINF:-1 tvg-id="jra.gch.free" '
-            'tvg-name="JRA公式（GCH）無料版【開催中のみ】" '
-            f'tvg-logo="{JRA_GCH_LOGO}" group-title="競馬",'
-            'JRA公式（GCH）無料版【開催中のみ】'
-        )
+        gch_extinf = '#EXTINF:-1 tvg-id="jra.gch.free" tvg-name="JRA公式（GCH）無料版【開催中のみ】" tvg-logo="%s" group-title="競馬",JRA公式（GCH）無料版【開催中のみ】' % JRA_GCH_LOGO
         gch_block = f'{GCH_START}\n{gch_extinf}\n{GCH_URL}\n{GCH_END}'
-        print('JRA GCH free: enabled for race day')
-    else:
-        gch_block = ''
-        print('JRA GCH free: disabled (non-race day)')
+    else: gch_block = ''
     text = replace_managed_block(text, GCH_START, GCH_END, gch_block, '## 競馬\n')
-
     guinea_url = get_guinea_hls()
     if guinea_url:
-        guinea_extinf = (
-            '#EXTINF:-1 tvg-id="youtube.guinea" '
-            'tvg-name="モルモット配信（YouTube）" '
-            f'tvg-logo="{GUINEA_LOGO}" group-title="動物",'
-            'モルモット配信（YouTube）'
-        )
+        guinea_extinf = '#EXTINF:-1 tvg-id="youtube.guinea" tvg-name="モルモット配信（YouTube）" tvg-logo="%s" group-title="動物",モルモット配信（YouTube）' % GUINEA_LOGO
         guinea_block = f'{GUINEA_START}\n{guinea_extinf}\n{guinea_url}\n{GUINEA_END}'
-    else:
-        guinea_block = ''
+    else: guinea_block = ''
     text = replace_managed_block(text, GUINEA_START, GUINEA_END, guinea_block, '# === GENERAL_YOUTUBE_MANAGED_END ===\n')
-
     FREEWIFI.write_text(text.rstrip() + '\n', encoding='utf-8')
     print('Custom FreeWiFi channels applied')
-
     try:
         from freewifi_today_public_sports import main as sync_today_public_sports
         sync_today_public_sports()
-    except Exception as e:
-        print('Today public sports sync failed:', e)
-
+    except Exception as e: print('Today public sports sync failed:', e)
     try:
         from apply_verified_status import main as apply_verified_status
         apply_verified_status()
-    except Exception as e:
-        print('Verified status override failed:', e)
-
+    except Exception as e: print('Verified status override failed:', e)
     try:
         from freewifi_keirin_repair import main as repair_keirin
         repair_keirin()
-    except Exception as e:
-        print('Keirin fallback repair failed:', e)
+    except Exception as e: print('Keirin fallback repair failed:', e)
 
 
-if __name__ == '__main__':
-    main()
+if __name__ == '__main__': main()
