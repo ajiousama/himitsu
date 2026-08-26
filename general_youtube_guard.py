@@ -85,6 +85,32 @@ def set_group(ext, group):
     return ext.replace(',', f' group-title="{group}",', 1)
 
 
+def youtube_video_id(url):
+    """Extract stable YouTube video id from googlevideo HLS or YouTube URL."""
+    if not url:
+        return None
+    m = re.search(r'/id/([A-Za-z0-9_-]{11})(?:\.|/|$)', url)
+    if m:
+        return m.group(1)
+    m = re.search(r'[?&]v=([A-Za-z0-9_-]{11})(?:&|$)', url)
+    if m:
+        return m.group(1)
+    m = re.search(r'youtu\.be/([A-Za-z0-9_-]{11})(?:\?|/|$)', url)
+    return m.group(1) if m else None
+
+
+def entry_name(ext):
+    if ',' in ext:
+        return ext.rsplit(',', 1)[-1].strip()
+    m = re.search(r'tvg-name="([^"]+)"', ext)
+    return m.group(1) if m else ext
+
+
+def logo_url(ext):
+    m = re.search(r'tvg-logo="([^"]+)"', ext)
+    return m.group(1).strip() if m else ''
+
+
 def render(header, entries):
     out = [header, '']
     for _, ext, url in entries:
@@ -124,24 +150,58 @@ def main():
     omogo = official_channel_live(OMOGO_CHANNEL)
 
     strict = {TOKYO_ID: tokyo, OMOGO_ID: omogo}
-    found = set()
-    kept = []
+    strict_kept = []
     for cid, ext, url in entries:
         if cid in strict:
-            found.add(cid)
             good = strict[cid]
             if not good:
                 print(f'STRICT REMOVE: {cid} (official LIVE unavailable)')
                 continue
             url = good
             print(f'STRICT OK: {cid}')
+        strict_kept.append([cid, ext, url])
+
+    # 最終出力で同じYouTube動画IDを複数チャンネル名に使わない。
+    # 品質ゲートで旧M3Uが戻った場合もここで必ず重複を落とす。
+    seen_video = {}
+    kept = []
+    duplicate_count = 0
+    for cid, ext, url in strict_kept:
+        vid = youtube_video_id(url)
+        if vid and vid in seen_video:
+            first_cid, first_name = seen_video[vid]
+            print(f'DUPLICATE REMOVE: {cid} ({entry_name(ext)}) -> same video {vid} as {first_cid} ({first_name})')
+            duplicate_count += 1
+            continue
+        if vid:
+            seen_video[vid] = (cid, entry_name(ext))
         kept.append([cid, ext, url])
 
-    # 元プレイリストに無かった場合も、勝手に別候補を追加しない。
+    # ロゴ指定を最終検査。欠落はログで明示し、Actions検証で見落とさない。
+    missing_logos = []
+    default_logos = []
+    for cid, ext, _ in kept:
+        logo = logo_url(ext)
+        if not logo:
+            missing_logos.append((cid, entry_name(ext)))
+        elif 'youtube_live_camera_default' in logo:
+            default_logos.append((cid, entry_name(ext)))
+
     general = render(header, kept)
     PLAYLIST.write_text(general, encoding='utf-8')
     sync_freewifi(general)
+
     print('Airport groups normalized:', sum(1 for _, ext, _ in kept if 'group-title="空港"' in ext))
+    print('Duplicate YouTube videos removed:', duplicate_count)
+    print('Entries with logo:', len(kept) - len(missing_logos), '/', len(kept))
+    if missing_logos:
+        for cid, name in missing_logos:
+            print(f'LOGO MISSING: {cid} ({name})')
+        raise SystemExit(f'Logo validation failed: {len(missing_logos)} entries have no tvg-logo')
+    if default_logos:
+        print('Default-logo entries:', len(default_logos))
+        for cid, name in default_logos:
+            print(f'LOGO DEFAULT: {cid} ({name})')
 
 
 if __name__ == '__main__':
