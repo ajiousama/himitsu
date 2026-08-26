@@ -10,6 +10,7 @@ on:
     paths:
       - "freewifi"
       - "freewifi_naori.py"
+      - "freewifi_naori_kansai.py"
       - "other_live.m3u"
       - "epg_build.py"
       - "public_sports_epg_merge.py"
@@ -127,14 +128,17 @@ jobs:
         run: python jra_epg_merge.py
 
       - name: Sync NAORI channels into FreeWiFi (final pass)
-        run: python freewifi_naori.py
+        run: |
+          python freewifi_naori.py
+          python freewifi_naori_kansai.py
 
       - name: Validate NAORI block
         shell: bash
         run: |
           grep -q '# === NAORI_MANAGED_START ===' freewifi
           grep -q '# === NAORI_MANAGED_END ===' freewifi
-          test "$(grep -c 'naori-test.netgenx.site/pxx.php?shk_cid=' freewifi || true)" -ge 30
+          test "$(grep -c 'naori-test.netgenx.site/pxx.php?shk_cid=' freewifi || true)" -ge 36
+          for CID in gx01 gx02 gx03 gx04 gx05 gx06; do grep -q "shk_cid=$CID" freewifi; done
 
       - name: Validate XML
         run: python -c "import xml.etree.ElementTree as ET; ET.parse('guides.xml'); print('XML OK')"
