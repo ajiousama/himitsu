@@ -117,12 +117,7 @@ def logo_url(ext):
 
 
 def logo_sort_number(ext):
-    """Return a stable number from the logo basename, or None if it has no number.
-
-    Existing YouTube logos often use names such as yt43_02_natsu_shiba.png.
-    For the animal group, non-numbered logos stay first; numbered logos are
-    placed afterwards and ordered by the last numeric token in the basename.
-    """
+    """Return a stable number from the logo basename, or None if it has no number."""
     logo = logo_url(ext)
     if not logo:
         return None
@@ -131,13 +126,13 @@ def logo_sort_number(ext):
     return int(nums[-1]) if nums else None
 
 
-def sort_animals(entries):
-    animal_positions = [i for i, (_, ext, _) in enumerate(entries) if group_title(ext) == '動物']
-    if len(animal_positions) < 2:
+def sort_group_by_logo_number(entries, group):
+    positions = [i for i, (_, ext, _) in enumerate(entries) if group_title(ext) == group]
+    if len(positions) < 2:
         return entries
 
-    animals = [entries[i] for i in animal_positions]
-    original_order = {id(entry): n for n, entry in enumerate(animals)}
+    selected = [entries[i] for i in positions]
+    original_order = {id(entry): n for n, entry in enumerate(selected)}
 
     def key(entry):
         _, ext, _ = entry
@@ -147,9 +142,9 @@ def sort_animals(entries):
             return (0, original_order[id(entry)])
         return (1, n, original_order[id(entry)])
 
-    animals.sort(key=key)
+    selected.sort(key=key)
     out = list(entries)
-    for pos, entry in zip(animal_positions, animals):
+    for pos, entry in zip(positions, selected):
         out[pos] = entry
     return out
 
@@ -205,7 +200,6 @@ def main():
         strict_kept.append([cid, ext, url])
 
     # 最終出力で同じYouTube動画IDを複数チャンネル名に使わない。
-    # 品質ゲートで旧M3Uが戻った場合もここで必ず重複を落とす。
     seen_video = {}
     kept = []
     duplicate_count = 0
@@ -220,13 +214,14 @@ def main():
             seen_video[vid] = (cid, entry_name(ext))
         kept.append([cid, ext, url])
 
-    # 動物グループだけを、そのグループ内で並べ替える。
+    # 動物・空港はそれぞれグループ内だけを並べ替える。
     # ロゴに番号がないものを先、番号入りロゴは後回しにし、番号順を優先する。
-    before_animals = [entry_name(ext) for _, ext, _ in kept if group_title(ext) == '動物']
-    kept = sort_animals(kept)
-    after_animals = [entry_name(ext) for _, ext, _ in kept if group_title(ext) == '動物']
-    if before_animals != after_animals:
-        print('Animal order:', ' -> '.join(after_animals))
+    for group, label in [('動物', 'Animal'), ('空港', 'Airport')]:
+        before = [entry_name(ext) for _, ext, _ in kept if group_title(ext) == group]
+        kept = sort_group_by_logo_number(kept, group)
+        after = [entry_name(ext) for _, ext, _ in kept if group_title(ext) == group]
+        if before != after:
+            print(f'{label} order:', ' -> '.join(after))
 
     # ロゴ指定を最終検査。欠落はログで明示し、Actions検証で見落とさない。
     missing_logos = []
