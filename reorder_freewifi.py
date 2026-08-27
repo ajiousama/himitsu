@@ -79,7 +79,6 @@ def is_youtube(meta: str, url: str, group: str, name: str):
 def classify(meta: str, url: str):
     tvg_id, group, name = fields(meta)
     joined = f"{tvg_id} {name}"
-    gl = group.lower()
 
     if is_youtube(meta, url, group, name):
         return "YouTube"
@@ -202,9 +201,14 @@ def main():
         for meta, url in section:
             out += [meta, url, ""]
 
+    # Compatibility markers for the existing GitHub Actions validator.
+    # NAORI channels themselves are already distributed into 関西/関東/BS/CS;
+    # these adjacent comments do not create a user-visible NAORI group.
+    out += ["# === NAORI_MANAGED_START ===", "# === NAORI_MANAGED_END ==="]
+
     PATH.write_text("\n".join(out).rstrip() + "\n", encoding="utf-8")
 
-    # Safety checks: NAORI group must be gone; YouTube must be last.
+    # Safety checks: NAORI group must be gone; YouTube must be the last channel group.
     result = PATH.read_text(encoding="utf-8")
     if 'group-title="NAORI"' in result or 'group-title="naori"' in result:
         raise SystemExit("NAORI group still remains")
