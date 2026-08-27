@@ -89,6 +89,12 @@ def discover_stations():
     return stations
 
 
+def is_shortwave_station(sid, name):
+    sid_u = (sid or "").upper()
+    n = (name or "").upper()
+    return sid_u in {"RN1", "RN2"} or "ラジオNIKKEI" in name or "RADIO NIKKEI" in n
+
+
 def replace_radiko_block(stations):
     text = FREEWIFI.read_text(encoding="utf-8-sig")
     pattern = re.compile(r"\n?" + re.escape(START) + r".*?" + re.escape(END) + r"\n?", re.S)
@@ -98,13 +104,16 @@ def replace_radiko_block(stations):
     order = {name: i for i, name in enumerate(order_names)}
     items = sorted(stations.items(), key=lambda kv: (order.get(kv[1]["region"], 99), kv[1]["pref"], kv[1]["name"]))
 
-    lines = ["", START, "## RADIKO（地域別）"]
+    lines = ["", START, "## RADIKO（地域別＋短波）"]
     for sid, meta in items:
         name = meta["name"].replace("\n", " ").strip()
         if not name.endswith("（ラジオ）"):
             name += "（ラジオ）"
         logo = meta["logo"].replace('"', "%22")
-        group = f'{meta["region"]}（ラジオ）'
+        if is_shortwave_station(sid, meta["name"]):
+            group = "短波（ラジオ）"
+        else:
+            group = f'{meta["region"]}（ラジオ）'
         lines.append(f'#EXTINF:-1 tvg-id="radiko.{sid}" tvg-logo="{logo}" group-title="{group}",{name}')
         lines.append(f"{BASE}/live/{urllib.parse.quote(sid)}")
     lines.extend([END, ""])
