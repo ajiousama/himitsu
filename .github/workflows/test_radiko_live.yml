@@ -25,7 +25,7 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y -qq openvpn
           python - <<'PY'
-          import base64, csv, io, urllib.request
+          import base64, csv, urllib.request
           url = 'https://www.vpngate.net/api/iphone/'
           req = urllib.request.Request(url, headers={'User-Agent':'Mozilla/5.0'})
           text = urllib.request.urlopen(req, timeout=30).read().decode('utf-8', 'replace')
@@ -37,7 +37,8 @@ jobs:
                   row = next(csv.reader([line]))
               except Exception:
                   continue
-              if len(row) < 15 or row[6] != 'Japan' or not row[14]:
+              # VPN Gate CSV: CountryLong=row[5], CountryShort=row[6], OpenVPN base64=row[14]
+              if len(row) < 15 or not (row[5] == 'Japan' or row[6] == 'JP') or not row[14]:
                   continue
               try:
                   score = int(row[2] or 0)
