@@ -94,17 +94,18 @@ def replace_radiko_block(stations):
     pattern = re.compile(r"\n?" + re.escape(START) + r".*?" + re.escape(END) + r"\n?", re.S)
     text = pattern.sub("\n", text)
 
-    order_names = ("北海道", "東北", "関東", "甲信越", "東海", "近畿", "四国", "中国", "九州沖縄")
+    order_names = ("北海道", "東北", "関東", "甲信越", "東海", "近畿", "中国", "四国", "九州沖縄")
     order = {name: i for i, name in enumerate(order_names)}
     items = sorted(stations.items(), key=lambda kv: (order.get(kv[1]["region"], 99), kv[1]["pref"], kv[1]["name"]))
 
-    lines = ["", START, "## ラジオ"]
+    lines = ["", START, "## RADIKO（地域別）"]
     for sid, meta in items:
         name = meta["name"].replace("\n", " ").strip()
         if not name.endswith("（ラジオ）"):
             name += "（ラジオ）"
         logo = meta["logo"].replace('"', "%22")
-        lines.append(f'#EXTINF:-1 tvg-id="radiko.{sid}" tvg-logo="{logo}" group-title="ラジオ",{name}')
+        group = f'{meta["region"]}（ラジオ）'
+        lines.append(f'#EXTINF:-1 tvg-id="radiko.{sid}" tvg-logo="{logo}" group-title="{group}",{name}')
         lines.append(f"{BASE}/live/{urllib.parse.quote(sid)}")
     lines.extend([END, ""])
 
