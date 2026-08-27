@@ -18,6 +18,6 @@ jobs:
           python-version: '3.12'
       - name: Test radiko Premium area-free LIVE
         env:
-          RADIKO_MAIL: ${{juntaro0428@yahoo.co.jp}}
-          RADIKO_PASSWORD: ${{juntaro0428}}
+          RADIKO_MAIL: ${{ secrets.RADIKO_MAIL }}
+          RADIKO_PASSWORD: ${{ secrets.RADIKO_PASSWORD }}
         run: python radiko_live_test.py
