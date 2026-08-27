@@ -87,6 +87,10 @@ def classify(meta: str, url: str):
     if "予備" in group or "予備" in name:
         return "予備"
 
+    # Keep the radio/radiko section explicit and independent.
+    if group in ("ラジオ", "RADIO", "Radio", "radio") or tvg_id.startswith("radiko."):
+        return "ラジオ"
+
     # Satellite NAORI groups are intentionally kept separate.
     if group_lower in ("bs(naori)", "ｂｓ(naori)"):
         return "BS(NAORI)"
@@ -185,8 +189,8 @@ def main():
         buckets.setdefault(group, []).append([meta, url])
 
     # Requested order: terrestrial, BS, BS(NAORI), CS, CS(NAORI), reserve,
-    # other existing groups, and YouTube last.
-    priority = ["関西", "関東", "BS", "BS(NAORI)", "CS", "CS(NAORI)", "予備"]
+    # radio, other existing groups, and YouTube last.
+    priority = ["関西", "関東", "BS", "BS(NAORI)", "CS", "CS(NAORI)", "予備", "ラジオ"]
     remaining = [g for g in buckets if g not in priority and g != "YouTube"]
     final_groups = [g for g in priority if g in buckets] + remaining
     if "YouTube" in buckets:
