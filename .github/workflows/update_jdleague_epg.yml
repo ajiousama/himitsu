@@ -1,0 +1,85 @@
+name: Update JD League Next Schedule EPG
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Run shortly after the main FreeWiFi EPG rebuilds (00/03/08/12 UTC).
+    - cron: '15 0,3,8,12 * * *'
+  push:
+    branches:
+      - main
+    paths:
+      - 'jdleague_epg.py'
+      - 'freewifi'
+      - '.github/workflows/update_jdleague_epg.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: himitsu-freewifi-writer
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Sync latest main
+        run: git pull --ff-only origin main
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Apply JD League official next schedule
+        run: python jdleague_epg.py
+
+      - name: Validate JD League EPG
+        shell: bash
+        run: |
+          python - <<'PY'
+          import re
+          import xml.etree.ElementTree as ET
+          from pathlib import Path
+
+          text=Path('freewifi').read_text(encoding='utf-8-sig',errors='replace')
+          ids=set()
+          for line in text.splitlines():
+              if not line.startswith('#EXTINF:'): continue
+              u=line.upper()
+              if not any(x in u for x in ('JDリーグ','JD.LEAGUE','JD LEAGUE','女子ソフトボール')): continue
+              m=re.search(r'tvg-id="([^"]+)"',line)
+              if m: ids.add(m.group(1))
+          root=ET.parse('guides.xml').getroot()
+          counts={i:0 for i in ids}
+          for p in root.findall('programme'):
+              c=p.get('channel')
+              if c in counts:
+                  title=(p.findtext('title') or '')
+                  if 'JDリーグ 次回開催' in title:
+                      counts[c]+=1
+          print('JD League channels:',len(ids))
+          print('JD League next-schedule EPG:',counts)
+          assert ids, 'No JD League channels detected'
+          assert all(v >= 3 for v in counts.values()), counts
+          PY
+
+      - name: Commit guides.xml
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add guides.xml
+          if git diff --cached --quiet; then
+            echo 'No JD League EPG changes'
+            exit 0
+          fi
+          git commit -m 'Update JD League next schedule EPG'
+          git pull --rebase origin main
+          git push origin main
