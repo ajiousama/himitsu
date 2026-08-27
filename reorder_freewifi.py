@@ -79,23 +79,31 @@ def is_youtube(meta: str, url: str, group: str, name: str):
 def classify(meta: str, url: str):
     tvg_id, group, name = fields(meta)
     joined = f"{tvg_id} {name}"
+    group_norm = group.replace("（", "(").replace("）", ")").replace("ＮＡＯＲＩ", "NAORI")
+    group_lower = group_norm.lower()
 
     if is_youtube(meta, url, group, name):
         return "YouTube"
     if "予備" in group or "予備" in name:
         return "予備"
+
+    # Satellite NAORI groups are intentionally kept separate.
+    if group_lower in ("bs(naori)", "ｂｓ(naori)"):
+        return "BS(NAORI)"
+    if group_lower in ("cs(naori)", "ｃｓ(naori)"):
+        return "CS(NAORI)"
+
     if group in ("BS", "ＢＳ") or re.search(r'(^|[^A-Za-z])BS(?:\d|\b)', joined, re.I):
         return "BS"
     if group in ("CS", "ＣＳ") or re.search(r'(^|[^A-Za-z])CS(?:\d|\b)', joined, re.I):
         return "CS"
 
-    # NAORI is not kept as an independent group. Decide by actual station.
+    # Only terrestrial NAORI is absorbed into the existing regional groups.
     if any(x in tvg_id for x in KANSAI_IDS) or any(x in joined for x in KANSAI_WORDS):
         return "関西"
     if any(x in tvg_id for x in KANTO_IDS) or any(x in joined for x in KANTO_WORDS):
         return "関東"
 
-    # Existing regional classification wins for non-NAORI entries.
     if group == "関西":
         return "関西"
     if group == "関東":
@@ -105,7 +113,6 @@ def classify(meta: str, url: str):
     if group == "TVerﾘｱﾙﾀｲﾑ" or tvg_id.startswith("tver_") or name.lower().startswith("tver"):
         return "関東"
 
-    # Keep other existing groups, except NAORI which must disappear.
     if group and group.upper() != "NAORI":
         return group
     return "その他"
@@ -125,7 +132,6 @@ def station_key(meta: str):
     low_id = tvg_id.lower()
     low_name = name.lower()
 
-    # TVer must be the final source inside each corresponding station block.
     if low_id.startswith("tver_"):
         suffix = low_id[5:]
         for k, v in TVER_MAP.items():
@@ -146,7 +152,6 @@ def station_key(meta: str):
     if tvg_id:
         return tvg_id
 
-    # fallback: strip source labels from display name
     n = re.sub(r'\s*\([^)]*(?:ハルカ|NAORI|naori|kaiteki|primehome|予備)[^)]*\)\s*$', '', name, flags=re.I)
     return n or name
 
@@ -179,8 +184,9 @@ def main():
         meta = replace_group(meta, group)
         buckets.setdefault(group, []).append([meta, url])
 
-    # Exact top-level order requested by user.
-    priority = ["関西", "関東", "BS", "CS", "予備"]
+    # Requested order: terrestrial, BS, BS(NAORI), CS, CS(NAORI), reserve,
+    # other existing groups, and YouTube last.
+    priority = ["関西", "関東", "BS", "BS(NAORI)", "CS", "CS(NAORI)", "予備"]
     remaining = [g for g in buckets if g not in priority and g != "YouTube"]
     final_groups = [g for g in priority if g in buckets] + remaining
     if "YouTube" in buckets:
@@ -202,16 +208,13 @@ def main():
             out += [meta, url, ""]
 
     # Compatibility markers for the existing GitHub Actions validator.
-    # NAORI channels themselves are already distributed into 関西/関東/BS/CS;
-    # these adjacent comments do not create a user-visible NAORI group.
     out += ["# === NAORI_MANAGED_START ===", "# === NAORI_MANAGED_END ==="]
 
     PATH.write_text("\n".join(out).rstrip() + "\n", encoding="utf-8")
 
-    # Safety checks: NAORI group must be gone; YouTube must be the last channel group.
     result = PATH.read_text(encoding="utf-8")
     if 'group-title="NAORI"' in result or 'group-title="naori"' in result:
-        raise SystemExit("NAORI group still remains")
+        raise SystemExit("standalone terrestrial NAORI group still remains")
     groups = GROUP_RE.findall(result)
     if "YouTube" in groups and groups[-1] != "YouTube":
         raise SystemExit("YouTube is not the final group")
