@@ -1,0 +1,65 @@
+name: Update NHK Radio
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'update_nhk_radio.py'
+      - '.github/workflows/update_nhk_radio.yml'
+  schedule:
+    - cron: '17 */6 * * *'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: himitsu-freewifi-writer
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Sync latest main
+        run: git pull --ff-only origin main
+
+      - name: Refresh NHK regional radio
+        run: python update_nhk_radio.py
+
+      - name: Validate
+        shell: bash
+        run: |
+          test -s nhk_radio.m3u
+          test -s freewifi
+          grep -q '# === NHK_RADIO_MANAGED_START ===' freewifi
+          grep -q '# === NHK_RADIO_MANAGED_END ===' freewifi
+          COUNT=$(grep -c '^#EXTINF:' nhk_radio.m3u || true)
+          echo "NHK radio channels: $COUNT"
+          [ "$COUNT" -ge 2 ]
+          grep -q 'NHKラジオ第1（松山）' nhk_radio.m3u
+          grep -q 'NHK-FM（松山）' nhk_radio.m3u
+
+      - name: Commit updated NHK radio
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add nhk_radio.m3u freewifi
+          if git diff --cached --quiet; then
+            echo 'No NHK radio changes'
+            exit 0
+          fi
+          git commit -m 'Update NHK regional radio streams'
+          git pull --rebase origin main
+          git push origin main
