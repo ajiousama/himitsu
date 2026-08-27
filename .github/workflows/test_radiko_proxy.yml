@@ -6,6 +6,7 @@ on:
     branches: [main]
     paths:
       - radiko_proxy.py
+      - radiko_epg.py
       - radiko_proxy_start.bat
       - .github/workflows/test_radiko_proxy.yml
 
@@ -20,7 +21,7 @@ jobs:
           python-version: '3.12'
 
       - name: Syntax check
-        run: python -m py_compile radiko_proxy.py
+        run: python -m py_compile radiko_proxy.py radiko_epg.py
 
       - name: Connect to a VPN Gate Japan server
         shell: bash
@@ -84,5 +85,24 @@ jobs:
           COUNT=$(grep -c '^#EXTINF:' /tmp/radiko.m3u || true)
           echo "playlist station count: $COUNT"
           [ "$COUNT" -gt 100 ]
+          grep -q 'url-tvg="http://127.0.0.1:9395/epg.xml"' /tmp/radiko.m3u
+          grep -q 'group-title="北海道"' /tmp/radiko.m3u
+          grep -q 'group-title="関東"' /tmp/radiko.m3u
+          grep -q 'group-title="近畿"' /tmp/radiko.m3u
+          grep -q 'group-title="四国"' /tmp/radiko.m3u
+          grep -Eq 'tvg-logo="https?://[^\"]+"' /tmp/radiko.m3u
+          curl -fsS --max-time 90 http://127.0.0.1:9395/epg.xml -o /tmp/radiko_epg.xml
+          python - <<'PY'
+          import xml.etree.ElementTree as ET
+          root = ET.parse('/tmp/radiko_epg.xml').getroot()
+          channels = {x.get('id') for x in root.findall('channel')}
+          programmes = root.findall('programme')
+          print('epg channels:', len(channels))
+          print('epg programmes:', len(programmes))
+          assert 'radiko.RNB' in channels
+          assert 'radiko.TBS' in channels
+          assert len(channels) > 80
+          assert len(programmes) > 500
+          PY
           curl -fsS --max-time 30 http://127.0.0.1:9395/live/RNB | head -20
           curl -fsS --max-time 30 http://127.0.0.1:9395/live/FMT | head -20
