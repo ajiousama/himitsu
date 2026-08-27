@@ -1,0 +1,88 @@
+name: Test radiko IPTV proxy
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - radiko_proxy.py
+      - radiko_proxy_start.bat
+      - .github/workflows/test_radiko_proxy.yml
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Syntax check
+        run: python -m py_compile radiko_proxy.py
+
+      - name: Connect to a VPN Gate Japan server
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq openvpn
+          python - <<'PY'
+          import base64, csv, pathlib, urllib.request
+          req = urllib.request.Request('https://www.vpngate.net/api/iphone/', headers={'User-Agent':'Mozilla/5.0'})
+          text = urllib.request.urlopen(req, timeout=30).read().decode('utf-8','replace')
+          rows=[]
+          for line in text.splitlines():
+              if not line or line.startswith(('*','#')): continue
+              try: row=next(csv.reader([line]))
+              except Exception: continue
+              if len(row)<15 or not (row[5]=='Japan' or row[6]=='JP') or not row[14]: continue
+              try: rows.append((int(row[2] or 0), int(row[4] or 0), row[14]))
+              except ValueError: pass
+          rows.sort(reverse=True)
+          out=pathlib.Path('/tmp/vpngate-jp'); out.mkdir(exist_ok=True)
+          for i,(_,_,enc) in enumerate(rows[:10],1):
+              try: raw=base64.b64decode(enc).decode('utf-8','replace').replace('\r\n','\n')
+              except Exception: continue
+              raw+='\nauth-nocache\nconnect-retry-max 1\nconnect-timeout 10\n'
+              (out/f'{i:02d}.ovpn').write_text(raw)
+          PY
+          CONNECTED=0
+          for CFG in /tmp/vpngate-jp/*.ovpn; do
+            LOG=/tmp/openvpn.log; PID=/tmp/openvpn.pid
+            sudo rm -f "$LOG" "$PID"
+            sudo openvpn --config "$CFG" --daemon --writepid "$PID" --log "$LOG" || true
+            for i in $(seq 1 18); do
+              if sudo grep -q 'Initialization Sequence Completed' "$LOG" 2>/dev/null; then CONNECTED=1; break; fi
+              sleep 1
+            done
+            [ "$CONNECTED" -eq 1 ] && break
+            if [ -f "$PID" ]; then sudo kill "$(sudo cat "$PID")" 2>/dev/null || true; fi
+          done
+          [ "$CONNECTED" -eq 1 ] || exit 1
+          echo -n 'radiko area: '; curl -fsSL --max-time 12 https://radiko.jp/area || true; echo
+
+      - name: Start proxy and test playlist
+        env:
+          RADIKO_MAIL: ${{ secrets.RADIKO_MAIL }}
+          RADIKO_PASSWORD: ${{ secrets.RADIKO_PASSWORD }}
+          RADIKO_PROXY_HOST: 127.0.0.1
+          RADIKO_PROXY_PORT: 9395
+        shell: bash
+        run: |
+          set -euo pipefail
+          python radiko_proxy.py >/tmp/radiko_proxy.log 2>&1 &
+          PID=$!
+          trap 'kill $PID 2>/dev/null || true; cat /tmp/radiko_proxy.log || true' EXIT
+          for i in $(seq 1 45); do
+            if curl -fsS --max-time 3 http://127.0.0.1:9395/health; then break; fi
+            sleep 2
+          done
+          curl -fsS --max-time 10 http://127.0.0.1:9395/health
+          curl -fsS --max-time 30 http://127.0.0.1:9395/playlist.m3u -o /tmp/radiko.m3u
+          COUNT=$(grep -c '^#EXTINF:' /tmp/radiko.m3u || true)
+          echo "playlist station count: $COUNT"
+          [ "$COUNT" -gt 100 ]
+          curl -fsS --max-time 30 http://127.0.0.1:9395/live/RNB | head -20
+          curl -fsS --max-time 30 http://127.0.0.1:9395/live/FMT | head -20
