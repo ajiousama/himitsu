@@ -16,5 +16,8 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
-      - name: Test RNB and FM Ehime LIVE
+      - name: Test radiko Premium area-free LIVE
+        env:
+          RADIKO_MAIL: ${{ secrets.RADIKO_MAIL }}
+          RADIKO_PASSWORD: ${{ secrets.RADIKO_PASSWORD }}
         run: python radiko_live_test.py
