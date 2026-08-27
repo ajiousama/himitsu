@@ -66,7 +66,7 @@ text = '\n'.join(out) + '\n'
 block = []
 for cid, (tvg_id, name, logo) in KANSAI.items():
     block += [
-        f'#EXTINF:-1 tvg-id="{tvg_id}" tvg-logo="{logo}" group-title="関西(naori)",{name}',
+        f'#EXTINF:-1 tvg-id="{tvg_id}" tvg-logo="{logo}" group-title="関西",{name}',
         BASE + cid,
     ]
 text = text.replace(END, '\n'.join(block) + '\n' + END)
@@ -107,3 +107,14 @@ if missing_logo:
 
 P.write_text(text, encoding='utf-8')
 print('NAORI metadata OK:', naori_count, 'channels; Kansai gx01-gx06 confirmed; EPG ids/logos validated')
+
+# Final FreeWiFi cleanup after NAORI is appended:
+# - absorb NAORI into Kansai/Kanto/BS/CS
+# - keep TVer as the last source of each terrestrial station
+# - keep YouTube as the final group
+import reorder_freewifi
+reorder_freewifi.main()
+
+# If a TVer station has no real EPG, display its channel name for 23h59m.
+import tver_epg_fallback
+tver_epg_fallback.main()
