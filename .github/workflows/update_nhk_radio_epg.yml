@@ -42,27 +42,10 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Check NHK API key
-        shell: bash
-        env:
-          NHK_API_KEY: ${{ secrets.NHK_API_KEY }}
-        run: |
-          if [ -n "$NHK_API_KEY" ]; then
-            echo "NHK_EPG_ENABLED=1" >> "$GITHUB_ENV"
-            echo "NHK Program API key detected"
-          else
-            echo "NHK_EPG_ENABLED=0" >> "$GITHUB_ENV"
-            echo "::warning::NHK_API_KEY is not set. NHK radio EPG update is skipped; existing guides.xml is preserved."
-          fi
-
       - name: Merge NHK radio programme guide
-        if: env.NHK_EPG_ENABLED == '1'
-        env:
-          NHK_API_KEY: ${{ secrets.NHK_API_KEY }}
         run: python nhk_radio_epg.py
 
       - name: Validate NHK radio EPG
-        if: env.NHK_EPG_ENABLED == '1'
         shell: bash
         run: |
           python -c "import xml.etree.ElementTree as ET; ET.parse('guides.xml'); print('XML OK')"
@@ -74,7 +57,6 @@ jobs:
           test "$PG" -gt 0
 
       - name: Commit NHK radio EPG
-        if: env.NHK_EPG_ENABLED == '1'
         shell: bash
         run: |
           cp guides.xml /tmp/guides.xml.nhk-radio
