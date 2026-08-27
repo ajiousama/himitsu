@@ -63,8 +63,29 @@ def ensure_auth(force=False):
     return session, token, area
 
 
+def region_for_prefecture(n):
+    if n == 1:
+        return "北海道"
+    if 2 <= n <= 7:
+        return "東北"
+    if 8 <= n <= 14:
+        return "関東"
+    if 15 <= n <= 20:
+        return "甲信越"
+    if 21 <= n <= 24:
+        return "東海"
+    if 25 <= n <= 30:
+        return "近畿"
+    if 31 <= n <= 35:
+        return "中国"
+    if 36 <= n <= 39:
+        return "四国"
+    return "九州沖縄"
+
+
 def _fetch_area_stations(n):
     area = f"JP{n}"
+    region = region_for_prefecture(n)
     try:
         with open_url(
             f"https://radiko.jp/v3/station/list/{area}.xml",
@@ -85,7 +106,7 @@ def _fetch_area_stations(n):
             or ""
         ).strip()
         if sid:
-            found.append((sid, {"name": name, "logo": logo}))
+            found.append((sid, {"name": name, "logo": logo, "region": region, "pref": n}))
     return found
 
 
@@ -94,11 +115,15 @@ def discover_stations(force=False):
         if _state["stations"] is not None and not force:
             return _state["stations"]
     stations = {}
+    results = {}
     with concurrent.futures.ThreadPoolExecutor(max_workers=12) as ex:
-        futures = [ex.submit(_fetch_area_stations, n) for n in range(1, 48)]
+        futures = {ex.submit(_fetch_area_stations, n): n for n in range(1, 48)}
         for fut in concurrent.futures.as_completed(futures):
-            for sid, meta in fut.result():
-                stations.setdefault(sid, meta)
+            results[futures[fut]] = fut.result()
+    # Process by prefecture number so duplicate station IDs get a stable home region.
+    for n in range(1, 48):
+        for sid, meta in results.get(n, []):
+            stations.setdefault(sid, meta)
     with _state_lock:
         _state["stations"] = stations
     return stations
@@ -169,7 +194,7 @@ def fetch_proxied(url, refresh=False):
 
 
 class Handler(BaseHTTPRequestHandler):
-    server_version = "RadikoProxy/1.2"
+    server_version = "RadikoProxy/1.3"
 
     def log_message(self, fmt, *args):
         print("[radiko] " + fmt % args, flush=True)
@@ -199,9 +224,12 @@ class Handler(BaseHTTPRequestHandler):
             if p.path in ("/", "/playlist.m3u"):
                 stations = discover_stations()
                 lines = ["#EXTM3U"]
-                for sid, meta in sorted(stations.items()):
+                order = {name: i for i, name in enumerate(("北海道", "東北", "関東", "甲信越", "東海", "近畿", "四国", "中国", "九州沖縄"))}
+                items = sorted(stations.items(), key=lambda kv: (order.get(kv[1].get("region", ""), 99), kv[1].get("pref", 99), kv[1].get("name", "")))
+                for sid, meta in items:
                     logo = meta.get("logo", "")
-                    lines.append(f'#EXTINF:-1 tvg-id="radiko.{sid}" tvg-logo="{logo}" group-title="地域（ラジオ）",{meta["name"]}')
+                    region = meta.get("region", "その他")
+                    lines.append(f'#EXTINF:-1 tvg-id="radiko.{sid}" tvg-logo="{logo}" group-title="{region}",{meta["name"]}')
                     lines.append(f"{base_proxy}/live/{urllib.parse.quote(sid)}")
                 self.send_bytes(200, ("\n".join(lines)+"\n").encode("utf-8"), "audio/x-mpegurl; charset=utf-8")
                 return
