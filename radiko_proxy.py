@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import base64, hashlib, json, os, random, threading, urllib.parse, urllib.request, urllib.error
+import base64, concurrent.futures, hashlib, json, os, random, threading, urllib.parse, urllib.request, urllib.error
 import xml.etree.ElementTree as ET
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urljoin
@@ -54,11 +54,33 @@ def auth(session):
 
 def ensure_auth(force=False):
     with _state_lock:
-        if force or not _state["token"]:
-            session = premium_login()
-            token, area = auth(session)
-            _state.update(session=session, token=token, area=area)
-        return _state["session"], _state["token"], _state["area"]
+        if not force and _state["token"]:
+            return _state["session"], _state["token"], _state["area"]
+    session = premium_login()
+    token, area = auth(session)
+    with _state_lock:
+        _state.update(session=session, token=token, area=area)
+    return session, token, area
+
+
+def _fetch_area_stations(n):
+    area = f"JP{n}"
+    try:
+        with open_url(
+            f"https://radiko.jp/v3/station/list/{area}.xml",
+            headers={"User-Agent": "Mozilla/5.0"}, timeout=8,
+        ) as r:
+            root = ET.fromstring(r.read())
+    except Exception:
+        return []
+    found = []
+    for st in root.findall("station"):
+        sid = (st.findtext("id") or "").strip()
+        name = (st.findtext("name") or sid).strip()
+        logo = (st.findtext("logo_xsmall") or st.findtext("logo_small") or "").strip()
+        if sid:
+            found.append((sid, {"name": name, "logo": logo}))
+    return found
 
 
 def discover_stations(force=False):
@@ -66,19 +88,11 @@ def discover_stations(force=False):
         if _state["stations"] is not None and not force:
             return _state["stations"]
     stations = {}
-    for n in range(1, 48):
-        area = f"JP{n}"
-        try:
-            with open_url(f"https://radiko.jp/v3/station/list/{area}.xml", headers={"User-Agent":"Mozilla/5.0"}, timeout=8) as r:
-                root = ET.fromstring(r.read())
-        except Exception:
-            continue
-        for st in root.findall("station"):
-            sid = (st.findtext("id") or "").strip()
-            name = (st.findtext("name") or sid).strip()
-            logo = (st.findtext("logo_xsmall") or st.findtext("logo_small") or "").strip()
-            if sid:
-                stations.setdefault(sid, {"name": name, "logo": logo})
+    with concurrent.futures.ThreadPoolExecutor(max_workers=12) as ex:
+        futures = [ex.submit(_fetch_area_stations, n) for n in range(1, 48)]
+        for fut in concurrent.futures.as_completed(futures):
+            for sid, meta in fut.result():
+                stations.setdefault(sid, meta)
     with _state_lock:
         _state["stations"] = stations
     return stations
@@ -149,10 +163,10 @@ def fetch_proxied(url, refresh=False):
 
 
 class Handler(BaseHTTPRequestHandler):
-    server_version = "RadikoProxy/1.0"
+    server_version = "RadikoProxy/1.1"
 
     def log_message(self, fmt, *args):
-        print("[radiko] " + fmt % args)
+        print("[radiko] " + fmt % args, flush=True)
 
     def send_bytes(self, status, data, content_type):
         self.send_response(status)
@@ -166,6 +180,16 @@ class Handler(BaseHTTPRequestHandler):
         p = urllib.parse.urlsplit(self.path)
         base_proxy = f"http://{self.headers.get('Host', f'{HOST}:{PORT}')}"
         try:
+            if p.path == "/health":
+                self.send_bytes(200, b"OK\n", "text/plain; charset=utf-8")
+                return
+
+            if p.path == "/ready":
+                _, _, area = ensure_auth()
+                stations = discover_stations()
+                self.send_bytes(200, f"OK {area} stations={len(stations)}\n".encode(), "text/plain; charset=utf-8")
+                return
+
             if p.path in ("/", "/playlist.m3u"):
                 stations = discover_stations()
                 lines = ["#EXTM3U"]
@@ -200,21 +224,14 @@ class Handler(BaseHTTPRequestHandler):
                     self.send_bytes(200, data, ctype or "application/octet-stream")
                 return
 
-            if p.path == "/health":
-                _, _, area = ensure_auth()
-                self.send_bytes(200, f"OK {area}\n".encode(), "text/plain; charset=utf-8")
-                return
-
             self.send_error(404)
         except Exception as e:
             self.send_error(502, str(e))
 
 
 def main():
-    session, token, area = ensure_auth()
-    stations = discover_stations()
-    print(f"radiko Premium: OK / area={area} / stations={len(stations)}")
-    print(f"VLC playlist: http://{HOST}:{PORT}/playlist.m3u")
+    print(f"radiko proxy listening: http://{HOST}:{PORT}", flush=True)
+    print(f"VLC playlist: http://{HOST}:{PORT}/playlist.m3u", flush=True)
     ThreadingHTTPServer((HOST, PORT), Handler).serve_forever()
 
 
