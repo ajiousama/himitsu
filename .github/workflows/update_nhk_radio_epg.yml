@@ -1,0 +1,76 @@
+name: Update NHK Radio EPG
+
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows:
+      - "Update FreeWiFi ALL（手動一発 / 自動EPG）"
+    types:
+      - completed
+  schedule:
+    - cron: "30 0,6,12,18 * * *"
+  push:
+    branches:
+      - main
+    paths:
+      - "nhk_radio_epg.py"
+      - "nhk_radio.m3u"
+      - ".github/workflows/update_nhk_radio_epg.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: himitsu-freewifi-writer
+  cancel-in-progress: false
+
+jobs:
+  update:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Sync latest main
+        run: git pull --ff-only origin main
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Merge NHK radio programme guide
+        env:
+          NHK_API_KEY: ${{ secrets.NHK_API_KEY }}
+        run: python nhk_radio_epg.py
+
+      - name: Validate NHK radio EPG
+        shell: bash
+        run: |
+          python -c "import xml.etree.ElementTree as ET; ET.parse('guides.xml'); print('XML OK')"
+          CH=$(grep -E -c '<channel id="nhk_(r1|fm)_' guides.xml || true)
+          PG=$(grep -E -c '<programme .*channel="nhk_(r1|fm)_' guides.xml || true)
+          echo "NHK radio EPG channels: $CH"
+          echo "NHK radio EPG programmes: $PG"
+          test "$CH" -gt 0
+          test "$PG" -gt 0
+
+      - name: Commit NHK radio EPG
+        shell: bash
+        run: |
+          cp guides.xml /tmp/guides.xml.nhk-radio
+          git fetch origin main
+          git reset --hard origin/main
+          cp /tmp/guides.xml.nhk-radio guides.xml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add guides.xml
+          if git diff --cached --quiet; then
+            echo "No NHK radio EPG changes"
+            exit 0
+          fi
+          git commit -m "Update NHK radio EPG"
+          git push origin HEAD:main
