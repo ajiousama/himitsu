@@ -11,11 +11,62 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
+
+      - name: Connect to a VPN Gate Japan server
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq openvpn
+          python - <<'PY'
+          import base64, csv, io, urllib.request
+          url = 'https://www.vpngate.net/api/iphone/'
+          req = urllib.request.Request(url, headers={'User-Agent':'Mozilla/5.0'})
+          text = urllib.request.urlopen(req, timeout=30).read().decode('utf-8', 'replace')
+          rows = []
+          for line in text.splitlines():
+              if not line or line.startswith('*') or line.startswith('#'):
+                  continue
+              try:
+                  row = next(csv.reader([line]))
+              except Exception:
+                  continue
+              if len(row) < 15 or row[6] != 'Japan' or not row[14]:
+                  continue
+              try:
+                  score = int(row[2] or 0)
+                  speed = int(row[4] or 0)
+              except ValueError:
+                  score = speed = 0
+              rows.append((score, speed, row[14]))
+          if not rows:
+              raise SystemExit('No VPN Gate Japan OpenVPN server found')
+          rows.sort(reverse=True)
+          raw = base64.b64decode(rows[0][2]).decode('utf-8', 'replace')
+          raw = raw.replace('\r\n', '\n')
+          raw += '\nauth-nocache\nconnect-retry-max 2\nconnect-timeout 15\n'
+          open('/tmp/vpngate.ovpn','w').write(raw)
+          print('Selected a VPN Gate Japan server (address intentionally not printed)')
+          PY
+          sudo openvpn --config /tmp/vpngate.ovpn --daemon --log /tmp/openvpn.log
+          for i in $(seq 1 30); do
+            if grep -q 'Initialization Sequence Completed' /tmp/openvpn.log 2>/dev/null; then
+              echo 'VPN Gate connection: OK'
+              break
+            fi
+            sleep 2
+          done
+          grep -q 'Initialization Sequence Completed' /tmp/openvpn.log || { echo 'VPN connection failed'; tail -30 /tmp/openvpn.log; exit 1; }
+          echo -n 'radiko area after VPN: '
+          curl -fsSL --max-time 15 https://radiko.jp/area || true
+          echo
+
       - name: Test radiko Premium area-free LIVE
         env:
           RADIKO_MAIL: ${{ secrets.RADIKO_MAIL }}
