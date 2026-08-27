@@ -51,9 +51,9 @@ def auth(session):
     with urllib.request.urlopen(req, timeout=30) as r:
         body = r.read().decode().strip()
     area = body.split(",")[0] if body else "OUT"
-    if area == "OUT":
-        raise SystemExit("premium auth returned OUT")
     print("radiko detected area:", area)
+    if area == "OUT":
+        print("runner area is OUT, but Premium area-free is enabled; continuing without X-Radiko-AreaId")
     print("NOTE: session/token are intentionally not printed.")
     return token, area
 
@@ -84,9 +84,10 @@ def test_station(token, area, station, name, areafree):
     url = base + sep + q
     headers = {
         "X-Radiko-AuthToken": token,
-        "X-Radiko-AreaId": area,
         "User-Agent": "Mozilla/5.0",
     }
+    if area and area != "OUT":
+        headers["X-Radiko-AreaId"] = area
     req = urllib.request.Request(url, headers=headers)
     try:
         with urllib.request.urlopen(req, timeout=30) as r:
