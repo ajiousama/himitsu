@@ -98,12 +98,13 @@ def replace_radiko_block(stations):
     order = {name: i for i, name in enumerate(order_names)}
     items = sorted(stations.items(), key=lambda kv: (order.get(kv[1]["region"], 99), kv[1]["pref"], kv[1]["name"]))
 
-    lines = ["", START, "## RADIKO"]
+    lines = ["", START, "## ラジオ"]
     for sid, meta in items:
         name = meta["name"].replace("\n", " ").strip()
+        if not name.endswith("（ラジオ）"):
+            name += "（ラジオ）"
         logo = meta["logo"].replace('"', "%22")
-        region = meta["region"]
-        lines.append(f'#EXTINF:-1 tvg-id="radiko.{sid}" tvg-logo="{logo}" group-title="{region}",{name}')
+        lines.append(f'#EXTINF:-1 tvg-id="radiko.{sid}" tvg-logo="{logo}" group-title="ラジオ",{name}')
         lines.append(f"{BASE}/live/{urllib.parse.quote(sid)}")
     lines.extend([END, ""])
 
