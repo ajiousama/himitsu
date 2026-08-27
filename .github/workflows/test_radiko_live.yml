@@ -1,0 +1,20 @@
+name: Test radiko LIVE
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - radiko_live_test.py
+      - .github/workflows/test_radiko_live.yml
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Test RNB and FM Ehime LIVE
+        run: python radiko_live_test.py
