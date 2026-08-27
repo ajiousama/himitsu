@@ -1,24 +1,14 @@
 #!/usr/bin/env python3
-import base64, json, os, random, hashlib, urllib.parse, urllib.request, xml.etree.ElementTree as ET
+import base64, concurrent.futures, hashlib, json, os, random, urllib.parse, urllib.request, xml.etree.ElementTree as ET
 
 AUTH_KEY = "bcd151073c03b352e1ef2fd66c32209da9ca0afa"
-STATIONS = {
-    "RNB": "南海放送",
-    "JOEU-FM": "FM愛媛",
-    "MBS": "MBSラジオ",
-    "ABC": "ABCラジオ",
-    "OBC": "ラジオ大阪",
-    "FM802": "FM802",
-    "FMO": "FM大阪",
-    "CCL": "FM COCOLO",
-    "KBS": "KBS京都ラジオ",
-}
 BASE_HEADERS = {
     "X-Radiko-App": "pc_html5",
     "X-Radiko-App-Version": "0.0.1",
     "X-Radiko-Device": "pc",
     "X-Radiko-User": "dummy_user",
 }
+
 
 def premium_login():
     mail = os.environ.get("RADIKO_MAIL", "").strip()
@@ -37,6 +27,7 @@ def premium_login():
     print("areafree:", areafree)
     return session, areafree == "1"
 
+
 def auth(session):
     req = urllib.request.Request("https://radiko.jp/v2/api/auth1", headers=BASE_HEADERS)
     with urllib.request.urlopen(req, timeout=30) as r:
@@ -52,28 +43,53 @@ def auth(session):
         body = r.read().decode().strip()
     area = body.split(",")[0] if body else "OUT"
     print("radiko detected area:", area)
-    if area == "OUT":
-        print("runner area is OUT, but Premium area-free is enabled; continuing without X-Radiko-AreaId")
     print("NOTE: session/token are intentionally not printed.")
     return token, area
 
-def playlist_create_url(station, areafree):
-    req = urllib.request.Request(f"https://radiko.jp/v3/station/stream/pc_html5/{station}.xml")
-    with urllib.request.urlopen(req, timeout=30) as r:
-        root = ET.fromstring(r.read())
-    wanted = "1" if areafree else "0"
+
+def discover_stations():
+    stations = {}
+    for n in range(1, 48):
+        area = f"JP{n}"
+        url = f"https://radiko.jp/v3/station/list/{area}.xml"
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+            with urllib.request.urlopen(req, timeout=10) as r:
+                root = ET.fromstring(r.read())
+        except Exception as e:
+            print(f"station list {area}: skip {type(e).__name__}")
+            continue
+        for st in root.findall("station"):
+            sid = (st.findtext("id") or "").strip()
+            name = (st.findtext("name") or sid).strip()
+            if sid:
+                stations.setdefault(sid, name)
+    print("discovered stations:", len(stations))
+    return stations
+
+
+def playlist_create_url(station):
+    try:
+        req = urllib.request.Request(
+            f"https://radiko.jp/v3/station/stream/pc_html5/{station}.xml",
+            headers={"User-Agent": "Mozilla/5.0"},
+        )
+        with urllib.request.urlopen(req, timeout=10) as r:
+            root = ET.fromstring(r.read())
+    except Exception:
+        return None
     for url in root.findall("url"):
-        if url.get("areafree") == wanted:
+        if url.get("areafree") == "1":
             node = url.find("playlist_create_url")
             if node is not None and node.text:
                 return node.text.strip()
     return None
 
-def test_station(token, area, station, name, areafree):
-    base = playlist_create_url(station, areafree)
+
+def test_station(token, area, station, name):
+    base = playlist_create_url(station)
     if not base:
-        print(f"{station} {name}: NG no playlist URL")
-        return False
+        return station, name, False, "no area-free playlist URL"
     q = urllib.parse.urlencode({
         "station_id": station,
         "l": 15,
@@ -88,29 +104,45 @@ def test_station(token, area, station, name, areafree):
     }
     if area and area != "OUT":
         headers["X-Radiko-AreaId"] = area
-    req = urllib.request.Request(url, headers=headers)
     try:
-        with urllib.request.urlopen(req, timeout=30) as r:
+        req = urllib.request.Request(url, headers=headers)
+        with urllib.request.urlopen(req, timeout=12) as r:
             body = r.read(4096).decode("utf-8", "replace")
         ok = "#EXTM3U" in body
-        print(f"{station} {name}: {'OK' if ok else 'NG'}")
-        return ok
+        return station, name, ok, "OK" if ok else "not m3u8"
     except Exception as e:
-        print(f"{station} {name}: NG {type(e).__name__}: {e}")
-        return False
+        return station, name, False, f"{type(e).__name__}: {e}"
+
 
 def main():
     session, areafree = premium_login()
     if not areafree:
         raise SystemExit("Premium login succeeded but area-free is not enabled")
     token, area = auth(session)
+    stations = discover_stations()
+    if not stations:
+        raise SystemExit("No radiko stations discovered")
+
     oks = []
-    for sid, name in STATIONS.items():
-        if test_station(token, area, sid, name, True):
-            oks.append(sid)
-    print("LIVE OK:", ",".join(oks) if oks else "none")
+    ngs = []
+    with concurrent.futures.ThreadPoolExecutor(max_workers=5) as ex:
+        futures = [ex.submit(test_station, token, area, sid, name) for sid, name in stations.items()]
+        for fut in concurrent.futures.as_completed(futures):
+            sid, name, ok, detail = fut.result()
+            print(f"{sid} {name}: {'OK' if ok else 'NG'} {detail if not ok else ''}".rstrip())
+            (oks if ok else ngs).append((sid, name))
+
+    oks.sort()
+    ngs.sort()
+    print("=== SUMMARY ===")
+    print("LIVE OK count:", len(oks))
+    print("LIVE NG count:", len(ngs))
+    print("LIVE OK stations:")
+    for sid, name in oks:
+        print(f"  {sid}\t{name}")
     if not oks:
         raise SystemExit("No station LIVE succeeded")
+
 
 if __name__ == "__main__":
     main()
