@@ -85,6 +85,11 @@ def set_group(ext, group):
     return ext.replace(',', f' group-title="{group}",', 1)
 
 
+def group_title(ext):
+    m = re.search(r'group-title="([^"]+)"', ext)
+    return m.group(1).strip() if m else ''
+
+
 def youtube_video_id(url):
     """Extract stable YouTube video id from googlevideo HLS or YouTube URL."""
     if not url:
@@ -109,6 +114,44 @@ def entry_name(ext):
 def logo_url(ext):
     m = re.search(r'tvg-logo="([^"]+)"', ext)
     return m.group(1).strip() if m else ''
+
+
+def logo_sort_number(ext):
+    """Return a stable number from the logo basename, or None if it has no number.
+
+    Existing YouTube logos often use names such as yt43_02_natsu_shiba.png.
+    For the animal group, non-numbered logos stay first; numbered logos are
+    placed afterwards and ordered by the last numeric token in the basename.
+    """
+    logo = logo_url(ext)
+    if not logo:
+        return None
+    base = logo.rsplit('/', 1)[-1].split('?', 1)[0]
+    nums = re.findall(r'(?<![A-Za-z])\d+(?![A-Za-z])', base)
+    return int(nums[-1]) if nums else None
+
+
+def sort_animals(entries):
+    animal_positions = [i for i, (_, ext, _) in enumerate(entries) if group_title(ext) == '動物']
+    if len(animal_positions) < 2:
+        return entries
+
+    animals = [entries[i] for i in animal_positions]
+    original_order = {id(entry): n for n, entry in enumerate(animals)}
+
+    def key(entry):
+        _, ext, _ = entry
+        n = logo_sort_number(ext)
+        # ロゴ番号なしを先、番号ありは後ろ。番号あり同士は数字順。
+        if n is None:
+            return (0, original_order[id(entry)])
+        return (1, n, original_order[id(entry)])
+
+    animals.sort(key=key)
+    out = list(entries)
+    for pos, entry in zip(animal_positions, animals):
+        out[pos] = entry
+    return out
 
 
 def render(header, entries):
@@ -176,6 +219,14 @@ def main():
         if vid:
             seen_video[vid] = (cid, entry_name(ext))
         kept.append([cid, ext, url])
+
+    # 動物グループだけを、そのグループ内で並べ替える。
+    # ロゴに番号がないものを先、番号入りロゴは後回しにし、番号順を優先する。
+    before_animals = [entry_name(ext) for _, ext, _ in kept if group_title(ext) == '動物']
+    kept = sort_animals(kept)
+    after_animals = [entry_name(ext) for _, ext, _ in kept if group_title(ext) == '動物']
+    if before_animals != after_animals:
+        print('Animal order:', ' -> '.join(after_animals))
 
     # ロゴ指定を最終検査。欠落はログで明示し、Actions検証で見落とさない。
     missing_logos = []
