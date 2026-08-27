@@ -82,15 +82,26 @@ jobs:
           done
           curl -fsS --max-time 10 http://127.0.0.1:9395/health
           curl -fsS --max-time 30 http://127.0.0.1:9395/playlist.m3u -o /tmp/radiko.m3u
-          COUNT=$(grep -c '^#EXTINF:' /tmp/radiko.m3u || true)
-          echo "playlist station count: $COUNT"
-          [ "$COUNT" -gt 100 ]
-          grep -q 'url-tvg="http://127.0.0.1:9395/epg.xml"' /tmp/radiko.m3u
-          grep -q 'group-title="北海道"' /tmp/radiko.m3u
-          grep -q 'group-title="関東"' /tmp/radiko.m3u
-          grep -q 'group-title="近畿"' /tmp/radiko.m3u
-          grep -q 'group-title="四国"' /tmp/radiko.m3u
-          grep -Eq 'tvg-logo="https?://[^\"]+"' /tmp/radiko.m3u
+          python - <<'PY'
+          import re
+          text=open('/tmp/radiko.m3u',encoding='utf-8').read()
+          lines=text.splitlines()
+          extinf=[x for x in lines if x.startswith('#EXTINF:')]
+          groups=sorted(set(re.findall(r'group-title="([^"]+)"', text)))
+          logos=re.findall(r'tvg-logo="([^"]*)"', text)
+          print('playlist station count:', len(extinf))
+          print('groups:', ', '.join(groups))
+          print('logo entries:', sum(bool(x) for x in logos), '/', len(logos))
+          print('header:', lines[0] if lines else '')
+          assert len(extinf) > 100
+          assert lines and 'url-tvg="http://127.0.0.1:9395/epg.xml"' in lines[0]
+          required={'北海道','東北','関東','甲信越','東海','近畿','四国','中国','九州沖縄'}
+          missing=required-set(groups)
+          assert not missing, f'missing groups: {sorted(missing)}'
+          assert sum(bool(x) for x in logos) > 90, 'too many missing logos'
+          assert 'tvg-id="radiko.RNB"' in text
+          assert 'tvg-id="radiko.JOEU-FM"' in text
+          PY
           curl -fsS --max-time 90 http://127.0.0.1:9395/epg.xml -o /tmp/radiko_epg.xml
           python - <<'PY'
           import xml.etree.ElementTree as ET
