@@ -3,6 +3,7 @@ import base64, concurrent.futures, hashlib, json, os, random, threading, urllib.
 import xml.etree.ElementTree as ET
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urljoin
+from radiko_epg import build_xmltv
 
 AUTH_KEY = "bcd151073c03b352e1ef2fd66c32209da9ca0afa"
 BASE_HEADERS = {
@@ -16,7 +17,7 @@ HOST = os.environ.get("RADIKO_PROXY_HOST", "127.0.0.1")
 PORT = int(os.environ.get("RADIKO_PROXY_PORT", "9395"))
 
 _state_lock = threading.Lock()
-_state = {"session": None, "token": None, "area": None, "stations": None}
+_state = {"session": None, "token": None, "area": None, "stations": None, "epg": None}
 
 
 def open_url(url, headers=None, data=None, timeout=15):
@@ -120,13 +121,22 @@ def discover_stations(force=False):
         futures = {ex.submit(_fetch_area_stations, n): n for n in range(1, 48)}
         for fut in concurrent.futures.as_completed(futures):
             results[futures[fut]] = fut.result()
-    # Process by prefecture number so duplicate station IDs get a stable home region.
     for n in range(1, 48):
         for sid, meta in results.get(n, []):
             stations.setdefault(sid, meta)
     with _state_lock:
         _state["stations"] = stations
     return stations
+
+
+def get_epg(force=False):
+    with _state_lock:
+        if _state["epg"] is not None and not force:
+            return _state["epg"]
+    data = build_xmltv(3)
+    with _state_lock:
+        _state["epg"] = data
+    return data
 
 
 def playlist_create_urls(station):
@@ -194,7 +204,7 @@ def fetch_proxied(url, refresh=False):
 
 
 class Handler(BaseHTTPRequestHandler):
-    server_version = "RadikoProxy/1.3"
+    server_version = "RadikoProxy/1.4"
 
     def log_message(self, fmt, *args):
         print("[radiko] " + fmt % args, flush=True)
@@ -221,9 +231,13 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_bytes(200, f"OK {area} stations={len(stations)}\n".encode(), "text/plain; charset=utf-8")
                 return
 
+            if p.path == "/epg.xml":
+                self.send_bytes(200, get_epg(), "application/xml; charset=utf-8")
+                return
+
             if p.path in ("/", "/playlist.m3u"):
                 stations = discover_stations()
-                lines = ["#EXTM3U"]
+                lines = [f'#EXTM3U url-tvg="{base_proxy}/epg.xml"']
                 order = {name: i for i, name in enumerate(("北海道", "東北", "関東", "甲信越", "東海", "近畿", "四国", "中国", "九州沖縄"))}
                 items = sorted(stations.items(), key=lambda kv: (order.get(kv[1].get("region", ""), 99), kv[1].get("pref", 99), kv[1].get("name", "")))
                 for sid, meta in items:
@@ -266,6 +280,7 @@ class Handler(BaseHTTPRequestHandler):
 def main():
     print(f"radiko proxy listening: http://{HOST}:{PORT}", flush=True)
     print(f"VLC playlist: http://{HOST}:{PORT}/playlist.m3u", flush=True)
+    print(f"XMLTV EPG: http://{HOST}:{PORT}/epg.xml", flush=True)
     ThreadingHTTPServer((HOST, PORT), Handler).serve_forever()
 
 
