@@ -68,7 +68,7 @@ def discover_stations():
     return stations
 
 
-def playlist_create_url(station):
+def playlist_create_urls(station):
     try:
         req = urllib.request.Request(
             f"https://radiko.jp/v3/station/stream/pc_html5/{station}.xml",
@@ -77,41 +77,56 @@ def playlist_create_url(station):
         with urllib.request.urlopen(req, timeout=10) as r:
             root = ET.fromstring(r.read())
     except Exception:
-        return None
+        return []
+
+    urls = []
     for url in root.findall("url"):
-        if url.get("areafree") == "1":
-            node = url.find("playlist_create_url")
-            if node is not None and node.text:
-                return node.text.strip()
-    return None
+        if url.get("areafree") != "1":
+            continue
+        node = url.find("playlist_create_url")
+        if node is not None and node.text:
+            value = node.text.strip()
+            if value and value not in urls:
+                urls.append(value)
+    return urls
 
 
 def test_station(token, area, station, name):
-    base = playlist_create_url(station)
-    if not base:
+    bases = playlist_create_urls(station)
+    if not bases:
         return station, name, False, "no area-free playlist URL"
-    q = urllib.parse.urlencode({
-        "station_id": station,
-        "l": 15,
-        "lsid": hashlib.md5(str(random.random()).encode()).hexdigest(),
-        "type": "b",
-    })
-    sep = "&" if "?" in base else "?"
-    url = base + sep + q
+
     headers = {
         "X-Radiko-AuthToken": token,
         "User-Agent": "Mozilla/5.0",
     }
-    if area and area != "OUT":
-        headers["X-Radiko-AreaId"] = area
-    try:
-        req = urllib.request.Request(url, headers=headers)
-        with urllib.request.urlopen(req, timeout=12) as r:
-            body = r.read(4096).decode("utf-8", "replace")
-        ok = "#EXTM3U" in body
-        return station, name, ok, "OK" if ok else "not m3u8"
-    except Exception as e:
-        return station, name, False, f"{type(e).__name__}: {e}"
+
+    # Do NOT send X-Radiko-AreaId here. For Premium area-free the auth token/session
+    # carries the entitlement; forcing the VPN-detected area (e.g. JP13) can make
+    # out-of-area stations look like ordinary local playback and return 403.
+    errors = []
+    for base in bases:
+        for stream_type in ("c", "b"):
+            q = urllib.parse.urlencode({
+                "station_id": station,
+                "l": 15,
+                "lsid": hashlib.md5(str(random.random()).encode()).hexdigest(),
+                "type": stream_type,
+            })
+            sep = "&" if "?" in base else "?"
+            url = base + sep + q
+            try:
+                req = urllib.request.Request(url, headers=headers)
+                with urllib.request.urlopen(req, timeout=8) as r:
+                    body = r.read(4096).decode("utf-8", "replace")
+                if "#EXTM3U" in body:
+                    return station, name, True, f"OK type={stream_type}"
+                errors.append(f"type={stream_type}: not m3u8")
+            except Exception as e:
+                errors.append(f"type={stream_type}: {type(e).__name__}: {e}")
+
+    detail = errors[-1] if errors else "all area-free URLs failed"
+    return station, name, False, detail
 
 
 def main():
@@ -129,7 +144,7 @@ def main():
         futures = [ex.submit(test_station, token, area, sid, name) for sid, name in stations.items()]
         for fut in concurrent.futures.as_completed(futures):
             sid, name, ok, detail = fut.result()
-            print(f"{sid} {name}: {'OK' if ok else 'NG'} {detail if not ok else ''}".rstrip())
+            print(f"{sid} {name}: {'OK' if ok else 'NG'} {detail if not ok else ''}".rstrip(), flush=True)
             (oks if ok else ngs).append((sid, name))
 
     oks.sort()
