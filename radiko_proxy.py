@@ -77,7 +77,13 @@ def _fetch_area_stations(n):
     for st in root.findall("station"):
         sid = (st.findtext("id") or "").strip()
         name = (st.findtext("name") or sid).strip()
-        logo = (st.findtext("logo_xsmall") or st.findtext("logo_small") or "").strip()
+        logo = (
+            st.findtext("logo_large")
+            or st.findtext("logo_medium")
+            or st.findtext("logo_small")
+            or st.findtext("logo_xsmall")
+            or ""
+        ).strip()
         if sid:
             found.append((sid, {"name": name, "logo": logo}))
     return found
@@ -163,7 +169,7 @@ def fetch_proxied(url, refresh=False):
 
 
 class Handler(BaseHTTPRequestHandler):
-    server_version = "RadikoProxy/1.1"
+    server_version = "RadikoProxy/1.2"
 
     def log_message(self, fmt, *args):
         print("[radiko] " + fmt % args, flush=True)
@@ -195,7 +201,7 @@ class Handler(BaseHTTPRequestHandler):
                 lines = ["#EXTM3U"]
                 for sid, meta in sorted(stations.items()):
                     logo = meta.get("logo", "")
-                    lines.append(f'#EXTINF:-1 tvg-id="radiko.{sid}" tvg-logo="{logo}" group-title="radiko",{meta["name"]}')
+                    lines.append(f'#EXTINF:-1 tvg-id="radiko.{sid}" tvg-logo="{logo}" group-title="地域（ラジオ）",{meta["name"]}')
                     lines.append(f"{base_proxy}/live/{urllib.parse.quote(sid)}")
                 self.send_bytes(200, ("\n".join(lines)+"\n").encode("utf-8"), "audio/x-mpegurl; charset=utf-8")
                 return
