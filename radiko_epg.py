@@ -42,6 +42,11 @@ def _txt(node, name):
     return (v or "").strip()
 
 
+def _radio_name(name):
+    name = (name or "").strip()
+    return name if name.endswith("（ラジオ）") else f"{name}（ラジオ）"
+
+
 def build_xmltv(days=3):
     today = dt.datetime.now(JST).date()
     dates = [(today + dt.timedelta(days=i)).strftime("%Y%m%d") for i in range(days)]
@@ -72,7 +77,9 @@ def build_xmltv(days=3):
                 sid = (st.get("id") or _txt(st, "id")).strip()
                 if not sid:
                     continue
-                name = (_txt(st, "name") or sid).strip()
+                name = _radio_name((_txt(st, "name") or sid).strip())
+                # radiko.* namespace intentionally keeps radio channels distinct
+                # from any similarly named terrestrial/BS/CS TV channels.
                 ch_id = f"radiko.{sid}"
                 channels.setdefault(ch_id, name)
                 for prog in st.findall("./progs/prog"):
