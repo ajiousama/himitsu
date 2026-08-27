@@ -37,7 +37,6 @@ jobs:
                   row = next(csv.reader([line]))
               except Exception:
                   continue
-              # VPN Gate CSV: CountryLong=row[5], CountryShort=row[6], OpenVPN base64=row[14]
               if len(row) < 15 or not (row[5] == 'Japan' or row[6] == 'JP') or not row[14]:
                   continue
               try:
@@ -57,13 +56,13 @@ jobs:
           PY
           sudo openvpn --config /tmp/vpngate.ovpn --daemon --log /tmp/openvpn.log
           for i in $(seq 1 30); do
-            if grep -q 'Initialization Sequence Completed' /tmp/openvpn.log 2>/dev/null; then
+            if sudo grep -q 'Initialization Sequence Completed' /tmp/openvpn.log 2>/dev/null; then
               echo 'VPN Gate connection: OK'
               break
             fi
             sleep 2
           done
-          grep -q 'Initialization Sequence Completed' /tmp/openvpn.log || { echo 'VPN connection failed'; tail -30 /tmp/openvpn.log; exit 1; }
+          sudo grep -q 'Initialization Sequence Completed' /tmp/openvpn.log || { echo 'VPN connection failed'; sudo tail -30 /tmp/openvpn.log; exit 1; }
           echo -n 'radiko area after VPN: '
           curl -fsSL --max-time 15 https://radiko.jp/area || true
           echo
