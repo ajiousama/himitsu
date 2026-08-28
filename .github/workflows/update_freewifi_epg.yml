@@ -20,8 +20,6 @@ on:
       - "public_sports_youtube_fallback.py"
       - "public_sports_youtube_fallback.m3u"
       - "freewifi_today_jra.py"
-      - "radiko_epg.py"
-      - "radiko_freewifi.py"
       - "verified_daily_status.json"
       - "verified_daily_override.py"
       - "apply_verified_status.py"
@@ -129,28 +127,6 @@ jobs:
       - name: Merge JRA race EPG for official YouTube
         run: python jra_epg_merge.py
 
-      - name: Sync radiko channels and EPG into FreeWiFi
-        run: python radiko_freewifi.py
-
-      - name: Validate radiko block and EPG
-        shell: bash
-        run: |
-          grep -q '# === RADIKO_MANAGED_START ===' freewifi
-          grep -q '# === RADIKO_MANAGED_END ===' freewifi
-          RADIKO_COUNT=$(grep -c 'tvg-id="radiko\.' freewifi || true)
-          echo "radiko channels in FreeWiFi: $RADIKO_COUNT"
-          test "$RADIKO_COUNT" -ge 100
-          python - <<'PY'
-          import xml.etree.ElementTree as ET
-          root=ET.parse('guides.xml').getroot()
-          channels=[x for x in root.findall('channel') if (x.get('id') or '').startswith('radiko.')]
-          programmes=[x for x in root.findall('programme') if (x.get('channel') or '').startswith('radiko.')]
-          print('radiko EPG channels:',len(channels))
-          print('radiko EPG programmes:',len(programmes))
-          assert len(channels) >= 100
-          assert len(programmes) >= 500
-          PY
-
       - name: Sync NAORI channels into FreeWiFi (final pass)
         run: |
           python freewifi_naori.py
@@ -164,6 +140,12 @@ jobs:
           test "$(grep -c 'naori-test.netgenx.site/pxx.php?shk_cid=' freewifi || true)" -ge 36
           for CID in gx01 gx02 gx03 gx04 gx05 gx06; do grep -q "shk_cid=$CID" freewifi; done
 
+      - name: Validate no Radiko in FreeWiFi
+        shell: bash
+        run: |
+          test "$(grep -c 'tvg-id="radiko\.' freewifi || true)" -eq 0
+          test "$(grep -c '127.0.0.1:9395/' freewifi || true)" -eq 0
+
       - name: Validate XML
         run: python -c "import xml.etree.ElementTree as ET; ET.parse('guides.xml'); print('XML OK')"
 
@@ -174,7 +156,6 @@ jobs:
           grep -c '^FALLBACK' epg_coverage.txt || true
           echo "JRA official EPG programmes: $(grep -c 'channel=\"jra.official\"' guides.xml || true)"
           echo "Public sports EPG programmes: $(grep -E -c 'channel=\"(keirin|chihou|boat|auto)\.' guides.xml || true)"
-          echo "radiko EPG programmes: $(grep -c 'channel=\"radiko\.' guides.xml || true)"
 
       - name: Validate verified counts when override is active
         shell: bash
