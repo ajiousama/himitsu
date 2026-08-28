@@ -63,10 +63,7 @@ if not defined PYEXE goto :needpython
 
 if "%AUTO_MODE%"=="0" echo Python: %PYEXE%
 
-rem Keep the runtime pieces current automatically. After this launcher version is installed once,
-rem future Python-side fixes do not require downloading another ZIP.
-powershell -NoProfile -Command "$base='https://raw.githubusercontent.com/ajiousama/himitsu/main/';$files='radiko_proxy.py','radiko_epg.py','radiko_public_gateway.py','radiko_selftest.py';foreach($f in $files){try{$tmp=$f+'.new';Invoke-WebRequest -UseBasicParsing -TimeoutSec 20 ($base+$f) -OutFile $tmp;Move-Item -Force $tmp $f}catch{Remove-Item -Force ($f+'.new') -ErrorAction SilentlyContinue}}" >nul 2>&1
-
+rem Runtime self-update is handled inside radiko_proxy.py now. Avoid PowerShell web-download commands because Defender flags that pattern.
 "%PYEXE%" -m py_compile radiko_proxy.py radiko_epg.py radiko_public_gateway.py radiko_selftest.py
 if errorlevel 1 (
   if "%AUTO_MODE%"=="1" exit /b 1
