@@ -15,6 +15,9 @@ on:
       - "epg_build.py"
       - "kick_channels.json"
       - "kick_epg.py"
+      - "radiko_epg.py"
+      - "radiko_freewifi.py"
+      - "radiko_proxy_core.py"
       - "public_sports_epg_merge.py"
       - "jra_epg_merge.py"
       - "jra_freewifi_finalize.py"
@@ -53,6 +56,9 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: "3.12"
+
+      - name: Validate Radiko Python sources
+        run: python -m py_compile radiko_proxy_core.py radiko_freewifi.py radiko_epg.py
 
       - name: Set up Node.js for manual YouTube refresh
         if: github.event_name == 'workflow_dispatch'
@@ -133,6 +139,11 @@ jobs:
       - name: Merge JRA race EPG for official YouTube
         run: python jra_epg_merge.py
 
+      - name: Restore Radiko channels and 3-day EPG
+        env:
+          RADIKO_PUBLIC_BASE: https://desktop-h41fq90.tailde6548.ts.net
+        run: python radiko_freewifi.py
+
       - name: Add persistent KICK receiver EPG
         run: python kick_epg.py
 
@@ -149,11 +160,28 @@ jobs:
           test "$(grep -c 'naori-test.netgenx.site/pxx.php?shk_cid=' freewifi || true)" -ge 36
           for CID in gx01 gx02 gx03 gx04 gx05 gx06; do grep -q "shk_cid=$CID" freewifi; done
 
-      - name: Validate no Radiko in FreeWiFi
+      - name: Validate Radiko FreeWiFi and EPG
         shell: bash
         run: |
-          test "$(grep -c 'tvg-id="radiko\.' freewifi || true)" -eq 0
-          test "$(grep -c '127.0.0.1:9395/' freewifi || true)" -eq 0
+          grep -q '# === RADIKO_MANAGED_START ===' freewifi
+          grep -q '# === RADIKO_MANAGED_END ===' freewifi
+          test "$(grep -c 'tvg-id="radiko\.' freewifi || true)" -ge 100
+          test "$(grep -c 'desktop-h41fq90.tailde6548.ts.net/live/' freewifi || true)" -ge 100
+          test "$(grep -c '<channel id="radiko\.' guides.xml || true)" -ge 100
+          test "$(grep -c 'channel="radiko\.' guides.xml || true)" -ge 500
+          python - <<'PY'
+          from pathlib import Path
+          s=Path('freewifi').read_text(encoding='utf-8-sig')
+          r=s.index('# === RADIKO_MANAGED_START ===')
+          y=s.index('# === GENERAL_YOUTUBE_MANAGED_START ===')
+          k=s.find('# === KICK_MANAGED_START ===')
+          if k >= 0 and not (r < k < y):
+              raise SystemExit(f'bad block order: radiko={r} kick={k} youtube={y}')
+          if k < 0 and not (r < y):
+              raise SystemExit(f'bad block order: radiko={r} youtube={y}')
+          print('Radiko block order OK')
+          PY
+          echo 'Radiko FreeWiFi/EPG OK'
 
       - name: Validate XML
         run: python -c "import xml.etree.ElementTree as ET; ET.parse('guides.xml'); print('XML OK')"
@@ -175,6 +203,7 @@ jobs:
           grep -c '^FALLBACK' epg_coverage.txt || true
           echo "JRA official EPG programmes: $(grep -c 'channel=\"jra.official\"' guides.xml || true)"
           echo "Public sports EPG programmes: $(grep -E -c 'channel=\"(keirin|chihou|boat|auto)\.' guides.xml || true)"
+          echo "Radiko EPG programmes: $(grep -c 'channel=\"radiko\.' guides.xml || true)"
           echo "KICK EPG programmes: $(grep -c 'channel=\"kick\.' guides.xml || true)"
 
       - name: Validate verified counts when override is active
