@@ -13,6 +13,8 @@ FREEWIFI = Path("freewifi")
 GUIDES = Path("guides.xml")
 START = "# === RADIKO_MANAGED_START ==="
 END = "# === RADIKO_MANAGED_END ==="
+KICK_ANCHOR = "# === KICK_MANAGED_START ==="
+YT_ANCHOR = "# === GENERAL_YOUTUBE_MANAGED_START ==="
 UA = {"User-Agent": "Mozilla/5.0"}
 BASE = os.environ.get("RADIKO_PUBLIC_BASE", "https://desktop-h41fq90.tailde6548.ts.net").rstrip("/")
 
@@ -97,7 +99,6 @@ def is_shortwave_station(sid, name):
 
 
 def strip_all_radiko_entries(text):
-    """Remove every old radiko entry, including legacy/unmanaged duplicates."""
     lines = text.splitlines()
     out = []
     i = 0
@@ -117,7 +118,6 @@ def strip_all_radiko_entries(text):
         if 'tvg-id="radiko.' in line and line.lstrip().startswith("#EXTINF:"):
             removed += 1
             i += 1
-            # Remove the URI belonging to this EXTINF. Preserve unrelated comments/headings.
             while i < len(lines) and not lines[i].strip():
                 i += 1
             if i < len(lines) and not lines[i].lstrip().startswith("#"):
@@ -128,10 +128,17 @@ def strip_all_radiko_entries(text):
             continue
         out.append(line)
         i += 1
-    # Collapse excessive blank lines left by old blocks.
     cleaned = "\n".join(out)
     cleaned = re.sub(r"\n{4,}", "\n\n\n", cleaned)
-    return cleaned, removed
+    return cleaned.rstrip() + "\n", removed
+
+
+def insert_radiko_block(text, block):
+    # Radio belongs after the normal/backup groups but before KICK and the final YouTube block.
+    for anchor in (KICK_ANCHOR, YT_ANCHOR):
+        if anchor in text:
+            return text.replace(anchor, block.rstrip() + "\n\n" + anchor, 1)
+    return text.rstrip() + "\n\n" + block.rstrip() + "\n"
 
 
 def replace_radiko_block(stations):
@@ -142,7 +149,7 @@ def replace_radiko_block(stations):
     order = {name: i for i, name in enumerate(order_names)}
     items = sorted(stations.items(), key=lambda kv: (order.get(kv[1]["region"], 99), kv[1]["pref"], kv[1]["name"]))
 
-    lines = ["", START, "## RADIKO（地域別＋短波）"]
+    lines = [START, "## RADIKO（地域別＋短波）"]
     for sid, meta in items:
         name = meta["name"].replace("\n", " ").strip()
         if not name.endswith("（ラジオ）"):
@@ -154,9 +161,10 @@ def replace_radiko_block(stations):
             group = f'{meta["region"]}（ラジオ）'
         lines.append(f'#EXTINF:-1 tvg-id="radiko.{sid}" tvg-logo="{logo}" group-title="{group}",{name}')
         lines.append(f"{BASE}/live/{urllib.parse.quote(sid)}")
-    lines.extend([END, ""])
+    lines.append(END)
 
-    FREEWIFI.write_text(text.rstrip() + "\n" + "\n".join(lines), encoding="utf-8")
+    updated = insert_radiko_block(text, "\n".join(lines))
+    FREEWIFI.write_text(updated, encoding="utf-8")
     return len(items), removed
 
 
@@ -176,6 +184,7 @@ def merge_radiko_epg():
     for pr in rad_root.findall("programme"):
         main_root.append(pr)
 
+    ET.indent(main_root, space="  ")
     ET.ElementTree(main_root).write(GUIDES, encoding="utf-8", xml_declaration=True)
     return len(rad_root.findall("channel")), len(rad_root.findall("programme"))
 
