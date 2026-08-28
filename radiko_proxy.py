@@ -55,7 +55,7 @@ def region_for_prefecture(n):
 def _fetch_area_stations(n):
  area=f"JP{n}"; region=region_for_prefecture(n)
  try:
-  with open_url(f"{API_BASE}/v3/station/list/{area}.xml",headers={"User-Agent":"Mozilla/5.0"},timeout=8) as r: root=ET.fromstring(r.read())
+  with open_url(f"{WEB_BASE}/v3/station/list/{area}.xml",headers={"User-Agent":"Mozilla/5.0"},timeout=8) as r: root=ET.fromstring(r.read())
  except Exception:return []
  found=[]
  for st in root.findall("station"):
@@ -96,7 +96,6 @@ def playlist_create_urls(station):
   if node.get("areafree")=="1" and node.get("timefree","0")=="0":
    p=node.find("playlist_create_url")
    if p is not None and p.text:out.append(p.text.strip())
- # Current Radiko live endpoint. Keep XML-discovered endpoints as fallbacks.
  current="https://alliance-stream-radiko.smartstream.ne.jp/so/playlist.m3u8"
  if current not in out: out.insert(0,current)
  return out
