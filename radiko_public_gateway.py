@@ -65,7 +65,7 @@ def valid_signed_proxy(parsed):
 
 
 def public_path_allowed(parsed):
-    if parsed.path in {"/health", "/epg.xml", "/playlist.m3u", "/"}:
+    if parsed.path in {"/health", "/epg.xml", "/playlist.m3u", "/", "/live-auto"}:
         return True
     if parsed.path.startswith("/live/"):
         sid = urllib.parse.unquote(parsed.path.split("/", 2)[2])
@@ -98,7 +98,7 @@ def rewrite_text(text, public_base, key):
 
 
 class Handler(BaseHTTPRequestHandler):
-    server_version = "RadikoPublicGateway/1.2"
+    server_version = "RadikoPublicGateway/1.3"
 
     def log_message(self, fmt, *args):
         print("[radiko-public] " + fmt % args, flush=True)
