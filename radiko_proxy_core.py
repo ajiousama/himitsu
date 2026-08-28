@@ -60,7 +60,8 @@ def ensure_auth(force=False):
  if not token or off is None or ln is None: raise RuntimeError('Radiko auth1 headers are incomplete')
  off=int(off); ln=int(ln); part=AUTHKEY[off:off+ln]
  if len(part)!=ln: raise RuntimeError(f'Radiko partial-key range invalid offset={off} length={ln}')
- h={'X-Radiko-Device':'pc','X-Radiko-User':'dummy_user','X-Radiko-AuthToken':token,'X-Radiko-PartialKey':base64.b64encode(part).decode()}
+ h=dict(AUTH1_HEADERS)
+ h.update({'X-Radiko-AuthToken':token,'X-Radiko-PartialKey':base64.b64encode(part).decode()})
  url=API+'/v2/api/auth2'
  if session: url+='?radiko_session='+urllib.parse.quote(session,safe='')
  with open_url(url,h,timeout=30) as r: body=r.read().decode('utf-8','replace').strip()
@@ -135,7 +136,7 @@ def stream_urls(sid,areafree):
  if fallback not in out: out.insert(0,fallback)
  return out
 
-def media_headers(token,area):return {'X-Radiko-AuthToken':token,'X-Radiko-AreaId':area}
+def media_headers(token,area):return {'X-Radiko-AuthToken':token,'X-Radiko-AreaId':area,'User-Agent':'Mozilla/5.0','Referer':'https://radiko.jp/'}
 
 def get_live_master(sid,refresh=False):
  session,token,area,mode=ensure_auth(force=refresh); af=(mode=='premium'); meta=stations().get(sid)
@@ -188,7 +189,7 @@ def local_ip():
  except:return 'PC-LAN-IP'
 
 class Handler(BaseHTTPRequestHandler):
- server_version='RadikoProxy/3.2'
+ server_version='RadikoProxy/3.3'
  def log_message(self,fmt,*args):print('[radiko] '+fmt%args,flush=True)
  def sendb(self,status,data,ct):
   self.send_response(status);self.send_header('Content-Type',ct);self.send_header('Content-Length',str(len(data)));self.send_header('Cache-Control','no-store');self.send_header('Access-Control-Allow-Origin','*');self.end_headers();self.wfile.write(data)
@@ -198,8 +199,6 @@ class Handler(BaseHTTPRequestHandler):
    if p.path=='/health':self.sendb(200,b'OK\n','text/plain');return
    if p.path=='/ready':
     _,_,area,mode=ensure_auth(force=True); ss=stations()
-    if mode=='premium':
-     test='TBS' if area!='JP13' else 'ABC'; get_live_master(test)
     self.sendb(200,f'OK {area} mode={mode} stations={len(ss)}\n'.encode(),'text/plain');return
    if p.path=='/epg.xml':self.sendb(200,epg(),'application/xml');return
    if p.path=='/freewifi.m3u':self.sendb(200,freewifi(base),'audio/x-mpegurl');return
