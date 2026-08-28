@@ -6,6 +6,7 @@ on:
     branches: [main]
     paths:
       - radiko_proxy.py
+      - radiko_proxy_core.py
       - radiko_epg.py
       - radiko_proxy_start.bat
       - radiko_public_gateway.py
@@ -24,7 +25,7 @@ jobs:
           python-version: '3.12'
 
       - name: Syntax check
-        run: python -m py_compile radiko_proxy.py radiko_epg.py radiko_public_gateway.py radiko_selftest.py
+        run: python -m py_compile radiko_proxy.py radiko_proxy_core.py radiko_epg.py radiko_public_gateway.py radiko_selftest.py
 
       - name: Connect to a VPN Gate Japan server
         shell: bash
@@ -101,71 +102,43 @@ jobs:
           required={'北海道','東北','関東','甲信越','東海','近畿','四国','中国','九州沖縄'}
           missing=required-set(groups)
           assert not missing, f'missing groups: {sorted(missing)}'
-          assert sum(bool(x) for x in logos) > 90, 'too many missing logos'
+          assert sum(bool(x) for x in logos) > 90
           assert 'tvg-id="radiko.RNB"' in text
           assert 'tvg-id="radiko.JOEU-FM"' in text
           PY
           curl -fsS --max-time 90 http://127.0.0.1:9395/epg.xml -o /tmp/radiko_epg.xml
           python - <<'PY'
           import xml.etree.ElementTree as ET
-          root = ET.parse('/tmp/radiko_epg.xml').getroot()
-          channels = {x.get('id') for x in root.findall('channel')}
-          programmes = root.findall('programme')
-          print('epg channels:', len(channels))
-          print('epg programmes:', len(programmes))
-          assert 'radiko.RNB' in channels
-          assert 'radiko.TBS' in channels
-          assert len(channels) > 80
-          assert len(programmes) > 500
+          root=ET.parse('/tmp/radiko_epg.xml').getroot(); channels={x.get('id') for x in root.findall('channel')}; programmes=root.findall('programme')
+          print('epg channels:',len(channels)); print('epg programmes:',len(programmes))
+          assert 'radiko.RNB' in channels and 'radiko.TBS' in channels and len(channels)>80 and len(programmes)>500
           PY
-
           python - <<'PY'
           from radiko_proxy import rewrite_m3u
-          src='https://example.radiko.jp/a/master.m3u8'
-          out=rewrite_m3u('#EXTM3U\nchild.m3u8\n',src,'https://gateway.example')
-          assert '#EXTM3U' in out
-          assert 'https://gateway.example/proxy?u=' in out
+          out=rewrite_m3u('#EXTM3U\nchild.m3u8\n','https://example.radiko.jp/a/master.m3u8','https://gateway.example')
+          assert '#EXTM3U' in out and 'https://gateway.example/proxy?u=' in out
           print('HLS rewrite unit check OK')
           PY
-
           RADIKO_PUBLIC_NO_KEY=1 RADIKO_GATEWAY_SIGNING_SECRET=test-signing-secret python - <<'PY'
-          import urllib.parse
-          import radiko_public_gateway as g
+          import urllib.parse, radiko_public_gateway as g
           raw='https://gateway.example/proxy?u='+urllib.parse.quote('https://cdn.example.net/audio/chunk.m3u8',safe='')
           signed=g.signed_proxy_url(raw)
-          assert '&s=' in signed or '?s=' in signed
-          assert g.valid_signed_proxy(urllib.parse.urlsplit(signed))
-          assert not g.valid_signed_proxy(urllib.parse.urlsplit(raw))
-          text=g.rewrite_text('#EXTM3U\n'+raw+'\n','https://gateway.example','')
-          line=[x for x in text.splitlines() if x and not x.startswith('#')][0]
-          assert g.valid_signed_proxy(urllib.parse.urlsplit(line))
-          print('signed public proxy URL check OK')
+          assert ('&s=' in signed or '?s=' in signed) and g.valid_signed_proxy(urllib.parse.urlsplit(signed)) and not g.valid_signed_proxy(urllib.parse.urlsplit(raw))
+          text=g.rewrite_text('#EXTM3U\n'+raw+'\n','https://gateway.example',''); line=[x for x in text.splitlines() if x and not x.startswith('#')][0]
+          assert g.valid_signed_proxy(urllib.parse.urlsplit(line)); print('signed public proxy URL check OK')
           PY
-
           LIVE_OK=0
           for SID in RNB JOEU-FM FMT; do
-            if curl -fsS --max-time 20 "http://127.0.0.1:9395/live/$SID" -o "/tmp/live-$SID.m3u" && grep -q '^#EXTM3U' "/tmp/live-$SID.m3u"; then
-              echo "live OK: $SID"
-              LIVE_OK=$((LIVE_OK+1))
-              break
-            fi
+            if curl -fsS --max-time 20 "http://127.0.0.1:9395/live/$SID" -o "/tmp/live-$SID.m3u" && grep -q '^#EXTM3U' "/tmp/live-$SID.m3u"; then echo "live OK: $SID"; LIVE_OK=1; break; fi
           done
-          if [ "$LIVE_OK" -eq 0 ]; then
-            echo 'WARNING: VPN Gate exit is currently rejected by radiko (401/403); live fetch is non-fatal in CI.'
-          fi
-
+          if [ "$LIVE_OK" -eq 0 ]; then echo 'WARNING: VPN Gate exit is currently rejected by radiko; live fetch is non-fatal in CI.'; fi
           RADIKO_PUBLIC_NO_KEY=1 RADIKO_GATEWAY_SIGNING_SECRET=test-signing-secret RADIKO_GATEWAY_HOST=127.0.0.1 RADIKO_GATEWAY_PORT=9396 python radiko_public_gateway.py >/tmp/radiko_gateway.log 2>&1 &
           GPID=$!
-          for i in $(seq 1 20); do
-            curl -fsS --max-time 2 http://127.0.0.1:9396/health >/dev/null && break
-            sleep 1
-          done
+          for i in $(seq 1 20); do curl -fsS --max-time 2 http://127.0.0.1:9396/health >/dev/null && break; sleep 1; done
           curl -fsS --max-time 30 http://127.0.0.1:9396/playlist.m3u -o /tmp/public_radiko.m3u
           python - <<'PY'
           text=open('/tmp/public_radiko.m3u',encoding='utf-8').read()
-          assert 'https://127.0.0.1:9396/live/RNB' in text
-          assert 'url-tvg="https://127.0.0.1:9396/epg.xml"' in text
-          assert '?k=' not in text
+          assert 'https://127.0.0.1:9396/live/RNB' in text and 'url-tvg="https://127.0.0.1:9396/epg.xml"' in text and '?k=' not in text
           print('public gateway playlist rewrite OK')
           PY
           test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:9396/freewifi.m3u)" = 403
