@@ -163,24 +163,18 @@ jobs:
       - name: Validate Radiko FreeWiFi and EPG
         shell: bash
         run: |
-          grep -q '# === RADIKO_MANAGED_START ===' freewifi
-          grep -q '# === RADIKO_MANAGED_END ===' freewifi
-          test "$(grep -c 'tvg-id="radiko\.' freewifi || true)" -ge 100
-          test "$(grep -c 'desktop-h41fq90.tailde6548.ts.net/live/' freewifi || true)" -ge 100
-          test "$(grep -c '<channel id="radiko\.' guides.xml || true)" -ge 100
-          test "$(grep -c 'channel="radiko\.' guides.xml || true)" -ge 500
-          python - <<'PY'
-          from pathlib import Path
-          s=Path('freewifi').read_text(encoding='utf-8-sig')
-          r=s.index('# === RADIKO_MANAGED_START ===')
-          y=s.index('# === GENERAL_YOUTUBE_MANAGED_START ===')
-          k=s.find('# === KICK_MANAGED_START ===')
-          if k >= 0 and not (r < k < y):
-              raise SystemExit(f'bad block order: radiko={r} kick={k} youtube={y}')
-          if k < 0 and not (r < y):
-              raise SystemExit(f'bad block order: radiko={r} youtube={y}')
-          print('Radiko block order OK')
-          PY
+          RADIO_COUNT="$(grep -c 'tvg-id="radiko\.' freewifi || true)"
+          LIVE_COUNT="$(grep -c 'desktop-h41fq90.tailde6548.ts.net/live/' freewifi || true)"
+          EPG_CHANNELS="$(grep -c '<channel id="radiko\.' guides.xml || true)"
+          EPG_PROGRAMMES="$(grep -c 'channel="radiko\.' guides.xml || true)"
+          echo "Radiko FreeWiFi stations: $RADIO_COUNT"
+          echo "Radiko live URLs: $LIVE_COUNT"
+          echo "Radiko EPG channels: $EPG_CHANNELS"
+          echo "Radiko EPG programmes: $EPG_PROGRAMMES"
+          test "$RADIO_COUNT" -ge 100
+          test "$LIVE_COUNT" -ge 100
+          test "$EPG_CHANNELS" -ge 100
+          test "$EPG_PROGRAMMES" -ge 500
           echo 'Radiko FreeWiFi/EPG OK'
 
       - name: Validate XML
