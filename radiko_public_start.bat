@@ -62,6 +62,11 @@ if not defined PYEXE (
 if not defined PYEXE goto :needpython
 
 if "%AUTO_MODE%"=="0" echo Python: %PYEXE%
+
+rem Keep the runtime pieces current automatically. After this launcher version is installed once,
+rem future Python-side fixes do not require downloading another ZIP.
+powershell -NoProfile -Command "$base='https://raw.githubusercontent.com/ajiousama/himitsu/main/';$files='radiko_proxy.py','radiko_epg.py','radiko_public_gateway.py','radiko_selftest.py';foreach($f in $files){try{$tmp=$f+'.new';Invoke-WebRequest -UseBasicParsing -TimeoutSec 20 ($base+$f) -OutFile $tmp;Move-Item -Force $tmp $f}catch{Remove-Item -Force ($f+'.new') -ErrorAction SilentlyContinue}}" >nul 2>&1
+
 "%PYEXE%" -m py_compile radiko_proxy.py radiko_epg.py radiko_public_gateway.py radiko_selftest.py
 if errorlevel 1 (
   if "%AUTO_MODE%"=="1" exit /b 1
@@ -70,14 +75,15 @@ if errorlevel 1 (
   exit /b 1
 )
 
-rem Load saved Radiko credentials when available. If Premium auth fails, the proxy now falls back to normal local-area Radiko automatically.
+rem Load saved Radiko credentials when available. Premium enables the full 110-station list.
 if "%RADIKO_MAIL%"=="" if exist ".radiko_mail.txt" set /p RADIKO_MAIL=<.radiko_mail.txt
 if "%RADIKO_PASSWORD%"=="" if exist ".radiko_password.dpapi" (
   for /f "usebackq delims=" %%P in (`powershell -NoProfile -Command "$s=Get-Content -Raw '.radiko_password.dpapi'|ConvertTo-SecureString;$p=[Runtime.InteropServices.Marshal]::SecureStringToBSTR($s);try{[Runtime.InteropServices.Marshal]::PtrToStringBSTR($p)}finally{[Runtime.InteropServices.Marshal]::ZeroFreeBSTR($p)}"`) do set "RADIKO_PASSWORD=%%P"
 )
 if "%RADIKO_MAIL%"=="" if "%AUTO_MODE%"=="0" (
   echo.
-  echo Premium login is optional. Press Enter at the mail prompt to use normal local-area Radiko.
+  echo Enter Radiko Premium login for all stations.
+  echo Or press Enter for local-area Radiko only.
   set /p "RADIKO_MAIL=radiko mail address: "
 )
 if not "%RADIKO_MAIL%"=="" if "%RADIKO_PASSWORD%"=="" if "%AUTO_MODE%"=="0" (
@@ -123,7 +129,6 @@ for /l %%N in (1,1,3) do (
 goto :proxyfail
 
 :authready
-rem First try the requested RNB path; if Premium is unavailable, live-auto chooses a station valid for the PC's detected Radiko area.
 "%PYEXE%" radiko_selftest.py "http://127.0.0.1:9395/live/RNB" >nul 2>&1
 if errorlevel 1 "%PYEXE%" radiko_selftest.py "http://127.0.0.1:9395/live-auto" >nul 2>&1
 if errorlevel 1 goto :livefail
@@ -161,6 +166,7 @@ echo ============================================================
 echo radiko AUDIO test OK - public gateway is ready.
 echo IPTV playlist URL stays unchanged:
 echo https://raw.githubusercontent.com/ajiousama/himitsu/main/freewifi
+echo Runtime Python files will self-update on future launches.
 echo Windows logon auto-start was registered.
 echo ============================================================
 echo.
@@ -179,7 +185,7 @@ exit /b 1
 :livefail
 if "%AUTO_MODE%"=="1" exit /b 1
 echo.
-echo Radiko authorization succeeded, but no local-area live audio could be obtained.
+echo Radiko authorization succeeded, but no live audio could be obtained.
 if exist .radiko_proxy.err.log type .radiko_proxy.err.log
 if exist .radiko_proxy.out.log type .radiko_proxy.out.log
 pause
