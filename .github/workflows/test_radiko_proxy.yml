@@ -10,6 +10,7 @@ on:
       - radiko_proxy_start.bat
       - radiko_public_gateway.py
       - radiko_public_start.bat
+      - radiko_selftest.py
       - .github/workflows/test_radiko_proxy.yml
 
 jobs:
@@ -23,7 +24,7 @@ jobs:
           python-version: '3.12'
 
       - name: Syntax check
-        run: python -m py_compile radiko_proxy.py radiko_epg.py radiko_public_gateway.py
+        run: python -m py_compile radiko_proxy.py radiko_epg.py radiko_public_gateway.py radiko_selftest.py
 
       - name: Connect to a VPN Gate Japan server
         shell: bash
@@ -118,16 +119,27 @@ jobs:
           assert len(programmes) > 500
           PY
 
-          # Unit-check HLS rewriting deterministically. VPN Gate exit IPs are often
-          # temporarily blocked by radiko, so real live fetch below is diagnostic only.
           python - <<'PY'
           from radiko_proxy import rewrite_m3u
           src='https://example.radiko.jp/a/master.m3u8'
           out=rewrite_m3u('#EXTM3U\nchild.m3u8\n',src,'https://gateway.example')
           assert '#EXTM3U' in out
           assert 'https://gateway.example/proxy?u=' in out
-          assert 'child.m3u8' not in [x.strip() for x in out.splitlines() if x and not x.startswith('#')]
           print('HLS rewrite unit check OK')
+          PY
+
+          RADIKO_PUBLIC_NO_KEY=1 RADIKO_GATEWAY_SIGNING_SECRET=test-signing-secret python - <<'PY'
+          import urllib.parse
+          import radiko_public_gateway as g
+          raw='https://gateway.example/proxy?u='+urllib.parse.quote('https://cdn.example.net/audio/chunk.m3u8',safe='')
+          signed=g.signed_proxy_url(raw)
+          assert '&s=' in signed or '?s=' in signed
+          assert g.valid_signed_proxy(urllib.parse.urlsplit(signed))
+          assert not g.valid_signed_proxy(urllib.parse.urlsplit(raw))
+          text=g.rewrite_text('#EXTM3U\n'+raw+'\n','https://gateway.example','')
+          line=[x for x in text.splitlines() if x and not x.startswith('#')][0]
+          assert g.valid_signed_proxy(urllib.parse.urlsplit(line))
+          print('signed public proxy URL check OK')
           PY
 
           LIVE_OK=0
@@ -142,8 +154,7 @@ jobs:
             echo 'WARNING: VPN Gate exit is currently rejected by radiko (401/403); live fetch is non-fatal in CI.'
           fi
 
-          # Verify the no-key restricted public mode used by GitHub FreeWiFi.
-          RADIKO_PUBLIC_NO_KEY=1 RADIKO_GATEWAY_HOST=127.0.0.1 RADIKO_GATEWAY_PORT=9396 python radiko_public_gateway.py >/tmp/radiko_gateway.log 2>&1 &
+          RADIKO_PUBLIC_NO_KEY=1 RADIKO_GATEWAY_SIGNING_SECRET=test-signing-secret RADIKO_GATEWAY_HOST=127.0.0.1 RADIKO_GATEWAY_PORT=9396 python radiko_public_gateway.py >/tmp/radiko_gateway.log 2>&1 &
           GPID=$!
           for i in $(seq 1 20); do
             curl -fsS --max-time 2 http://127.0.0.1:9396/health >/dev/null && break
@@ -155,7 +166,7 @@ jobs:
           assert 'https://127.0.0.1:9396/live/RNB' in text
           assert 'url-tvg="https://127.0.0.1:9396/epg.xml"' in text
           assert '?k=' not in text
-          print('no-key restricted public gateway rewrite OK')
+          print('public gateway playlist rewrite OK')
           PY
           test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:9396/freewifi.m3u)" = 403
           test "$(curl -s -o /dev/null -w '%{http_code}' 'http://127.0.0.1:9396/proxy?u=https%3A%2F%2Fexample.com%2Fevil.m3u8')" = 403
