@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 import importlib.util
+import os
 import pathlib
 import sys
+import urllib.parse
 import urllib.request
 
 CORE_PATH = pathlib.Path(__file__).with_name("radiko_proxy_core.py")
@@ -37,6 +39,49 @@ if spec is None or spec.loader is None:
 _core = importlib.util.module_from_spec(spec)
 sys.modules[spec.name] = _core
 spec.loader.exec_module(_core)
+
+# Make /ready report the exact failing Radiko stage instead of a generic HTTP error.
+_original_do_GET = _core.Handler.do_GET
+
+def _diagnostic_do_GET(self):
+    path = urllib.parse.urlsplit(self.path).path
+    if path != "/ready":
+        return _original_do_GET(self)
+
+    def fail(stage, exc):
+        msg = f"FAIL stage={stage} error={type(exc).__name__}: {exc}\n"
+        print("[radiko] " + msg.strip(), flush=True)
+        self.sendb(502, msg.encode("utf-8", "replace"), "text/plain; charset=utf-8")
+
+    try:
+        local = _core.local_area(force=True)
+    except Exception as e:
+        return fail("local_area", e)
+
+    mail = os.environ.get("RADIKO_MAIL", "").strip()
+    pw = os.environ.get("RADIKO_PASSWORD", "").strip()
+    mode = "free"
+    if mail and pw:
+        try:
+            _core.premium_login(force=True)
+            mode = "premium"
+        except Exception as e:
+            return fail("premium_login", e)
+
+    try:
+        _core.auth_area(local, force=True)
+    except Exception as e:
+        return fail("auth_area", e)
+
+    try:
+        ss = _core.stations()
+    except Exception as e:
+        return fail("station_list", e)
+
+    body = f"OK {local} mode={mode} stations={len(ss)} auth=pc-html5-api build={getattr(_core, 'BUILD', 'unknown')} diagnostic=v2\n"
+    self.sendb(200, body.encode(), "text/plain; charset=utf-8")
+
+_core.Handler.do_GET = _diagnostic_do_GET
 
 for _name in dir(_core):
     if not _name.startswith("__"):
