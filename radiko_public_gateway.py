@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
+import hashlib
+import hmac
 import os
 import re
+import secrets
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -11,21 +14,54 @@ PORT = int(os.environ.get("RADIKO_GATEWAY_PORT", "9396"))
 BACKEND = os.environ.get("RADIKO_GATEWAY_BACKEND", "http://127.0.0.1:9395").rstrip("/")
 ACCESS_KEY = os.environ.get("RADIKO_ACCESS_KEY", "").strip()
 PUBLIC_NO_KEY = os.environ.get("RADIKO_PUBLIC_NO_KEY", "0").strip().lower() in {"1", "true", "yes", "on"}
-
-# Public mode is intentionally limited to radiko playback endpoints only.
-# In particular, arbitrary backend paths and private/local proxy targets are rejected.
-ALLOWED_PROXY_SUFFIXES = (".radiko.jp", ".smartstream.ne.jp")
+SIGNING_SECRET = os.environ.get("RADIKO_GATEWAY_SIGNING_SECRET", "").strip() or secrets.token_hex(32)
 SID_RE = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
 
 
-def add_key(url, key):
-    if not key:
+def add_query(url, name, value):
+    if not value:
         return url
     p = urllib.parse.urlsplit(url)
     q = urllib.parse.parse_qsl(p.query, keep_blank_values=True)
-    if not any(k == "k" for k, _ in q):
-        q.append(("k", key))
+    q = [(k, v) for k, v in q if k != name]
+    q.append((name, value))
     return urllib.parse.urlunsplit((p.scheme, p.netloc, p.path, urllib.parse.urlencode(q), p.fragment))
+
+
+def add_key(url, key):
+    return add_query(url, "k", key) if key else url
+
+
+def proxy_signature(target):
+    return hmac.new(SIGNING_SECRET.encode("utf-8"), target.encode("utf-8"), hashlib.sha256).hexdigest()
+
+
+def signed_proxy_url(url):
+    p = urllib.parse.urlsplit(url)
+    if p.path != "/proxy":
+        return url
+    q = urllib.parse.parse_qs(p.query)
+    target = (q.get("u") or [""])[0]
+    if not target:
+        return url
+    return add_query(url, "s", proxy_signature(target))
+
+
+def valid_signed_proxy(parsed):
+    if parsed.path != "/proxy":
+        return False
+    q = urllib.parse.parse_qs(parsed.query)
+    target = (q.get("u") or [""])[0]
+    supplied = (q.get("s") or [""])[0]
+    if not target or not supplied:
+        return False
+    try:
+        tp = urllib.parse.urlsplit(target)
+    except Exception:
+        return False
+    if tp.scheme not in {"http", "https"} or not tp.hostname:
+        return False
+    return hmac.compare_digest(supplied, proxy_signature(target))
 
 
 def public_path_allowed(parsed):
@@ -35,15 +71,7 @@ def public_path_allowed(parsed):
         sid = urllib.parse.unquote(parsed.path.split("/", 2)[2])
         return bool(SID_RE.fullmatch(sid))
     if parsed.path == "/proxy":
-        target = (urllib.parse.parse_qs(parsed.query).get("u") or [""])[0]
-        try:
-            p = urllib.parse.urlsplit(target)
-        except Exception:
-            return False
-        host = (p.hostname or "").lower()
-        if p.scheme not in {"http", "https"} or not host:
-            return False
-        return host in {"radiko.jp", "www.radiko.jp", "smartstream.ne.jp"} or host.endswith(ALLOWED_PROXY_SUFFIXES)
+        return valid_signed_proxy(parsed)
     return False
 
 
@@ -61,13 +89,16 @@ def rewrite_text(text, public_base, key):
             if old2 in line:
                 line = line.replace(old2, f"url-tvg='{add_key(public_base + '/epg.xml', key)}'")
         elif s.startswith(public_base + "/"):
-            line = add_key(s, key)
+            if PUBLIC_NO_KEY and urllib.parse.urlsplit(s).path == "/proxy":
+                line = signed_proxy_url(s)
+            else:
+                line = add_key(s, key)
         out.append(line)
     return "\n".join(out) + "\n"
 
 
 class Handler(BaseHTTPRequestHandler):
-    server_version = "RadikoPublicGateway/1.1"
+    server_version = "RadikoPublicGateway/1.2"
 
     def log_message(self, fmt, *args):
         print("[radiko-public] " + fmt % args, flush=True)
@@ -131,7 +162,7 @@ class Handler(BaseHTTPRequestHandler):
 def main():
     if not PUBLIC_NO_KEY and not ACCESS_KEY:
         raise SystemExit("RADIKO_ACCESS_KEY is not set")
-    mode = "public-restricted" if PUBLIC_NO_KEY else "key-protected"
+    mode = "public-restricted-signed" if PUBLIC_NO_KEY else "key-protected"
     print(f"radiko public gateway ({mode}): http://{HOST}:{PORT}", flush=True)
     ThreadingHTTPServer((HOST, PORT), Handler).serve_forever()
 
