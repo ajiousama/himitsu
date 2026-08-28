@@ -6,8 +6,11 @@ import sys
 import urllib.parse
 import urllib.request
 
+LAUNCHER_BUILD = "20260828-1338"
 CORE_PATH = pathlib.Path(__file__).with_name("radiko_proxy_core.py")
 CORE_URL = "https://raw.githubusercontent.com/ajiousama/himitsu/main/radiko_proxy_core.py"
+
+print(f"[radiko] launcher build: {LAUNCHER_BUILD}", flush=True)
 
 
 def refresh_core():
@@ -40,7 +43,6 @@ _core = importlib.util.module_from_spec(spec)
 sys.modules[spec.name] = _core
 spec.loader.exec_module(_core)
 
-# Make /ready report the exact failing Radiko stage instead of a generic HTTP error.
 _original_do_GET = _core.Handler.do_GET
 
 def _diagnostic_do_GET(self):
@@ -78,7 +80,7 @@ def _diagnostic_do_GET(self):
     except Exception as e:
         return fail("station_list", e)
 
-    body = f"OK {local} mode={mode} stations={len(ss)} auth=pc-html5-api build={getattr(_core, 'BUILD', 'unknown')} diagnostic=v2\n"
+    body = f"OK {local} mode={mode} stations={len(ss)} auth=pc-html5-api build={getattr(_core, 'BUILD', 'unknown')} launcher={LAUNCHER_BUILD}\n"
     self.sendb(200, body.encode(), "text/plain; charset=utf-8")
 
 _core.Handler.do_GET = _diagnostic_do_GET
