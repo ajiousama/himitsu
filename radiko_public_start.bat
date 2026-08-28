@@ -1,5 +1,5 @@
 @echo off
-setlocal EnableExtensions
+setlocal EnableExtensions EnableDelayedExpansion
 cd /d %~dp0
 set "AUTO_MODE=0"
 if /i "%~1"=="/auto" set "AUTO_MODE=1"
@@ -57,7 +57,7 @@ if not defined PYEXE (
   where winget >nul 2>&1 || goto :needpython
   winget install --id Python.Python.3.12 -e --silent --scope user --accept-package-agreements --accept-source-agreements
   if exist "%LocalAppData%\Programs\Python\Python312\python.exe" set "PYEXE=%LocalAppData%\Programs\Python\Python312\python.exe"
-  if not defined PYEXE if exist "%ProgramFiles%\Python312\python.exe" set "PYEXE=%ProgramFiles%\Python312\python.exe"
+  if not defined PYEXE if exist "%ProgramFiles%\Python312\python.exe" set "PYEXE=%ProgramFiles%\Python\Python312\python.exe"
 )
 if not defined PYEXE goto :needpython
 
@@ -109,7 +109,7 @@ set RADIKO_PUBLIC_NO_KEY=1
 
 powershell -NoProfile -Command "$ports=9395,9396;foreach($port in $ports){$x=Get-NetTCPConnection -LocalPort $port -State Listen -ErrorAction SilentlyContinue|Select-Object -ExpandProperty OwningProcess -Unique;foreach($pid in $x){Stop-Process -Id $pid -Force -ErrorAction SilentlyContinue}}" >nul 2>&1
 timeout /t 1 /nobreak >nul
-del /q .radiko_proxy.out.log .radiko_proxy.err.log .radiko_gateway.out.log .radiko_gateway.err.log .radiko_ready.txt >nul 2>&1
+del /q .radiko_proxy.out.log .radiko_proxy.err.log .radiko_gateway.out.log .radiko_gateway.err.log .radiko_ready.txt .radiko_ready_code.txt >nul 2>&1
 powershell -NoProfile -Command "Start-Process -WindowStyle Hidden -FilePath $env:PYEXE -ArgumentList @('-u','radiko_proxy.py') -WorkingDirectory (Get-Location).Path -RedirectStandardOutput '.radiko_proxy.out.log' -RedirectStandardError '.radiko_proxy.err.log'"
 
 for /l %%N in (1,1,30) do (
@@ -121,6 +121,7 @@ goto :proxyfail
 :proxyhealth
 for /l %%N in (1,1,3) do (
   curl.exe -sS --max-time 35 -o .radiko_ready.txt -w "%%{http_code}" http://127.0.0.1:9395/ready >.radiko_ready_code.txt 2>nul
+  set "READYCODE="
   set /p READYCODE=<.radiko_ready_code.txt
   if "!READYCODE!"=="200" goto :authready
   timeout /t 2 /nobreak >nul
