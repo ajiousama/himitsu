@@ -141,7 +141,7 @@ jobs:
 
       - name: Restore Radiko channels and 3-day EPG
         env:
-          RADIKO_PUBLIC_BASE: https://desktop-h41fq90.tailde6548.ts.net
+          RADIKO_PUBLIC_BASE: https://himitsu-six.vercel.app
         run: python radiko_freewifi.py
 
       - name: Add persistent KICK receiver EPG
@@ -164,7 +164,7 @@ jobs:
         shell: bash
         run: |
           RADIO_COUNT="$(grep -c 'tvg-id="radiko\.' freewifi || true)"
-          LIVE_COUNT="$(grep -c 'desktop-h41fq90.tailde6548.ts.net/live/' freewifi || true)"
+          LIVE_COUNT="$(grep -c 'himitsu-six.vercel.app/api/radiko?station=' freewifi || true)"
           EPG_CHANNELS="$(grep -c '<channel id="radiko\.' guides.xml || true)"
           EPG_PROGRAMMES="$(grep -c 'channel="radiko\.' guides.xml || true)"
           echo "Radiko FreeWiFi stations: $RADIO_COUNT"
@@ -236,7 +236,7 @@ jobs:
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.email "4189821981+github-actions[bot]@users.noreply.github.com"
 
           cp guides.xml /tmp/guides.xml.generated
           cp epg_coverage.txt /tmp/epg_coverage.txt.generated
