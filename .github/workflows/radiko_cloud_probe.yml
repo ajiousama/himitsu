@@ -5,6 +5,8 @@ on:
   push:
     branches: [main]
     paths:
+      - "radiko_cloud_start.py"
+      - "radiko_proxy_core.py"
       - ".github/workflows/radiko_cloud_probe.yml"
 
 permissions:
@@ -14,27 +16,29 @@ jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
+      - name: Wait for Render auto deploy
+        run: sleep 60
       - name: Probe health
         run: |
           set -x
-          curl -i -sS --max-time 90 https://ajiousama-radiko.onrender.com/health
+          curl -f -i -sS --max-time 90 https://ajiousama-radiko.onrender.com/health
       - name: Probe ready
         run: |
           set -x
-          curl -i -sS --max-time 120 https://ajiousama-radiko.onrender.com/ready
+          curl -f -i -sS --max-time 120 https://ajiousama-radiko.onrender.com/ready
       - name: Probe KBS HLS chain
         shell: bash
         run: |
           set -euo pipefail
           BASE='https://ajiousama-radiko.onrender.com'
-          curl -D /tmp/h1 -sS --max-time 120 "$BASE/live/KBS" -o /tmp/kbs.m3u8
+          curl -f -D /tmp/h1 -sS --max-time 120 "$BASE/live/KBS" -o /tmp/kbs.m3u8
           echo '=== /live/KBS headers ==='
           cat /tmp/h1
           echo '=== /live/KBS body ==='
           head -n 60 /tmp/kbs.m3u8
           U1=$(grep -v '^#' /tmp/kbs.m3u8 | sed '/^$/d' | head -n1)
           test -n "$U1"
-          curl -D /tmp/h2 -sS --max-time 120 "$U1" -o /tmp/l2
+          curl -f -D /tmp/h2 -sS --max-time 120 "$U1" -o /tmp/l2
           echo '=== level2 headers ==='
           cat /tmp/h2
           if head -c 7 /tmp/l2 | grep -q '#EXTM3U'; then
@@ -42,7 +46,7 @@ jobs:
             head -n 60 /tmp/l2
             U2=$(grep -v '^#' /tmp/l2 | sed '/^$/d' | head -n1)
             test -n "$U2"
-            curl -D /tmp/h3 -sS --max-time 120 "$U2" -o /tmp/media
+            curl -f -D /tmp/h3 -sS --max-time 120 "$U2" -o /tmp/media
             echo '=== media headers ==='
             cat /tmp/h3
             echo "media bytes=$(wc -c < /tmp/media)"
