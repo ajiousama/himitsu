@@ -11,6 +11,7 @@ on:
       - "freewifi"
       - "freewifi_naori.py"
       - "freewifi_naori_kansai.py"
+      - "reorder_freewifi.py"
       - "other_live.m3u"
       - "epg_build.py"
       - "kick_channels.json"
@@ -236,7 +237,7 @@ jobs:
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
-          git config user.email "4189821981+github-actions[bot]@users.noreply.github.com"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
           cp guides.xml /tmp/guides.xml.generated
           cp epg_coverage.txt /tmp/epg_coverage.txt.generated
