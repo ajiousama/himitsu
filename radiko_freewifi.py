@@ -96,10 +96,47 @@ def is_shortwave_station(sid, name):
     return sid_u in {"RN1", "RN2"} or "ラジオNIKKEI" in name or "RADIO NIKKEI" in n
 
 
+def strip_all_radiko_entries(text):
+    """Remove every old radiko entry, including legacy/unmanaged duplicates."""
+    lines = text.splitlines()
+    out = []
+    i = 0
+    in_managed = False
+    removed = 0
+    while i < len(lines):
+        line = lines[i]
+        if line.strip() == START:
+            in_managed = True
+            i += 1
+            continue
+        if in_managed:
+            if line.strip() == END:
+                in_managed = False
+            i += 1
+            continue
+        if 'tvg-id="radiko.' in line and line.lstrip().startswith("#EXTINF:"):
+            removed += 1
+            i += 1
+            # Remove the URI belonging to this EXTINF. Preserve unrelated comments/headings.
+            while i < len(lines) and not lines[i].strip():
+                i += 1
+            if i < len(lines) and not lines[i].lstrip().startswith("#"):
+                i += 1
+            continue
+        if line.strip() in {"## RADIKO", "## RADIKO（地域別＋短波）"}:
+            i += 1
+            continue
+        out.append(line)
+        i += 1
+    # Collapse excessive blank lines left by old blocks.
+    cleaned = "\n".join(out)
+    cleaned = re.sub(r"\n{4,}", "\n\n\n", cleaned)
+    return cleaned, removed
+
+
 def replace_radiko_block(stations):
     text = FREEWIFI.read_text(encoding="utf-8-sig")
-    pattern = re.compile(r"\n?" + re.escape(START) + r".*?" + re.escape(END) + r"\n?", re.S)
-    text = pattern.sub("\n", text)
+    text, removed = strip_all_radiko_entries(text)
 
     order_names = ("北海道", "東北", "関東", "甲信越", "東海", "近畿", "中国", "四国", "九州沖縄")
     order = {name: i for i, name in enumerate(order_names)}
@@ -120,7 +157,7 @@ def replace_radiko_block(stations):
     lines.extend([END, ""])
 
     FREEWIFI.write_text(text.rstrip() + "\n" + "\n".join(lines), encoding="utf-8")
-    return len(items)
+    return len(items), removed
 
 
 def merge_radiko_epg():
@@ -147,8 +184,9 @@ def main():
     stations = discover_stations()
     if len(stations) < 100:
         raise SystemExit(f"radiko station discovery too small: {len(stations)}")
-    m3u_count = replace_radiko_block(stations)
+    m3u_count, removed = replace_radiko_block(stations)
     epg_channels, epg_programmes = merge_radiko_epg()
+    print(f"old/duplicate radiko entries removed: {removed}")
     print(f"radiko FreeWiFi stations: {m3u_count}")
     print(f"radiko public base: {BASE}")
     print(f"radiko EPG channels: {epg_channels}")
