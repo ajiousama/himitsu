@@ -1,0 +1,60 @@
+name: Keep Radiko on Render
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "freewifi"
+      - "radiko_freewifi.py"
+      - ".github/workflows/radiko_render_rewrite.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: himitsu-freewifi-writer
+  cancel-in-progress: false
+
+jobs:
+  rewrite:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Replace legacy Radiko public host with Render
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('freewifi')
+          s=p.read_text(encoding='utf-8-sig')
+          old='https://desktop-h41fq90.tailde6548.ts.net'
+          new='https://ajiousama-radiko.onrender.com'
+          before=s.count(old + '/live/')
+          s=s.replace(old,new)
+          p.write_text(s,encoding='utf-8')
+          after=s.count(new + '/live/')
+          print('legacy replaced:',before)
+          print('Render Radiko URLs:',after)
+          if after < 100:
+              raise SystemExit(f'Render Radiko URL count too small: {after}')
+          PY
+
+      - name: Commit Render URLs safely
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          cp freewifi /tmp/freewifi.render
+          git fetch origin main
+          git reset --hard origin/main
+          cp /tmp/freewifi.render freewifi
+          git add freewifi
+          if git diff --cached --quiet; then
+            echo 'Radiko already points to Render'
+            exit 0
+          fi
+          git commit -m 'Point FreeWiFi Radiko to Render cloud gateway'
+          git push origin HEAD:main
