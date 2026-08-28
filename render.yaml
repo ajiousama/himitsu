@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: ajiousama-radiko
+    runtime: python
+    plan: free
+    buildCommand: python -m py_compile radiko_proxy_core.py radiko_epg.py radiko_cloud_start.py
+    startCommand: python radiko_cloud_start.py
+    healthCheckPath: /health
+    envVars:
+      - key: RADIKO_MAIL
+        sync: false
+      - key: RADIKO_PASSWORD
+        sync: false
+      - key: RADIKO_SIGNING_SECRET
+        generateValue: true
