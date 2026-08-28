@@ -33,6 +33,33 @@ if "%TSDNS%"=="" (
   exit /b 1
 )
 
+rem Find a real Python executable. Windows Store aliases often make plain "python" unreliable.
+set "PYEXE="
+for /f "delims=" %%P in ('where py.exe 2^>nul') do if not defined PYEXE set "PYLAUNCH=%%P"
+if defined PYLAUNCH (
+  for /f "usebackq delims=" %%P in (`"%PYLAUNCH%" -3 -c "import sys;print(sys.executable)" 2^>nul`) do if not defined PYEXE set "PYEXE=%%P"
+)
+if not defined PYEXE for /f "delims=" %%P in ('where python.exe 2^>nul') do if not defined PYEXE set "PYEXE=%%P"
+if not defined PYEXE if exist "%LocalAppData%\Programs\Python\Python312\python.exe" set "PYEXE=%LocalAppData%\Programs\Python\Python312\python.exe"
+if not defined PYEXE if exist "%ProgramFiles%\Python312\python.exe" set "PYEXE=%ProgramFiles%\Python312\python.exe"
+
+if not defined PYEXE (
+  echo Python was not found. Installing Python 3.12...
+  where winget >nul 2>&1 || goto :needpython
+  winget install --id Python.Python.3.12 -e --silent --scope user --accept-package-agreements --accept-source-agreements
+  if exist "%LocalAppData%\Programs\Python\Python312\python.exe" set "PYEXE=%LocalAppData%\Programs\Python\Python312\python.exe"
+  if not defined PYEXE if exist "%ProgramFiles%\Python312\python.exe" set "PYEXE=%ProgramFiles%\Python312\python.exe"
+)
+if not defined PYEXE goto :needpython
+
+echo Python: %PYEXE%
+"%PYEXE%" -m py_compile radiko_proxy.py radiko_epg.py radiko_public_gateway.py
+if errorlevel 1 (
+  echo Python syntax/import preparation failed.
+  pause
+  exit /b 1
+)
+
 if not exist ".radiko_access_key" (
   powershell -NoProfile -Command "$a=[guid]::NewGuid().ToString('N');$b=[guid]::NewGuid().ToString('N');Set-Content -NoNewline -Encoding ascii '.radiko_access_key' ($a+$b)"
 )
@@ -63,26 +90,38 @@ set RADIKO_PROXY_PORT=9395
 set RADIKO_GATEWAY_HOST=127.0.0.1
 set RADIKO_GATEWAY_PORT=9396
 
-powershell -NoProfile -Command "try{Invoke-WebRequest -UseBasicParsing -TimeoutSec 2 http://127.0.0.1:9395/health ^| Out-Null; exit 0}catch{exit 1}" >nul 2>&1
-if errorlevel 1 start "radiko proxy" /min cmd /c "python radiko_proxy.py"
+powershell -NoProfile -Command "try{Invoke-WebRequest -UseBasicParsing -TimeoutSec 2 http://127.0.0.1:9395/health | Out-Null; exit 0}catch{exit 1}" >nul 2>&1
+if errorlevel 1 (
+  del /q .radiko_proxy.out.log .radiko_proxy.err.log >nul 2>&1
+  powershell -NoProfile -Command "Start-Process -WindowStyle Minimized -FilePath $env:PYEXE -ArgumentList @('-u','radiko_proxy.py') -WorkingDirectory (Get-Location).Path -RedirectStandardOutput '.radiko_proxy.out.log' -RedirectStandardError '.radiko_proxy.err.log'"
+)
 
 for /l %%N in (1,1,30) do (
-  powershell -NoProfile -Command "try{Invoke-WebRequest -UseBasicParsing -TimeoutSec 2 http://127.0.0.1:9395/health ^| Out-Null; exit 0}catch{exit 1}" >nul 2>&1 && goto :proxyready
+  powershell -NoProfile -Command "try{Invoke-WebRequest -UseBasicParsing -TimeoutSec 2 http://127.0.0.1:9395/health | Out-Null; exit 0}catch{exit 1}" >nul 2>&1 && goto :proxyready
   timeout /t 1 /nobreak >nul
 )
-echo radiko proxy did not start.
+echo.
+echo radiko proxy did not start. Error log:
+if exist .radiko_proxy.err.log type .radiko_proxy.err.log
+if exist .radiko_proxy.out.log type .radiko_proxy.out.log
 pause
 exit /b 1
 
 :proxyready
-powershell -NoProfile -Command "try{Invoke-WebRequest -UseBasicParsing -TimeoutSec 2 http://127.0.0.1:9396/health ^| Out-Null; exit 0}catch{exit 1}" >nul 2>&1
-if errorlevel 1 start "radiko public gateway" /min cmd /c "set RADIKO_ACCESS_KEY=%RADIKO_ACCESS_KEY%&& python radiko_public_gateway.py"
+powershell -NoProfile -Command "try{Invoke-WebRequest -UseBasicParsing -TimeoutSec 2 http://127.0.0.1:9396/health | Out-Null; exit 0}catch{exit 1}" >nul 2>&1
+if errorlevel 1 (
+  del /q .radiko_gateway.out.log .radiko_gateway.err.log >nul 2>&1
+  powershell -NoProfile -Command "Start-Process -WindowStyle Minimized -FilePath $env:PYEXE -ArgumentList @('-u','radiko_public_gateway.py') -WorkingDirectory (Get-Location).Path -RedirectStandardOutput '.radiko_gateway.out.log' -RedirectStandardError '.radiko_gateway.err.log'"
+)
 
 for /l %%N in (1,1,30) do (
-  powershell -NoProfile -Command "try{Invoke-WebRequest -UseBasicParsing -TimeoutSec 2 http://127.0.0.1:9396/health ^| Out-Null; exit 0}catch{exit 1}" >nul 2>&1 && goto :gatewayready
+  powershell -NoProfile -Command "try{Invoke-WebRequest -UseBasicParsing -TimeoutSec 2 http://127.0.0.1:9396/health | Out-Null; exit 0}catch{exit 1}" >nul 2>&1 && goto :gatewayready
   timeout /t 1 /nobreak >nul
 )
-echo radiko public gateway did not start.
+echo.
+echo radiko public gateway did not start. Error log:
+if exist .radiko_gateway.err.log type .radiko_gateway.err.log
+if exist .radiko_gateway.out.log type .radiko_gateway.out.log
 pause
 exit /b 1
 
@@ -107,6 +146,13 @@ echo.
 echo Keep .radiko_access_key private. Do not commit or share it.
 pause
 exit /b 0
+
+:needpython
+echo.
+echo Python 3 could not be found or installed automatically.
+echo Install Python 3.12 for Windows, then run this file again.
+pause
+exit /b 1
 
 :needtailscale
 echo.
