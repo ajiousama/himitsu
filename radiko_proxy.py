@@ -12,34 +12,46 @@ PORT=int(os.environ.get("RADIKO_PROXY_PORT","9395"))
 FREEWIFI_REMOTE=os.environ.get("RADIKO_FREEWIFI_URL","https://raw.githubusercontent.com/ajiousama/himitsu/main/freewifi")
 API_BASE="https://api.radiko.jp"
 WEB_BASE="https://radiko.jp"
-_state_lock=threading.Lock(); _state={"session":None,"token":None,"area":None,"stations":None,"epg":None}
+_state_lock=threading.Lock(); _state={"session":None,"token":None,"area":None,"stations":None,"epg":None,"mode":None,"premium_failed":False}
 
 def open_url(url,headers=None,data=None,timeout=15):
  return urllib.request.urlopen(urllib.request.Request(url,headers=headers or {},data=data),timeout=timeout)
 
 def premium_login():
  mail=os.environ.get("RADIKO_MAIL","").strip(); password=os.environ.get("RADIKO_PASSWORD","").strip()
- if not mail or not password: raise RuntimeError("RADIKO_MAIL / RADIKO_PASSWORD are not set")
+ if not mail or not password: raise RuntimeError("Premium credentials are not set")
  data=urllib.parse.urlencode({"mail":mail,"pass":password}).encode()
  with open_url(WEB_BASE+"/v4/api/member/login",data=data,timeout=30) as r: obj=json.loads(r.read().decode())
  session=str(obj.get("radiko_session") or "").strip()
- if not session or str(obj.get("areafree") or "0")!="1": raise RuntimeError("radiko Premium area-free login failed")
- return session
+ if not session: raise RuntimeError("Radiko account login failed")
+ return session,str(obj.get("areafree") or "0")=="1"
 
-def auth(session):
+def auth(session=None):
  with open_url(API_BASE+"/v2/api/auth1",headers=BASE_HEADERS,timeout=30) as r:
   token=r.headers["X-Radiko-AuthToken"]; off=int(r.headers["X-Radiko-KeyOffset"]); length=int(r.headers["X-Radiko-KeyLength"])
  partial=base64.b64encode(AUTH_KEY[off:off+length].encode()).decode(); h=dict(BASE_HEADERS); h.update({"X-Radiko-AuthToken":token,"X-Radiko-Partialkey":partial})
- with open_url(API_BASE+"/v2/api/auth2?radiko_session="+urllib.parse.quote(session),headers=h,timeout=30) as r: body=r.read().decode().strip()
+ url=API_BASE+"/v2/api/auth2"
+ if session:url+="?radiko_session="+urllib.parse.quote(session)
+ with open_url(url,headers=h,timeout=30) as r: body=r.read().decode().strip()
  if not body or body=="OUT": raise RuntimeError("radiko auth2 failed")
- return token,(body.split(",")[0] if body else "OUT")
+ return token,body.split(",")[0]
 
 def ensure_auth(force=False):
  with _state_lock:
-  if not force and _state["token"]: return _state["session"],_state["token"],_state["area"]
- session=premium_login(); token,area=auth(session)
- with _state_lock: _state.update(session=session,token=token,area=area)
- return session,token,area
+  if not force and _state["token"]: return _state["session"],_state["token"],_state["area"],_state["mode"]
+  premium_failed=_state["premium_failed"]
+ session=None; token=None; area=None; mode="free"
+ mail=os.environ.get("RADIKO_MAIL","").strip(); password=os.environ.get("RADIKO_PASSWORD","").strip()
+ if mail and password and not premium_failed:
+  try:
+   session,areafree=premium_login(); token,area=auth(session); mode="premium" if areafree else "free-account"
+  except Exception:
+   with _state_lock:_state["premium_failed"]=True
+   session=None; token=None; area=None; mode="free"
+ if token is None:
+  token,area=auth(None)
+ with _state_lock:_state.update(session=session,token=token,area=area,mode=mode)
+ return session,token,area,mode
 
 def region_for_prefecture(n):
  if n==1:return "北海道"
@@ -89,15 +101,18 @@ def get_epg(force=False):
  with _state_lock:_state["epg"]=data
  return data
 
-def playlist_create_urls(station):
- with open_url(f"{API_BASE}/v3/station/stream/pc_html5/{station}.xml",headers={"User-Agent":"Mozilla/5.0"},timeout=10) as r:root=ET.fromstring(r.read())
+def playlist_create_urls(station,areafree):
  out=[]
- for node in root.findall("url"):
-  if node.get("areafree")=="1" and node.get("timefree","0")=="0":
-   p=node.find("playlist_create_url")
-   if p is not None and p.text:out.append(p.text.strip())
+ try:
+  with open_url(f"{API_BASE}/v3/station/stream/pc_html5/{station}.xml",headers={"User-Agent":"Mozilla/5.0"},timeout=10) as r:root=ET.fromstring(r.read())
+  want="1" if areafree else "0"
+  for node in root.findall("url"):
+   if node.get("areafree")==want and node.get("timefree","0")=="0":
+    p=node.find("playlist_create_url")
+    if p is not None and p.text:out.append(p.text.strip())
+ except Exception:pass
  current="https://alliance-stream-radiko.smartstream.ne.jp/so/playlist.m3u8"
- if current not in out: out.insert(0,current)
+ if current not in out:out.insert(0,current)
  return out
 
 def auth_headers(token,session=None):
@@ -106,16 +121,30 @@ def auth_headers(token,session=None):
  return h
 
 def get_live_master(station,refresh=False):
- session,token,_=ensure_auth(force=refresh); errors=[]
- for base in playlist_create_urls(station):
-  for typ in ("b","c"):
-   q=urllib.parse.urlencode({"station_id":station,"l":15,"lsid":hashlib.md5(str(random.random()).encode()).hexdigest(),"type":typ}); url=base+("&" if "?" in base else "?")+q
+ session,token,_,mode=ensure_auth(force=refresh); errors=[]; areafree=(mode=="premium")
+ types=("c","b") if areafree else ("b",)
+ for base in playlist_create_urls(station,areafree):
+  for typ in types:
+   q=urllib.parse.urlencode({"station_id":station,"l":195,"lsid":"alliance","type":typ,"noad":1}); url=base+("&" if "?" in base else "?")+q
    try:
     with open_url(url,headers=auth_headers(token,session),timeout=15) as r:body=r.read().decode("utf-8","replace")
     if "#EXTM3U" in body:return url,body
    except Exception as e:errors.append(f"{type(e).__name__}:{getattr(e,'code','')}")
  if not refresh:return get_live_master(station,refresh=True)
- raise RuntimeError(f"no playable area-free URL for {station}: {','.join(errors[-5:])}")
+ raise RuntimeError(f"no playable URL for {station} ({mode}): {','.join(errors[-5:])}")
+
+def get_live_auto():
+ _,_,area,_=ensure_auth(); stations=discover_stations()
+ try:pref=int(area[2:]) if area.startswith("JP") else 0
+ except Exception:pref=0
+ candidates=[sid for sid,meta in stations.items() if meta.get("pref")==pref]
+ if not candidates:candidates=list(stations)[:12]
+ errors=[]
+ for sid in candidates[:12]:
+  try:
+   source,text=get_live_master(sid); return sid,source,text
+  except Exception as e:errors.append(f"{sid}:{e}")
+ raise RuntimeError("no local live station: "+" | ".join(errors[-3:]))
 
 def rewrite_m3u(text,source_url,base_proxy):
  out=[]
@@ -126,13 +155,12 @@ def rewrite_m3u(text,source_url,base_proxy):
  return "\n".join(out)+"\n"
 
 def get_freewifi_for_client(base_proxy):
- with open_url(FREEWIFI_REMOTE,headers={"User-Agent":"Mozilla/5.0"},timeout=20) as r:
-  text=r.read().decode("utf-8-sig","replace")
+ with open_url(FREEWIFI_REMOTE,headers={"User-Agent":"Mozilla/5.0"},timeout=20) as r:text=r.read().decode("utf-8-sig","replace")
  text=text.replace("http://127.0.0.1:9395/",base_proxy+"/")
  return text.encode("utf-8")
 
 def fetch_proxied(url,refresh=False):
- session,token,_=ensure_auth(force=refresh)
+ session,token,_,_=ensure_auth(force=refresh)
  try:return open_url(url,headers=auth_headers(token,session),timeout=20)
  except urllib.error.HTTPError as e:
   if e.code in (401,403) and not refresh:return fetch_proxied(url,refresh=True)
@@ -144,7 +172,7 @@ def local_ip():
  except Exception:return "PC-LAN-IP"
 
 class Handler(BaseHTTPRequestHandler):
- server_version="RadikoProxy/1.7"
+ server_version="RadikoProxy/1.8"
  def log_message(self,fmt,*args):print("[radiko] "+fmt%args,flush=True)
  def send_bytes(self,status,data,content_type):
   self.send_response(status);self.send_header("Content-Type",content_type);self.send_header("Content-Length",str(len(data)));self.send_header("Cache-Control","no-store");self.send_header("Access-Control-Allow-Origin","*");self.end_headers();self.wfile.write(data)
@@ -153,7 +181,7 @@ class Handler(BaseHTTPRequestHandler):
   try:
    if p.path=="/health":self.send_bytes(200,b"OK\n","text/plain; charset=utf-8");return
    if p.path=="/ready":
-    _,_,area=ensure_auth();stations=discover_stations();self.send_bytes(200,f"OK {area} stations={len(stations)}\n".encode(),"text/plain; charset=utf-8");return
+    _,_,area,mode=ensure_auth();stations=discover_stations();self.send_bytes(200,f"OK {area} mode={mode} stations={len(stations)}\n".encode(),"text/plain; charset=utf-8");return
    if p.path=="/epg.xml":self.send_bytes(200,get_epg(),"application/xml; charset=utf-8");return
    if p.path=="/freewifi.m3u":self.send_bytes(200,get_freewifi_for_client(base_proxy),"audio/x-mpegurl; charset=utf-8");return
    if p.path in ("/","/playlist.m3u"):
@@ -161,6 +189,8 @@ class Handler(BaseHTTPRequestHandler):
     items=sorted(stations.items(),key=lambda kv:(order.get(kv[1].get("region",""),99),kv[1].get("pref",99),kv[1].get("name","")))
     for sid,meta in items:lines.append(f'#EXTINF:-1 tvg-id="radiko.{sid}" tvg-logo="{meta.get("logo","")}" group-title="{meta.get("region","その他")}",{meta["name"]}');lines.append(f"{base_proxy}/live/{urllib.parse.quote(sid)}")
     self.send_bytes(200,("\n".join(lines)+"\n").encode("utf-8"),"audio/x-mpegurl; charset=utf-8");return
+   if p.path=="/live-auto":
+    sid,source,text=get_live_auto();data=(f"# auto-station={sid}\n"+rewrite_m3u(text,source,base_proxy)).encode("utf-8");self.send_bytes(200,data,"application/vnd.apple.mpegurl");return
    if p.path.startswith("/live/"):
     sid=urllib.parse.unquote(p.path.split("/",2)[2]);source,text=get_live_master(sid);self.send_bytes(200,rewrite_m3u(text,source,base_proxy).encode("utf-8"),"application/vnd.apple.mpegurl");return
    if p.path=="/proxy":
