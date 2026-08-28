@@ -1,29 +1,12 @@
 #!/usr/bin/env python3
 import importlib.util
-import os
 import pathlib
 import sys
-import urllib.request
 
-CORE_URL = "https://raw.githubusercontent.com/ajiousama/himitsu/main/radiko_proxy_core.py"
 CORE_PATH = pathlib.Path(__file__).with_name("radiko_proxy_core.py")
-TMP_PATH = pathlib.Path(str(CORE_PATH) + ".tmp")
 
-try:
-    req = urllib.request.Request(CORE_URL, headers={"User-Agent": "Mozilla/5.0"})
-    with urllib.request.urlopen(req, timeout=30) as r:
-        data = r.read()
-    if len(data) < 5000:
-        raise RuntimeError("downloaded Radiko runtime is unexpectedly small")
-    TMP_PATH.write_bytes(data)
-    os.replace(TMP_PATH, CORE_PATH)
-except Exception as e:
-    try:
-        TMP_PATH.unlink(missing_ok=True)
-    except Exception:
-        pass
-    if not CORE_PATH.exists():
-        raise RuntimeError(f"could not download radiko_proxy_core.py: {e}") from e
+if not CORE_PATH.exists():
+    raise RuntimeError("radiko_proxy_core.py is missing. Download/extract the complete himitsu ZIP again.")
 
 spec = importlib.util.spec_from_file_location("radiko_proxy_core_runtime", CORE_PATH)
 if spec is None or spec.loader is None:
