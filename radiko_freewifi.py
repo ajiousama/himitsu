@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import concurrent.futures
+import os
 import re
 import urllib.parse
 import urllib.request
@@ -13,7 +14,7 @@ GUIDES = Path("guides.xml")
 START = "# === RADIKO_MANAGED_START ==="
 END = "# === RADIKO_MANAGED_END ==="
 UA = {"User-Agent": "Mozilla/5.0"}
-BASE = "http://127.0.0.1:9395"
+BASE = os.environ.get("RADIKO_PUBLIC_BASE", "https://desktop-h41fq90.tailde6548.ts.net").rstrip("/")
 
 
 def region_for_prefecture(n):
@@ -149,6 +150,7 @@ def main():
     m3u_count = replace_radiko_block(stations)
     epg_channels, epg_programmes = merge_radiko_epg()
     print(f"radiko FreeWiFi stations: {m3u_count}")
+    print(f"radiko public base: {BASE}")
     print(f"radiko EPG channels: {epg_channels}")
     print(f"radiko EPG programmes: {epg_programmes}")
     if epg_channels < 100 or epg_programmes < 500:
