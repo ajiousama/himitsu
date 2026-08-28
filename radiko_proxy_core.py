@@ -49,6 +49,27 @@ def premium_login(force=False):
  print('[radiko] Premium area-free login OK',flush=True)
  return sess,True
 
+def _auth2(token,part,session):
+ base=dict(AUTH1_HEADERS)
+ base.update({'X-Radiko-AuthToken':token,'X-Radiko-PartialKey':base64.b64encode(part).decode()})
+ attempts=[]
+ if session:
+  h=dict(base); h['X-Radiko-Session']=session
+  attempts.append((API+'/v2/api/auth2',h,'session-header'))
+  attempts.append((API+'/v2/api/auth2?radiko_session='+urllib.parse.quote(session,safe=''),base,'session-query'))
+ else:
+  attempts.append((API+'/v2/api/auth2',base,'free'))
+ errs=[]
+ for url,h,label in attempts:
+  try:
+   with open_url(url,h,timeout=30) as r:
+    body=r.read().decode('utf-8','replace').strip()
+   if body and body!='OUT': return body
+   errs.append(label+':OUT')
+  except Exception as e:
+   errs.append(f'{label}:{type(e).__name__}:{getattr(e,"code","")}:{e}')
+ raise RuntimeError('Radiko auth2 failed | '+' | '.join(errs))
+
 def ensure_auth(force=False):
  with L:
   if S['token'] and not force and time.time()-S['auth_time']<3900: return S['session'],S['token'],S['area'],S['mode']
@@ -60,12 +81,7 @@ def ensure_auth(force=False):
  if not token or off is None or ln is None: raise RuntimeError('Radiko auth1 headers are incomplete')
  off=int(off); ln=int(ln); part=AUTHKEY[off:off+ln]
  if len(part)!=ln: raise RuntimeError(f'Radiko partial-key range invalid offset={off} length={ln}')
- h=dict(AUTH1_HEADERS)
- h.update({'X-Radiko-AuthToken':token,'X-Radiko-PartialKey':base64.b64encode(part).decode()})
- url=API+'/v2/api/auth2'
- if session: url+='?radiko_session='+urllib.parse.quote(session,safe='')
- with open_url(url,h,timeout=30) as r: body=r.read().decode('utf-8','replace').strip()
- if not body or body=='OUT': raise RuntimeError('Radiko auth2 returned OUT')
+ body=_auth2(token,part,session)
  area=body.split(',')[0].strip(); mode='premium' if premium else 'free'
  if not re.fullmatch(r'JP\d{1,2}',area): raise RuntimeError(f'Radiko auth2 returned invalid area: {body[:80]}')
  with L: S.update(session=session,token=token,area=area,mode=mode,auth_time=time.time())
@@ -189,7 +205,7 @@ def local_ip():
  except:return 'PC-LAN-IP'
 
 class Handler(BaseHTTPRequestHandler):
- server_version='RadikoProxy/3.3'
+ server_version='RadikoProxy/3.4'
  def log_message(self,fmt,*args):print('[radiko] '+fmt%args,flush=True)
  def sendb(self,status,data,ct):
   self.send_response(status);self.send_header('Content-Type',ct);self.send_header('Content-Length',str(len(data)));self.send_header('Cache-Control','no-store');self.send_header('Access-Control-Allow-Origin','*');self.end_headers();self.wfile.write(data)
