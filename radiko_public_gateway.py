@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import os
+import re
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -9,6 +10,12 @@ HOST = os.environ.get("RADIKO_GATEWAY_HOST", "127.0.0.1")
 PORT = int(os.environ.get("RADIKO_GATEWAY_PORT", "9396"))
 BACKEND = os.environ.get("RADIKO_GATEWAY_BACKEND", "http://127.0.0.1:9395").rstrip("/")
 ACCESS_KEY = os.environ.get("RADIKO_ACCESS_KEY", "").strip()
+PUBLIC_NO_KEY = os.environ.get("RADIKO_PUBLIC_NO_KEY", "0").strip().lower() in {"1", "true", "yes", "on"}
+
+# Public mode is intentionally limited to radiko playback endpoints only.
+# In particular, arbitrary backend paths and private/local proxy targets are rejected.
+ALLOWED_PROXY_SUFFIXES = (".radiko.jp", ".smartstream.ne.jp")
+SID_RE = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
 
 
 def add_key(url, key):
@@ -19,6 +26,25 @@ def add_key(url, key):
     if not any(k == "k" for k, _ in q):
         q.append(("k", key))
     return urllib.parse.urlunsplit((p.scheme, p.netloc, p.path, urllib.parse.urlencode(q), p.fragment))
+
+
+def public_path_allowed(parsed):
+    if parsed.path in {"/health", "/epg.xml", "/playlist.m3u", "/"}:
+        return True
+    if parsed.path.startswith("/live/"):
+        sid = urllib.parse.unquote(parsed.path.split("/", 2)[2])
+        return bool(SID_RE.fullmatch(sid))
+    if parsed.path == "/proxy":
+        target = (urllib.parse.parse_qs(parsed.query).get("u") or [""])[0]
+        try:
+            p = urllib.parse.urlsplit(target)
+        except Exception:
+            return False
+        host = (p.hostname or "").lower()
+        if p.scheme not in {"http", "https"} or not host:
+            return False
+        return host in {"radiko.jp", "www.radiko.jp", "smartstream.ne.jp"} or host.endswith(ALLOWED_PROXY_SUFFIXES)
+    return False
 
 
 def rewrite_text(text, public_base, key):
@@ -41,7 +67,7 @@ def rewrite_text(text, public_base, key):
 
 
 class Handler(BaseHTTPRequestHandler):
-    server_version = "RadikoPublicGateway/1.0"
+    server_version = "RadikoPublicGateway/1.1"
 
     def log_message(self, fmt, *args):
         print("[radiko-public] " + fmt % args, flush=True)
@@ -52,6 +78,8 @@ class Handler(BaseHTTPRequestHandler):
         return f"{proto}://{host}".rstrip("/")
 
     def _authorized(self, parsed):
+        if PUBLIC_NO_KEY:
+            return public_path_allowed(parsed)
         if parsed.path == "/health":
             return True
         if not ACCESS_KEY:
@@ -62,7 +90,7 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         parsed = urllib.parse.urlsplit(self.path)
         if not self._authorized(parsed):
-            self.send_error(403, "access key required")
+            self.send_error(403, "access denied")
             return
         if parsed.path == "/health":
             body = b"OK\n"
@@ -84,7 +112,8 @@ class Handler(BaseHTTPRequestHandler):
                 ctype = r.headers.get("Content-Type", "application/octet-stream")
                 is_text_m3u = "mpegurl" in ctype.lower() or parsed.path.endswith((".m3u", ".m3u8")) or data.startswith(b"#EXTM3U")
                 if is_text_m3u:
-                    data = rewrite_text(data.decode("utf-8", "replace"), public_base, ACCESS_KEY).encode("utf-8")
+                    rewrite_key = "" if PUBLIC_NO_KEY else ACCESS_KEY
+                    data = rewrite_text(data.decode("utf-8", "replace"), public_base, rewrite_key).encode("utf-8")
                     ctype = "application/vnd.apple.mpegurl; charset=utf-8"
                 self.send_response(r.status)
                 self.send_header("Content-Type", ctype)
@@ -100,9 +129,10 @@ class Handler(BaseHTTPRequestHandler):
 
 
 def main():
-    if not ACCESS_KEY:
+    if not PUBLIC_NO_KEY and not ACCESS_KEY:
         raise SystemExit("RADIKO_ACCESS_KEY is not set")
-    print(f"radiko public gateway: http://{HOST}:{PORT}", flush=True)
+    mode = "public-restricted" if PUBLIC_NO_KEY else "key-protected"
+    print(f"radiko public gateway ({mode}): http://{HOST}:{PORT}", flush=True)
     ThreadingHTTPServer((HOST, PORT), Handler).serve_forever()
 
 
