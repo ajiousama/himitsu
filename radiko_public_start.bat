@@ -46,7 +46,7 @@ if not defined PYEXE (
 )
 if not defined PYEXE goto :needpython
 
-"%PYEXE%" -m py_compile radiko_proxy_core.py radiko_epg.py
+"%PYEXE%" -m py_compile radiko_proxy_core.py radiko_epg.py radiko_public_front.py radiko_public_selftest.py
 if errorlevel 1 goto :syntaxfail
 
 rem Load saved Premium credentials. Password is stored with Windows DPAPI.
@@ -68,32 +68,50 @@ set /p RADIKO_SIGNING_SECRET=<.radiko_signing_secret
 
 set RADIKO_PROXY_HOST=127.0.0.1
 set RADIKO_PROXY_PORT=9395
+set RADIKO_FRONT_HOST=127.0.0.1
+set RADIKO_FRONT_PORT=9396
+set RADIKO_FRONT_UPSTREAM=http://127.0.0.1:9395
+set RADIKO_PUBLIC_HOST=%TSDNS%
 
-rem Stop stale Radiko listener, then start the new Premium refresh gateway.
-powershell -NoProfile -Command "$owners=Get-NetTCPConnection -LocalPort 9395 -State Listen -ErrorAction SilentlyContinue|Select-Object -ExpandProperty OwningProcess -Unique;foreach($procId in $owners){Stop-Process -Id $procId -Force -ErrorAction SilentlyContinue}" >nul 2>&1
+rem Stop stale listeners, then start the private Premium core and HTTPS-aware public front.
+powershell -NoProfile -Command "$ports=9395,9396;foreach($port in $ports){$owners=Get-NetTCPConnection -LocalPort $port -State Listen -ErrorAction SilentlyContinue|Select-Object -ExpandProperty OwningProcess -Unique;foreach($procId in $owners){Stop-Process -Id $procId -Force -ErrorAction SilentlyContinue}}" >nul 2>&1
 timeout /t 1 /nobreak >nul
-del /q .radiko_proxy.out.log .radiko_proxy.err.log .radiko_ready.txt >nul 2>&1
+del /q .radiko_proxy.out.log .radiko_proxy.err.log .radiko_front.out.log .radiko_front.err.log .radiko_ready.txt .radiko_ready_code.txt >nul 2>&1
 set "PYEXE_ENV=%PYEXE%"
 powershell -NoProfile -Command "Start-Process -WindowStyle Hidden -FilePath $env:PYEXE_ENV -ArgumentList @('-u','radiko_proxy_core.py') -WorkingDirectory (Get-Location).Path -RedirectStandardOutput '.radiko_proxy.out.log' -RedirectStandardError '.radiko_proxy.err.log'"
 
 for /l %%N in (1,1,30) do (
-  curl.exe -fsS --max-time 2 http://127.0.0.1:9395/health >nul 2>&1 && goto :healthok
+  curl.exe -fsS --max-time 2 http://127.0.0.1:9395/health >nul 2>&1 && goto :corehealth
   timeout /t 1 /nobreak >nul
 )
 goto :proxyfail
 
-:healthok
+:corehealth
 curl.exe -sS --max-time 90 -o .radiko_ready.txt -w "%%{http_code}" http://127.0.0.1:9395/ready >.radiko_ready_code.txt
 set "READYCODE="
 set /p READYCODE=<.radiko_ready_code.txt
 if not "%READYCODE%"=="200" goto :proxyfail
 
-rem Tailscale Funnel publishes the signed HLS gateway. /fetch cannot be used without a valid local signature.
-"%TS%" funnel --bg --yes 9395 >nul
+powershell -NoProfile -Command "Start-Process -WindowStyle Hidden -FilePath $env:PYEXE_ENV -ArgumentList @('-u','radiko_public_front.py') -WorkingDirectory (Get-Location).Path -RedirectStandardOutput '.radiko_front.out.log' -RedirectStandardError '.radiko_front.err.log'"
+for /l %%N in (1,1,30) do (
+  curl.exe -fsS --max-time 2 http://127.0.0.1:9396/health >nul 2>&1 && goto :fronthealth
+  timeout /t 1 /nobreak >nul
+)
+goto :frontfail
+
+:fronthealth
+rem Funnel exposes only the public front. The private Radiko core stays on localhost:9395.
+"%TS%" funnel --bg --yes 9396 >nul
 if errorlevel 1 goto :funnelfail
-timeout /t 2 /nobreak >nul
+timeout /t 3 /nobreak >nul
+
 curl.exe -fsS --max-time 90 "https://%TSDNS%/ready" >nul 2>&1
 if errorlevel 1 goto :publicfail
+
+rem End-to-end test: follow public HLS playlists until real audio bytes are downloaded.
+"%PYEXE%" radiko_public_selftest.py "https://%TSDNS%/live/KBS" >.radiko_public_test.txt 2>&1
+if errorlevel 1 "%PYEXE%" radiko_public_selftest.py "https://%TSDNS%/live/RNB" >.radiko_public_test.txt 2>&1
+if errorlevel 1 goto :audiofail
 
 if "%AUTO_MODE%"=="0" (
   set "RADIKO_BAT=%~f0"
@@ -103,13 +121,14 @@ if "%AUTO_MODE%"=="1" exit /b 0
 
 echo.
 echo ============================================================
-echo Radiko Premium gateway: READY
+echo Radiko Premium gateway: READY - PUBLIC AUDIO VERIFIED
 echo Public base: https://%TSDNS%
 echo FreeWiFi: https://raw.githubusercontent.com/ajiousama/himitsu/main/freewifi
 echo EPG: https://raw.githubusercontent.com/ajiousama/himitsu/main/guides.xml
-echo Authentication and m3u8 are refreshed automatically.
+echo KBS/RNB public HLS audio test passed.
 echo ============================================================
 type .radiko_ready.txt
+if exist .radiko_public_test.txt type .radiko_public_test.txt
 echo.
 pause
 exit /b 0
@@ -124,9 +143,18 @@ if exist .radiko_proxy.out.log type .radiko_proxy.out.log
 pause
 exit /b 1
 
+:frontfail
+if "%AUTO_MODE%"=="1" exit /b 1
+echo.
+echo Radiko public HTTPS front failed.
+if exist .radiko_front.err.log type .radiko_front.err.log
+if exist .radiko_front.out.log type .radiko_front.out.log
+pause
+exit /b 1
+
 :funnelfail
 if "%AUTO_MODE%"=="1" exit /b 1
-echo Tailscale Funnel could not be enabled for port 9395.
+echo Tailscale Funnel could not be enabled for port 9396.
 pause
 exit /b 1
 
@@ -134,6 +162,16 @@ exit /b 1
 if "%AUTO_MODE%"=="1" exit /b 1
 echo Local Radiko is ready, but the public Tailscale URL failed.
 echo Public URL: https://%TSDNS%/ready
+if exist .radiko_front.err.log type .radiko_front.err.log
+pause
+exit /b 1
+
+:audiofail
+if "%AUTO_MODE%"=="1" exit /b 1
+echo Public URL is reachable, but actual Radiko audio bytes could not be downloaded.
+if exist .radiko_public_test.txt type .radiko_public_test.txt
+if exist .radiko_proxy.err.log type .radiko_proxy.err.log
+if exist .radiko_front.err.log type .radiko_front.err.log
 pause
 exit /b 1
 
