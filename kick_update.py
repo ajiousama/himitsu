@@ -215,6 +215,7 @@ def render_block(config: list[dict[str, Any]], existing: dict[str, str]) -> tupl
 
     for item in config:
         name = str(item["name"])
+        tvg_id = str(item.get("tvg_id") or "").strip()
         logo = str(item.get("logo") or "")
         url, slug, status = resolve_channel(item, existing.get(name))
         print(f"KICK {name}: {status}" + (f" [{slug}]" if slug else ""))
@@ -222,6 +223,8 @@ def render_block(config: list[dict[str, Any]], existing: dict[str, str]) -> tupl
             continue
 
         meta = '#EXTINF:-1 group-title="その他"'
+        if tvg_id:
+            meta += f' tvg-id="{tvg_id}"'
         if logo:
             meta += f' tvg-logo="{logo}"'
         lines.extend([f"{meta},{name}", url])
