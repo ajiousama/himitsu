@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 import concurrent.futures
 import datetime as dt
-import html
 import urllib.request
 import xml.etree.ElementTree as ET
 
@@ -47,15 +46,16 @@ def _radio_name(name):
     return name if name.endswith("（ラジオ）") else f"{name}（ラジオ）"
 
 
-def build_xmltv(days=3):
+def build_xmltv(days=3, prefs=None):
     today = dt.datetime.now(JST).date()
     dates = [(today + dt.timedelta(days=i)).strftime("%Y%m%d") for i in range(days)]
+    pref_list = tuple(prefs) if prefs is not None else tuple(range(1, 48))
 
     roots = {}
     with concurrent.futures.ThreadPoolExecutor(max_workers=12) as ex:
         futs = {
             ex.submit(_fetch_program_area, d, p): (d, p)
-            for d in dates for p in range(1, 48)
+            for d in dates for p in pref_list
         }
         for fut in concurrent.futures.as_completed(futs):
             key = futs[fut]
@@ -69,7 +69,7 @@ def build_xmltv(days=3):
     seen_prog = set()
 
     for d in dates:
-        for p in range(1, 48):
+        for p in pref_list:
             root = roots.get((d, p))
             if root is None:
                 continue
@@ -117,8 +117,8 @@ def build_xmltv(days=3):
         if item["sub_title"]:
             ET.SubElement(pr, "sub-title", {"lang": "ja"}).text = item["sub_title"]
         if item["pfm"]:
-            ET.SubElement(pr, "credits").append(ET.Element("presenter"))
-            pr.find("credits/presenter").text = item["pfm"]
+            credits = ET.SubElement(pr, "credits")
+            ET.SubElement(credits, "presenter").text = item["pfm"]
         desc = item["desc"] or item["info"]
         if desc:
             ET.SubElement(pr, "desc", {"lang": "ja"}).text = desc
