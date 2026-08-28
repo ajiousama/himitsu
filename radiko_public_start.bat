@@ -134,16 +134,29 @@ if errorlevel 1 (
   exit /b 1
 )
 
+set "PUBLIC_BASE=https://%TSDNS%"
+set "FREEWIFI_URL=%PUBLIC_BASE%/freewifi.m3u?k=%RADIKO_ACCESS_KEY%"
+set "RADIKO_URL=%PUBLIC_BASE%/playlist.m3u?k=%RADIKO_ACCESS_KEY%"
+set "EPG_URL=%PUBLIC_BASE%/epg.xml?k=%RADIKO_ACCESS_KEY%"
+
+>radiko_public_urls.txt (
+  echo FreeWiFi=%FREEWIFI_URL%
+  echo radiko=%RADIKO_URL%
+  echo EPG=%EPG_URL%
+)
+
+powershell -NoProfile -Command "Set-Clipboard -Value $env:FREEWIFI_URL" >nul 2>&1
+
 echo.
 echo ============================================================
 echo radiko public IPTV is ready.
-echo Stable host : https://%TSDNS%
-echo FreeWiFi    : https://%TSDNS%/freewifi.m3u?k=%RADIKO_ACCESS_KEY%
-echo radiko only : https://%TSDNS%/playlist.m3u?k=%RADIKO_ACCESS_KEY%
-echo EPG         : https://%TSDNS%/epg.xml?k=%RADIKO_ACCESS_KEY%
+echo Stable host : %PUBLIC_BASE%
+echo FreeWiFi URL was copied to the clipboard.
+echo Full URLs are saved locally in: radiko_public_urls.txt
+echo Access key is intentionally NOT shown on this screen.
 echo ============================================================
 echo.
-echo Keep .radiko_access_key private. Do not commit or share it.
+echo Keep .radiko_access_key and radiko_public_urls.txt private.
 pause
 exit /b 0
 
