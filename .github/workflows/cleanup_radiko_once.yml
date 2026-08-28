@@ -1,0 +1,71 @@
+name: Cleanup Radiko from FreeWiFi
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/cleanup_radiko_once.yml'
+      - 'freewifi'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Remove Radiko entries
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('freewifi')
+          text = p.read_text(encoding='utf-8-sig')
+          lines = text.splitlines()
+          out = []
+          removed = 0
+          i = 0
+          while i < len(lines):
+              line = lines[i]
+              if line.startswith('#EXTINF:') and ('tvg-id="radiko.' in line or '127.0.0.1:9395/' in line):
+                  removed += 1
+                  i += 1
+                  if i < len(lines) and lines[i] and not lines[i].startswith('#'):
+                      i += 1
+                  continue
+              if '127.0.0.1:9395/' in line:
+                  removed += 1
+                  i += 1
+                  continue
+              out.append(line)
+              i += 1
+          # Collapse excessive blank lines only; preserve all unrelated channel data/comments.
+          clean = []
+          blanks = 0
+          for line in out:
+              if line.strip():
+                  blanks = 0
+                  clean.append(line)
+              else:
+                  blanks += 1
+                  if blanks <= 1:
+                      clean.append(line)
+          p.write_text('\n'.join(clean).rstrip() + '\n', encoding='utf-8')
+          print(f'Removed Radiko records/URLs: {removed}')
+          remaining = p.read_text(encoding='utf-8', errors='replace')
+          bad = [x for x in ('tvg-id="radiko.', '127.0.0.1:9395/') if x in remaining]
+          if bad:
+              raise SystemExit('Radiko markers remain: ' + ', '.join(bad))
+          PY
+      - name: Commit cleanup
+        run: |
+          if git diff --quiet -- freewifi; then
+            echo 'No Radiko entries remain.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add freewifi
+          git commit -m 'Remove Radiko from freewifi'
+          git push
