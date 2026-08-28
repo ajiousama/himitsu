@@ -40,15 +40,20 @@ set /p RADIKO_ACCESS_KEY=<.radiko_access_key
 
 if "%RADIKO_MAIL%"=="" (
   echo.
-  echo RADIKO_MAIL is not set in Windows.
-  echo Set the radiko Premium login environment first, then run this again.
+  echo radiko Premium login is needed on this PC.
+  set /p "RADIKO_MAIL=radiko mail address: "
+)
+if "%RADIKO_MAIL%"=="" (
+  echo No mail address entered.
   pause
   exit /b 1
 )
+
 if "%RADIKO_PASSWORD%"=="" (
-  echo.
-  echo RADIKO_PASSWORD is not set in Windows.
-  echo Set the radiko Premium login environment first, then run this again.
+  for /f "usebackq delims=" %%P in (`powershell -NoProfile -Command "$s=Read-Host 'radiko Premium password' -AsSecureString;$p=[Runtime.InteropServices.Marshal]::SecureStringToBSTR($s);try{[Runtime.InteropServices.Marshal]::PtrToStringBSTR($p)}finally{[Runtime.InteropServices.Marshal]::ZeroFreeBSTR($p)}"`) do set "RADIKO_PASSWORD=%%P"
+)
+if "%RADIKO_PASSWORD%"=="" (
+  echo No password entered.
   pause
   exit /b 1
 )
