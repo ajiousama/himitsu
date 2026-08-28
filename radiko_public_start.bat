@@ -109,18 +109,20 @@ set RADIKO_PUBLIC_NO_KEY=1
 
 powershell -NoProfile -Command "$ports=9395,9396;foreach($port in $ports){$x=Get-NetTCPConnection -LocalPort $port -State Listen -ErrorAction SilentlyContinue|Select-Object -ExpandProperty OwningProcess -Unique;foreach($pid in $x){Stop-Process -Id $pid -Force -ErrorAction SilentlyContinue}}" >nul 2>&1
 timeout /t 1 /nobreak >nul
-del /q .radiko_proxy.out.log .radiko_proxy.err.log .radiko_gateway.out.log .radiko_gateway.err.log >nul 2>&1
+del /q .radiko_proxy.out.log .radiko_proxy.err.log .radiko_gateway.out.log .radiko_gateway.err.log .radiko_ready.txt >nul 2>&1
 powershell -NoProfile -Command "Start-Process -WindowStyle Hidden -FilePath $env:PYEXE -ArgumentList @('-u','radiko_proxy.py') -WorkingDirectory (Get-Location).Path -RedirectStandardOutput '.radiko_proxy.out.log' -RedirectStandardError '.radiko_proxy.err.log'"
 
 for /l %%N in (1,1,30) do (
-  powershell -NoProfile -Command "try{Invoke-WebRequest -UseBasicParsing -TimeoutSec 2 http://127.0.0.1:9395/health|Out-Null;exit 0}catch{exit 1}" >nul 2>&1 && goto :proxyhealth
+  curl.exe -fsS --max-time 2 http://127.0.0.1:9395/health >nul 2>&1 && goto :proxyhealth
   timeout /t 1 /nobreak >nul
 )
 goto :proxyfail
 
 :proxyhealth
 for /l %%N in (1,1,3) do (
-  powershell -NoProfile -Command "try{$r=Invoke-WebRequest -UseBasicParsing -TimeoutSec 30 http://127.0.0.1:9395/ready;$r.Content.Trim();exit 0}catch{exit 1}" && goto :authready
+  curl.exe -sS --max-time 35 -o .radiko_ready.txt -w "%%{http_code}" http://127.0.0.1:9395/ready >.radiko_ready_code.txt 2>nul
+  set /p READYCODE=<.radiko_ready_code.txt
+  if "!READYCODE!"=="200" goto :authready
   timeout /t 2 /nobreak >nul
 )
 goto :proxyfail
@@ -132,7 +134,7 @@ if errorlevel 1 goto :livefail
 
 powershell -NoProfile -Command "Start-Process -WindowStyle Hidden -FilePath $env:PYEXE -ArgumentList @('-u','radiko_public_gateway.py') -WorkingDirectory (Get-Location).Path -RedirectStandardOutput '.radiko_gateway.out.log' -RedirectStandardError '.radiko_gateway.err.log'"
 for /l %%N in (1,1,30) do (
-  powershell -NoProfile -Command "try{Invoke-WebRequest -UseBasicParsing -TimeoutSec 2 http://127.0.0.1:9396/health|Out-Null;exit 0}catch{exit 1}" >nul 2>&1 && goto :gatewayready
+  curl.exe -fsS --max-time 2 http://127.0.0.1:9396/health >nul 2>&1 && goto :gatewayready
   timeout /t 1 /nobreak >nul
 )
 goto :gatewayfail
@@ -163,7 +165,6 @@ echo ============================================================
 echo radiko AUDIO test OK - public gateway is ready.
 echo IPTV playlist URL stays unchanged:
 echo https://raw.githubusercontent.com/ajiousama/himitsu/main/freewifi
-echo Runtime Python files will self-update on future launches.
 echo Windows logon auto-start was registered.
 echo ============================================================
 echo.
@@ -174,8 +175,19 @@ exit /b 0
 if "%AUTO_MODE%"=="1" exit /b 1
 echo.
 echo Radiko authorization/proxy failed.
-if exist .radiko_proxy.err.log type .radiko_proxy.err.log
-if exist .radiko_proxy.out.log type .radiko_proxy.out.log
+if exist .radiko_ready.txt (
+  echo ----- /ready response -----
+  type .radiko_ready.txt
+  echo.
+)
+if exist .radiko_proxy.err.log (
+  echo ----- proxy stderr -----
+  type .radiko_proxy.err.log
+)
+if exist .radiko_proxy.out.log (
+  echo ----- proxy log -----
+  type .radiko_proxy.out.log
+)
 pause
 exit /b 1
 
