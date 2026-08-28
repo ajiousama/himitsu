@@ -36,10 +36,12 @@ TVER_MAP = {
     "tvtokyo": "テレビ東京_jp",
 }
 
+# Radiko Premium is nationwide, but the user's main listening base is Kansai.
+# Keep Kansai first, Kanto second, then the remaining regions.
 RADIO_GROUPS = (
-    "北海道（ラジオ）", "東北（ラジオ）", "関東（ラジオ）", "甲信越（ラジオ）",
-    "東海（ラジオ）", "近畿（ラジオ）", "中国（ラジオ）", "四国（ラジオ）",
-    "九州沖縄（ラジオ）", "短波（ラジオ）",
+    "近畿（ラジオ）", "関東（ラジオ）", "東海（ラジオ）", "中国（ラジオ）",
+    "四国（ラジオ）", "九州沖縄（ラジオ）", "甲信越（ラジオ）", "東北（ラジオ）",
+    "北海道（ラジオ）", "短波（ラジオ）",
 )
 
 GROUP_RE = re.compile(r'group-title="([^"]*)"')
