@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-import concurrent.futures
 import os
 import re
 import urllib.parse
@@ -16,41 +15,19 @@ END = "# === RADIKO_MANAGED_END ==="
 KICK_ANCHOR = "# === KICK_MANAGED_START ==="
 YT_ANCHOR = "# === GENERAL_YOUTUBE_MANAGED_START ==="
 UA = {"User-Agent": "Mozilla/5.0"}
-BASE = os.environ.get("RADIKO_PUBLIC_BASE", "https://ajiousama-radiko.onrender.com").rstrip("/")
-
-
-def region_for_prefecture(n):
-    if n == 1:
-        return "北海道"
-    if 2 <= n <= 7:
-        return "東北"
-    if 8 <= n <= 14:
-        return "関東"
-    if 15 <= n <= 20:
-        return "甲信越"
-    if 21 <= n <= 24:
-        return "東海"
-    if 25 <= n <= 30:
-        return "近畿"
-    if 31 <= n <= 35:
-        return "中国"
-    if 36 <= n <= 39:
-        return "四国"
-    return "九州沖縄"
+BASE = os.environ.get("RADIKO_PUBLIC_BASE", "https://himitsu-six.vercel.app").rstrip("/")
+PREF = 13
+AREA = "JP13"
 
 
 def open_url(url, timeout=12):
     return urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=timeout)
 
 
-def fetch_area(n):
-    area = f"JP{n}"
-    try:
-        with open_url(f"https://radiko.jp/v3/station/list/{area}.xml", 10) as r:
-            root = ET.fromstring(r.read())
-    except Exception:
-        return []
-    out = []
+def discover_stations():
+    with open_url(f"https://radiko.jp/v3/station/list/{AREA}.xml", 12) as r:
+        root = ET.fromstring(r.read())
+    stations = {}
     for st in root.findall("station"):
         sid = (st.findtext("id") or "").strip()
         if not sid:
@@ -71,24 +48,7 @@ def fetch_area(n):
                 logo = (st.findtext(tag) or "").strip()
                 if logo:
                     break
-        out.append((sid, {"name": name, "logo": logo, "region": region_for_prefecture(n), "pref": n}))
-    return out
-
-
-def discover_stations():
-    results = {}
-    with concurrent.futures.ThreadPoolExecutor(max_workers=12) as ex:
-        futs = {ex.submit(fetch_area, n): n for n in range(1, 48)}
-        for fut in concurrent.futures.as_completed(futs):
-            n = futs[fut]
-            try:
-                results[n] = fut.result()
-            except Exception:
-                results[n] = []
-    stations = {}
-    for n in range(1, 48):
-        for sid, meta in results.get(n, []):
-            stations.setdefault(sid, meta)
+        stations[sid] = {"name": name, "logo": logo}
     return stations
 
 
@@ -123,7 +83,7 @@ def strip_all_radiko_entries(text):
             if i < len(lines) and not lines[i].lstrip().startswith("#"):
                 i += 1
             continue
-        if line.strip() in {"## RADIKO", "## RADIKO（地域別＋短波）"}:
+        if line.strip().startswith("## RADIKO"):
             i += 1
             continue
         out.append(line)
@@ -134,7 +94,7 @@ def strip_all_radiko_entries(text):
 
 
 def insert_radiko_block(text, block):
-    # Radio belongs after the normal/backup groups but before KICK and the final YouTube block.
+    # Radio belongs after the normal/backup groups but before KICK and final YouTube.
     for anchor in (KICK_ANCHOR, YT_ANCHOR):
         if anchor in text:
             return text.replace(anchor, block.rstrip() + "\n\n" + anchor, 1)
@@ -145,22 +105,16 @@ def replace_radiko_block(stations):
     text = FREEWIFI.read_text(encoding="utf-8-sig")
     text, removed = strip_all_radiko_entries(text)
 
-    order_names = ("北海道", "東北", "関東", "甲信越", "東海", "近畿", "中国", "四国", "九州沖縄")
-    order = {name: i for i, name in enumerate(order_names)}
-    items = sorted(stations.items(), key=lambda kv: (order.get(kv[1]["region"], 99), kv[1]["pref"], kv[1]["name"]))
-
-    lines = [START, "## RADIKO（地域別＋短波）"]
+    items = sorted(stations.items(), key=lambda kv: kv[1]["name"])
+    lines = [START, "## RADIKO（Vercel東京 / JP13）"]
     for sid, meta in items:
         name = meta["name"].replace("\n", " ").strip()
         if not name.endswith("（ラジオ）"):
             name += "（ラジオ）"
         logo = meta["logo"].replace('"', "%22")
-        if is_shortwave_station(sid, meta["name"]):
-            group = "短波（ラジオ）"
-        else:
-            group = f'{meta["region"]}（ラジオ）'
+        group = "短波（ラジオ）" if is_shortwave_station(sid, meta["name"]) else "関東（ラジオ）"
         lines.append(f'#EXTINF:-1 tvg-id="radiko.{sid}" tvg-logo="{logo}" group-title="{group}",{name}')
-        lines.append(f"{BASE}/live/{urllib.parse.quote(sid)}")
+        lines.append(f"{BASE}/api/radiko?station={urllib.parse.quote(sid)}")
     lines.append(END)
 
     updated = insert_radiko_block(text, "\n".join(lines))
@@ -170,7 +124,7 @@ def replace_radiko_block(stations):
 
 def merge_radiko_epg():
     main_root = ET.parse(GUIDES).getroot()
-    rad_root = ET.fromstring(build_xmltv(3))
+    rad_root = ET.fromstring(build_xmltv(3, prefs=(PREF,)))
 
     for node in list(main_root.findall("channel")):
         if (node.get("id") or "").startswith("radiko."):
@@ -191,17 +145,17 @@ def merge_radiko_epg():
 
 def main():
     stations = discover_stations()
-    if len(stations) < 100:
-        raise SystemExit(f"radiko station discovery too small: {len(stations)}")
+    if len(stations) < 10:
+        raise SystemExit(f"Tokyo Radiko station discovery too small: {len(stations)}")
     m3u_count, removed = replace_radiko_block(stations)
     epg_channels, epg_programmes = merge_radiko_epg()
     print(f"old/duplicate radiko entries removed: {removed}")
-    print(f"radiko FreeWiFi stations: {m3u_count}")
+    print(f"Tokyo Radiko FreeWiFi stations: {m3u_count}")
     print(f"radiko public base: {BASE}")
-    print(f"radiko EPG channels: {epg_channels}")
-    print(f"radiko EPG programmes: {epg_programmes}")
-    if epg_channels < 100 or epg_programmes < 500:
-        raise SystemExit("radiko EPG result too small")
+    print(f"Tokyo Radiko EPG channels: {epg_channels}")
+    print(f"Tokyo Radiko EPG programmes: {epg_programmes}")
+    if epg_channels < 10 or epg_programmes < 200:
+        raise SystemExit("Tokyo Radiko EPG result too small")
 
 
 if __name__ == "__main__":
