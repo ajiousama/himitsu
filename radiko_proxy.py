@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import base64, concurrent.futures, hashlib, json, os, random, socket, threading, urllib.parse, urllib.request, urllib.error
+import base64, concurrent.futures, hashlib, json, os, socket, threading, urllib.parse, urllib.request, urllib.error
 import xml.etree.ElementTree as ET
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urljoin
@@ -26,15 +26,29 @@ def premium_login():
  if not session: raise RuntimeError("Radiko account login failed")
  return session,str(obj.get("areafree") or "0")=="1"
 
-def auth(session=None):
- with open_url(API_BASE+"/v2/api/auth1",headers=BASE_HEADERS,timeout=30) as r:
-  token=r.headers["X-Radiko-AuthToken"]; off=int(r.headers["X-Radiko-KeyOffset"]); length=int(r.headers["X-Radiko-KeyLength"])
- partial=base64.b64encode(AUTH_KEY[off:off+length].encode()).decode(); h=dict(BASE_HEADERS); h.update({"X-Radiko-AuthToken":token,"X-Radiko-Partialkey":partial})
- url=API_BASE+"/v2/api/auth2"
+def _auth_once(base,session=None):
+ with open_url(base+"/v2/api/auth1",headers=BASE_HEADERS,timeout=30) as r:
+  token=r.headers.get("X-Radiko-AuthToken")
+  off=r.headers.get("X-Radiko-KeyOffset")
+  length=r.headers.get("X-Radiko-KeyLength")
+ if not token or off is None or length is None: raise RuntimeError("auth1 headers missing")
+ off=int(off); length=int(length)
+ partial=base64.b64encode(AUTH_KEY[off:off+length].encode()).decode()
+ h=dict(BASE_HEADERS); h.update({"X-Radiko-AuthToken":token,"X-Radiko-PartialKey":partial})
+ url=base+"/v2/api/auth2"
  if session:url+="?radiko_session="+urllib.parse.quote(session)
  with open_url(url,headers=h,timeout=30) as r: body=r.read().decode().strip()
- if not body or body=="OUT": raise RuntimeError("radiko auth2 failed")
+ if not body or body=="OUT": raise RuntimeError("auth2 returned OUT")
  return token,body.split(",")[0]
+
+def auth(session=None):
+ errors=[]
+ # radiko.jp is the PC web-player endpoint and is known to work on Windows.
+ # api.radiko.jp is retained as a fallback because availability differs by network.
+ for base in (WEB_BASE,API_BASE):
+  try:return _auth_once(base,session)
+  except Exception as e:errors.append(f"{base}:{type(e).__name__}:{getattr(e,'code','')}:{e}")
+ raise RuntimeError("radiko auth failed | "+" | ".join(errors))
 
 def ensure_auth(force=False):
  with _state_lock:
@@ -104,12 +118,16 @@ def get_epg(force=False):
 def playlist_create_urls(station,areafree):
  out=[]
  try:
-  with open_url(f"{API_BASE}/v3/station/stream/pc_html5/{station}.xml",headers={"User-Agent":"Mozilla/5.0"},timeout=10) as r:root=ET.fromstring(r.read())
-  want="1" if areafree else "0"
-  for node in root.findall("url"):
-   if node.get("areafree")==want and node.get("timefree","0")=="0":
-    p=node.find("playlist_create_url")
-    if p is not None and p.text:out.append(p.text.strip())
+  for base in (API_BASE,WEB_BASE):
+   try:
+    with open_url(f"{base}/v3/station/stream/pc_html5/{station}.xml",headers={"User-Agent":"Mozilla/5.0"},timeout=10) as r:root=ET.fromstring(r.read())
+    want="1" if areafree else "0"
+    for node in root.findall("url"):
+     if node.get("areafree")==want and node.get("timefree","0")=="0":
+      p=node.find("playlist_create_url")
+      if p is not None and p.text and p.text.strip() not in out:out.append(p.text.strip())
+    if out:break
+   except Exception:continue
  except Exception:pass
  current="https://alliance-stream-radiko.smartstream.ne.jp/so/playlist.m3u8"
  if current not in out:out.insert(0,current)
@@ -172,7 +190,7 @@ def local_ip():
  except Exception:return "PC-LAN-IP"
 
 class Handler(BaseHTTPRequestHandler):
- server_version="RadikoProxy/1.8"
+ server_version="RadikoProxy/1.9"
  def log_message(self,fmt,*args):print("[radiko] "+fmt%args,flush=True)
  def send_bytes(self,status,data,content_type):
   self.send_response(status);self.send_header("Content-Type",content_type);self.send_header("Content-Length",str(len(data)));self.send_header("Cache-Control","no-store");self.send_header("Access-Control-Allow-Origin","*");self.end_headers();self.wfile.write(data)
@@ -202,7 +220,10 @@ class Handler(BaseHTTPRequestHandler):
      self.send_bytes(200,data,ctype or "application/octet-stream")
     return
    self.send_error(404)
-  except Exception as e:self.send_error(502,str(e))
+  except Exception as e:
+   print(f"[radiko] ERROR {p.path}: {type(e).__name__}: {e}",flush=True)
+   try:self.send_error(502,str(e))
+   except Exception:pass
 
 def main():
  ip=local_ip()
