@@ -13,6 +13,8 @@ on:
       - "freewifi_naori_kansai.py"
       - "other_live.m3u"
       - "epg_build.py"
+      - "kick_channels.json"
+      - "kick_epg.py"
       - "public_sports_epg_merge.py"
       - "jra_epg_merge.py"
       - "jra_freewifi_finalize.py"
@@ -131,6 +133,9 @@ jobs:
       - name: Merge JRA race EPG for official YouTube
         run: python jra_epg_merge.py
 
+      - name: Add persistent KICK receiver EPG
+        run: python kick_epg.py
+
       - name: Sync NAORI channels into FreeWiFi (final pass)
         run: |
           python freewifi_naori.py
@@ -153,6 +158,16 @@ jobs:
       - name: Validate XML
         run: python -c "import xml.etree.ElementTree as ET; ET.parse('guides.xml'); print('XML OK')"
 
+      - name: Validate persistent KICK EPG
+        shell: bash
+        run: |
+          for CID in kick.gccx kick.nogizaka kick.kodoku; do
+            grep -q "<channel id=\"$CID\"" guides.xml
+            test "$(grep -c "channel=\"$CID\"" guides.xml || true)" -ge 12
+          done
+          grep -q '現在KICK配信 受信中' guides.xml
+          echo 'KICK EPG OK'
+
       - name: Show coverage summary
         run: |
           head -n 12 epg_coverage.txt || true
@@ -160,6 +175,7 @@ jobs:
           grep -c '^FALLBACK' epg_coverage.txt || true
           echo "JRA official EPG programmes: $(grep -c 'channel=\"jra.official\"' guides.xml || true)"
           echo "Public sports EPG programmes: $(grep -E -c 'channel=\"(keirin|chihou|boat|auto)\.' guides.xml || true)"
+          echo "KICK EPG programmes: $(grep -c 'channel=\"kick\.' guides.xml || true)"
 
       - name: Validate verified counts when override is active
         shell: bash
