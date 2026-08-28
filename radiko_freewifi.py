@@ -16,7 +16,7 @@ END = "# === RADIKO_MANAGED_END ==="
 KICK_ANCHOR = "# === KICK_MANAGED_START ==="
 YT_ANCHOR = "# === GENERAL_YOUTUBE_MANAGED_START ==="
 UA = {"User-Agent": "Mozilla/5.0"}
-BASE = os.environ.get("RADIKO_PUBLIC_BASE", "https://ajiousama-radiko.onrender.com").rstrip("/")
+BASE = os.environ.get("RADIKO_PUBLIC_BASE", "https://himitsu-six.vercel.app").rstrip("/")
 
 
 def region_for_prefecture(n):
@@ -123,7 +123,7 @@ def strip_all_radiko_entries(text):
             if i < len(lines) and not lines[i].lstrip().startswith("#"):
                 i += 1
             continue
-        if line.strip() in {"## RADIKO", "## RADIKO（地域別＋短波）"}:
+        if line.strip() in {"## RADIKO", "## RADIKO（地域別＋短波）", "## RADIKO Premium（地域別＋短波）"}:
             i += 1
             continue
         out.append(line)
@@ -134,7 +134,6 @@ def strip_all_radiko_entries(text):
 
 
 def insert_radiko_block(text, block):
-    # Radio belongs after the normal/backup groups but before KICK and the final YouTube block.
     for anchor in (KICK_ANCHOR, YT_ANCHOR):
         if anchor in text:
             return text.replace(anchor, block.rstrip() + "\n\n" + anchor, 1)
@@ -145,11 +144,13 @@ def replace_radiko_block(stations):
     text = FREEWIFI.read_text(encoding="utf-8-sig")
     text, removed = strip_all_radiko_entries(text)
 
-    order_names = ("北海道", "東北", "関東", "甲信越", "東海", "近畿", "中国", "四国", "九州沖縄")
+    # Premium is nationwide. Put the user's main Osaka/Kansai group first,
+    # followed by Kanto and the remaining regions.
+    order_names = ("近畿", "関東", "東海", "中国", "四国", "九州沖縄", "甲信越", "東北", "北海道")
     order = {name: i for i, name in enumerate(order_names)}
     items = sorted(stations.items(), key=lambda kv: (order.get(kv[1]["region"], 99), kv[1]["pref"], kv[1]["name"]))
 
-    lines = [START, "## RADIKO（地域別＋短波）"]
+    lines = [START, "## RADIKO Premium（地域別＋短波）"]
     for sid, meta in items:
         name = meta["name"].replace("\n", " ").strip()
         if not name.endswith("（ラジオ）"):
@@ -160,7 +161,8 @@ def replace_radiko_block(stations):
         else:
             group = f'{meta["region"]}（ラジオ）'
         lines.append(f'#EXTINF:-1 tvg-id="radiko.{sid}" tvg-logo="{logo}" group-title="{group}",{name}')
-        lines.append(f"{BASE}/live/{urllib.parse.quote(sid)}")
+        station = urllib.parse.quote(sid, safe="")
+        lines.append(f"{BASE}/api/radiko?station={station}")
     lines.append(END)
 
     updated = insert_radiko_block(text, "\n".join(lines))
