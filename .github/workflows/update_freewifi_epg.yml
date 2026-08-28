@@ -17,6 +17,7 @@ on:
       - "jra_epg_merge.py"
       - "jra_freewifi_finalize.py"
       - "freewifi_today_public_sports.py"
+      - "prune_expired_boat_freewifi.py"
       - "public_sports_youtube_fallback.py"
       - "public_sports_youtube_fallback.m3u"
       - "freewifi_today_jra.py"
@@ -103,6 +104,9 @@ jobs:
 
       - name: Sync today's public sports venues into FreeWiFi
         run: python freewifi_today_public_sports.py
+
+      - name: Drop expired BOAT stream URLs
+        run: python prune_expired_boat_freewifi.py
 
       - name: Sync today's JRA channels into FreeWiFi
         run: python freewifi_today_jra.py
