@@ -10,6 +10,8 @@ BASE_HEADERS = {"X-Radiko-App":"pc_html5","X-Radiko-App-Version":"0.0.1","X-Radi
 HOST=os.environ.get("RADIKO_PROXY_HOST","127.0.0.1")
 PORT=int(os.environ.get("RADIKO_PROXY_PORT","9395"))
 FREEWIFI_REMOTE=os.environ.get("RADIKO_FREEWIFI_URL","https://raw.githubusercontent.com/ajiousama/himitsu/main/freewifi")
+API_BASE="https://api.radiko.jp"
+WEB_BASE="https://radiko.jp"
 _state_lock=threading.Lock(); _state={"session":None,"token":None,"area":None,"stations":None,"epg":None}
 
 def open_url(url,headers=None,data=None,timeout=15):
@@ -19,16 +21,17 @@ def premium_login():
  mail=os.environ.get("RADIKO_MAIL","").strip(); password=os.environ.get("RADIKO_PASSWORD","").strip()
  if not mail or not password: raise RuntimeError("RADIKO_MAIL / RADIKO_PASSWORD are not set")
  data=urllib.parse.urlencode({"mail":mail,"pass":password}).encode()
- with open_url("https://radiko.jp/v4/api/member/login",data=data,timeout=30) as r: obj=json.loads(r.read().decode())
+ with open_url(WEB_BASE+"/v4/api/member/login",data=data,timeout=30) as r: obj=json.loads(r.read().decode())
  session=str(obj.get("radiko_session") or "").strip()
  if not session or str(obj.get("areafree") or "0")!="1": raise RuntimeError("radiko Premium area-free login failed")
  return session
 
 def auth(session):
- with open_url("https://radiko.jp/v2/api/auth1",headers=BASE_HEADERS,timeout=30) as r:
+ with open_url(API_BASE+"/v2/api/auth1",headers=BASE_HEADERS,timeout=30) as r:
   token=r.headers["X-Radiko-AuthToken"]; off=int(r.headers["X-Radiko-KeyOffset"]); length=int(r.headers["X-Radiko-KeyLength"])
  partial=base64.b64encode(AUTH_KEY[off:off+length].encode()).decode(); h=dict(BASE_HEADERS); h.update({"X-Radiko-AuthToken":token,"X-Radiko-Partialkey":partial})
- with open_url("https://radiko.jp/v2/api/auth2?radiko_session="+urllib.parse.quote(session),headers=h,timeout=30) as r: body=r.read().decode().strip()
+ with open_url(API_BASE+"/v2/api/auth2?radiko_session="+urllib.parse.quote(session),headers=h,timeout=30) as r: body=r.read().decode().strip()
+ if not body or body=="OUT": raise RuntimeError("radiko auth2 failed")
  return token,(body.split(",")[0] if body else "OUT")
 
 def ensure_auth(force=False):
@@ -52,7 +55,7 @@ def region_for_prefecture(n):
 def _fetch_area_stations(n):
  area=f"JP{n}"; region=region_for_prefecture(n)
  try:
-  with open_url(f"https://radiko.jp/v3/station/list/{area}.xml",headers={"User-Agent":"Mozilla/5.0"},timeout=8) as r: root=ET.fromstring(r.read())
+  with open_url(f"{API_BASE}/v3/station/list/{area}.xml",headers={"User-Agent":"Mozilla/5.0"},timeout=8) as r: root=ET.fromstring(r.read())
  except Exception:return []
  found=[]
  for st in root.findall("station"):
@@ -87,12 +90,15 @@ def get_epg(force=False):
  return data
 
 def playlist_create_urls(station):
- with open_url(f"https://radiko.jp/v3/station/stream/pc_html5/{station}.xml",headers={"User-Agent":"Mozilla/5.0"},timeout=10) as r:root=ET.fromstring(r.read())
+ with open_url(f"{API_BASE}/v3/station/stream/pc_html5/{station}.xml",headers={"User-Agent":"Mozilla/5.0"},timeout=10) as r:root=ET.fromstring(r.read())
  out=[]
  for node in root.findall("url"):
   if node.get("areafree")=="1" and node.get("timefree","0")=="0":
    p=node.find("playlist_create_url")
    if p is not None and p.text:out.append(p.text.strip())
+ # Current Radiko live endpoint. Keep XML-discovered endpoints as fallbacks.
+ current="https://alliance-stream-radiko.smartstream.ne.jp/so/playlist.m3u8"
+ if current not in out: out.insert(0,current)
  return out
 
 def auth_headers(token,session=None):
@@ -106,11 +112,11 @@ def get_live_master(station,refresh=False):
   for typ in ("b","c"):
    q=urllib.parse.urlencode({"station_id":station,"l":15,"lsid":hashlib.md5(str(random.random()).encode()).hexdigest(),"type":typ}); url=base+("&" if "?" in base else "?")+q
    try:
-    with open_url(url,headers=auth_headers(token,session),timeout=12) as r:body=r.read().decode("utf-8","replace")
+    with open_url(url,headers=auth_headers(token,session),timeout=15) as r:body=r.read().decode("utf-8","replace")
     if "#EXTM3U" in body:return url,body
-   except Exception as e:errors.append(type(e).__name__)
+   except Exception as e:errors.append(f"{type(e).__name__}:{getattr(e,'code','')}")
  if not refresh:return get_live_master(station,refresh=True)
- raise RuntimeError(f"no playable area-free URL for {station}: {','.join(errors[-3:])}")
+ raise RuntimeError(f"no playable area-free URL for {station}: {','.join(errors[-5:])}")
 
 def rewrite_m3u(text,source_url,base_proxy):
  out=[]
@@ -123,8 +129,6 @@ def rewrite_m3u(text,source_url,base_proxy):
 def get_freewifi_for_client(base_proxy):
  with open_url(FREEWIFI_REMOTE,headers={"User-Agent":"Mozilla/5.0"},timeout=20) as r:
   text=r.read().decode("utf-8-sig","replace")
- # The repository playlist intentionally stores loopback URLs; expose them through
- # the host/IP used by this client so iPhone/TV devices on the same LAN reach this PC.
  text=text.replace("http://127.0.0.1:9395/",base_proxy+"/")
  return text.encode("utf-8")
 
@@ -141,7 +145,7 @@ def local_ip():
  except Exception:return "PC-LAN-IP"
 
 class Handler(BaseHTTPRequestHandler):
- server_version="RadikoProxy/1.6"
+ server_version="RadikoProxy/1.7"
  def log_message(self,fmt,*args):print("[radiko] "+fmt%args,flush=True)
  def send_bytes(self,status,data,content_type):
   self.send_response(status);self.send_header("Content-Type",content_type);self.send_header("Content-Length",str(len(data)));self.send_header("Cache-Control","no-store");self.send_header("Access-Control-Allow-Origin","*");self.end_headers();self.wfile.write(data)
