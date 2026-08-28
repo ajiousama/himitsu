@@ -5,6 +5,7 @@ from http.server import BaseHTTPRequestHandler,ThreadingHTTPServer
 from urllib.parse import urljoin
 from radiko_epg import build_xmltv
 
+BUILD='20260828-1327'
 HOST=os.environ.get('RADIKO_PROXY_HOST','127.0.0.1')
 PORT=int(os.environ.get('RADIKO_PROXY_PORT','9395'))
 FREEWIFI_REMOTE=os.environ.get('RADIKO_FREEWIFI_URL','https://raw.githubusercontent.com/ajiousama/himitsu/main/freewifi')
@@ -237,7 +238,7 @@ class Handler(BaseHTTPRequestHandler):
     local=local_area(force=True);mail=os.environ.get('RADIKO_MAIL','').strip();pw=os.environ.get('RADIKO_PASSWORD','').strip();mode='free'
     if mail and pw:premium_login(force=True);mode='premium'
     auth_area(local,force=True);ss=stations()
-    self.sendb(200,f'OK {local} mode={mode} stations={len(ss)} auth=pc-html5-api\n'.encode(),'text/plain');return
+    self.sendb(200,f'OK {local} mode={mode} stations={len(ss)} auth=pc-html5-api build={BUILD}\n'.encode(),'text/plain');return
    if p.path=='/epg.xml':self.sendb(200,epg(),'application/xml');return
    if p.path=='/freewifi.m3u':self.sendb(200,freewifi(base),'audio/x-mpegurl');return
    if p.path in ('/','/playlist.m3u'):
@@ -263,5 +264,5 @@ class Handler(BaseHTTPRequestHandler):
    except:pass
 
 def main():
- ip=local_ip();print(f'radiko proxy listening: http://{HOST}:{PORT}',flush=True);print(f'PC playlist: http://127.0.0.1:{PORT}/playlist.m3u',flush=True);print(f'LAN radiko playlist: http://{ip}:{PORT}/playlist.m3u',flush=True);print(f'LAN FreeWiFi playlist: http://{ip}:{PORT}/freewifi.m3u',flush=True);print(f'XMLTV EPG: http://{ip}:{PORT}/epg.xml',flush=True);ThreadingHTTPServer((HOST,PORT),Handler).serve_forever()
+ ip=local_ip();print(f'RadikoProxy core build: {BUILD}',flush=True);print(f'radiko proxy listening: http://{HOST}:{PORT}',flush=True);print(f'PC playlist: http://127.0.0.1:{PORT}/playlist.m3u',flush=True);print(f'LAN radiko playlist: http://{ip}:{PORT}/playlist.m3u',flush=True);print(f'LAN FreeWiFi playlist: http://{ip}:{PORT}/freewifi.m3u',flush=True);print(f'XMLTV EPG: http://{ip}:{PORT}/epg.xml',flush=True);ThreadingHTTPServer((HOST,PORT),Handler).serve_forever()
 if __name__=='__main__':main()
