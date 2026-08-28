@@ -107,8 +107,18 @@ set RADIKO_GATEWAY_HOST=127.0.0.1
 set RADIKO_GATEWAY_PORT=9396
 set RADIKO_PUBLIC_NO_KEY=1
 
-powershell -NoProfile -Command "$ports=9395,9396;foreach($port in $ports){$x=Get-NetTCPConnection -LocalPort $port -State Listen -ErrorAction SilentlyContinue|Select-Object -ExpandProperty OwningProcess -Unique;foreach($pid in $x){Stop-Process -Id $pid -Force -ErrorAction SilentlyContinue}}" >nul 2>&1
-timeout /t 1 /nobreak >nul
+rem Stop stale listeners. Do NOT use $pid here: $PID is PowerShell's read-only automatic variable.
+powershell -NoProfile -Command "$ports=9395,9396;foreach($port in $ports){$owners=Get-NetTCPConnection -LocalPort $port -State Listen -ErrorAction SilentlyContinue|Select-Object -ExpandProperty OwningProcess -Unique;foreach($procId in $owners){Stop-Process -Id $procId -Force -ErrorAction SilentlyContinue}}" >nul 2>&1
+timeout /t 2 /nobreak >nul
+powershell -NoProfile -Command "$busy=Get-NetTCPConnection -LocalPort 9395,9396 -State Listen -ErrorAction SilentlyContinue;if($busy){exit 1}else{exit 0}" >nul 2>&1
+if errorlevel 1 (
+  if "%AUTO_MODE%"=="1" exit /b 1
+  echo Could not stop the old Radiko listener on port 9395 or 9396.
+  pause
+  exit /b 1
+)
+if "%AUTO_MODE%"=="0" echo Old Radiko listeners stopped: OK
+
 del /q .radiko_proxy.out.log .radiko_proxy.err.log .radiko_gateway.out.log .radiko_gateway.err.log .radiko_ready.txt .radiko_ready_code.txt >nul 2>&1
 powershell -NoProfile -Command "Start-Process -WindowStyle Hidden -FilePath $env:PYEXE -ArgumentList @('-u','radiko_proxy.py') -WorkingDirectory (Get-Location).Path -RedirectStandardOutput '.radiko_proxy.out.log' -RedirectStandardError '.radiko_proxy.err.log'"
 
