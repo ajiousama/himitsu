@@ -16,7 +16,7 @@ END = "# === RADIKO_MANAGED_END ==="
 KICK_ANCHOR = "# === KICK_MANAGED_START ==="
 YT_ANCHOR = "# === GENERAL_YOUTUBE_MANAGED_START ==="
 UA = {"User-Agent": "Mozilla/5.0"}
-BASE = os.environ.get("RADIKO_PUBLIC_BASE", "https://desktop-h41fq90.tailde6548.ts.net").rstrip("/")
+BASE = os.environ.get("RADIKO_PUBLIC_BASE", "https://ajiousama-radiko.onrender.com").rstrip("/")
 
 
 def region_for_prefecture(n):
