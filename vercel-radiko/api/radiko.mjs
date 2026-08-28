@@ -92,8 +92,7 @@ async function authPremium(force = false) {
   }
 
   const partial = Buffer.from(AUTH_KEY.slice(off, off + len), 'utf8').toString('base64');
-  const auth2Url = `https://api.radiko.jp/v2/api/auth2?radiko_session=${encodeURIComponent(session)}`;
-  const auth2 = await fetch(auth2Url, {
+  const auth2 = await fetch(`https://api.radiko.jp/v2/api/auth2?radiko_session=${encodeURIComponent(session)}`, {
     headers: {
       ...BASE_HEADERS,
       'X-Radiko-AuthToken': token,
@@ -122,14 +121,21 @@ function mediaHeaders(token) {
   };
 }
 
-async function fetchAuthorized(url, force = false) {
-  const { token } = await authPremium(force);
-  const r = await fetch(url, {
+async function fetchWithToken(url, token) {
+  return fetch(url, {
     headers: mediaHeaders(token),
     cache: 'no-store',
     redirect: 'follow',
   });
-  if ((r.status === 401 || r.status === 403) && !force) return fetchAuthorized(url, true);
+}
+
+async function fetchAuthorized(url, force = false) {
+  const { token } = await authPremium(force);
+  let r = await fetchWithToken(url, token);
+  if ((r.status === 401 || r.status === 403) && !force) {
+    const fresh = await authPremium(true);
+    r = await fetchWithToken(url, fresh.token);
+  }
   return r;
 }
 
@@ -163,7 +169,7 @@ async function streamBases(station) {
       }
       if (urls.length) break;
     } catch {
-      // Try the alternate Radiko host.
+      // Try alternate Radiko host.
     }
   }
 
@@ -172,9 +178,11 @@ async function streamBases(station) {
   return urls;
 }
 
-async function createMaster(station) {
+async function createMasterWithToken(station, force = false) {
+  const auth = await authPremium(force);
   const bases = await streamBases(station);
   const errors = [];
+
   for (const base of bases) {
     for (const type of ['c', 'b']) {
       const q = new URLSearchParams({
@@ -185,16 +193,40 @@ async function createMaster(station) {
       });
       const url = `${base}${base.includes('?') ? '&' : '?'}${q}`;
       try {
-        const r = await fetchAuthorized(url);
+        const r = await fetchWithToken(url, auth.token);
         const text = await r.text();
-        if (r.ok && text.includes('#EXTM3U')) return { url: r.url || url, text };
+        if (r.ok && text.includes('#EXTM3U')) {
+          return { url: r.url || url, text, token: auth.token };
+        }
         errors.push(`${type}:${r.status}`);
       } catch (e) {
         errors.push(`${type}:${e?.name || 'Error'}`);
       }
     }
   }
+
+  if (!force) return createMasterWithToken(station, true);
   throw new Error(`no playable Premium HLS for ${station}: ${errors.slice(-8).join(',')}`);
+}
+
+function firstMediaUrl(masterText, source) {
+  for (const line of masterText.split(/\r?\n/)) {
+    const s = line.trim();
+    if (s && !s.startsWith('#')) return new URL(s, source).toString();
+  }
+  throw new Error('master playlist did not contain a media URL');
+}
+
+async function createMediaPlaylist(station, force = false) {
+  const master = await createMasterWithToken(station, force);
+  const mediaUrl = firstMediaUrl(master.text, master.url);
+  const r = await fetchWithToken(mediaUrl, master.token);
+  const text = await r.text();
+  if (r.ok && text.includes('#EXTM3U')) {
+    return { url: r.url || mediaUrl, text };
+  }
+  if (!force) return createMediaPlaylist(station, true);
+  throw new Error(`media playlist failed for ${station}: HTTP ${r.status}`);
 }
 
 function regionForPref(pref) {
@@ -253,25 +285,42 @@ function allowedUpstream(raw) {
   return ok ? u : null;
 }
 
-function selfUrl(req, station, upstream) {
+function selfBase(req) {
   const proto = String(req.headers['x-forwarded-proto'] || 'https').split(',')[0].trim();
-  const host = req.headers.host;
-  return `${proto}://${host}/api/radiko?station=${encodeURIComponent(station)}&u=${encodeURIComponent(upstream)}`;
+  return `${proto}://${req.headers.host}`;
 }
 
-function rewritePlaylist(text, source, req, station) {
+function mediaSelfUrl(req, station) {
+  return `${selfBase(req)}/api/radiko?station=${encodeURIComponent(station)}&stage=media`;
+}
+
+function upstreamSelfUrl(req, station, upstream) {
+  return `${selfBase(req)}/api/radiko?station=${encodeURIComponent(station)}&u=${encodeURIComponent(upstream)}`;
+}
+
+function syntheticMaster(req, station) {
+  return [
+    '#EXTM3U',
+    '#EXT-X-VERSION:6',
+    '#EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=52973,CODECS="mp4a.40.5"',
+    mediaSelfUrl(req, station),
+    '',
+  ].join('\n');
+}
+
+function rewriteMediaPlaylist(text, source, req, station) {
   const base = new URL(source);
-  const rewritten = [];
+  const out = [];
   for (let line of text.split(/\r?\n/)) {
     line = line.replace(/URI="([^"]+)"/g, (_, raw) => {
       const absolute = new URL(raw, base).toString();
-      return `URI="${selfUrl(req, station, absolute)}"`;
+      return `URI="${upstreamSelfUrl(req, station, absolute)}"`;
     });
     const s = line.trim();
-    if (s && !s.startsWith('#')) line = selfUrl(req, station, new URL(s, base).toString());
-    rewritten.push(line);
+    if (s && !s.startsWith('#')) line = upstreamSelfUrl(req, station, new URL(s, base).toString());
+    out.push(line);
   }
-  return rewritten.join('\n');
+  return out.join('\n');
 }
 
 function send(res, status, body, contentType) {
@@ -313,23 +362,50 @@ export default async function handler(req, res) {
       return send(res, 400, 'invalid station id\n', 'text/plain; charset=utf-8');
     }
 
+    if (String(req.query?.stage || '') === 'media') {
+      const media = await createMediaPlaylist(station);
+      return send(
+        res,
+        200,
+        rewriteMediaPlaylist(media.text, media.url, req, station),
+        'application/vnd.apple.mpegurl; charset=utf-8',
+      );
+    }
+
     const upstreamRaw = String(req.query?.u || '').trim();
     if (upstreamRaw) {
       const upstream = allowedUpstream(upstreamRaw);
       if (!upstream) return send(res, 403, 'upstream not allowed\n', 'text/plain; charset=utf-8');
-      const r = await fetchAuthorized(upstream.toString());
+
+      // HLS AAC segment URLs are normally self-authorizing. Try them without a
+      // Radiko auth token first so a segment is not coupled to another Lambda's token.
+      let r = await fetch(upstream.toString(), {
+        headers: { 'User-Agent': 'Mozilla/5.0', 'Referer': 'https://radiko.jp/' },
+        cache: 'no-store',
+        redirect: 'follow',
+      });
+      if (!r.ok) r = await fetchAuthorized(upstream.toString());
+
       const data = Buffer.from(await r.arrayBuffer());
       if (!r.ok) return send(res, r.status, data, r.headers.get('content-type') || 'application/octet-stream');
       const ct = r.headers.get('content-type') || 'application/octet-stream';
       const looksM3u8 = upstream.pathname.toLowerCase().endsWith('.m3u8') || ct.toLowerCase().includes('mpegurl') || data.subarray(0, 64).toString('utf8').includes('#EXTM3U');
       if (looksM3u8) {
-        return send(res, 200, rewritePlaylist(data.toString('utf8'), r.url || upstream.toString(), req, station), 'application/vnd.apple.mpegurl; charset=utf-8');
+        return send(
+          res,
+          200,
+          rewriteMediaPlaylist(data.toString('utf8'), r.url || upstream.toString(), req, station),
+          'application/vnd.apple.mpegurl; charset=utf-8',
+        );
       }
       return send(res, 200, data, ct);
     }
 
-    const master = await createMaster(station);
-    return send(res, 200, rewritePlaylist(master.text, master.url, req, station), 'application/vnd.apple.mpegurl; charset=utf-8');
+    // The public URL is stable and stateless. The variant playlist is generated
+    // in a second request so its short-lived Radiko session is created and consumed
+    // inside the same Vercel Function invocation.
+    await authPremium(false);
+    return send(res, 200, syntheticMaster(req, station), 'application/vnd.apple.mpegurl; charset=utf-8');
   } catch (error) {
     return send(res, 502, JSON.stringify({
       ok: false,
