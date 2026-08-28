@@ -26,7 +26,7 @@ def premium_login():
  if not session: raise RuntimeError("Radiko account login failed")
  return session,str(obj.get("areafree") or "0")=="1"
 
-def _auth_once(base,session=None):
+def _auth_once(base,session=None,use_session_header=False):
  with open_url(base+"/v2/api/auth1",headers=BASE_HEADERS,timeout=30) as r:
   token=r.headers.get("X-Radiko-AuthToken")
   off=r.headers.get("X-Radiko-KeyOffset")
@@ -36,18 +36,19 @@ def _auth_once(base,session=None):
  partial=base64.b64encode(AUTH_KEY[off:off+length].encode()).decode()
  h=dict(BASE_HEADERS); h.update({"X-Radiko-AuthToken":token,"X-Radiko-PartialKey":partial})
  url=base+"/v2/api/auth2"
- if session:url+="?radiko_session="+urllib.parse.quote(session)
+ if session:
+  if use_session_header:h["X-Radiko-Session"]=session
+  else:url+="?radiko_session="+urllib.parse.quote(session)
  with open_url(url,headers=h,timeout=30) as r: body=r.read().decode().strip()
  if not body or body=="OUT": raise RuntimeError("auth2 returned OUT")
  return token,body.split(",")[0]
 
 def auth(session=None):
  errors=[]
- # radiko.jp is the PC web-player endpoint and is known to work on Windows.
- # api.radiko.jp is retained as a fallback because availability differs by network.
- for base in (WEB_BASE,API_BASE):
-  try:return _auth_once(base,session)
-  except Exception as e:errors.append(f"{base}:{type(e).__name__}:{getattr(e,'code','')}:{e}")
+ variants=[(WEB_BASE,False),(API_BASE,False)] if not session else [(WEB_BASE,False),(API_BASE,True),(API_BASE,False)]
+ for base,use_session_header in variants:
+  try:return _auth_once(base,session,use_session_header)
+  except Exception as e:errors.append(f"{base}:{'hdr' if use_session_header else 'query'}:{type(e).__name__}:{getattr(e,'code','')}:{e}")
  raise RuntimeError("radiko auth failed | "+" | ".join(errors))
 
 def ensure_auth(force=False):
@@ -59,7 +60,8 @@ def ensure_auth(force=False):
  if mail and password and not premium_failed:
   try:
    session,areafree=premium_login(); token,area=auth(session); mode="premium" if areafree else "free-account"
-  except Exception:
+  except Exception as e:
+   print(f"[radiko] Premium auth fallback: {type(e).__name__}: {e}",flush=True)
    with _state_lock:_state["premium_failed"]=True
    session=None; token=None; area=None; mode="free"
  if token is None:
@@ -117,35 +119,36 @@ def get_epg(force=False):
 
 def playlist_create_urls(station,areafree):
  out=[]
- try:
-  for base in (API_BASE,WEB_BASE):
-   try:
-    with open_url(f"{base}/v3/station/stream/pc_html5/{station}.xml",headers={"User-Agent":"Mozilla/5.0"},timeout=10) as r:root=ET.fromstring(r.read())
-    want="1" if areafree else "0"
-    for node in root.findall("url"):
-     if node.get("areafree")==want and node.get("timefree","0")=="0":
-      p=node.find("playlist_create_url")
-      if p is not None and p.text and p.text.strip() not in out:out.append(p.text.strip())
-    if out:break
-   except Exception:continue
- except Exception:pass
+ for base in (WEB_BASE,API_BASE):
+  try:
+   with open_url(f"{base}/v3/station/stream/pc_html5/{station}.xml",headers={"User-Agent":"Mozilla/5.0"},timeout=10) as r:root=ET.fromstring(r.read())
+   want="1" if areafree else "0"
+   for node in root.findall("url"):
+    if node.get("areafree")==want and node.get("timefree","0")=="0":
+     p=node.find("playlist_create_url")
+     if p is not None and p.text and p.text.strip() not in out:out.append(p.text.strip())
+   if out:break
+  except Exception:continue
  current="https://alliance-stream-radiko.smartstream.ne.jp/so/playlist.m3u8"
  if current not in out:out.insert(0,current)
  return out
 
-def auth_headers(token,session=None):
+def auth_headers(token,session=None,area=None):
  h={"X-Radiko-AuthToken":token,"User-Agent":"Mozilla/5.0"}
- if session:h["Cookie"]="radiko_session="+session
+ if area:h["X-Radiko-AreaId"]=area
+ if session:
+  h["Cookie"]="radiko_session="+session
+  h["X-Radiko-Session"]=session
  return h
 
 def get_live_master(station,refresh=False):
- session,token,_,mode=ensure_auth(force=refresh); errors=[]; areafree=(mode=="premium")
+ session,token,area,mode=ensure_auth(force=refresh); errors=[]; areafree=(mode=="premium")
  types=("c","b") if areafree else ("b",)
  for base in playlist_create_urls(station,areafree):
   for typ in types:
    q=urllib.parse.urlencode({"station_id":station,"l":195,"lsid":"alliance","type":typ,"noad":1}); url=base+("&" if "?" in base else "?")+q
    try:
-    with open_url(url,headers=auth_headers(token,session),timeout=15) as r:body=r.read().decode("utf-8","replace")
+    with open_url(url,headers=auth_headers(token,session,area),timeout=15) as r:body=r.read().decode("utf-8","replace")
     if "#EXTM3U" in body:return url,body
    except Exception as e:errors.append(f"{type(e).__name__}:{getattr(e,'code','')}")
  if not refresh:return get_live_master(station,refresh=True)
@@ -178,8 +181,8 @@ def get_freewifi_for_client(base_proxy):
  return text.encode("utf-8")
 
 def fetch_proxied(url,refresh=False):
- session,token,_,_=ensure_auth(force=refresh)
- try:return open_url(url,headers=auth_headers(token,session),timeout=20)
+ session,token,area,_=ensure_auth(force=refresh)
+ try:return open_url(url,headers=auth_headers(token,session,area),timeout=20)
  except urllib.error.HTTPError as e:
   if e.code in (401,403) and not refresh:return fetch_proxied(url,refresh=True)
   raise
@@ -190,7 +193,7 @@ def local_ip():
  except Exception:return "PC-LAN-IP"
 
 class Handler(BaseHTTPRequestHandler):
- server_version="RadikoProxy/1.9"
+ server_version="RadikoProxy/2.0"
  def log_message(self,fmt,*args):print("[radiko] "+fmt%args,flush=True)
  def send_bytes(self,status,data,content_type):
   self.send_response(status);self.send_header("Content-Type",content_type);self.send_header("Content-Length",str(len(data)));self.send_header("Cache-Control","no-store");self.send_header("Access-Control-Allow-Origin","*");self.end_headers();self.wfile.write(data)
