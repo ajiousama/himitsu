@@ -15,6 +15,8 @@ on:
       - 'freewifi_custom_channels.py'
       - 'freewifi_haruka3.py'
       - 'freewifi_rakuten_keep.py'
+      - 'kick_channels.json'
+      - 'kick_update.py'
       - 'verified_daily_status.json'
       - 'verified_daily_override.py'
       - 'apply_verified_status.py'
@@ -47,6 +49,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install --upgrade --pre 'yt-dlp[default]'
+          python -m pip install --upgrade curl_cffi
           yt-dlp --version
       - name: Restore YouTube cookies
         shell: bash
@@ -109,6 +112,8 @@ jobs:
         run: python freewifi_haruka3.py
       - name: Keep Rakuten rail/adult channels
         run: python freewifi_rakuten_keep.py
+      - name: Refresh KICK live HLS
+        run: python kick_update.py
       - name: Reapply verified sports/JRA status
         run: |
           python verified_daily_override.py
@@ -120,6 +125,8 @@ jobs:
           grep -q '# === GENERAL_YOUTUBE_MANAGED_START ===' freewifi
           grep -q '# === GENERAL_YOUTUBE_MANAGED_END ===' freewifi
           grep -q '# === RAKUTEN_KEEP_START ===' freewifi
+          grep -q '# === KICK_MANAGED_START ===' freewifi
+          grep -q '# === KICK_MANAGED_END ===' freewifi
           grep -q '鉄道・旅' freewifi
           grep -q 'セクシーエンタメチャンネル' freewifi
           grep -q 'ha-ipip.f5.si:9394' freewifi
