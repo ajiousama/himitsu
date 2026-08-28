@@ -2,9 +2,12 @@
 from __future__ import annotations
 
 import base64
+import fcntl
 import os
 import re
+import struct
 import time
+import urllib.parse
 
 # Render exposes its HTTP port through PORT. Configure the existing Radiko
 # gateway before importing it so module-level HOST/PORT use cloud values.
@@ -15,12 +18,7 @@ import radiko_proxy_core as core
 
 
 def cloud_auth(force: bool = False):
-    """Current 2026 Radiko auth flow for api.radiko.jp.
-
-    Premium state must be carried into auth2 with X-Radiko-Session. The old
-    radiko_session query parameter no longer preserves the Premium session on
-    the api.radiko.jp subdomain.
-    """
+    """Current 2026 Radiko auth flow for api.radiko.jp."""
     now = time.time()
     with core.LOCK:
         if not force and core.STATE["token"] and now - core.STATE["token_time"] < 2100:
@@ -78,8 +76,50 @@ def cloud_auth(force: bool = False):
     return token, detected
 
 
+def tun_capability_report() -> str:
+    path = "/dev/net/tun"
+    lines = [f"tun_exists={os.path.exists(path)}"]
+    if not os.path.exists(path):
+        lines.append("tun_create=false")
+        lines.append("reason=no_/dev/net/tun")
+        return "\n".join(lines) + "\n"
+
+    fd = None
+    try:
+        fd = os.open(path, os.O_RDWR)
+        lines.append("tun_open=true")
+        # Linux TUNSETIFF, IFF_TUN | IFF_NO_PI. Creating a temporary interface
+        # verifies CAP_NET_ADMIN rather than merely checking the device node.
+        ifr = struct.pack("16sH", b"rgate%d", 0x0001 | 0x1000)
+        result = fcntl.ioctl(fd, 0x400454CA, ifr)
+        name = result[:16].split(b"\x00", 1)[0].decode("ascii", "replace")
+        lines.append("tun_create=true")
+        lines.append(f"interface={name}")
+    except Exception as e:
+        lines.append("tun_create=false")
+        lines.append(f"reason={type(e).__name__}:{e}")
+    finally:
+        if fd is not None:
+            os.close(fd)
+    return "\n".join(lines) + "\n"
+
+
 core.auth = cloud_auth
-core.BUILD = "20260829-render-session-header-v2"
+core.BUILD = "20260829-render-vpngate-probe-v3"
+
+# Add a narrow diagnostics endpoint to determine whether Render can host an
+# OpenVPN client. No secrets are exposed by this endpoint.
+_original_do_get = core.Handler.do_GET
+
+
+def _cloud_do_get(self):
+    if urllib.parse.urlsplit(self.path).path == "/vpncheck":
+        self.send_bytes(200, tun_capability_report().encode(), "text/plain; charset=utf-8")
+        return
+    return _original_do_get(self)
+
+
+core.Handler.do_GET = _cloud_do_get
 
 if __name__ == "__main__":
     core.main()
