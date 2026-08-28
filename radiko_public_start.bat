@@ -3,7 +3,6 @@ setlocal EnableExtensions
 cd /d %~dp0
 set "AUTO_MODE=0"
 if /i "%~1"=="/auto" set "AUTO_MODE=1"
-set "CREDS_RETRIED=0"
 
 fltmc >nul 2>&1
 if errorlevel 1 (
@@ -71,27 +70,24 @@ if errorlevel 1 (
   exit /b 1
 )
 
-:getcredentials
+rem Load saved Radiko credentials when available. If Premium auth fails, the proxy now falls back to normal local-area Radiko automatically.
 if "%RADIKO_MAIL%"=="" if exist ".radiko_mail.txt" set /p RADIKO_MAIL=<.radiko_mail.txt
 if "%RADIKO_PASSWORD%"=="" if exist ".radiko_password.dpapi" (
   for /f "usebackq delims=" %%P in (`powershell -NoProfile -Command "$s=Get-Content -Raw '.radiko_password.dpapi'|ConvertTo-SecureString;$p=[Runtime.InteropServices.Marshal]::SecureStringToBSTR($s);try{[Runtime.InteropServices.Marshal]::PtrToStringBSTR($p)}finally{[Runtime.InteropServices.Marshal]::ZeroFreeBSTR($p)}"`) do set "RADIKO_PASSWORD=%%P"
 )
-if "%RADIKO_MAIL%"=="" (
-  if "%AUTO_MODE%"=="1" exit /b 1
+if "%RADIKO_MAIL%"=="" if "%AUTO_MODE%"=="0" (
   echo.
-  echo radiko Premium login is needed on this PC.
+  echo Premium login is optional. Press Enter at the mail prompt to use normal local-area Radiko.
   set /p "RADIKO_MAIL=radiko mail address: "
 )
-if "%RADIKO_MAIL%"=="" goto :badinput
-if "%RADIKO_PASSWORD%"=="" (
-  if "%AUTO_MODE%"=="1" exit /b 1
+if not "%RADIKO_MAIL%"=="" if "%RADIKO_PASSWORD%"=="" if "%AUTO_MODE%"=="0" (
   for /f "usebackq delims=" %%P in (`powershell -NoProfile -Command "$s=Read-Host 'radiko Premium password' -AsSecureString;$p=[Runtime.InteropServices.Marshal]::SecureStringToBSTR($s);try{[Runtime.InteropServices.Marshal]::PtrToStringBSTR($p)}finally{[Runtime.InteropServices.Marshal]::ZeroFreeBSTR($p)}"`) do set "RADIKO_PASSWORD=%%P"
 )
-if "%RADIKO_PASSWORD%"=="" goto :badinput
->.radiko_mail.txt echo %RADIKO_MAIL%
-powershell -NoProfile -Command "$s=ConvertTo-SecureString $env:RADIKO_PASSWORD -AsPlainText -Force;$s|ConvertFrom-SecureString|Set-Content -Encoding ascii '.radiko_password.dpapi'"
+if not "%RADIKO_MAIL%"=="" if not "%RADIKO_PASSWORD%"=="" (
+  >.radiko_mail.txt echo %RADIKO_MAIL%
+  powershell -NoProfile -Command "$s=ConvertTo-SecureString $env:RADIKO_PASSWORD -AsPlainText -Force;$s|ConvertFrom-SecureString|Set-Content -Encoding ascii '.radiko_password.dpapi'"
+)
 
-rem A private HMAC key signs only dynamically generated HLS proxy URLs. It is never printed or put in GitHub.
 if not exist ".radiko_signing_secret" powershell -NoProfile -Command "(([guid]::NewGuid().ToString('N'))+([guid]::NewGuid().ToString('N')))|Set-Content -NoNewline -Encoding ascii '.radiko_signing_secret'"
 set /p RADIKO_GATEWAY_SIGNING_SECRET=<.radiko_signing_secret
 if "%RADIKO_GATEWAY_SIGNING_SECRET%"=="" (
@@ -108,7 +104,6 @@ set RADIKO_GATEWAY_HOST=127.0.0.1
 set RADIKO_GATEWAY_PORT=9396
 set RADIKO_PUBLIC_NO_KEY=1
 
-rem Always replace old copies. This guarantees the current folder/code and current credentials are actually used.
 powershell -NoProfile -Command "$ports=9395,9396;foreach($port in $ports){$x=Get-NetTCPConnection -LocalPort $port -State Listen -ErrorAction SilentlyContinue|Select-Object -ExpandProperty OwningProcess -Unique;foreach($pid in $x){Stop-Process -Id $pid -Force -ErrorAction SilentlyContinue}}" >nul 2>&1
 timeout /t 1 /nobreak >nul
 del /q .radiko_proxy.out.log .radiko_proxy.err.log .radiko_gateway.out.log .radiko_gateway.err.log >nul 2>&1
@@ -121,29 +116,16 @@ for /l %%N in (1,1,30) do (
 goto :proxyfail
 
 :proxyhealth
-rem /ready performs real Premium login + auth2. Do not claim ready from /health alone.
 for /l %%N in (1,1,3) do (
-  powershell -NoProfile -Command "try{Invoke-WebRequest -UseBasicParsing -TimeoutSec 30 http://127.0.0.1:9395/ready|Out-Null;exit 0}catch{exit 1}" >nul 2>&1 && goto :authready
+  powershell -NoProfile -Command "try{$r=Invoke-WebRequest -UseBasicParsing -TimeoutSec 30 http://127.0.0.1:9395/ready;$r.Content.Trim();exit 0}catch{exit 1}" && goto :authready
   timeout /t 2 /nobreak >nul
-)
-if "%AUTO_MODE%"=="1" exit /b 1
-if "%CREDS_RETRIED%"=="0" (
-  set "CREDS_RETRIED=1"
-  echo.
-  echo Saved radiko login was rejected. Please enter it again.
-  powershell -NoProfile -Command "$x=Get-NetTCPConnection -LocalPort 9395 -State Listen -ErrorAction SilentlyContinue|Select-Object -ExpandProperty OwningProcess -Unique;foreach($pid in $x){Stop-Process -Id $pid -Force -ErrorAction SilentlyContinue}" >nul 2>&1
-  del /q .radiko_mail.txt .radiko_password.dpapi >nul 2>&1
-  set "RADIKO_MAIL="
-  set "RADIKO_PASSWORD="
-  goto :getcredentials
 )
 goto :proxyfail
 
 :authready
-rem Prove that real AAC/HLS media is reachable locally before exposing it.
+rem First try the requested RNB path; if Premium is unavailable, live-auto chooses a station valid for the PC's detected Radiko area.
 "%PYEXE%" radiko_selftest.py "http://127.0.0.1:9395/live/RNB" >nul 2>&1
-if errorlevel 1 "%PYEXE%" radiko_selftest.py "http://127.0.0.1:9395/live/JOEU-FM" >nul 2>&1
-if errorlevel 1 "%PYEXE%" radiko_selftest.py "http://127.0.0.1:9395/live/FMT" >nul 2>&1
+if errorlevel 1 "%PYEXE%" radiko_selftest.py "http://127.0.0.1:9395/live-auto" >nul 2>&1
 if errorlevel 1 goto :livefail
 
 powershell -NoProfile -Command "Start-Process -WindowStyle Hidden -FilePath $env:PYEXE -ArgumentList @('-u','radiko_public_gateway.py') -WorkingDirectory (Get-Location).Path -RedirectStandardOutput '.radiko_gateway.out.log' -RedirectStandardError '.radiko_gateway.err.log'"
@@ -163,11 +145,9 @@ if errorlevel 1 (
   exit /b 1
 )
 
-rem End-to-end test follows public HLS playlists through Funnel until actual media bytes arrive.
 timeout /t 2 /nobreak >nul
 "%PYEXE%" radiko_selftest.py "https://%TSDNS%/live/RNB" >nul 2>&1
-if errorlevel 1 "%PYEXE%" radiko_selftest.py "https://%TSDNS%/live/JOEU-FM" >nul 2>&1
-if errorlevel 1 "%PYEXE%" radiko_selftest.py "https://%TSDNS%/live/FMT" >nul 2>&1
+if errorlevel 1 "%PYEXE%" radiko_selftest.py "https://%TSDNS%/live-auto" >nul 2>&1
 if errorlevel 1 goto :publicfail
 
 if "%AUTO_MODE%"=="0" (
@@ -190,7 +170,7 @@ exit /b 0
 :proxyfail
 if "%AUTO_MODE%"=="1" exit /b 1
 echo.
-echo radiko login/proxy failed.
+echo Radiko authorization/proxy failed.
 if exist .radiko_proxy.err.log type .radiko_proxy.err.log
 if exist .radiko_proxy.out.log type .radiko_proxy.out.log
 pause
@@ -199,7 +179,7 @@ exit /b 1
 :livefail
 if "%AUTO_MODE%"=="1" exit /b 1
 echo.
-echo radiko login succeeded, but no live audio bytes could be obtained.
+echo Radiko authorization succeeded, but no local-area live audio could be obtained.
 if exist .radiko_proxy.err.log type .radiko_proxy.err.log
 if exist .radiko_proxy.out.log type .radiko_proxy.out.log
 pause
@@ -217,15 +197,9 @@ exit /b 1
 :publicfail
 if "%AUTO_MODE%"=="1" exit /b 1
 echo.
-echo Local radiko audio is OK, but the public Funnel audio test failed.
+echo Local Radiko audio is OK, but the public Funnel audio test failed.
 if exist .radiko_gateway.err.log type .radiko_gateway.err.log
 if exist .radiko_gateway.out.log type .radiko_gateway.out.log
-pause
-exit /b 1
-
-:badinput
-if "%AUTO_MODE%"=="1" exit /b 1
-echo Login information was not entered.
 pause
 exit /b 1
 
