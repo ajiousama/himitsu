@@ -16,16 +16,19 @@ jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
-      - name: Wait for Render auto deploy
-        run: sleep 60
+      - name: Wait briefly for Render
+        run: sleep 15
       - name: Probe health
         run: |
-          set -x
           curl -f -i -sS --max-time 90 https://ajiousama-radiko.onrender.com/health
-      - name: Probe ready
+      - name: Probe ready with body
+        shell: bash
         run: |
-          set -x
-          curl -f -i -sS --max-time 120 https://ajiousama-radiko.onrender.com/ready
+          set -euo pipefail
+          CODE=$(curl -sS --max-time 120 -o /tmp/ready.txt -w '%{http_code}' https://ajiousama-radiko.onrender.com/ready)
+          echo "HTTP $CODE"
+          cat /tmp/ready.txt
+          test "$CODE" = "200"
       - name: Probe KBS HLS chain
         shell: bash
         run: |
