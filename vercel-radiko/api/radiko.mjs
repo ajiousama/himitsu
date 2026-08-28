@@ -1,7 +1,8 @@
 import crypto from 'node:crypto';
 
 const AUTH_KEY = 'bcd151073c03b352e1ef2fd66c32209da9ca0afa';
-const AREA = 'JP13';
+const AREA = 'JP27';
+const DEFAULT_STATION = 'ABC';
 const BASE_HEADERS = {
   'X-Radiko-App': 'pc_html5',
   'X-Radiko-App-Version': '0.0.1',
@@ -10,7 +11,7 @@ const BASE_HEADERS = {
   'User-Agent': 'Mozilla/5.0',
 };
 
-const CACHE = globalThis.__radikoTokyoCache || (globalThis.__radikoTokyoCache = {
+const CACHE = globalThis.__radikoOsakaCache || (globalThis.__radikoOsakaCache = {
   token: null,
   tokenAt: 0,
   stations: null,
@@ -27,11 +28,9 @@ function xmlDecode(value) {
     .replaceAll('&#39;', "'");
 }
 
-async function authTokyo(force = false) {
+async function authLocal(force = false) {
   const now = Date.now();
-  if (!force && CACHE.token && now - CACHE.tokenAt < 25 * 60 * 1000) {
-    return CACHE.token;
-  }
+  if (!force && CACHE.token && now - CACHE.tokenAt < 25 * 60 * 1000) return CACHE.token;
 
   const auth1 = await fetch('https://api.radiko.jp/v2/api/auth1', {
     headers: BASE_HEADERS,
@@ -63,7 +62,7 @@ async function authTokyo(force = false) {
   return token;
 }
 
-async function tokyoStations() {
+async function localStations() {
   const now = Date.now();
   if (CACHE.stations && now - CACHE.stationsAt < 6 * 60 * 60 * 1000) return CACHE.stations;
 
@@ -79,7 +78,7 @@ async function tokyoStations() {
     const name = xmlDecode(block[1].match(/<name>([\s\S]*?)<\/name>/)?.[1]).trim();
     if (id) out.set(id, name || id);
   }
-  if (!out.size) throw new Error('Tokyo station list was empty');
+  if (!out.size) throw new Error('Osaka station list was empty');
   CACHE.stations = out;
   CACHE.stationsAt = now;
   return out;
@@ -124,7 +123,7 @@ function mediaHeaders(token) {
 }
 
 async function fetchAuthorized(url, force = false) {
-  const token = await authTokyo(force);
+  const token = await authLocal(force);
   const r = await fetch(url, { headers: mediaHeaders(token), cache: 'no-store', redirect: 'follow' });
   if ((r.status === 401 || r.status === 403) && !force) return fetchAuthorized(url, true);
   return r;
@@ -179,9 +178,7 @@ function rewritePlaylist(text, source, req, station) {
       return `URI="${selfUrl(req, station, absolute)}"`;
     });
     const s = line.trim();
-    if (s && !s.startsWith('#')) {
-      line = selfUrl(req, station, new URL(s, base).toString());
-    }
+    if (s && !s.startsWith('#')) line = selfUrl(req, station, new URL(s, base).toString());
     rewritten.push(line);
   }
   return rewritten.join('\n');
@@ -199,14 +196,18 @@ export default async function handler(req, res) {
   try {
     if (req.method !== 'GET') return send(res, 405, 'method not allowed\n', 'text/plain; charset=utf-8');
 
-    const stations = await tokyoStations();
+    const stations = await localStations();
     if (String(req.query?.list || '') === '1') {
-      const obj = Object.fromEntries(stations.entries());
-      return send(res, 200, JSON.stringify({ area: AREA, region: process.env.VERCEL_REGION || null, stations: obj }, null, 2), 'application/json; charset=utf-8');
+      return send(
+        res,
+        200,
+        JSON.stringify({ area: AREA, region: process.env.VERCEL_REGION || null, stations: Object.fromEntries(stations.entries()) }, null, 2),
+        'application/json; charset=utf-8',
+      );
     }
 
-    const station = String(req.query?.station || 'TBS').trim();
-    if (!stations.has(station)) return send(res, 404, `unknown Tokyo station: ${station}\n`, 'text/plain; charset=utf-8');
+    const station = String(req.query?.station || DEFAULT_STATION).trim();
+    if (!stations.has(station)) return send(res, 404, `unknown Osaka station: ${station}\n`, 'text/plain; charset=utf-8');
 
     const upstreamRaw = String(req.query?.u || '').trim();
     if (upstreamRaw) {
@@ -218,15 +219,18 @@ export default async function handler(req, res) {
       const ct = r.headers.get('content-type') || 'application/octet-stream';
       const looksM3u8 = upstream.pathname.toLowerCase().endsWith('.m3u8') || ct.toLowerCase().includes('mpegurl') || data.subarray(0, 64).toString('utf8').includes('#EXTM3U');
       if (looksM3u8) {
-        const text = rewritePlaylist(data.toString('utf8'), r.url || upstream.toString(), req, station);
-        return send(res, 200, text, 'application/vnd.apple.mpegurl; charset=utf-8');
+        return send(
+          res,
+          200,
+          rewritePlaylist(data.toString('utf8'), r.url || upstream.toString(), req, station),
+          'application/vnd.apple.mpegurl; charset=utf-8',
+        );
       }
       return send(res, 200, data, ct);
     }
 
     const master = await createMaster(station);
-    const body = rewritePlaylist(master.text, master.url, req, station);
-    return send(res, 200, body, 'application/vnd.apple.mpegurl; charset=utf-8');
+    return send(res, 200, rewritePlaylist(master.text, master.url, req, station), 'application/vnd.apple.mpegurl; charset=utf-8');
   } catch (error) {
     return send(
       res,
