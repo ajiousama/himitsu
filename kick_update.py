@@ -30,7 +30,6 @@ def norm(value: Any) -> str:
 
 
 def request_json(url: str, params: dict[str, Any] | None = None) -> dict[str, Any]:
-    """Fetch Kick JSON. Prefer curl_cffi because Kick may reject generic TLS fingerprints."""
     if params:
         url = f"{url}?{urlencode(params)}"
 
@@ -66,8 +65,6 @@ def is_live(details: dict[str, Any]) -> bool:
     live = details.get("livestream")
     if not isinstance(live, dict):
         return False
-    # Current Kick payload includes is_live. Older payloads sometimes omitted it
-    # while still returning a livestream object, so only an explicit false blocks it.
     return live.get("is_live") is not False
 
 
@@ -122,23 +119,42 @@ def details_match(details: dict[str, Any], terms: list[str]) -> bool:
     return any(t in hay for t in wanted) if wanted else True
 
 
-def resolve_channel(item: dict[str, Any]) -> tuple[str | None, str | None, str]:
+def existing_kick_urls(text: str, names: set[str]) -> dict[str, str]:
+    found: dict[str, str] = {}
+    lines = text.splitlines()
+    for i, line in enumerate(lines[:-1]):
+        if not line.startswith("#EXTINF:") or "," not in line:
+            continue
+        display = line.rsplit(",", 1)[-1].strip()
+        if display not in names:
+            continue
+        url = lines[i + 1].strip()
+        if url.startswith("https://") and ".m3u8" in url:
+            found[display] = url
+    return found
+
+
+def resolve_channel(item: dict[str, Any], existing_url: str | None = None) -> tuple[str | None, str | None, str]:
     name = str(item["name"])
     fixed_slug = item.get("slug")
     terms = [str(x) for x in item.get("match_terms", [])]
+    sticky = bool(item.get("sticky_while_live"))
 
-    # A pinned slug is authoritative. This avoids a search result changing order.
     if isinstance(fixed_slug, str) and fixed_slug.strip():
         slug = fixed_slug.strip()
         try:
             details = channel_details(slug)
             if not is_live(details):
                 return None, slug, "offline"
+            if sticky and existing_url:
+                return existing_url, slug, "live (fixed URL kept)"
             url = playback_url(details)
             if not url:
                 return None, slug, "live but no usable playback_url"
             return url, slug, "live"
         except Exception as e:
+            if sticky and existing_url:
+                return existing_url, slug, f"lookup failed; fixed URL kept: {e}"
             return None, slug, f"lookup failed: {e}"
 
     query = str(item.get("search") or name)
@@ -160,6 +176,8 @@ def resolve_channel(item: dict[str, Any]) -> tuple[str | None, str | None, str]:
             continue
         if not details_match(details, terms):
             continue
+        if sticky and existing_url:
+            return existing_url, slug, "live (fixed URL kept)"
         url = playback_url(details)
         if url:
             return url, slug, "live (search resolved)"
@@ -168,7 +186,6 @@ def resolve_channel(item: dict[str, Any]) -> tuple[str | None, str | None, str]:
 
 
 def strip_old_kick(text: str, names: set[str]) -> str:
-    # Remove our previous managed block first.
     text = re.sub(
         re.escape(START) + r".*?" + re.escape(END) + r"\n?",
         "",
@@ -192,14 +209,14 @@ def strip_old_kick(text: str, names: set[str]) -> str:
     return "\n".join(out).rstrip() + "\n"
 
 
-def render_block(config: list[dict[str, Any]]) -> tuple[str, int]:
+def render_block(config: list[dict[str, Any]], existing: dict[str, str]) -> tuple[str, int]:
     lines = [START, "## KICK"]
     live_count = 0
 
     for item in config:
         name = str(item["name"])
         logo = str(item.get("logo") or "")
-        url, slug, status = resolve_channel(item)
+        url, slug, status = resolve_channel(item, existing.get(name))
         print(f"KICK {name}: {status}" + (f" [{slug}]" if slug else ""))
         if not url:
             continue
@@ -233,8 +250,9 @@ def main() -> int:
         raise RuntimeError("kick_channels.json must contain a non-empty list")
 
     names = {str(x["name"]) for x in config}
+    existing = existing_kick_urls(original, names)
     cleaned = strip_old_kick(original, names)
-    block, live_count = render_block(config)
+    block, live_count = render_block(config, existing)
     updated = insert_block(cleaned, block)
 
     if updated.count("#EXTINF:") < max(50, int(original.count("#EXTINF:") * 0.70)):
