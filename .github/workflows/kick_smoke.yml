@@ -20,9 +20,25 @@ jobs:
           python-version: '3.12'
       - name: Install dependency
         run: python -m pip install --quiet curl_cffi
+      - name: Diagnose KICK search
+        run: |
+          python - <<'PY'
+          from curl_cffi import requests
+          queries = ['ゲームセンターCX','ゲームセンター','有野','gccx','CX','孤独のグルメ','孤独','グルメ','井之頭五郎','五郎','goro','kodoku']
+          h={'User-Agent':'Mozilla/5.0','Accept':'application/json, text/plain, */*','Referer':'https://kick.com/'}
+          for q in queries:
+              try:
+                  r=requests.get('https://kick.com/api/search',params={'searched_word':q},headers=h,impersonate='chrome',timeout=20)
+                  print('\nQUERY', q, 'HTTP', r.status_code)
+                  d=r.json(); cs=d.get('channels') or []
+                  for c in cs[:12]:
+                      u=(c.get('user') or {}).get('username')
+                      print(' ', c.get('slug'), '|', u, '| live=',c.get('isLive'),'| followers=',c.get('followers_count',c.get('followersCount')))
+              except Exception as e:
+                  print('ERR',q,e)
+          PY
       - name: Test KICK updater
         run: |
           python kick_update.py
           grep -q '# === KICK_MANAGED_START ===' freewifi
           grep -q '# === KICK_MANAGED_END ===' freewifi
-          grep -A20 '# === KICK_MANAGED_START ===' freewifi | head -n 24
