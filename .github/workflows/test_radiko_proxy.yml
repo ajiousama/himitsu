@@ -8,6 +8,8 @@ on:
       - radiko_proxy.py
       - radiko_epg.py
       - radiko_proxy_start.bat
+      - radiko_public_gateway.py
+      - radiko_public_start.bat
       - .github/workflows/test_radiko_proxy.yml
 
 jobs:
@@ -21,7 +23,7 @@ jobs:
           python-version: '3.12'
 
       - name: Syntax check
-        run: python -m py_compile radiko_proxy.py radiko_epg.py
+        run: python -m py_compile radiko_proxy.py radiko_epg.py radiko_public_gateway.py
 
       - name: Connect to a VPN Gate Japan server
         shell: bash
@@ -75,7 +77,7 @@ jobs:
           set -euo pipefail
           python radiko_proxy.py >/tmp/radiko_proxy.log 2>&1 &
           PID=$!
-          trap 'kill $PID 2>/dev/null || true; cat /tmp/radiko_proxy.log || true' EXIT
+          trap 'kill $PID 2>/dev/null || true; [ -n "${GPID:-}" ] && kill "$GPID" 2>/dev/null || true; cat /tmp/radiko_proxy.log || true; cat /tmp/radiko_gateway.log 2>/dev/null || true' EXIT
           for i in $(seq 1 45); do
             if curl -fsS --max-time 3 http://127.0.0.1:9395/health; then break; fi
             sleep 2
@@ -117,3 +119,18 @@ jobs:
           PY
           curl -fsS --max-time 30 http://127.0.0.1:9395/live/RNB | head -20
           curl -fsS --max-time 30 http://127.0.0.1:9395/live/FMT | head -20
+
+          RADIKO_ACCESS_KEY=test-secret RADIKO_GATEWAY_HOST=127.0.0.1 RADIKO_GATEWAY_PORT=9396 python radiko_public_gateway.py >/tmp/radiko_gateway.log 2>&1 &
+          GPID=$!
+          for i in $(seq 1 20); do
+            curl -fsS --max-time 2 http://127.0.0.1:9396/health >/dev/null && break
+            sleep 1
+          done
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:9396/playlist.m3u)" = 403
+          curl -fsS --max-time 30 'http://127.0.0.1:9396/playlist.m3u?k=test-secret' -o /tmp/public_radiko.m3u
+          python - <<'PY'
+          text=open('/tmp/public_radiko.m3u',encoding='utf-8').read()
+          assert 'https://127.0.0.1:9396/live/RNB?k=test-secret' in text
+          assert 'url-tvg="https://127.0.0.1:9396/epg.xml?k=test-secret"' in text
+          print('protected public gateway rewrite OK')
+          PY
