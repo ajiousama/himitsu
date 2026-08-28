@@ -1,8 +1,11 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "regions": ["hnd1"],
+  "regions": ["kix1"],
   "functions": {
     "api/probe.mjs": {
+      "maxDuration": 30
+    },
+    "api/radiko.mjs": {
       "maxDuration": 30
     }
   }
