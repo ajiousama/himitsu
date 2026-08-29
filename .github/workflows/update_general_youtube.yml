@@ -12,7 +12,6 @@ on:
       - 'general_youtube_guard.py'
       - 'public_sports_youtube_fallback.py'
       - 'jra_freewifi_finalize.py'
-      - 'jra_free_channels_update.py'
       - 'freewifi_custom_channels.py'
       - 'freewifi_haruka3.py'
       - 'freewifi_rakuten_keep.py'
@@ -105,8 +104,6 @@ jobs:
           if [ "${PREV:-0}" -gt 0 ]; then mv general_youtube.prev.m3u general_youtube.m3u; [ -f freewifi.prev ] && mv freewifi.prev freewifi || true; else git show HEAD:general_youtube.m3u > general_youtube.m3u; git show HEAD:freewifi > freewifi; fi
       - name: Apply custom FreeWiFi channels
         run: python freewifi_custom_channels.py
-      - name: Normalize GCH free A/B
-        run: python jra_free_channels_update.py
       - name: Add HARUKA3 source
         run: python freewifi_haruka3.py
       - name: Keep Rakuten rail/adult channels
@@ -122,8 +119,6 @@ jobs:
           grep -q '# === GENERAL_YOUTUBE_MANAGED_START ===' freewifi
           grep -q '# === GENERAL_YOUTUBE_MANAGED_END ===' freewifi
           grep -q '# === RAKUTEN_KEEP_START ===' freewifi
-          test "$(grep -c 'tvg-id=\"jra.official\"' freewifi || true)" -le 1
-          test "$(grep -c 'tvg-id=\"jra.gch.free\"' freewifi || true)" -le 1
           grep -q '鉄道・旅' freewifi
           grep -q 'セクシーエンタメチャンネル' freewifi
           grep -q 'ha-ipip.f5.si:9394' freewifi
