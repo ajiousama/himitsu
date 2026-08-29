@@ -45,7 +45,15 @@ def is_race_programme(p: ET.Element) -> bool:
         '本日は開催', '本日非開催', '次回開催',
     )):
         return False
-    return 'ℛ' in title or bool(re.search(r'(?<!\d)(?:[1-9]|1[0-2])\s*R(?!\d)', title, re.I))
+    # Current earphone1981 JRA EPG uses titles such as:
+    # 【１２Ｒ】 🏇 札幌 16:00発走 千歳特別 ...
+    if '🏇' in title and '発走' in title:
+        return True
+    return (
+        'ℛ' in title
+        or bool(re.search(r'【\s*[０-９0-9]{1,2}\s*[RＲ]\s*】', title))
+        or bool(re.search(r'(?<!\d)(?:[1-9]|1[0-2])\s*[RＲ](?!\d)', title, re.I))
+    )
 
 
 def unique_text(values: list[str]) -> list[str]:
