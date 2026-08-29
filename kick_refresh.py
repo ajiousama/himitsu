@@ -10,8 +10,8 @@ CHANNELS = [
     {
         'tvg_id': 'kick.gccx',
         'name': 'ゲームセンターＣＸ(KICK)',
-        # Keep several known/likely slugs so a rename does not kill the updater outright.
-        'slugs': ['gccx', 'gamecentercx', 'gamecenter-cx'],
+        # Current KICK channel carrying GameCenter CX, followed by legacy guesses.
+        'slugs': ['mirumo-ch', 'gccx', 'gamecentercx', 'gamecenter-cx'],
     },
     {
         'tvg_id': 'kick.nogizaka',
