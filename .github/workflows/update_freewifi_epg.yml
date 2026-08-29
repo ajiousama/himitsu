@@ -9,6 +9,7 @@ on:
       - main
     paths:
       - "freewifi"
+      - "radio.m3u"
       - "freewifi_naori.py"
       - "freewifi_naori_kansai.py"
       - "reorder_freewifi.py"
@@ -140,7 +141,7 @@ jobs:
       - name: Merge JRA race EPG for official YouTube
         run: python jra_epg_merge.py
 
-      - name: Restore Radiko channels and 3-day EPG
+      - name: Split Radiko: selected stations to FreeWiFi, others to radio.m3u
         env:
           RADIKO_PUBLIC_BASE: https://himitsu-six.vercel.app
         run: python radiko_freewifi.py
@@ -161,22 +162,29 @@ jobs:
           test "$(grep -c 'naori-test.netgenx.site/pxx.php?shk_cid=' freewifi || true)" -ge 36
           for CID in gx01 gx02 gx03 gx04 gx05 gx06; do grep -q "shk_cid=$CID" freewifi; done
 
-      - name: Validate Radiko FreeWiFi and EPG
+      - name: Validate Radiko split and EPG
         shell: bash
         run: |
-          RADIO_COUNT="$(grep -c 'tvg-id="radiko\.' freewifi || true)"
-          LIVE_COUNT="$(grep -c 'himitsu-six.vercel.app/api/radiko?station=' freewifi || true)"
+          FREE_COUNT="$(grep -c 'tvg-id="radiko\.' freewifi || true)"
+          RADIO_COUNT="$(grep -c 'tvg-id="radiko\.' radio.m3u || true)"
           EPG_CHANNELS="$(grep -c '<channel id="radiko\.' guides.xml || true)"
           EPG_PROGRAMMES="$(grep -c 'channel="radiko\.' guides.xml || true)"
-          echo "Radiko FreeWiFi stations: $RADIO_COUNT"
-          echo "Radiko live URLs: $LIVE_COUNT"
+          echo "Radiko FreeWiFi selected stations: $FREE_COUNT"
+          echo "Radiko radio.m3u other stations: $RADIO_COUNT"
           echo "Radiko EPG channels: $EPG_CHANNELS"
           echo "Radiko EPG programmes: $EPG_PROGRAMMES"
-          test "$RADIO_COUNT" -ge 100
-          test "$LIVE_COUNT" -ge 100
+          test "$FREE_COUNT" -ge 10
+          test "$FREE_COUNT" -lt 30
+          test "$RADIO_COUNT" -ge 80
           test "$EPG_CHANNELS" -ge 100
           test "$EPG_PROGRAMMES" -ge 500
-          echo 'Radiko FreeWiFi/EPG OK'
+          grep -q 'RNB南海放送（ラジオ）' freewifi
+          grep -q 'FM愛媛（ラジオ）' freewifi
+          grep -q 'KBS京都' freewifi
+          grep -E -q 'α-STATION|ALPHA-STATION' freewifi
+          grep -E -q 'e-radio|FM滋賀' freewifi
+          grep -q 'ラジオ関西' freewifi
+          echo 'Radiko split/EPG OK'
 
       - name: Validate XML
         run: python -c "import xml.etree.ElementTree as ET; ET.parse('guides.xml'); print('XML OK')"
@@ -242,6 +250,7 @@ jobs:
           cp guides.xml /tmp/guides.xml.generated
           cp epg_coverage.txt /tmp/epg_coverage.txt.generated
           cp freewifi /tmp/freewifi.generated
+          cp radio.m3u /tmp/radio.m3u.generated
           cp today_public_sports_status.json /tmp/today_public_sports_status.json.generated
           cp today_jra_status.json /tmp/today_jra_status.json.generated
           cp today_event_counts.json /tmp/today_event_counts.json.generated
@@ -256,13 +265,14 @@ jobs:
           cp /tmp/guides.xml.generated guides.xml
           cp /tmp/epg_coverage.txt.generated epg_coverage.txt
           cp /tmp/freewifi.generated freewifi
+          cp /tmp/radio.m3u.generated radio.m3u
           cp /tmp/today_public_sports_status.json.generated today_public_sports_status.json
           cp /tmp/today_jra_status.json.generated today_jra_status.json
           cp /tmp/today_event_counts.json.generated today_event_counts.json
           [ ! -f /tmp/public_sports_youtube_fallback.m3u.generated ] || cp /tmp/public_sports_youtube_fallback.m3u.generated public_sports_youtube_fallback.m3u
           [ ! -f /tmp/general_youtube.m3u.generated ] || cp /tmp/general_youtube.m3u.generated general_youtube.m3u
 
-          git add guides.xml epg_coverage.txt freewifi today_public_sports_status.json today_jra_status.json today_event_counts.json
+          git add guides.xml epg_coverage.txt freewifi radio.m3u today_public_sports_status.json today_jra_status.json today_event_counts.json
           [ ! -f public_sports_youtube_fallback.m3u ] || git add public_sports_youtube_fallback.m3u
           [ ! -f /tmp/general_youtube.m3u.generated ] || git add general_youtube.m3u
 
@@ -271,8 +281,8 @@ jobs:
             exit 0
           fi
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            git commit -m "Update FreeWiFi YouTube and EPG"
+            git commit -m "Update FreeWiFi YouTube, radio split and EPG"
           else
-            git commit -m "Update FreeWiFi EPG and today's public sports"
+            git commit -m "Update FreeWiFi, radio split and EPG"
           fi
           git push origin HEAD:main
