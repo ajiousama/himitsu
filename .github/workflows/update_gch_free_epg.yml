@@ -1,0 +1,92 @@
+name: Update GCH Free EPG
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'jra_epg_merge.py'
+      - '.github/workflows/update_gch_free_epg.yml'
+  schedule:
+    - cron: '10,25,40,55 * * * *'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: himitsu-gch-epg-writer
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Build and publish dedicated GCH EPG safely
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+
+          for attempt in 1 2 3; do
+            echo "GCH EPG publish attempt $attempt/3"
+            git fetch origin main
+            git reset --hard origin/main
+
+            python jra_epg_merge.py
+
+            python - <<'PY'
+          import xml.etree.ElementTree as ET
+          from pathlib import Path
+
+          for path in ('gch_free_epg.xml', 'guides.xml'):
+              if not Path(path).is_file() or Path(path).stat().st_size == 0:
+                  raise SystemExit(f'{path} missing or empty')
+              ET.parse(path)
+
+          g = ET.parse('gch_free_epg.xml').getroot()
+          a = [p for p in g.findall('programme') if p.get('channel') == 'jra.official']
+          b = [p for p in g.findall('programme') if p.get('channel') == 'jra.gch.free']
+          print(f'GCH dedicated EPG: A={len(a)} B={len(b)}')
+          if len(b) != 3:
+              raise SystemExit(f'B programme count must be 3, got {len(b)}')
+          if not all((p.findtext('title') or '') == '競馬全レース中継　GCH（無料版）' for p in b):
+              raise SystemExit('B fixed title mismatch')
+
+          guides = ET.parse('guides.xml').getroot()
+          ga = [p for p in guides.findall('programme') if p.get('channel') == 'jra.official']
+          gb = [p for p in guides.findall('programme') if p.get('channel') == 'jra.gch.free']
+          if len(ga) != len(a) or len(gb) != len(b):
+              raise SystemExit(f'guides merge mismatch: A {len(ga)}/{len(a)} B {len(gb)}/{len(b)}')
+          PY
+
+            git add guides.xml gch_free_epg.xml
+            if git diff --cached --quiet; then
+              echo 'GCH EPG already current'
+              exit 0
+            fi
+
+            git commit -m 'Update dedicated GCH free EPG'
+            if git push origin HEAD:main; then
+              echo 'GCH EPG published successfully'
+              exit 0
+            fi
+
+            echo '::warning::main moved during GCH EPG publish; rebuilding from latest main'
+            sleep 2
+          done
+
+          echo '::error::Failed to publish GCH EPG after 3 attempts'
+          exit 1
