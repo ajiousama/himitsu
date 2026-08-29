@@ -18,15 +18,16 @@ BASE = os.environ.get("RADIKO_PUBLIC_BASE", "https://himitsu-six.vercel.app").rs
 def wanted(meta, sid):
     pref = meta.get("pref")
     name = meta.get("name", "")
-    # 愛媛県の民放ラジオを全部残す。
     if pref == 38:
         return "愛媛（ラジオ）"
-    # 大阪府の在阪ラジオを全部残す。
     if pref == 27:
         return "在阪（ラジオ）"
-    # 京都は KBS京都ラジオだけ残す。
-    if pref == 26 and (sid.upper() == "KBS" or "KBS京都" in name):
-        return "KBS京都（ラジオ）"
+    if pref == 26 and (sid.upper() == "KBS" or "KBS京都" in name or "ALPHA-STATION" in name.upper() or "α-STATION" in name.upper()):
+        return "京都（ラジオ）"
+    if pref == 25 and ("E-RADIO" in name.upper() or "E RADIO" in name.upper() or "FM滋賀" in name):
+        return "滋賀（ラジオ）"
+    if pref == 28 and ("ラジオ関西" in name or sid.upper() in {"CRK", "JOCR"}):
+        return "兵庫（ラジオ）"
     return None
 
 
@@ -44,7 +45,7 @@ def build_block(stations):
         rows.append((meta.get("pref", 99), name, sid, logo, group, f"{BASE}/api/radiko?station={station}"))
     rows.sort()
 
-    lines = [START, "## FreeWiFiに残すラジオ（愛媛＋在阪＋KBS京都）"]
+    lines = [START, "## FreeWiFiに残すラジオ（愛媛＋在阪＋京都＋滋賀＋ラジオ関西）"]
     for _, name, sid, logo, group, url in rows:
         lines.append(f'#EXTINF:-1 tvg-id="radiko.{sid}" tvg-logo="{logo}" group-title="{group}",{name}')
         lines.append(url)
@@ -54,17 +55,14 @@ def build_block(stations):
 
 def main():
     text = FREEWIFI.read_text(encoding="utf-8-sig")
-    # 誤って追加したテレビ保持ブロックを完全撤去。
     text = re.sub(rf"\n?{re.escape(OLD_START)}.*?{re.escape(OLD_END)}\n?", "\n", text, flags=re.S)
-    # 自分の旧ブロックも置換。
     text = re.sub(rf"\n?{re.escape(START)}.*?{re.escape(END)}\n?", "\n", text, flags=re.S)
 
     stations = discover_stations()
     block, rows = build_block(stations)
-    if len(rows) < 8:
+    if len(rows) < 11:
         raise SystemExit(f"local radio selection too small: {len(rows)}")
 
-    # RADIKO全国ブロックの直前にコピーを置く。無ければNHKラジオ直前。
     marker = RADIKO_START if RADIKO_START in text else "# === NHK_RADIO_MANAGED_START ==="
     if marker in text:
         text = text.replace(marker, block + "\n\n" + marker, 1)
