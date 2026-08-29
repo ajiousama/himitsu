@@ -5,7 +5,7 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 CONFIG = "https://www.nhk.or.jp/radio/config/config_web.xml"
-OUT = Path("nhk_radio.m3u")
+OUT = Path("radio.m3u")
 FREEWIFI = Path("freewifi")
 START = "# === NHK_RADIO_MANAGED_START ==="
 END = "# === NHK_RADIO_MANAGED_END ==="
@@ -43,7 +43,6 @@ def parse_config(xml):
     root = ET.fromstring(xml)
     rows = []
     for node in root.iter():
-        # config_web.xml の地域ブロックは data 系。タグ名変更にも少し耐える。
         area = first_text(node, ["areajp", "area", "name"])
         if not area:
             continue
@@ -51,7 +50,6 @@ def parse_config(xml):
         fm = first_text(node, ["fmhls", "fm", "fm_url", "fmurl"])
         if (r1.startswith("http") or fm.startswith("http")):
             rows.append((area, r1, fm))
-    # 同一地域の重複を除去
     out = {}
     for area, r1, fm in rows:
         if area not in out or (r1 and fm):
@@ -60,7 +58,6 @@ def parse_config(xml):
 
 
 def choose_area(rows, wanted):
-    # 完全一致優先、次に部分一致（例: 東京・首都圏）
     if wanted in rows:
         return wanted, rows[wanted]
     for area, urls in rows.items():
@@ -108,7 +105,6 @@ def inject_freewifi(entries):
     pat = re.compile(rf"\n?{re.escape(START)}.*?{re.escape(END)}\n?", re.S)
     text = pat.sub("\n", text)
 
-    # 一般YouTubeの直前に置き、無ければ末尾へ。
     marker = "# === GENERAL_YOUTUBE_MANAGED_START ==="
     if marker in text:
         text = text.replace(marker, block + "\n\n" + marker, 1)
