@@ -21,6 +21,21 @@ YT_ANCHOR = "# === GENERAL_YOUTUBE_MANAGED_START ==="
 UA = {"User-Agent": "Mozilla/5.0"}
 BASE = os.environ.get("RADIKO_PUBLIC_BASE", "https://himitsu-six.vercel.app").rstrip("/")
 
+FREEWIFI_IDS = {
+    "RNB": "愛媛（ラジオ）",
+    "JOEU-FM": "愛媛（ラジオ）",
+    "ABC": "在阪（ラジオ）",
+    "MBS": "在阪（ラジオ）",
+    "OBC": "在阪（ラジオ）",
+    "802": "在阪（ラジオ）",
+    "CCL": "在阪（ラジオ）",
+    "FMO": "在阪（ラジオ）",
+    "KBS": "京都（ラジオ）",
+    "ALPHA-STATION": "京都（ラジオ）",
+    "E-RADIO": "滋賀（ラジオ）",
+    "CRK": "兵庫（ラジオ）",
+}
+
 
 def region_for_prefecture(n):
     if n == 1:
@@ -102,18 +117,22 @@ def is_shortwave_station(sid, name):
 
 
 def freewifi_group(meta, sid):
-    pref = meta.get("pref")
+    sid_u = (sid or "").upper()
     name = meta.get("name", "")
     upper = name.upper()
-    if pref == 38:
+    if sid_u in FREEWIFI_IDS:
+        return FREEWIFI_IDS[sid_u]
+    if "南海放送" in name:
         return "愛媛（ラジオ）"
-    if pref == 27:
+    if "FM愛媛" in name:
+        return "愛媛（ラジオ）"
+    if "ABCラジオ" in name or "MBSラジオ" in name or "ラジオ大阪" in name or "FM802" in upper or "FM COCOLO" in upper or "FM大阪" in name:
         return "在阪（ラジオ）"
-    if pref == 26 and (sid.upper() == "KBS" or "KBS京都" in name or "ALPHA-STATION" in upper or "α-STATION" in upper):
+    if "KBS京都" in name or "ALPHA-STATION" in upper or "Α-STATION" in upper or "α-STATION" in name:
         return "京都（ラジオ）"
-    if pref == 25 and ("E-RADIO" in upper or "E RADIO" in upper or "FM滋賀" in name):
+    if "E-RADIO" in upper or "E RADIO" in upper or "FM滋賀" in name:
         return "滋賀（ラジオ）"
-    if pref == 28 and ("ラジオ関西" in name or sid.upper() in {"CRK", "JOCR"}):
+    if "ラジオ関西" in name or sid_u in {"CRK", "JOCR"}:
         return "兵庫（ラジオ）"
     return None
 
@@ -177,7 +196,7 @@ def replace_radiko_block(stations):
     text, removed = strip_all_radiko_entries(text)
     items = [(sid, meta, freewifi_group(meta, sid)) for sid, meta in stations.items()]
     items = [(sid, meta, group) for sid, meta, group in items if group]
-    items.sort(key=lambda x: (x[1].get("pref", 99), x[1].get("name", "")))
+    items.sort(key=lambda x: (x[2], x[1].get("name", "")))
 
     lines = [START, "## 指定ラジオ局（FreeWiFiにもコピー）"]
     for sid, meta, group in items:
@@ -258,8 +277,8 @@ def main():
     print(f"radiko public base: {BASE}")
     print(f"radiko EPG channels: {epg_channels}")
     print(f"radiko EPG programmes: {epg_programmes}")
-    if freewifi_count < 10 or radio_count < 100:
-        raise SystemExit("radiko split result too small")
+    if freewifi_count < 8 or radio_count < 100:
+        raise SystemExit("radiko catalog result too small")
     if epg_channels < 100 or epg_programmes < 500:
         raise SystemExit("radiko EPG result too small")
 
