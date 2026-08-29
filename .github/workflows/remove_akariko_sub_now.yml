@@ -1,0 +1,34 @@
+name: Remove Akariko sub now
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/remove_akariko_sub_now.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Remove retired Akariko sub entries
+        run: python freewifi_retired_sources.py
+      - name: Validate
+        shell: bash
+        run: |
+          ! grep -Eiq 'akariko-bck1\.sankuria\.sbs|akariko backup' freewifi
+      - name: Commit
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add freewifi
+          if git diff --cached --quiet; then echo 'No retired Akariko sub entries remain'; exit 0; fi
+          git commit -m 'Remove ended Akariko sub streams'
+          git pull --rebase origin main
+          git push origin main
