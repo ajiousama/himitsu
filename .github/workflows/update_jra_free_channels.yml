@@ -20,8 +20,10 @@ on:
 permissions:
   contents: write
 
+# GCH has its own writer lane. It rebuilds from the latest main immediately
+# before every push and retries if another FreeWiFi writer moves main.
 concurrency:
-  group: himitsu-freewifi-writer
+  group: himitsu-gch-free-writer
   cancel-in-progress: false
 
 jobs:
@@ -45,19 +47,18 @@ jobs:
           python -m pip install --upgrade --pre 'yt-dlp[default]'
           python -m pip install --upgrade curl_cffi
 
-      - name: Sync latest main
-        run: git pull --ff-only origin main
-
-      - name: Refresh GCH free A/B
-        run: python jra_free_channels_update.py
-
-      - name: Validate A/B state
+      - name: Refresh, validate and commit GCH free A/B safely
         shell: bash
         run: |
-          test -s freewifi
-          A=$(grep -c 'tvg-id="jra.official"' freewifi || true)
-          B=$(grep -c 'tvg-id="jra.gch.free"' freewifi || true)
-          ACTIVE=$(python - <<'PY'
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+
+          validate_gch() {
+            test -s freewifi
+            A=$(grep -c 'tvg-id="jra.official"' freewifi || true)
+            B=$(grep -c 'tvg-id="jra.gch.free"' freewifi || true)
+            ACTIVE=$(python - <<'PY'
           import json
           try:
               d=json.load(open('today_jra_status.json',encoding='utf-8-sig'))
@@ -65,29 +66,52 @@ jobs:
           except Exception:
               print(0)
           PY
-          )
-          echo "JRA active: $ACTIVE / GCH free A: $A / B: $B"
-          if [ "$ACTIVE" = "1" ]; then
-            test "$A" -eq 1
-            test "$B" -eq 1
-            grep -q 'GCH無料版A（YouTube）' freewifi
-            grep -q 'GCH無料版B（グリーンチャンネルWeb）' freewifi
-            grep -q '^https://himitsu-six.vercel.app/api/gch-free$' freewifi
-          else
-            test "$A" -eq 0
-            test "$B" -eq 0
-          fi
+            )
+            echo "JRA active: $ACTIVE / GCH free A: $A / B: $B"
+            if [ "$ACTIVE" = "1" ]; then
+              test "$A" -eq 1
+              test "$B" -eq 1
+              grep -q 'GCH無料版A（YouTube）' freewifi
+              grep -q 'GCH無料版B（グリーンチャンネルWeb）' freewifi
+              grep -q '^https://himitsu-six.vercel.app/api/gch-free$' freewifi
+            else
+              test "$A" -eq 0
+              test "$B" -eq 0
+            fi
+          }
 
-      - name: Commit GCH free A/B
-        shell: bash
-        run: |
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add freewifi
-          if git diff --cached --quiet; then
-            echo 'No GCH free A/B changes'
-            exit 0
-          fi
-          git commit -m 'Refresh GCH free A-B channels'
-          git pull --rebase origin main
-          git push origin main
+          for attempt in 1 2 3; do
+            echo "GCH A/B publish attempt $attempt/3"
+            git fetch origin main
+            git reset --hard origin/main
+
+            if ! python jra_free_channels_update.py; then
+              echo "::warning::GCH A/B generation failed on attempt $attempt"
+              if [ "$attempt" -lt 3 ]; then sleep 2; continue; fi
+              exit 1
+            fi
+
+            if ! validate_gch; then
+              echo "::warning::GCH A/B validation failed on attempt $attempt"
+              if [ "$attempt" -lt 3 ]; then sleep 2; continue; fi
+              exit 1
+            fi
+
+            git add freewifi
+            if git diff --cached --quiet; then
+              echo 'GCH A/B already current'
+              exit 0
+            fi
+
+            git commit -m 'Refresh GCH free A-B channels'
+            if git push origin HEAD:main; then
+              echo 'GCH A/B published successfully'
+              exit 0
+            fi
+
+            echo "::warning::main moved during GCH A/B publish; rebuilding from latest main"
+            sleep 2
+          done
+
+          echo '::error::Failed to publish GCH A/B after 3 attempts'
+          exit 1
