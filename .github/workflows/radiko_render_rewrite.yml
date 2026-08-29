@@ -1,4 +1,4 @@
-name: Keep Radiko on Render
+name: Validate Current Radiko Gateway
 
 on:
   workflow_dispatch:
@@ -6,55 +6,28 @@ on:
     branches: [main]
     paths:
       - "freewifi"
+      - "radio.m3u"
       - "radiko_freewifi.py"
       - ".github/workflows/radiko_render_rewrite.yml"
 
 permissions:
-  contents: write
-
-concurrency:
-  group: himitsu-freewifi-writer
-  cancel-in-progress: false
+  contents: read
 
 jobs:
-  rewrite:
+  validate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
 
-      - name: Replace legacy Radiko public host with Render
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-          p=Path('freewifi')
-          s=p.read_text(encoding='utf-8-sig')
-          old='https://desktop-h41fq90.tailde6548.ts.net'
-          new='https://ajiousama-radiko.onrender.com'
-          before=s.count(old + '/live/')
-          s=s.replace(old,new)
-          p.write_text(s,encoding='utf-8')
-          after=s.count(new + '/live/')
-          print('legacy replaced:',before)
-          print('Render Radiko URLs:',after)
-          if after < 100:
-              raise SystemExit(f'Render Radiko URL count too small: {after}')
-          PY
-
-      - name: Commit Render URLs safely
+      - name: Validate current Radiko gateway layout
         shell: bash
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          cp freewifi /tmp/freewifi.render
-          git fetch origin main
-          git reset --hard origin/main
-          cp /tmp/freewifi.render freewifi
-          git add freewifi
-          if git diff --cached --quiet; then
-            echo 'Radiko already points to Render'
-            exit 0
-          fi
-          git commit -m 'Point FreeWiFi Radiko to Render cloud gateway'
-          git push origin HEAD:main
+          FREE_COUNT=$(grep -c 'https://himitsu-six.vercel.app/api/radiko?station=' freewifi || true)
+          RADIO_COUNT=$(grep -c 'https://himitsu-six.vercel.app/api/radiko?station=' radio.m3u || true)
+          LEGACY_COUNT=$(grep -E -c 'desktop-h41fq90\.tailde6548\.ts\.net|ajiousama-radiko\.onrender\.com/live/' freewifi radio.m3u || true)
+          echo "FreeWiFi selected Radiko URLs: $FREE_COUNT"
+          echo "radio.m3u all Radiko URLs: $RADIO_COUNT"
+          echo "obsolete gateway URLs: $LEGACY_COUNT"
+          test "$LEGACY_COUNT" -eq 0
+          test "$FREE_COUNT" -ge 4
+          test "$RADIO_COUNT" -ge 100
