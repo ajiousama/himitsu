@@ -11,7 +11,6 @@ JRA_LOGOS = {
     "jra.gch.free": "https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/youtube/jra_gch_free.jpg",
 }
 
-# Old one-off YouTube IDs that were superseded by the managed general_youtube IDs.
 LEGACY_IDS = {
     "youtube.matsuyama.clean",
     "youtube.matsuyama.airport",
@@ -35,7 +34,6 @@ LEGACY_IDS = {
     "youtube.fukuoka.ube.tnc",
 }
 
-# GCH A/B are owned only by jra_free_channels_update.py.
 GCH_IDS = {"jra.official", "jra.gch.free"}
 A_START = "# === JRA_GCH_FREE_A_START ==="
 A_END = "# === JRA_GCH_FREE_A_END ==="
@@ -62,7 +60,6 @@ def ensure_logo(line: str) -> tuple[str, bool]:
             return line, False
         return line[:m.start(1)] + desired + line[m.end(1):], True
 
-    # Insert after tvg-name when possible, otherwise after tvg-id.
     pos = None
     for pat in (r'tvg-name="[^"]*"', r'tvg-id="[^"]*"'):
         mm = re.search(pat, line)
@@ -159,6 +156,52 @@ def dedupe_exact_ids(text: str, prefixes: tuple[str, ...] | None = None) -> tupl
     return "\n".join(out).rstrip() + "\n", removed
 
 
+def dedupe_same_id_url(text: str) -> tuple[str, int]:
+    """Remove only true duplicate entries: same tvg-id AND same stream URL.
+
+    Different URLs for the same tvg-id are intentionally preserved because FreeWiFi
+    contains alternate/backup sources (for example HARUKA1/2/3).
+    """
+    lines = text.splitlines()
+    out: list[str] = []
+    seen: set[tuple[str, str]] = set()
+    removed = 0
+    i = 0
+
+    while i < len(lines):
+        line = lines[i]
+        if not line.startswith("#EXTINF:"):
+            out.append(line)
+            i += 1
+            continue
+
+        cid = entry_id(line)
+        j = i + 1
+        blanks: list[str] = []
+        while j < len(lines) and not lines[j].strip():
+            blanks.append(lines[j])
+            j += 1
+
+        if cid and j < len(lines) and lines[j].strip().startswith(("http://", "https://")):
+            url = lines[j].strip()
+            key = (cid, url)
+            if key in seen:
+                removed += 1
+                i = j + 1
+                continue
+            seen.add(key)
+            out.append(line)
+            out.extend(blanks)
+            out.append(lines[j])
+            i = j + 1
+            continue
+
+        out.append(line)
+        i += 1
+
+    return "\n".join(out).rstrip() + "\n", removed
+
+
 def main() -> int:
     total = 0
 
@@ -175,13 +218,12 @@ def main() -> int:
         text = FREEWIFI.read_text(encoding="utf-8-sig", errors="replace")
         text, n1 = remove_entries(text, LEGACY_IDS)
         text, n2 = remove_entries(text, GCH_IDS, preserve_gch_blocks=True)
-        # FreeWiFi intentionally has alternate sources sharing the same EPG ID,
-        # so only YouTube/JRA families may be deduped here.
         text, n3 = dedupe_exact_ids(text, prefixes=("youtube.", "jra."))
-        text, n4 = fill_missing_logos(text)
+        text, n4 = dedupe_same_id_url(text)
+        text, n5 = fill_missing_logos(text)
         FREEWIFI.write_text(text, encoding="utf-8")
-        total += n1 + n2 + n3
-        print(f"freewifi: legacy={n1} stray_gch={n2} duplicate_youtube_jra={n3} logos_filled={n4}")
+        total += n1 + n2 + n3 + n4
+        print(f"freewifi: legacy={n1} stray_gch={n2} duplicate_youtube_jra={n3} duplicate_same_id_url={n4} logos_filled={n5}")
 
     print(f"cleanup total removed={total}")
     return 0
