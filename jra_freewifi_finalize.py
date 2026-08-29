@@ -8,6 +8,9 @@ START = '# === JRA_OFFICIAL_YOUTUBE_START ==='
 END = '# === JRA_OFFICIAL_YOUTUBE_END ==='
 JRA_ID = 'jra.official'
 SEARCH_TITLE = '中央競馬全レース中継'
+# User-confirmed Green Channel/JRA free YouTube live source.
+# Try this first; if it is no longer live, fall back to title search.
+PREFERRED_LIVE_PAGE = 'https://www.youtube.com/watch?v=9ZcqgwCQ4qk'
 
 
 def jra_active_today():
@@ -19,8 +22,15 @@ def jra_active_today():
 
 
 def find_jra_live_by_title():
-    """YouTubeでタイトルを検索し、JRA公式の放送中LIVEだけを採用する。"""
+    """Prefer the confirmed GCH free YouTube live, then fall back to title search."""
     try:
+        from general_youtube_update import direct_url
+
+        url, _ = direct_url(PREFERRED_LIVE_PAGE, 'GCH無料版A（YouTube）')
+        if url:
+            print('Using preferred GCH YouTube LIVE:', PREFERRED_LIVE_PAGE)
+            return url
+
         p = subprocess.run(
             ['yt-dlp', '--flat-playlist', '--dump-json', '--playlist-end', '10',
              f'ytsearch10:{SEARCH_TITLE} JRA公式'],
@@ -38,13 +48,12 @@ def find_jra_live_by_title():
             if vid and SEARCH_TITLE in title and ('JRA' in channel.upper() or 'JRA公式' in title):
                 candidates.append('https://www.youtube.com/watch?v=' + vid)
 
-        from general_youtube_update import direct_url
         for page in candidates:
-            url, _ = direct_url(page, 'JRA公式（YouTube）無料版')
+            url, _ = direct_url(page, 'GCH無料版A（YouTube）')
             if url:
                 return url
     except Exception as e:
-        print('JRA title search failed:', e)
+        print('JRA/GCH YouTube lookup failed:', e)
     return None
 
 
@@ -85,10 +94,9 @@ def main():
     base = managed_pat.sub('', base)
     base = remove_jra_from_managed(base)
 
-    # JRA非開催日は、YouTube上にLIVE判定できる動画が残っていてもFreeWiFiへ入れない。
     if not jra_active_today():
         FREEWIFI.write_text(base.rstrip() + '\n', encoding='utf-8')
-        print('JRA is not active today; JRA official YouTube entry removed')
+        print('JRA is not active today; GCH free YouTube entry removed')
         return
 
     title_url = find_jra_live_by_title()
@@ -97,7 +105,7 @@ def main():
         if entry:
             extinf, _ = entry
         else:
-            extinf = '#EXTINF:-1 tvg-id="jra.official" tvg-name="JRA公式（YouTube）無料版" group-title="競馬",JRA公式（YouTube）無料版'
+            extinf = '#EXTINF:-1 tvg-id="jra.official" tvg-name="GCH無料版A（YouTube）" group-title="競馬",GCH無料版A（YouTube）'
         entry = (extinf, title_url)
 
     if entry:
@@ -114,11 +122,11 @@ def main():
                 base = base.replace(race_header, race_header + '\n' + block, 1)
             else:
                 base = base.rstrip() + '\n\n' + block
-        print('JRA official YouTube LIVE installed by title search:', SEARCH_TITLE)
+        print('GCH free YouTube LIVE installed')
     elif had_managed:
-        print('JRA official YouTube is not LIVE; expired managed entry removed')
+        print('GCH free YouTube is not LIVE; expired managed entry removed')
     else:
-        print('JRA official YouTube is not LIVE yet')
+        print('GCH free YouTube is not LIVE yet')
 
     FREEWIFI.write_text(base.rstrip() + '\n', encoding='utf-8')
 
