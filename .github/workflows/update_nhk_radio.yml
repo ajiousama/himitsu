@@ -7,6 +7,8 @@ on:
       - 'update_nhk_radio.py'
       - 'preserve_radio_local_channels.py'
       - 'radiko_freewifi.py'
+      - 'radiko_epg.py'
+      - 'nhk_radio_epg.py'
       - 'reorder_freewifi.py'
       - '.github/workflows/update_nhk_radio.yml'
   schedule:
@@ -22,7 +24,7 @@ concurrency:
 jobs:
   update:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -43,6 +45,19 @@ jobs:
       - name: Build full Radiko catalog and FreeWiFi selected copies
         run: python preserve_radio_local_channels.py
 
+      - name: Merge full Radiko EPG
+        run: |
+          python - <<'PY'
+          from radiko_freewifi import merge_radiko_epg
+          ch, pg = merge_radiko_epg()
+          print(f'Radiko EPG merged: channels={ch} programmes={pg}')
+          if ch < 100 or pg < 500:
+              raise SystemExit(f'Radiko EPG too small: channels={ch} programmes={pg}')
+          PY
+
+      - name: Merge NHK radio EPG
+        run: python nhk_radio_epg.py
+
       - name: Reclassify and reorder FreeWiFi
         run: python reorder_freewifi.py
 
@@ -51,6 +66,8 @@ jobs:
         run: |
           test -s radio.m3u
           test -s freewifi
+          test -s guides.xml
+          python -c "import xml.etree.ElementTree as ET; ET.parse('guides.xml'); print('XML OK')"
           grep -q 'NHKラジオ第1（松山）' freewifi
           grep -q 'NHK-FM（松山）' freewifi
           grep -q 'group-title="ラジオ".*NHKラジオ第1' freewifi
@@ -66,13 +83,26 @@ jobs:
           ! grep -E 'group-title="(関東|関西)".*tvg-id="(nhk_r1_|nhk_fm_|radiko\.)' freewifi
           ! grep -q 'group-title="BS(NAORI)"' freewifi
           ! grep -q 'group-title="CS(NAORI)"' freewifi
+
           FREE_COUNT=$(grep -c 'tvg-id="radiko\.' freewifi || true)
           RADIO_COUNT=$(grep -c 'tvg-id="radiko\.' radio.m3u || true)
+          RADIKO_EPG_CH=$(grep -c '<channel id="radiko\.' guides.xml || true)
+          RADIKO_EPG_PG=$(grep -c 'channel="radiko\.' guides.xml || true)
+          NHK_EPG_CH=$(grep -E -c '<channel id="nhk_(r1|fm)_' guides.xml || true)
+          NHK_EPG_PG=$(grep -E -c '<programme .*channel="nhk_(r1|fm)_' guides.xml || true)
           echo "FreeWiFi selected Radiko copies: $FREE_COUNT"
           echo "radio.m3u all Radiko stations: $RADIO_COUNT"
+          echo "Radiko EPG channels: $RADIKO_EPG_CH"
+          echo "Radiko EPG programmes: $RADIKO_EPG_PG"
+          echo "NHK radio EPG channels: $NHK_EPG_CH"
+          echo "NHK radio EPG programmes: $NHK_EPG_PG"
           [ "$FREE_COUNT" -ge 10 ]
           [ "$FREE_COUNT" -lt 30 ]
           [ "$RADIO_COUNT" -ge 100 ]
+          [ "$RADIKO_EPG_CH" -ge 100 ]
+          [ "$RADIKO_EPG_PG" -ge 500 ]
+          [ "$NHK_EPG_CH" -gt 0 ]
+          [ "$NHK_EPG_PG" -gt 0 ]
           grep -q 'NHKラジオ第1（松山）' radio.m3u
           grep -q 'NHK-FM（松山）' radio.m3u
           grep -q 'RNB南海放送（ラジオ）' radio.m3u
@@ -82,16 +112,16 @@ jobs:
           grep -E -q 'e-radio|FM滋賀' radio.m3u
           grep -q 'ラジオ関西' radio.m3u
 
-      - name: Commit updated radio catalog
+      - name: Commit updated radio catalog and EPG
         shell: bash
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add radio.m3u freewifi
+          git add radio.m3u freewifi guides.xml
           if git diff --cached --quiet; then
             echo 'No radio changes'
             exit 0
           fi
-          git commit -m 'Update full radio catalog and FreeWiFi copies'
+          git commit -m 'Update full radio catalog and EPG'
           git pull --rebase origin main
           git push origin main
