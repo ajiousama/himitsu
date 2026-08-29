@@ -141,7 +141,7 @@ jobs:
       - name: Merge JRA race EPG for official YouTube
         run: python jra_epg_merge.py
 
-      - name: Split Radiko: selected stations to FreeWiFi, others to radio.m3u
+      - name: Split Radiko selected copies and full radio catalog
         env:
           RADIKO_PUBLIC_BASE: https://himitsu-six.vercel.app
         run: python radiko_freewifi.py
@@ -162,20 +162,20 @@ jobs:
           test "$(grep -c 'naori-test.netgenx.site/pxx.php?shk_cid=' freewifi || true)" -ge 36
           for CID in gx01 gx02 gx03 gx04 gx05 gx06; do grep -q "shk_cid=$CID" freewifi; done
 
-      - name: Validate Radiko split and EPG
+      - name: Validate Radiko catalog and EPG
         shell: bash
         run: |
           FREE_COUNT="$(grep -c 'tvg-id="radiko\.' freewifi || true)"
           RADIO_COUNT="$(grep -c 'tvg-id="radiko\.' radio.m3u || true)"
           EPG_CHANNELS="$(grep -c '<channel id="radiko\.' guides.xml || true)"
           EPG_PROGRAMMES="$(grep -c 'channel="radiko\.' guides.xml || true)"
-          echo "Radiko FreeWiFi selected stations: $FREE_COUNT"
-          echo "Radiko radio.m3u other stations: $RADIO_COUNT"
+          echo "Radiko FreeWiFi selected copies: $FREE_COUNT"
+          echo "Radiko radio.m3u full catalog: $RADIO_COUNT"
           echo "Radiko EPG channels: $EPG_CHANNELS"
           echo "Radiko EPG programmes: $EPG_PROGRAMMES"
           test "$FREE_COUNT" -ge 10
           test "$FREE_COUNT" -lt 30
-          test "$RADIO_COUNT" -ge 80
+          test "$RADIO_COUNT" -ge 100
           test "$EPG_CHANNELS" -ge 100
           test "$EPG_PROGRAMMES" -ge 500
           grep -q 'RNB南海放送（ラジオ）' freewifi
@@ -184,7 +184,13 @@ jobs:
           grep -E -q 'α-STATION|ALPHA-STATION' freewifi
           grep -E -q 'e-radio|FM滋賀' freewifi
           grep -q 'ラジオ関西' freewifi
-          echo 'Radiko split/EPG OK'
+          grep -q 'RNB南海放送（ラジオ）' radio.m3u
+          grep -q 'FM愛媛（ラジオ）' radio.m3u
+          grep -q 'KBS京都' radio.m3u
+          grep -E -q 'α-STATION|ALPHA-STATION' radio.m3u
+          grep -E -q 'e-radio|FM滋賀' radio.m3u
+          grep -q 'ラジオ関西' radio.m3u
+          echo 'Radiko full catalog plus FreeWiFi copies OK'
 
       - name: Validate XML
         run: python -c "import xml.etree.ElementTree as ET; ET.parse('guides.xml'); print('XML OK')"
@@ -281,8 +287,8 @@ jobs:
             exit 0
           fi
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            git commit -m "Update FreeWiFi YouTube, radio split and EPG"
+            git commit -m "Update FreeWiFi YouTube, radio catalog and EPG"
           else
-            git commit -m "Update FreeWiFi, radio split and EPG"
+            git commit -m "Update FreeWiFi, radio catalog and EPG"
           fi
           git push origin HEAD:main
