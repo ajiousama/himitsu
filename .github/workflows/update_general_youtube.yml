@@ -15,6 +15,7 @@ on:
       - 'freewifi_custom_channels.py'
       - 'freewifi_haruka3.py'
       - 'freewifi_rakuten_keep.py'
+      - 'kick_refresh.py'
       - 'verified_daily_status.json'
       - 'verified_daily_override.py'
       - 'apply_verified_status.py'
@@ -108,6 +109,8 @@ jobs:
         run: python freewifi_haruka3.py
       - name: Keep Rakuten rail/adult channels
         run: python freewifi_rakuten_keep.py
+      - name: Refresh KICK playback URLs
+        run: python kick_refresh.py
       - name: Reapply verified sports/JRA status
         run: |
           python verified_daily_override.py
@@ -123,6 +126,8 @@ jobs:
           grep -q 'セクシーエンタメチャンネル' freewifi
           grep -q 'ha-ipip.f5.si:9394' freewifi
           grep -q '(ハルカ3)' freewifi
+          grep -q 'tvg-id="kick.gccx"' freewifi
+          grep -q 'tvg-id="kick.nogizaka"' freewifi
       - name: Commit updated LIVE URLs
         shell: bash
         run: |
