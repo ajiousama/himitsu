@@ -6,6 +6,7 @@ on:
     paths:
       - 'update_nhk_radio.py'
       - 'preserve_radio_local_channels.py'
+      - 'radiko_freewifi.py'
       - '.github/workflows/update_nhk_radio.yml'
   schedule:
     - cron: '17 */6 * * *'
@@ -35,10 +36,10 @@ jobs:
       - name: Sync latest main
         run: git pull --ff-only origin main
 
-      - name: Refresh radio playlist
+      - name: Refresh NHK radio playlist
         run: python update_nhk_radio.py
 
-      - name: Preserve local radio copies in FreeWiFi
+      - name: Split Radiko stations between FreeWiFi and radio.m3u
         run: python preserve_radio_local_channels.py
 
       - name: Validate
@@ -48,20 +49,27 @@ jobs:
           test -s freewifi
           grep -q '# === NHK_RADIO_MANAGED_START ===' freewifi
           grep -q '# === NHK_RADIO_MANAGED_END ===' freewifi
-          grep -q '# === LOCAL_RADIO_KEEP_START ===' freewifi
+          grep -q '# === RADIKO_MANAGED_START ===' freewifi
           grep -q 'RNB南海放送（ラジオ）' freewifi
           grep -q 'FM愛媛（ラジオ）' freewifi
           grep -q 'ABCラジオ（ラジオ）' freewifi
           grep -q 'MBSラジオ（ラジオ）' freewifi
-          grep -q 'KBS京都ラジオ（ラジオ）' freewifi
+          grep -q 'KBS京都' freewifi
+          grep -E -q 'α-STATION|ALPHA-STATION' freewifi
+          grep -E -q 'e-radio|FM滋賀' freewifi
+          grep -q 'ラジオ関西' freewifi
           ! grep -q '# === NETGEN_LOCAL_KEEP_START ===' freewifi
-          COUNT=$(grep -c '^#EXTINF:' radio.m3u || true)
-          echo "Radio channels: $COUNT"
-          [ "$COUNT" -ge 2 ]
+          FREE_COUNT=$(grep -c 'tvg-id="radiko\.' freewifi || true)
+          RADIO_COUNT=$(grep -c 'tvg-id="radiko\.' radio.m3u || true)
+          echo "FreeWiFi selected Radiko: $FREE_COUNT"
+          echo "radio.m3u other Radiko: $RADIO_COUNT"
+          [ "$FREE_COUNT" -ge 10 ]
+          [ "$FREE_COUNT" -lt 30 ]
+          [ "$RADIO_COUNT" -ge 80 ]
           grep -q 'NHKラジオ第1（松山）' radio.m3u
           grep -q 'NHK-FM（松山）' radio.m3u
 
-      - name: Commit updated radio playlist
+      - name: Commit updated radio split
         shell: bash
         run: |
           git config user.name 'github-actions[bot]'
@@ -71,6 +79,6 @@ jobs:
             echo 'No radio changes'
             exit 0
           fi
-          git commit -m 'Update radio streams and preserve local radio copies'
+          git commit -m 'Update radio split'
           git pull --rebase origin main
           git push origin main
