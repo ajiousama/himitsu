@@ -7,8 +7,6 @@ FREEWIFI = Path("freewifi")
 GENERAL = Path("general_youtube.m3u")
 
 # Old one-off YouTube IDs that were superseded by the managed general_youtube IDs.
-# Keeping both makes the same live camera appear twice and also creates duplicate
-# fallback EPG channels.
 LEGACY_IDS = {
     "youtube.matsuyama.clean",
     "youtube.matsuyama.airport",
@@ -68,7 +66,6 @@ def remove_entries(text: str, ids: set[str], preserve_gch_blocks: bool = False) 
         if line.startswith("#EXTINF:") and entry_id(line) in ids:
             removed += 1
             i += 1
-            # Remove the following stream URL while retaining unrelated comments/headers.
             while i < len(lines) and not lines[i].strip():
                 i += 1
             if i < len(lines) and lines[i].strip().startswith(("http://", "https://")):
@@ -81,8 +78,8 @@ def remove_entries(text: str, ids: set[str], preserve_gch_blocks: bool = False) 
     return "\n".join(out).rstrip() + "\n", removed
 
 
-def dedupe_exact_ids(text: str) -> tuple[str, int]:
-    """Keep first exact tvg-id occurrence outside GCH blocks."""
+def dedupe_exact_ids(text: str, prefixes: tuple[str, ...] | None = None) -> tuple[str, int]:
+    """Keep the first exact ID. When prefixes is set, only those ID families are deduped."""
     lines = text.splitlines()
     out: list[str] = []
     seen: set[str] = set()
@@ -103,7 +100,8 @@ def dedupe_exact_ids(text: str) -> tuple[str, int]:
 
         if line.startswith("#EXTINF:"):
             cid = entry_id(line)
-            if cid and cid in seen:
+            eligible = bool(cid) and (prefixes is None or cid.startswith(prefixes))
+            if eligible and cid in seen:
                 removed += 1
                 i += 1
                 while i < len(lines) and not lines[i].strip():
@@ -111,7 +109,7 @@ def dedupe_exact_ids(text: str) -> tuple[str, int]:
                 if i < len(lines) and lines[i].strip().startswith(("http://", "https://")):
                     i += 1
                 continue
-            if cid:
+            if eligible and cid:
                 seen.add(cid)
 
         out.append(line)
@@ -125,7 +123,7 @@ def main() -> int:
 
     if GENERAL.exists():
         text = GENERAL.read_text(encoding="utf-8-sig", errors="replace")
-        # Dedicated GCH updater owns jra.official; general YouTube must not republish it.
+        # Dedicated JRA/GCH updater owns jra.official; general YouTube must not republish it.
         text, n1 = remove_entries(text, LEGACY_IDS | {"jra.official"})
         text, n2 = dedupe_exact_ids(text)
         GENERAL.write_text(text, encoding="utf-8")
@@ -135,12 +133,14 @@ def main() -> int:
     if FREEWIFI.exists():
         text = FREEWIFI.read_text(encoding="utf-8-sig", errors="replace")
         text, n1 = remove_entries(text, LEGACY_IDS)
-        # Remove stray GCH/JRA copies, but preserve the canonical managed A/B blocks.
+        # Remove stray GCH/JRA copies, but preserve canonical managed A/B blocks.
         text, n2 = remove_entries(text, GCH_IDS, preserve_gch_blocks=True)
-        text, n3 = dedupe_exact_ids(text)
+        # FreeWiFi intentionally has several alternate sources sharing the same EPG ID
+        # (HARUKA/NAORI/kaitekitv etc.), so only YouTube/JRA families may be deduped here.
+        text, n3 = dedupe_exact_ids(text, prefixes=("youtube.", "jra."))
         FREEWIFI.write_text(text, encoding="utf-8")
         total += n1 + n2 + n3
-        print(f"freewifi: legacy={n1} stray_gch={n2} duplicate_ids={n3}")
+        print(f"freewifi: legacy={n1} stray_gch={n2} duplicate_youtube_jra={n3}")
 
     print(f"cleanup total removed={total}")
     return 0
