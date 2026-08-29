@@ -152,7 +152,12 @@ def apply_epg(channels, title: str, desc: str):
 def main():
     channels = find_jd_channels()
     if not channels:
-        raise RuntimeError('No JD League channels found in freewifi')
+        # The FreeWiFi playlist does not always carry JD League channels.
+        # This helper is only an EPG overlay, so absence is a normal no-op,
+        # not a repository/build failure. If the channels return later they
+        # will be detected automatically and receive the official schedule.
+        print('JD League EPG skipped: no JD League channels currently present in freewifi')
+        return
     text = fetch_official_text()
     next_day, title, desc = parse_next_schedule(text)
     apply_epg(channels, title, desc)
