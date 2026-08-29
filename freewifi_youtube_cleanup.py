@@ -5,6 +5,11 @@ from pathlib import Path
 
 FREEWIFI = Path("freewifi")
 GENERAL = Path("general_youtube.m3u")
+DEFAULT_YOUTUBE_LOGO = "https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/youtube/youtube_live_camera_default.png"
+JRA_LOGOS = {
+    "jra.official": "https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/youtube/jra_youtube_free.jpg",
+    "jra.gch.free": "https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/youtube/jra_gch_free.jpg",
+}
 
 # Old one-off YouTube IDs that were superseded by the managed general_youtube IDs.
 LEGACY_IDS = {
@@ -41,6 +46,42 @@ B_END = "# === JRA_GCH_FREE_B_END ==="
 def entry_id(line: str) -> str | None:
     m = re.search(r'tvg-id="([^"]+)"', line)
     return m.group(1).strip() if m else None
+
+
+def ensure_logo(line: str) -> tuple[str, bool]:
+    if not line.startswith("#EXTINF:"):
+        return line, False
+    cid = entry_id(line)
+    if not cid or not (cid.startswith("youtube.") or cid in JRA_LOGOS):
+        return line, False
+
+    desired = JRA_LOGOS.get(cid, DEFAULT_YOUTUBE_LOGO)
+    m = re.search(r'tvg-logo="([^"]*)"', line)
+    if m:
+        if m.group(1).strip():
+            return line, False
+        return line[:m.start(1)] + desired + line[m.end(1):], True
+
+    # Insert after tvg-name when possible, otherwise after tvg-id.
+    pos = None
+    for pat in (r'tvg-name="[^"]*"', r'tvg-id="[^"]*"'):
+        mm = re.search(pat, line)
+        if mm:
+            pos = mm.end()
+            break
+    if pos is None:
+        return line + f' tvg-logo="{desired}"', True
+    return line[:pos] + f' tvg-logo="{desired}"' + line[pos:], True
+
+
+def fill_missing_logos(text: str) -> tuple[str, int]:
+    out = []
+    changed = 0
+    for line in text.splitlines():
+        line2, did = ensure_logo(line)
+        out.append(line2)
+        changed += int(did)
+    return "\n".join(out).rstrip() + "\n", changed
 
 
 def remove_entries(text: str, ids: set[str], preserve_gch_blocks: bool = False) -> tuple[str, int]:
@@ -123,24 +164,24 @@ def main() -> int:
 
     if GENERAL.exists():
         text = GENERAL.read_text(encoding="utf-8-sig", errors="replace")
-        # Dedicated JRA/GCH updater owns jra.official; general YouTube must not republish it.
         text, n1 = remove_entries(text, LEGACY_IDS | {"jra.official"})
         text, n2 = dedupe_exact_ids(text)
+        text, n3 = fill_missing_logos(text)
         GENERAL.write_text(text, encoding="utf-8")
         total += n1 + n2
-        print(f"general_youtube.m3u: removed={n1+n2}")
+        print(f"general_youtube.m3u: removed={n1+n2} logos_filled={n3}")
 
     if FREEWIFI.exists():
         text = FREEWIFI.read_text(encoding="utf-8-sig", errors="replace")
         text, n1 = remove_entries(text, LEGACY_IDS)
-        # Remove stray GCH/JRA copies, but preserve canonical managed A/B blocks.
         text, n2 = remove_entries(text, GCH_IDS, preserve_gch_blocks=True)
-        # FreeWiFi intentionally has several alternate sources sharing the same EPG ID
-        # (HARUKA/NAORI/kaitekitv etc.), so only YouTube/JRA families may be deduped here.
+        # FreeWiFi intentionally has alternate sources sharing the same EPG ID,
+        # so only YouTube/JRA families may be deduped here.
         text, n3 = dedupe_exact_ids(text, prefixes=("youtube.", "jra."))
+        text, n4 = fill_missing_logos(text)
         FREEWIFI.write_text(text, encoding="utf-8")
         total += n1 + n2 + n3
-        print(f"freewifi: legacy={n1} stray_gch={n2} duplicate_youtube_jra={n3}")
+        print(f"freewifi: legacy={n1} stray_gch={n2} duplicate_youtube_jra={n3} logos_filled={n4}")
 
     print(f"cleanup total removed={total}")
     return 0
