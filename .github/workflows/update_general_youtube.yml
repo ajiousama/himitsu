@@ -10,6 +10,7 @@ on:
       - 'general_youtube_sources_airports.json'
       - 'general_youtube_update.py'
       - 'general_youtube_guard.py'
+      - 'freewifi_youtube_cleanup.py'
       - 'public_sports_youtube_fallback.py'
       - 'jra_freewifi_finalize.py'
       - 'freewifi_custom_channels.py'
@@ -115,6 +116,8 @@ jobs:
         run: |
           python verified_daily_override.py
           python apply_verified_status.py
+      - name: Clean duplicate YouTube and GCH entries
+        run: python freewifi_youtube_cleanup.py
       - name: Validate
         run: |
           test -s general_youtube.m3u
@@ -128,6 +131,8 @@ jobs:
           grep -q '(ハルカ3)' freewifi
           grep -q 'tvg-id="kick.gccx"' freewifi
           grep -q 'tvg-id="kick.nogizaka"' freewifi
+          test "$(grep -c 'tvg-id="jra.official"' freewifi || true)" -le 1
+          test "$(grep -c 'tvg-id="jra.gch.free"' freewifi || true)" -le 1
       - name: Commit updated LIVE URLs
         shell: bash
         run: |
