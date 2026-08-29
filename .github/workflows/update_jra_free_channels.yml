@@ -20,8 +20,6 @@ on:
 permissions:
   contents: write
 
-# GCH has its own writer lane. It rebuilds from the latest main immediately
-# before every push and retries if another FreeWiFi writer moves main.
 concurrency:
   group: himitsu-gch-free-writer
   cancel-in-progress: false
@@ -73,7 +71,7 @@ jobs:
               test "$B" -eq 1
               grep -q 'GCH無料版A（YouTube）' freewifi
               grep -q 'GCH無料版B（グリーンチャンネルWeb）' freewifi
-              grep -q '^https://himitsu-six.vercel.app/api/gch-free$' freewifi
+              grep -Eq '^https://manifest\.streaks\.jp/.+\.m3u8\?token=' freewifi
             else
               test "$A" -eq 0
               test "$B" -eq 0
