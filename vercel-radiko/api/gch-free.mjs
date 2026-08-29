@@ -22,11 +22,7 @@ function parsePlayer(html) {
 }
 
 async function fetchJson(url, init = {}) {
-  const r = await fetch(url, {
-    redirect: 'follow',
-    cache: 'no-store',
-    ...init,
-  });
+  const r = await fetch(url, { redirect: 'follow', cache: 'no-store', ...init });
   const text = await r.text();
   let data = null;
   try { data = JSON.parse(text); } catch {}
@@ -35,13 +31,11 @@ async function fetchJson(url, init = {}) {
 
 function chooseHlsSource(playback) {
   const sources = Array.isArray(playback?.sources) ? playback.sources : [];
-  const clear = sources.filter((s) => {
+  return sources.find((s) => {
     const src = typeof s?.src === 'string' ? s.src : '';
     const drm = s?.key_systems && Object.keys(s.key_systems).length > 0;
     return src.includes('.m3u8') && !drm;
-  });
-  if (!clear.length) return null;
-  return clear[0];
+  }) || null;
 }
 
 function hasSsai(playback) {
@@ -76,14 +70,10 @@ async function resolveFreeHls() {
     cache: 'no-store',
   });
   const html = await pageRes.text();
-  if (!pageRes.ok) {
-    return { ok: false, stage: 'page', status: pageRes.status };
-  }
+  if (!pageRes.ok) return { ok: false, stage: 'page', status: pageRes.status };
 
   const player = parsePlayer(html);
-  if (!player) {
-    return { ok: false, stage: 'player', status: 404 };
-  }
+  if (!player) return { ok: false, stage: 'player', status: 404 };
 
   const playbackUrl = `https://playback.api.streaks.jp/v1/projects/${encodeURIComponent(player.projectId)}/medias/${encodeURIComponent(player.mediaId)}`;
   const playbackResult = await fetchJson(playbackUrl, {
@@ -141,12 +131,7 @@ async function resolveFreeHls() {
       body: JSON.stringify({ id: source.id }),
     });
     if (!sessionResult.r.ok || !sessionResult.data) {
-      return {
-        ok: false,
-        stage: 'ssai',
-        status: sessionResult.r.status,
-        message: sessionResult.data?.message ?? null,
-      };
+      return { ok: false, stage: 'ssai', status: sessionResult.r.status, message: sessionResult.data?.message ?? null };
     }
     const session = Array.isArray(sessionResult.data) ? sessionResult.data[0] : sessionResult.data;
     hls = appendQuery(hls, session?.query ?? null);
@@ -156,6 +141,7 @@ async function resolveFreeHls() {
   return {
     ok: true,
     hls,
+    page: GCH_PAGE,
     projectId: player.projectId,
     mediaId: player.mediaId,
     playbackId: playback?.id ?? null,
@@ -174,6 +160,12 @@ export default async function handler(req, res) {
   try {
     const result = await resolveFreeHls();
     const probe = req.query?.probe === '1' || req.query?.probe === 'true';
+    const raw = req.query?.raw === '1' || req.query?.raw === 'true';
+
+    if (raw) {
+      if (!result.ok) return sendJson(res, result.status || 502, result);
+      return sendJson(res, 200, result);
+    }
 
     if (probe) {
       const safe = { ...result };
