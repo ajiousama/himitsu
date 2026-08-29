@@ -83,7 +83,7 @@ def usable_manifest(url: str) -> bool:
     exp = jwt_exp(url)
     if exp is not None and exp <= int(time.time()) + 300:
         return False
-    return url.startswith("https://manifest.streaks.jp/") and ".m3u8" in url
+    return url.startswith("https://") and ".m3u8" in url
 
 
 def existing_url(text: str, tvg_id: str) -> str | None:
@@ -123,6 +123,66 @@ def candidate_manifests(text: str) -> list[str]:
         if url not in out:
             out.append(url)
     return out
+
+
+def extract_streaks_hls(player_url: str) -> str | None:
+    """Resolve the official public STREAKS player via yt-dlp's STREAKS extractor."""
+    try:
+        import yt_dlp
+    except Exception as e:
+        print("B yt-dlp import failed:", e)
+        return None
+
+    opts = {
+        "quiet": True,
+        "no_warnings": True,
+        "skip_download": True,
+        "noplaylist": True,
+        "http_headers": {
+            "User-Agent": BASE_HEADERS["User-Agent"],
+            "Referer": GCH_FREE_PAGE,
+            "Origin": "https://players.streaks.jp",
+        },
+    }
+    try:
+        with yt_dlp.YoutubeDL(opts) as ydl:
+            info = ydl.extract_info(player_url, download=False)
+    except Exception as e:
+        print("B yt-dlp STREAKS extraction failed:", e)
+        return None
+
+    # Some extractors expose the selected live URL directly.
+    direct = info.get("url") if isinstance(info, dict) else None
+    if isinstance(direct, str) and usable_manifest(direct):
+        print("B HLS resolved by yt-dlp direct URL")
+        return direct
+
+    formats = info.get("formats") if isinstance(info, dict) else None
+    if not isinstance(formats, list):
+        formats = []
+
+    candidates: list[tuple[float, str]] = []
+    for f in formats:
+        if not isinstance(f, dict):
+            continue
+        url = f.get("url")
+        if not isinstance(url, str) or not usable_manifest(url):
+            continue
+        # Prefer normal muxed HLS and the highest available quality.
+        height = f.get("height") or 0
+        tbr = f.get("tbr") or 0
+        score = float(height) * 10000.0 + float(tbr)
+        if f.get("vcodec") == "none":
+            score -= 1_000_000_000
+        candidates.append((score, url))
+
+    if candidates:
+        candidates.sort(reverse=True)
+        print("B HLS resolved by yt-dlp formats:", len(candidates))
+        return candidates[0][1]
+
+    print("B yt-dlp returned no playable HLS source")
+    return None
 
 
 def scan_document(url: str, text: str, referer: str | None = None) -> str | None:
@@ -201,6 +261,14 @@ def find_gch_url(existing: str | None) -> str | None:
     print("B official free player frames:", len(frames))
     for frame in frames:
         print("B free player:", frame)
+
+        # Preferred path: use yt-dlp's STREAKS extractor, which calls the
+        # official public playback API for the media id in the iframe URL.
+        manifest = extract_streaks_hls(frame)
+        if manifest:
+            return manifest
+
+        # Fallback for future player changes where the manifest is embedded.
         try:
             player = request_text(frame, timeout=20, referer=GCH_FREE_PAGE)
         except Exception as e:
