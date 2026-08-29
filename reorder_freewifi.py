@@ -25,6 +25,24 @@ KANTO_WORDS = (
     "tvk", "テレビ神奈川", "テレ玉", "千葉テレビ",
 )
 
+# These are satellite/specialty services even when their names contain Tokyo-network words.
+CS_IDS = (
+    "TBS-NEWS", "日テレジータス", "TBSチャンネル1", "TBSチャンネル2",
+    "テレ朝チャンネル1", "テレ朝チャンネル2", "フジテレビONE", "フジテレビTWO",
+    "フジテレビNEXT", "日テレNEWS24", "日テレプラス", "スカイA",
+    "ホームドラマチャンネル", "キッズステーション", "旅チャンネル",
+    "歌謡ポップスチャンネル", "GAORA", "MTV", "ファミリー劇場",
+    "MONDO", "東映チャンネル", "チャンネル銀河", "スペースシャワー",
+    "CNNj", "BBCニュース",
+)
+
+BS_IDS = (
+    "NHK・BS", "NHKBS", "BSP", "BS日テレ", "BS朝日", "BS-TBS", "BSテレ東",
+    "BSフジ", "BS10", "BS11", "BS12", "J-COM-BS", "J:COM BS", "WOWOW",
+    "グリーンチャンネル", "アニマックス", "J SPORTS", "日本映画専門チャンネル",
+    "ディズニー・チャンネル", "釣りビジョン",
+)
+
 TVER_MAP = {
     "ntv": "日本テレビ_jp",
     "tbs": "TBS_jp",
@@ -36,8 +54,8 @@ TVER_MAP = {
     "tvtokyo": "テレビ東京_jp",
 }
 
-# Radiko Premium remains grouped north-to-south.
 RADIO_GROUPS = (
+    "ラジオ", "愛媛（ラジオ）", "在阪（ラジオ）", "京都（ラジオ）", "滋賀（ラジオ）", "兵庫（ラジオ）",
     "北海道（ラジオ）", "東北（ラジオ）", "関東（ラジオ）", "甲信越（ラジオ）",
     "東海（ラジオ）", "近畿（ラジオ）", "中国（ラジオ）", "四国（ラジオ）",
     "九州沖縄（ラジオ）", "短波（ラジオ）",
@@ -97,6 +115,7 @@ def is_youtube(meta: str, url: str, group: str, name: str):
 def classify(meta: str, url: str):
     tvg_id, group, name = fields(meta)
     joined = f"{tvg_id} {name}"
+    upper_url = url.upper()
     group_norm = group.replace("（", "(").replace("）", ")").replace("ＮＡＯＲＩ", "NAORI")
     group_lower = group_norm.lower()
 
@@ -105,16 +124,26 @@ def classify(meta: str, url: str):
     if "予備" in group or "予備" in name:
         return "予備"
 
-    # Preserve explicit regional radio and shortwave radio groups.
-    if group in RADIO_GROUPS:
+    # Radio must never fall into terrestrial regional groups.
+    if tvg_id.startswith(("radiko.", "nhk_r1_", "nhk_fm_")):
+        return group if group in RADIO_GROUPS else "ラジオ"
+    if group in RADIO_GROUPS or "（ラジオ）" in group or "(ラジオ)" in group:
         return group
-    if tvg_id.startswith("radiko."):
-        return group if group else "ラジオ"
 
-    if group_lower in ("bs(naori)", "ｂｓ(naori)"):
-        return "BS(NAORI)"
-    if group_lower in ("cs(naori)", "ｃｓ(naori)"):
-        return "CS(NAORI)"
+    # Normalize provider-specific BS/CS groups into the common BS/CS buckets.
+    if group_lower.startswith("bs") or "SHK_CID=BS" in upper_url:
+        return "BS"
+    if group_lower.startswith("cs") or "SHK_CID=CS" in upper_url:
+        return "CS"
+    if "CID=BS" in upper_url:
+        return "BS"
+    if "CID=CS" in upper_url:
+        return "CS"
+
+    if any(x.lower() in tvg_id.lower() for x in BS_IDS):
+        return "BS"
+    if any(x.lower() in tvg_id.lower() for x in CS_IDS):
+        return "CS"
 
     if group in ("BS", "ＢＳ") or re.search(r'(^|[^A-Za-z])BS(?:\d|\b)', joined, re.I):
         return "BS"
@@ -205,21 +234,23 @@ def main():
         meta = replace_group(meta, group)
         buckets.setdefault(group, []).append([meta, url])
 
-    priority = ["関西", "関東", "BS", "BS(NAORI)", "CS", "CS(NAORI)", "予備"] + list(RADIO_GROUPS)
+    priority = ["関西", "関東", "BS", "CS", "予備"] + list(RADIO_GROUPS)
     remaining = [g for g in buckets if g not in priority and g != "YouTube"]
     final_groups = [g for g in priority if g in buckets] + remaining
     if "YouTube" in buckets:
         final_groups.append("YouTube")
 
     out = [header, ""]
+    terrestrial_started = False
     for g in final_groups:
         if g in ("関西", "関東"):
             section = order_region(buckets[g])
         else:
             section = buckets[g]
         if g in ("関西", "関東"):
-            if not any(x.startswith("## 地上波") for x in out):
+            if not terrestrial_started:
                 out += ["## 地上波", ""]
+                terrestrial_started = True
             out += [f"### {g}", ""]
         else:
             out += [f"## {g}", ""]
@@ -231,14 +262,22 @@ def main():
         if markers:
             out += [markers[1], ""]
 
+    # Keep NAORI management markers without creating a separate visible group.
     out += ["# === NAORI_MANAGED_START ===", "# === NAORI_MANAGED_END ==="]
 
     PATH.write_text("\n".join(out).rstrip() + "\n", encoding="utf-8")
 
     result = PATH.read_text(encoding="utf-8")
-    if 'group-title="NAORI"' in result or 'group-title="naori"' in result:
-        raise SystemExit("standalone terrestrial NAORI group still remains")
     groups = GROUP_RE.findall(result)
+    forbidden = {"NAORI", "naori", "BS(NAORI)", "CS(NAORI)", "BS(naori)", "CS(naori)", "関東(naori)", "関西(naori)"}
+    bad = sorted(set(groups) & forbidden)
+    if bad:
+        raise SystemExit(f"provider-specific groups still remain: {bad}")
+    if any(g == "関東" for g in groups):
+        for meta, url in parse_entries(result)[1]:
+            tvg_id, group, name = fields(meta)
+            if group == "関東" and (tvg_id.startswith(("radiko.", "nhk_r1_", "nhk_fm_")) or any(x.lower() in tvg_id.lower() for x in BS_IDS + CS_IDS)):
+                raise SystemExit(f"misclassified as Kanto: {tvg_id} {name}")
     if "YouTube" in groups and groups[-1] != "YouTube":
         raise SystemExit("YouTube is not the final group")
     print("FreeWiFi reordered:", ", ".join(final_groups))
