@@ -150,6 +150,10 @@ def classify(meta: str, url: str):
     if group in ("CS", "ＣＳ") or re.search(r'(^|[^A-Za-z])CS(?:\d|\b)', joined, re.I):
         return "CS"
 
+    # Public-sports keirin channels must never be classified as terrestrial Kanto/Kansai.
+    if tvg_id.startswith("keirin."):
+        return "今日の開催場"
+
     if any(x in tvg_id for x in KANSAI_IDS) or any(x in joined for x in KANSAI_WORDS):
         return "関西"
     if any(x in tvg_id for x in KANTO_IDS) or any(x in joined for x in KANTO_WORDS):
