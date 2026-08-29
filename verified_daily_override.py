@@ -20,6 +20,13 @@ FALLBACK_ENTRIES = {
         'source_id': 'youtube.boat_suminoe', 'tvg_id': 'boat.suminoe', 'name': 'BOATRACE住之江',
         'logo': 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports_logos_github_43/boatrace_24_spaced_cut_1024/suminoe.png',
     },
+    # earphone1981 側にチャンネルが無い場合でも、公式開催確認済みなら
+    # 「今日の開催場」とEPGの準備中表示から落とさないための待機エントリ。
+    ('地方競馬', '帯広ば'): {
+        'source_id': 'youtube.chihou_obihiro', 'tvg_id': 'chihou.obihiro', 'name': '帯広ば（ばんえい十勝）',
+        'logo': 'https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/youtube/youtube_live_camera_default.png',
+        'waiting_url': 'https://www.youtube.com/channel/UCyjlxPcoYAbpwlr5wjUA_5g/live',
+    },
 }
 CANONICAL_ALIASES = {'こうち': '高知', 'からつ': '唐津'}
 PSTART = '# === TODAY_PUBLIC_SPORTS_START ==='
@@ -31,7 +38,7 @@ VALID_MODES = {'morning', 'day', 'twilight', 'night', 'midnight', 'overnight'}
 
 
 def fetch_text(url):
-    req = urllib.request.Request(url, headers={'User-Agent': 'FreeWiFi-Verified-Daily/1.1', 'Cache-Control': 'no-cache'})
+    req = urllib.request.Request(url, headers={'User-Agent': 'FreeWiFi-Verified-Daily/1.2', 'Cache-Control': 'no-cache'})
     with urllib.request.urlopen(req, timeout=45) as r:
         return r.read().decode('utf-8-sig', errors='replace')
 
@@ -78,7 +85,16 @@ def materialize_fallback(section, venue, sources):
     spec = FALLBACK_ENTRIES.get((section, venue))
     if not spec: return None
     block = sources.get(spec['source_id'])
-    if not block: return None
+    waiting = False
+    if not block:
+        waiting_url = spec.get('waiting_url')
+        if not waiting_url:
+            return None
+        waiting = True
+        block = [
+            f'#EXTINF:-1 tvg-id="{spec["tvg_id"]}" tvg-name="{spec["name"]}" tvg-logo="{spec["logo"]}" group-title="{GROUP}",{spec["name"]}',
+            waiting_url,
+        ]
     b = block[:]; line = b[0]
     line = re.sub(r'tvg-id="[^"]+"', f'tvg-id="{spec["tvg_id"]}"', line, count=1)
     if 'tvg-name=' in line: line = re.sub(r'tvg-name="[^"]*"', f'tvg-name="{spec["name"]}"', line, count=1)
@@ -86,7 +102,7 @@ def materialize_fallback(section, venue, sources):
     if 'tvg-logo=' in line: line = re.sub(r'tvg-logo="[^"]*"', f'tvg-logo="{spec["logo"]}"', line, count=1)
     else: line = line.replace(' group-title=', f' tvg-logo="{spec["logo"]}" group-title=', 1)
     line = re.sub(r',.*$', ',' + spec['name'], line, count=1); b[0] = line
-    return spec['tvg_id'], spec['name'], b
+    return spec['tvg_id'], spec['name'], b, waiting
 
 
 def rewrite_group(line):
@@ -168,11 +184,19 @@ def main():
             if norm(venue) in have: continue
             fallback = materialize_fallback(section, venue, fallback_sources)
             if not fallback: continue
-            cid, name, block = fallback
+            cid, name, block, waiting = fallback
             if cid in selected_ids: continue
             selected_ids.add(cid); selected.append(block); matched[section].append(venue); have.add(norm(venue))
             mode = configured_mode(cfg_modes, section, venue, name)
-            status[cid] = {'section': section, 'name': name, 'mode': mode, 'source': 'official YouTube fallback', 'epg_available': True, 'next_race': None, 'next_race_text': '本日開催'}
+            status[cid] = {
+                'section': section,
+                'name': name,
+                'mode': mode,
+                'source': 'official waiting entry' if waiting else 'official YouTube fallback',
+                'epg_available': False,
+                'next_race': None,
+                'next_race_text': '本日開催あり／現在準備中' if waiting else '本日開催',
+            }
     expected = sum(len(v) for v in wanted.values()); missing = []
     for section, vals in wanted.items():
         have = {norm(x) for x in matched.get(section, [])}
