@@ -1,12 +1,8 @@
 from __future__ import annotations
 
-import base64
 import json
 import re
-import time
-from html import unescape
 from pathlib import Path
-from urllib.parse import urljoin
 
 FREEWIFI = Path("freewifi")
 GENERAL = Path("general_youtube.m3u")
@@ -23,37 +19,32 @@ B_ID = "jra.gch.free"
 A_LOGO = "https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/youtube/jra_youtube_free.jpg"
 B_LOGO = "https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/youtube/jra_gch_free.jpg"
 
-# Official Green Channel Web free JRA page (1ch is free).
-GCH_FREE_PAGE = "https://sp.gch.jp/jra"
-
-BASE_HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/140.0 Safari/537.36",
-    "Accept-Language": "ja,en-US;q=0.9,en;q=0.8",
-}
-
-MANIFEST_RE = re.compile(
-    r'https://manifest\.streaks\.jp/[^"\'< >\s]+?\.m3u8(?:\?[^"\'< >\s]+)?'.replace(' ', ''),
-    re.I,
-)
-SCRIPT_RE = re.compile(r'<script[^>]+src=["\']([^"\']+)["\']', re.I)
-IFRAME_RE = re.compile(r'<iframe[^>]+src=["\']([^"\']+)["\']', re.I)
-URL_RE = re.compile(r'https://[^"\'< >\s\\]+'.replace(' ', ''), re.I)
+# A = JRA official YouTube.
+# B = official Green Channel Web free 1ch, resolved in Vercel kix1 (Osaka)
+# because the STREAKS playback API rejects overseas GitHub Actions runners.
+B_PROXY = "https://himitsu-six.vercel.app/api/gch-free"
+B_PROBE = B_PROXY + "?probe=1"
 
 
-def request_text(url: str, timeout: int = 20, referer: str | None = None) -> str:
-    headers = dict(BASE_HEADERS)
-    if referer:
-        headers["Referer"] = referer
+def request_json(url: str, timeout: int = 20) -> dict | None:
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/140.0 Safari/537.36",
+        "Accept": "application/json",
+    }
     try:
         from curl_cffi import requests as crequests
         r = crequests.get(url, headers=headers, timeout=timeout, impersonate="chrome", allow_redirects=True)
         r.raise_for_status()
-        return r.text
-    except Exception:
-        from urllib.request import Request, urlopen
-        req = Request(url, headers=headers)
-        with urlopen(req, timeout=timeout) as r:
-            return r.read().decode("utf-8", errors="replace")
+        return r.json()
+    except Exception as first_error:
+        try:
+            from urllib.request import Request, urlopen
+            req = Request(url, headers=headers)
+            with urlopen(req, timeout=timeout) as r:
+                return json.loads(r.read().decode("utf-8", errors="replace"))
+        except Exception as second_error:
+            print("JSON request failed:", first_error, "/", second_error)
+            return None
 
 
 def jra_active_today() -> bool:
@@ -62,28 +53,6 @@ def jra_active_today() -> bool:
         return int(data.get("active_count", 0)) > 0
     except Exception:
         return False
-
-
-def jwt_exp(url: str) -> int | None:
-    m = re.search(r'(?:[?&]token=)([^&]+)', url)
-    if not m:
-        return None
-    parts = m.group(1).split(".")
-    if len(parts) < 2:
-        return None
-    try:
-        payload = parts[1] + "=" * (-len(parts[1]) % 4)
-        data = json.loads(base64.urlsafe_b64decode(payload).decode("utf-8"))
-        return int(data.get("exp")) if data.get("exp") is not None else None
-    except Exception:
-        return None
-
-
-def usable_manifest(url: str) -> bool:
-    exp = jwt_exp(url)
-    if exp is not None and exp <= int(time.time()) + 300:
-        return False
-    return url.startswith("https://") and ".m3u8" in url
 
 
 def existing_url(text: str, tvg_id: str) -> str | None:
@@ -111,174 +80,17 @@ def find_youtube_url() -> str | None:
     return None
 
 
-def normalize_text(text: str) -> str:
-    return unescape(text).replace("\\/", "/").replace("\\u0026", "&")
-
-
-def candidate_manifests(text: str) -> list[str]:
-    out: list[str] = []
-    normalized = normalize_text(text)
-    for raw in MANIFEST_RE.findall(normalized):
-        url = raw.rstrip("\\")
-        if url not in out:
-            out.append(url)
-    return out
-
-
-def extract_streaks_hls(player_url: str) -> str | None:
-    """Resolve the official public STREAKS player via yt-dlp's STREAKS extractor."""
-    try:
-        import yt_dlp
-    except Exception as e:
-        print("B yt-dlp import failed:", e)
-        return None
-
-    opts = {
-        "quiet": True,
-        "no_warnings": True,
-        "skip_download": True,
-        "noplaylist": True,
-        "http_headers": {
-            "User-Agent": BASE_HEADERS["User-Agent"],
-            "Referer": GCH_FREE_PAGE,
-            "Origin": "https://players.streaks.jp",
-        },
-    }
-    try:
-        with yt_dlp.YoutubeDL(opts) as ydl:
-            info = ydl.extract_info(player_url, download=False)
-    except Exception as e:
-        print("B yt-dlp STREAKS extraction failed:", e)
-        return None
-
-    # Some extractors expose the selected live URL directly.
-    direct = info.get("url") if isinstance(info, dict) else None
-    if isinstance(direct, str) and usable_manifest(direct):
-        print("B HLS resolved by yt-dlp direct URL")
-        return direct
-
-    formats = info.get("formats") if isinstance(info, dict) else None
-    if not isinstance(formats, list):
-        formats = []
-
-    candidates: list[tuple[float, str]] = []
-    for f in formats:
-        if not isinstance(f, dict):
-            continue
-        url = f.get("url")
-        if not isinstance(url, str) or not usable_manifest(url):
-            continue
-        # Prefer normal muxed HLS and the highest available quality.
-        height = f.get("height") or 0
-        tbr = f.get("tbr") or 0
-        score = float(height) * 10000.0 + float(tbr)
-        if f.get("vcodec") == "none":
-            score -= 1_000_000_000
-        candidates.append((score, url))
-
-    if candidates:
-        candidates.sort(reverse=True)
-        print("B HLS resolved by yt-dlp formats:", len(candidates))
-        return candidates[0][1]
-
-    print("B yt-dlp returned no playable HLS source")
-    return None
-
-
-def scan_document(url: str, text: str, referer: str | None = None) -> str | None:
-    for manifest in candidate_manifests(text):
-        if usable_manifest(manifest):
-            print("B GCH manifest found in document:", url)
-            return manifest
-
-    scripts: list[str] = []
-    for src in SCRIPT_RE.findall(text):
-        asset = urljoin(url, unescape(src))
-        if asset not in scripts:
-            scripts.append(asset)
-
-    print("B GCH script assets from", url, ":", len(scripts))
-    for asset in scripts[:40]:
-        try:
-            js = request_text(asset, timeout=15, referer=url)
-        except Exception as e:
-            print("B script fetch failed:", asset, e)
-            continue
-
-        for manifest in candidate_manifests(js):
-            if usable_manifest(manifest):
-                print("B GCH manifest found in JS:", asset)
-                return manifest
-
-        normalized = normalize_text(js)
-        endpoints: list[str] = []
-        for raw in URL_RE.findall(normalized):
-            endpoint = raw.rstrip("\\")
-            low = endpoint.lower()
-            if (
-                ("gch-jra" in low or "streaks.jp" in low)
-                and any(k in low for k in ("api", "live", "stream", "manifest", "playlist", "m3u8"))
-                and endpoint not in endpoints
-            ):
-                endpoints.append(endpoint)
-
-        for endpoint in endpoints[:20]:
-            if endpoint.endswith(".m3u8") and usable_manifest(endpoint):
-                return endpoint
-            try:
-                body = request_text(endpoint, timeout=10, referer=url)
-            except Exception:
-                continue
-            for manifest in candidate_manifests(body):
-                if usable_manifest(manifest):
-                    print("B GCH manifest found via public endpoint:", endpoint)
-                    return manifest
-
-    return None
-
-
-def find_gch_url(existing: str | None) -> str | None:
-    if existing and usable_manifest(existing):
-        print("B existing GCH URL is still valid")
-        return existing
-
-    try:
-        page = request_text(GCH_FREE_PAGE, referer=GCH_FREE_PAGE)
-    except Exception as e:
-        print("B official GCH free page fetch failed:", e)
-        return None
-
-    manifest = scan_document(GCH_FREE_PAGE, page, GCH_FREE_PAGE)
-    if manifest:
-        return manifest
-
-    frames: list[str] = []
-    for src in IFRAME_RE.findall(page):
-        frame = urljoin(GCH_FREE_PAGE, unescape(src))
-        if "players.streaks.jp/gch-jra/" in frame and frame not in frames:
-            frames.append(frame)
-
-    print("B official free player frames:", len(frames))
-    for frame in frames:
-        print("B free player:", frame)
-
-        # Preferred path: use yt-dlp's STREAKS extractor, which calls the
-        # official public playback API for the media id in the iframe URL.
-        manifest = extract_streaks_hls(frame)
-        if manifest:
-            return manifest
-
-        # Fallback for future player changes where the manifest is embedded.
-        try:
-            player = request_text(frame, timeout=20, referer=GCH_FREE_PAGE)
-        except Exception as e:
-            print("B player fetch failed:", e)
-            continue
-        manifest = scan_document(frame, player, GCH_FREE_PAGE)
-        if manifest:
-            return manifest
-
-    print("B GCH public free 1ch manifest not resolved")
+def find_gch_url() -> str | None:
+    probe = request_json(B_PROBE)
+    if isinstance(probe, dict) and probe.get("ok") is True and probe.get("hls") == "resolved":
+        print(
+            "B Osaka resolver OK:",
+            probe.get("projectId"),
+            probe.get("playbackType"),
+            "ssai=" + str(probe.get("ssai")),
+        )
+        return B_PROXY
+    print("B Osaka resolver unavailable:", probe)
     return None
 
 
@@ -341,7 +153,6 @@ def main() -> int:
     if not original.startswith("#EXTM3U"):
         raise RuntimeError("Refusing to update: freewifi lost #EXTM3U")
 
-    previous_b = existing_url(original, B_ID)
     cleaned = strip_managed(original)
 
     if not jra_active_today():
@@ -350,14 +161,18 @@ def main() -> int:
         return 0
 
     a_url = find_youtube_url()
-    b_url = find_gch_url(previous_b)
+    b_url = find_gch_url()
     print("A YouTube:", "LIVE" if a_url else "not resolved")
-    print("B GCH Web free 1ch:", "LIVE" if b_url else "not resolved")
+    print("B GCH Web free 1ch:", "LIVE via Osaka resolver" if b_url else "not resolved")
+
+    # On JRA race days both free variants are expected. Do not silently publish
+    # only one, because that previously hid B failures behind a successful job.
+    if not a_url or not b_url:
+        raise RuntimeError(f"GCH free A/B incomplete: A={bool(a_url)} B={bool(b_url)}")
 
     block = build_block(a_url, b_url)
-    if block:
-        anchor = "## 競馬\n"
-        cleaned = cleaned.replace(anchor, anchor + "\n" + block, 1) if anchor in cleaned else cleaned.rstrip() + "\n\n" + block
+    anchor = "## 競馬\n"
+    cleaned = cleaned.replace(anchor, anchor + "\n" + block, 1) if anchor in cleaned else cleaned.rstrip() + "\n\n" + block
 
     if cleaned.count("#EXTINF:") < max(50, int(original.count("#EXTINF:") * 0.70)):
         raise RuntimeError("Refusing to update: playlist channel count collapsed")
