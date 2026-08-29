@@ -9,13 +9,24 @@ lines = text.splitlines()
 out = []
 i = 0
 added = 0
+removed = 0
 
 while i < len(lines):
     line = lines[i]
-    out.append(line)
+
     if line.startswith('#EXTINF:') and i + 1 < len(lines):
         url = lines[i + 1].strip()
+
+        # 以前の自動生成HARUKA3を先に除去する。
+        # これにより15分更新を何度実行しても、各HARUKA2につきHARUKA3は1件だけになる。
+        if '(ハルカ3)' in line and url.startswith(BASE + '/stream/'):
+            removed += 1
+            i += 2
+            continue
+
+        out.append(line)
         out.append(lines[i + 1])
+
         if '(ハルカ2)' in line and re.search(r'/stream/[^\s]+', url):
             m = re.search(r'(/stream/[^\s]+)', url)
             if m:
@@ -24,12 +35,15 @@ while i < len(lines):
                 out.append(f'{meta},{name} (ハルカ3)')
                 out.append(BASE + m.group(1))
                 added += 1
+
         i += 2
         continue
+
+    out.append(line)
     i += 1
 
 updated = '\n'.join(out).rstrip() + '\n'
 if added == 0:
     raise RuntimeError('HARUKA3: no HARUKA2 entries found')
 P.write_text(updated, encoding='utf-8')
-print('HARUKA3 added:', added)
+print(f'HARUKA3 normalized: added={added}, removed_old={removed}')
