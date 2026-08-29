@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import base64
 import json
 import re
+import time
 from pathlib import Path
+from urllib.parse import parse_qs, urlparse
 
 FREEWIFI = Path("freewifi")
 GENERAL = Path("general_youtube.m3u")
@@ -20,10 +23,10 @@ A_LOGO = "https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/youtube
 B_LOGO = "https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/youtube/jra_gch_free.jpg"
 
 # A = JRA official YouTube.
-# B = official Green Channel Web free 1ch, resolved in Vercel kix1 (Osaka)
-# because the STREAKS playback API rejects overseas GitHub Actions runners.
-B_PROXY = "https://himitsu-six.vercel.app/api/gch-free"
-B_PROBE = B_PROXY + "?probe=1"
+# B = current direct free 1ch HLS extracted from https://sp.gch.jp/jra
+# through the Osaka resolver because GitHub Actions overseas IPs are rejected
+# by the STREAKS playback API.
+B_RAW = "https://himitsu-six.vercel.app/api/gch-free?raw=1"
 
 
 def request_json(url: str, timeout: int = 20) -> dict | None:
@@ -80,18 +83,49 @@ def find_youtube_url() -> str | None:
     return None
 
 
+def jwt_expiry_from_url(url: str) -> int | None:
+    try:
+        token = parse_qs(urlparse(url).query).get("token", [None])[0]
+        if not token:
+            return None
+        payload = token.split('.')[1]
+        payload += '=' * (-len(payload) % 4)
+        data = json.loads(base64.urlsafe_b64decode(payload.encode()).decode())
+        return int(data.get("exp")) if data.get("exp") is not None else None
+    except Exception:
+        return None
+
+
+def valid_gch_manifest(url: str) -> bool:
+    if not isinstance(url, str):
+        return False
+    if not re.match(r'^https://manifest\.streaks\.jp/.+\.m3u8(?:\?|$)', url):
+        return False
+    exp = jwt_expiry_from_url(url)
+    if exp is not None and exp <= int(time.time()) + 300:
+        print("B direct manifest token expires too soon:", exp)
+        return False
+    return True
+
+
 def find_gch_url() -> str | None:
-    probe = request_json(B_PROBE)
-    if isinstance(probe, dict) and probe.get("ok") is True and probe.get("hls") == "resolved":
-        print(
-            "B Osaka resolver OK:",
-            probe.get("projectId"),
-            probe.get("playbackType"),
-            "ssai=" + str(probe.get("ssai")),
-        )
-        return B_PROXY
-    print("B Osaka resolver unavailable:", probe)
-    return None
+    data = request_json(B_RAW)
+    if not isinstance(data, dict) or data.get("ok") is not True:
+        print("B official page resolver unavailable:", data)
+        return None
+    url = data.get("hls")
+    if not valid_gch_manifest(url):
+        print("B resolver returned invalid manifest")
+        return None
+    exp = jwt_expiry_from_url(url)
+    print(
+        "B direct manifest extracted from https://sp.gch.jp/jra:",
+        data.get("projectId"),
+        data.get("playbackType"),
+        "ssai=" + str(data.get("ssai")),
+        "exp=" + str(exp),
+    )
+    return url
 
 
 def strip_managed(text: str) -> str:
@@ -163,10 +197,8 @@ def main() -> int:
     a_url = find_youtube_url()
     b_url = find_gch_url()
     print("A YouTube:", "LIVE" if a_url else "not resolved")
-    print("B GCH Web free 1ch:", "LIVE via Osaka resolver" if b_url else "not resolved")
+    print("B GCH Web free 1ch:", "DIRECT M3U8" if b_url else "not resolved")
 
-    # On JRA race days both free variants are expected. Do not silently publish
-    # only one, because that previously hid B failures behind a successful job.
     if not a_url or not b_url:
         raise RuntimeError(f"GCH free A/B incomplete: A={bool(a_url)} B={bool(b_url)}")
 
