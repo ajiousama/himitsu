@@ -71,7 +71,8 @@ def build_a_programmes(public_root: ET.Element) -> list[ET.Element]:
         by_start.setdefault(start, []).append((source_id, p))
 
     if not by_start:
-        raise RuntimeError('No JRA race programmes found in EAST/WEST/HOKKAIDO')
+        print('A EPG: no JRA race programmes in EAST/WEST/HOKKAIDO')
+        return []
 
     starts = sorted(by_start)
     output: list[ET.Element] = []
