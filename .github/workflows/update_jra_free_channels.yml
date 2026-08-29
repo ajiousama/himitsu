@@ -15,7 +15,9 @@ on:
       - 'vercel-radiko/vercel.json'
       - '.github/workflows/update_jra_free_channels.yml'
   schedule:
-    - cron: '5,20,35,50 * * * *'
+    # 09:00 JST every day. jra_free_channels_update.py only publishes A/B on JRA active days.
+    # This covers normal Sat/Sun meetings and exceptional weekday/holiday meetings.
+    - cron: '0 0 * * *'
 
 permissions:
   contents: write
