@@ -23,12 +23,12 @@ B_ID = "jra.gch.free"
 A_LOGO = "https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/youtube/jra_youtube_free.jpg"
 B_LOGO = "https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/youtube/jra_gch_free.jpg"
 
-GCH_HOME = "https://sp.gch.jp/"
+# Official Green Channel Web free JRA page (1ch is free).
+GCH_FREE_PAGE = "https://sp.gch.jp/jra"
 
-HEADERS = {
+BASE_HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/140.0 Safari/537.36",
     "Accept-Language": "ja,en-US;q=0.9,en;q=0.8",
-    "Referer": GCH_HOME,
 }
 
 MANIFEST_RE = re.compile(
@@ -36,18 +36,22 @@ MANIFEST_RE = re.compile(
     re.I,
 )
 SCRIPT_RE = re.compile(r'<script[^>]+src=["\']([^"\']+)["\']', re.I)
+IFRAME_RE = re.compile(r'<iframe[^>]+src=["\']([^"\']+)["\']', re.I)
 URL_RE = re.compile(r'https://[^"\'< >\s\\]+'.replace(' ', ''), re.I)
 
 
-def request_text(url: str, timeout: int = 20) -> str:
+def request_text(url: str, timeout: int = 20, referer: str | None = None) -> str:
+    headers = dict(BASE_HEADERS)
+    if referer:
+        headers["Referer"] = referer
     try:
         from curl_cffi import requests as crequests
-        r = crequests.get(url, headers=HEADERS, timeout=timeout, impersonate="chrome", allow_redirects=True)
+        r = crequests.get(url, headers=headers, timeout=timeout, impersonate="chrome", allow_redirects=True)
         r.raise_for_status()
         return r.text
     except Exception:
         from urllib.request import Request, urlopen
-        req = Request(url, headers=HEADERS)
+        req = Request(url, headers=headers)
         with urlopen(req, timeout=timeout) as r:
             return r.read().decode("utf-8", errors="replace")
 
@@ -107,14 +111,70 @@ def find_youtube_url() -> str | None:
     return None
 
 
+def normalize_text(text: str) -> str:
+    return unescape(text).replace("\\/", "/").replace("\\u0026", "&")
+
+
 def candidate_manifests(text: str) -> list[str]:
     out: list[str] = []
-    normalized = unescape(text).replace("\\/", "/")
+    normalized = normalize_text(text)
     for raw in MANIFEST_RE.findall(normalized):
         url = raw.rstrip("\\")
         if url not in out:
             out.append(url)
     return out
+
+
+def scan_document(url: str, text: str, referer: str | None = None) -> str | None:
+    for manifest in candidate_manifests(text):
+        if usable_manifest(manifest):
+            print("B GCH manifest found in document:", url)
+            return manifest
+
+    scripts: list[str] = []
+    for src in SCRIPT_RE.findall(text):
+        asset = urljoin(url, unescape(src))
+        if asset not in scripts:
+            scripts.append(asset)
+
+    print("B GCH script assets from", url, ":", len(scripts))
+    for asset in scripts[:40]:
+        try:
+            js = request_text(asset, timeout=15, referer=url)
+        except Exception as e:
+            print("B script fetch failed:", asset, e)
+            continue
+
+        for manifest in candidate_manifests(js):
+            if usable_manifest(manifest):
+                print("B GCH manifest found in JS:", asset)
+                return manifest
+
+        normalized = normalize_text(js)
+        endpoints: list[str] = []
+        for raw in URL_RE.findall(normalized):
+            endpoint = raw.rstrip("\\")
+            low = endpoint.lower()
+            if (
+                ("gch-jra" in low or "streaks.jp" in low)
+                and any(k in low for k in ("api", "live", "stream", "manifest", "playlist", "m3u8"))
+                and endpoint not in endpoints
+            ):
+                endpoints.append(endpoint)
+
+        for endpoint in endpoints[:20]:
+            if endpoint.endswith(".m3u8") and usable_manifest(endpoint):
+                return endpoint
+            try:
+                body = request_text(endpoint, timeout=10, referer=url)
+            except Exception:
+                continue
+            for manifest in candidate_manifests(body):
+                if usable_manifest(manifest):
+                    print("B GCH manifest found via public endpoint:", endpoint)
+                    return manifest
+
+    return None
 
 
 def find_gch_url(existing: str | None) -> str | None:
@@ -123,54 +183,34 @@ def find_gch_url(existing: str | None) -> str | None:
         return existing
 
     try:
-        home = request_text(GCH_HOME)
+        page = request_text(GCH_FREE_PAGE, referer=GCH_FREE_PAGE)
     except Exception as e:
-        print("B GCH home fetch failed:", e)
+        print("B official GCH free page fetch failed:", e)
         return None
 
-    for url in candidate_manifests(home):
-        if usable_manifest(url):
-            print("B GCH manifest found in HTML")
-            return url
+    manifest = scan_document(GCH_FREE_PAGE, page, GCH_FREE_PAGE)
+    if manifest:
+        return manifest
 
-    scripts: list[str] = []
-    for src in SCRIPT_RE.findall(home):
-        url = urljoin(GCH_HOME, unescape(src))
-        if url not in scripts:
-            scripts.append(url)
+    frames: list[str] = []
+    for src in IFRAME_RE.findall(page):
+        frame = urljoin(GCH_FREE_PAGE, unescape(src))
+        if "players.streaks.jp/gch-jra/" in frame and frame not in frames:
+            frames.append(frame)
 
-    print("B GCH script assets:", len(scripts))
-    for asset in scripts[:30]:
+    print("B official free player frames:", len(frames))
+    for frame in frames:
+        print("B free player:", frame)
         try:
-            js = request_text(asset, timeout=15)
+            player = request_text(frame, timeout=20, referer=GCH_FREE_PAGE)
         except Exception as e:
-            print("B script fetch failed:", asset, e)
+            print("B player fetch failed:", e)
             continue
+        manifest = scan_document(frame, player, GCH_FREE_PAGE)
+        if manifest:
+            return manifest
 
-        for url in candidate_manifests(js):
-            if usable_manifest(url):
-                print("B GCH manifest found in JS:", asset)
-                return url
-
-        possible: list[str] = []
-        normalized = unescape(js).replace("\\/", "/")
-        for u in URL_RE.findall(normalized):
-            low = u.lower()
-            if any(k in low for k in ("gch-jra", "streaks.jp")) and any(k in low for k in ("api", "live", "stream", "manifest")):
-                possible.append(u.rstrip("\\"))
-        for endpoint in possible[:10]:
-            if endpoint.endswith(".m3u8") and usable_manifest(endpoint):
-                return endpoint
-            try:
-                body = request_text(endpoint, timeout=10)
-            except Exception:
-                continue
-            for url in candidate_manifests(body):
-                if usable_manifest(url):
-                    print("B GCH manifest found via endpoint:", endpoint)
-                    return url
-
-    print("B GCH signed manifest not found")
+    print("B GCH public free 1ch manifest not resolved")
     return None
 
 
@@ -244,7 +284,7 @@ def main() -> int:
     a_url = find_youtube_url()
     b_url = find_gch_url(previous_b)
     print("A YouTube:", "LIVE" if a_url else "not resolved")
-    print("B GCH Web:", "LIVE" if b_url else "not resolved")
+    print("B GCH Web free 1ch:", "LIVE" if b_url else "not resolved")
 
     block = build_block(a_url, b_url)
     if block:
