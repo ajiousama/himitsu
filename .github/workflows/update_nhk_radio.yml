@@ -7,6 +7,7 @@ on:
       - 'update_nhk_radio.py'
       - 'preserve_radio_local_channels.py'
       - 'radiko_freewifi.py'
+      - 'reorder_freewifi.py'
       - '.github/workflows/update_nhk_radio.yml'
   schedule:
     - cron: '17 */6 * * *'
@@ -42,14 +43,18 @@ jobs:
       - name: Build full Radiko catalog and FreeWiFi selected copies
         run: python preserve_radio_local_channels.py
 
+      - name: Reclassify and reorder FreeWiFi
+        run: python reorder_freewifi.py
+
       - name: Validate
         shell: bash
         run: |
           test -s radio.m3u
           test -s freewifi
-          grep -q '# === NHK_RADIO_MANAGED_START ===' freewifi
-          grep -q '# === NHK_RADIO_MANAGED_END ===' freewifi
-          grep -q '# === RADIKO_MANAGED_START ===' freewifi
+          grep -q 'NHKラジオ第1（松山）' freewifi
+          grep -q 'NHK-FM（松山）' freewifi
+          grep -q 'group-title="ラジオ".*NHKラジオ第1' freewifi
+          grep -q 'group-title="ラジオ".*NHK-FM' freewifi
           grep -q 'RNB南海放送（ラジオ）' freewifi
           grep -q 'FM愛媛（ラジオ）' freewifi
           grep -q 'ABCラジオ（ラジオ）' freewifi
@@ -58,7 +63,9 @@ jobs:
           grep -E -q 'α-STATION|ALPHA-STATION' freewifi
           grep -E -q 'e-radio|FM滋賀' freewifi
           grep -q 'ラジオ関西' freewifi
-          ! grep -q '# === NETGEN_LOCAL_KEEP_START ===' freewifi
+          ! grep -E 'group-title="(関東|関西)".*tvg-id="(nhk_r1_|nhk_fm_|radiko\.)' freewifi
+          ! grep -q 'group-title="BS(NAORI)"' freewifi
+          ! grep -q 'group-title="CS(NAORI)"' freewifi
           FREE_COUNT=$(grep -c 'tvg-id="radiko\.' freewifi || true)
           RADIO_COUNT=$(grep -c 'tvg-id="radiko\.' radio.m3u || true)
           echo "FreeWiFi selected Radiko copies: $FREE_COUNT"
