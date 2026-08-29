@@ -179,7 +179,7 @@ def replace_radiko_block(stations):
     items = [(sid, meta, group) for sid, meta, group in items if group]
     items.sort(key=lambda x: (x[1].get("pref", 99), x[1].get("name", "")))
 
-    lines = [START, "## 指定ラジオ局（FreeWiFi）"]
+    lines = [START, "## 指定ラジオ局（FreeWiFiにもコピー）"]
     for sid, meta, group in items:
         lines.extend(station_lines(sid, meta, group))
     lines.append(END)
@@ -202,27 +202,29 @@ def write_radio_playlist(stations):
         if line.lstrip().startswith("#EXTINF:") and 'tvg-id="radiko.' in line:
             i += 2
             continue
+        if line.strip() in {"## RADIKO その他局", "## RADIKO 全局"}:
+            i += 1
+            continue
         kept.append(line)
         i += 1
     while kept and not kept[-1].strip():
         kept.pop()
 
-    others = []
+    all_radiko = []
     for sid, meta in stations.items():
-        if freewifi_group(meta, sid):
-            continue
         if is_shortwave_station(sid, meta.get("name", "")):
             group = "短波（ラジオ）"
         else:
             group = f'{meta.get("region", "その他")}（ラジオ）'
-        others.append((meta.get("region", ""), meta.get("pref", 99), meta.get("name", ""), sid, meta, group))
-    others.sort()
+        all_radiko.append((meta.get("region", ""), meta.get("pref", 99), meta.get("name", ""), sid, meta, group))
+    all_radiko.sort()
+
     kept.append("")
-    kept.append("## RADIKO その他局")
-    for _, _, _, sid, meta, group in others:
+    kept.append("## RADIKO 全局")
+    for _, _, _, sid, meta, group in all_radiko:
         kept.extend(station_lines(sid, meta, group))
     RADIO.write_text("\n".join(kept).rstrip() + "\n", encoding="utf-8")
-    return len(others)
+    return len(all_radiko)
 
 
 def merge_radiko_epg():
@@ -251,12 +253,12 @@ def main():
     radio_count = write_radio_playlist(stations)
     epg_channels, epg_programmes = merge_radiko_epg()
     print(f"old/duplicate radiko entries removed: {removed}")
-    print(f"radiko FreeWiFi selected stations: {freewifi_count}")
-    print(f"radiko radio.m3u other stations: {radio_count}")
+    print(f"radiko FreeWiFi copied stations: {freewifi_count}")
+    print(f"radiko radio.m3u all stations: {radio_count}")
     print(f"radiko public base: {BASE}")
     print(f"radiko EPG channels: {epg_channels}")
     print(f"radiko EPG programmes: {epg_programmes}")
-    if freewifi_count < 10 or radio_count < 80:
+    if freewifi_count < 10 or radio_count < 100:
         raise SystemExit("radiko split result too small")
     if epg_channels < 100 or epg_programmes < 500:
         raise SystemExit("radiko EPG result too small")
