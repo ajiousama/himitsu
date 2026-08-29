@@ -8,7 +8,6 @@ from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
 FREEWIFI = Path("freewifi")
-GENERAL = Path("general_youtube.m3u")
 JRA_STATUS = Path("today_jra_status.json")
 
 A_START = "# === JRA_GCH_FREE_A_START ==="
@@ -22,32 +21,14 @@ B_ID = "jra.gch.free"
 A_LOGO = "https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/youtube/jra_youtube_free.jpg"
 B_LOGO = "https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/youtube/jra_gch_free.jpg"
 
-# A = JRA official YouTube.
-# B = current direct free 1ch HLS extracted from https://sp.gch.jp/jra
-# through the Osaka resolver because GitHub Actions overseas IPs are rejected
-# by the STREAKS playback API.
-B_RAW = "https://himitsu-six.vercel.app/api/gch-free?raw=1"
+# Canonical sources confirmed manually on 2026-08-29.
+# IMPORTANT: Do not resolve A to googlevideo here. Keep the canonical YouTube live URL
+# so the playlist cannot silently drift to a different live video.
+A_FIXED = "https://www.youtube.com/live/9ZcqgwCQ4qk?si=hmPiB8fp-MMuEHQi"
 
-
-def request_json(url: str, timeout: int = 20) -> dict | None:
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/140.0 Safari/537.36",
-        "Accept": "application/json",
-    }
-    try:
-        from curl_cffi import requests as crequests
-        r = crequests.get(url, headers=headers, timeout=timeout, impersonate="chrome", allow_redirects=True)
-        r.raise_for_status()
-        return r.json()
-    except Exception as first_error:
-        try:
-            from urllib.request import Request, urlopen
-            req = Request(url, headers=headers)
-            with urlopen(req, timeout=timeout) as r:
-                return json.loads(r.read().decode("utf-8", errors="replace"))
-        except Exception as second_error:
-            print("JSON request failed:", first_error, "/", second_error)
-            return None
+# B is the exact current direct STREAKS manifest confirmed manually.
+# If its JWT expires, fail closed instead of silently replacing it with a different stream.
+B_FIXED = "https://manifest.streaks.jp/v4/gch-jra/97d99803d82b49bd9fc73cb568b219df/a214b09df7e04c22a15b4feba869b01d/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwcCI6IjNhZWVhMzU2ZmQ0MzQyMzE4ZjRhNDg2OWUwMzFiMDZiIiwiZGMiOiJjYTlmZDAwYTRiMmU0YTg1OGEyNmM1MTY5ZDIwY2U0ZiIsImVkZ2UiOiIzYjY5ZGJiYjYwMmI0M2NlODFmYjdkNGI3NjE0NjEzMCIsImNvZGVjcyI6ImF1dG8iLCJleHAiOjE3ODgxNDE2MDAsImlvcyI6MTgsInBwdyI6IjRwaiJ9._hI54Kx6gIyCMePTHppoHPhKbWkzpnSRiUPwLnkprtk"
 
 
 def jra_active_today() -> bool:
@@ -56,31 +37,6 @@ def jra_active_today() -> bool:
         return int(data.get("active_count", 0)) > 0
     except Exception:
         return False
-
-
-def existing_url(text: str, tvg_id: str) -> str | None:
-    lines = text.splitlines()
-    for i, line in enumerate(lines[:-1]):
-        if line.startswith("#EXTINF:") and f'tvg-id="{tvg_id}"' in line:
-            url = lines[i + 1].strip()
-            if url.startswith(("http://", "https://")):
-                return url
-    return None
-
-
-def find_youtube_url() -> str | None:
-    try:
-        from jra_freewifi_finalize import find_jra_live_by_title
-        url = find_jra_live_by_title()
-        if url:
-            return url
-    except Exception as e:
-        print("A YouTube title lookup failed:", e)
-
-    if GENERAL.exists():
-        text = GENERAL.read_text(encoding="utf-8-sig", errors="replace")
-        return existing_url(text, A_ID)
-    return None
 
 
 def jwt_expiry_from_url(url: str) -> int | None:
@@ -103,29 +59,9 @@ def valid_gch_manifest(url: str) -> bool:
         return False
     exp = jwt_expiry_from_url(url)
     if exp is not None and exp <= int(time.time()) + 300:
-        print("B direct manifest token expires too soon:", exp)
+        print("B pinned direct manifest token expires too soon:", exp)
         return False
     return True
-
-
-def find_gch_url() -> str | None:
-    data = request_json(B_RAW)
-    if not isinstance(data, dict) or data.get("ok") is not True:
-        print("B official page resolver unavailable:", data)
-        return None
-    url = data.get("hls")
-    if not valid_gch_manifest(url):
-        print("B resolver returned invalid manifest")
-        return None
-    exp = jwt_expiry_from_url(url)
-    print(
-        "B direct manifest extracted from https://sp.gch.jp/jra:",
-        data.get("projectId"),
-        data.get("playbackType"),
-        "ssai=" + str(data.get("ssai")),
-        "exp=" + str(exp),
-    )
-    return url
 
 
 def strip_managed(text: str) -> str:
@@ -160,23 +96,18 @@ def strip_managed(text: str) -> str:
     return "\n".join(out).rstrip() + "\n"
 
 
-def build_block(a_url: str | None, b_url: str | None) -> str:
-    lines: list[str] = []
-    if a_url:
-        lines += [
-            A_START,
-            f'#EXTINF:-1 tvg-id="{A_ID}" tvg-name="GCH無料版A（YouTube）" tvg-logo="{A_LOGO}" group-title="競馬",GCH無料版A（YouTube）',
-            a_url,
-            A_END,
-        ]
-    if b_url:
-        lines += [
-            B_START,
-            f'#EXTINF:-1 tvg-id="{B_ID}" tvg-name="GCH無料版B（グリーンチャンネルWeb）" tvg-logo="{B_LOGO}" group-title="競馬",GCH無料版B（グリーンチャンネルWeb）',
-            b_url,
-            B_END,
-        ]
-    return "\n".join(lines) + ("\n" if lines else "")
+def build_block(a_url: str, b_url: str) -> str:
+    lines = [
+        A_START,
+        f'#EXTINF:-1 tvg-id="{A_ID}" tvg-name="GCH無料版A（YouTube）" tvg-logo="{A_LOGO}" group-title="競馬",GCH無料版A（YouTube）',
+        a_url,
+        A_END,
+        B_START,
+        f'#EXTINF:-1 tvg-id="{B_ID}" tvg-name="GCH無料版B（グリーンチャンネルWeb）" tvg-logo="{B_LOGO}" group-title="競馬",GCH無料版B（グリーンチャンネルWeb）',
+        b_url,
+        B_END,
+    ]
+    return "\n".join(lines) + "\n"
 
 
 def main() -> int:
@@ -194,13 +125,16 @@ def main() -> int:
         print("JRA inactive today: removed A/B free channels")
         return 0
 
-    a_url = find_youtube_url()
-    b_url = find_gch_url()
-    print("A YouTube:", "LIVE" if a_url else "not resolved")
-    print("B GCH Web free 1ch:", "DIRECT M3U8" if b_url else "not resolved")
+    a_url = A_FIXED
+    b_url = B_FIXED
 
-    if not a_url or not b_url:
-        raise RuntimeError(f"GCH free A/B incomplete: A={bool(a_url)} B={bool(b_url)}")
+    if not a_url.startswith("https://www.youtube.com/live/9ZcqgwCQ4qk"):
+        raise RuntimeError("A pinned YouTube source changed unexpectedly")
+    if not valid_gch_manifest(b_url):
+        raise RuntimeError("B pinned GCH manifest is invalid or expired; refusing wrong fallback")
+
+    print("A YouTube: PINNED canonical live URL")
+    print("B GCH Web free 1ch: PINNED direct STREAKS manifest; exp=", jwt_expiry_from_url(b_url))
 
     block = build_block(a_url, b_url)
     anchor = "## 競馬\n"
