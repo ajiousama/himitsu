@@ -5,6 +5,7 @@ on:
   push:
     paths:
       - 'update_nhk_radio.py'
+      - 'preserve_netgen_local_channels.py'
       - '.github/workflows/update_nhk_radio.yml'
   schedule:
     - cron: '17 */6 * * *'
@@ -37,6 +38,9 @@ jobs:
       - name: Refresh radio playlist
         run: python update_nhk_radio.py
 
+      - name: Preserve local TV backups in FreeWiFi
+        run: python preserve_netgen_local_channels.py
+
       - name: Validate
         shell: bash
         run: |
@@ -44,6 +48,9 @@ jobs:
           test -s freewifi
           grep -q '# === NHK_RADIO_MANAGED_START ===' freewifi
           grep -q '# === NHK_RADIO_MANAGED_END ===' freewifi
+          grep -q '# === NETGEN_LOCAL_KEEP_START ===' freewifi
+          grep -q 'KBS京都 (akariko backup)' freewifi
+          grep -q '朝日放送 (akariko backup)' freewifi
           COUNT=$(grep -c '^#EXTINF:' radio.m3u || true)
           echo "Radio channels: $COUNT"
           [ "$COUNT" -ge 2 ]
@@ -60,6 +67,6 @@ jobs:
             echo 'No radio changes'
             exit 0
           fi
-          git commit -m 'Update radio streams'
+          git commit -m 'Update radio streams and preserve local TV backups'
           git pull --rebase origin main
           git push origin main
