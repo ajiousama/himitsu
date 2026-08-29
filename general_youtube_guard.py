@@ -5,10 +5,13 @@ import subprocess
 
 PLAYLIST = Path('general_youtube.m3u')
 FREEWIFI = Path('freewifi')
+SOURCE = Path('general_youtube_sources.json')
 COOKIES = Path('youtube_cookies.txt')
 START = '# === GENERAL_YOUTUBE_MANAGED_START ==='
 END = '# === GENERAL_YOUTUBE_MANAGED_END ==='
 
+# These IDs remain in the master list for reference but must never be emitted.
+DENY_IDS = {'youtube.kobe_waterfront2', 'youtube.narita_t1'}
 TOKYO_ID = 'youtube.tokyo_dome_city'
 TOKYO_PAGE = 'https://www.youtube.com/watch?v=7XzfKy8CzdY'
 OMOGO_ID = 'youtube.ehime_omogo_ishizuchi'
@@ -63,20 +66,31 @@ def parse_entries(text):
     entries = []
     i = 1 if lines and lines[0].startswith('#EXTM3U') else 0
     while i < len(lines):
-        line = lines[i]
-        if not line.startswith('#EXTINF:'):
+        if not lines[i].startswith('#EXTINF:'):
             i += 1
             continue
-        ext = line
+        ext = lines[i]
         i += 1
         while i < len(lines) and not lines[i].strip():
             i += 1
         url = lines[i].strip() if i < len(lines) else ''
         i += 1
         m = re.search(r'tvg-id="([^"]+)"', ext)
-        cid = m.group(1) if m else ''
-        entries.append([cid, ext, url])
+        entries.append([m.group(1) if m else '', ext, url])
     return header, entries
+
+
+def allowed_source_ids():
+    if not SOURCE.exists():
+        raise SystemExit('general_youtube_sources.json not found')
+    items = json.loads(SOURCE.read_text(encoding='utf-8'))
+    return {
+        (item.get('id') or '').strip()
+        for item in items
+        if (item.get('id') or '').strip()
+        and item.get('enabled', True)
+        and (item.get('id') or '').strip() not in DENY_IDS
+    }
 
 
 def set_group(ext, group):
@@ -91,7 +105,6 @@ def group_title(ext):
 
 
 def youtube_video_id(url):
-    """Extract stable YouTube video id from googlevideo HLS or YouTube URL."""
     if not url:
         return None
     m = re.search(r'/id/([A-Za-z0-9_-]{11})(?:\.|/|$)', url)
@@ -117,7 +130,6 @@ def logo_url(ext):
 
 
 def logo_sort_number(ext):
-    """Return a stable number from the logo basename, or None if it has no number."""
     logo = logo_url(ext)
     if not logo:
         return None
@@ -130,17 +142,13 @@ def sort_group_by_logo_number(entries, group):
     positions = [i for i, (_, ext, _) in enumerate(entries) if group_title(ext) == group]
     if len(positions) < 2:
         return entries
-
     selected = [entries[i] for i in positions]
     original_order = {id(entry): n for n, entry in enumerate(selected)}
 
     def key(entry):
         _, ext, _ = entry
         n = logo_sort_number(ext)
-        # ロゴ番号なしを先、番号ありは後ろ。番号あり同士は数字順。
-        if n is None:
-            return (0, original_order[id(entry)])
-        return (1, n, original_order[id(entry)])
+        return (0, original_order[id(entry)]) if n is None else (1, n, original_order[id(entry)])
 
     selected.sort(key=key)
     out = list(entries)
@@ -176,17 +184,28 @@ def main():
 
     text = PLAYLIST.read_text(encoding='utf-8-sig', errors='replace')
     header, entries = parse_entries(text)
+    allowed = allowed_source_ids()
 
-    # 空港名を含む一般YouTubeチャンネルは「交通」ではなく「空港」に統一。
+    # Critical: a quality-gate rollback may restore an older M3U. Never keep IDs
+    # that have since been deleted/disabled from the current source list.
+    source_kept = []
+    source_pruned = 0
+    for cid, ext, url in entries:
+        if not cid or cid not in allowed:
+            print(f'SOURCE REMOVE: {cid or "(no tvg-id)"} ({entry_name(ext)})')
+            source_pruned += 1
+            continue
+        source_kept.append([cid, ext, url])
+    entries = source_kept
+
+    # Airport feeds always live in the dedicated airport group.
     for entry in entries:
         if '空港' in entry[1]:
             entry[1] = set_group(entry[1], '空港')
 
-    # 東京ドームシティは公式固定配信だけを採用。検索ヒットへの置換は禁止。
+    # These two are allowed only from their fixed official sources.
     tokyo = direct_hls(TOKYO_PAGE)
-    # 面河・石鎚山系は久万高原町役場ふるさと創生課の公式チャンネル内LIVEだけを採用。
     omogo = official_channel_live(OMOGO_CHANNEL)
-
     strict = {TOKYO_ID: tokyo, OMOGO_ID: omogo}
     strict_kept = []
     for cid, ext, url in entries:
@@ -199,23 +218,35 @@ def main():
             print(f'STRICT OK: {cid}')
         strict_kept.append([cid, ext, url])
 
-    # 最終出力で同じYouTube動画IDを複数チャンネル名に使わない。
+    # Remove duplicate tvg-id, exact URL and YouTube video ID.
+    seen_cid = set()
+    seen_url = set()
     seen_video = {}
     kept = []
     duplicate_count = 0
     for cid, ext, url in strict_kept:
+        url_key = url.split('?', 1)[0] if url else ''
+        if cid in seen_cid:
+            print(f'DUPLICATE ID REMOVE: {cid} ({entry_name(ext)})')
+            duplicate_count += 1
+            continue
+        if url_key and url_key in seen_url:
+            print(f'DUPLICATE URL REMOVE: {cid} ({entry_name(ext)})')
+            duplicate_count += 1
+            continue
         vid = youtube_video_id(url)
         if vid and vid in seen_video:
             first_cid, first_name = seen_video[vid]
-            print(f'DUPLICATE REMOVE: {cid} ({entry_name(ext)}) -> same video {vid} as {first_cid} ({first_name})')
+            print(f'DUPLICATE VIDEO REMOVE: {cid} ({entry_name(ext)}) -> {first_cid} ({first_name})')
             duplicate_count += 1
             continue
+        seen_cid.add(cid)
+        if url_key:
+            seen_url.add(url_key)
         if vid:
             seen_video[vid] = (cid, entry_name(ext))
         kept.append([cid, ext, url])
 
-    # 動物・空港はそれぞれグループ内だけを並べ替える。
-    # ロゴに番号がないものを先、番号入りロゴは後回しにし、番号順を優先する。
     for group, label in [('動物', 'Animal'), ('空港', 'Airport')]:
         before = [entry_name(ext) for _, ext, _ in kept if group_title(ext) == group]
         kept = sort_group_by_logo_number(kept, group)
@@ -223,7 +254,6 @@ def main():
         if before != after:
             print(f'{label} order:', ' -> '.join(after))
 
-    # ロゴ指定を最終検査。欠落はログで明示し、Actions検証で見落とさない。
     missing_logos = []
     default_logos = []
     for cid, ext, _ in kept:
@@ -237,8 +267,9 @@ def main():
     PLAYLIST.write_text(general, encoding='utf-8')
     sync_freewifi(general)
 
+    print('Source-deleted/disabled entries removed:', source_pruned)
     print('Airport groups normalized:', sum(1 for _, ext, _ in kept if 'group-title="空港"' in ext))
-    print('Duplicate YouTube videos removed:', duplicate_count)
+    print('Duplicate YouTube entries removed:', duplicate_count)
     print('Entries with logo:', len(kept) - len(missing_logos), '/', len(kept))
     if missing_logos:
         for cid, name in missing_logos:
