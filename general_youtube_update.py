@@ -10,7 +10,7 @@ FREEWIFI=Path('freewifi')
 COOKIES=Path('youtube_cookies.txt')
 START='# === GENERAL_YOUTUBE_MANAGED_START ==='
 END='# === GENERAL_YOUTUBE_MANAGED_END ==='
-SKIP_IDS={'youtube.kobe_waterfront2','youtube.narita_t1'}
+SKIP_IDS={'youtube.kobe_waterfront2','youtube.narita_t1','youtube.kana_tube','jra.official'}
 CMD_TIMEOUT=22
 SEARCH_TIMEOUT=18
 MAX_WORKERS=2
@@ -208,8 +208,6 @@ def resolve_item(index,item):
     print(f'CHECK {index+1}: {name}',flush=True)
     try:
         if tvg==KANA_ID:
-            # 華奈tubeは公式 @kanatubechannel 内の現在LIVEだけを採用。
-            # 一般YouTube検索へは絶対にフォールバックしない。
             focus=kana_focus_time()
             print(f' KANA official-only focus={focus}',flush=True)
             url,reason=direct_url(KANA_PAGE)
@@ -242,8 +240,6 @@ def build():
     for _,item,url,reason in results:
         name=item['name']; tvg=item['id']; code=(reason or ('NO_LIVE',''))[0]
         old_url=old_urls.get(tvg)
-
-        # 華奈tubeは終了時に消す。古いHLSを復活させない。
         allow_old_fallback=(tvg!=KANA_ID and tvg in active_ids)
         if not url and code in SERIOUS_CODES and old_url and allow_old_fallback:
             url=old_url; fallback_count+=1
@@ -266,7 +262,6 @@ def build():
     text='\n'.join(out).rstrip()+'\n'
     output_count=len(got)
     serious=[x for x in failed if x[1] in SERIOUS_CODES]
-    # 品質ゲート。ただし華奈tubeの非LIVEだけを理由に古い版へ巻き戻さない。
     if old_count>0 and serious and output_count<old_count:
         print(f'QUALITY GATE: keeping previous playlist ({old_count}) because rebuilt output is {output_count}.',flush=True)
         kept=apply_source_logos(old_text)
