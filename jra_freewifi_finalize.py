@@ -8,8 +8,6 @@ START = '# === JRA_OFFICIAL_YOUTUBE_START ==='
 END = '# === JRA_OFFICIAL_YOUTUBE_END ==='
 JRA_ID = 'jra.official'
 SEARCH_TITLE = '中央競馬全レース中継'
-# User-confirmed Green Channel/JRA free YouTube live source.
-# Try this first; if it is no longer live, fall back to title search.
 PREFERRED_LIVE_PAGE = 'https://www.youtube.com/watch?v=9ZcqgwCQ4qk'
 
 
@@ -22,14 +20,17 @@ def jra_active_today():
 
 
 def find_jra_live_by_title():
-    """Prefer the confirmed GCH free YouTube live, then fall back to title search."""
+    """Prefer the user-confirmed GCH free YouTube live, then fall back to search."""
     try:
         from general_youtube_update import direct_url
 
-        url, _ = direct_url(PREFERRED_LIVE_PAGE, 'GCH無料版A（YouTube）')
+        # direct_url accepts only the YouTube page URL.
+        url, reason = direct_url(PREFERRED_LIVE_PAGE)
         if url:
             print('Using preferred GCH YouTube LIVE:', PREFERRED_LIVE_PAGE)
             return url
+        if reason:
+            print('Preferred GCH YouTube unavailable:', reason[0], reason[1])
 
         p = subprocess.run(
             ['yt-dlp', '--flat-playlist', '--dump-json', '--playlist-end', '10',
@@ -49,7 +50,7 @@ def find_jra_live_by_title():
                 candidates.append('https://www.youtube.com/watch?v=' + vid)
 
         for page in candidates:
-            url, _ = direct_url(page, 'GCH無料版A（YouTube）')
+            url, _ = direct_url(page)
             if url:
                 return url
     except Exception as e:
