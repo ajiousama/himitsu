@@ -1,4 +1,4 @@
-name: Update NHK Radio
+name: Update Radio
 
 on:
   workflow_dispatch:
@@ -34,32 +34,32 @@ jobs:
       - name: Sync latest main
         run: git pull --ff-only origin main
 
-      - name: Refresh NHK regional radio
+      - name: Refresh radio playlist
         run: python update_nhk_radio.py
 
       - name: Validate
         shell: bash
         run: |
-          test -s nhk_radio.m3u
+          test -s radio.m3u
           test -s freewifi
           grep -q '# === NHK_RADIO_MANAGED_START ===' freewifi
           grep -q '# === NHK_RADIO_MANAGED_END ===' freewifi
-          COUNT=$(grep -c '^#EXTINF:' nhk_radio.m3u || true)
-          echo "NHK radio channels: $COUNT"
+          COUNT=$(grep -c '^#EXTINF:' radio.m3u || true)
+          echo "Radio channels: $COUNT"
           [ "$COUNT" -ge 2 ]
-          grep -q 'NHKラジオ第1（松山）' nhk_radio.m3u
-          grep -q 'NHK-FM（松山）' nhk_radio.m3u
+          grep -q 'NHKラジオ第1（松山）' radio.m3u
+          grep -q 'NHK-FM（松山）' radio.m3u
 
-      - name: Commit updated NHK radio
+      - name: Commit updated radio playlist
         shell: bash
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add nhk_radio.m3u freewifi
+          git add radio.m3u freewifi
           if git diff --cached --quiet; then
-            echo 'No NHK radio changes'
+            echo 'No radio changes'
             exit 0
           fi
-          git commit -m 'Update NHK regional radio streams'
+          git commit -m 'Update radio streams'
           git pull --rebase origin main
           git push origin main
