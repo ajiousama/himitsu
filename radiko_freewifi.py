@@ -10,9 +10,12 @@ from pathlib import Path
 from radiko_epg import build_xmltv
 
 FREEWIFI = Path("freewifi")
+RADIO = Path("radio.m3u")
 GUIDES = Path("guides.xml")
 START = "# === RADIKO_MANAGED_START ==="
 END = "# === RADIKO_MANAGED_END ==="
+LOCAL_START = "# === LOCAL_RADIO_KEEP_START ==="
+LOCAL_END = "# === LOCAL_RADIO_KEEP_END ==="
 KICK_ANCHOR = "# === KICK_MANAGED_START ==="
 YT_ANCHOR = "# === GENERAL_YOUTUBE_MANAGED_START ==="
 UA = {"User-Agent": "Mozilla/5.0"}
@@ -98,6 +101,23 @@ def is_shortwave_station(sid, name):
     return sid_u in {"RN1", "RN2"} or "ラジオNIKKEI" in name or "RADIO NIKKEI" in n
 
 
+def freewifi_group(meta, sid):
+    pref = meta.get("pref")
+    name = meta.get("name", "")
+    upper = name.upper()
+    if pref == 38:
+        return "愛媛（ラジオ）"
+    if pref == 27:
+        return "在阪（ラジオ）"
+    if pref == 26 and (sid.upper() == "KBS" or "KBS京都" in name or "ALPHA-STATION" in upper or "α-STATION" in upper):
+        return "京都（ラジオ）"
+    if pref == 25 and ("E-RADIO" in upper or "E RADIO" in upper or "FM滋賀" in name):
+        return "滋賀（ラジオ）"
+    if pref == 28 and ("ラジオ関西" in name or sid.upper() in {"CRK", "JOCR"}):
+        return "兵庫（ラジオ）"
+    return None
+
+
 def strip_all_radiko_entries(text):
     lines = text.splitlines()
     out = []
@@ -106,12 +126,12 @@ def strip_all_radiko_entries(text):
     removed = 0
     while i < len(lines):
         line = lines[i]
-        if line.strip() == START:
+        if line.strip() in {START, LOCAL_START}:
             in_managed = True
             i += 1
             continue
         if in_managed:
-            if line.strip() == END:
+            if line.strip() in {END, LOCAL_END}:
                 in_managed = False
             i += 1
             continue
@@ -123,7 +143,7 @@ def strip_all_radiko_entries(text):
             if i < len(lines) and not lines[i].lstrip().startswith("#"):
                 i += 1
             continue
-        if line.strip() in {"## RADIKO", "## RADIKO（地域別＋短波）", "## RADIKO Premium（地域別＋短波）"}:
+        if line.strip().startswith("## RADIKO") or line.strip().startswith("## FreeWiFiに残すラジオ"):
             i += 1
             continue
         out.append(line)
@@ -140,52 +160,84 @@ def insert_radiko_block(text, block):
     return text.rstrip() + "\n\n" + block.rstrip() + "\n"
 
 
+def station_lines(sid, meta, group):
+    name = meta["name"].replace("\n", " ").strip()
+    if not name.endswith("（ラジオ）"):
+        name += "（ラジオ）"
+    logo = (meta.get("logo") or "").replace('"', "%22")
+    station = urllib.parse.quote(sid, safe="")
+    return [
+        f'#EXTINF:-1 tvg-id="radiko.{sid}" tvg-logo="{logo}" group-title="{group}",{name}',
+        f"{BASE}/api/radiko?station={station}",
+    ]
+
+
 def replace_radiko_block(stations):
     text = FREEWIFI.read_text(encoding="utf-8-sig")
     text, removed = strip_all_radiko_entries(text)
+    items = [(sid, meta, freewifi_group(meta, sid)) for sid, meta in stations.items()]
+    items = [(sid, meta, group) for sid, meta, group in items if group]
+    items.sort(key=lambda x: (x[1].get("pref", 99), x[1].get("name", "")))
 
-    # Premium is nationwide. Put the user's main Osaka/Kansai group first,
-    # followed by Kanto and the remaining regions.
-    order_names = ("近畿", "関東", "東海", "中国", "四国", "九州沖縄", "甲信越", "東北", "北海道")
-    order = {name: i for i, name in enumerate(order_names)}
-    items = sorted(stations.items(), key=lambda kv: (order.get(kv[1]["region"], 99), kv[1]["pref"], kv[1]["name"]))
+    lines = [START, "## 指定ラジオ局（FreeWiFi）"]
+    for sid, meta, group in items:
+        lines.extend(station_lines(sid, meta, group))
+    lines.append(END)
+    FREEWIFI.write_text(insert_radiko_block(text, "\n".join(lines)), encoding="utf-8")
+    return len(items), removed
 
-    lines = [START, "## RADIKO Premium（地域別＋短波）"]
-    for sid, meta in items:
-        name = meta["name"].replace("\n", " ").strip()
-        if not name.endswith("（ラジオ）"):
-            name += "（ラジオ）"
-        logo = meta["logo"].replace('"', "%22")
-        if is_shortwave_station(sid, meta["name"]):
+
+def write_radio_playlist(stations):
+    old = RADIO.read_text(encoding="utf-8-sig") if RADIO.exists() else "#EXTM3U\n"
+    lines = old.splitlines()
+    kept = []
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        if line.startswith("#EXTM3U"):
+            if not kept:
+                kept.append("#EXTM3U")
+            i += 1
+            continue
+        if line.lstrip().startswith("#EXTINF:") and 'tvg-id="radiko.' in line:
+            i += 2
+            continue
+        kept.append(line)
+        i += 1
+    while kept and not kept[-1].strip():
+        kept.pop()
+
+    others = []
+    for sid, meta in stations.items():
+        if freewifi_group(meta, sid):
+            continue
+        if is_shortwave_station(sid, meta.get("name", "")):
             group = "短波（ラジオ）"
         else:
-            group = f'{meta["region"]}（ラジオ）'
-        lines.append(f'#EXTINF:-1 tvg-id="radiko.{sid}" tvg-logo="{logo}" group-title="{group}",{name}')
-        station = urllib.parse.quote(sid, safe="")
-        lines.append(f"{BASE}/api/radiko?station={station}")
-    lines.append(END)
-
-    updated = insert_radiko_block(text, "\n".join(lines))
-    FREEWIFI.write_text(updated, encoding="utf-8")
-    return len(items), removed
+            group = f'{meta.get("region", "その他")}（ラジオ）'
+        others.append((meta.get("region", ""), meta.get("pref", 99), meta.get("name", ""), sid, meta, group))
+    others.sort()
+    kept.append("")
+    kept.append("## RADIKO その他局")
+    for _, _, _, sid, meta, group in others:
+        kept.extend(station_lines(sid, meta, group))
+    RADIO.write_text("\n".join(kept).rstrip() + "\n", encoding="utf-8")
+    return len(others)
 
 
 def merge_radiko_epg():
     main_root = ET.parse(GUIDES).getroot()
     rad_root = ET.fromstring(build_xmltv(3))
-
     for node in list(main_root.findall("channel")):
         if (node.get("id") or "").startswith("radiko."):
             main_root.remove(node)
     for node in list(main_root.findall("programme")):
         if (node.get("channel") or "").startswith("radiko."):
             main_root.remove(node)
-
     for ch in rad_root.findall("channel"):
         main_root.append(ch)
     for pr in rad_root.findall("programme"):
         main_root.append(pr)
-
     ET.indent(main_root, space="  ")
     ET.ElementTree(main_root).write(GUIDES, encoding="utf-8", xml_declaration=True)
     return len(rad_root.findall("channel")), len(rad_root.findall("programme"))
@@ -195,13 +247,17 @@ def main():
     stations = discover_stations()
     if len(stations) < 100:
         raise SystemExit(f"radiko station discovery too small: {len(stations)}")
-    m3u_count, removed = replace_radiko_block(stations)
+    freewifi_count, removed = replace_radiko_block(stations)
+    radio_count = write_radio_playlist(stations)
     epg_channels, epg_programmes = merge_radiko_epg()
     print(f"old/duplicate radiko entries removed: {removed}")
-    print(f"radiko FreeWiFi stations: {m3u_count}")
+    print(f"radiko FreeWiFi selected stations: {freewifi_count}")
+    print(f"radiko radio.m3u other stations: {radio_count}")
     print(f"radiko public base: {BASE}")
     print(f"radiko EPG channels: {epg_channels}")
     print(f"radiko EPG programmes: {epg_programmes}")
+    if freewifi_count < 10 or radio_count < 80:
+        raise SystemExit("radiko split result too small")
     if epg_channels < 100 or epg_programmes < 500:
         raise SystemExit("radiko EPG result too small")
 
