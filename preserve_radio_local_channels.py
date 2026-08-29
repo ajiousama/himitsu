@@ -9,10 +9,10 @@ def main():
     free_count, removed = replace_radiko_block(stations)
     radio_count = write_radio_playlist(stations)
     print(f"old/duplicate radiko entries removed: {removed}")
-    print(f"FreeWiFi selected radio stations: {free_count}")
-    print(f"radio.m3u other Radiko stations: {radio_count}")
-    if free_count < 10 or radio_count < 80:
-        raise SystemExit("radio split result too small")
+    print(f"FreeWiFi selected radio copies: {free_count}")
+    print(f"radio.m3u all Radiko stations: {radio_count}")
+    if free_count < 10 or radio_count < 100:
+        raise SystemExit("radio catalog result too small")
 
 
 if __name__ == "__main__":
