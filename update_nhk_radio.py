@@ -84,12 +84,48 @@ def build_entries(rows):
     return entries
 
 
+def preserved_non_nhk_lines():
+    """Keep the existing non-NHK radio catalog (notably every Radiko station)."""
+    if not OUT.exists():
+        return []
+    lines = OUT.read_text(encoding="utf-8-sig", errors="replace").splitlines()
+    kept = []
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        if line.startswith("#EXTM3U"):
+            i += 1
+            continue
+        if line.startswith("#EXTINF:"):
+            is_nhk = ('tvg-id="nhk_r1_' in line or 'tvg-id="nhk_fm_' in line)
+            if is_nhk:
+                i += 2 if i + 1 < len(lines) else 1
+                continue
+            kept.append(line)
+            if i + 1 < len(lines):
+                kept.append(lines[i + 1])
+                i += 2
+                continue
+        else:
+            kept.append(line)
+        i += 1
+    while kept and not kept[0].strip():
+        kept.pop(0)
+    while kept and not kept[-1].strip():
+        kept.pop()
+    return kept
+
+
 def make_m3u(entries):
     lines = ["#EXTM3U"]
     for tvgid, name, url in entries:
         lines.append(f'#EXTINF:-1 tvg-id="{tvgid}" tvg-logo="{LOGO}" group-title="ラジオ",{name}')
         lines.append(url)
-    return "\n".join(lines) + "\n"
+    preserved = preserved_non_nhk_lines()
+    if preserved:
+        lines.append("")
+        lines.extend(preserved)
+    return "\n".join(lines).rstrip() + "\n"
 
 
 def inject_freewifi(entries):
@@ -121,7 +157,7 @@ def main():
         raise SystemExit("No usable NHK radio streams found in config_web.xml")
     OUT.write_text(make_m3u(entries), encoding="utf-8")
     inject_freewifi(entries)
-    print(f"wrote {OUT}: {len(entries)} channels; injected into freewifi")
+    print(f"wrote {OUT}: refreshed {len(entries)} NHK channels without deleting existing Radiko catalog; injected into freewifi")
 
 
 if __name__ == "__main__":
