@@ -46,6 +46,17 @@ RADIO_GROUPS = (
 GROUP_RE = re.compile(r'group-title="([^"]*)"')
 ID_RE = re.compile(r'tvg-id="([^"]*)"')
 
+MANAGED_GROUP_MARKERS = {
+    "今日の開催場": (
+        "# === TODAY_PUBLIC_SPORTS_START ===",
+        "# === TODAY_PUBLIC_SPORTS_END ===",
+    ),
+    "YouTube": (
+        "# === GENERAL_YOUTUBE_MANAGED_START ===",
+        "# === GENERAL_YOUTUBE_MANAGED_END ===",
+    ),
+}
+
 
 def parse_entries(text: str):
     lines = text.splitlines()
@@ -212,8 +223,13 @@ def main():
             out += [f"### {g}", ""]
         else:
             out += [f"## {g}", ""]
+        markers = MANAGED_GROUP_MARKERS.get(g)
+        if markers:
+            out += [markers[0], ""]
         for meta, url in section:
             out += [meta, url, ""]
+        if markers:
+            out += [markers[1], ""]
 
     out += ["# === NAORI_MANAGED_START ===", "# === NAORI_MANAGED_END ==="]
 
