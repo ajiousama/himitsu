@@ -18,7 +18,7 @@ MIN_CALL_INTERVAL=1.25
 JST=ZoneInfo('Asia/Tokyo')
 SERIOUS_CODES={'RATE_LIMIT','BOT_CHECK','COOKIE_ERROR'}
 KANA_ID='youtube.kana_tube'
-KANA_PAGE='https://www.youtube.com/@kana_tube/live'
+KANA_PAGE='https://www.youtube.com/@kanatubechannel/live'
 _call_lock=threading.Lock()
 _last_call_at=0.0
 
@@ -208,7 +208,7 @@ def resolve_item(index,item):
     print(f'CHECK {index+1}: {name}',flush=True)
     try:
         if tvg==KANA_ID:
-            # 華奈tubeは公式 @kana_tube 内の現在LIVEだけを採用。
+            # 華奈tubeは公式 @kanatubechannel 内の現在LIVEだけを採用。
             # 一般YouTube検索へは絶対にフォールバックしない。
             focus=kana_focus_time()
             print(f' KANA official-only focus={focus}',flush=True)
