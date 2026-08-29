@@ -11,6 +11,8 @@ on:
       - 'today_jra_status.json'
       - 'jra_free_channels_update.py'
       - 'jra_freewifi_finalize.py'
+      - 'vercel-radiko/api/gch-free.mjs'
+      - 'vercel-radiko/vercel.json'
       - '.github/workflows/update_jra_free_channels.yml'
   schedule:
     - cron: '5,20,35,50 * * * *'
@@ -49,18 +51,32 @@ jobs:
       - name: Refresh GCH free A/B
         run: python jra_free_channels_update.py
 
-      - name: Validate A/B separation
+      - name: Validate A/B state
         shell: bash
         run: |
           test -s freewifi
           A=$(grep -c 'tvg-id="jra.official"' freewifi || true)
           B=$(grep -c 'tvg-id="jra.gch.free"' freewifi || true)
-          echo "GCH free A count: $A"
-          echo "GCH free B count: $B"
-          test "$A" -le 1
-          test "$B" -le 1
-          test "$(grep -c 'GCH無料版A（YouTube）' freewifi || true)" -le 1
-          test "$(grep -c 'GCH無料版B（グリーンチャンネルWeb）' freewifi || true)" -le 1
+          ACTIVE=$(python - <<'PY'
+          import json
+          try:
+              d=json.load(open('today_jra_status.json',encoding='utf-8-sig'))
+              print(1 if int(d.get('active_count',0)) > 0 else 0)
+          except Exception:
+              print(0)
+          PY
+          )
+          echo "JRA active: $ACTIVE / GCH free A: $A / B: $B"
+          if [ "$ACTIVE" = "1" ]; then
+            test "$A" -eq 1
+            test "$B" -eq 1
+            grep -q 'GCH無料版A（YouTube）' freewifi
+            grep -q 'GCH無料版B（グリーンチャンネルWeb）' freewifi
+            grep -q '^https://himitsu-six.vercel.app/api/gch-free$' freewifi
+          else
+            test "$A" -eq 0
+            test "$B" -eq 0
+          fi
 
       - name: Commit GCH free A/B
         shell: bash
