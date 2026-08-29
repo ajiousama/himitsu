@@ -1,0 +1,81 @@
+name: Update Kana Tube LIVE
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'kana_tube_update.py'
+      - '.github/workflows/update_kana_tube.yml'
+  schedule:
+    # 12:00-16:59 JST and 20:00-23:59 JST, every 5 minutes.
+    - cron: '*/5 3-7 * * *'
+    - cron: '*/5 11-14 * * *'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: himitsu-freewifi-writer
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install yt-dlp
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install --upgrade --pre 'yt-dlp[default]'
+          python -m pip install --upgrade curl_cffi
+      - name: Restore YouTube cookies
+        shell: bash
+        env:
+          YOUTUBE_COOKIES: ${{ secrets.YOUTUBE_COOKIES }}
+        run: |
+          rm -f youtube_cookies.txt
+          if [ -n "$YOUTUBE_COOKIES" ]; then
+            printf '%s' "$YOUTUBE_COOKIES" > youtube_cookies.txt
+            chmod 600 youtube_cookies.txt
+          fi
+      - name: Refresh Kana tube only
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          for attempt in 1 2 3; do
+            git fetch origin main
+            git reset --hard origin/main
+            python kana_tube_update.py
+            test -s kana_tube.m3u
+            test -s freewifi
+            test "$(grep -c 'tvg-id=\"youtube.kana_tube\"' freewifi || true)" -le 1
+            git add kana_tube.m3u freewifi
+            if git diff --cached --quiet; then
+              echo 'Kana tube already current'
+              exit 0
+            fi
+            git commit -m 'Refresh standalone Kana tube LIVE'
+            if git push origin HEAD:main; then
+              echo 'Kana tube published successfully'
+              exit 0
+            fi
+            sleep 2
+          done
+          exit 1
+      - name: Cleanup cookies
+        if: always()
+        run: rm -f youtube_cookies.txt
