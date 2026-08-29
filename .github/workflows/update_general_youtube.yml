@@ -16,6 +16,7 @@ on:
       - 'freewifi_custom_channels.py'
       - 'freewifi_haruka3.py'
       - 'freewifi_rakuten_keep.py'
+      - 'freewifi_retired_sources.py'
       - 'kick_refresh.py'
       - 'verified_daily_status.json'
       - 'verified_daily_override.py'
@@ -110,6 +111,8 @@ jobs:
         run: python freewifi_haruka3.py
       - name: Keep Rakuten rail/adult channels
         run: python freewifi_rakuten_keep.py
+      - name: Remove retired FreeWiFi sources
+        run: python freewifi_retired_sources.py
       - name: Refresh KICK playback URLs
         run: python kick_refresh.py
       - name: Reapply verified sports/JRA status
@@ -131,6 +134,7 @@ jobs:
           grep -q '(ハルカ3)' freewifi
           grep -q 'tvg-id="kick.gccx"' freewifi
           grep -q 'tvg-id="kick.nogizaka"' freewifi
+          ! grep -Eiq 'akariko-bck1\.sankuria\.sbs|akariko backup' freewifi
           test "$(grep -c 'tvg-id="jra.official"' freewifi || true)" -le 1
           test "$(grep -c 'tvg-id="jra.gch.free"' freewifi || true)" -le 1
       - name: Commit updated LIVE URLs
