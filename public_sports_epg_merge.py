@@ -61,7 +61,7 @@ def wanted_ids(status=None):
 
 
 def fetch_public_epg():
-    req = urllib.request.Request(PUBLIC_EPG_URL, headers={'User-Agent': 'FreeWiFi-PublicSports-EPG/2.1'})
+    req = urllib.request.Request(PUBLIC_EPG_URL, headers={'User-Agent': 'FreeWiFi-PublicSports-EPG/2.2', 'Cache-Control': 'no-cache'})
     with urllib.request.urlopen(req, timeout=60) as r:
         return ET.fromstring(r.read())
 
@@ -139,12 +139,25 @@ def normalize_race_title(programme):
         title_el.text = marker + (f'  {rest}' if rest else '')
 
 
+def validate_written_guides(wanted):
+    root = ET.parse(GUIDES).getroot()
+    channel_ids = {ch.get('id') for ch in root.findall('channel')}
+    programme_ids = {p.get('channel') for p in root.findall('programme')}
+    missing_channels = sorted(wanted - channel_ids)
+    missing_programmes = sorted(wanted - programme_ids)
+    if missing_channels or missing_programmes:
+        raise SystemExit(
+            'Public sports EPG validation failed: '
+            f'missing_channels={missing_channels}, missing_programmes={missing_programmes}'
+        )
+    print(f'Public sports EPG validation OK: {len(wanted)}/{len(wanted)} active channels have EPG')
+
+
 def main():
     status = load_status()
     wanted = wanted_ids(status)
     if not wanted:
-        print('Public sports EPG: no active target channels')
-        return
+        raise SystemExit('Public sports EPG: no active target channels found')
 
     dst = ET.parse(GUIDES).getroot()
     try:
@@ -197,6 +210,7 @@ def main():
 
     ET.indent(dst, space='  ')
     GUIDES.write_bytes(ET.tostring(dst, encoding='utf-8', xml_declaration=True))
+    validate_written_guides(wanted)
     print(f'Public sports EPG merged: channels={channels}, programmes={programmes}, wanted={len(wanted)}, fallbacks={fallbacks}, removed_old={removed}, race_titles_normalized={normalized}')
 
 
