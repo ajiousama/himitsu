@@ -108,8 +108,13 @@ if missing_logo:
 P.write_text(text, encoding='utf-8')
 print('NAORI metadata OK:', naori_count, 'channels; Kansai gx01-gx06 confirmed; EPG ids/logos validated')
 
-# Final FreeWiFi cleanup after NAORI is appended:
-# - absorb NAORI into Kansai/Kanto/BS/CS
+# Add Akariko as another provider inside the existing Kansai/Kanto/BS/CS buckets.
+# This also replaces the former "(akariko backup)" labels with plain "(akariko)".
+import freewifi_akariko
+freewifi_akariko.main()
+
+# Final FreeWiFi cleanup after NAORI/Akariko are appended:
+# - absorb providers into Kansai/Kanto/BS/CS
 # - keep TVer as the last source of each terrestrial station
 # - keep YouTube as the final group
 import reorder_freewifi
