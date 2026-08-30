@@ -118,3 +118,12 @@ reorder_freewifi.main()
 # If a TVer station has no real EPG, display its channel name for 23h59m.
 import tver_epg_fallback
 tver_epg_fallback.main()
+
+# Rebuild KICK at the very end of every full FreeWiFi generation so the ALL/EPG
+# workflow cannot overwrite/remove the live receiver block. KICK-side blocking
+# must not fail the whole FreeWiFi build; the dedicated 15-minute workflow will retry.
+try:
+    import kick_update
+    kick_update.main()
+except Exception as exc:
+    print(f'::warning::Final KICK refresh failed; dedicated updater will retry: {exc}')
