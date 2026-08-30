@@ -27,18 +27,15 @@ jobs:
       - name: Sync latest main
         run: git pull --ff-only origin main
 
-      - name: Restore Akariko backup entries and disable retired-source cleanup
+      - name: Restore eight Akariko backup entries
         shell: bash
         run: |
           python - <<'PY'
           from pathlib import Path
-          import re
 
           freewifi = Path('freewifi')
           text = freewifi.read_text(encoding='utf-8-sig', errors='replace')
 
-          # Remove any partial/duplicate Akariko blocks first, then restore the exact
-          # eight Kansai backup entries that were removed on 2026-08-30.
           lines = text.splitlines()
           out = []
           i = 0
@@ -78,8 +75,6 @@ jobs:
               ])
           restored = '\n'.join(blocks).rstrip() + '\n\n'
 
-          # Put them into the terrestrial section; reorder_freewifi will group each
-          # backup next to its station and keep the requested global group order.
           anchor = '### 関東\n'
           if anchor in text:
               text = text.replace(anchor, restored + anchor, 1)
@@ -91,22 +86,6 @@ jobs:
                   text = text.rstrip() + '\n\n' + restored
           freewifi.write_text(text, encoding='utf-8')
 
-          # The normal YouTube updater was explicitly deleting Akariko. Remove that
-          # hook and its negative validation so future refreshes keep these entries.
-          wf = Path('.github/workflows/update_general_youtube.yml')
-          w = wf.read_text(encoding='utf-8')
-          w = w.replace("      - 'freewifi_retired_sources.py'\n", '')
-          w = w.replace('      - name: Remove retired FreeWiFi sources\n        run: python freewifi_retired_sources.py\n', '')
-          w = re.sub(r"^\s*! grep -Eiq 'akariko-bck1\\\\\.sankuria\\\\\.sbs\|akariko backup' freewifi\n", '', w, flags=re.M)
-          # Fallback for the exact current validation line.
-          w = '\n'.join(line for line in w.splitlines() if "! grep -Eiq 'akariko-bck1" not in line) + '\n'
-          wf.write_text(w, encoding='utf-8')
-
-          retired = Path('freewifi_retired_sources.py')
-          if retired.exists():
-              retired.unlink()
-
-          # Normalize provider groups/order after restoration.
           import reorder_freewifi
           reorder_freewifi.main()
 
@@ -116,8 +95,6 @@ jobs:
           for slug in ('nhk_g_osaka','ytv','mbs','kansai_tv','abc','tv_osaka','kbs','sun'):
               if f'/stream/jp/{slug}/stream-output.m3u8?mode=hls' not in result:
                   raise SystemExit(f'Missing Akariko stream: {slug}')
-          if 'run: python freewifi_retired_sources.py' in w:
-              raise SystemExit('Retired-source cleanup hook still enabled')
           print('Akariko backups restored:', result.count('akariko-bck1.sankuria.sbs'))
           PY
 
@@ -126,8 +103,11 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          rm -f .github/workflows/restore_akariko_backups.yml
-          git add -A freewifi .github/workflows/update_general_youtube.yml freewifi_retired_sources.py .github/workflows/restore_akariko_backups.yml
+          git add freewifi
+          if git diff --cached --quiet; then
+            echo 'Akariko backups already restored'
+            exit 0
+          fi
           git commit -m 'Restore Akariko backup streams'
           git pull --rebase origin main
           git push origin main
