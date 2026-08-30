@@ -12,6 +12,11 @@ JRA_STATUS = Path('today_jra_status.json')
 PUBLIC_M3U_URL = 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports.m3u'
 GENERAL_YOUTUBE = Path('public_sports_youtube_fallback.m3u')
 FALLBACK_ENTRIES = {
+    ('競輪', '川崎'): {
+        'source_id': 'youtube.keirin_kawasaki', 'tvg_id': 'keirin.kawasaki', 'name': '川崎けいりん',
+        'logo': 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports_logos_github_43/keirin_square_final_43/kawasaki.png',
+        'waiting_url': 'https://www.youtube.com/@%E5%B7%9D%E5%B4%8E%E7%AB%B6%E8%BC%AA%E5%A0%B4%E5%85%AC%E5%BC%8F/live',
+    },
     ('ボートレース', '桐生'): {
         'source_id': 'youtube.boat_kiryu', 'tvg_id': 'boat.kiryu', 'name': 'BOATRACE桐生',
         'logo': 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports_logos_github_43/boatrace_24_spaced_cut_1024/kiryu.png',
