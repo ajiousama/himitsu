@@ -30,7 +30,25 @@ MODE_LABELS = {
 FULLWIDTH = str.maketrans('0123456789', '０１２３４５６７８９')
 
 
-def wanted_ids():
+def load_status():
+    if not STATUS_JSON.exists():
+        return {}
+    try:
+        return json.loads(STATUS_JSON.read_text(encoding='utf-8')).get('channels', {})
+    except Exception:
+        return {}
+
+
+def wanted_ids(status=None):
+    # today_public_sports_status.json is authoritative. 以前はfreewifi全体を
+    # 走査していたため、非開催のboat.*までEPGへ再混入していた。
+    if status is None:
+        status = load_status()
+    ids = {cid for cid in status if cid.startswith(PREFIXES)}
+    if ids:
+        return ids
+
+    # Status JSONが無い時だけ従来方式へフォールバック。
     ids = set()
     text = FREEWIFI.read_text(encoding='utf-8-sig', errors='replace')
     for line in text.splitlines():
@@ -43,18 +61,9 @@ def wanted_ids():
 
 
 def fetch_public_epg():
-    req = urllib.request.Request(PUBLIC_EPG_URL, headers={'User-Agent': 'FreeWiFi-PublicSports-EPG/2.0'})
+    req = urllib.request.Request(PUBLIC_EPG_URL, headers={'User-Agent': 'FreeWiFi-PublicSports-EPG/2.1'})
     with urllib.request.urlopen(req, timeout=60) as r:
         return ET.fromstring(r.read())
-
-
-def load_status():
-    if not STATUS_JSON.exists():
-        return {}
-    try:
-        return json.loads(STATUS_JSON.read_text(encoding='utf-8')).get('channels', {})
-    except Exception:
-        return {}
 
 
 def fmt(dt):
@@ -91,7 +100,6 @@ def add_fallback(dst, cid, meta):
 
 
 def _race_no(text):
-    # 【１Ｒ】/1R/１Ｒ/第1R/第１Ｒ を拾う。開催案内等は対象外。
     if not text:
         return None
     norm = text.translate(str.maketrans('０１２３４５６７８９Ｒｒ', '0123456789Rr'))
@@ -108,7 +116,6 @@ def _departure_time(title, desc):
 
 
 def normalize_race_title(programme):
-    """FreeWiFiの公営競技レース番組を【○Ｒ】 発走時刻 … の順へ統一する。"""
     title_el = programme.find('title')
     if title_el is None or not (title_el.text or '').strip():
         return
@@ -121,13 +128,10 @@ def normalize_race_title(programme):
 
     marker = f'【{str(n).translate(FULLWIDTH)}Ｒ】'
     tm = _departure_time(title, desc)
-
-    # 既存のレース番号表記は取り除き、残りの情報（レース名・実況表示等）は保持。
     rest = re.sub(r'^\s*(?:【\s*)?(?:第\s*)?[０-９0-9]{1,2}\s*[ＲRｒr](?:\s*】)?\s*', '', title, count=1)
     if rest == title:
         rest = re.sub(r'(?:【\s*)?(?:第\s*)?[０-９0-9]{1,2}\s*[ＲRｒr](?:\s*】)?', '', title, count=1).strip()
 
-    # 発走時刻が既に後方にある場合は重複させない。
     if tm:
         rest = re.sub(rf'\s*{re.escape(tm)}\s*(?:発走|発走予定)?\s*', ' ', rest, count=1).strip()
         title_el.text = f'{marker} {tm}発走' + (f'  {rest}' if rest else '')
@@ -136,25 +140,27 @@ def normalize_race_title(programme):
 
 
 def main():
-    wanted = wanted_ids()
+    status = load_status()
+    wanted = wanted_ids(status)
     if not wanted:
-        print('Public sports EPG: no target channels in FreeWiFi')
+        print('Public sports EPG: no active target channels')
         return
 
     dst = ET.parse(GUIDES).getroot()
-    status = load_status()
     try:
         src = fetch_public_epg()
     except Exception as e:
         print(f'Public sports EPG fetch failed: {e}')
         src = ET.Element('tv')
 
-    # epg_build.py may have created fallback entries for these IDs.
+    # 全公営競技EPGを一度除去してから「本日開催分だけ」を戻す。
+    # これで非開催ボートの「データ取得準備中」等が残留しない。
+    removed = 0
     for el in list(dst):
-        if el.tag == 'channel' and el.get('id') in wanted:
+        cid = el.get('id') if el.tag == 'channel' else el.get('channel') if el.tag == 'programme' else None
+        if cid and cid.startswith(PREFIXES):
             dst.remove(el)
-        elif el.tag == 'programme' and el.get('channel') in wanted:
-            dst.remove(el)
+            removed += 1
 
     source_channels = {ch.get('id'): ch for ch in src.findall('channel') if ch.get('id') in wanted}
     source_programmes = {}
@@ -191,7 +197,7 @@ def main():
 
     ET.indent(dst, space='  ')
     GUIDES.write_bytes(ET.tostring(dst, encoding='utf-8', xml_declaration=True))
-    print(f'Public sports EPG merged: channels={channels}, programmes={programmes}, wanted={len(wanted)}, fallbacks={fallbacks}, race_titles_normalized={normalized}')
+    print(f'Public sports EPG merged: channels={channels}, programmes={programmes}, wanted={len(wanted)}, fallbacks={fallbacks}, removed_old={removed}, race_titles_normalized={normalized}')
 
 
 if __name__ == '__main__':
