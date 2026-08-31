@@ -37,12 +37,16 @@ jobs:
       - name: Sync latest main
         run: git pull --ff-only origin main
       - name: Refresh KICK live HLS
-        run: python kick_update.py
+        run: |
+          echo "KICK refresh started at $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+          python kick_update.py
       - name: Validate KICK block
         run: |
           test -s freewifi
           grep -q '# === KICK_MANAGED_START ===' freewifi
           grep -q '# === KICK_MANAGED_END ===' freewifi
+          echo 'KICK managed block:'
+          sed -n '/# === KICK_MANAGED_START ===/,/# === KICK_MANAGED_END ===/p' freewifi | sed -E 's/(token=)[^& ]+/\1[redacted]/g'
       - name: Commit KICK update
         shell: bash
         run: |
