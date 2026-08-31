@@ -1,15 +1,13 @@
-name: Update KICK LIVE
+name: Update KICK stable entry
 
 on:
   workflow_dispatch:
   push:
     paths:
       - 'kick_channels.json'
-      - 'kick_update.py'
-      - 'kick_ytdlp_update.py'
+      - 'kick_stable_update.py'
+      - 'vercel-radiko/api/kick.mjs'
       - '.github/workflows/update_kick.yml'
-  schedule:
-    - cron: '*/5 * * * *'
 
 permissions:
   contents: write
@@ -21,7 +19,7 @@ concurrency:
 jobs:
   update:
     runs-on: ubuntu-latest
-    timeout-minutes: 7
+    timeout-minutes: 5
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -31,46 +29,19 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: '3.12'
-      - name: Install KICK extractors
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install --upgrade yt-dlp curl_cffi
       - name: Sync latest main
         run: git pull --ff-only origin main
-      - name: Refresh KICK live HLS via fresh multi-path extractor
-        run: |
-          echo "KICK fresh multi-path refresh started at $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
-          python kick_ytdlp_update.py
-      - name: Validate KICK block and JWT freshness
+      - name: Install stable KICK entry URLs
+        run: python kick_stable_update.py
+      - name: Validate KICK stable entries
         run: |
           test -s freewifi
           grep -q '# === KICK_MANAGED_START ===' freewifi
-          grep -q '# === KICK_MANAGED_END ===' freewifi
-          python - <<'PY'
-          import base64, json, re, time
-          from urllib.parse import urlparse, parse_qs
-          text=open('freewifi',encoding='utf-8-sig').read()
-          m=re.search(r'# === KICK_MANAGED_START ===(.*?)# === KICK_MANAGED_END ===', text, re.S)
-          if not m:
-              raise SystemExit('KICK managed block missing')
-          block=m.group(1)
-          urls=re.findall(r'https://[^\s]+\.m3u8\?[^\s]+', block)
-          now=int(time.time())
-          for url in urls:
-              token=(parse_qs(urlparse(url).query).get('token') or [None])[0]
-              if not token or token.count('.') < 2:
-                  continue
-              payload=token.split('.')[1] + '=' * (-len(token.split('.')[1]) % 4)
-              exp=int(json.loads(base64.urlsafe_b64decode(payload.encode()).decode())['exp'])
-              remain=exp-now
-              print('KICK JWT remaining:', remain, 'seconds')
-              if remain < 180:
-                  raise SystemExit(f'stale KICK JWT: {remain}s remaining')
-          print('KICK JWT freshness audit OK')
-          PY
+          grep -q 'https://himitsu-six.vercel.app/api/kick?ch=gccx' freewifi
+          grep -q 'https://himitsu-six.vercel.app/api/kick?ch=nogizaka' freewifi
           echo 'KICK managed block:'
-          sed -n '/# === KICK_MANAGED_START ===/,/# === KICK_MANAGED_END ===/p' freewifi | sed -E 's/(token=)[^& ]+/\1[redacted]/g'
-      - name: Commit KICK update
+          sed -n '/# === KICK_MANAGED_START ===/,/# === KICK_MANAGED_END ===/p' freewifi
+      - name: Commit KICK stable entries
         shell: bash
         run: |
           git config user.name 'github-actions[bot]'
@@ -80,6 +51,6 @@ jobs:
             echo 'No KICK changes'
             exit 0
           fi
-          git commit -m 'Update KICK LIVE URLs'
+          git commit -m 'Switch KICK to stable resolver URLs'
           git pull --rebase origin main
           git push origin main
