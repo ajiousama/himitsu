@@ -1,12 +1,14 @@
 from __future__ import annotations
 
+import base64
 import json
 import re
 import sys
+import time
 import unicodedata
 from pathlib import Path
 from typing import Any
-from urllib.parse import urlencode
+from urllib.parse import parse_qs, urlencode, urlparse
 from urllib.request import Request, urlopen
 
 FREEWIFI = Path("freewifi")
@@ -14,6 +16,8 @@ CONFIG = Path("kick_channels.json")
 START = "# === KICK_MANAGED_START ==="
 END = "# === KICK_MANAGED_END ==="
 YT_ANCHOR = "# === GENERAL_YOUTUBE_MANAGED_START ==="
+MIN_TOKEN_LIFETIME = 600
+REFRESH_RETRIES = 3
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151 Safari/537.36",
@@ -49,15 +53,17 @@ def request_json(url: str, params: dict[str, Any] | None = None) -> dict[str, An
 
 def channel_details(slug: str) -> dict[str, Any]:
     errors = []
-    for url in (
+    # cache-busting query prevents a stale playback_url being reused by an edge cache
+    bust = int(time.time() * 1000)
+    for base in (
         f"https://kick.com/api/v2/channels/{slug}",
         f"https://kick.com/api/v1/channels/{slug}",
         f"https://api.kick.com/private/v1/channels/{slug}",
     ):
         try:
-            return request_json(url)
+            return request_json(base, {"_": bust})
         except Exception as exc:
-            errors.append(f"{url}: {type(exc).__name__}")
+            errors.append(f"{base}: {type(exc).__name__}")
     raise RuntimeError("; ".join(errors))
 
 
@@ -81,6 +87,51 @@ def playback_url(obj: Any) -> str | None:
     return None
 
 
+def jwt_exp(url: str) -> int | None:
+    try:
+        token = (parse_qs(urlparse(url).query).get("token") or [None])[0]
+        if not token or token.count(".") < 2:
+            return None
+        payload = token.split(".")[1]
+        payload += "=" * (-len(payload) % 4)
+        data = json.loads(base64.urlsafe_b64decode(payload.encode()).decode("utf-8"))
+        exp = data.get("exp")
+        return int(exp) if exp is not None else None
+    except Exception:
+        return None
+
+
+def token_lifetime(url: str) -> int | None:
+    exp = jwt_exp(url)
+    return exp - int(time.time()) if exp is not None else None
+
+
+def fresh_url_for_slug(slug: str) -> tuple[dict[str, Any], str | None, str]:
+    last_details: dict[str, Any] = {}
+    last_url: str | None = None
+    for attempt in range(1, REFRESH_RETRIES + 1):
+        details = channel_details(slug)
+        last_details = details
+        url = playback_url(details)
+        last_url = url
+        if not is_live(details):
+            return details, None, "offline"
+        if not url:
+            if attempt < REFRESH_RETRIES:
+                time.sleep(2)
+            continue
+        life = token_lifetime(url)
+        if life is None:
+            return details, url, "live refreshed (token exp unavailable)"
+        print(f"KICK {slug}: JWT remaining {life}s (attempt {attempt}/{REFRESH_RETRIES})")
+        if life >= MIN_TOKEN_LIFETIME:
+            return details, url, f"live refreshed; JWT remaining {life}s"
+        if attempt < REFRESH_RETRIES:
+            time.sleep(2)
+    life = token_lifetime(last_url) if last_url else None
+    return last_details, None, f"live but fresh JWT unavailable (remaining={life}s)"
+
+
 def is_live(details: dict[str, Any]) -> bool:
     if details.get("is_live") is True or details.get("isLive") is True:
         return True
@@ -89,12 +140,11 @@ def is_live(details: dict[str, Any]) -> bool:
         if live.get("is_live") is False or live.get("isLive") is False:
             return False
         return True
-    # KICKのAPI形変更時は、再生URLが取れていればLIVE扱いにする。
     return playback_url(details) is not None
 
 
 def search_candidates(query: str, match_terms: list[str]) -> list[str]:
-    data = request_json("https://kick.com/api/search", {"searched_word": query})
+    data = request_json("https://kick.com/api/search", {"searched_word": query, "_": int(time.time() * 1000)})
     channels = data.get("channels") or []
     if not isinstance(channels, list):
         return []
@@ -154,43 +204,42 @@ def resolve_channel(item: dict[str, Any], existing_url: str | None = None) -> tu
     if isinstance(fixed_slug, str) and fixed_slug.strip():
         slug = fixed_slug.strip()
         try:
-            details = channel_details(slug)
-            url = playback_url(details)
-            if is_live(details) and url:
-                # 旧実装はsticky_while_liveで期限切れURLを保持し続けていた。
-                # KICK HLSは更新されるため、LIVE中も毎回最新URLへ置換する。
-                return url, slug, "live refreshed"
+            details, url, status = fresh_url_for_slug(slug)
+            if url:
+                return url, slug, status
             if not is_live(details):
                 return None, slug, "offline"
-            return None, slug, "live but no usable playback_url"
+            # Never overwrite a LIVE entry with a known stale token.
+            if existing_url and (token_lifetime(existing_url) or -1) > 0:
+                return existing_url, slug, status + "; still-valid previous URL kept"
+            return None, slug, status
         except Exception as e:
-            if existing_url:
-                return existing_url, slug, f"lookup failed; previous URL kept: {e}"
-            return None, slug, f"lookup failed: {e}"
+            if existing_url and (token_lifetime(existing_url) or -1) > 0:
+                return existing_url, slug, f"lookup failed; still-valid previous URL kept: {e}"
+            return None, slug, f"lookup failed and no valid previous URL: {e}"
 
     query = str(item.get("search") or name)
     try:
         candidates = search_candidates(query, terms)
     except Exception as e:
-        if existing_url:
-            return existing_url, None, f"search failed; previous URL kept: {e}"
+        if existing_url and (token_lifetime(existing_url) or -1) > 0:
+            return existing_url, None, f"search failed; still-valid previous URL kept: {e}"
         return None, None, f"search failed: {e}"
 
     for slug in candidates:
         try:
-            details = channel_details(slug)
+            details, url, status = fresh_url_for_slug(slug)
         except Exception as e:
             print(f"KICK candidate lookup failed {name} / {slug}: {e}")
             continue
         if not is_live(details) or not details_match(details, terms):
             continue
-        url = playback_url(details)
         if url:
-            return url, slug, "live (search resolved/refreshed)"
+            return url, slug, status
 
-    if existing_url:
-        return existing_url, None, "no matching live channel; previous URL kept"
-    return None, None, "no matching live channel"
+    if existing_url and (token_lifetime(existing_url) or -1) > 0:
+        return existing_url, None, "no fresh matching live URL; still-valid previous URL kept"
+    return None, None, "no fresh matching live URL"
 
 
 def strip_old_kick(text: str, names: set[str]) -> str:
