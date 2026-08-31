@@ -32,17 +32,17 @@ ECATV_BLOCK = '''# === EHIME_CATV_START ===
 https://cdn-ecatv-stream.durasite.net/live/plala.town/playlist.m3u8
 #EXTINF:-1 tvg-id="ecatv.town_news24" group-title="愛媛CATV" tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/ehime_catv/02_town_news24.png",たうんNews24
 https://cdn.e-catv.ne.jp/mpeg-dash/hc_town_news_24/dash.mpd
-#EXTINF:-1 group-title="愛媛CATV" tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/ehime_catv/03_machicam24.png",街カメ24
+#EXTINF:-1 tvg-id="ecatv.machicam24" group-title="愛媛CATV" tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/ehime_catv/03_machicam24.png",街カメ24
 https://cdn.e-catv.ne.jp/mpeg-dash/hc_machi_cam_24/dash.mpd
-#EXTINF:-1 group-title="愛媛CATV" tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/ehime_catv/04_info.png",お知らせチャンネル
+#EXTINF:-1 tvg-id="ecatv.info" group-title="愛媛CATV" tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/ehime_catv/04_info.png",お知らせチャンネル
 https://cdn-ecatv-stream.durasite.net/live/plala.info/playlist.m3u8
-#EXTINF:-1 group-title="愛媛CATV" tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/ehime_catv/05_program_promo.png",番組宣伝ch
+#EXTINF:-1 tvg-id="ecatv.program_promo" group-title="愛媛CATV" tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/ehime_catv/05_program_promo.png",番組宣伝ch
 https://cdn-ecatv-stream.durasite.net/live/plala.machisuki/playlist.m3u8
 #EXTINF:-1 tvg-id="ecatv.event_premium" group-title="愛媛CATV" tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/ehime_catv/06_event_premium.png",イベントプレミアム
 https://cdn-ecatv-stream.durasite.net/live/plala.event/playlist.m3u8
 #EXTINF:-1 tvg-id="ecatv.event_selection" group-title="愛媛CATV" tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/ehime_catv/07_event_selection.png",イベントセレクション
 https://cdn.e-catv.ne.jp/mpeg-dash/hc_eventsel_channel/dash.mpd
-#EXTINF:-1 group-title="愛媛CATV" tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/ehime_catv/08_ehime_channel.png",えひめチャンネル
+#EXTINF:-1 tvg-id="ecatv.ehime_channel" group-title="愛媛CATV" tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/ehime_catv/08_ehime_channel.png",えひめチャンネル
 https://cdn.e-catv.ne.jp/mpeg-dash/hc_ehime_channel/dash.mpd
 #EXTINF:-1 tvg-id="ecatv.bousai" group-title="愛媛CATV" tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/ehime_catv/09_ehime_bousai.png",えひめ・防災チャンネル
 https://cdn.e-catv.ne.jp/mpeg-dash/hc_bousai_channel/dash.mpd
@@ -50,9 +50,9 @@ https://cdn.e-catv.ne.jp/mpeg-dash/hc_bousai_channel/dash.mpd
 https://cdn.e-catv.ne.jp/mpeg-dash/hc_gosho_channel/dash.mpd
 #EXTINF:-1 tvg-id="日経CNBC_jp" group-title="愛媛CATV" tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/ehime_catv/13_nikkei_cnbc.png",日経CNBC(eCATV)
 https://cdn4.nikkei-cnbc.co.jp/live-ch01/livestream/ts:playlist.m3u8
-#EXTINF:-1 group-title="愛媛CATV" tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/ehime_catv/14_matsuyama_gikai.png",松山市議会中継
+#EXTINF:-1 tvg-id="ecatv.matsuyama_gikai" group-title="愛媛CATV" tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/ehime_catv/14_matsuyama_gikai.png",松山市議会中継
 https://cdn-ecatv-stream.durasite.net/live/ms_gikai/chunklist_w152985868.m3u8
-#EXTINF:-1 group-title="愛媛CATV" tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/ehime_catv/15_ehime_gikai.png",愛媛県議会中継
+#EXTINF:-1 tvg-id="ecatv.ehime_gikai" group-title="愛媛CATV" tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/ehime_catv/15_ehime_gikai.png",愛媛県議会中継
 https://cdn-ecatv-stream.durasite.net/live/kengikai/chunklist_w1364306427.m3u8
 # === EHIME_CATV_END ==='''
 
@@ -74,7 +74,6 @@ def suspend_5002(text):
 
 
 def _clean_haruka_name(extinf):
-    # Remove any old/generated HARUKA suffixes only from the display name after the final comma.
     if ',' not in extinf:
         return extinf
     meta, name = extinf.rsplit(',', 1)
@@ -83,7 +82,6 @@ def _clean_haruka_name(extinf):
 
 
 def patch_haruka_sources(text):
-    """Canonicalize HARUKA entries: exactly one HARUKA1 and one HARUKA2 per channel/stream."""
     lines = text.splitlines()
     out = []
     seen = set()
