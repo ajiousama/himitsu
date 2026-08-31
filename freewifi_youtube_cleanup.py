@@ -46,20 +46,22 @@ def entry_id(line: str) -> str | None:
     return m.group(1).strip() if m else None
 
 
+def is_youtube_or_jra(cid: str | None) -> bool:
+    return bool(cid) and (cid.startswith("youtube.") or cid.startswith("jra."))
+
+
 def ensure_logo(line: str) -> tuple[str, bool]:
     if not line.startswith("#EXTINF:"):
         return line, False
     cid = entry_id(line)
     if not cid or not (cid.startswith("youtube.") or cid in JRA_LOGOS):
         return line, False
-
     desired = JRA_LOGOS.get(cid, DEFAULT_YOUTUBE_LOGO)
     m = re.search(r'tvg-logo="([^"]*)"', line)
     if m:
         if m.group(1).strip():
             return line, False
         return line[:m.start(1)] + desired + line[m.end(1):], True
-
     pos = None
     for pat in (r'tvg-name="[^"]*"', r'tvg-id="[^"]*"'):
         mm = re.search(pat, line)
@@ -87,7 +89,6 @@ def remove_entries(text: str, ids: set[str], preserve_gch_blocks: bool = False) 
     removed = 0
     i = 0
     in_gch = False
-
     while i < len(lines):
         line = lines[i]
         if line in (A_START, B_START):
@@ -100,7 +101,6 @@ def remove_entries(text: str, ids: set[str], preserve_gch_blocks: bool = False) 
             continue
         if line in (A_END, B_END):
             in_gch = False
-
         if line.startswith("#EXTINF:") and entry_id(line) in ids:
             removed += 1
             i += 1
@@ -109,22 +109,18 @@ def remove_entries(text: str, ids: set[str], preserve_gch_blocks: bool = False) 
             if i < len(lines) and lines[i].strip().startswith(("http://", "https://")):
                 i += 1
             continue
-
         out.append(line)
         i += 1
-
     return "\n".join(out).rstrip() + "\n", removed
 
 
 def dedupe_exact_ids(text: str, prefixes: tuple[str, ...] | None = None) -> tuple[str, int]:
-    """Keep the first exact ID. When prefixes is set, only those ID families are deduped."""
     lines = text.splitlines()
     out: list[str] = []
     seen: set[str] = set()
     removed = 0
     i = 0
     in_gch = False
-
     while i < len(lines):
         line = lines[i]
         if line in (A_START, B_START):
@@ -135,7 +131,6 @@ def dedupe_exact_ids(text: str, prefixes: tuple[str, ...] | None = None) -> tupl
                 in_gch = False
             i += 1
             continue
-
         if line.startswith("#EXTINF:"):
             cid = entry_id(line)
             eligible = bool(cid) and (prefixes is None or cid.startswith(prefixes))
@@ -149,40 +144,31 @@ def dedupe_exact_ids(text: str, prefixes: tuple[str, ...] | None = None) -> tupl
                 continue
             if eligible and cid:
                 seen.add(cid)
-
         out.append(line)
         i += 1
-
     return "\n".join(out).rstrip() + "\n", removed
 
 
-def dedupe_same_id_url(text: str) -> tuple[str, int]:
-    """Remove only true duplicate entries: same tvg-id AND same stream URL.
-
-    Different URLs for the same tvg-id are intentionally preserved because FreeWiFi
-    contains alternate/backup sources (for example HARUKA1/2/3).
-    """
+def dedupe_same_id_url_youtube_only(text: str) -> tuple[str, int]:
+    """Remove only true duplicate YouTube/JRA entries; never touch other FreeWiFi entries."""
     lines = text.splitlines()
     out: list[str] = []
     seen: set[tuple[str, str]] = set()
     removed = 0
     i = 0
-
     while i < len(lines):
         line = lines[i]
         if not line.startswith("#EXTINF:"):
             out.append(line)
             i += 1
             continue
-
         cid = entry_id(line)
         j = i + 1
         blanks: list[str] = []
         while j < len(lines) and not lines[j].strip():
             blanks.append(lines[j])
             j += 1
-
-        if cid and j < len(lines) and lines[j].strip().startswith(("http://", "https://")):
+        if is_youtube_or_jra(cid) and j < len(lines) and lines[j].strip().startswith(("http://", "https://")):
             url = lines[j].strip()
             key = (cid, url)
             if key in seen:
@@ -190,21 +176,18 @@ def dedupe_same_id_url(text: str) -> tuple[str, int]:
                 i = j + 1
                 continue
             seen.add(key)
-            out.append(line)
-            out.extend(blanks)
+        out.append(line)
+        out.extend(blanks)
+        if j < len(lines) and line.startswith("#EXTINF:"):
             out.append(lines[j])
             i = j + 1
-            continue
-
-        out.append(line)
-        i += 1
-
+        else:
+            i += 1
     return "\n".join(out).rstrip() + "\n", removed
 
 
 def main() -> int:
     total = 0
-
     if GENERAL.exists():
         text = GENERAL.read_text(encoding="utf-8-sig", errors="replace")
         text, n1 = remove_entries(text, LEGACY_IDS | {"jra.official"})
@@ -219,13 +202,13 @@ def main() -> int:
         text, n1 = remove_entries(text, LEGACY_IDS)
         text, n2 = remove_entries(text, GCH_IDS, preserve_gch_blocks=True)
         text, n3 = dedupe_exact_ids(text, prefixes=("youtube.", "jra."))
-        text, n4 = dedupe_same_id_url(text)
+        text, n4 = dedupe_same_id_url_youtube_only(text)
         text, n5 = fill_missing_logos(text)
         FREEWIFI.write_text(text, encoding="utf-8")
         total += n1 + n2 + n3 + n4
-        print(f"freewifi: legacy={n1} stray_gch={n2} duplicate_youtube_jra={n3} duplicate_same_id_url={n4} logos_filled={n5}")
+        print(f"freewifi: youtube/jra legacy={n1} stray_gch={n2} duplicate_ids={n3} duplicate_urls={n4} logos_filled={n5}")
 
-    print(f"cleanup total removed={total}")
+    print(f"cleanup total removed={total}; non-YouTube/JRA entries untouched")
     return 0
 
 
