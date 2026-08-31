@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+# ONE-TIME FINAL MIGRATION: this file is removed after the stable resolver is installed.
 import json
 import re
 from pathlib import Path
