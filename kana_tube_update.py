@@ -8,7 +8,7 @@ from pathlib import Path
 FREEWIFI = Path('freewifi')
 OUT = Path('kana_tube.m3u')
 COOKIES = Path('youtube_cookies.txt')
-PAGE = 'https://www.youtube.com/@kanatubechannel/live'
+PAGE = 'https://www.youtube.com/watch?v=0WzMYz0PN_8'
 ID = 'youtube.kana_tube'
 NAME = 'かなチューブ'
 LOGO = 'https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/youtube/yt43_01_kana_tube.png'
