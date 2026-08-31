@@ -1,33 +1,29 @@
 from __future__ import annotations
 
 import base64
+import html
 import json
 import re
 import time
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
-from urllib.request import Request, urlopen
 
 from yt_dlp import YoutubeDL
-
-try:
-    from curl_cffi import requests as cffi_requests
-except Exception:
-    cffi_requests = None
+from curl_cffi import requests as cffi_requests
 
 FREEWIFI = Path('freewifi')
 CONFIG = Path('kick_channels.json')
 START = '# === KICK_MANAGED_START ==='
 END = '# === KICK_MANAGED_END ==='
 YT_ANCHOR = '# === GENERAL_YOUTUBE_MANAGED_START ==='
-MIN_TOKEN_LIFETIME = 120
+MIN_TOKEN_LIFETIME = 180
 
-HEADERS = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151 Safari/537.36',
+UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151 Safari/537.36'
+BASE_HEADERS = {
+    'User-Agent': UA,
     'Accept': 'application/json,text/plain,*/*',
-    'Referer': 'https://kick.com/',
     'Origin': 'https://kick.com',
-    'Cache-Control': 'no-cache',
+    'Cache-Control': 'no-cache, no-store, max-age=0',
     'Pragma': 'no-cache',
 }
 
@@ -50,30 +46,11 @@ def token_lifetime(url: str) -> int | None:
     return exp - int(time.time()) if exp is not None else None
 
 
-def hls_works(url: str, slug: str) -> tuple[bool, str]:
-    headers = {
-        'User-Agent': HEADERS['User-Agent'],
-        'Accept': 'application/vnd.apple.mpegurl, application/x-mpegURL, */*',
-        'Referer': f'https://kick.com/{slug}',
-        'Origin': 'https://kick.com',
-        'Cache-Control': 'no-cache',
-    }
-    try:
-        if cffi_requests is not None:
-            r = cffi_requests.get(url, headers=headers, timeout=20, impersonate='chrome', allow_redirects=True)
-            body = r.text[:8192]
-            if r.status_code != 200:
-                return False, f'HTTP {r.status_code}'
-            return ('#EXTM3U' in body, 'OK' if '#EXTM3U' in body else 'not HLS')
-        req = Request(url, headers=headers)
-        with urlopen(req, timeout=20) as r:
-            status = getattr(r, 'status', 200)
-            body = r.read(8192).decode('utf-8', errors='replace')
-        if status != 200:
-            return False, f'HTTP {status}'
-        return ('#EXTM3U' in body, 'OK' if '#EXTM3U' in body else 'not HLS')
-    except Exception as exc:
-        return False, f'{type(exc).__name__}: {exc}'
+def normalize_url(value: str) -> str:
+    value = html.unescape(value)
+    value = value.replace('\\/', '/')
+    value = value.replace('\\u0026', '&').replace('\\u002F', '/')
+    return value
 
 
 def recursive_m3u8(obj) -> list[str]:
@@ -85,33 +62,94 @@ def recursive_m3u8(obj) -> list[str]:
         for v in obj:
             out.extend(recursive_m3u8(v))
     elif isinstance(obj, str):
-        s = obj.replace('\\/', '/')
+        s = normalize_url(obj)
         if s.startswith('https://') and '.m3u8' in s:
             out.append(s)
     return out
 
 
-def api_candidates(slug: str) -> list[tuple[str, str]]:
-    if cffi_requests is None:
-        return []
+def hls_works(url: str, slug: str) -> tuple[bool, str]:
+    headers = {
+        'User-Agent': UA,
+        'Accept': 'application/vnd.apple.mpegurl, application/x-mpegURL, */*',
+        'Referer': f'https://player.kick.com/{slug}',
+        'Origin': 'https://kick.com',
+        'Cache-Control': 'no-cache',
+    }
+    try:
+        r = cffi_requests.get(url, headers=headers, timeout=20, impersonate='chrome', allow_redirects=True)
+        body = r.text[:8192]
+        if r.status_code != 200:
+            return False, f'HTTP {r.status_code}'
+        return ('#EXTM3U' in body, 'OK' if '#EXTM3U' in body else 'not HLS')
+    except Exception as exc:
+        return False, f'{type(exc).__name__}: {exc}'
+
+
+def request_json(url: str, slug: str) -> object | None:
+    headers = dict(BASE_HEADERS)
+    headers['Referer'] = f'https://kick.com/{slug}'
+    try:
+        r = cffi_requests.get(url, headers=headers, timeout=20, impersonate='chrome', allow_redirects=True)
+        print(f'KICK GET {slug}: {url.split("kick.com/")[-1].split("?")[0]} -> HTTP {r.status_code}')
+        if r.status_code != 200:
+            return None
+        return r.json()
+    except Exception as exc:
+        print(f'KICK GET {slug}: {type(exc).__name__}: {exc}')
+        return None
+
+
+def api_discovery(slug: str) -> tuple[list[tuple[str, str]], bool | None]:
     stamp = int(time.time() * 1000)
     endpoints = [
-        f'https://kick.com/api/v2/channels/{slug}?_={stamp}',
-        f'https://kick.com/api/v2/channels/{slug}/livestream?_={stamp}',
-        f'https://kick.com/api/v1/channels/{slug}?_={stamp}',
+        f'https://kick.com/api/v2/channels/{slug}/playback-url?_={stamp}',
+        f'https://kick.com/api/v2/channels/{slug}?_={stamp + 1}',
+        f'https://kick.com/api/v2/channels/{slug}/livestream?_={stamp + 2}',
+        f'https://kick.com/api/v1/channels/{slug}?_={stamp + 3}',
     ]
     found: list[tuple[str, str]] = []
+    live_signal: bool | None = None
     for endpoint in endpoints:
+        data = request_json(endpoint, slug)
+        if data is None:
+            continue
+        source = endpoint.split('/api/')[-1].split('?')[0]
+        for u in recursive_m3u8(data):
+            found.append((u, source))
+        if isinstance(data, dict):
+            if data.get('is_live') is True or data.get('isLive') is True:
+                live_signal = True
+            if 'livestream' in data:
+                if isinstance(data.get('livestream'), dict):
+                    live_signal = True
+                elif data.get('livestream') is None and live_signal is None:
+                    live_signal = False
+    return found, live_signal
+
+
+def page_candidates(slug: str) -> list[tuple[str, str]]:
+    stamp = int(time.time() * 1000)
+    pages = [
+        (f'https://player.kick.com/{slug}?_={stamp}', 'player page'),
+        (f'https://kick.com/{slug}?_={stamp + 1}', 'channel page'),
+    ]
+    found: list[tuple[str, str]] = []
+    pattern = re.compile(r'https:\\?/\\?/[^"\'<> ]+?\.m3u8[^"\'<> ]*', re.I)
+    for url, source in pages:
+        headers = dict(BASE_HEADERS)
+        headers['Accept'] = 'text/html,application/xhtml+xml,application/json;q=0.9,*/*;q=0.8'
+        headers['Referer'] = 'https://kick.com/'
         try:
-            r = cffi_requests.get(endpoint, headers=HEADERS, timeout=20, impersonate='chrome', allow_redirects=True)
-            print(f'KICK API {slug}: {endpoint.split("/api/")[-1].split("?")[0]} -> HTTP {r.status_code}')
+            r = cffi_requests.get(url, headers=headers, timeout=20, impersonate='chrome', allow_redirects=True)
+            print(f'KICK PAGE {slug}: {source} -> HTTP {r.status_code}')
             if r.status_code != 200:
                 continue
-            data = r.json()
-            for u in recursive_m3u8(data):
-                found.append((u, endpoint))
+            text = normalize_url(r.text)
+            for m in pattern.findall(text):
+                found.append((normalize_url(m), source))
         except Exception as exc:
-            print(f'KICK API {slug}: {type(exc).__name__}: {exc}')
+            print(f'KICK PAGE {slug}: {source}: {type(exc).__name__}: {exc}')
     return found
 
 
@@ -121,30 +159,32 @@ def ytdlp_candidates(slug: str) -> list[tuple[str, str]]:
         'no_warnings': True,
         'skip_download': True,
         'noplaylist': True,
+        'extractor_retries': 2,
         'http_headers': {
-            'User-Agent': HEADERS['User-Agent'],
+            'User-Agent': UA,
             'Referer': f'https://kick.com/{slug}',
+            'Cache-Control': 'no-cache',
         },
     }
     with YoutubeDL(opts) as ydl:
-        info = ydl.extract_info(f'https://kick.com/{slug}', download=False)
+        info = ydl.extract_info(f'https://kick.com/{slug}?_={int(time.time() * 1000)}', download=False)
     if not isinstance(info, dict):
         return []
     urls: list[str] = []
     for key in ('url', 'manifest_url'):
-        v = info.get(key)
-        if isinstance(v, str):
-            urls.append(v)
+        value = info.get(key)
+        if isinstance(value, str):
+            urls.append(value)
     for f in info.get('formats') or []:
         if isinstance(f, dict):
             for key in ('manifest_url', 'url'):
-                v = f.get(key)
-                if isinstance(v, str):
-                    urls.append(v)
+                value = f.get(key)
+                if isinstance(value, str):
+                    urls.append(value)
+    out: list[tuple[str, str]] = []
     seen = set()
-    out = []
     for u in urls:
-        u = u.replace('\\/', '/')
+        u = normalize_url(u)
         if u in seen or not u.startswith('https://') or '.m3u8' not in u:
             continue
         seen.add(u)
@@ -189,28 +229,28 @@ def validate_candidate(url: str, slug: str, expected_id: str, source: str) -> tu
         return False, f'{source}: channel ID mismatch'
     life = token_lifetime(url)
     if life is not None and life < MIN_TOKEN_LIFETIME:
-        return False, f'{source}: JWT too short ({life}s)'
+        return False, f'{source}: JWT stale/too short ({life}s)'
     ok, status = hls_works(url, slug)
     if not ok:
         return False, f'{source}: HLS {status}'
     return True, f'{source} OK; JWT remaining {life if life is not None else "unknown"}s; HLS OK'
 
 
-def resolve(item: dict, previous: str | None) -> tuple[str | None, str]:
+def resolve(item: dict) -> tuple[str | None, str, bool | None]:
     slug = str(item.get('slug') or '').strip()
     if not slug:
-        return None, 'no fixed slug'
+        return None, 'no fixed slug', None
     expected_id = str(item.get('channel_id') or '').strip()
-
     errors: list[str] = []
+
+    api_urls, live_signal = api_discovery(slug)
     candidates: list[tuple[str, str]] = []
-
-    # First use KICK's channel JSON directly with Chrome TLS/browser impersonation.
-    candidates.extend(api_candidates(slug))
-
-    # Then use yt-dlp's maintained KICK extractor, which also uses impersonated requests.
+    candidates.extend(api_urls)
+    candidates.extend(page_candidates(slug))
     try:
         candidates.extend(ytdlp_candidates(slug))
+        if candidates and live_signal is None:
+            live_signal = True
     except Exception as exc:
         errors.append(f'yt-dlp {type(exc).__name__}: {exc}')
 
@@ -222,26 +262,23 @@ def resolve(item: dict, previous: str | None) -> tuple[str | None, str]:
         ok, status = validate_candidate(url, slug, expected_id, source)
         print(f'KICK {slug}: {status}')
         if ok:
-            return url, status
+            return url, status, True if live_signal is None else live_signal
         errors.append(status)
 
-    if previous:
-        ok, status = validate_candidate(previous, slug, expected_id, 'previous')
-        if ok:
-            return previous, status
-        errors.append(status)
-
-    return None, '; '.join(errors[-6:]) or 'no playable HLS candidate'
+    return None, '; '.join(errors[-8:]) or 'no fresh playable HLS candidate', live_signal
 
 
-def render_block(config: list[dict], existing: dict[str, str]) -> tuple[str, int]:
+def render_block(config: list[dict]) -> tuple[str, int, list[str]]:
     lines = [START, '## KICK']
     live_count = 0
+    fatal: list[str] = []
     for item in config:
         name = str(item['name'])
-        url, status = resolve(item, existing.get(name))
-        print(f'KICK {name}: {status}')
+        url, status, live_signal = resolve(item)
+        print(f'KICK {name}: {status}; live_signal={live_signal}')
         if not url:
+            if live_signal is True:
+                fatal.append(f'{name}: LIVE but no fresh playable HLS ({status})')
             continue
         meta = '#EXTINF:-1 group-title="その他"'
         tvg_id = str(item.get('tvg_id') or '').strip()
@@ -253,13 +290,31 @@ def render_block(config: list[dict], existing: dict[str, str]) -> tuple[str, int
         lines.extend([f'{meta},{name}', url])
         live_count += 1
     lines.append(END)
-    return '\n'.join(lines) + '\n', live_count
+    return '\n'.join(lines) + '\n', live_count, fatal
 
 
 def insert_block(text: str, block: str) -> str:
     if YT_ANCHOR in text:
         return text.replace(YT_ANCHOR, block + '\n' + YT_ANCHOR, 1)
     return text.rstrip() + '\n\n' + block
+
+
+def validate_written_block(text: str, config: list[dict]) -> None:
+    block_match = re.search(re.escape(START) + r'(.*?)' + re.escape(END), text, flags=re.S)
+    if not block_match:
+        raise RuntimeError('KICK managed block missing')
+    block = block_match.group(1)
+    for item in config:
+        slug = str(item.get('slug') or '').strip()
+        expected_id = str(item.get('channel_id') or '').strip()
+        if not slug or not expected_id:
+            continue
+        for url in re.findall(r'https://[^\s]+\.m3u8\?[^\s]+', block):
+            if expected_id not in url:
+                continue
+            life = token_lifetime(url)
+            if life is not None and life < MIN_TOKEN_LIFETIME:
+                raise RuntimeError(f'{slug}: refusing to publish stale JWT ({life}s)')
 
 
 def main() -> int:
@@ -269,13 +324,18 @@ def main() -> int:
         raise RuntimeError('freewifi lost #EXTM3U header')
     if not isinstance(config, list) or not config:
         raise RuntimeError('kick_channels.json must contain a non-empty list')
+
     names = {str(x['name']) for x in config}
-    existing = existing_kick_urls(original, names)
     cleaned = strip_old_kick(original, names)
-    block, live_count = render_block(config, existing)
+    block, live_count, fatal = render_block(config)
+    if fatal:
+        raise RuntimeError(' | '.join(fatal))
+
     updated = insert_block(cleaned, block)
+    validate_written_block(updated, config)
     if updated.count('#EXTINF:') < max(50, int(original.count('#EXTINF:') * 0.70)):
         raise RuntimeError('playlist channel count collapsed')
+
     FREEWIFI.write_text(updated, encoding='utf-8')
     print(f'KICK managed block updated: {live_count}/{len(config)} entries')
     return 0
