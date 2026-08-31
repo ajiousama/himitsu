@@ -15,6 +15,12 @@ GROUP = '今日の開催場'
 JST = timezone(timedelta(hours=9))
 SOURCE_IDS = ('jra.east', 'jra.west', 'jra.hokkaido')
 LABELS = {'jra.east':'EAST', 'jra.west':'WEST', 'jra.hokkaido':'LOCAL/第三場'}
+NON_EVENT_WORDS = (
+    '非開催', '休止', '準備中', 'データ取得準備中',
+    '開催情報確認待ち', '確認待ち', '開催・非開催をまだ確定していません',
+    '本日の全レースは終了しました',
+)
+RACE_TITLE_RE = re.compile(r'(?:【\s*\d+\s*[ＲR]\s*】|(?<!\d)\d+\s*[ＲR](?!\w))', re.I)
 
 
 def fetch_text(url, timeout=60):
@@ -61,6 +67,15 @@ def rewrite_group(extinf):
     return extinf[:comma] + f' group-title="{GROUP}"' + extinf[comma:] if comma >= 0 else extinf + f' group-title="{GROUP}"'
 
 
+def is_real_jra_program(title, desc):
+    joined = f'{title} {desc}'
+    if not title or any(w in joined for w in NON_EVENT_WORDS):
+        return False
+    if 'JRA中央競馬' in title and 'お送りします' in title:
+        return True
+    return bool(RACE_TITLE_RE.search(title))
+
+
 def active_jra_ids(epg_text):
     root = ET.fromstring(epg_text)
     today = datetime.now(JST).date(); now = datetime.now(JST)
@@ -71,7 +86,8 @@ def active_jra_ids(epg_text):
         start = parse_xmltv_time(p.get('start')); stop = parse_xmltv_time(p.get('stop'))
         if not start or start.astimezone(JST).date() != today: continue
         title = (p.findtext('title') or '').strip()
-        if not title or any(w in title for w in ('非開催','休止','準備中','データ取得準備中')): continue
+        desc = (p.findtext('desc') or '').strip()
+        if not is_real_jra_program(title, desc): continue
         active.add(cid)
         if stop:
             ls = stop.astimezone(JST)
