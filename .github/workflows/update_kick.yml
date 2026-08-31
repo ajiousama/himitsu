@@ -6,6 +6,7 @@ on:
     paths:
       - 'kick_channels.json'
       - 'kick_update.py'
+      - 'kick_ytdlp_update.py'
       - '.github/workflows/update_kick.yml'
   schedule:
     - cron: '*/5 * * * *'
@@ -30,16 +31,16 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: '3.12'
-      - name: Install KICK HTTP client
+      - name: Install KICK extractor
         run: |
           python -m pip install --upgrade pip
-          python -m pip install --upgrade curl_cffi
+          python -m pip install --upgrade yt-dlp
       - name: Sync latest main
         run: git pull --ff-only origin main
-      - name: Refresh KICK live HLS
+      - name: Refresh KICK live HLS via yt-dlp
         run: |
-          echo "KICK refresh started at $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
-          python kick_update.py
+          echo "KICK yt-dlp refresh started at $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+          python kick_ytdlp_update.py
       - name: Validate KICK block
         run: |
           test -s freewifi
