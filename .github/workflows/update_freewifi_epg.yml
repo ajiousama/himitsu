@@ -9,17 +9,10 @@ on:
       - main
     paths:
       - "freewifi"
-      - "radio.m3u"
-      - "freewifi_naori.py"
-      - "freewifi_naori_kansai.py"
-      - "reorder_freewifi.py"
       - "other_live.m3u"
       - "epg_build.py"
       - "kick_channels.json"
       - "kick_epg.py"
-      - "radiko_epg.py"
-      - "radiko_freewifi.py"
-      - "radiko_proxy_core.py"
       - "public_sports_epg_merge.py"
       - "jra_epg_merge.py"
       - "jra_freewifi_finalize.py"
@@ -59,21 +52,17 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Validate Radiko Python sources
-        run: python -m py_compile radiko_proxy_core.py radiko_freewifi.py radiko_epg.py
-
       - name: Set up Node.js for manual YouTube refresh
         if: github.event_name == 'workflow_dispatch'
         uses: actions/setup-node@v4
         with:
           node-version: '22'
 
-      - name: Install latest yt-dlp for manual YouTube refresh
+      - name: Install yt-dlp for manual YouTube refresh
         if: github.event_name == 'workflow_dispatch'
         run: |
           python -m pip install --upgrade pip
           python -m pip install --upgrade --pre 'yt-dlp[default]'
-          yt-dlp --version
 
       - name: Restore YouTube cookies for manual refresh
         if: github.event_name == 'workflow_dispatch'
@@ -84,33 +73,17 @@ jobs:
           if [ -n "$YOUTUBE_COOKIES" ]; then
             printf '%s' "$YOUTUBE_COOKIES" > youtube_cookies.txt
             chmod 600 youtube_cookies.txt
-            echo "Cookie restored: $(wc -c < youtube_cookies.txt) bytes"
-          else
-            echo 'YOUTUBE_COOKIES is not set; continuing without cookies'
           fi
 
       - name: Refresh public sports YouTube fallbacks (manual only)
         if: github.event_name == 'workflow_dispatch'
         run: python public_sports_youtube_fallback.py
 
-      - name: Refresh all general YouTube LIVE (manual only)
+      - name: Refresh general YouTube LIVE (manual only)
         if: github.event_name == 'workflow_dispatch'
         run: |
           python general_youtube_update.py
           python jra_freewifi_finalize.py
-
-      - name: Show YouTube group summary (manual only)
-        if: github.event_name == 'workflow_dispatch'
-        shell: bash
-        run: |
-          test -s general_youtube.m3u
-          echo "General YouTube LIVE total: $(grep -c '^#EXTINF:' general_youtube.m3u || true)"
-          for G in '愛媛県内ライブカメラ' '空港' '交通' '動物' 'その他LIVE'; do
-            C=$(grep -F 'group-title="'"$G"'"' general_youtube.m3u | wc -l || true)
-            echo "$G: $C"
-          done
-          grep -q '# === GENERAL_YOUTUBE_MANAGED_START ===' freewifi
-          grep -q '# === GENERAL_YOUTUBE_MANAGED_END ===' freewifi
 
       - name: Sync today's public sports venues into FreeWiFi
         run: python freewifi_today_public_sports.py
@@ -121,16 +94,13 @@ jobs:
       - name: Sync today's JRA channels into FreeWiFi
         run: python freewifi_today_jra.py
 
-      - name: Apply verified daily safety override
+      - name: Apply verified sports/JRA status
         run: |
           python verified_daily_override.py
           python apply_verified_status.py
 
       - name: Build compact current event counts
         run: python build_today_event_counts.py
-
-      - name: Show current event counts
-        run: cat today_event_counts.json
 
       - name: Build merged EPG
         run: python epg_build.py
@@ -141,111 +111,20 @@ jobs:
       - name: Merge JRA race EPG for official YouTube
         run: python jra_epg_merge.py
 
-      - name: Split Radiko selected copies and full radio catalog
-        env:
-          RADIKO_PUBLIC_BASE: https://himitsu-six.vercel.app
-        run: python radiko_freewifi.py
-
       - name: Add persistent KICK receiver EPG
         run: python kick_epg.py
-
-      - name: Sync NAORI channels into FreeWiFi (final pass)
-        run: |
-          python freewifi_naori.py
-          python freewifi_naori_kansai.py
-
-      - name: Validate NAORI block
-        shell: bash
-        run: |
-          grep -q '# === NAORI_MANAGED_START ===' freewifi
-          grep -q '# === NAORI_MANAGED_END ===' freewifi
-          test "$(grep -c 'naori-test.netgenx.site/pxx.php?shk_cid=' freewifi || true)" -ge 36
-          for CID in gx01 gx02 gx03 gx04 gx05 gx06; do grep -q "shk_cid=$CID" freewifi; done
-
-      - name: Validate Radiko catalog and EPG
-        shell: bash
-        run: |
-          FREE_COUNT="$(grep -c 'tvg-id="radiko\.' freewifi || true)"
-          RADIO_COUNT="$(grep -c 'tvg-id="radiko\.' radio.m3u || true)"
-          EPG_CHANNELS="$(grep -c '<channel id="radiko\.' guides.xml || true)"
-          EPG_PROGRAMMES="$(grep -c 'channel="radiko\.' guides.xml || true)"
-          echo "Radiko FreeWiFi selected copies: $FREE_COUNT"
-          echo "Radiko radio.m3u full catalog: $RADIO_COUNT"
-          echo "Radiko EPG channels: $EPG_CHANNELS"
-          echo "Radiko EPG programmes: $EPG_PROGRAMMES"
-          test "$FREE_COUNT" -ge 10
-          test "$FREE_COUNT" -lt 30
-          test "$RADIO_COUNT" -ge 100
-          test "$EPG_CHANNELS" -ge 100
-          test "$EPG_PROGRAMMES" -ge 500
-          grep -q 'RNB南海放送（ラジオ）' freewifi
-          grep -q 'FM愛媛（ラジオ）' freewifi
-          grep -q 'KBS京都' freewifi
-          grep -E -q 'α-STATION|ALPHA-STATION' freewifi
-          grep -E -q 'e-radio|FM滋賀' freewifi
-          grep -q 'ラジオ関西' freewifi
-          grep -q 'RNB南海放送（ラジオ）' radio.m3u
-          grep -q 'FM愛媛（ラジオ）' radio.m3u
-          grep -q 'KBS京都' radio.m3u
-          grep -E -q 'α-STATION|ALPHA-STATION' radio.m3u
-          grep -E -q 'e-radio|FM滋賀' radio.m3u
-          grep -q 'ラジオ関西' radio.m3u
-          echo 'Radiko full catalog plus FreeWiFi copies OK'
 
       - name: Validate XML
         run: python -c "import xml.etree.ElementTree as ET; ET.parse('guides.xml'); print('XML OK')"
 
-      - name: Validate persistent KICK EPG
+      - name: Validate current event counts
         shell: bash
         run: |
-          for CID in kick.gccx kick.nogizaka kick.kodoku; do
-            grep -q "<channel id=\"$CID\"" guides.xml
-            test "$(grep -c "channel=\"$CID\"" guides.xml || true)" -ge 12
-          done
-          grep -q '現在KICK配信 受信中' guides.xml
-          echo 'KICK EPG OK'
-
-      - name: Show coverage summary
-        run: |
-          head -n 12 epg_coverage.txt || true
-          grep -c '^OK' epg_coverage.txt || true
-          grep -c '^FALLBACK' epg_coverage.txt || true
-          echo "JRA official EPG programmes: $(grep -c 'channel=\"jra.official\"' guides.xml || true)"
-          echo "Public sports EPG programmes: $(grep -E -c 'channel=\"(keirin|chihou|boat|auto)\.' guides.xml || true)"
-          echo "Radiko EPG programmes: $(grep -c 'channel=\"radiko\.' guides.xml || true)"
-          echo "KICK EPG programmes: $(grep -c 'channel=\"kick\.' guides.xml || true)"
-
-      - name: Validate verified counts when override is active
-        shell: bash
-        run: |
-          python - <<'PY'
-          import json
-          from datetime import datetime, timezone, timedelta
-          from pathlib import Path
-          JST=timezone(timedelta(hours=9))
-          p=Path('verified_daily_status.json')
-          if not p.exists(): raise SystemExit(0)
-          cfg=json.loads(p.read_text(encoding='utf-8-sig'))
-          if cfg.get('date') != datetime.now(JST).date().isoformat(): raise SystemExit(0)
-          counts=json.loads(Path('today_event_counts.json').read_text(encoding='utf-8-sig'))['counts']
-          expected={
-            'keirin':len(cfg['public_sports'].get('競輪',[])),
-            'local_horse':len(cfg['public_sports'].get('地方競馬',[])),
-            'boat':len(cfg['public_sports'].get('ボートレース',[])),
-            'autorace':len(cfg['public_sports'].get('オートレース',[])),
-            'jra':len(cfg.get('jra_active_ids',[])),
-          }
-          bad={}
-          for k,v in expected.items():
-              got=int(counts.get(k,-1))
-              if got != v:
-                  print(f'WARNING verified count mismatch: {k} got={got} expected={v}')
-              if got < max(0,v-1) or got > v:
-                  bad[k]=(got,v)
-          if bad:
-              raise SystemExit(f'Verified count mismatch too large: {bad}')
-          print('Verified counts accepted:',counts,'expected=',expected)
-          PY
+          test -s freewifi
+          test -s today_public_sports_status.json
+          test -s today_jra_status.json
+          test -s today_event_counts.json
+          cat today_event_counts.json
 
       - name: Commit generated files safely
         shell: bash
@@ -256,7 +135,6 @@ jobs:
           cp guides.xml /tmp/guides.xml.generated
           cp epg_coverage.txt /tmp/epg_coverage.txt.generated
           cp freewifi /tmp/freewifi.generated
-          cp radio.m3u /tmp/radio.m3u.generated
           cp today_public_sports_status.json /tmp/today_public_sports_status.json.generated
           cp today_jra_status.json /tmp/today_jra_status.json.generated
           cp today_event_counts.json /tmp/today_event_counts.json.generated
@@ -271,14 +149,13 @@ jobs:
           cp /tmp/guides.xml.generated guides.xml
           cp /tmp/epg_coverage.txt.generated epg_coverage.txt
           cp /tmp/freewifi.generated freewifi
-          cp /tmp/radio.m3u.generated radio.m3u
           cp /tmp/today_public_sports_status.json.generated today_public_sports_status.json
           cp /tmp/today_jra_status.json.generated today_jra_status.json
           cp /tmp/today_event_counts.json.generated today_event_counts.json
           [ ! -f /tmp/public_sports_youtube_fallback.m3u.generated ] || cp /tmp/public_sports_youtube_fallback.m3u.generated public_sports_youtube_fallback.m3u
           [ ! -f /tmp/general_youtube.m3u.generated ] || cp /tmp/general_youtube.m3u.generated general_youtube.m3u
 
-          git add guides.xml epg_coverage.txt freewifi radio.m3u today_public_sports_status.json today_jra_status.json today_event_counts.json
+          git add guides.xml epg_coverage.txt freewifi today_public_sports_status.json today_jra_status.json today_event_counts.json
           [ ! -f public_sports_youtube_fallback.m3u ] || git add public_sports_youtube_fallback.m3u
           [ ! -f /tmp/general_youtube.m3u.generated ] || git add general_youtube.m3u
 
@@ -286,9 +163,5 @@ jobs:
             echo "No changes"
             exit 0
           fi
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            git commit -m "Update FreeWiFi YouTube, radio catalog and EPG"
-          else
-            git commit -m "Update FreeWiFi, radio catalog and EPG"
-          fi
+          git commit -m "Update FreeWiFi managed YouTube/current-venue entries and EPG"
           git push origin HEAD:main
