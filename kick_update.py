@@ -51,9 +51,22 @@ def request_json(url: str, params: dict[str, Any] | None = None) -> dict[str, An
     return data
 
 
+def request_any_json(url: str, params: dict[str, Any] | None = None) -> Any:
+    if params:
+        url = f"{url}?{urlencode(params)}"
+    try:
+        from curl_cffi import requests as crequests
+        r = crequests.get(url, headers=HEADERS, timeout=25, impersonate="chrome", allow_redirects=True)
+        r.raise_for_status()
+        return r.json()
+    except ImportError:
+        req = Request(url, headers=HEADERS)
+        with urlopen(req, timeout=25) as r:
+            return json.loads(r.read().decode("utf-8"))
+
+
 def channel_details(slug: str) -> dict[str, Any]:
     errors = []
-    # cache-busting query prevents a stale playback_url being reused by an edge cache
     bust = int(time.time() * 1000)
     for base in (
         f"https://kick.com/api/v2/channels/{slug}",
@@ -68,13 +81,17 @@ def channel_details(slug: str) -> dict[str, Any]:
 
 
 def playback_url(obj: Any) -> str | None:
+    if isinstance(obj, str):
+        value = obj.replace("\\/", "/")
+        if value.startswith("https://") and ".m3u8" in value:
+            return value
+        return None
     if isinstance(obj, dict):
-        for key in ("playback_url", "playbackUrl", "source", "src"):
+        for key in ("playback_url", "playbackUrl", "source", "src", "url"):
             value = obj.get(key)
-            if isinstance(value, str):
-                value = value.replace("\\/", "/")
-                if value.startswith("https://") and ".m3u8" in value:
-                    return value
+            hit = playback_url(value)
+            if hit:
+                return hit
         for value in obj.values():
             hit = playback_url(value)
             if hit:
@@ -85,6 +102,14 @@ def playback_url(obj: Any) -> str | None:
             if hit:
                 return hit
     return None
+
+
+def dedicated_playback_url(slug: str) -> str | None:
+    data = request_any_json(
+        f"https://kick.com/api/v2/channels/{slug}/playback-url",
+        {"_": int(time.time() * 1000)},
+    )
+    return playback_url(data)
 
 
 def jwt_exp(url: str) -> int | None:
@@ -106,30 +131,28 @@ def token_lifetime(url: str) -> int | None:
     return exp - int(time.time()) if exp is not None else None
 
 
-def fresh_url_for_slug(slug: str) -> tuple[dict[str, Any], str | None, str]:
-    last_details: dict[str, Any] = {}
-    last_url: str | None = None
-    for attempt in range(1, REFRESH_RETRIES + 1):
-        details = channel_details(slug)
-        last_details = details
-        url = playback_url(details)
-        last_url = url
-        if not is_live(details):
-            return details, None, "offline"
-        if not url:
-            if attempt < REFRESH_RETRIES:
-                time.sleep(2)
-            continue
-        life = token_lifetime(url)
-        if life is None:
-            return details, url, "live refreshed (token exp unavailable)"
-        print(f"KICK {slug}: JWT remaining {life}s (attempt {attempt}/{REFRESH_RETRIES})")
-        if life >= MIN_TOKEN_LIFETIME:
-            return details, url, f"live refreshed; JWT remaining {life}s"
-        if attempt < REFRESH_RETRIES:
-            time.sleep(2)
-    life = token_lifetime(last_url) if last_url else None
-    return last_details, None, f"live but fresh JWT unavailable (remaining={life}s)"
+def hls_works(url: str) -> tuple[bool, str]:
+    headers = {
+        "User-Agent": HEADERS["User-Agent"],
+        "Accept": "application/vnd.apple.mpegurl, application/x-mpegURL, */*",
+        "Referer": "https://kick.com/",
+        "Cache-Control": "no-cache",
+    }
+    try:
+        from curl_cffi import requests as crequests
+        r = crequests.get(url, headers=headers, timeout=20, impersonate="chrome", allow_redirects=True)
+        if r.status_code != 200:
+            return False, f"HTTP {r.status_code}"
+        text = r.text[:4096]
+    except ImportError:
+        req = Request(url, headers=headers)
+        with urlopen(req, timeout=20) as r:
+            if getattr(r, "status", 200) != 200:
+                return False, f"HTTP {getattr(r, 'status', '?')}"
+            text = r.read(4096).decode("utf-8", errors="replace")
+    except Exception as exc:
+        return False, type(exc).__name__
+    return ("#EXTM3U" in text, "OK" if "#EXTM3U" in text else "not HLS")
 
 
 def is_live(details: dict[str, Any]) -> bool:
@@ -141,6 +164,48 @@ def is_live(details: dict[str, Any]) -> bool:
             return False
         return True
     return playback_url(details) is not None
+
+
+def fresh_url_for_slug(slug: str) -> tuple[dict[str, Any], str | None, str]:
+    last_details: dict[str, Any] = {}
+    last_reason = "no playback URL"
+    for attempt in range(1, REFRESH_RETRIES + 1):
+        details = channel_details(slug)
+        last_details = details
+        if not is_live(details):
+            return details, None, "offline"
+
+        candidates: list[tuple[str, str]] = []
+        try:
+            url = dedicated_playback_url(slug)
+            if url:
+                candidates.append(("playback endpoint", url))
+            else:
+                last_reason = "playback endpoint returned no URL"
+        except Exception as exc:
+            last_reason = f"playback endpoint failed: {type(exc).__name__}"
+
+        fallback = playback_url(details)
+        if fallback and all(fallback != u for _, u in candidates):
+            candidates.append(("channel details fallback", fallback))
+
+        for source, url in candidates:
+            life = token_lifetime(url)
+            life_text = "unknown" if life is None else f"{life}s"
+            print(f"KICK {slug}: {source}; JWT remaining {life_text} (attempt {attempt}/{REFRESH_RETRIES})")
+            if life is not None and life < MIN_TOKEN_LIFETIME:
+                last_reason = f"{source} token too old ({life}s)"
+                continue
+            ok, hls_status = hls_works(url)
+            if not ok:
+                last_reason = f"{source} HLS check failed ({hls_status})"
+                continue
+            return details, url, f"live verified via {source}; JWT remaining {life_text}; HLS OK"
+
+        if attempt < REFRESH_RETRIES:
+            time.sleep(2)
+
+    return last_details, None, f"live but no fresh playable URL: {last_reason}"
 
 
 def search_candidates(query: str, match_terms: list[str]) -> list[str]:
@@ -209,13 +274,16 @@ def resolve_channel(item: dict[str, Any], existing_url: str | None = None) -> tu
                 return url, slug, status
             if not is_live(details):
                 return None, slug, "offline"
-            # Never overwrite a LIVE entry with a known stale token.
             if existing_url and (token_lifetime(existing_url) or -1) > 0:
-                return existing_url, slug, status + "; still-valid previous URL kept"
+                ok, _ = hls_works(existing_url)
+                if ok:
+                    return existing_url, slug, status + "; still-valid playable previous URL kept"
             return None, slug, status
         except Exception as e:
             if existing_url and (token_lifetime(existing_url) or -1) > 0:
-                return existing_url, slug, f"lookup failed; still-valid previous URL kept: {e}"
+                ok, _ = hls_works(existing_url)
+                if ok:
+                    return existing_url, slug, f"lookup failed; still-valid playable previous URL kept: {e}"
             return None, slug, f"lookup failed and no valid previous URL: {e}"
 
     query = str(item.get("search") or name)
@@ -223,7 +291,9 @@ def resolve_channel(item: dict[str, Any], existing_url: str | None = None) -> tu
         candidates = search_candidates(query, terms)
     except Exception as e:
         if existing_url and (token_lifetime(existing_url) or -1) > 0:
-            return existing_url, None, f"search failed; still-valid previous URL kept: {e}"
+            ok, _ = hls_works(existing_url)
+            if ok:
+                return existing_url, None, f"search failed; still-valid playable previous URL kept: {e}"
         return None, None, f"search failed: {e}"
 
     for slug in candidates:
@@ -238,7 +308,9 @@ def resolve_channel(item: dict[str, Any], existing_url: str | None = None) -> tu
             return url, slug, status
 
     if existing_url and (token_lifetime(existing_url) or -1) > 0:
-        return existing_url, None, "no fresh matching live URL; still-valid previous URL kept"
+        ok, _ = hls_works(existing_url)
+        if ok:
+            return existing_url, None, "no fresh matching live URL; still-valid playable previous URL kept"
     return None, None, "no fresh matching live URL"
 
 
