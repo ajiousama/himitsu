@@ -36,6 +36,42 @@ ECATV_CHANNELS = {
     "ecatv.town_news24": ("たうんNews24", "52345"),
     "ecatv.bousai": ("えひめ・防災チャンネル", "115"),
 }
+
+# Channels that have no usable official programme grid still get a persistent,
+# decorated XMLTV guide so players never show a blank EPG row.
+ECATV_FALLBACK = {
+    "ecatv.machicam24": (
+        "📹✨ 街カメ24｜愛媛の今をLIVE ✨📹",
+        "🎥 愛媛CATV 街カメ24\n📍 愛媛の今をライブ映像でお届けしています。\n✨ 番組表のないライブチャンネルのため、この案内を常時表示します。",
+        "ライブカメラ",
+    ),
+    "ecatv.info": (
+        "📢✨ 愛媛CATV｜お知らせチャンネル ✨📢",
+        "📢 愛媛CATVからのお知らせ・地域情報をお届けします。\n📺 番組表未対応のため、この案内を常時表示しています。",
+        "地域情報",
+    ),
+    "ecatv.program_promo": (
+        "🎬✨ 愛媛CATV｜番組宣伝ch ✨🎬",
+        "🎬 愛媛CATVのおすすめ番組・放送案内をお届けします。\n📺 番組表未対応のため、この案内を常時表示しています。",
+        "番組案内",
+    ),
+    "ecatv.ehime_channel": (
+        "🍊✨ えひめチャンネル｜愛媛の情報を発信中 ✨🍊",
+        "🍊 愛媛の地域情報・映像をお届けするチャンネルです。\n📡 番組表未対応のため、この案内を常時表示しています。",
+        "地域情報",
+    ),
+    "ecatv.matsuyama_gikai": (
+        "🏛️📡 松山市議会中継｜配信案内",
+        "🏛️ 松山市議会の中継チャンネルです。\n📡 議会中継がある時間帯に映像を配信します。\n📺 中継がない時間帯もEPG欄が空白にならないよう案内を表示しています。",
+        "議会",
+    ),
+    "ecatv.ehime_gikai": (
+        "🏛️📡 愛媛県議会中継｜配信案内",
+        "🏛️ 愛媛県議会の中継チャンネルです。\n📡 議会中継がある時間帯に映像を配信します。\n📺 中継がない時間帯もEPG欄が空白にならないよう案内を表示しています。",
+        "議会",
+    ),
+}
+
 ECATV_JSON_BASE = "https://www.e-catv.ne.jp/epg/json"
 
 EXPLICIT = {
@@ -139,7 +175,8 @@ def add_ecatv_channel(out_root, target_id, display_name, programmes):
 
 def add_fallback(out_root, target_id, target_name, target_group="", sports_status=None):
     ch = ET.SubElement(out_root, "channel", {"id": target_id}); ET.SubElement(ch, "display-name").text = target_name
-    is_youtube_live = target_id.startswith("youtube."); is_ecatv = target_id in ECATV_CHANNELS
+    is_youtube_live = target_id.startswith("youtube.")
+    is_ecatv = target_id in ECATV_CHANNELS or target_id in ECATV_FALLBACK
     group_norm = unicodedata.normalize("NFKC", target_group or "").upper(); is_24h_name = ("CATV" in group_norm) or ("ABEMA" in group_norm)
     sport = (sports_status or {}).get(target_id, {})
     next_text = str(sport.get("next_race_text") or "").strip()
@@ -149,8 +186,12 @@ def add_fallback(out_root, target_id, target_name, target_group="", sports_statu
         category = str(sport.get("section") or "公営競技")
     elif is_youtube_live:
         title = "📡✨ ただいまYouTubeよりライブカメラ中継中 ✨📡"; desc = f"🎥 LIVE CAMERA ON AIR 🎥\n📺 YouTubeからライブ映像を中継しています。\n📍 {target_name}"; category = "ライブカメラ"
+    elif target_id in ECATV_FALLBACK:
+        title, desc, category = ECATV_FALLBACK[target_id]
     elif is_ecatv:
-        title = "こちらのチャンネルは番組表がありません🙇"; desc = "愛媛CATV公式番組表を取得できなかったため、この案内を表示しています。"; category = "番組表なし"
+        title = f"📺✨ 愛媛CATV｜{target_name} ✨📺"
+        desc = f"📡 愛媛CATV\n📺 {target_name}\n番組表を取得できなかったため、チャンネル案内を表示しています。"
+        category = "愛媛CATV"
     elif is_24h_name:
         title = f"24H＋{target_name}"; desc = "実EPG未対応のため、24時間枠でチャンネル名を表示しています。"; category = "24H"
     else:
