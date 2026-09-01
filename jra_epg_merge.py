@@ -40,12 +40,13 @@ B_NAME = 'GCH無料版B（グリーンチャンネルWeb）'
 B_TITLE = '競馬全レース中継　GCH（無料版）'
 
 JST = timezone(timedelta(hours=9))
+EPG_DAYS = 3
 
 
 def fetch_public_epg() -> ET.Element:
     req = urllib.request.Request(
         PUBLIC_EPG,
-        headers={'User-Agent': 'FreeWiFi-GCH-EPG/3.0', 'Cache-Control': 'no-cache'},
+        headers={'User-Agent': 'FreeWiFi-GCH-EPG/3.1', 'Cache-Control': 'no-cache'},
     )
     with urllib.request.urlopen(req, timeout=90) as r:
         return ET.fromstring(r.read())
@@ -81,6 +82,17 @@ def is_race_programme(p: ET.Element) -> bool:
     )
 
 
+def start_date_key(start: str) -> str:
+    m = re.match(r'^(\d{8})', start or '')
+    return m.group(1) if m else ''
+
+
+def rolling_date_keys(days: int = EPG_DAYS) -> set[str]:
+    now = datetime.now(JST)
+    day0 = datetime(now.year, now.month, now.day, tzinfo=JST)
+    return {(day0 + timedelta(days=i)).strftime('%Y%m%d') for i in range(days)}
+
+
 def unique_text(values: list[str]) -> list[str]:
     out: list[str] = []
     seen: set[str] = set()
@@ -93,21 +105,25 @@ def unique_text(values: list[str]) -> list[str]:
 
 
 def build_a_programmes(public_root: ET.Element, active_today: bool) -> list[ET.Element]:
-    """Combine EAST/WEST/HOKKAIDO race EPG into one chronological free channel."""
+    """Combine EAST/WEST/HOKKAIDO race EPG for the rolling 3-day window."""
     by_start: dict[str, list[tuple[str, ET.Element]]] = {}
     today_key = datetime.now(JST).strftime('%Y%m%d')
+    allowed_dates = rolling_date_keys()
 
     for p in public_root.findall('programme'):
         source_id = p.get('channel') or ''
         start = p.get('start') or ''
+        date_key = start_date_key(start)
         if source_id not in A_SOURCE_IDS or not start or not is_race_programme(p):
             continue
-        if start.startswith(today_key) and not active_today:
+        if date_key not in allowed_dates:
+            continue
+        if date_key == today_key and not active_today:
             continue
         by_start.setdefault(start, []).append((source_id, p))
 
     if not by_start:
-        print('A EPG: no JRA race programmes in EAST/WEST/HOKKAIDO')
+        print('A EPG: no JRA race programmes in rolling 3-day window')
         return []
 
     starts = sorted(by_start)
@@ -142,13 +158,11 @@ def add_channel(root: ET.Element, channel_id: str, display_name: str) -> None:
 
 
 def programme_date_key(p: ET.Element) -> str:
-    start = p.get('start') or ''
-    m = re.match(r'^(\d{8})', start)
-    return m.group(1) if m else ''
+    return start_date_key(p.get('start') or '')
 
 
 def build_b_programmes(a_programmes: list[ET.Element], active_today: bool) -> list[ET.Element]:
-    """Build B only on dates that actually have JRA racing."""
+    """Build B only on actual JRA race dates inside the rolling 3-day window."""
     now = datetime.now(JST)
     day0 = datetime(now.year, now.month, now.day, tzinfo=JST)
     active_dates = {programme_date_key(p) for p in a_programmes}
@@ -160,7 +174,7 @@ def build_b_programmes(a_programmes: list[ET.Element], active_today: bool) -> li
         active_dates.discard(today_key)
 
     programmes: list[ET.Element] = []
-    for offset in range(3):
+    for offset in range(EPG_DAYS):
         start = day0 + timedelta(days=offset)
         if start.strftime('%Y%m%d') not in active_dates:
             continue
@@ -222,14 +236,10 @@ def sync_custom_logo_base_epg(
     public_root: ET.Element,
     active_today_ids: set[str],
 ) -> dict[str, int]:
-    """Attach EPG to the custom-logo GCH/EAST/WEST/HOKKAIDO HQ/LQ routes.
-
-    HQ and LQ intentionally share the same tvg-id, so one XMLTV channel feeds
-    both playlist entries.
-    """
+    """Attach EPG to the custom-logo GCH/EAST/WEST/HOKKAIDO HQ/LQ routes."""
     today_key = datetime.now(JST).strftime('%Y%m%d')
+    allowed_dates = rolling_date_keys()
 
-    # Capture the normal Green Channel grid before removing/replacing jra.gch.
     normal_gch_programmes = [
         copy.deepcopy(p)
         for p in guides_root.findall('programme')
@@ -242,20 +252,21 @@ def sync_custom_logo_base_epg(
 
     counts = {cid: 0 for cid in BASE_IDS}
 
-    # GCH HQ/LQ gets the same real programme grid as the persistent normal GCH.
+    # GCH HQ/LQ mirrors the persistent full Green Channel grid.
     for p in normal_gch_programmes:
         guides_root.append(clone_for_channel(p, 'jra.gch'))
         counts['jra.gch'] += 1
 
-    # Regional race feeds get actual race rows only. Today is additionally
-    # guarded by verified status so stale upstream rows cannot resurrect a
-    # non-running feed.
+    # Regional feeds: race rows only, limited to today + next 2 days.
     for p in public_root.findall('programme'):
         cid = p.get('channel') or ''
         start = p.get('start') or ''
+        date_key = start_date_key(start)
         if cid not in A_SOURCE_IDS or not start or not is_race_programme(p):
             continue
-        if start.startswith(today_key) and cid not in active_today_ids:
+        if date_key not in allowed_dates:
+            continue
+        if date_key == today_key and cid not in active_today_ids:
             continue
         guides_root.append(copy.deepcopy(p))
         counts[cid] += 1
