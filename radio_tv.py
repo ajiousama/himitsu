@@ -100,7 +100,7 @@ def make_art(station: str) -> pathlib.Path:
     else:
         text = "NHK RADIO 1" if "r1" in station else "NHK FM"
         box = dr.textbbox((0, 0), text, font=_font(60, True))
-        dr.text(((w - (box[2]-box[0]))//2, 94), text, fill=accent, font=_font(60, True))
+        dr.text(((w - (box[2] - box[0])) // 2, 94), text, fill=accent, font=_font(60, True))
 
     badge = "NOW PLAYING"
     bf = _font(19, True)
@@ -113,7 +113,7 @@ def make_art(station: str) -> pathlib.Path:
     dr.rectangle((0, 300, w, 360), fill=(13, 17, 22))
     dr.text((18, 311), display, fill="white", font=_font(22, True))
     fb = dr.textbbox((0, 0), freq, font=_font(16, False))
-    dr.text((w - (fb[2]-fb[0]) - 18, 334), freq, fill=(225, 230, 235), font=_font(16, False))
+    dr.text((w - (fb[2] - fb[0]) - 18, 334), freq, fill=(225, 230, 235), font=_font(16, False))
 
     im.save(path, "JPEG", quality=90, optimize=True)
     return path
@@ -128,9 +128,6 @@ def audio_url(station: str) -> str:
 
 
 def ffmpeg_exe() -> str:
-    # Render native runtimes provide a system ffmpeg. Prefer it explicitly so
-    # we never fall back to imageio-ffmpeg's bundled binary, which segfaulted
-    # on Render with rc=-11.
     for candidate in ("/usr/bin/ffmpeg", "/usr/local/bin/ffmpeg"):
         if os.path.isfile(candidate) and os.access(candidate, os.X_OK):
             return candidate
@@ -268,17 +265,29 @@ def debug_station(handler, station: str):
 
     cmd = ffmpeg_cmd(station)
     probe = cmd[:-1] + [str(debug_path)]
-    probe[probe.index("-re"):probe.index("-re")] = ["-t", "4"]
+    # -t must be an output option. Putting it before the first input only
+    # stopped the looping image input and left the live radio input running.
+    out_fmt = probe.index("-f")
+    probe[out_fmt:out_fmt] = ["-t", "4"]
     try:
-        p = subprocess.run(probe, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, timeout=22)
+        p = subprocess.run(probe, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, timeout=30)
         size = debug_path.stat().st_size if debug_path.exists() else 0
         lines.append(f"ffmpeg_rc={p.returncode}")
         lines.append(f"output_bytes={size}")
         err = p.stderr.decode("utf-8", "replace").strip()
         if err:
             lines.append("ffmpeg_stderr=" + err[-5000:].replace("\n", " | "))
+    except subprocess.TimeoutExpired as e:
+        size = debug_path.stat().st_size if debug_path.exists() else 0
+        lines.append(f"ffmpeg_probe_error=TimeoutExpired after {e.timeout}s")
+        lines.append(f"output_bytes={size}")
+        if e.stderr:
+            err = e.stderr.decode("utf-8", "replace") if isinstance(e.stderr, bytes) else str(e.stderr)
+            lines.append("ffmpeg_stderr=" + err[-5000:].replace("\n", " | "))
     except Exception as e:
+        size = debug_path.stat().st_size if debug_path.exists() else 0
         lines.append(f"ffmpeg_probe_error={type(e).__name__}: {e}")
+        lines.append(f"output_bytes={size}")
 
     body = ("\n".join(lines) + "\n").encode("utf-8")
     handler.send_response(200)
