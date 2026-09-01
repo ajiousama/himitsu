@@ -75,6 +75,18 @@ function firstMediaUrl(text, source) {
   return null;
 }
 
+function latestProgramDateTime(text) {
+  const marker = '#EXT-X-PROGRAM-DATE-TIME:';
+  let latest = NaN;
+  for (const line of text.split(/\r?\n/)) {
+    const s = line.trim();
+    if (!s.startsWith(marker)) continue;
+    const t = Date.parse(s.slice(marker.length).trim());
+    if (Number.isFinite(t) && (!Number.isFinite(latest) || t > latest)) latest = t;
+  }
+  return latest;
+}
+
 function validateNhkUrl(raw) {
   const u = new URL(raw);
   if (u.protocol !== 'https:') throw new Error('NHK relay requires https');
@@ -196,8 +208,8 @@ function patchSegment(source, sequence) {
   return out;
 }
 
-function videoPlaylist(req, station) {
-  const nowSeq = Math.floor(Date.now() / (SEGMENT_SECONDS * 1000));
+function videoPlaylist(req, station, anchorMs = Date.now()) {
+  const nowSeq = Math.floor(anchorMs / (SEGMENT_SECONDS * 1000));
   const first = nowSeq - 7;
   const lines = [
     '#EXTM3U',
@@ -261,7 +273,10 @@ export default async function handler(req, res) {
       return send(res, 200, text, 'application/vnd.apple.mpegurl; charset=utf-8');
     }
     if (stage === 'video') {
-      return send(res, 200, videoPlaylist(req, station), 'application/vnd.apple.mpegurl; charset=utf-8');
+      const audioText = await audioMedia(req, station, cfg);
+      const audioEdge = latestProgramDateTime(audioText);
+      const anchorMs = Number.isFinite(audioEdge) ? audioEdge : Date.now();
+      return send(res, 200, videoPlaylist(req, station, anchorMs), 'application/vnd.apple.mpegurl; charset=utf-8');
     }
     if (stage === 'status') {
       const [initOk, segOk] = await Promise.all([
