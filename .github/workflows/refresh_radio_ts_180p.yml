@@ -42,6 +42,7 @@ jobs:
           mkdir -p "$OUTROOT"
 
           stations=(
+            nhk_r1_osaka nhk_fm_osaka nhk_r1_matsuyama nhk_fm_matsuyama
             JOEU-FM RNB ABC CCL 802 FMO MBS OBC KBS ALPHA-STATION E-RADIO CRK
           )
 
@@ -51,7 +52,7 @@ jobs:
             test -s "$card"
             mkdir -p "$out"
 
-            # Keep the exact stable timing confirmed on iPhone/M3U IPTV:
+            # Stable settings confirmed on iPhone/M3U IPTV:
             # MPEG-TS, H.264 baseline, 320x180, 1 fps, 5-minute segments.
             ffmpeg -y -hide_banner -loglevel error \
               -loop 1 -framerate 1 -i "$card" \
@@ -78,9 +79,16 @@ jobs:
           import math, os
 
           stations = [
+              'nhk_r1_osaka','nhk_fm_osaka','nhk_r1_matsuyama','nhk_fm_matsuyama',
               'JOEU-FM','RNB','ABC','CCL','802','FMO','MBS','OBC',
               'KBS','ALPHA-STATION','E-RADIO','CRK'
           ]
+          nhk_audio = {
+              'nhk_r1_osaka': 'https://simul2.drdi.st.nhk/live/12/joined/master.m3u8',
+              'nhk_fm_osaka': 'https://simul2.drdi.st.nhk/live/13/joined/master.m3u8',
+              'nhk_r1_matsuyama': 'https://simul2.drdi.st.nhk/live/16/joined/master.m3u8',
+              'nhk_fm_matsuyama': 'https://simul2.drdi.st.nhk/live/17/joined/master.m3u8',
+          }
           root = Path(os.environ['OUTROOT'])
           JST = timezone(timedelta(hours=9))
           now = datetime.now(JST)
@@ -117,11 +125,16 @@ jobs:
                   stamp += timedelta(seconds=duration)
               lines += ['#EXT-X-ENDLIST', '']
               (out / 'video.m3u8').write_text('\n'.join(lines), encoding='utf-8')
+
+              audio = nhk_audio.get(sid)
+              if audio is None:
+                  audio = f'https://himitsu-six.vercel.app/api/radiko?station={sid}&stage=media'
+
               (out / 'master.m3u8').write_text('\n'.join([
                   '#EXTM3U',
                   '#EXT-X-VERSION:6',
                   '#EXT-X-INDEPENDENT-SEGMENTS',
-                  f'#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="radio",NAME="{sid} radio",DEFAULT=YES,AUTOSELECT=YES,CHANNELS="2",URI="https://himitsu-six.vercel.app/api/radiko?station={sid}&stage=media"',
+                  f'#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="radio",NAME="{sid} radio",DEFAULT=YES,AUTOSELECT=YES,CHANNELS="2",URI="{audio}"',
                   '#EXT-X-STREAM-INF:BANDWIDTH=180000,AVERAGE-BANDWIDTH=120000,RESOLUTION=320x180,FRAME-RATE=1.000,CODECS="avc1.42e01e,mp4a.40.5",AUDIO="radio",CLOSED-CAPTIONS=NONE',
                   'video.m3u8',
                   '',
@@ -147,7 +160,7 @@ jobs:
           git commit -m 'Refresh 180p radio TS assets'
           git push --force origin HEAD:radio-ts-assets
 
-      - name: Switch FreeWiFi radiko stations to stable TS visuals
+      - name: Switch FreeWiFi radio stations to stable TS visuals
         shell: bash
         run: |
           set -euo pipefail
@@ -157,14 +170,22 @@ jobs:
           python - <<'PY'
           from pathlib import Path
 
-          stations = [
+          radiko = [
               'JOEU-FM','RNB','ABC','CCL','802','FMO','MBS','OBC',
               'KBS','ALPHA-STATION','E-RADIO','CRK'
           ]
+          nhk = {
+              'nhk_r1_osaka': 'https://himitsu-six.vercel.app/api/radio-tv?station=nhk_r1_osaka',
+              'nhk_fm_osaka': 'https://simul2.drdi.st.nhk/live/13/joined/master.m3u8',
+              'nhk_r1_matsuyama': 'https://himitsu-six.vercel.app/api/radio-tv?station=nhk_r1_matsuyama',
+              'nhk_fm_matsuyama': 'https://simul2.drdi.st.nhk/live/17/joined/master.m3u8',
+          }
+
           p = Path('freewifi')
           text = p.read_text(encoding='utf-8')
           changed = 0
-          for sid in stations:
+
+          for sid in radiko:
               old = f'https://himitsu-six.vercel.app/api/radiko?station={sid}'
               new = f'https://raw.githubusercontent.com/ajiousama/himitsu/radio-ts-assets/{sid}/master.m3u8'
               if old in text:
@@ -172,6 +193,15 @@ jobs:
                   changed += 1
               elif new not in text:
                   raise SystemExit(f'{sid}: neither direct-audio nor TS URL found in freewifi')
+
+          for sid, old in nhk.items():
+              new = f'https://raw.githubusercontent.com/ajiousama/himitsu/radio-ts-assets/{sid}/master.m3u8'
+              if old in text:
+                  text = text.replace(old, new)
+                  changed += 1
+              elif new not in text:
+                  raise SystemExit(f'{sid}: neither old nor TS URL found in freewifi')
+
           p.write_text(text, encoding='utf-8')
           print(f'FreeWiFi radio entries switched: {changed}')
           PY
@@ -181,5 +211,5 @@ jobs:
             echo 'FreeWiFi already uses TS visuals'
             exit 0
           fi
-          git commit -m 'Use stable 180p TS visuals for radiko stations'
+          git commit -m 'Use stable 180p TS visuals for all radio stations'
           git push origin main
