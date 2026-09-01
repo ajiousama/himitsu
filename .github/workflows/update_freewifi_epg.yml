@@ -19,6 +19,7 @@ on:
       - "kick_channels.json"
       - "kick_epg.py"
       - "public_sports_epg_merge.py"
+      - "keirin_epg_direct.py"
       - "autorace_epg_direct.py"
       - "jra_epg_merge.py"
       - "jra_freewifi_finalize.py"
@@ -145,6 +146,9 @@ jobs:
       - name: Merge public sports EPG for today's venues
         run: python public_sports_epg_merge.py
 
+      - name: Repair today's KEIRIN EPG from current race cards
+        run: python keirin_epg_direct.py
+
       - name: Repair today's AutoRace EPG from official race cards
         run: python autorace_epg_direct.py
 
@@ -188,6 +192,7 @@ jobs:
             python epg_build.py
             python radiko_epg_merge.py
             python public_sports_epg_merge.py
+            python keirin_epg_direct.py
             python autorace_epg_direct.py
             python jra_epg_merge.py
             python kick_epg.py
