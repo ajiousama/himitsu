@@ -12,6 +12,8 @@ on:
       - "freewifi"
       - "other_live.m3u"
       - "epg_build.py"
+      - "radiko_epg.py"
+      - "radiko_epg_merge.py"
       - "kick_channels.json"
       - "kick_epg.py"
       - "public_sports_epg_merge.py"
@@ -134,6 +136,9 @@ jobs:
       - name: Build merged EPG
         run: python epg_build.py
 
+      - name: Merge selected Radiko EPG
+        run: python radiko_epg_merge.py
+
       - name: Merge public sports EPG for today's venues
         run: python public_sports_epg_merge.py
 
@@ -144,7 +149,10 @@ jobs:
         run: python kick_epg.py
 
       - name: Validate XML
-        run: python -c "import xml.etree.ElementTree as ET; ET.parse('guides.xml'); print('XML OK')"
+        run: |
+          python -c "import xml.etree.ElementTree as ET; ET.parse('guides.xml'); print('XML OK')"
+          test "$(grep -c '<channel id=\"radiko\.' guides.xml || true)" -gt 0
+          test "$(grep -c '<programme .*channel=\"radiko\.' guides.xml || true)" -gt 0
 
       - name: Publish generated EPG with rebuild retry
         shell: bash
@@ -172,10 +180,13 @@ jobs:
             git fetch origin main
             git reset --hard origin/main
             python epg_build.py
+            python radiko_epg_merge.py
             python public_sports_epg_merge.py
             python jra_epg_merge.py
             python kick_epg.py
             python -c "import xml.etree.ElementTree as ET; ET.parse('guides.xml'); print('XML OK')"
+            test "$(grep -c '<channel id=\"radiko\.' guides.xml || true)" -gt 0
+            test "$(grep -c '<programme .*channel=\"radiko\.' guides.xml || true)" -gt 0
             if publish_epg; then
               exit 0
             fi
