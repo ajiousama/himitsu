@@ -1,0 +1,105 @@
+name: Verify and Apply Render NHK Radio TV
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/apply_nhk_radio_tv_render.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: apply-render-nhk-radio-tv
+  cancel-in-progress: true
+
+jobs:
+  verify-and-apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify Render mux for all four NHK radio stations
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE='https://ajiousama-radiko.onrender.com/radio-debug'
+          for station in nhk_r1_osaka nhk_fm_osaka nhk_r1_matsuyama nhk_fm_matsuyama; do
+            echo "=== $station ==="
+            body=''
+            for i in $(seq 1 4); do
+              if body=$(curl -fsS --max-time 40 "$BASE/$station"); then
+                break
+              fi
+              sleep 5
+            done
+            printf '%s\n' "$body"
+            echo "$body" | grep -q '^ffmpeg=/usr/bin/ffmpeg$'
+            echo "$body" | grep -q '^ffmpeg_rc=0$'
+            bytes=$(printf '%s\n' "$body" | sed -n 's/^output_bytes=//p' | tail -1)
+            test -n "$bytes"
+            test "$bytes" -gt 0
+          done
+
+      - name: Switch four NHK stations to Render image radio TV
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import re
+          from pathlib import Path
+
+          targets = {
+              'nhk_r1_osaka': 'nhk_r1_osaka',
+              'nhk_fm_osaka': 'nhk_fm_osaka',
+              'nhk_r1_matsuyama': 'nhk_r1_matsuyama',
+              'nhk_fm_matsuyama': 'nhk_fm_matsuyama',
+          }
+          p = Path('freewifi')
+          lines = p.read_text(encoding='utf-8-sig').splitlines()
+          found = set()
+          for i, line in enumerate(lines):
+              if not line.lstrip().startswith('#EXTINF:'):
+                  continue
+              m = re.search(r'tvg-id="([^"]+)"', line)
+              if not m or m.group(1) not in targets:
+                  continue
+              tvgid = m.group(1)
+              j = i + 1
+              while j < len(lines) and not lines[j].strip():
+                  j += 1
+              if j >= len(lines) or lines[j].lstrip().startswith('#'):
+                  raise SystemExit(f'missing stream URL after {tvgid}')
+              lines[j] = f'https://ajiousama-radiko.onrender.com/radio-tv/{targets[tvgid]}'
+              found.add(tvgid)
+          missing = sorted(set(targets) - found)
+          if missing:
+              raise SystemExit('missing NHK entries: ' + ', '.join(missing))
+          p.write_text('\n'.join(lines).rstrip() + '\n', encoding='utf-8')
+          print('updated NHK:', len(found))
+          PY
+
+      - name: Validate all 16 Render radio TV URLs
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(grep -c '^https://ajiousama-radiko.onrender.com/radio-tv/' freewifi)" -eq 16
+          echo 'all 16 radio stations now use Render image+audio streams'
+
+      - name: Commit FreeWiFi NHK update
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add freewifi
+          if git diff --cached --quiet; then
+            echo 'NHK already current'
+            exit 0
+          fi
+          git commit -m 'Use Render image radio TV for four NHK stations'
+          git pull --rebase origin main
+          git push origin HEAD:main
