@@ -8,6 +8,7 @@ import xml.etree.ElementTree as ET
 FREEWIFI = Path('freewifi')
 GUIDES = Path('guides.xml')
 STATUS_JSON = Path('today_public_sports_status.json')
+VERIFIED_JSON = Path('verified_daily_status.json')
 PUBLIC_EPG_URL = 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/epg.xml'
 PREFIXES = ('keirin.', 'chihou.', 'boat.', 'auto.')
 JST = timezone(timedelta(hours=9))
@@ -27,6 +28,33 @@ MODE_LABELS = {
     'overnight': 'オーバーミッドナイト',
 }
 
+BOAT_IDS = {
+    '桐生': 'boat.kiryu',
+    '戸田': 'boat.toda',
+    '江戸川': 'boat.edogawa',
+    '平和島': 'boat.heiwajima',
+    '多摩川': 'boat.tamagawa',
+    '浜名湖': 'boat.hamanako',
+    '蒲郡': 'boat.gamagori',
+    '常滑': 'boat.tokoname',
+    '津': 'boat.tsu',
+    '三国': 'boat.mikuni',
+    'びわこ': 'boat.biwako',
+    '住之江': 'boat.suminoe',
+    '尼崎': 'boat.amagasaki',
+    '鳴門': 'boat.naruto',
+    '丸亀': 'boat.marugame',
+    '児島': 'boat.kojima',
+    '宮島': 'boat.miyajima',
+    '徳山': 'boat.tokuyama',
+    '下関': 'boat.shimonoseki',
+    '若松': 'boat.wakamatsu',
+    '芦屋': 'boat.ashiya',
+    '福岡': 'boat.fukuoka',
+    '唐津': 'boat.karatsu',
+    '大村': 'boat.omura',
+}
+
 FULLWIDTH = str.maketrans('0123456789', '０１２３４５６７８９')
 
 
@@ -39,16 +67,53 @@ def load_status():
         return {}
 
 
-def wanted_ids(status=None):
-    # today_public_sports_status.json is authoritative. 以前はfreewifi全体を
-    # 走査していたため、非開催のboat.*までEPGへ再混入していた。
+def load_verified_boat_meta():
+    """Keep today's officially verified BOAT venues in EPG even when stream lookup fails."""
+    if not VERIFIED_JSON.exists():
+        return {}
+    try:
+        cfg = json.loads(VERIFIED_JSON.read_text(encoding='utf-8-sig'))
+    except Exception:
+        return {}
+    if cfg.get('date') != datetime.now(JST).date().isoformat():
+        return {}
+
+    venues = (cfg.get('public_sports') or {}).get('ボートレース') or []
+    modes = (cfg.get('public_sports_modes') or {}).get('ボートレース') or {}
+    out = {}
+    for venue in venues:
+        cid = BOAT_IDS.get(venue)
+        if not cid:
+            print(f'WARNING: verified BOAT venue has no tvg-id mapping: {venue}')
+            continue
+        mode = modes.get(venue) or 'day'
+        out[cid] = {
+            'section': 'ボートレース',
+            'name': f'BOATRACE{venue}',
+            'mode': mode,
+            'source': 'verified daily schedule',
+            'epg_available': True,
+            'next_race': None,
+            'next_race_text': '本日開催あり／EPG確保',
+        }
+    return out
+
+
+def wanted_ids(status=None, verified_boats=None):
+    # today_public_sports_status.json is normally authoritative, but BOAT stream
+    # acquisition must not decide EPG eligibility.  Verified official BOAT venues
+    # are therefore always added independently of playback/playlist state.
     if status is None:
         status = load_status()
+    if verified_boats is None:
+        verified_boats = load_verified_boat_meta()
+
     ids = {cid for cid in status if cid.startswith(PREFIXES)}
+    ids.update(verified_boats)
     if ids:
         return ids
 
-    # Status JSONが無い時だけ従来方式へフォールバック。
+    # Status JSONも当日確認表も無い時だけ従来方式へフォールバック。
     ids = set()
     text = FREEWIFI.read_text(encoding='utf-8-sig', errors='replace')
     for line in text.splitlines():
@@ -61,7 +126,7 @@ def wanted_ids(status=None):
 
 
 def fetch_public_epg():
-    req = urllib.request.Request(PUBLIC_EPG_URL, headers={'User-Agent': 'FreeWiFi-PublicSports-EPG/2.2', 'Cache-Control': 'no-cache'})
+    req = urllib.request.Request(PUBLIC_EPG_URL, headers={'User-Agent': 'FreeWiFi-PublicSports-EPG/2.3', 'Cache-Control': 'no-cache'})
     with urllib.request.urlopen(req, timeout=60) as r:
         return ET.fromstring(r.read())
 
@@ -150,14 +215,20 @@ def validate_written_guides(wanted):
             'Public sports EPG validation failed: '
             f'missing_channels={missing_channels}, missing_programmes={missing_programmes}'
         )
-    print(f'Public sports EPG validation OK: {len(wanted)}/{len(wanted)} active channels have EPG')
+    print(f'Public sports EPG validation OK: {len(wanted)}/{len(wanted)} active/verified channels have EPG')
 
 
 def main():
     status = load_status()
-    wanted = wanted_ids(status)
+    verified_boats = load_verified_boat_meta()
+    wanted = wanted_ids(status, verified_boats)
     if not wanted:
         raise SystemExit('Public sports EPG: no active target channels found')
+
+    # Stream/playlist status wins when available; verified BOAT schedule fills the
+    # holes when BOATCAST playback acquisition is temporarily broken.
+    effective_meta = dict(verified_boats)
+    effective_meta.update(status)
 
     dst = ET.parse(GUIDES).getroot()
     try:
@@ -166,8 +237,7 @@ def main():
         print(f'Public sports EPG fetch failed: {e}')
         src = ET.Element('tv')
 
-    # 全公営競技EPGを一度除去してから「本日開催分だけ」を戻す。
-    # これで非開催ボートの「データ取得準備中」等が残留しない。
+    # 全公営競技EPGを一度除去してから「現在対象＋当日確認済みボート」を戻す。
     removed = 0
     for el in list(dst):
         cid = el.get('id') if el.tag == 'channel' else el.get('channel') if el.tag == 'programme' else None
@@ -201,7 +271,7 @@ def main():
                 dst.append(copied)
                 programmes += 1
         else:
-            meta = status.get(cid)
+            meta = effective_meta.get(cid)
             if meta:
                 add_fallback(dst, cid, meta)
                 channels += 1
@@ -211,7 +281,11 @@ def main():
     ET.indent(dst, space='  ')
     GUIDES.write_bytes(ET.tostring(dst, encoding='utf-8', xml_declaration=True))
     validate_written_guides(wanted)
-    print(f'Public sports EPG merged: channels={channels}, programmes={programmes}, wanted={len(wanted)}, fallbacks={fallbacks}, removed_old={removed}, race_titles_normalized={normalized}')
+    print(
+        f'Public sports EPG merged: channels={channels}, programmes={programmes}, '
+        f'wanted={len(wanted)}, verified_boats={len(verified_boats)}, fallbacks={fallbacks}, '
+        f'removed_old={removed}, race_titles_normalized={normalized}'
+    )
 
 
 if __name__ == '__main__':
