@@ -2,6 +2,8 @@ name: Apply Radio TV to FreeWiFi
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: '2 * * * *'
   push:
     branches: [main]
     paths:
@@ -31,7 +33,7 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y -qq ffmpeg
 
-      - name: Build 16 static radio HLS channels
+      - name: Build or refresh 16 radio image HLS channels
         run: python build_radio_tv_static.py
 
       - name: Validate generated HLS locally
@@ -45,17 +47,12 @@ jobs:
             test -s "$d/init.mp4"
             test "$(find "$d" -maxdepth 1 -name 'seg_*.m4s' | wc -l)" -eq 24
             grep -q '#EXT-X-MEDIA:TYPE=AUDIO' "$d/master.m3u8"
-            grep -q '#EXT-X-TARGETDURATION:3600' "$d/video.m3u8"
+            grep -q 'CODECS="avc1.64001e,mp4a.40.2"' "$d/master.m3u8"
+            grep -q '#EXT-X-START:TIME-OFFSET=' "$d/video.m3u8"
+            grep -q '#EXT-X-PROGRAM-DATE-TIME:' "$d/video.m3u8"
           done
-          cat radio-tv-static/ABC/init.mp4 radio-tv-static/ABC/seg_00.m4s > /tmp/abc-first.mp4
-          DUR=$(ffprobe -v error -show_entries packet=duration_time -select_streams v:0 -of csv=p=0 /tmp/abc-first.mp4 | head -1)
-          python - <<PY
-          d=float('$DUR')
-          assert 3599 <= d <= 3601, d
-          print('ABC held-frame duration:', d)
-          PY
 
-      - name: Commit static HLS assets
+      - name: Commit synchronized HLS playlists
         shell: bash
         run: |
           set -euo pipefail
@@ -63,27 +60,25 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add radio-tv-static
           if git diff --cached --quiet; then
-            echo 'static radio HLS already current'
+            echo 'radio HLS already current'
           else
-            git commit -m 'Build 16 static radio image HLS channels'
+            git commit -m 'Sync radio image HLS to current time'
             git pull --rebase origin main
             git push origin HEAD:main
           fi
 
-      - name: Wait for raw HLS assets
+      - name: Wait for raw HLS playlists
         shell: bash
         run: |
           set -euo pipefail
           BASE='https://raw.githubusercontent.com/ajiousama/himitsu/main/radio-tv-static'
           ok=0
           for i in $(seq 1 24); do
-            echo "raw check $i/24"
             if curl -fsS --max-time 20 "$BASE/ABC/master.m3u8" -o /tmp/master.m3u8 \
               && curl -fsS --max-time 20 "$BASE/ABC/video.m3u8" -o /tmp/video.m3u8 \
-              && curl -fsS --max-time 20 "$BASE/ABC/seg_00.m4s" -o /tmp/seg.m4s \
               && grep -q 'TYPE=AUDIO' /tmp/master.m3u8 \
-              && grep -q '#EXTINF:3600' /tmp/video.m3u8 \
-              && test -s /tmp/seg.m4s; then
+              && grep -q '#EXT-X-START:TIME-OFFSET=' /tmp/video.m3u8 \
+              && grep -q '#EXT-X-PROGRAM-DATE-TIME:' /tmp/video.m3u8; then
               ok=1
               break
             fi
@@ -97,10 +92,10 @@ jobs:
           set -euo pipefail
           curl -fsS --max-time 30 'https://himitsu-six.vercel.app/api/radiko?station=ABC&stage=media' -o /tmp/abc-audio.m3u8
           grep -q '#EXTM3U' /tmp/abc-audio.m3u8
-          grep -q '#EXTINF:' /tmp/abc-audio.m3u8
+          grep -q '#EXT-X-PROGRAM-DATE-TIME:' /tmp/abc-audio.m3u8
           echo 'ABC Radiko live audio OK'
 
-      - name: Switch 16 FreeWiFi radio entries to image HLS
+      - name: Keep 16 FreeWiFi radio entries on image HLS
         run: python radio_tv_freewifi.py
 
       - name: Validate and commit FreeWiFi update
@@ -117,6 +112,6 @@ jobs:
             echo 'freewifi already uses 16 image HLS channels'
             exit 0
           fi
-          git commit -m 'Use image HLS for 16 FreeWiFi radio channels'
+          git commit -m 'Keep 16 FreeWiFi radio image HLS channels'
           git pull --rebase origin main
           git push origin HEAD:main
