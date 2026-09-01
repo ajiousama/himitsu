@@ -209,24 +209,6 @@ def rewrite_group(extinf):
     comma=extinf.find(','); return extinf[:comma]+f' group-title="{GROUP}"'+extinf[comma:] if comma>=0 else extinf+f' group-title="{GROUP}"'
 
 
-def prune_abema_rakuten(text):
-    lines=text.splitlines(); out=[]; i=0
-    while i<len(lines):
-        line=lines[i]
-        if not line.startswith('#EXTINF:'): out.append(line); i+=1; continue
-        block=[line]; j=i+1
-        while j<len(lines) and not lines[j].startswith('#EXTINF:') and not lines[j].startswith('## '): block.append(lines[j]); j+=1
-        low=line.lower(); drop=False
-        if 'abema' in low or 'アベマ' in line: drop=not ('アニメ' in line or 'anime' in low)
-        elif 'rakuten' in low or '楽天' in line:
-            keep_rail=any(k in line for k in ('鉄道','電車','列車')) or 'rail' in low or 'train' in low
-            keep_adult=any(k in line for k in ('アダルト','成人','R18','R-18','18禁')) or 'adult' in low
-            drop=not (keep_rail or keep_adult)
-        if not drop: out.extend(block)
-        i=j
-    return '\n'.join(out).rstrip()+'\n'
-
-
 def replace_block(text,block):
     text=re.sub(re.escape(START)+r'.*?'+re.escape(END)+r'\n?','',text,flags=re.S)
     anchor='# === GENERAL_YOUTUBE_MANAGED_START ==='
@@ -235,7 +217,7 @@ def replace_block(text,block):
 
 def main():
     now=datetime.now(JST); today=now.date()
-    base=prune_abema_rakuten(FREEWIFI.read_text(encoding='utf-8-sig',errors='replace'))
+    base=FREEWIFI.read_text(encoding='utf-8-sig',errors='replace')
     base=strip_tvg_ids(base,{x['source_id'] for x in FALLBACK_ENTRIES.values()})
     entries=parse_m3u(fetch_text(PUBLIC_M3U_URL))
     epg_real,last_stop,epg_modes,next_race=epg_state(fetch_text(PUBLIC_EPG_URL))
