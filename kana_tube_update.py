@@ -8,7 +8,8 @@ from pathlib import Path
 FREEWIFI = Path('freewifi')
 OUT = Path('kana_tube.m3u')
 COOKIES = Path('youtube_cookies.txt')
-PAGE = 'https://www.youtube.com/watch?v=0WzMYz0PN_8'
+CHANNEL = 'https://www.youtube.com/@kanatubechannel'
+LIVE_PAGE = CHANNEL + '/live'
 ID = 'youtube.kana_tube'
 NAME = 'かなチューブ'
 LOGO = 'https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/youtube/yt43_01_kana_tube.png'
@@ -33,11 +34,16 @@ def direct(page: str) -> str | None:
 
 
 def find_live() -> str | None:
-    url = direct(PAGE)
+    # First ask the channel's canonical /live endpoint. This follows whatever
+    # video ID Kana Tube is currently using, so a new broadcast does not break
+    # detection when the old watch URL changes.
+    url = direct(LIVE_PAGE)
     if url:
         return url
-    base = PAGE[:-5] if PAGE.endswith('/live') else PAGE
-    for listing in (base+'/streams', base+'/videos'):
+
+    # Fallback: inspect the actual channel listings (not a watch URL + /streams).
+    # Keep the same small request footprint as before: at most two listings.
+    for listing in (CHANNEL+'/streams', CHANNEL+'/videos'):
         p = subprocess.run(base_cmd()+['--flat-playlist','--dump-json','--playlist-end','30',listing], capture_output=True, text=True, timeout=35)
         if p.returncode != 0:
             continue
