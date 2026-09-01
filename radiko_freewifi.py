@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import concurrent.futures
 import os
+import sys
 import urllib.parse
 import urllib.request
 import xml.etree.ElementTree as ET
@@ -11,7 +12,7 @@ from radiko_epg import build_xmltv
 RADIO = Path("radio.m3u")
 GUIDES = Path("guides.xml")
 UA = {"User-Agent": "Mozilla/5.0"}
-BASE = os.environ.get("RADIKO_PUBLIC_BASE", "https://himitsu-six.vercel.app").rstrip("/")
+RADIO_TV_BASE = os.environ.get("RADIO_TV_BASE", "https://ajiousama-radiko.onrender.com").rstrip("/")
 
 
 def region_for_prefecture(n):
@@ -101,7 +102,7 @@ def station_lines(sid, meta, group):
     station = urllib.parse.quote(sid, safe="")
     return [
         f'#EXTINF:-1 tvg-id="radiko.{sid}" tvg-logo="{logo}" group-title="{group}",{name}',
-        f"{BASE}/api/radiko?station={station}",
+        f"{RADIO_TV_BASE}/radio-tv/{station}",
     ]
 
 
@@ -160,16 +161,23 @@ def merge_radiko_epg():
 
 
 def main():
+    playlist_only = "--playlist-only" in sys.argv[1:]
     stations = discover_stations()
     if len(stations) < 100:
         raise SystemExit(f"radiko station discovery too small: {len(stations)}")
     radio_count = write_radio_playlist(stations)
-    epg_channels, epg_programmes = merge_radiko_epg()
-    print(f"radio.m3u Radiko stations: {radio_count}")
-    print(f"Radiko EPG channels: {epg_channels}; programmes: {epg_programmes}")
+    print(f"radio.m3u image+audio Radiko stations: {radio_count}")
     print("FreeWiFi untouched")
-    if radio_count < 100 or epg_channels < 100 or epg_programmes < 500:
-        raise SystemExit("Radiko catalog/EPG result too small")
+    if radio_count < 100:
+        raise SystemExit("Radiko catalog result too small")
+
+    if playlist_only:
+        return
+
+    epg_channels, epg_programmes = merge_radiko_epg()
+    print(f"Radiko EPG channels: {epg_channels}; programmes: {epg_programmes}")
+    if epg_channels < 100 or epg_programmes < 500:
+        raise SystemExit("Radiko EPG result too small")
 
 
 if __name__ == "__main__":
