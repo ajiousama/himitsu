@@ -3,12 +3,11 @@ name: Apply Radio TV to FreeWiFi
 on:
   workflow_dispatch:
   push:
+    branches: [main]
     paths:
       - '.github/workflows/apply_radio_tv.yml'
-      - 'build_radio_tv_assets.py'
+      - 'build_radio_tv_static.py'
       - 'radio_tv_freewifi.py'
-      - 'vercel-radiko/api/radio-tv.mjs'
-      - 'vercel-radiko/vercel.json'
 
 permissions:
   contents: write
@@ -20,90 +19,104 @@ concurrency:
 jobs:
   apply:
     runs-on: ubuntu-latest
-    env:
-      RADIO_TV_BASE: https://himitsu-six.vercel.app/api/radio-tv
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Install card builder requirements
+      - name: Install ffmpeg
         shell: bash
         run: |
           set -euo pipefail
-          python -m pip install --quiet Pillow
           sudo apt-get update -qq
-          sudo apt-get install -y -qq fonts-noto-cjk ffmpeg
+          sudo apt-get install -y -qq ffmpeg
 
-      - name: Build 16 station video cards
-        run: python build_radio_tv_assets.py
+      - name: Build 16 static radio HLS channels
+        run: python build_radio_tv_static.py
 
-      - name: Commit video assets
+      - name: Validate generated HLS locally
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(find radio-tv-static -mindepth 1 -maxdepth 1 -type d | wc -l)" -eq 16
+          for d in radio-tv-static/*/; do
+            test -s "$d/master.m3u8"
+            test -s "$d/video.m3u8"
+            test -s "$d/init.mp4"
+            test "$(find "$d" -maxdepth 1 -name 'seg_*.m4s' | wc -l)" -eq 24
+            grep -q '#EXT-X-MEDIA:TYPE=AUDIO' "$d/master.m3u8"
+            grep -q '#EXT-X-TARGETDURATION:3600' "$d/video.m3u8"
+          done
+          cat radio-tv-static/ABC/init.mp4 radio-tv-static/ABC/seg_00.m4s > /tmp/abc-first.mp4
+          DUR=$(ffprobe -v error -show_entries packet=duration_time -select_streams v:0 -of csv=p=0 /tmp/abc-first.mp4 | head -1)
+          python - <<PY
+          d=float('$DUR')
+          assert 3599 <= d <= 3601, d
+          print('ABC held-frame duration:', d)
+          PY
+
+      - name: Commit static HLS assets
         shell: bash
         run: |
           set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add vercel-radiko/radio-video-assets
+          git add radio-tv-static
           if git diff --cached --quiet; then
-            echo 'radio video assets already current'
+            echo 'static radio HLS already current'
           else
-            git commit -m 'Build radio TV card video assets'
+            git commit -m 'Build 16 static radio image HLS channels'
             git pull --rebase origin main
             git push origin HEAD:main
           fi
 
-      - name: Wait for Vercel radio TV deployment
+      - name: Wait for raw HLS assets
         shell: bash
         run: |
           set -euo pipefail
+          BASE='https://raw.githubusercontent.com/ajiousama/himitsu/main/radio-tv-static'
           ok=0
-          for i in $(seq 1 40); do
-            echo "Vercel check $i/40"
-            STATUS=$(curl -fsS --max-time 20 "$RADIO_TV_BASE?station=ABC&stage=status" || true)
-            echo "$STATUS"
-            if echo "$STATUS" | grep -q '"ok": true'; then
+          for i in $(seq 1 24); do
+            echo "raw check $i/24"
+            if curl -fsS --max-time 20 "$BASE/ABC/master.m3u8" -o /tmp/master.m3u8 \
+              && curl -fsS --max-time 20 "$BASE/ABC/video.m3u8" -o /tmp/video.m3u8 \
+              && curl -fsS --max-time 20 "$BASE/ABC/seg_00.m4s" -o /tmp/seg.m4s \
+              && grep -q 'TYPE=AUDIO' /tmp/master.m3u8 \
+              && grep -q '#EXTINF:3600' /tmp/video.m3u8 \
+              && test -s /tmp/seg.m4s; then
               ok=1
               break
             fi
-            sleep 10
+            sleep 5
           done
           test "$ok" = 1
 
-      - name: Validate video and audio HLS
+      - name: Validate current live audio source
         shell: bash
         run: |
           set -euo pipefail
-          curl -fsS --max-time 20 "$RADIO_TV_BASE?station=ABC&stage=video" -o /tmp/video.m3u8
-          grep -q '#EXT-X-MAP:' /tmp/video.m3u8
-          curl -fsS --max-time 30 "$RADIO_TV_BASE?station=ABC&stage=audio" -o /tmp/audio.m3u8
-          grep -q '#EXTM3U' /tmp/audio.m3u8
-          curl -fsS --max-time 20 "$RADIO_TV_BASE?station=ABC" -o /tmp/master.m3u8
-          grep -q 'TYPE=AUDIO' /tmp/master.m3u8
-          grep -q 'RESOLUTION=640x360' /tmp/master.m3u8
-          echo 'ABC master/video/audio playlists OK'
-
-          curl -fsS --max-time 30 "$RADIO_TV_BASE?station=nhk_r1_matsuyama&stage=audio" -o /tmp/nhk.m3u8
-          grep -q '#EXTM3U' /tmp/nhk.m3u8
-          echo 'NHK Matsuyama audio playlist OK'
-
-          timeout 30 ffprobe -v error -read_intervals '%+8' -show_entries stream=codec_type,codec_name -of csv=p=0 "$RADIO_TV_BASE?station=ABC&stage=video" | tee /tmp/probe.txt
-          grep -q 'h264,video\|video,h264' /tmp/probe.txt
+          curl -fsS --max-time 30 'https://himitsu-six.vercel.app/api/radiko?station=ABC&stage=media' -o /tmp/abc-audio.m3u8
+          grep -q '#EXTM3U' /tmp/abc-audio.m3u8
+          grep -q '#EXTINF:' /tmp/abc-audio.m3u8
+          echo 'ABC Radiko live audio OK'
 
       - name: Switch 16 FreeWiFi radio entries to image HLS
         run: python radio_tv_freewifi.py
 
-      - name: Commit FreeWiFi update
+      - name: Validate and commit FreeWiFi update
         shell: bash
         run: |
           set -euo pipefail
+          COUNT=$(grep -c 'https://raw.githubusercontent.com/ajiousama/himitsu/main/radio-tv-static/.*/master.m3u8' freewifi || true)
+          echo "image radio URLs in freewifi: $COUNT"
+          test "$COUNT" -eq 16
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add freewifi
           if git diff --cached --quiet; then
-            echo 'freewifi already uses radio TV URLs'
+            echo 'freewifi already uses 16 image HLS channels'
             exit 0
           fi
-          git commit -m 'Use image HLS for FreeWiFi radio channels'
+          git commit -m 'Use image HLS for 16 FreeWiFi radio channels'
           git pull --rebase origin main
           git push origin HEAD:main
