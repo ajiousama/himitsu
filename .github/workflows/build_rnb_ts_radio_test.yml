@@ -1,0 +1,130 @@
+name: Build RNB MPEG-TS radio visual test
+
+on:
+  push:
+    paths:
+      - '.github/workflows/build_rnb_ts_radio_test.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Ensure ffmpeg
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! command -v ffmpeg >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install -y ffmpeg
+          fi
+          ffmpeg -version | head -1
+
+      - name: Build RNB static MPEG-TS video window
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT='radio-tv-ts-test/RNB'
+          CARD='vercel-radiko/radio-video-assets/cards/RNB.jpg'
+          test -s "$CARD"
+          rm -rf "$OUT"
+          mkdir -p "$OUT"
+
+          # Eight hours of a 1 fps still picture. No radio audio is re-encoded here.
+          # Audio remains the already-working Vercel radiko HLS rendition.
+          ffmpeg -y -hide_banner -loglevel error \
+            -loop 1 -framerate 1 -i "$CARD" \
+            -t 28800 \
+            -vf "scale=640:360:force_original_aspect_ratio=decrease,pad=640:360:(ow-iw)/2:(oh-ih)/2" \
+            -c:v libx264 -profile:v baseline -level:v 3.0 \
+            -preset ultrafast -tune stillimage -crf 32 \
+            -pix_fmt yuv420p -r 1 -g 10 -keyint_min 10 -sc_threshold 0 -an \
+            -f hls -hls_segment_type mpegts -hls_time 300 -hls_list_size 0 \
+            -hls_flags independent_segments \
+            -hls_segment_filename "$OUT/seg_%03d.ts" \
+            "$OUT/raw.m3u8"
+
+      - name: Add wall-clock timeline and master playlist
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from __future__ import annotations
+          import math
+          import re
+          from datetime import datetime, timedelta, timezone
+          from pathlib import Path
+
+          JST = timezone(timedelta(hours=9))
+          out = Path('radio-tv-ts-test/RNB')
+          raw = (out / 'raw.m3u8').read_text(encoding='utf-8').splitlines()
+          entries = []
+          dur = None
+          for line in raw:
+              if line.startswith('#EXTINF:'):
+                  dur = float(line.split(':', 1)[1].split(',', 1)[0])
+              elif line and not line.startswith('#') and dur is not None:
+                  entries.append((dur, line.strip()))
+                  dur = None
+          if not entries:
+              raise SystemExit('No MPEG-TS segments generated')
+
+          now = datetime.now(JST)
+          start = now.replace(minute=0, second=0, microsecond=0) - timedelta(hours=1)
+          offset = (now - start).total_seconds()
+          target = math.ceil(max(d for d, _ in entries))
+          lines = [
+              '#EXTM3U',
+              '#EXT-X-VERSION:3',
+              '#EXT-X-INDEPENDENT-SEGMENTS',
+              f'#EXT-X-TARGETDURATION:{target}',
+              '#EXT-X-MEDIA-SEQUENCE:0',
+              f'#EXT-X-START:TIME-OFFSET={offset:.3f},PRECISE=YES',
+          ]
+          stamp = start
+          for duration, name in entries:
+              lines.append(f'#EXT-X-PROGRAM-DATE-TIME:{stamp.isoformat(timespec="milliseconds")}')
+              lines.append(f'#EXTINF:{duration:.3f},')
+              lines.append(name)
+              stamp += timedelta(seconds=duration)
+          lines += ['#EXT-X-ENDLIST', '']
+          (out / 'video.m3u8').write_text('\n'.join(lines), encoding='utf-8')
+          (out / 'master.m3u8').write_text('\n'.join([
+              '#EXTM3U',
+              '#EXT-X-VERSION:6',
+              '#EXT-X-INDEPENDENT-SEGMENTS',
+              '#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="radio",NAME="RNB radio",DEFAULT=YES,AUTOSELECT=YES,CHANNELS="2",URI="https://himitsu-six.vercel.app/api/radiko?station=RNB&stage=media"',
+              '#EXT-X-STREAM-INF:BANDWIDTH=350000,AVERAGE-BANDWIDTH=220000,RESOLUTION=640x360,FRAME-RATE=1.000,CODECS="avc1.42e01e,mp4a.40.5",AUDIO="radio",CLOSED-CAPTIONS=NONE',
+              'video.m3u8',
+              '',
+          ]), encoding='utf-8')
+          (out / 'raw.m3u8').unlink(missing_ok=True)
+
+          test = Path('rnb_ts_test.m3u')
+          test.write_text('\n'.join([
+              '#EXTM3U',
+              '#EXTINF:-1 tvg-id="radiko.RNB" tvg-logo="https://radiko.jp/v2/static/station/logo/RNB/lrtrim/688x160.png" group-title="ラジオTEST",RNB南海放送（TS映像テスト）',
+              'https://raw.githubusercontent.com/ajiousama/himitsu/main/radio-tv-ts-test/RNB/master.m3u8',
+              '',
+          ]), encoding='utf-8')
+          print(f'window {start.isoformat()} -> {stamp.isoformat()}, start offset {offset:.1f}s, {len(entries)} segments')
+          PY
+
+      - name: Commit test assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -f radio-tv-ts-test/RNB rnb_ts_test.m3u
+          if git diff --cached --quiet; then
+            echo 'No changes'
+            exit 0
+          fi
+          git commit -m 'Refresh RNB MPEG-TS radio visual test'
+          git push
