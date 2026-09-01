@@ -2,12 +2,25 @@
 from __future__ import annotations
 
 from pathlib import Path
+from urllib.parse import quote
 
 FREEWIFI = Path("freewifi")
-RENDER_BASE = "https://ajiousama-radiko.onrender.com"
+VERCEL_RADIO_TV = "https://himitsu-six.vercel.app/api/radio-tv"
 NHK_LOGO = "https://upload.wikimedia.org/wikipedia/commons/b/bb/NHK_logo_2020.svg"
 NHK_FM_OSAKA = "https://simul2.drdi.st.nhk/live/13/joined/master.m3u8"
 NHK_FM_MATSUYAMA = "https://simul2.drdi.st.nhk/live/17/joined/master.m3u8"
+
+# The Vercel radio-TV service uses stable aliases for NHK R1. Commercial
+# stations use their Radiko station IDs directly.
+RADIO_TV_ALIAS = {
+    "JOBK": "nhk_r1_osaka",
+    "JOZK": "nhk_r1_matsuyama",
+}
+
+
+def radio_tv_url(sid: str) -> str:
+    station = RADIO_TV_ALIAS.get(sid, sid)
+    return f"{VERCEL_RADIO_TV}?station={quote(station, safe='')}"
 
 
 def radiko_entry(tvgid: str, sid: str, name: str, group: str, logo: str | None = None) -> str:
@@ -15,16 +28,13 @@ def radiko_entry(tvgid: str, sid: str, name: str, group: str, logo: str | None =
         logo = f"https://radiko.jp/v2/static/station/logo/{sid}/lrtrim/688x160.png"
     return (
         f'#EXTINF:-1 tvg-id="{tvgid}" tvg-logo="{logo}" group-title="{group}",{name}\n'
-        f'{RENDER_BASE}/radio-tv/{sid}\n'
+        f'{radio_tv_url(sid)}\n'
     )
 
 
 def compact_block() -> str:
     parts: list[str] = ["## ラジオ\n\n"]
 
-    # NHK R1 Osaka/Matsuyama are available through Radiko and therefore can
-    # use the same image+audio mux as commercial stations. Local NHK-FM Osaka
-    # and Matsuyama stay on their regional direct feeds.
     parts.append(radiko_entry("radiko.JOBK", "JOBK", "NHKラジオ第1（大阪）", "ラジオ"))
     parts.append(
         f'#EXTINF:-1 tvg-id="nhk_fm_osaka" tvg-logo="{NHK_LOGO}" group-title="ラジオ",NHK-FM（大阪）\n'
@@ -77,14 +87,16 @@ def main() -> int:
         raise RuntimeError("NHK-FM Matsuyama direct feed disappeared; refusing to write")
 
     radio_section = updated[start:updated.find("## 愛媛CATV", start)]
-    render_count = radio_section.count(RENDER_BASE + "/radio-tv/")
-    if not 12 <= render_count <= 20:
-        raise RuntimeError(f"compact FreeWiFi radio count unexpected: {render_count}")
-    if "### 北海道" in radio_section or "/radio-tv/TBS" in radio_section:
+    vercel_count = radio_section.count(VERCEL_RADIO_TV + "?station=")
+    if not 12 <= vercel_count <= 20:
+        raise RuntimeError(f"compact FreeWiFi radio count unexpected: {vercel_count}")
+    if "### 北海道" in radio_section or "station=TBS" in radio_section:
         raise RuntimeError("nationwide catalog leaked into FreeWiFi radio section")
+    if "ajiousama-radiko.onrender.com/radio-tv/" in radio_section:
+        raise RuntimeError("Render radio-TV URL leaked into compact FreeWiFi radio section")
 
     FREEWIFI.write_text(updated, encoding="utf-8")
-    print(f"FreeWiFi compact radio restored: {render_count} image+audio stations + 2 local NHK-FM feeds")
+    print(f"FreeWiFi compact radio restored: {vercel_count} Vercel image+audio stations + 2 local NHK-FM feeds")
     return 0
 
 
