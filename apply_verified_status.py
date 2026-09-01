@@ -104,10 +104,11 @@ def main():
     text = put_kanto_before_kansai(text)
     FREEWIFI.write_text(text.rstrip() + '\n', encoding='utf-8')
 
-    # Keep every Green Channel viewing route in its dedicated player group.
-    # This runs after daily JRA/public-sports rewriting so later updates cannot
-    # push GCH entries back into BS / 競馬 / 今日の開催場.
+    # Rebuild the persistent GCH route block, then normalize both persistent
+    # and race-day-only GCH entries into the dedicated player group.
+    from gch_sources_sync import main as sync_gch_sources
     from gch_group_normalize import main as normalize_gch_group
+    sync_gch_sources()
     normalize_gch_group()
 
     print('Verified status override applied:', len(blocks), 'public sports channels; JRA active=', int(jra.get('active_count') or 0))
