@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 import copy
+import json
 import re
 import urllib.request
 import xml.etree.ElementTree as ET
@@ -9,6 +10,7 @@ from datetime import datetime, timedelta, timezone
 
 GUIDES = Path('guides.xml')
 DEDICATED_EPG = Path('gch_free_epg.xml')
+JRA_STATUS = Path('today_jra_status.json')
 PUBLIC_EPG = 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/epg.xml'
 
 A_ID = 'jra.official'
@@ -30,10 +32,20 @@ JST = timezone(timedelta(hours=9))
 def fetch_public_epg() -> ET.Element:
     req = urllib.request.Request(
         PUBLIC_EPG,
-        headers={'User-Agent': 'FreeWiFi-GCH-Free-EPG/2.0', 'Cache-Control': 'no-cache'},
+        headers={'User-Agent': 'FreeWiFi-GCH-Free-EPG/2.1', 'Cache-Control': 'no-cache'},
     )
     with urllib.request.urlopen(req, timeout=90) as r:
         return ET.fromstring(r.read())
+
+
+def today_jra_active() -> bool:
+    if not JRA_STATUS.exists():
+        return False
+    try:
+        data = json.loads(JRA_STATUS.read_text(encoding='utf-8-sig'))
+        return int(data.get('active_count') or 0) > 0
+    except Exception:
+        return False
 
 
 def is_race_programme(p: ET.Element) -> bool:
@@ -45,8 +57,6 @@ def is_race_programme(p: ET.Element) -> bool:
         '本日は開催', '本日非開催', '次回開催',
     )):
         return False
-    # Current earphone1981 JRA EPG uses titles such as:
-    # 【１２Ｒ】 🏇 札幌 16:00発走 千歳特別 ...
     if '🏇' in title and '発走' in title:
         return True
     return (
@@ -67,14 +77,20 @@ def unique_text(values: list[str]) -> list[str]:
     return out
 
 
-def build_a_programmes(public_root: ET.Element) -> list[ET.Element]:
+def build_a_programmes(public_root: ET.Element, active_today: bool) -> list[ET.Element]:
     """Combine EAST/WEST/HOKKAIDO race EPG into one chronological channel."""
     by_start: dict[str, list[tuple[str, ET.Element]]] = {}
+    today_key = datetime.now(JST).strftime('%Y%m%d')
 
     for p in public_root.findall('programme'):
         source_id = p.get('channel') or ''
         start = p.get('start') or ''
         if source_id not in A_SOURCE_IDS or not start or not is_race_programme(p):
+            continue
+        # The verified daily status is authoritative for today.  This prevents
+        # stale upstream JRA race rows from resurrecting EAST/WEST/HOKKAIDO on
+        # a non-race day.
+        if start.startswith(today_key) and not active_today:
             continue
         by_start.setdefault(start, []).append((source_id, p))
 
@@ -123,13 +139,29 @@ def add_channel(root: ET.Element, channel_id: str, display_name: str) -> None:
     ET.SubElement(ch, 'display-name').text = display_name
 
 
-def build_b_programmes() -> list[ET.Element]:
-    """B only needs a simple fixed programme label for the free GCH feed."""
+def programme_date_key(p: ET.Element) -> str:
+    start = p.get('start') or ''
+    m = re.match(r'^(\d{8})', start)
+    return m.group(1) if m else ''
+
+
+def build_b_programmes(a_programmes: list[ET.Element], active_today: bool) -> list[ET.Element]:
+    """Build B only on dates that actually have JRA racing."""
     now = datetime.now(JST)
     day0 = datetime(now.year, now.month, now.day, tzinfo=JST)
+    active_dates = {programme_date_key(p) for p in a_programmes}
+    active_dates.discard('')
+    today_key = day0.strftime('%Y%m%d')
+    if active_today:
+        active_dates.add(today_key)
+    else:
+        active_dates.discard(today_key)
+
     programmes: list[ET.Element] = []
     for offset in range(3):
         start = day0 + timedelta(days=offset)
+        if start.strftime('%Y%m%d') not in active_dates:
+            continue
         stop = start + timedelta(days=1)
         p = ET.Element('programme', {
             'start': start.strftime('%Y%m%d%H%M%S +0900'),
@@ -144,16 +176,19 @@ def build_b_programmes() -> list[ET.Element]:
 
 def build_dedicated_epg() -> ET.Element:
     public_root = fetch_public_epg()
+    active_today = today_jra_active()
     root = ET.Element('tv', {
         'generator-info-name': 'FreeWiFi GCH Free A-B EPG',
         'generator-info-url': 'https://github.com/ajiousama/himitsu',
     })
 
-    add_channel(root, A_ID, A_NAME)
-    add_channel(root, B_ID, B_NAME)
+    a_programmes = build_a_programmes(public_root, active_today)
+    b_programmes = build_b_programmes(a_programmes, active_today)
 
-    a_programmes = build_a_programmes(public_root)
-    b_programmes = build_b_programmes()
+    if a_programmes:
+        add_channel(root, A_ID, A_NAME)
+    if b_programmes:
+        add_channel(root, B_ID, B_NAME)
 
     for p in a_programmes:
         root.append(p)
@@ -163,7 +198,7 @@ def build_dedicated_epg() -> ET.Element:
     dedicated_tree = ET.ElementTree(root)
     ET.indent(dedicated_tree, space='  ')
     dedicated_tree.write(DEDICATED_EPG, encoding='utf-8', xml_declaration=True)
-    print(f'Dedicated GCH EPG built: A={len(a_programmes)} B={len(b_programmes)}')
+    print(f'Dedicated GCH EPG built: today_active={active_today} A={len(a_programmes)} B={len(b_programmes)}')
     return root
 
 
