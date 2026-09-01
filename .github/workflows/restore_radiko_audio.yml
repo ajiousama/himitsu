@@ -1,0 +1,73 @@
+name: Restore radiko audio-only playback
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/restore_radiko_audio.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: restore-radiko-audio
+  cancel-in-progress: true
+
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Sync latest main
+        run: git pull --ff-only origin main
+
+      - name: Restore direct radiko audio URLs
+        shell: python
+        run: |
+          from pathlib import Path
+
+          path = Path('freewifi')
+          text = path.read_text(encoding='utf-8-sig')
+          stations = [
+              'JOEU-FM','RNB','ABC','CCL','802','FMO',
+              'MBS','OBC','KBS','ALPHA-STATION','E-RADIO','CRK'
+          ]
+          changed = 0
+          for sid in stations:
+              old = f'https://ajiousama-radiko.onrender.com/radio-tv/{sid}'
+              new = f'https://himitsu-six.vercel.app/api/radiko?station={sid}'
+              if old in text:
+                  text = text.replace(old, new)
+                  changed += 1
+          if changed == 0:
+              print('No Render radiko URLs remained')
+          else:
+              print(f'Restored {changed} radiko stations to direct audio')
+          path.write_text(text, encoding='utf-8')
+
+      - name: Validate
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -Fq 'https://himitsu-six.vercel.app/api/radiko?station=RNB' freewifi
+          ! grep -q 'ajiousama-radiko.onrender.com/radio-tv/' freewifi
+          curl -fsS --max-time 30 'https://himitsu-six.vercel.app/api/radiko?station=RNB' | grep -q '^#EXTM3U'
+
+      - name: Commit restored radio URLs
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add freewifi
+          if git diff --cached --quiet; then
+            echo 'Already restored'
+            exit 0
+          fi
+          git commit -m 'Restore FreeWiFi radiko audio playback'
+          git pull --rebase origin main
+          git push origin HEAD:main
