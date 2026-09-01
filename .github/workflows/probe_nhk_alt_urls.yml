@@ -11,21 +11,33 @@ jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
-      - name: Probe NHK direct media URL variants
+      - name: Probe current and legacy NHK radio HLS paths
         shell: bash
         run: |
           set +e
+          probe() {
+            label="$1"; url="$2"
+            code=$(curl -L -A 'Mozilla/5.0' -sS -o /tmp/nhk.out -w '%{http_code}' --max-time 20 "$url")
+            bytes=$(wc -c < /tmp/nhk.out 2>/dev/null || echo 0)
+            first=$(head -c 120 /tmp/nhk.out | tr '\n' ' ')
+            echo "$label :: $code bytes=$bytes $url :: $first"
+          }
+
+          # Current 2026 URLs.
           for n in 12 13 16 17; do
-            echo "===== live/$n ====="
-            for url in \
-              "https://simul2.drdi.st.nhk/live/$n/joined/master.m3u8" \
-              "https://simul2.drdi.st.nhk/live/$n/joined/audio/media.m3u8" \
-              "https://simulosa2.drdi.st.nhk/live/$n/joined/audio/media.m3u8" \
-              "https://simulosa.drdi.st.nhk/live/$n/joined/audio/media.m3u8"; do
-              code=$(curl -L -A 'Mozilla/5.0' -sS -o /tmp/nhk.out -w '%{http_code}' --max-time 15 "$url")
-              bytes=$(wc -c < /tmp/nhk.out 2>/dev/null || echo 0)
-              first=$(head -c 80 /tmp/nhk.out | tr '\n' ' ')
-              echo "$code bytes=$bytes $url :: $first"
-            done
+            echo "===== current live/$n ====="
+            probe master "https://simul2.drdi.st.nhk/live/$n/joined/master.m3u8"
+            probe media "https://simul2.drdi.st.nhk/live/$n/joined/audio/media.m3u8"
           done
+
+          # Legacy official radio-stream.nhk.jp paths. These used a different
+          # CDN/edge and may have different geo policy from simul2.drdi.st.nhk.
+          echo '===== legacy Osaka R1 ====='
+          probe legacy_osaka_r1 'https://radio-stream.nhk.jp/hls/live/2023508/nhkradirubkr1/master48k.m3u8'
+          echo '===== legacy Osaka FM ====='
+          probe legacy_osaka_fm 'https://radio-stream.nhk.jp/hls/live/2023509/nhkradirubkfm/master48k.m3u8'
+          echo '===== legacy Matsuyama R1 ====='
+          probe legacy_matsuyama_r1 'https://radio-stream.nhk.jp/hls/live/2023547/nhkradiruzkr1/master48k.m3u8'
+          echo '===== legacy Matsuyama FM ====='
+          probe legacy_matsuyama_fm 'https://radio-stream.nhk.jp/hls/live/2023548/nhkradiruzkfm/master48k.m3u8'
           exit 0
