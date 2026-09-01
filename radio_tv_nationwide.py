@@ -1,12 +1,20 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import collections
 import hashlib
 import json
+import os
 import re
+import secrets
+import select
+import subprocess
+import threading
 import time
+import urllib.parse
 import urllib.request
 
+import radiko_proxy_core as core
 import radio_tv as base
 
 # Keep the working ABC/Osaka/Ehime definitions, but allow every station ID
@@ -104,6 +112,177 @@ _initial["nhk_fm_matsuyama"] = (
 
 base.STATIONS = NationwideStations(_initial)
 
+
+# Playback hot path: do not enumerate all 47 Radiko areas before tuning one
+# known station. The stream XML itself is enough to validate the station ID.
+def _fast_latest_master(sid: str, refresh: bool = False):
+    if not SID_RE.fullmatch(str(sid or "")):
+        raise RuntimeError(f"invalid Radiko station: {sid}")
+    errors = []
+    for create_url in core.stream_create_urls(sid):
+        for typ in ("c", "b"):
+            q = urllib.parse.urlencode(
+                {
+                    "station_id": sid,
+                    "l": 15,
+                    "lsid": hashlib.md5(secrets.token_bytes(16)).hexdigest(),
+                    "type": typ,
+                }
+            )
+            url = create_url + ("&" if "?" in create_url else "?") + q
+            try:
+                with core.fetch_with_auth(url, refresh) as r:
+                    text = r.read().decode("utf-8", "replace")
+                if "#EXTM3U" in text:
+                    return url, text
+                errors.append(f"{typ}:not-m3u8")
+            except Exception as e:
+                errors.append(f"{typ}:{type(e).__name__}:{getattr(e, 'code', '')}")
+    if not refresh:
+        return _fast_latest_master(sid, True)
+    raise RuntimeError(f"no playable area-free m3u8 for {sid}: " + ",".join(errors[-8:]))
+
+
+core.latest_master = _fast_latest_master
+
+_LOCAL_RADIKO_BASE = os.environ.get(
+    "RADIKO_LOCAL_BASE", f"http://127.0.0.1:{core.PORT}"
+).rstrip("/")
+
+
+def _audio_sources(station: str) -> list[str]:
+    _display, _freq, _accent_value, radiko_sid, fixed = base.STATIONS[station]
+    if fixed:
+        return [fixed]
+    sid = urllib.parse.quote(radiko_sid, safe="")
+    local = f"{_LOCAL_RADIKO_BASE}/live/{sid}"
+    public = f"{base.RADIKO_BASE}/api/radiko?station={sid}&stage=media"
+    return [local] if local == public else [local, public]
+
+
+def _audio_url(station: str) -> str:
+    return _audio_sources(station)[0]
+
+
+def _ffmpeg_cmd(station: str, src: str | None = None) -> list[str]:
+    art = base.make_art(station)
+    source = src or _audio_url(station)
+    return [
+        base.ffmpeg_exe(),
+        "-nostdin",
+        "-hide_banner", "-loglevel", "warning",
+        "-re", "-loop", "1", "-framerate", "1", "-i", str(art),
+        "-rw_timeout", "12000000",
+        "-user_agent", "Mozilla/5.0",
+        "-probesize", "65536",
+        "-analyzeduration", "1000000",
+        "-i", source,
+        "-map", "0:v:0", "-map", "1:a:0",
+        "-c:v", "libx264", "-preset", "ultrafast", "-tune", "stillimage",
+        "-crf", "31", "-pix_fmt", "yuv420p", "-r", "1", "-g", "2",
+        "-c:a", "aac", "-b:a", "96k", "-ar", "48000", "-ac", "2",
+        "-muxdelay", "0", "-muxpreload", "0", "-flush_packets", "1",
+        "-mpegts_flags", "resend_headers",
+        "-f", "mpegts", "pipe:1",
+    ]
+
+
+def _drain_stderr(pipe, tail):
+    try:
+        while True:
+            chunk = pipe.readline()
+            if not chunk:
+                break
+            tail.append(chunk)
+    except Exception:
+        pass
+
+
+def _start_attempt(station: str, source: str, timeout: float):
+    proc = subprocess.Popen(
+        _ffmpeg_cmd(station, source),
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        bufsize=0,
+    )
+    tail = collections.deque(maxlen=120)
+    threading.Thread(target=_drain_stderr, args=(proc.stderr, tail), daemon=True).start()
+
+    ready, _, _ = select.select([proc.stdout], [], [], timeout)
+    if not ready:
+        base._stop_proc(proc)
+        detail = b"".join(tail).decode("utf-8", "replace").strip()
+        return None, b"", detail or "startup timeout"
+
+    first = proc.stdout.read(64 * 1024)
+    if not first:
+        base._stop_proc(proc)
+        detail = b"".join(tail).decode("utf-8", "replace").strip()
+        return None, b"", detail or "ffmpeg exited without producing MPEG-TS"
+    return proc, first, ""
+
+
+def _stream_station(handler, station: str):
+    if station not in base.STATIONS:
+        handler.send_error(404, "unknown radio station")
+        return
+
+    try:
+        sources = _audio_sources(station)
+        base.make_art(station)
+        base.ffmpeg_exe()
+    except Exception as e:
+        handler.send_error(500, f"ffmpeg setup failed: {type(e).__name__}: {e}")
+        return
+
+    failures = []
+    winner = None
+    first = b""
+    # Keep the overall startup budget close to the old 18-second limit:
+    # prefer the same-Render local gateway, then quickly fall back to Vercel.
+    budgets = [10.0, 8.0] if len(sources) > 1 else [18.0]
+
+    for source, timeout in zip(sources, budgets):
+        proc, data, detail = _start_attempt(station, source, timeout)
+        if proc is not None and data:
+            winner = proc
+            first = data
+            break
+        failures.append(f"{source}: {detail[-1200:]}")
+
+    if winner is None:
+        detail = " | ".join(failures)[-3000:] or "radio transcoder failed"
+        handler.send_error(504, detail)
+        return
+
+    handler.send_response(200)
+    handler.send_header("Content-Type", "video/mp2t")
+    handler.send_header("Cache-Control", "no-store")
+    handler.send_header("Access-Control-Allow-Origin", "*")
+    handler.send_header("Connection", "close")
+    handler.end_headers()
+    handler.close_connection = True
+    try:
+        handler.wfile.write(first)
+        handler.wfile.flush()
+        while True:
+            chunk = winner.stdout.read(64 * 1024)
+            if not chunk:
+                break
+            handler.wfile.write(chunk)
+            handler.wfile.flush()
+    except (BrokenPipeError, ConnectionResetError, OSError):
+        pass
+    finally:
+        base._stop_proc(winner)
+
+
+# Patch the original request handler's globals. debug_station also benefits
+# because it resolves these functions at call time.
+base.audio_url = _audio_url
+base.ffmpeg_cmd = _ffmpeg_cmd
+base.stream_station = _stream_station
+
 # Re-export the working request handler. All of radio_tv.py's existing art,
-# ffmpeg, debug, and streaming logic now sees the nationwide mapping above.
+# debug, and routing logic now uses the resilient local-first playback path.
 handle_request = base.handle_request
