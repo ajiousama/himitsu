@@ -1,7 +1,3 @@
-import fs from 'node:fs';
-import path from 'node:path';
-
-const ASSET_DIR = path.join(process.cwd(), 'radio-video-assets');
 const SEGMENT_SECONDS = 5;
 const TIMESCALE = 12800;
 
@@ -32,6 +28,28 @@ function selfBase(req) {
 function selfUrl(req, station, params = {}) {
   const q = new URLSearchParams({ station, ...params });
   return `${selfBase(req)}/api/radio-tv?${q.toString()}`;
+}
+
+function staticAssetUrl(req, station, kind) {
+  const name = kind === 'init' ? 'init.mp4' : `${station}.m4s`;
+  return `${selfBase(req)}/radio-video-assets/${encodeURIComponent(name)}`;
+}
+
+async function readAsset(req, station, kind) {
+  const url = staticAssetUrl(req, station, kind);
+  const r = await fetch(url, { cache: 'force-cache', redirect: 'follow' });
+  if (!r.ok) throw new Error(`Required video asset is unavailable. ${url} (HTTP ${r.status})`);
+  return Buffer.from(await r.arrayBuffer());
+}
+
+async function assetAvailable(req, station, kind) {
+  try {
+    const url = staticAssetUrl(req, station, kind);
+    const r = await fetch(url, { method: 'HEAD', cache: 'no-store', redirect: 'follow' });
+    return r.ok;
+  } catch {
+    return false;
+  }
 }
 
 function send(res, status, body, contentType, extra = {}) {
@@ -178,11 +196,6 @@ function patchSegment(source, sequence) {
   return out;
 }
 
-function assetPath(station, kind) {
-  const name = kind === 'init' ? 'init.mp4' : `${station}.m4s`;
-  return path.join(ASSET_DIR, name);
-}
-
 function videoPlaylist(req, station) {
   const nowSeq = Math.floor(Date.now() / (SEGMENT_SECONDS * 1000));
   const first = nowSeq - 7;
@@ -231,13 +244,13 @@ export default async function handler(req, res) {
 
     const asset = String(req.query?.asset || '');
     if (asset === 'init') {
-      const data = fs.readFileSync(assetPath(station, 'init'));
+      const data = await readAsset(req, station, 'init');
       return send(res, 200, data, 'video/mp4', { cache: 'public, max-age=31536000, immutable' });
     }
     if (asset === 'seg') {
       const nRaw = String(req.query?.n || '0');
       if (!/^\d{1,15}$/.test(nRaw)) return send(res, 400, 'bad sequence\n', 'text/plain; charset=utf-8');
-      const template = fs.readFileSync(assetPath(station, 'seg'));
+      const template = await readAsset(req, station, 'seg');
       const data = patchSegment(template, BigInt(nRaw));
       return send(res, 200, data, 'video/iso.segment', { cache: 'public, max-age=86400' });
     }
@@ -251,8 +264,10 @@ export default async function handler(req, res) {
       return send(res, 200, videoPlaylist(req, station), 'application/vnd.apple.mpegurl; charset=utf-8');
     }
     if (stage === 'status') {
-      const initOk = fs.existsSync(assetPath(station, 'init'));
-      const segOk = fs.existsSync(assetPath(station, 'seg'));
+      const [initOk, segOk] = await Promise.all([
+        assetAvailable(req, station, 'init'),
+        assetAvailable(req, station, 'seg'),
+      ]);
       return send(res, 200, JSON.stringify({ ok: initOk && segOk, station, initOk, segOk }, null, 2), 'application/json; charset=utf-8');
     }
     return send(res, 200, master(req, station), 'application/vnd.apple.mpegurl; charset=utf-8');
