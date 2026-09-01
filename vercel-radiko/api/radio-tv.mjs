@@ -77,12 +77,26 @@ function firstMediaUrl(text, source) {
 
 function latestProgramDateTime(text) {
   const marker = '#EXT-X-PROGRAM-DATE-TIME:';
+  let nextStart = NaN;
+  let durationMs = 0;
   let latest = NaN;
   for (const line of text.split(/\r?\n/)) {
     const s = line.trim();
-    if (!s.startsWith(marker)) continue;
-    const t = Date.parse(s.slice(marker.length).trim());
-    if (Number.isFinite(t) && (!Number.isFinite(latest) || t > latest)) latest = t;
+    if (s.startsWith(marker)) {
+      const t = Date.parse(s.slice(marker.length).trim());
+      if (Number.isFinite(t)) nextStart = t;
+      continue;
+    }
+    if (s.startsWith('#EXTINF:')) {
+      const seconds = Number.parseFloat(s.slice('#EXTINF:'.length));
+      durationMs = Number.isFinite(seconds) ? seconds * 1000 : 0;
+      continue;
+    }
+    if (s && !s.startsWith('#') && Number.isFinite(nextStart)) {
+      latest = nextStart;
+      nextStart += durationMs;
+      durationMs = 0;
+    }
   }
   return latest;
 }
