@@ -18,10 +18,10 @@ ART_DIR.mkdir(parents=True, exist_ok=True)
 
 # display, frequency, accent RGB, radiko station id, fixed audio URL
 STATIONS = {
-    "nhk_r1_osaka": ("NHK RADIO 1 OSAKA", "AM 666 kHz", (210, 34, 34), None, "https://simul2.drdi.st.nhk/live/12/joined/master.m3u8"),
-    "nhk_fm_osaka": ("NHK FM OSAKA", "FM 88.1 MHz", (54, 138, 57), None, "https://simul2.drdi.st.nhk/live/13/joined/master.m3u8"),
-    "nhk_r1_matsuyama": ("NHK RADIO 1 MATSUYAMA", "RADIO", (210, 34, 34), None, "https://simul2.drdi.st.nhk/live/16/joined/master.m3u8"),
-    "nhk_fm_matsuyama": ("NHK FM MATSUYAMA", "FM", (54, 138, 57), None, "https://simul2.drdi.st.nhk/live/17/joined/master.m3u8"),
+    "nhk_r1_osaka": ("NHK RADIO 1 OSAKA", "AM 666 kHz", (210, 34, 34), None, "https://himitsu-six.vercel.app/api/radio-tv?station=nhk_r1_osaka&stage=audio"),
+    "nhk_fm_osaka": ("NHK FM OSAKA", "FM 88.1 MHz", (54, 138, 57), None, "https://himitsu-six.vercel.app/api/radio-tv?station=nhk_fm_osaka&stage=audio"),
+    "nhk_r1_matsuyama": ("NHK RADIO 1 MATSUYAMA", "RADIO", (210, 34, 34), None, "https://himitsu-six.vercel.app/api/radio-tv?station=nhk_r1_matsuyama&stage=audio"),
+    "nhk_fm_matsuyama": ("NHK FM MATSUYAMA", "FM", (54, 138, 57), None, "https://himitsu-six.vercel.app/api/radio-tv?station=nhk_fm_matsuyama&stage=audio"),
     "JOEU-FM": ("FM EHIME", "FM 79.7 MHz", (244, 112, 28), "JOEU-FM", None),
     "RNB": ("RNB NAN-KAI", "AM 1116 kHz / FM 91.7 MHz", (25, 96, 196), "RNB", None),
     "ABC": ("ABC RADIO", "AM 1008 kHz / FM 93.3 MHz", (236, 87, 24), "ABC", None),
