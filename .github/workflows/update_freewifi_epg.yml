@@ -107,6 +107,30 @@ jobs:
       - name: Build compact current event counts
         run: python build_today_event_counts.py
 
+      - name: Commit venue state before EPG work
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add freewifi today_public_sports_status.json today_jra_status.json today_event_counts.json
+          [ ! -f public_sports_youtube_fallback.m3u ] || git add public_sports_youtube_fallback.m3u
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -f general_youtube.m3u ]; then
+            git add general_youtube.m3u
+          fi
+
+          if git diff --cached --quiet; then
+            echo "Venue state already current"
+          else
+            git commit -m "Update FreeWiFi current venues"
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
+
+      - name: Sync latest main before EPG build
+        run: git pull --ff-only origin main
+
       - name: Build merged EPG
         run: python epg_build.py
 
@@ -122,35 +146,40 @@ jobs:
       - name: Validate XML
         run: python -c "import xml.etree.ElementTree as ET; ET.parse('guides.xml'); print('XML OK')"
 
-      - name: Validate current event counts
-        shell: bash
-        run: |
-          test -s freewifi
-          test -s today_public_sports_status.json
-          test -s today_jra_status.json
-          test -s today_event_counts.json
-          cat today_event_counts.json
-
-      - name: Commit generated files without overwriting manual edits
+      - name: Publish generated EPG with rebuild retry
         shell: bash
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git add guides.xml epg_coverage.txt freewifi today_public_sports_status.json today_jra_status.json today_event_counts.json
-          [ ! -f public_sports_youtube_fallback.m3u ] || git add public_sports_youtube_fallback.m3u
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -f general_youtube.m3u ]; then
-            git add general_youtube.m3u
-          fi
+          publish_epg() {
+            git add guides.xml epg_coverage.txt
+            if git diff --cached --quiet; then
+              echo "EPG already current"
+              return 0
+            fi
+            git commit -m "Update FreeWiFi EPG"
+            git push origin HEAD:main
+          }
 
-          if git diff --cached --quiet; then
-            echo "No changes"
+          if publish_epg; then
             exit 0
           fi
 
-          git commit -m "Update FreeWiFi managed YouTube/current-venue entries and EPG"
-          # Rebase instead of reset/copy. If a concurrent manual edit overlaps,
-          # fail rather than silently replacing the user's FreeWiFi content.
-          git pull --rebase origin main
-          git push origin HEAD:main
+          for attempt in 2 3; do
+            echo "EPG push moved; rebuild attempt $attempt/3"
+            git fetch origin main
+            git reset --hard origin/main
+            python epg_build.py
+            python public_sports_epg_merge.py
+            python jra_epg_merge.py
+            python kick_epg.py
+            python -c "import xml.etree.ElementTree as ET; ET.parse('guides.xml'); print('XML OK')"
+            if publish_epg; then
+              exit 0
+            fi
+          done
+
+          echo "::error::EPG publish failed after rebuild retries"
+          exit 1
