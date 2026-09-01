@@ -7,6 +7,8 @@ services:
     startCommand: python radiko_cloud_start.py
     healthCheckPath: /health
     envVars:
+      - key: IMAGEIO_FFMPEG_EXE
+        value: /usr/bin/ffmpeg
       - key: RADIKO_MAIL
         sync: false
       - key: RADIKO_PASSWORD
