@@ -1,0 +1,89 @@
+name: Update BOAT Today Independently
+
+on:
+  workflow_dispatch:
+  schedule:
+    # 09:10 / 12:10 / 17:10 / 21:10 JST: refresh + ended-venue check
+    - cron: "10 0,3,8,12 * * *"
+    # 15:00 JST: refresh night-race stream URLs only
+    - cron: "0 6 * * *"
+  push:
+    branches:
+      - main
+    paths:
+      - "freewifi_boat_today.py"
+      - "public_sports_youtube_fallback.m3u"
+      - ".github/workflows/update_boat_today.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: himitsu-freewifi-writer
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Sync latest main
+        run: git pull --ff-only origin main
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Build independent BOAT current venues
+        run: python -u freewifi_boat_today.py
+
+      - name: Validate independent BOAT state
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path('today_boat_status.json')
+          if not p.exists():
+              raise SystemExit('today_boat_status.json missing')
+          d = json.loads(p.read_text(encoding='utf-8'))
+          print('BOAT held=', d.get('held_count'), 'visible=', d.get('visible_count'), 'end_check=', d.get('scheduled_end_check'))
+          PY
+
+      - name: Publish BOAT state safely
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          publish() {
+            git add freewifi today_boat_status.json
+            if git diff --cached --quiet; then
+              echo "BOAT state already current"
+              return 0
+            fi
+            git commit -m "Update independent BOAT current venues [skip ci]"
+            git push origin HEAD:main
+          }
+
+          if publish; then
+            exit 0
+          fi
+
+          for attempt in 2 3; do
+            echo "BOAT push moved; rebuild from latest main ($attempt/3)"
+            git fetch origin main
+            git reset --hard origin/main
+            python -u freewifi_boat_today.py
+            if publish; then
+              exit 0
+            fi
+          done
+
+          echo "::error::BOAT publish failed after rebuild retries"
+          exit 1
