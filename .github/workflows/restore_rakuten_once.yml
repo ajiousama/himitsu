@@ -3,7 +3,7 @@ name: Fix Rakuten preservation once
 on:
   push:
     paths:
-      - '.github/workflows/restore_rakuten_once.yml'
+      - ".github/workflows/restore_rakuten_once.yml"
   workflow_dispatch:
 
 permissions:
@@ -20,91 +20,17 @@ jobs:
       - uses: actions/checkout@v5
         with:
           fetch-depth: 0
-
-      - name: Permanently protect manual FreeWiFi entries and restore Rakuten
+      - name: Apply permanent fix and clean temporary files
         shell: bash
         run: |
           set -euo pipefail
           git pull --ff-only origin main
-          python - <<'PY'
-          from pathlib import Path
-          import re
-
-          # 1) Remove the obsolete whole-playlist ABEMA/Rakuten pruning from the
-          #    current-venue updater. This updater must only manage venue blocks.
-          sp = Path('freewifi_today_public_sports.py')
-          s = sp.read_text(encoding='utf-8-sig')
-          s2 = re.sub(
-              r'\n\ndef prune_abema_rakuten\(text\):.*?(?=\n\ndef replace_block\(text,block\):)',
-              '',
-              s,
-              count=1,
-              flags=re.S,
-          )
-          s2 = s2.replace(
-              "base=prune_abema_rakuten(FREEWIFI.read_text(encoding='utf-8-sig',errors='replace'))",
-              "base=FREEWIFI.read_text(encoding='utf-8-sig',errors='replace')",
-              1,
-          )
-          if s2 == s:
-              raise SystemExit('Expected Rakuten pruning code was not changed')
-          if 'prune_abema_rakuten' in s2:
-              raise SystemExit('Obsolete Rakuten pruning code still remains')
-          sp.write_text(s2, encoding='utf-8')
-
-          # 2) Restore exactly the manually selected Rakuten section.
-          fp = Path('freewifi')
-          f = fp.read_text(encoding='utf-8-sig')
-          rakuten = '''## Rakuten-JP
-
-#EXTINF:-1 tvg-id="rch_30" tvg-logo="https://channel.rakuten.co.jp/service/img/logo/chlogo-with-number/186_traintravel.png" group-title="Rakuten-JP",鉄道・旅
-https://cdn-apne1.tsv2.amagi.tv/linear/amg01287-rakutentvjapan-tandtcmaf-rakutenjp/playlist.m3u8
-
-#EXTINF:-1 tvg-id="rch_98" tvg-name="セクシーエンタメチャンネル" tvg-logo="https://channel.rakuten.co.jp/service/img/logo/chlogo-with-number/239_sexyenterme.png" group-title="Rakuten-JP",セクシーエンタメチャンネル
-https://cdn-uw2-prod.tsv2.amagi.tv/linear/amg01287-rakutentvjapan-rvariety-cmaf-rakutenjp/playlist.m3u8
-
-#EXTINF:-1 tvg-id="rch_59" tvg-logo="https://channel.rakuten.co.jp/service/img/logo/chlogo-with-number/240_mensneco.png" group-title="Rakuten-JP",おとなの歓楽街 by MEN'S NECO
-https://cdn-apne1.tsv2.amagi.tv/linear/amg01287-rakutentvjapan-rchannelmensnecohlscmaf-rakutenjp/playlist.m3u8
-
-#EXTINF:-1 tvg-id="rch_59" tvg-logo="https://channel.rakuten.co.jp/service/img/logo/chlogo-with-number/240_mensneco.png" group-title="Rakuten-JP",おとなの歓楽街 by MEN'S NECO (B)
-https://cdn-apne1.tsv2.amagi.tv/linear/amg01287-rakutentvjapan-rchannelmensnecohlscmaf-rakutenjp/playlist.m3u8?ads.uuid=79f6c984-2f32-573c-a7ff-a13644466ce4&ads.device_make=rchweb&ads.refid=0&ads.url=channel.rakuten.co.jp&ads.uid_ss=&ads.uid_rch=79f6c984-2f32-573c-a7ff-a13644466ce4
-
-#EXTINF:-1 tvg-id="rch_41" tvg-logo="https://channel.rakuten.co.jp/service/img/logo/chlogo-with-number/241_gravure.png" group-title="Rakuten-JP",アイドル・グラビア
-https://cdn-apne1.tsv2.amagi.tv/linear/amg01287-rakutentvjapan-gravurecmaf-rakutenjp/playlist.m3u8
-
-#EXTINF:-1 tvg-id="rch_41" tvg-logo="https://channel.rakuten.co.jp/service/img/logo/chlogo-with-number/241_gravure.png" group-title="Rakuten-JP",アイドル・グラビア (B)
-https://cdn-apne1.tsv2.amagi.tv/linear/amg01287-rakutentvjapan-gravurecmaf-rakutenjp/playlist.m3u8?ads.uuid=79f6c984-2f32-573c-a7ff-a13644466ce4&ads.device_make=rchweb&ads.refid=0&ads.url=channel.rakuten.co.jp&ads.uid_ss=&ads.uid_rch=79f6c984-2f32-573c-a7ff-a13644466ce4
-
-#EXTINF:-1 tvg-id="rch_40" tvg-logo="https://channel.rakuten.co.jp/service/img/logo/chlogo-with-number/242_shigekistrong.png" group-title="Rakuten-JP",刺激ストロング
-https://cdn-apne1.tsv2.amagi.tv/linear/amg01287-rakutentvjapan-shigekicmaf-rakutenjp/playlist.m3u8
-
-#EXTINF:-1 tvg-id="rch_40" tvg-logo="https://channel.rakuten.co.jp/service/img/logo/chlogo-with-number/242_shigekistrong.png" group-title="Rakuten-JP",刺激ストロング (B)
-https://cdn-apne1.tsv2.amagi.tv/linear/amg01287-rakutentvjapan-shigekicmaf-rakutenjp/playlist.m3u8?ads.uuid=79f6c984-2f32-573c-a7ff-a13644466ce4&ads.device_make=rchweb&ads.refid=0&ads.url=channel.rakuten.co.jp&ads.uid_ss=&ads.uid_rch=79f6c984-2f32-573c-a7ff-a13644466ce4
-
-#EXTINF:-1 tvg-id="rch_42" tvg-logo="https://channel.rakuten.co.jp/service/img/logo/chlogo-with-number/243_r-15movie.png" group-title="Rakuten-JP",映画 (R15+)
-https://cdn-apne1.tsv2.amagi.tv/linear/amg01287-rakutentvjapan-movie2cmaf-rakutenjp/playlist.m3u8
-'''
-          pat = re.compile(r'## Rakuten-JP\n.*?(?=## 今日の開催場)', re.S)
-          if not pat.search(f):
-              raise SystemExit('Rakuten section anchor missing')
-          f = pat.sub(rakuten + '\n', f, count=1)
-          fp.write_text(f, encoding='utf-8')
-          PY
-
-          grep -q 'tvg-id="rch_30"' freewifi
-          grep -q 'tvg-id="rch_98"' freewifi
-          test "$(grep -c 'tvg-id="rch_59"' freewifi)" -eq 2
-          test "$(grep -c 'tvg-id="rch_41"' freewifi)" -eq 2
-          test "$(grep -c 'tvg-id="rch_40"' freewifi)" -eq 2
-          test "$(grep -c 'tvg-id="rch_42"' freewifi)" -eq 1
-          ! grep -q 'prune_abema_rakuten' freewifi_today_public_sports.py
-
-          # 3) This repair is one-shot. Remove the workflow itself after use.
+          python repair_rakuten_once.py
+          rm -f repair_rakuten_once.py
           rm -f .github/workflows/restore_rakuten_once.yml
-
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add freewifi freewifi_today_public_sports.py .github/workflows/restore_rakuten_once.yml
-          git commit -m 'Preserve manual FreeWiFi entries and restore Rakuten'
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Preserve manual FreeWiFi entries and restore Rakuten"
           git pull --rebase origin main
           git push origin HEAD:main
