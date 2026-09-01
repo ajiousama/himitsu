@@ -57,29 +57,74 @@ function firstMediaUrl(text, source) {
   return null;
 }
 
-function rewriteMedia(text, source) {
+function validateNhkUrl(raw) {
+  const u = new URL(raw);
+  if (u.protocol !== 'https:') throw new Error('NHK relay requires https');
+  const h = u.hostname.toLowerCase();
+  if (!(h === 'drdi.st.nhk' || h.endsWith('.drdi.st.nhk'))) {
+    throw new Error(`NHK relay host blocked: ${h}`);
+  }
+  return u;
+}
+
+async function fetchNhk(raw) {
+  let current = validateNhkUrl(raw);
+  for (let i = 0; i < 4; i++) {
+    const r = await fetch(current, {
+      headers: { 'User-Agent': 'Mozilla/5.0' },
+      cache: 'no-store',
+      redirect: 'manual',
+    });
+    if ([301, 302, 303, 307, 308].includes(r.status)) {
+      const loc = r.headers.get('location');
+      if (!loc) throw new Error(`NHK redirect ${r.status} without location`);
+      current = validateNhkUrl(new URL(loc, current).toString());
+      continue;
+    }
+    return { response: r, url: current.toString() };
+  }
+  throw new Error('NHK redirect limit exceeded');
+}
+
+function relayUrl(req, station, absoluteUrl) {
+  const relay = Buffer.from(absoluteUrl, 'utf8').toString('base64url');
+  return selfUrl(req, station, { relay });
+}
+
+function rewriteNhkMedia(req, station, text, source) {
   const base = new URL(source);
   const out = [];
   for (let line of text.split(/\r?\n/)) {
-    line = line.replace(/URI="([^"]+)"/g, (_, raw) => `URI="${new URL(raw, base).toString()}"`);
+    line = line.replace(/URI="([^"]+)"/g, (_, raw) => {
+      const absolute = validateNhkUrl(new URL(raw, base).toString()).toString();
+      return `URI="${relayUrl(req, station, absolute)}"`;
+    });
     const s = line.trim();
-    if (s && !s.startsWith('#')) line = new URL(s, base).toString();
+    if (s && !s.startsWith('#')) {
+      const absolute = validateNhkUrl(new URL(s, base).toString()).toString();
+      line = relayUrl(req, station, absolute);
+    }
     out.push(line);
   }
   return out.join('\n');
 }
 
-async function nhkMedia(url) {
-  let r = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' }, cache: 'no-store', redirect: 'follow' });
+async function nhkMedia(req, station, url) {
+  let got = await fetchNhk(url);
+  let r = got.response;
+  let source = got.url;
   let text = await r.text();
   if (!r.ok || !text.includes('#EXTM3U')) throw new Error(`NHK playlist HTTP ${r.status}`);
-  const child = firstMediaUrl(text, r.url || url);
+
+  const child = firstMediaUrl(text, source);
   if (child) {
-    r = await fetch(child, { headers: { 'User-Agent': 'Mozilla/5.0' }, cache: 'no-store', redirect: 'follow' });
+    got = await fetchNhk(child);
+    r = got.response;
+    source = got.url;
     text = await r.text();
     if (!r.ok || !text.includes('#EXTM3U')) throw new Error(`NHK media HTTP ${r.status}`);
   }
-  return rewriteMedia(text, r.url || child || url);
+  return rewriteNhkMedia(req, station, text, source);
 }
 
 async function audioMedia(req, station, cfg) {
@@ -90,7 +135,25 @@ async function audioMedia(req, station, cfg) {
     if (!r.ok || !text.includes('#EXTM3U')) throw new Error(`Radiko audio HTTP ${r.status}: ${text.slice(0, 120)}`);
     return text;
   }
-  return nhkMedia(cfg.nhk);
+  return nhkMedia(req, station, cfg.nhk);
+}
+
+async function relayNhk(req, res, station, token) {
+  let decoded;
+  try {
+    decoded = Buffer.from(token, 'base64url').toString('utf8');
+  } catch {
+    return send(res, 400, 'bad relay token\n', 'text/plain; charset=utf-8');
+  }
+  const got = await fetchNhk(decoded);
+  const r = got.response;
+  if (!r.ok) {
+    const text = await r.text();
+    return send(res, r.status, text.slice(0, 1000), 'text/plain; charset=utf-8');
+  }
+  const data = Buffer.from(await r.arrayBuffer());
+  const type = r.headers.get('content-type') || 'application/octet-stream';
+  return send(res, 200, data, type, { cache: 'no-store' });
 }
 
 function patchSegment(source, sequence) {
@@ -159,6 +222,12 @@ export default async function handler(req, res) {
     const station = String(req.query?.station || 'ABC').trim();
     const cfg = STATIONS[station];
     if (!cfg) return send(res, 404, 'unknown radio station\n', 'text/plain; charset=utf-8');
+
+    const relay = String(req.query?.relay || '');
+    if (relay) {
+      if (!cfg.nhk) return send(res, 403, 'relay is NHK-only\n', 'text/plain; charset=utf-8');
+      return relayNhk(req, res, station, relay);
+    }
 
     const asset = String(req.query?.asset || '');
     if (asset === 'init') {
