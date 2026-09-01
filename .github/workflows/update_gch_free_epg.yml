@@ -60,8 +60,10 @@ jobs:
           a = [p for p in g.findall('programme') if p.get('channel') == 'jra.official']
           b = [p for p in g.findall('programme') if p.get('channel') == 'jra.gch.free']
           print(f'GCH dedicated EPG: A={len(a)} B={len(b)}')
-          if len(b) != 3:
-              raise SystemExit(f'B programme count must be 3, got {len(b)}')
+
+          # B exists only for race dates inside the rolling 3-day window.
+          if not 0 <= len(b) <= 3:
+              raise SystemExit(f'B programme count must be 0..3, got {len(b)}')
           if not all((p.findtext('title') or '') == '競馬全レース中継　GCH（無料版）' for p in b):
               raise SystemExit('B fixed title mismatch')
 
@@ -70,6 +72,19 @@ jobs:
           gb = [p for p in guides.findall('programme') if p.get('channel') == 'jra.gch.free']
           if len(ga) != len(a) or len(gb) != len(b):
               raise SystemExit(f'guides merge mismatch: A {len(ga)}/{len(a)} B {len(gb)}/{len(b)}')
+
+          # Custom-logo HQ/LQ pairs share one XMLTV id. Verify the channel IDs
+          # exist and jra.gch mirrors the normal Green Channel programme grid.
+          for cid in ('jra.gch', 'jra.east', 'jra.west', 'jra.hokkaido'):
+              channels = [ch for ch in guides.findall('channel') if ch.get('id') == cid]
+              if len(channels) != 1:
+                  raise SystemExit(f'{cid} channel node count must be 1, got {len(channels)}')
+
+          normal_gch = [p for p in guides.findall('programme') if p.get('channel') == 'グリーンチャンネル_jp']
+          custom_gch = [p for p in guides.findall('programme') if p.get('channel') == 'jra.gch']
+          print(f'GCH base EPG: normal={len(normal_gch)} custom={len(custom_gch)}')
+          if normal_gch and len(custom_gch) != len(normal_gch):
+              raise SystemExit(f'jra.gch mirror mismatch: {len(custom_gch)}/{len(normal_gch)}')
           PY
 
             git add guides.xml gch_free_epg.xml
