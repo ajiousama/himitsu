@@ -7,7 +7,7 @@ import urllib.parse
 from pathlib import Path
 
 FREEWIFI = Path("freewifi")
-BASE = os.environ.get("RADIO_TV_BASE", "https://ajiousama-radiko.onrender.com").rstrip("/")
+BASE = os.environ.get("RADIO_TV_BASE", "https://himitsu-six.vercel.app/api/radio-tv")
 
 TARGETS = {
     "nhk_r1_osaka": "nhk_r1_osaka",
@@ -49,7 +49,7 @@ def main():
             j += 1
         if j >= len(lines) or lines[j].lstrip().startswith("#"):
             raise SystemExit(f"stream URL missing after {tvgid}")
-        new_url = f"{BASE}/radio-tv/{urllib.parse.quote(station, safe='')}"
+        new_url = f"{BASE}?station={urllib.parse.quote(station, safe='')}"
         if lines[j].strip() != new_url:
             lines[j] = new_url
         changed.add(tvgid)
