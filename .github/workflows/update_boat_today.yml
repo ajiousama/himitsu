@@ -3,9 +3,9 @@ name: Update BOAT Today Independently
 on:
   workflow_dispatch:
   schedule:
-    # 09:10 / 12:10 / 17:10 / 21:10 JST: refresh + ended-venue check
-    - cron: "10 0,3,8,12 * * *"
-    # 15:00 JST: refresh night-race stream URLs only
+    # 09:00 / 12:00 / 17:00 / 21:00 JST: refresh + ended-venue check
+    - cron: "0 0,3,8,12 * * *"
+    # 15:00 JST: refresh night-race stream URLs only (no extra end-check policy)
     - cron: "0 6 * * *"
   push:
     branches:
