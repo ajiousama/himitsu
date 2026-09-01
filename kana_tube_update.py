@@ -11,7 +11,7 @@ COOKIES = Path('youtube_cookies.txt')
 CHANNEL = 'https://www.youtube.com/@kanatubechannel'
 LIVE_PAGE = CHANNEL + '/live'
 ID = 'youtube.kana_tube'
-NAME = 'かなチューブ'
+NAME = '華奈tube'
 LOGO = 'https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/youtube/yt43_01_kana_tube.png'
 START = '# === KANA_TUBE_MANAGED_START ==='
 END = '# === KANA_TUBE_MANAGED_END ==='
@@ -26,39 +26,79 @@ def base_cmd() -> list[str]:
 
 def direct(page: str) -> str | None:
     for fmt in ('best[protocol^=m3u8]','best'):
-        p = subprocess.run(base_cmd()+['--extractor-args','youtube:player_client=default,web_safari,web','--no-playlist','--match-filter','is_live','-f',fmt,'-g',page], capture_output=True, text=True, timeout=35)
+        p = subprocess.run(
+            base_cmd()+[
+                '--extractor-args','youtube:player_client=default,web_safari,web',
+                '--no-playlist','--match-filter','is_live','-f',fmt,'-g',page
+            ],
+            capture_output=True, text=True, timeout=35,
+        )
         urls=[x.strip() for x in p.stdout.splitlines() if x.strip().startswith(('http://','https://'))]
         if p.returncode == 0 and len(urls) == 1:
             return urls[0]
     return None
 
 
+def live_candidates_from_listing(listing: str, limit: int = 30) -> list[str]:
+    p = subprocess.run(
+        base_cmd()+['--flat-playlist','--dump-json','--playlist-end',str(limit),listing],
+        capture_output=True, text=True, timeout=40,
+    )
+    if p.returncode != 0:
+        return []
+    ids=[]
+    for line in p.stdout.splitlines():
+        try:
+            item=json.loads(line)
+        except Exception:
+            continue
+        if (item.get('live_status') or '').lower() == 'is_live' and item.get('id'):
+            ids.append(str(item['id']))
+    return ids
+
+
 def find_live() -> str | None:
-    # First ask the channel's canonical /live endpoint. This follows whatever
-    # video ID Kana Tube is currently using, so a new broadcast does not break
-    # detection when the old watch URL changes.
+    # 1) Canonical /live endpoint when the stored handle still resolves.
     url = direct(LIVE_PAGE)
     if url:
+        print('Kana tube detector: canonical /live')
         return url
 
-    # Fallback: inspect the actual channel listings (not a watch URL + /streams).
-    # Keep the same small request footprint as before: at most two listings.
+    # 2) Channel listings. This catches broadcasts whose watch ID changes.
     for listing in (CHANNEL+'/streams', CHANNEL+'/videos'):
-        p = subprocess.run(base_cmd()+['--flat-playlist','--dump-json','--playlist-end','30',listing], capture_output=True, text=True, timeout=35)
-        if p.returncode != 0:
-            continue
-        ids=[]
+        for vid in live_candidates_from_listing(listing):
+            url=direct('https://www.youtube.com/watch?v='+vid)
+            if url:
+                print('Kana tube detector: channel listing', vid)
+                return url
+
+    # 3) Handle-independent fallback. YouTube channel handles can change or
+    # differ in romanisation. Search the official Japanese channel name and
+    # accept only LIVE results whose uploader/channel name contains 華奈tube.
+    p = subprocess.run(
+        base_cmd()+['--flat-playlist','--dump-json','--playlist-end','20','ytsearch20:華奈tube 競輪 ライブ'],
+        capture_output=True, text=True, timeout=45,
+    )
+    if p.returncode == 0:
         for line in p.stdout.splitlines():
             try:
                 item=json.loads(line)
             except Exception:
                 continue
-            if (item.get('live_status') or '').lower() == 'is_live' and item.get('id'):
-                ids.append(item['id'])
-        for vid in ids:
+            if (item.get('live_status') or '').lower() != 'is_live' or not item.get('id'):
+                continue
+            owner=' '.join(str(item.get(k) or '') for k in ('channel','uploader','channel_url','uploader_url'))
+            title=str(item.get('title') or '')
+            # Require the official name either in owner metadata or title to
+            # avoid accidentally publishing another keirin live stream.
+            if '華奈tube' not in owner and '華奈tube' not in title and '華奈' not in owner:
+                continue
+            vid=str(item['id'])
             url=direct('https://www.youtube.com/watch?v='+vid)
             if url:
+                print('Kana tube detector: YouTube search fallback', vid, title)
                 return url
+
     return None
 
 
@@ -79,7 +119,7 @@ def strip_entry(text: str, tvg_id: str) -> str:
 
 
 def entry(url: str) -> str:
-    return (f'#EXTINF:-1 tvg-id="{ID}" tvg-name="{NAME}" tvg-logo="{LOGO}" group-title="かなチューブ",{NAME}\n'
+    return (f'#EXTINF:-1 tvg-id="{ID}" tvg-name="{NAME}" tvg-logo="{LOGO}" group-title="YouTube",{NAME}\n'
             f'{url}\n')
 
 
