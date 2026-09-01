@@ -4,6 +4,7 @@ from __future__ import annotations
 import io
 import os
 import pathlib
+import select
 import subprocess
 import urllib.parse
 import urllib.request
@@ -76,24 +77,20 @@ def make_art(station: str) -> pathlib.Path:
     im = Image.new("RGB", (w, h), "white")
     dr = ImageDraw.Draw(im)
 
-    # Soft pastel background similar to the approved radio-card design.
     for y in range(h):
         t = y / max(1, h - 1)
         mix = 0.06 + 0.24 * t
         c = tuple(int(250 * (1 - mix) + a * mix) for a in accent)
         dr.line((0, y, w, y), fill=c)
 
-    # Equalizer motif.
     for i in range(42):
         x = 8 + i * 15
         bar = 14 + ((i * 29) % 78)
         dr.rounded_rectangle((x, 286 - bar, x + 8, 286), 3, fill=accent)
 
-    # Header strip and station code.
     dr.rectangle((0, 0, w, 54), fill=accent)
     dr.text((18, 12), display, fill="white", font=_font(27, True))
 
-    # Main logo or fallback text.
     logo = _fetch_logo(radiko_sid) if radiko_sid else None
     if logo is not None:
         logo.thumbnail((470, 125), Image.Resampling.LANCZOS)
@@ -105,7 +102,6 @@ def make_art(station: str) -> pathlib.Path:
         box = dr.textbbox((0, 0), text, font=_font(60, True))
         dr.text(((w - (box[2]-box[0]))//2, 94), text, fill=accent, font=_font(60, True))
 
-    # On-air badge.
     badge = "NOW PLAYING"
     bf = _font(19, True)
     bb = dr.textbbox((0, 0), badge, font=bf)
@@ -114,7 +110,6 @@ def make_art(station: str) -> pathlib.Path:
     dr.rounded_rectangle((bx, 205, bx + bw, 239), 17, fill=accent)
     dr.text((bx + 17, 211), badge, fill="white", font=bf)
 
-    # Dark footer, with Latin text to stay font-safe on Render.
     dr.rectangle((0, 300, w, 360), fill=(13, 17, 22))
     dr.text((18, 311), display, fill="white", font=_font(22, True))
     fb = dr.textbbox((0, 0), freq, font=_font(16, False))
@@ -125,35 +120,86 @@ def make_art(station: str) -> pathlib.Path:
 
 
 def audio_url(station: str) -> str:
-    display, freq, accent, radiko_sid, fixed = STATIONS[station]
+    _display, _freq, _accent, radiko_sid, fixed = STATIONS[station]
     if fixed:
         return fixed
-    return f"{RADIKO_BASE}/api/radiko?station={urllib.parse.quote(radiko_sid, safe='')}"
+    sid = urllib.parse.quote(radiko_sid, safe="")
+    # Feed ffmpeg the final live media playlist directly. This avoids an
+    # extra HLS master/proxy hop that some ffmpeg builds handle poorly.
+    return f"{RADIKO_BASE}/api/radiko?station={sid}&stage=media"
 
 
 def ffmpeg_exe() -> str:
     return imageio_ffmpeg.get_ffmpeg_exe()
 
 
-def stream_station(handler, station: str):
-    if station not in STATIONS:
-        handler.send_error(404, "unknown radio station")
-        return
+def ffmpeg_cmd(station: str) -> list[str]:
     art = make_art(station)
     src = audio_url(station)
-    cmd = [
+    return [
         ffmpeg_exe(),
-        "-hide_banner", "-loglevel", "error",
+        "-hide_banner", "-loglevel", "warning",
         "-re", "-loop", "1", "-framerate", "1", "-i", str(art),
+        "-rw_timeout", "15000000",
+        "-user_agent", "Mozilla/5.0",
         "-i", src,
         "-map", "0:v:0", "-map", "1:a:0",
         "-c:v", "libx264", "-preset", "ultrafast", "-tune", "stillimage",
         "-crf", "31", "-pix_fmt", "yuv420p", "-r", "1", "-g", "2",
         "-c:a", "aac", "-b:a", "96k", "-ar", "48000", "-ac", "2",
-        "-muxdelay", "0", "-muxpreload", "0",
+        "-muxdelay", "0", "-muxpreload", "0", "-flush_packets", "1",
+        "-mpegts_flags", "resend_headers",
         "-f", "mpegts", "pipe:1",
     ]
-    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, bufsize=0)
+
+
+def _stop_proc(proc: subprocess.Popen) -> None:
+    try:
+        proc.terminate()
+    except Exception:
+        pass
+    try:
+        proc.wait(timeout=2)
+    except Exception:
+        try:
+            proc.kill()
+        except Exception:
+            pass
+
+
+def stream_station(handler, station: str):
+    if station not in STATIONS:
+        handler.send_error(404, "unknown radio station")
+        return
+
+    proc = subprocess.Popen(
+        ffmpeg_cmd(station),
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        bufsize=0,
+    )
+
+    # Do not tell the player the stream is valid until ffmpeg has actually
+    # produced transport-stream bytes. Previously a failed ffmpeg process
+    # yielded HTTP 200 followed by an empty connection, which VLC reports as
+    # an MRL-open failure.
+    ready, _, _ = select.select([proc.stdout], [], [], 18)
+    if not ready:
+        _stop_proc(proc)
+        handler.send_error(504, "radio transcoder timed out before producing video/audio")
+        return
+
+    first = proc.stdout.read(64 * 1024)
+    if not first:
+        try:
+            err = proc.stderr.read(8192).decode("utf-8", "replace").strip()
+        except Exception:
+            err = ""
+        _stop_proc(proc)
+        detail = err[-3000:] if err else "ffmpeg exited without producing MPEG-TS"
+        handler.send_error(502, detail)
+        return
+
     handler.send_response(200)
     handler.send_header("Content-Type", "video/mp2t")
     handler.send_header("Cache-Control", "no-store")
@@ -162,6 +208,8 @@ def stream_station(handler, station: str):
     handler.end_headers()
     handler.close_connection = True
     try:
+        handler.wfile.write(first)
+        handler.wfile.flush()
         while True:
             chunk = proc.stdout.read(64 * 1024)
             if not chunk:
@@ -171,17 +219,53 @@ def stream_station(handler, station: str):
     except (BrokenPipeError, ConnectionResetError, OSError):
         pass
     finally:
-        try:
-            proc.terminate()
-        except Exception:
-            pass
-        try:
-            proc.wait(timeout=2)
-        except Exception:
-            try:
-                proc.kill()
-            except Exception:
-                pass
+        _stop_proc(proc)
+
+
+def debug_station(handler, station: str):
+    if station not in STATIONS:
+        handler.send_error(404, "unknown radio station")
+        return
+
+    lines = [
+        f"station={station}",
+        f"ffmpeg={ffmpeg_exe()}",
+        f"audio={audio_url(station)}",
+    ]
+    try:
+        req = urllib.request.Request(audio_url(station), headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=15) as r:
+            sample = r.read(1000).decode("utf-8", "replace")
+            lines.append(f"audio_http={getattr(r, 'status', 200)}")
+            lines.append(f"audio_content_type={r.headers.get('Content-Type', '')}")
+            lines.append("audio_sample=" + sample.replace("\n", " | ")[:700])
+    except Exception as e:
+        lines.append(f"audio_fetch_error={type(e).__name__}: {e}")
+
+    cmd = ffmpeg_cmd(station)
+    # Replace stdout pipe with a short file output probe, preserving all input
+    # and codec settings. Four seconds is enough to prove A/V muxing works.
+    cmd = cmd[:-2] + ["mpegts", "/tmp/radio-debug.ts"] if False else cmd
+    probe = cmd[:-1] + ["/tmp/radio-debug.ts"]
+    probe[probe.index("-re"):probe.index("-re")] = ["-t", "4"]
+    try:
+        p = subprocess.run(probe, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, timeout=22)
+        size = pathlib.Path("/tmp/radio-debug.ts").stat().st_size if pathlib.Path("/tmp/radio-debug.ts").exists() else 0
+        lines.append(f"ffmpeg_rc={p.returncode}")
+        lines.append(f"output_bytes={size}")
+        err = p.stderr.decode("utf-8", "replace").strip()
+        if err:
+            lines.append("ffmpeg_stderr=" + err[-5000:].replace("\n", " | "))
+    except Exception as e:
+        lines.append(f"ffmpeg_probe_error={type(e).__name__}: {e}")
+
+    body = ("\n".join(lines) + "\n").encode("utf-8")
+    handler.send_response(200)
+    handler.send_header("Content-Type", "text/plain; charset=utf-8")
+    handler.send_header("Content-Length", str(len(body)))
+    handler.send_header("Cache-Control", "no-store")
+    handler.end_headers()
+    handler.wfile.write(body)
 
 
 def handle_request(handler) -> bool:
@@ -189,6 +273,10 @@ def handle_request(handler) -> bool:
     if parsed.path.startswith("/radio-tv/"):
         station = urllib.parse.unquote(parsed.path.split("/", 2)[2]).strip()
         stream_station(handler, station)
+        return True
+    if parsed.path.startswith("/radio-debug/"):
+        station = urllib.parse.unquote(parsed.path.split("/", 2)[2]).strip()
+        debug_station(handler, station)
         return True
     if parsed.path.startswith("/radio-art/"):
         name = urllib.parse.unquote(parsed.path.split("/", 2)[2]).strip()
