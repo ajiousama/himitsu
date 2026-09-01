@@ -12,6 +12,7 @@ BASE = os.environ.get("RADIO_TV_BASE", "https://ajiousama-radiko.onrender.com").
 # Render A/V mux has been verified with ABC. Apply it only to the 12 radiko
 # stations here; keep the four NHK stations on their current direct URLs until
 # Render->NHK muxing is verified separately.
+# 2026-09-02: force rollout after Vercel fMP4 playback proved unstable on iOS.
 TARGETS = {
     "radiko.JOEU-FM": "JOEU-FM",
     "radiko.RNB": "RNB",
