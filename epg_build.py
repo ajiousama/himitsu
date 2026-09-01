@@ -88,6 +88,14 @@ EXPLICIT = {
     "日テレプラス_jp": ["NipponTVPlus.jp", "NittelePlus.jp"],
 }
 
+# Rakuten R Channel and similarly named pay-TV channels can carry different
+# schedules even when their display names are the same. Pin only the known
+# Rakuten source here; if it disappears, fall back instead of borrowing the
+# SkyPerfecTV schedule.
+SOURCE_PIN = {
+    "rch_40": ("karenda", "rch_40"),
+}
+
 SOURCE_PRIORITY = {name: i for i, (name, _) in enumerate(SOURCES)}
 JST = timezone(timedelta(hours=9))
 
@@ -232,6 +240,22 @@ def main():
         if target_id in ecatv_epg:
             display_name, programmes = ecatv_epg[target_id]; add_ecatv_channel(out_root, target_id, display_name, programmes); matched += 1
             coverage.append(f"OK\t{target_id}\t{target_name}\tecatv\t{ECATV_CHANNELS[target_id][1]}\t{len(programmes)} programmes"); continue
+
+        pin = SOURCE_PIN.get(target_id)
+        if pin:
+            source_name, source_id = pin
+            source = source_map.get(source_name)
+            if source and source_id in source[1] and source[3].get(source_id):
+                _, by_id, _, programmes = source
+                ch = clone(by_id[source_id]); ch.set("id", target_id); out_root.append(ch)
+                seenp, added = set(), 0
+                for p in programmes.get(source_id, []):
+                    q = clone(p); q.set("channel", target_id); key = (q.get("start"), q.get("stop"), (q.findtext("title") or "").strip())
+                    if key in seenp: continue
+                    seenp.add(key); out_root.append(q); added += 1
+                matched += 1; coverage.append(f"OK\t{target_id}\t{target_name}\t{source_name}\t{source_id}\t{added} programmes"); continue
+            add_fallback(out_root, target_id, target_name, target_group, sports_status); fallback += 1; missing.append((target_id, target_name)); coverage.append(f"FALLBACK\t{target_id}\t{target_name}\t{target_group}\t12 programmes (pinned source unavailable)"); continue
+
         candidates = []
         for sid in EXPLICIT.get(target_id, []): candidates += id_index.get(sid, [])
         candidates += id_index.get(target_id, [])
