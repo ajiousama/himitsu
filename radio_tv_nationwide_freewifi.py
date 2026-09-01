@@ -5,13 +5,9 @@ from pathlib import Path
 from urllib.parse import quote
 
 FREEWIFI = Path("freewifi")
-VERCEL_RADIO_TV = "https://himitsu-six.vercel.app/api/radio-tv"
+RADIO_TS_BASE = "https://raw.githubusercontent.com/ajiousama/himitsu/radio-ts-assets"
 NHK_LOGO = "https://upload.wikimedia.org/wikipedia/commons/b/bb/NHK_logo_2020.svg"
-NHK_FM_OSAKA = "https://simul2.drdi.st.nhk/live/13/joined/master.m3u8"
-NHK_FM_MATSUYAMA = "https://simul2.drdi.st.nhk/live/17/joined/master.m3u8"
 
-# The Vercel radio-TV service uses stable aliases for NHK R1. Commercial
-# stations use their Radiko station IDs directly.
 RADIO_TV_ALIAS = {
     "JOBK": "nhk_r1_osaka",
     "JOZK": "nhk_r1_matsuyama",
@@ -20,7 +16,7 @@ RADIO_TV_ALIAS = {
 
 def radio_tv_url(sid: str) -> str:
     station = RADIO_TV_ALIAS.get(sid, sid)
-    return f"{VERCEL_RADIO_TV}?station={quote(station, safe='')}"
+    return f"{RADIO_TS_BASE}/{quote(station, safe='')}/master.m3u8"
 
 
 def radiko_entry(tvgid: str, sid: str, name: str, group: str, logo: str | None = None) -> str:
@@ -38,12 +34,12 @@ def compact_block() -> str:
     parts.append(radiko_entry("radiko.JOBK", "JOBK", "NHKラジオ第1（大阪）", "ラジオ"))
     parts.append(
         f'#EXTINF:-1 tvg-id="nhk_fm_osaka" tvg-logo="{NHK_LOGO}" group-title="ラジオ",NHK-FM（大阪）\n'
-        f'{NHK_FM_OSAKA}\n'
+        f'{RADIO_TS_BASE}/nhk_fm_osaka/master.m3u8\n'
     )
     parts.append(radiko_entry("radiko.JOZK", "JOZK", "NHKラジオ第1（松山）", "ラジオ"))
     parts.append(
         f'#EXTINF:-1 tvg-id="nhk_fm_matsuyama" tvg-logo="{NHK_LOGO}" group-title="ラジオ",NHK-FM（松山）\n'
-        f'{NHK_FM_MATSUYAMA}\n'
+        f'{RADIO_TS_BASE}/nhk_fm_matsuyama/master.m3u8\n'
     )
 
     parts.append("\n## 愛媛（ラジオ）\n\n")
@@ -80,23 +76,22 @@ def main() -> int:
 
     updated = text[:start] + compact_block() + text[end:]
 
-    # Never allow this repair to damage unrelated sections.
     if "## Rakuten-JP" not in updated:
         raise RuntimeError("Rakuten-JP section disappeared; refusing to write")
-    if NHK_FM_MATSUYAMA not in updated:
-        raise RuntimeError("NHK-FM Matsuyama direct feed disappeared; refusing to write")
 
     radio_section = updated[start:updated.find("## 愛媛CATV", start)]
-    vercel_count = radio_section.count(VERCEL_RADIO_TV + "?station=")
-    if not 12 <= vercel_count <= 20:
-        raise RuntimeError(f"compact FreeWiFi radio count unexpected: {vercel_count}")
+    ts_count = radio_section.count(RADIO_TS_BASE + "/")
+    if ts_count != 16:
+        raise RuntimeError(f"compact FreeWiFi stable TS count unexpected: {ts_count}")
     if "### 北海道" in radio_section or "station=TBS" in radio_section:
         raise RuntimeError("nationwide catalog leaked into FreeWiFi radio section")
     if "ajiousama-radiko.onrender.com/radio-tv/" in radio_section:
         raise RuntimeError("Render radio-TV URL leaked into compact FreeWiFi radio section")
+    if "himitsu-six.vercel.app/api/radio-tv" in radio_section:
+        raise RuntimeError("old Vercel radio-TV URL leaked into compact FreeWiFi radio section")
 
     FREEWIFI.write_text(updated, encoding="utf-8")
-    print(f"FreeWiFi compact radio restored: {vercel_count} Vercel image+audio stations + 2 local NHK-FM feeds")
+    print(f"FreeWiFi compact radio restored: {ts_count} stable TS stations")
     return 0
 
 
