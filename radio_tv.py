@@ -5,12 +5,12 @@ import io
 import os
 import pathlib
 import select
+import shutil
 import subprocess
 import urllib.parse
 import urllib.request
 
 from PIL import Image, ImageDraw, ImageFont
-import imageio_ffmpeg
 
 RADIKO_BASE = os.environ.get("RADIKO_PUBLIC_BASE", "https://himitsu-six.vercel.app").rstrip("/")
 ART_DIR = pathlib.Path(os.environ.get("RADIO_TV_ART_DIR", "/tmp/radio-tv-art"))
@@ -124,13 +124,20 @@ def audio_url(station: str) -> str:
     if fixed:
         return fixed
     sid = urllib.parse.quote(radiko_sid, safe="")
-    # Feed ffmpeg the final live media playlist directly. This avoids an
-    # extra HLS master/proxy hop that some ffmpeg builds handle poorly.
     return f"{RADIKO_BASE}/api/radiko?station={sid}&stage=media"
 
 
 def ffmpeg_exe() -> str:
-    return imageio_ffmpeg.get_ffmpeg_exe()
+    # Render native runtimes provide a system ffmpeg. Prefer it explicitly so
+    # we never fall back to imageio-ffmpeg's bundled binary, which segfaulted
+    # on Render with rc=-11.
+    for candidate in ("/usr/bin/ffmpeg", "/usr/local/bin/ffmpeg"):
+        if os.path.isfile(candidate) and os.access(candidate, os.X_OK):
+            return candidate
+    found = shutil.which("ffmpeg")
+    if found:
+        return found
+    raise RuntimeError("system ffmpeg not found")
 
 
 def ffmpeg_cmd(station: str) -> list[str]:
@@ -172,17 +179,19 @@ def stream_station(handler, station: str):
         handler.send_error(404, "unknown radio station")
         return
 
+    try:
+        cmd = ffmpeg_cmd(station)
+    except Exception as e:
+        handler.send_error(500, f"ffmpeg setup failed: {type(e).__name__}: {e}")
+        return
+
     proc = subprocess.Popen(
-        ffmpeg_cmd(station),
+        cmd,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         bufsize=0,
     )
 
-    # Do not tell the player the stream is valid until ffmpeg has actually
-    # produced transport-stream bytes. Previously a failed ffmpeg process
-    # yielded HTTP 200 followed by an empty connection, which VLC reports as
-    # an MRL-open failure.
     ready, _, _ = select.select([proc.stdout], [], [], 18)
     if not ready:
         _stop_proc(proc)
@@ -227,11 +236,20 @@ def debug_station(handler, station: str):
         handler.send_error(404, "unknown radio station")
         return
 
-    lines = [
-        f"station={station}",
-        f"ffmpeg={ffmpeg_exe()}",
-        f"audio={audio_url(station)}",
-    ]
+    lines = [f"station={station}"]
+    try:
+        lines.append(f"ffmpeg={ffmpeg_exe()}")
+    except Exception as e:
+        lines.append(f"ffmpeg_error={type(e).__name__}: {e}")
+        body = ("\n".join(lines) + "\n").encode("utf-8")
+        handler.send_response(200)
+        handler.send_header("Content-Type", "text/plain; charset=utf-8")
+        handler.send_header("Content-Length", str(len(body)))
+        handler.end_headers()
+        handler.wfile.write(body)
+        return
+
+    lines.append(f"audio={audio_url(station)}")
     try:
         req = urllib.request.Request(audio_url(station), headers={"User-Agent": "Mozilla/5.0"})
         with urllib.request.urlopen(req, timeout=15) as r:
@@ -242,15 +260,18 @@ def debug_station(handler, station: str):
     except Exception as e:
         lines.append(f"audio_fetch_error={type(e).__name__}: {e}")
 
+    debug_path = pathlib.Path("/tmp/radio-debug.ts")
+    try:
+        debug_path.unlink(missing_ok=True)
+    except Exception:
+        pass
+
     cmd = ffmpeg_cmd(station)
-    # Replace stdout pipe with a short file output probe, preserving all input
-    # and codec settings. Four seconds is enough to prove A/V muxing works.
-    cmd = cmd[:-2] + ["mpegts", "/tmp/radio-debug.ts"] if False else cmd
-    probe = cmd[:-1] + ["/tmp/radio-debug.ts"]
+    probe = cmd[:-1] + [str(debug_path)]
     probe[probe.index("-re"):probe.index("-re")] = ["-t", "4"]
     try:
         p = subprocess.run(probe, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, timeout=22)
-        size = pathlib.Path("/tmp/radio-debug.ts").stat().st_size if pathlib.Path("/tmp/radio-debug.ts").exists() else 0
+        size = debug_path.stat().st_size if debug_path.exists() else 0
         lines.append(f"ffmpeg_rc={p.returncode}")
         lines.append(f"output_bytes={size}")
         err = p.stderr.decode("utf-8", "replace").strip()
