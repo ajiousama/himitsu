@@ -15,6 +15,7 @@ os.environ.setdefault("RADIKO_PROXY_HOST", "0.0.0.0")
 os.environ.setdefault("RADIKO_PROXY_PORT", os.environ.get("PORT", "10000"))
 
 import radiko_proxy_core as core
+import radio_tv
 
 
 def cloud_auth(force: bool = False):
@@ -105,14 +106,15 @@ def tun_capability_report() -> str:
 
 
 core.auth = cloud_auth
-core.BUILD = "20260829-render-vpngate-probe-v3"
+core.BUILD = "20260901-radio-tv-v1"
 
-# Add a narrow diagnostics endpoint to determine whether Render can host an
-# OpenVPN client. No secrets are exposed by this endpoint.
+# Add radio TV rendering plus the existing narrow diagnostics endpoint.
 _original_do_get = core.Handler.do_GET
 
 
 def _cloud_do_get(self):
+    if radio_tv.handle_request(self):
+        return
     if urllib.parse.urlsplit(self.path).path == "/vpncheck":
         self.send_bytes(200, tun_capability_report().encode(), "text/plain; charset=utf-8")
         return
