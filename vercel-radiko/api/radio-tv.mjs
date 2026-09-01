@@ -204,17 +204,31 @@ function patchSegment(source, sequence) {
   const out = Buffer.from(source);
   const seq = BigInt(sequence);
   const seq32 = Number(seq & 0xffffffffn);
+  const ticks = seq * BigInt(SEGMENT_SECONDS * TIMESCALE);
   let pos = 0;
+
   while ((pos = out.indexOf(Buffer.from('mfhd'), pos)) >= 0) {
     if (pos + 12 <= out.length) out.writeUInt32BE(seq32, pos + 8);
     pos += 4;
   }
+
+  pos = 0;
+  while ((pos = out.indexOf(Buffer.from('sidx'), pos)) >= 0) {
+    if (pos + 24 <= out.length) {
+      const version = out[pos + 4];
+      const scale = out.readUInt32BE(pos + 12) || TIMESCALE;
+      const sidxTicks = seq * BigInt(SEGMENT_SECONDS) * BigInt(scale);
+      if (version === 1) out.writeBigUInt64BE(sidxTicks, pos + 16);
+      else if (version === 0 && pos + 20 <= out.length) out.writeUInt32BE(Number(sidxTicks & 0xffffffffn), pos + 16);
+    }
+    pos += 4;
+  }
+
   pos = 0;
   while ((pos = out.indexOf(Buffer.from('tfdt'), pos)) >= 0) {
     if (pos + 16 <= out.length) {
       const version = out[pos + 4];
-      const ticks = seq * BigInt(SEGMENT_SECONDS * TIMESCALE);
-      if (version === 1 && pos + 16 <= out.length) out.writeBigUInt64BE(ticks, pos + 8);
+      if (version === 1) out.writeBigUInt64BE(ticks, pos + 8);
       else if (version === 0 && pos + 12 <= out.length) out.writeUInt32BE(Number(ticks & 0xffffffffn), pos + 8);
     }
     pos += 4;
