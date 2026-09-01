@@ -42,6 +42,17 @@ def parse_xmltv_time(value):
     return base.replace(tzinfo=JST)
 
 
+def actual_race_dt(title, today, fallback):
+    m = re.search(r'(?<!\d)(\d{1,2})[：:](\d{2})\s*発走', title)
+    if not m:
+        return fallback
+    hour = int(m.group(1))
+    minute = int(m.group(2))
+    if not (0 <= hour <= 23 and 0 <= minute <= 59):
+        return fallback
+    return datetime(today.year, today.month, today.day, hour, minute, tzinfo=JST)
+
+
 def epg_state(text, now):
     root = ET.fromstring(text)
     today = now.date()
@@ -62,14 +73,16 @@ def epg_state(text, now):
         s['has_today'] = True
         if ej and (s['last_stop'] is None or ej > s['last_stop']):
             s['last_stop'] = ej
-        if sj >= now:
-            m = re.search(r'(?<!\d)(\d{1,2})[RＲ](?!\w)', title, re.I)
-            if m and (s['next_race'] is None or sj < s['next_race']['_dt']):
+
+        race_m = re.search(r'(?<!\d)(\d{1,2})[RＲ](?!\w)', title, re.I)
+        race_dt = actual_race_dt(title, today, sj)
+        if race_m and race_dt >= now:
+            if s['next_race'] is None or race_dt < s['next_race']['_dt']:
                 s['next_race'] = {
-                    'race': int(m.group(1)),
-                    'start': sj.strftime('%H:%M'),
+                    'race': int(race_m.group(1)),
+                    'start': race_dt.strftime('%H:%M'),
                     'title': title,
-                    '_dt': sj,
+                    '_dt': race_dt,
                 }
     return state
 
@@ -107,7 +120,6 @@ def sort_key(item):
     if nr and re.fullmatch(r'\d{2}:\d{2}', nr.get('start', '')):
         h, m = map(int, nr['start'].split(':'))
         return (0, h * 60 + m, item['name'])
-    # EPGで次レース時刻が取れない開催中の場は、その後ろへ。
     return (1, 0, item['name'])
 
 
@@ -137,7 +149,7 @@ def main():
     for entry in entries:
         cid = entry['id']
         s = state.get(cid)
-        # 終了を確定できるのは「今日の実番組があり、最終stopを過ぎた」場合のみ。
+        # 今日の実番組が存在し、その最終stopを過ぎた場合だけ終了確定として削除する。
         if s and s.get('has_today') and s.get('last_stop') and now >= s['last_stop']:
             removed.append((cid, entry['name'], s['last_stop'].strftime('%H:%M')))
             continue
@@ -181,7 +193,7 @@ def main():
     for cid, name, stop in removed:
         print(f'  REMOVE {stop} {name} [{cid}]')
     print('Remaining venues:', len(kept))
-    print('Order: next race time ascending; unknown times after known times')
+    print('Order: actual next race start ascending; unknown times after known times')
     for entry in kept:
         nr = entry.get('next_race')
         print(f"  {(nr['start'] if nr else '--:--')} {entry['name']}")
