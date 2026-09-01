@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-09-01T19:28:43.589688+09:00",
-  "date": "2026-09-01",
+  "generated_at": "2026-09-02T00:06:10.799023+09:00",
+  "date": "2026-09-02",
   "visible_count": 1,
-  "held_count": 12,
+  "held_count": 13,
   "scheduled_end_check": false,
   "channels": {
     "boat.kiryu": {
@@ -37,44 +37,56 @@
       "name": "多摩川",
       "held": true,
       "live": false,
-      "ended_pending_check": true,
+      "ended": false,
       "mode": "day",
+      "first_race": "11:29",
       "last_race": "17:15",
-      "source": "BOAT RACE official raceindex"
+      "next_race": {
+        "race": 1,
+        "start": "11:29"
+      },
+      "next_race_text": "次は 1R 11:29発走",
+      "source": "BOAT RACE official raceindex",
+      "playback_error": "playback:HTTPError"
     },
     "boat.hamanako": {
       "name": "浜名湖",
       "held": true,
       "live": false,
-      "ended_pending_check": true,
+      "ended": false,
       "mode": "day",
-      "last_race": "17:10",
-      "source": "BOAT RACE official raceindex"
+      "first_race": "11:24",
+      "last_race": "17:07",
+      "next_race": {
+        "race": 1,
+        "start": "11:24"
+      },
+      "next_race_text": "次は 1R 11:24発走",
+      "source": "BOAT RACE official raceindex",
+      "playback_error": "playback:HTTPError"
     },
     "boat.gamagori": {
       "name": "蒲郡",
-      "held": true,
+      "held": false,
       "live": false,
-      "ended": false,
-      "mode": "night",
-      "first_race": "15:19",
-      "last_race": "20:36",
-      "next_race": {
-        "race": 10,
-        "start": "19:36"
-      },
-      "next_race_text": "次は 10R 19:36発走",
       "source": "BOAT RACE official raceindex",
-      "playback_error": "playback:HTTPError"
+      "error": null
     },
     "boat.tokoname": {
       "name": "常滑",
       "held": true,
       "live": false,
-      "ended_pending_check": true,
+      "ended": false,
       "mode": "day",
-      "last_race": "16:14",
-      "source": "BOAT RACE official raceindex"
+      "first_race": "10:34",
+      "last_race": "16:15",
+      "next_race": {
+        "race": 1,
+        "start": "10:34"
+      },
+      "next_race_text": "次は 1R 10:34発走",
+      "source": "BOAT RACE official raceindex",
+      "playback_error": "playback:HTTPError"
     },
     "boat.tsu": {
       "name": "津",
@@ -106,10 +118,10 @@
       "first_race": "15:17",
       "last_race": "20:31",
       "next_race": {
-        "race": 11,
-        "start": "20:02"
+        "race": 1,
+        "start": "15:17"
       },
-      "next_race_text": "次は 11R 20:02発走",
+      "next_race_text": "次は 1R 15:17発走",
       "source": "official YouTube fallback",
       "playback_error": "playback:HTTPError"
     },
@@ -117,10 +129,17 @@
       "name": "尼崎",
       "held": true,
       "live": false,
-      "ended_pending_check": true,
+      "ended": false,
       "mode": "day",
+      "first_race": "10:42",
       "last_race": "16:25",
-      "source": "BOAT RACE official raceindex"
+      "next_race": {
+        "race": 1,
+        "start": "10:42"
+      },
+      "next_race_text": "次は 1R 10:42発走",
+      "source": "BOAT RACE official raceindex",
+      "playback_error": "playback:HTTPError"
     },
     "boat.naruto": {
       "name": "鳴門",
@@ -140,26 +159,49 @@
       "name": "児島",
       "held": true,
       "live": false,
-      "ended_pending_check": true,
+      "ended": false,
       "mode": "day",
+      "first_race": "11:19",
       "last_race": "17:20",
-      "source": "BOAT RACE official raceindex"
+      "next_race": {
+        "race": 1,
+        "start": "11:19"
+      },
+      "next_race_text": "次は 1R 11:19発走",
+      "source": "BOAT RACE official raceindex",
+      "playback_error": "playback:HTTPError"
     },
     "boat.miyajima": {
       "name": "宮島",
-      "held": false,
+      "held": true,
       "live": false,
+      "ended": false,
+      "mode": "day",
+      "first_race": "10:56",
+      "last_race": "16:40",
+      "next_race": {
+        "race": 1,
+        "start": "10:56"
+      },
+      "next_race_text": "次は 1R 10:56発走",
       "source": "BOAT RACE official raceindex",
-      "error": null
+      "playback_error": "playback:HTTPError"
     },
     "boat.tokuyama": {
       "name": "徳山",
       "held": true,
       "live": false,
-      "ended_pending_check": true,
+      "ended": false,
       "mode": "morning",
-      "last_race": "14:26",
-      "source": "BOAT RACE official raceindex"
+      "first_race": "08:44",
+      "last_race": "14:22",
+      "next_race": {
+        "race": 1,
+        "start": "08:44"
+      },
+      "next_race_text": "次は 1R 08:44発走",
+      "source": "BOAT RACE official raceindex",
+      "playback_error": "playback:HTTPError"
     },
     "boat.shimonoseki": {
       "name": "下関",
@@ -167,13 +209,13 @@
       "live": false,
       "ended": false,
       "mode": "night",
-      "first_race": "15:27",
+      "first_race": "15:25",
       "last_race": "20:45",
       "next_race": {
-        "race": 10,
-        "start": "19:49"
+        "race": 1,
+        "start": "15:25"
       },
-      "next_race_text": "次は 10R 19:49発走",
+      "next_race_text": "次は 1R 15:25発走",
       "source": "BOAT RACE official raceindex",
       "playback_error": "playback:HTTPError"
     },
@@ -183,13 +225,13 @@
       "live": false,
       "ended": false,
       "mode": "night",
-      "first_race": "15:23",
-      "last_race": "20:41",
+      "first_race": "15:21",
+      "last_race": "20:38",
       "next_race": {
-        "race": 10,
-        "start": "19:42"
+        "race": 1,
+        "start": "15:21"
       },
-      "next_race_text": "次は 10R 19:42発走",
+      "next_race_text": "次は 1R 15:21発走",
       "source": "BOAT RACE official raceindex",
       "playback_error": "playback:HTTPError"
     },
@@ -197,17 +239,33 @@
       "name": "芦屋",
       "held": true,
       "live": false,
-      "ended_pending_check": true,
+      "ended": false,
       "mode": "morning",
+      "first_race": "08:32",
       "last_race": "14:10",
-      "source": "BOAT RACE official raceindex"
+      "next_race": {
+        "race": 1,
+        "start": "08:32"
+      },
+      "next_race_text": "次は 1R 08:32発走",
+      "source": "BOAT RACE official raceindex",
+      "playback_error": "playback:HTTPError"
     },
     "boat.fukuoka": {
       "name": "福岡",
-      "held": false,
+      "held": true,
       "live": false,
+      "ended": false,
+      "mode": "day",
+      "first_race": "11:43",
+      "last_race": "17:25",
+      "next_race": {
+        "race": 1,
+        "start": "11:43"
+      },
+      "next_race_text": "次は 1R 11:43発走",
       "source": "BOAT RACE official raceindex",
-      "error": null
+      "playback_error": "playback:HTTPError"
     },
     "boat.karatsu": {
       "name": "唐津",
@@ -225,10 +283,10 @@
       "first_race": "17:41",
       "last_race": "22:41",
       "next_race": {
-        "race": 5,
-        "start": "19:30"
+        "race": 1,
+        "start": "17:41"
       },
-      "next_race_text": "次は 5R 19:30発走",
+      "next_race_text": "次は 1R 17:41発走",
       "source": "BOAT RACE official raceindex",
       "playback_error": "playback:HTTPError"
     }
