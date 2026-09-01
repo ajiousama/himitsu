@@ -1,0 +1,98 @@
+name: Apply Nationwide RADIO TV
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'radio_tv_nationwide.py'
+      - 'radiko_cloud_start.py'
+      - 'radio_tv_nationwide_freewifi.py'
+      - '.github/workflows/apply_nationwide_radio_tv.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: himitsu-freewifi-writer
+  cancel-in-progress: false
+
+jobs:
+  rollout:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Sync latest main
+        run: git pull --ff-only origin main
+
+      - name: Wait for nationwide Render build
+        shell: bash
+        run: |
+          set -euo pipefail
+          base='https://ajiousama-radiko.onrender.com'
+          for i in $(seq 1 30); do
+            body="$(curl -fsS --max-time 75 "$base/health" 2>/dev/null || true)"
+            echo "attempt=$i health=$body"
+            if printf '%s' "$body" | grep -q 'build=20260901-radio-tv-nationwide-v1'; then
+              exit 0
+            fi
+            sleep 20
+          done
+          echo '::error::Nationwide Render build did not become ready'
+          exit 1
+
+      - name: Check dynamic station art
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsSL --max-time 75 -o /tmp/TBS.jpg 'https://ajiousama-radiko.onrender.com/radio-art/TBS.jpg'
+          test "$(stat -c %s /tmp/TBS.jpg)" -gt 5000
+          file /tmp/TBS.jpg
+
+      - name: Smoke test nationwide image plus audio mux
+        shell: bash
+        run: |
+          set -euo pipefail
+          base='https://ajiousama-radiko.onrender.com/radio-debug'
+          for sid in TBS HBC RBC JOZK; do
+            echo "===== $sid ====="
+            out="$(curl -fsS --max-time 90 "$base/$sid")"
+            printf '%s\n' "$out"
+            printf '%s\n' "$out" | grep -q '^ffmpeg_rc=0$'
+            bytes="$(printf '%s\n' "$out" | sed -n 's/^output_bytes=//p' | tail -1)"
+            test -n "$bytes"
+            test "$bytes" -gt 10000
+          done
+
+      - name: Build nationwide RADIO section
+        run: python radio_tv_nationwide_freewifi.py
+
+      - name: Validate nationwide FreeWiFi RADIO
+        shell: bash
+        run: |
+          set -euo pipefail
+          count="$(grep -c '^https://ajiousama-radiko.onrender.com/radio-tv/' freewifi)"
+          echo "Render RADIO count=$count"
+          test "$count" -ge 100
+          grep -q '^https://ajiousama-radiko.onrender.com/radio-tv/TBS$' freewifi
+          grep -q '^https://ajiousama-radiko.onrender.com/radio-tv/JOZK$' freewifi
+          grep -q '^https://simul2.drdi.st.nhk/live/17/joined/master.m3u8$' freewifi
+          grep -q '^## Rakuten-JP$' freewifi
+
+      - name: Commit nationwide RADIO
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add freewifi
+          if git diff --cached --quiet; then
+            echo 'Nationwide RADIO already current'
+            exit 0
+          fi
+          git commit -m 'Expand RADIO to nationwide image and audio streams'
+          git pull --rebase origin main
+          git push origin HEAD:main
