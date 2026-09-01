@@ -1,8 +1,9 @@
-name: Refresh 180p radio TS visuals
+name: Refresh all radio TS visuals
 
 on:
   push:
     paths:
+      - 'build_all_radio_ts.py'
       - '.github/workflows/refresh_radio_ts_180p.yml'
   workflow_dispatch:
   schedule:
@@ -12,7 +13,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: refresh-radio-ts-180p
+  group: refresh-all-radio-ts
   cancel-in-progress: true
 
 jobs:
@@ -23,6 +24,13 @@ jobs:
         with:
           fetch-depth: 0
 
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install image dependencies
+        run: pip install -r requirements.txt
+
       - name: Ensure ffmpeg
         shell: bash
         run: |
@@ -32,184 +40,53 @@ jobs:
             sudo apt-get install -y ffmpeg
           fi
 
-      - name: Build station-specific 180p 1fps TS windows
+      - name: Reuse existing TS asset branch
         shell: bash
-        env:
-          OUTROOT: ${{ runner.temp }}/radio-ts-assets
         run: |
           set -euo pipefail
-          rm -rf "$OUTROOT"
-          mkdir -p "$OUTROOT"
+          ASSETS="${RUNNER_TEMP}/radio-ts-assets"
+          rm -rf "$ASSETS"
+          git fetch origin radio-ts-assets:refs/remotes/origin/radio-ts-assets || true
+          if git show-ref --verify --quiet refs/remotes/origin/radio-ts-assets; then
+            git worktree add --detach "$ASSETS" origin/radio-ts-assets
+          else
+            git worktree add --detach "$ASSETS" HEAD
+            git -C "$ASSETS" switch --orphan radio-ts-assets-bootstrap
+            git -C "$ASSETS" rm -rf . || true
+          fi
+          echo "RADIO_TS_ASSETS=$ASSETS" >> "$GITHUB_ENV"
 
-          stations=(
-            nhk_r1_osaka nhk_fm_osaka nhk_r1_matsuyama nhk_fm_matsuyama
-            JOEU-FM RNB ABC CCL 802 FMO MBS OBC KBS ALPHA-STATION E-RADIO CRK
-          )
-
-          for sid in "${stations[@]}"; do
-            card="vercel-radiko/radio-video-assets/cards/${sid}.jpg"
-            out="$OUTROOT/$sid"
-            test -s "$card"
-            mkdir -p "$out"
-
-            # Stable settings confirmed on iPhone/M3U IPTV:
-            # MPEG-TS, H.264 baseline, 320x180, 1 fps, 5-minute segments.
-            ffmpeg -y -hide_banner -loglevel error \
-              -loop 1 -framerate 1 -i "$card" \
-              -t 10800 \
-              -vf "scale=320:180:force_original_aspect_ratio=decrease,pad=320:180:(ow-iw)/2:(oh-ih)/2" \
-              -c:v libx264 -profile:v baseline -level:v 3.0 \
-              -preset ultrafast -tune stillimage -crf 38 \
-              -pix_fmt yuv420p -r 1 -g 10 -keyint_min 10 -sc_threshold 0 -an \
-              -f hls -hls_segment_type mpegts -hls_time 300 -hls_list_size 0 \
-              -hls_flags independent_segments \
-              -hls_segment_filename "$out/seg_%03d.ts" \
-              "$out/raw.m3u8"
-          done
-
-      - name: Write live-aligned playlists
+      - name: Build or reuse every nationwide radio visual
         shell: bash
-        env:
-          OUTROOT: ${{ runner.temp }}/radio-ts-assets
         run: |
           set -euo pipefail
-          python - <<'PY'
-          from datetime import datetime, timedelta, timezone
-          from pathlib import Path
-          import math, os
+          python build_all_radio_ts.py --assets-root "$RADIO_TS_ASSETS" --workers 3
 
-          stations = [
-              'nhk_r1_osaka','nhk_fm_osaka','nhk_r1_matsuyama','nhk_fm_matsuyama',
-              'JOEU-FM','RNB','ABC','CCL','802','FMO','MBS','OBC',
-              'KBS','ALPHA-STATION','E-RADIO','CRK'
-          ]
-          nhk_audio = {
-              'nhk_r1_osaka': 'https://simul2.drdi.st.nhk/live/12/joined/master.m3u8',
-              'nhk_fm_osaka': 'https://simul2.drdi.st.nhk/live/13/joined/master.m3u8',
-              'nhk_r1_matsuyama': 'https://simul2.drdi.st.nhk/live/16/joined/master.m3u8',
-              'nhk_fm_matsuyama': 'https://simul2.drdi.st.nhk/live/17/joined/master.m3u8',
-          }
-          root = Path(os.environ['OUTROOT'])
-          JST = timezone(timedelta(hours=9))
-          now = datetime.now(JST)
-          start = now - timedelta(hours=1)
-          offset = 3600.0
-
-          for sid in stations:
-              out = root / sid
-              raw = (out / 'raw.m3u8').read_text(encoding='utf-8').splitlines()
-              entries = []
-              dur = None
-              for line in raw:
-                  if line.startswith('#EXTINF:'):
-                      dur = float(line.split(':',1)[1].split(',',1)[0])
-                  elif line and not line.startswith('#') and dur is not None:
-                      entries.append((dur, line.strip()))
-                      dur = None
-              if not entries:
-                  raise SystemExit(f'{sid}: no TS segments generated')
-
-              lines = [
-                  '#EXTM3U',
-                  '#EXT-X-VERSION:3',
-                  '#EXT-X-INDEPENDENT-SEGMENTS',
-                  f'#EXT-X-TARGETDURATION:{math.ceil(max(d for d,_ in entries))}',
-                  '#EXT-X-MEDIA-SEQUENCE:0',
-                  f'#EXT-X-START:TIME-OFFSET={offset:.3f},PRECISE=YES',
-              ]
-              stamp = start
-              for duration, name in entries:
-                  lines.append(f'#EXT-X-PROGRAM-DATE-TIME:{stamp.isoformat(timespec="milliseconds")}')
-                  lines.append(f'#EXTINF:{duration:.3f},')
-                  lines.append(name)
-                  stamp += timedelta(seconds=duration)
-              lines += ['#EXT-X-ENDLIST', '']
-              (out / 'video.m3u8').write_text('\n'.join(lines), encoding='utf-8')
-
-              audio = nhk_audio.get(sid)
-              if audio is None:
-                  audio = f'https://himitsu-six.vercel.app/api/radiko?station={sid}&stage=media'
-
-              (out / 'master.m3u8').write_text('\n'.join([
-                  '#EXTM3U',
-                  '#EXT-X-VERSION:6',
-                  '#EXT-X-INDEPENDENT-SEGMENTS',
-                  f'#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="radio",NAME="{sid} radio",DEFAULT=YES,AUTOSELECT=YES,CHANNELS="2",URI="{audio}"',
-                  '#EXT-X-STREAM-INF:BANDWIDTH=180000,AVERAGE-BANDWIDTH=120000,RESOLUTION=320x180,FRAME-RATE=1.000,CODECS="avc1.42e01e,mp4a.40.5",AUDIO="radio",CLOSED-CAPTIONS=NONE',
-                  'video.m3u8',
-                  '',
-              ]), encoding='utf-8')
-              (out / 'raw.m3u8').unlink(missing_ok=True)
-              print(f'{sid}: {start.isoformat()} -> {stamp.isoformat()}')
-          PY
-
-      - name: Publish generated TS assets to rolling branch
+      - name: Publish TS assets
         shell: bash
-        env:
-          OUTROOT: ${{ runner.temp }}/radio-ts-assets
+        run: |
+          set -euo pipefail
+          git -C "$RADIO_TS_ASSETS" config user.name 'github-actions[bot]'
+          git -C "$RADIO_TS_ASSETS" config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git -C "$RADIO_TS_ASSETS" add -A
+          if git -C "$RADIO_TS_ASSETS" diff --cached --quiet; then
+            echo 'TS assets already current'
+          else
+            git -C "$RADIO_TS_ASSETS" commit -m 'Refresh nationwide stable radio TS assets'
+            git -C "$RADIO_TS_ASSETS" push origin HEAD:radio-ts-assets
+          fi
+
+      - name: Commit radio playlist routing
+        shell: bash
         run: |
           set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-
-          git switch --orphan radio-ts-assets-publish
-          git rm -rf . >/dev/null 2>&1 || true
-          git clean -fdx >/dev/null 2>&1 || true
-          cp -a "$OUTROOT"/. .
-          git add -f .
-          git commit -m 'Refresh 180p radio TS assets'
-          git push --force origin HEAD:radio-ts-assets
-
-      - name: Switch FreeWiFi radio stations to stable TS visuals
-        shell: bash
-        run: |
-          set -euo pipefail
-          git switch main
-          git reset --hard origin/main
-
-          python - <<'PY'
-          from pathlib import Path
-
-          radiko = [
-              'JOEU-FM','RNB','ABC','CCL','802','FMO','MBS','OBC',
-              'KBS','ALPHA-STATION','E-RADIO','CRK'
-          ]
-          nhk = {
-              'nhk_r1_osaka': 'https://himitsu-six.vercel.app/api/radio-tv?station=nhk_r1_osaka',
-              'nhk_fm_osaka': 'https://simul2.drdi.st.nhk/live/13/joined/master.m3u8',
-              'nhk_r1_matsuyama': 'https://himitsu-six.vercel.app/api/radio-tv?station=nhk_r1_matsuyama',
-              'nhk_fm_matsuyama': 'https://simul2.drdi.st.nhk/live/17/joined/master.m3u8',
-          }
-
-          p = Path('freewifi')
-          text = p.read_text(encoding='utf-8')
-          changed = 0
-
-          for sid in radiko:
-              old = f'https://himitsu-six.vercel.app/api/radiko?station={sid}'
-              new = f'https://raw.githubusercontent.com/ajiousama/himitsu/radio-ts-assets/{sid}/master.m3u8'
-              if old in text:
-                  text = text.replace(old, new)
-                  changed += 1
-              elif new not in text:
-                  raise SystemExit(f'{sid}: neither direct-audio nor TS URL found in freewifi')
-
-          for sid, old in nhk.items():
-              new = f'https://raw.githubusercontent.com/ajiousama/himitsu/radio-ts-assets/{sid}/master.m3u8'
-              if old in text:
-                  text = text.replace(old, new)
-                  changed += 1
-              elif new not in text:
-                  raise SystemExit(f'{sid}: neither old nor TS URL found in freewifi')
-
-          p.write_text(text, encoding='utf-8')
-          print(f'FreeWiFi radio entries switched: {changed}')
-          PY
-
-          git add freewifi
+          git add radio.m3u freewifi
           if git diff --cached --quiet; then
-            echo 'FreeWiFi already uses TS visuals'
+            echo 'Radio playlists already use stable TS visuals'
             exit 0
           fi
-          git commit -m 'Use stable 180p TS visuals for all radio stations'
-          git push origin main
+          git commit -m 'Use stable TS visuals for all radio stations'
+          git pull --rebase origin main
+          git push origin HEAD:main
