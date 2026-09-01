@@ -1,5 +1,6 @@
 from pathlib import Path
 from datetime import datetime, timezone, timedelta
+from urllib.parse import quote
 import json
 import re
 import urllib.request
@@ -7,11 +8,11 @@ import xml.etree.ElementTree as ET
 
 FREEWIFI = Path('freewifi')
 STATUS_JSON = Path('today_jra_status.json')
-PUBLIC_M3U_URL = 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports.m3u'
 PUBLIC_EPG_URL = 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/epg.xml'
+RAW_BASE = 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main'
 START = '# === TODAY_JRA_START ==='
 END = '# === TODAY_JRA_END ==='
-GROUP = '今日の開催場'
+GROUP = 'グリーンCh'
 JST = timezone(timedelta(hours=9))
 SOURCE_IDS = ('jra.east', 'jra.west', 'jra.hokkaido')
 LABELS = {'jra.east':'EAST', 'jra.west':'WEST', 'jra.hokkaido':'LOCAL/第三場'}
@@ -22,11 +23,43 @@ NON_EVENT_WORDS = (
 )
 RACE_TITLE_RE = re.compile(r'(?:【\s*\d+\s*[ＲR]\s*】|(?<!\d)\d+\s*[ＲR](?!\w))', re.I)
 
+# The custom-logo central-racing set created for public-sports-iptv.
+# GCH is shown whenever at least one JRA regional feed is active.
+# EAST / WEST / HOKKAIDO are each shown only when that feed is active.
+JRA_ROUTES = {
+    'jra.gch': [
+        ('グリーンチャンネル（高画質）', 'gchmain.m3u8', 'gch.png'),
+        ('グリーンチャンネル（低画質）', 'gchmain_LQ.m3u8', 'gch.png'),
+    ],
+    'jra.east': [
+        ('JRA EAST（高画質）', 'EAST_test.m3u8', 'east_web3.png'),
+        ('JRA EAST（低画質）', 'EAST_test_LQ.m3u8', 'east_web3.png'),
+    ],
+    'jra.west': [
+        ('JRA WEST（高画質）', 'WEST_master .m3u8', 'west_web4.png'),
+        ('JRA WEST（低画質）', 'WEST_master_LQ.m3u8', 'west_web4.png'),
+    ],
+    'jra.hokkaido': [
+        ('JRA HOKKAIDO（高画質）', 'hokaido_master (1).m3u8', 'hokkaido_local.png'),
+        ('JRA HOKKAIDO（低画質）', 'hokaido_master_LQ.m3u8', 'hokkaido_local.png'),
+    ],
+}
+TVG_NAMES = {
+    'jra.gch': 'グリーンチャンネル',
+    'jra.east': 'JRA EAST',
+    'jra.west': 'JRA WEST',
+    'jra.hokkaido': 'JRA HOKKAIDO',
+}
+
 
 def fetch_text(url, timeout=60):
-    req = urllib.request.Request(url, headers={'User-Agent': 'FreeWiFi-JRA-Daily/1.0', 'Cache-Control': 'no-cache'})
+    req = urllib.request.Request(url, headers={'User-Agent': 'FreeWiFi-JRA-Daily/2.0', 'Cache-Control': 'no-cache'})
     with urllib.request.urlopen(req, timeout=timeout) as r:
         return r.read().decode('utf-8-sig', errors='replace')
+
+
+def raw_url(filename):
+    return f'{RAW_BASE}/{quote(filename)}'
 
 
 def parse_xmltv_time(s):
@@ -42,22 +75,6 @@ def parse_xmltv_time(s):
         tz = timezone(sign * timedelta(hours=int(off[1:3]), minutes=int(off[3:5])))
         return base.replace(tzinfo=tz)
     return base.replace(tzinfo=JST)
-
-
-def parse_entries(text):
-    out = {}
-    lines = text.splitlines(); i = 0
-    while i < len(lines):
-        if not lines[i].startswith('#EXTINF:'):
-            i += 1; continue
-        block = [lines[i]]; j = i + 1
-        while j < len(lines) and not lines[j].startswith('#EXTINF:') and not lines[j].startswith('## '):
-            if lines[j].strip(): block.append(lines[j])
-            j += 1
-        m = re.search(r'tvg-id="([^"]+)"', lines[i])
-        if m: out[m.group(1)] = block
-        i = j
-    return out
 
 
 def rewrite_group(extinf):
@@ -82,18 +99,23 @@ def active_jra_ids(epg_text):
     active = set(); last_stop = {}
     for p in root.findall('programme'):
         cid = p.get('channel') or ''
-        if cid not in SOURCE_IDS: continue
+        if cid not in SOURCE_IDS:
+            continue
         start = parse_xmltv_time(p.get('start')); stop = parse_xmltv_time(p.get('stop'))
-        if not start or start.astimezone(JST).date() != today: continue
+        if not start or start.astimezone(JST).date() != today:
+            continue
         title = (p.findtext('title') or '').strip()
         desc = (p.findtext('desc') or '').strip()
-        if not is_real_jra_program(title, desc): continue
+        if not is_real_jra_program(title, desc):
+            continue
         active.add(cid)
         if stop:
             ls = stop.astimezone(JST)
-            if cid not in last_stop or ls > last_stop[cid]: last_stop[cid] = ls
+            if cid not in last_stop or ls > last_stop[cid]:
+                last_stop[cid] = ls
     for cid, stop in list(last_stop.items()):
-        if now >= stop: active.discard(cid)
+        if now >= stop:
+            active.discard(cid)
     return active, last_stop
 
 
@@ -107,7 +129,8 @@ def extract_special_entries(base):
         while j < len(lines) and not lines[j].startswith('#EXTINF:') and not lines[j].startswith('## '):
             block.append(lines[j]); j += 1
         low = line.lower()
-        if 'tvg-id="jra.official"' in low or 'グリーンチャンネル無料版' in line: found.append(block)
+        if 'tvg-id="jra.official"' in low or 'tvg-id="jra.gch.free"' in low or 'グリーンチャンネル無料版' in line:
+            found.append(block)
         i = j
     return found
 
@@ -115,6 +138,7 @@ def extract_special_entries(base):
 def strip_jra_entries(base):
     managed = re.compile(re.escape(START) + r'.*?' + re.escape(END) + r'\n?', re.S)
     base = managed.sub('', base)
+    managed_ids = set(SOURCE_IDS) | {'jra.gch', 'jra.official', 'jra.gch.free'}
     lines = base.splitlines(); out = []; i = 0
     while i < len(lines):
         line = lines[i]
@@ -124,10 +148,27 @@ def strip_jra_entries(base):
         while j < len(lines) and not lines[j].startswith('#EXTINF:') and not lines[j].startswith('## '):
             block.append(lines[j]); j += 1
         low = line.lower()
-        remove = any(f'tvg-id="{cid}"' in low for cid in SOURCE_IDS) or 'tvg-id="jra.official"' in low or 'グリーンチャンネル無料版' in line
-        if not remove: out.extend(block)
+        remove = any(f'tvg-id="{cid}"' in low for cid in managed_ids) or 'グリーンチャンネル無料版' in line
+        if not remove:
+            out.extend(block)
         i = j
     return '\n'.join(out).rstrip() + '\n'
+
+
+def route_blocks(active):
+    selected = []
+    if not active:
+        return selected
+
+    ids = ['jra.gch'] + [cid for cid in SOURCE_IDS if cid in active]
+    for cid in ids:
+        for display_name, playlist_file, logo_file in JRA_ROUTES[cid]:
+            extinf = (
+                f'#EXTINF:-1 tvg-id="{cid}" tvg-name="{TVG_NAMES[cid]}" '
+                f'tvg-logo="{raw_url(logo_file)}" group-title="{GROUP}",{display_name}'
+            )
+            selected.extend([extinf, raw_url(playlist_file), ''])
+    return selected
 
 
 def insert_block(base, block):
@@ -138,25 +179,23 @@ def insert_block(base, block):
 def main():
     now = datetime.now(JST)
     base = FREEWIFI.read_text(encoding='utf-8-sig', errors='replace')
-    special = extract_special_entries(base); clean = strip_jra_entries(base)
-    public_entries = parse_entries(fetch_text(PUBLIC_M3U_URL))
+    special = extract_special_entries(base)
+    clean = strip_jra_entries(base)
     active, last_stop = active_jra_ids(fetch_text(PUBLIC_EPG_URL))
 
-    selected = []
-    for cid in SOURCE_IDS:
-        if cid not in active: continue
-        block = public_entries.get(cid)
-        if not block: continue
-        b = block[:]; b[0] = rewrite_group(b[0]); selected.extend(b); selected.append('')
-
+    selected = route_blocks(active)
     if active:
         seen = set()
         for block in special:
-            if block[0] in seen: continue
-            seen.add(block[0]); b = block[:]; b[0] = rewrite_group(b[0]); selected.extend(b); selected.append('')
+            if block[0] in seen:
+                continue
+            seen.add(block[0])
+            b = block[:]
+            b[0] = rewrite_group(b[0])
+            selected.extend(b); selected.append('')
 
     body = '\n'.join(selected).rstrip()
-    managed = START + '\n## JRA\n' + body + ('\n' if body else '') + END
+    managed = START + '\n## グリーンCh（JRA開催日）\n' + body + ('\n' if body else '') + END
     FREEWIFI.write_text(insert_block(clean, managed).rstrip() + '\n', encoding='utf-8')
 
     status = {
@@ -171,7 +210,9 @@ def main():
         }
     }
     STATUS_JSON.write_text(json.dumps(status, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+    route_count = 2 + 2 * len(active) if active else 0
     print('JRA active:', ', '.join(status['active_labels']) or 'none')
+    print('JRA custom-logo GreenCh routes:', route_count)
     print('JRA special entries:', status['special_entries'])
 
 
