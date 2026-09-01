@@ -12,10 +12,20 @@ END = '# === GENERAL_YOUTUBE_MANAGED_END ==='
 
 # These IDs remain in the master list for reference but must never be emitted.
 DENY_IDS = {'youtube.kobe_waterfront2', 'youtube.narita_t1'}
-TOKYO_ID = 'youtube.tokyo_dome_city'
-TOKYO_PAGE = 'https://www.youtube.com/watch?v=7XzfKy8CzdY'
-OMOGO_ID = 'youtube.ehime_omogo_ishizuchi'
-OMOGO_CHANNEL = 'https://www.youtube.com/channel/UCOgv-XV9OOR_3E99aNMokHw'
+
+# Reported feeds that must never fall back to a broad YouTube search result.
+# Fixed-video sources are long-running official/verified camera pages.
+STRICT_DIRECT_PAGES = {
+    'youtube.tokyo_dome_city': 'https://www.youtube.com/watch?v=7XzfKy8CzdY',
+    'youtube.uwajima': 'https://www.youtube.com/watch?v=aJcTvBuj5AA',
+    'youtube.tokyo_haneda': 'https://www.youtube.com/watch?v=LZlHg3vzwe0',
+}
+
+# Rotating LIVE URLs are resolved only inside the intended broadcaster channel.
+STRICT_CHANNELS = {
+    'youtube.ehime_omogo_ishizuchi': 'https://www.youtube.com/channel/UCOgv-XV9OOR_3E99aNMokHw',
+    'youtube.kyoto_rail': 'https://www.youtube.com/@Radio171',
+}
 
 
 def base_cmd():
@@ -203,16 +213,15 @@ def main():
         if '空港' in entry[1]:
             entry[1] = set_group(entry[1], '空港')
 
-    # These two are allowed only from their fixed official sources.
-    tokyo = direct_hls(TOKYO_PAGE)
-    omogo = official_channel_live(OMOGO_CHANNEL)
-    strict = {TOKYO_ID: tokyo, OMOGO_ID: omogo}
+    # Reported feeds are allowed only from the intended fixed video/channel.
+    strict = {cid: direct_hls(page) for cid, page in STRICT_DIRECT_PAGES.items()}
+    strict.update({cid: official_channel_live(channel) for cid, channel in STRICT_CHANNELS.items()})
     strict_kept = []
     for cid, ext, url in entries:
         if cid in strict:
             good = strict[cid]
             if not good:
-                print(f'STRICT REMOVE: {cid} (official LIVE unavailable)')
+                print(f'STRICT REMOVE: {cid} (intended LIVE unavailable)')
                 continue
             url = good
             print(f'STRICT OK: {cid}')
