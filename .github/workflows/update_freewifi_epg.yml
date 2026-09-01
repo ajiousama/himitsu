@@ -126,42 +126,26 @@ jobs:
           test -s today_event_counts.json
           cat today_event_counts.json
 
-      - name: Commit generated files safely
+      - name: Commit generated files without overwriting manual edits
         shell: bash
         run: |
+          set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          cp guides.xml /tmp/guides.xml.generated
-          cp epg_coverage.txt /tmp/epg_coverage.txt.generated
-          cp freewifi /tmp/freewifi.generated
-          cp today_public_sports_status.json /tmp/today_public_sports_status.json.generated
-          cp today_jra_status.json /tmp/today_jra_status.json.generated
-          cp today_event_counts.json /tmp/today_event_counts.json.generated
-          [ ! -f public_sports_youtube_fallback.m3u ] || cp public_sports_youtube_fallback.m3u /tmp/public_sports_youtube_fallback.m3u.generated
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -f general_youtube.m3u ]; then
-            cp general_youtube.m3u /tmp/general_youtube.m3u.generated
-          fi
-
-          git fetch origin main
-          git reset --hard origin/main
-
-          cp /tmp/guides.xml.generated guides.xml
-          cp /tmp/epg_coverage.txt.generated epg_coverage.txt
-          cp /tmp/freewifi.generated freewifi
-          cp /tmp/today_public_sports_status.json.generated today_public_sports_status.json
-          cp /tmp/today_jra_status.json.generated today_jra_status.json
-          cp /tmp/today_event_counts.json.generated today_event_counts.json
-          [ ! -f /tmp/public_sports_youtube_fallback.m3u.generated ] || cp /tmp/public_sports_youtube_fallback.m3u.generated public_sports_youtube_fallback.m3u
-          [ ! -f /tmp/general_youtube.m3u.generated ] || cp /tmp/general_youtube.m3u.generated general_youtube.m3u
-
           git add guides.xml epg_coverage.txt freewifi today_public_sports_status.json today_jra_status.json today_event_counts.json
           [ ! -f public_sports_youtube_fallback.m3u ] || git add public_sports_youtube_fallback.m3u
-          [ ! -f /tmp/general_youtube.m3u.generated ] || git add general_youtube.m3u
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -f general_youtube.m3u ]; then
+            git add general_youtube.m3u
+          fi
 
           if git diff --cached --quiet; then
             echo "No changes"
             exit 0
           fi
+
           git commit -m "Update FreeWiFi managed YouTube/current-venue entries and EPG"
+          # Rebase instead of reset/copy. If a concurrent manual edit overlaps,
+          # fail rather than silently replacing the user's FreeWiFi content.
+          git pull --rebase origin main
           git push origin HEAD:main
