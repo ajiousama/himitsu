@@ -692,9 +692,6 @@ https://naori-test.netgenx.site/pxx.php?shk_cid=bs20
 #EXTINF:-1 tvg-id="BS10プレミアム_jp" tvg-logo="https://www.skyperfectv.co.jp/library/common/img/channel/icon/basic/bs201.gif" group-title="BS",BS10プレミアム (naori)
 https://naori-test.netgenx.site/pxx.php?shk_cid=bs08
 
-#EXTINF:-1 tvg-id="グリーンチャンネル_jp" tvg-logo="https://www.skyperfectv.co.jp/library/common/img/channel/icon/basic/bs234.gif" group-title="グリーンCh",グリーンチャンネル (naori)
-https://naori-test.netgenx.site/pxx.php?shk_cid=bs14
-
 #EXTINF:-1 tvg-id="アニマックス_jp" tvg-logo="https://www.skyperfectv.co.jp/library/common/img/channel/icon/basic/bs236.gif" group-title="BS",アニマックス (naori)
 https://naori-test.netgenx.site/pxx.php?shk_cid=bs15
 
@@ -739,6 +736,31 @@ https://akariko-bck1.sankuria.sbs/stream/jp/wowow_plus/stream-output.m3u8?mode=h
 
 #EXTINF:-1 tvg-id="BSよしもと_jp" tvg-logo="https://tvguide.myjcom.jp/monomedia/ch_logo/bsd/logo-0004-265-400x400.png" group-title="BS",BSよしもと (akariko)
 https://akariko-bck1.sankuria.sbs/stream/jp/bs_yoshimoto/stream-output.m3u8?mode=hls
+
+# === GREEN_CHANNEL_PERSISTENT_START ===
+## グリーンCh
+#EXTINF:-1 tvg-id="グリーンチャンネル_jp" tvg-logo="https://www.skyperfectv.co.jp/library/common/img/channel/icon/basic/bs234.gif" group-title="グリーンCh",グリーンチャンネル (5002)
+http://58.82.168.138:5002/bs14.m3u8?token=guoziyun&gid=bs14&channel=zhongying
+
+#EXTINF:-1 tvg-id="グリーンチャンネル_jp" tvg-logo="https://www.skyperfectv.co.jp/library/common/img/channel/icon/basic/bs234.gif" group-title="グリーンCh",グリーンチャンネル (primehome)
+http://cdns.jp-primehome.com:8000/zhongying/live/playlist.m3u8?cid=bs14&isp=5&bind=0&uin=159413&playseek=0&timestamp=1732380893&sign=ca849dc6608a1dc0afb2559343d13bf779f7a6542b2ec260d8e8887f8c2e03cf
+
+#EXTINF:-1 tvg-id="グリーンチャンネル_jp" tvg-logo="https://www.skyperfectv.co.jp/library/common/img/channel/icon/basic/bs234.gif" group-title="グリーンCh",グリーンチャンネル (naori)
+https://naori-test.netgenx.site/pxx.php?shk_cid=bs14
+
+#EXTINF:-1 tvg-id="グリーンチャンネル_jp" tvg-logo="https://www.skyperfectv.co.jp/library/common/img/channel/icon/basic/bs234.gif" group-title="グリーンCh",グリーンチャンネル (ハルカ1)
+http://haruka-ip.f5.si:9394/stream/60.m3u8
+
+#EXTINF:-1 tvg-id="グリーンチャンネル_jp" tvg-logo="https://www.skyperfectv.co.jp/library/common/img/channel/icon/basic/bs234.gif" group-title="グリーンCh",グリーンチャンネル (ハルカ2)
+http://42.118.247.37:9394/stream/60.m3u8
+
+#EXTINF:-1 tvg-id="グリーンチャンネル_jp" tvg-logo="https://www.skyperfectv.co.jp/library/common/img/channel/icon/basic/bs234.gif" group-title="グリーンCh",グリーンチャンネル (ハルカ3)
+http://ha-ipip.f5.si:9394/stream/60.m3u8
+
+#EXTINF:-1 tvg-id="グリーンチャンネル_jp" tvg-logo="https://www.skyperfectv.co.jp/library/common/img/channel/icon/basic/bs234.gif" group-title="グリーンCh",グリーンチャンネル (kaitekitv)
+http://cdns.kaitekitv.com:8000/zhongying/live/playlist.m3u8?cid=bs14&isp=5-15
+
+# === GREEN_CHANNEL_PERSISTENT_END ===
 
 ## CS
 
@@ -1581,6 +1603,7 @@ https://himitsu-six.vercel.app/api/kick?ch=nogizaka
 #EXTINF:-1 tvg-id="boat.suminoe" tvg-name="BOATRACE住之江" tvg-logo="https://www.boatrace.jp/static/uploads/sites/8/12_N-1-1.jpg" group-title="今日の開催場",BOATRACE住之江
 https://manifest.googlevideo.com/api/manifest/hls_playlist/expire/1788279127/ei/96SWarP0LsCjlu8Pg66G4Ag/ip/172.215.231.115/id/8SSbKOrM0_w.2/itag/301/source/yt_live_broadcast/requiressl/yes/ratebypass/yes/live/1/sgoap/gir%3Dyes%3Bitag%3D140/sgovp/gir%3Dyes%3Bitag%3D299/rqh/1/hls_chunk_host/rr6---sn-ojq4f5-51.googlevideo.com/xpc/EgVo2aDSNQ%3D%3D/playlist_duration/30/manifest_duration/30/siu/1/bui/AR3QkAnVimg5otqbB6myhRZUAaKL-oK5XBLOkpac4FNFEyGdyBokqh4ZVqzpVW0Rgs6HyGd6pA/spc/KBGBcu963AZIr1Q17QGAJrWAqIVgsBH7Al8VFBv6bTG9nt5hLWXJUnITO1WDDa0qmKNnT_OVzRYwWQ/vprv/1/ns/ISLlNi6nnjJ1tCzLDHVzdUUX/reg/0/playlist_type/DVR/met/1788257530,/mh/0E/mm/44/mn/sn-ojq4f5-51/ms/lva/mv/u/mvi/6/pl/18/rms/lva,lva/dover/11/pacing/0/keepalive/yes/fexp/51565115,52135441/n/uLsHIv-_G3mJaA/mt/1788256858/sparams/expire,ei,ip,id,itag,source,requiressl,ratebypass,live,sgoap,sgovp,rqh,xpc,playlist_duration,manifest_duration,siu,bui,spc,vprv,ns,reg,playlist_type/sig/AE0s2JYwRQIgQ_TZmQlbIjLh0t_2akR8UWA-fjN8JPWNSxc-XL-kxEQCIQDUa3FEexqiEByDgj7Rb447kjH0d4iAE8yeHjdjbMkm4g%3D%3D/lsparams/hls_chunk_host,met,mh,mm,mn,ms,mv,mvi,pl,rms/lsig/APaTxxMwRgIhAPcA6olAFSkr0QLr2GnhmgkhxrxSxUYuGsnj4ovmOe9IAiEAwwcLJfUj9hFX417SzIbI8wTnnIB7jFW-nWiFD_D_nD0%3D/playlist/index.m3u8
 # === TODAY_BOAT_END ===
+
 
 
 
