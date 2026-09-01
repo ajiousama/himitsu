@@ -12,6 +12,7 @@ on:
       - main
     paths:
       - "freewifi_boat_today.py"
+      - "freewifi_boat_today_runner.py"
       - "public_sports_youtube_fallback.m3u"
       - ".github/workflows/update_boat_today.yml"
 
@@ -40,7 +41,9 @@ jobs:
           python-version: "3.12"
 
       - name: Build independent BOAT current venues
-        run: python -u freewifi_boat_today.py
+        env:
+          BOATRACE_STREAKS_API_KEY: ${{ secrets.BOATRACE_STREAKS_API_KEY }}
+        run: python -u freewifi_boat_today_runner.py
 
       - name: Validate independent BOAT state
         run: |
@@ -56,6 +59,8 @@ jobs:
 
       - name: Publish BOAT state safely
         shell: bash
+        env:
+          BOATRACE_STREAKS_API_KEY: ${{ secrets.BOATRACE_STREAKS_API_KEY }}
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
@@ -79,7 +84,7 @@ jobs:
             echo "BOAT push moved; rebuild from latest main ($attempt/3)"
             git fetch origin main
             git reset --hard origin/main
-            python -u freewifi_boat_today.py
+            python -u freewifi_boat_today_runner.py
             if publish; then
               exit 0
             fi
