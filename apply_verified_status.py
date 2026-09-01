@@ -94,6 +94,13 @@ def main():
         text = strip_entries(text, {'jra.east','jra.west','jra.hokkaido','jra.official','jra.gch.free'})
 
     FREEWIFI.write_text(text.rstrip() + '\n', encoding='utf-8')
+
+    # Keep every Green Channel viewing route in its dedicated player group.
+    # This runs after daily JRA/public-sports rewriting so later updates cannot
+    # push GCH entries back into BS / 競馬 / 今日の開催場.
+    from gch_group_normalize import main as normalize_gch_group
+    normalize_gch_group()
+
     print('Verified status override applied:', len(blocks), 'public sports channels; JRA active=', int(jra.get('active_count') or 0))
 
 
