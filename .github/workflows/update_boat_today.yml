@@ -13,6 +13,7 @@ on:
     paths:
       - "freewifi_boat_today.py"
       - "freewifi_boat_today_runner.py"
+      - "boat_stream_fetch.ps1"
       - "public_sports_youtube_fallback.m3u"
       - ".github/workflows/update_boat_today.yml"
 
@@ -39,6 +40,10 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: "3.12"
+
+      - name: Fetch BOAT stream URLs independently
+        shell: pwsh
+        run: ./boat_stream_fetch.ps1
 
       - name: Build independent BOAT current venues
         env:
@@ -84,6 +89,7 @@ jobs:
             echo "BOAT push moved; rebuild from latest main ($attempt/3)"
             git fetch origin main
             git reset --hard origin/main
+            pwsh -NoProfile -File ./boat_stream_fetch.ps1
             python -u freewifi_boat_today_runner.py
             if publish; then
               exit 0
