@@ -5,7 +5,6 @@ import json
 import shutil
 import subprocess
 import urllib.parse
-import urllib.request
 from pathlib import Path
 
 CARD_DIR = Path("vercel-radiko/radio-video-assets/cards")
@@ -34,32 +33,14 @@ STATIONS = {
 }
 
 
-def get_text(url: str) -> tuple[str, str]:
-    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-    with urllib.request.urlopen(req, timeout=30) as r:
-        return r.read().decode("utf-8", "replace"), r.geturl()
-
-
-def resolve_media_playlist(url: str) -> str:
-    """Resolve an HLS master to its first media playlist, or keep a media URL."""
-    text, final = get_text(url)
-    if "#EXTM3U" not in text:
-        raise RuntimeError(f"not HLS: {url}")
-    lines = text.splitlines()
-    for i, line in enumerate(lines):
-        if line.strip().startswith("#EXT-X-STREAM-INF:"):
-            for child in lines[i + 1 :]:
-                child = child.strip()
-                if child and not child.startswith("#"):
-                    return urllib.parse.urljoin(final, child)
-    return final
-
-
-def audio_url(key: str, cfg: dict[str, str]) -> str:
+def audio_url(cfg: dict[str, str]) -> str:
     if "radiko" in cfg:
         sid = urllib.parse.quote(cfg["radiko"], safe="")
         return f"{RADIKO_BASE}?station={sid}&stage=media"
-    return resolve_media_playlist(cfg["nhk"])
+    # NHK blocks the US-hosted GitHub Actions runner. Keep the same direct
+    # Japan-facing HLS URL already used successfully by FreeWiFi instead of
+    # probing it from CI.
+    return cfg["nhk"]
 
 
 def build_video(key: str, card: Path, outdir: Path) -> None:
@@ -87,7 +68,7 @@ def build_video(key: str, card: Path, outdir: Path) -> None:
         raise RuntimeError(f"{key}: expected 24 hourly segments, got {len(segments)}")
 
 
-def write_master(key: str, audio: str, outdir: Path) -> None:
+def write_master(audio: str, outdir: Path) -> None:
     body = "\n".join([
         "#EXTM3U",
         "#EXT-X-VERSION:7",
@@ -112,8 +93,8 @@ def main() -> None:
         card = CARD_DIR / f"{key}.jpg"
         outdir = OUT / key
         build_video(key, card, outdir)
-        audio = audio_url(key, cfg)
-        write_master(key, audio, outdir)
+        audio = audio_url(cfg)
+        write_master(audio, outdir)
         manifest[key] = {
             "master": f"{RAW_BASE}/{urllib.parse.quote(key, safe='')}/master.m3u8",
             "audio": audio,
