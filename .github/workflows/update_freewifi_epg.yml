@@ -3,6 +3,7 @@ name: Update FreeWiFi ALL（手動一発 / 自動EPG）
 on:
   workflow_dispatch:
   schedule:
+    # 09:00 / 12:00 / 17:00 / 21:00 JST
     - cron: "0 0,3,8,12 * * *"
   push:
     branches:
@@ -17,6 +18,7 @@ on:
       - "jra_epg_merge.py"
       - "jra_freewifi_finalize.py"
       - "freewifi_today_public_sports.py"
+      - "finalize_today_public_sports.py"
       - "prune_expired_boat_freewifi.py"
       - "public_sports_youtube_fallback.py"
       - "public_sports_youtube_fallback.m3u"
@@ -98,6 +100,9 @@ jobs:
         run: |
           python verified_daily_override.py
           python apply_verified_status.py
+
+      - name: Finalize ended venues and time order
+        run: python finalize_today_public_sports.py
 
       - name: Build compact current event counts
         run: python build_today_event_counts.py
