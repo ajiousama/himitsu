@@ -7,16 +7,12 @@ import urllib.parse
 from pathlib import Path
 
 FREEWIFI = Path("freewifi")
-BASE = os.environ.get(
-    "RADIO_TV_BASE",
-    "https://raw.githubusercontent.com/ajiousama/himitsu/main/radio-tv-static",
-).rstrip("/")
+BASE = os.environ.get("RADIO_TV_BASE", "https://ajiousama-radiko.onrender.com").rstrip("/")
 
+# Render A/V mux has been verified with ABC. Apply it only to the 12 radiko
+# stations here; keep the four NHK stations on their current direct URLs until
+# Render->NHK muxing is verified separately.
 TARGETS = {
-    "nhk_r1_osaka": "nhk_r1_osaka",
-    "nhk_fm_osaka": "nhk_fm_osaka",
-    "nhk_r1_matsuyama": "nhk_r1_matsuyama",
-    "nhk_fm_matsuyama": "nhk_fm_matsuyama",
     "radiko.JOEU-FM": "JOEU-FM",
     "radiko.RNB": "RNB",
     "radiko.ABC": "ABC",
@@ -52,17 +48,17 @@ def main():
             j += 1
         if j >= len(lines) or lines[j].lstrip().startswith("#"):
             raise SystemExit(f"stream URL missing after {tvgid}")
-        folder = urllib.parse.quote(station, safe="")
-        new_url = f"{BASE}/{folder}/master.m3u8"
-        if lines[j].strip() != new_url:
-            lines[j] = new_url
+        station_path = urllib.parse.quote(station, safe="")
+        new_url = f"{BASE}/radio-tv/{station_path}"
+        lines[j] = new_url
         changed.add(tvgid)
 
     missing = sorted(set(TARGETS) - changed)
     if missing:
         raise SystemExit("radio entries missing from freewifi: " + ", ".join(missing))
+
     FREEWIFI.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
-    print(f"FreeWiFi radio TV URLs updated: {len(changed)} stations")
+    print(f"FreeWiFi Render radio TV URLs updated: {len(changed)} stations")
 
 
 if __name__ == "__main__":
