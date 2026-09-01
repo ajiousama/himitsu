@@ -19,6 +19,7 @@ on:
       - "kick_channels.json"
       - "kick_epg.py"
       - "public_sports_epg_merge.py"
+      - "autorace_epg_direct.py"
       - "jra_epg_merge.py"
       - "jra_freewifi_finalize.py"
       - "freewifi_today_public_sports.py"
@@ -144,6 +145,9 @@ jobs:
       - name: Merge public sports EPG for today's venues
         run: python public_sports_epg_merge.py
 
+      - name: Repair today's AutoRace EPG from official race cards
+        run: python autorace_epg_direct.py
+
       - name: Merge JRA race EPG for official YouTube
         run: python jra_epg_merge.py
 
@@ -184,6 +188,7 @@ jobs:
             python epg_build.py
             python radiko_epg_merge.py
             python public_sports_epg_merge.py
+            python autorace_epg_direct.py
             python jra_epg_merge.py
             python kick_epg.py
             python -c "import xml.etree.ElementTree as ET; ET.parse('guides.xml'); print('XML OK')"
