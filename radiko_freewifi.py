@@ -12,7 +12,10 @@ from radiko_epg import build_xmltv
 RADIO = Path("radio.m3u")
 GUIDES = Path("guides.xml")
 UA = {"User-Agent": "Mozilla/5.0"}
-RADIO_TV_BASE = os.environ.get("RADIO_TV_BASE", "https://ajiousama-radiko.onrender.com").rstrip("/")
+RADIO_TV_BASE = os.environ.get(
+    "RADIO_TV_BASE",
+    "https://raw.githubusercontent.com/ajiousama/himitsu/radio-ts-assets",
+).rstrip("/")
 
 
 def region_for_prefecture(n):
@@ -102,7 +105,7 @@ def station_lines(sid, meta, group):
     station = urllib.parse.quote(sid, safe="")
     return [
         f'#EXTINF:-1 tvg-id="radiko.{sid}" tvg-logo="{logo}" group-title="{group}",{name}',
-        f"{RADIO_TV_BASE}/radio-tv/{station}",
+        f"{RADIO_TV_BASE}/{station}/master.m3u8",
     ]
 
 
@@ -166,7 +169,7 @@ def main():
     if len(stations) < 100:
         raise SystemExit(f"radiko station discovery too small: {len(stations)}")
     radio_count = write_radio_playlist(stations)
-    print(f"radio.m3u image+audio Radiko stations: {radio_count}")
+    print(f"radio.m3u stable TS Radiko stations: {radio_count}")
     print("FreeWiFi untouched")
     if radio_count < 100:
         raise SystemExit("Radiko catalog result too small")
