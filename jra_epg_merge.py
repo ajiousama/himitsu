@@ -13,6 +13,19 @@ DEDICATED_EPG = Path('gch_free_epg.xml')
 JRA_STATUS = Path('today_jra_status.json')
 PUBLIC_EPG = 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/epg.xml'
 
+# Custom-logo JRA / Green Channel routes.
+BASE_IDS = ('jra.gch', 'jra.east', 'jra.west', 'jra.hokkaido')
+BASE_NAMES = {
+    'jra.gch': 'グリーンチャンネル',
+    'jra.east': 'JRA EAST',
+    'jra.west': 'JRA WEST',
+    'jra.hokkaido': 'JRA HOKKAIDO',
+}
+# The persistent NAORI/PrimeHome/etc. GCH routes already use this ID and
+# epg_build.py resolves it from normal TV-guide sources. Reuse that schedule
+# for the custom-logo HQ/LQ jra.gch pair instead of maintaining a second grid.
+NORMAL_GCH_ID = 'グリーンチャンネル_jp'
+
 A_ID = 'jra.official'
 A_NAME = 'GCH無料版A（YouTube）'
 A_SOURCE_IDS = ('jra.east', 'jra.west', 'jra.hokkaido')
@@ -32,20 +45,22 @@ JST = timezone(timedelta(hours=9))
 def fetch_public_epg() -> ET.Element:
     req = urllib.request.Request(
         PUBLIC_EPG,
-        headers={'User-Agent': 'FreeWiFi-GCH-Free-EPG/2.1', 'Cache-Control': 'no-cache'},
+        headers={'User-Agent': 'FreeWiFi-GCH-EPG/3.0', 'Cache-Control': 'no-cache'},
     )
     with urllib.request.urlopen(req, timeout=90) as r:
         return ET.fromstring(r.read())
 
 
-def today_jra_active() -> bool:
+def load_today_jra_status() -> tuple[bool, set[str]]:
     if not JRA_STATUS.exists():
-        return False
+        return False, set()
     try:
         data = json.loads(JRA_STATUS.read_text(encoding='utf-8-sig'))
-        return int(data.get('active_count') or 0) > 0
+        active_ids = {str(x) for x in (data.get('active_ids') or []) if str(x) in A_SOURCE_IDS}
+        active = int(data.get('active_count') or 0) > 0
+        return active, active_ids
     except Exception:
-        return False
+        return False, set()
 
 
 def is_race_programme(p: ET.Element) -> bool:
@@ -78,7 +93,7 @@ def unique_text(values: list[str]) -> list[str]:
 
 
 def build_a_programmes(public_root: ET.Element, active_today: bool) -> list[ET.Element]:
-    """Combine EAST/WEST/HOKKAIDO race EPG into one chronological channel."""
+    """Combine EAST/WEST/HOKKAIDO race EPG into one chronological free channel."""
     by_start: dict[str, list[tuple[str, ET.Element]]] = {}
     today_key = datetime.now(JST).strftime('%Y%m%d')
 
@@ -87,9 +102,6 @@ def build_a_programmes(public_root: ET.Element, active_today: bool) -> list[ET.E
         start = p.get('start') or ''
         if source_id not in A_SOURCE_IDS or not start or not is_race_programme(p):
             continue
-        # The verified daily status is authoritative for today.  This prevents
-        # stale upstream JRA race rows from resurrecting EAST/WEST/HOKKAIDO on
-        # a non-race day.
         if start.startswith(today_key) and not active_today:
             continue
         by_start.setdefault(start, []).append((source_id, p))
@@ -104,14 +116,8 @@ def build_a_programmes(public_root: ET.Element, active_today: bool) -> list[ET.E
     for i, start in enumerate(starts):
         items = sorted(by_start[start], key=lambda x: A_SOURCE_IDS.index(x[0]))
         next_start = starts[i + 1] if i + 1 < len(starts) else None
-
         source_stops = [p.get('stop') or '' for _, p in items if p.get('stop')]
-        if next_start:
-            stop = next_start
-        elif source_stops:
-            stop = max(source_stops)
-        else:
-            stop = start
+        stop = next_start if next_start else (max(source_stops) if source_stops else start)
 
         titles = unique_text([p.findtext('title') or '' for _, p in items])
         descriptions = []
@@ -120,11 +126,7 @@ def build_a_programmes(public_root: ET.Element, active_today: bool) -> list[ET.E
             if desc:
                 descriptions.append(f'[{A_SOURCE_LABEL[source_id]}] {desc}')
 
-        q = ET.Element('programme', {
-            'start': start,
-            'stop': stop,
-            'channel': A_ID,
-        })
+        q = ET.Element('programme', {'start': start, 'stop': stop, 'channel': A_ID})
         ET.SubElement(q, 'title', {'lang': 'ja'}).text = ' / '.join(titles)
         if descriptions:
             ET.SubElement(q, 'desc', {'lang': 'ja'}).text = '\n'.join(unique_text(descriptions))
@@ -174,9 +176,7 @@ def build_b_programmes(a_programmes: list[ET.Element], active_today: bool) -> li
     return programmes
 
 
-def build_dedicated_epg() -> ET.Element:
-    public_root = fetch_public_epg()
-    active_today = today_jra_active()
+def build_dedicated_epg(public_root: ET.Element, active_today: bool) -> ET.Element:
     root = ET.Element('tv', {
         'generator-info-name': 'FreeWiFi GCH Free A-B EPG',
         'generator-info-url': 'https://github.com/ajiousama/himitsu',
@@ -198,7 +198,7 @@ def build_dedicated_epg() -> ET.Element:
     dedicated_tree = ET.ElementTree(root)
     ET.indent(dedicated_tree, space='  ')
     dedicated_tree.write(DEDICATED_EPG, encoding='utf-8', xml_declaration=True)
-    print(f'Dedicated GCH EPG built: today_active={active_today} A={len(a_programmes)} B={len(b_programmes)}')
+    print(f'Dedicated GCH free EPG built: today_active={active_today} A={len(a_programmes)} B={len(b_programmes)}')
     return root
 
 
@@ -211,12 +211,74 @@ def remove_target(root: ET.Element, target_id: str) -> None:
             root.remove(p)
 
 
-def merge_into_guides(dedicated_root: ET.Element) -> None:
+def clone_for_channel(p: ET.Element, channel_id: str) -> ET.Element:
+    q = copy.deepcopy(p)
+    q.set('channel', channel_id)
+    return q
+
+
+def sync_custom_logo_base_epg(
+    guides_root: ET.Element,
+    public_root: ET.Element,
+    active_today_ids: set[str],
+) -> dict[str, int]:
+    """Attach EPG to the custom-logo GCH/EAST/WEST/HOKKAIDO HQ/LQ routes.
+
+    HQ and LQ intentionally share the same tvg-id, so one XMLTV channel feeds
+    both playlist entries.
+    """
+    today_key = datetime.now(JST).strftime('%Y%m%d')
+
+    # Capture the normal Green Channel grid before removing/replacing jra.gch.
+    normal_gch_programmes = [
+        copy.deepcopy(p)
+        for p in guides_root.findall('programme')
+        if p.get('channel') == NORMAL_GCH_ID
+    ]
+
+    for cid in BASE_IDS:
+        remove_target(guides_root, cid)
+        add_channel(guides_root, cid, BASE_NAMES[cid])
+
+    counts = {cid: 0 for cid in BASE_IDS}
+
+    # GCH HQ/LQ gets the same real programme grid as the persistent normal GCH.
+    for p in normal_gch_programmes:
+        guides_root.append(clone_for_channel(p, 'jra.gch'))
+        counts['jra.gch'] += 1
+
+    # Regional race feeds get actual race rows only. Today is additionally
+    # guarded by verified status so stale upstream rows cannot resurrect a
+    # non-running feed.
+    for p in public_root.findall('programme'):
+        cid = p.get('channel') or ''
+        start = p.get('start') or ''
+        if cid not in A_SOURCE_IDS or not start or not is_race_programme(p):
+            continue
+        if start.startswith(today_key) and cid not in active_today_ids:
+            continue
+        guides_root.append(copy.deepcopy(p))
+        counts[cid] += 1
+
+    print(
+        'Custom-logo GCH/JRA EPG synced:',
+        ', '.join(f'{cid}={counts[cid]}' for cid in BASE_IDS),
+    )
+    return counts
+
+
+def merge_into_guides(
+    dedicated_root: ET.Element,
+    public_root: ET.Element,
+    active_today_ids: set[str],
+) -> None:
     if not GUIDES.exists():
         raise RuntimeError('guides.xml not found')
 
     tree = ET.parse(GUIDES)
     root = tree.getroot()
+
+    base_counts = sync_custom_logo_base_epg(root, public_root, active_today_ids)
 
     for target_id in (A_ID, B_ID):
         remove_target(root, target_id)
@@ -231,12 +293,19 @@ def merge_into_guides(dedicated_root: ET.Element) -> None:
 
     a_count = sum(1 for p in root.findall('programme') if p.get('channel') == A_ID)
     b_count = sum(1 for p in root.findall('programme') if p.get('channel') == B_ID)
-    print(f'guides.xml GCH merged: A={a_count} B={b_count}')
+    print(
+        'guides.xml GCH merged:',
+        f"base={sum(base_counts.values())}",
+        f'A={a_count}',
+        f'B={b_count}',
+    )
 
 
 def main() -> None:
-    dedicated_root = build_dedicated_epg()
-    merge_into_guides(dedicated_root)
+    public_root = fetch_public_epg()
+    active_today, active_today_ids = load_today_jra_status()
+    dedicated_root = build_dedicated_epg(public_root, active_today)
+    merge_into_guides(dedicated_root, public_root, active_today_ids)
 
 
 if __name__ == '__main__':
