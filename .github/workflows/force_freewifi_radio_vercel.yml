@@ -1,0 +1,63 @@
+name: Force FreeWiFi Radio via Vercel
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/force_freewifi_radio_vercel.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: force-freewifi-radio-vercel
+  cancel-in-progress: true
+
+jobs:
+  switch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Sync latest main
+        run: git pull --ff-only origin main
+
+      - name: Switch compact radio section to Vercel
+        run: python radio_tv_nationwide_freewifi.py
+
+      - name: Validate live Vercel radio path and playlist
+        shell: bash
+        run: |
+          set -euo pipefail
+          radio_start="$(grep -n '^## ラジオ$' freewifi | head -1 | cut -d: -f1)"
+          catv_start="$(grep -n '^## 愛媛CATV$' freewifi | head -1 | cut -d: -f1)"
+          sed -n "${radio_start},$((catv_start - 1))p" freewifi > /tmp/radio.txt
+
+          ! grep -q 'ajiousama-radiko.onrender.com/radio-tv/' /tmp/radio.txt
+          grep -Fq 'https://himitsu-six.vercel.app/api/radio-tv?station=RNB' /tmp/radio.txt
+          grep -Fq 'https://himitsu-six.vercel.app/api/radio-tv?station=OBC' /tmp/radio.txt
+          grep -Fq 'https://himitsu-six.vercel.app/api/radio-tv?station=KBS' /tmp/radio.txt
+          grep -q '^## Rakuten-JP$' freewifi
+
+          for sid in RNB OBC KBS; do
+            curl -fsS --max-time 30 "https://himitsu-six.vercel.app/api/radio-tv?station=$sid" | grep -q '^#EXTM3U'
+            curl -fsS --max-time 30 "https://himitsu-six.vercel.app/api/radio-tv?station=$sid&stage=audio" | grep -q '^#EXTM3U'
+          done
+
+      - name: Commit FreeWiFi radio switch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add freewifi
+          if git diff --cached --quiet; then
+            echo 'FreeWiFi radio is already on Vercel'
+            exit 0
+          fi
+          git commit -m 'Switch FreeWiFi radio to Vercel direct HLS'
+          git pull --rebase origin main
+          git push origin HEAD:main
