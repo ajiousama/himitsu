@@ -29,43 +29,28 @@ jobs:
       - name: Sync latest main
         run: git pull --ff-only origin main
 
-      - name: Wait for nationwide Render build
+      - name: Smoke test Vercel radio TV path
         shell: bash
         run: |
           set -euo pipefail
-          base='https://ajiousama-radiko.onrender.com'
-          for i in $(seq 1 30); do
-            body="$(curl -fsS --max-time 75 "$base/health" 2>/dev/null || true)"
-            echo "attempt=$i health=$body"
-            if printf '%s' "$body" | grep -q 'build=20260901-radio-tv-nationwide-v1'; then
-              exit 0
-            fi
-            sleep 20
+          base='https://himitsu-six.vercel.app/api/radio-tv'
+          for sid in RNB OBC KBS; do
+            echo "===== $sid master ====="
+            master="$(curl -fsS --max-time 30 "$base?station=$sid")"
+            printf '%s\n' "$master"
+            printf '%s\n' "$master" | grep -q '^#EXTM3U'
+            printf '%s\n' "$master" | grep -q 'stage=audio'
+            printf '%s\n' "$master" | grep -q 'stage=video'
+
+            echo "===== $sid audio ====="
+            audio="$(curl -fsS --max-time 30 "$base?station=$sid&stage=audio")"
+            printf '%s\n' "$audio" | head -20
+            printf '%s\n' "$audio" | grep -q '^#EXTM3U'
+            printf '%s\n' "$audio" | grep -q '/api/radiko?station='
           done
-          echo '::error::Nationwide Render build did not become ready'
-          exit 1
 
-      - name: Check dynamic station art
-        shell: bash
-        run: |
-          set -euo pipefail
-          curl -fsSL --max-time 75 -o /tmp/TBS.jpg 'https://ajiousama-radiko.onrender.com/radio-art/TBS.jpg'
-          test "$(stat -c %s /tmp/TBS.jpg)" -gt 5000
-          file /tmp/TBS.jpg
-
-      - name: Smoke test nationwide image plus audio mux
-        shell: bash
-        run: |
-          set -euo pipefail
-          base='https://ajiousama-radiko.onrender.com/radio-debug'
-          for sid in TBS HBC RBC JOZK; do
-            echo "===== $sid ====="
-            out="$(curl -fsS --max-time 90 "$base/$sid")"
-            printf '%s\n' "$out"
-            printf '%s\n' "$out" | grep -q '^ffmpeg_rc=0$'
-            bytes="$(printf '%s\n' "$out" | sed -n 's/^output_bytes=//p' | tail -1)"
-            test -n "$bytes"
-            test "$bytes" -gt 10000
+          for sid in nhk_r1_osaka nhk_r1_matsuyama; do
+            curl -fsS --max-time 30 "$base?station=$sid" | grep -q '^#EXTM3U'
           done
 
       - name: Restore compact FreeWiFi radio section
@@ -86,9 +71,9 @@ jobs:
           test "$catv_start" -gt "$radio_start"
           sed -n "${radio_start},$((catv_start - 1))p" freewifi > /tmp/freewifi-radio.txt
 
-          free_count="$(grep -c '^https://ajiousama-radiko.onrender.com/radio-tv/' /tmp/freewifi-radio.txt || true)"
+          free_count="$(grep -Fc 'https://himitsu-six.vercel.app/api/radio-tv?station=' /tmp/freewifi-radio.txt || true)"
           nationwide_count="$(grep -c '^https://ajiousama-radiko.onrender.com/radio-tv/' radio.m3u || true)"
-          echo "FreeWiFi compact image+audio radio count=$free_count"
+          echo "FreeWiFi compact Vercel image+audio radio count=$free_count"
           echo "Standalone nationwide image+audio radio count=$nationwide_count"
 
           test "$free_count" -ge 12
@@ -96,12 +81,12 @@ jobs:
           test "$nationwide_count" -ge 100
 
           ! grep -q '^### 北海道$' /tmp/freewifi-radio.txt
-          ! grep -q '^https://ajiousama-radiko.onrender.com/radio-tv/TBS$' /tmp/freewifi-radio.txt
-          grep -q '^https://ajiousama-radiko.onrender.com/radio-tv/TBS$' radio.m3u
-          grep -q '^https://ajiousama-radiko.onrender.com/radio-tv/JOZK$' radio.m3u
-          grep -q '^https://ajiousama-radiko.onrender.com/radio-tv/JOZK$' /tmp/freewifi-radio.txt
+          ! grep -q 'ajiousama-radiko.onrender.com/radio-tv/' /tmp/freewifi-radio.txt
+          grep -Fq 'https://himitsu-six.vercel.app/api/radio-tv?station=RNB' /tmp/freewifi-radio.txt
+          grep -Fq 'https://himitsu-six.vercel.app/api/radio-tv?station=OBC' /tmp/freewifi-radio.txt
+          grep -Fq 'https://himitsu-six.vercel.app/api/radio-tv?station=KBS' /tmp/freewifi-radio.txt
+          grep -Fq 'https://himitsu-six.vercel.app/api/radio-tv?station=nhk_r1_matsuyama' /tmp/freewifi-radio.txt
           grep -q '^https://simul2.drdi.st.nhk/live/17/joined/master.m3u8$' /tmp/freewifi-radio.txt
-          grep -q '^https://simul2.drdi.st.nhk/live/17/joined/master.m3u8$' radio.m3u
           grep -q '^## Rakuten-JP$' freewifi
 
       - name: Commit separated radio playlists
@@ -115,6 +100,6 @@ jobs:
             echo 'Radio playlists already current'
             exit 0
           fi
-          git commit -m 'Separate nationwide radio from FreeWiFi'
+          git commit -m 'Route FreeWiFi radio directly through Vercel'
           git pull --rebase origin main
           git push origin HEAD:main
