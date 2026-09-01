@@ -15,7 +15,16 @@ os.environ.setdefault("RADIKO_PROXY_HOST", "0.0.0.0")
 os.environ.setdefault("RADIKO_PROXY_PORT", os.environ.get("PORT", "10000"))
 
 import radiko_proxy_core as core
-import radio_tv
+
+# Radio TV is optional. A missing Pillow/imageio-ffmpeg dependency must never
+# take down the existing Radiko gateway during Render startup.
+RADIO_TV_IMPORT_ERROR = None
+try:
+    import radio_tv
+except Exception as e:
+    radio_tv = None
+    RADIO_TV_IMPORT_ERROR = f"{type(e).__name__}: {e}"
+    print(f"[radio-tv] disabled at startup: {RADIO_TV_IMPORT_ERROR}", flush=True)
 
 
 def cloud_auth(force: bool = False):
@@ -106,16 +115,20 @@ def tun_capability_report() -> str:
 
 
 core.auth = cloud_auth
-core.BUILD = "20260901-radio-tv-v1"
+core.BUILD = "20260901-radio-tv-safe-v2"
 
-# Add radio TV rendering plus the existing narrow diagnostics endpoint.
 _original_do_get = core.Handler.do_GET
 
 
 def _cloud_do_get(self):
-    if radio_tv.handle_request(self):
+    path = urllib.parse.urlsplit(self.path).path
+    if radio_tv is not None and radio_tv.handle_request(self):
         return
-    if urllib.parse.urlsplit(self.path).path == "/vpncheck":
+    if radio_tv is None and (path.startswith("/radio-tv/") or path.startswith("/radio-art/")):
+        message = f"radio-tv unavailable: {RADIO_TV_IMPORT_ERROR or 'dependency import failed'}\n"
+        self.send_bytes(503, message.encode(), "text/plain; charset=utf-8")
+        return
+    if path == "/vpncheck":
         self.send_bytes(200, tun_capability_report().encode(), "text/plain; charset=utf-8")
         return
     return _original_do_get(self)
