@@ -1,0 +1,185 @@
+name: Refresh 180p radio TS visuals
+
+on:
+  push:
+    paths:
+      - '.github/workflows/refresh_radio_ts_180p.yml'
+  workflow_dispatch:
+  schedule:
+    - cron: '17 * * * *'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: refresh-radio-ts-180p
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Ensure ffmpeg
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! command -v ffmpeg >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install -y ffmpeg
+          fi
+
+      - name: Build station-specific 180p 1fps TS windows
+        shell: bash
+        env:
+          OUTROOT: ${{ runner.temp }}/radio-ts-assets
+        run: |
+          set -euo pipefail
+          rm -rf "$OUTROOT"
+          mkdir -p "$OUTROOT"
+
+          stations=(
+            JOEU-FM RNB ABC CCL 802 FMO MBS OBC KBS ALPHA-STATION E-RADIO CRK
+          )
+
+          for sid in "${stations[@]}"; do
+            card="vercel-radiko/radio-video-assets/cards/${sid}.jpg"
+            out="$OUTROOT/$sid"
+            test -s "$card"
+            mkdir -p "$out"
+
+            # Keep the exact stable timing confirmed on iPhone/M3U IPTV:
+            # MPEG-TS, H.264 baseline, 320x180, 1 fps, 5-minute segments.
+            ffmpeg -y -hide_banner -loglevel error \
+              -loop 1 -framerate 1 -i "$card" \
+              -t 10800 \
+              -vf "scale=320:180:force_original_aspect_ratio=decrease,pad=320:180:(ow-iw)/2:(oh-ih)/2" \
+              -c:v libx264 -profile:v baseline -level:v 3.0 \
+              -preset ultrafast -tune stillimage -crf 38 \
+              -pix_fmt yuv420p -r 1 -g 10 -keyint_min 10 -sc_threshold 0 -an \
+              -f hls -hls_segment_type mpegts -hls_time 300 -hls_list_size 0 \
+              -hls_flags independent_segments \
+              -hls_segment_filename "$out/seg_%03d.ts" \
+              "$out/raw.m3u8"
+          done
+
+      - name: Write live-aligned playlists
+        shell: bash
+        env:
+          OUTROOT: ${{ runner.temp }}/radio-ts-assets
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from datetime import datetime, timedelta, timezone
+          from pathlib import Path
+          import math, os
+
+          stations = [
+              'JOEU-FM','RNB','ABC','CCL','802','FMO','MBS','OBC',
+              'KBS','ALPHA-STATION','E-RADIO','CRK'
+          ]
+          root = Path(os.environ['OUTROOT'])
+          JST = timezone(timedelta(hours=9))
+          now = datetime.now(JST)
+          start = now - timedelta(hours=1)
+          offset = 3600.0
+
+          for sid in stations:
+              out = root / sid
+              raw = (out / 'raw.m3u8').read_text(encoding='utf-8').splitlines()
+              entries = []
+              dur = None
+              for line in raw:
+                  if line.startswith('#EXTINF:'):
+                      dur = float(line.split(':',1)[1].split(',',1)[0])
+                  elif line and not line.startswith('#') and dur is not None:
+                      entries.append((dur, line.strip()))
+                      dur = None
+              if not entries:
+                  raise SystemExit(f'{sid}: no TS segments generated')
+
+              lines = [
+                  '#EXTM3U',
+                  '#EXT-X-VERSION:3',
+                  '#EXT-X-INDEPENDENT-SEGMENTS',
+                  f'#EXT-X-TARGETDURATION:{math.ceil(max(d for d,_ in entries))}',
+                  '#EXT-X-MEDIA-SEQUENCE:0',
+                  f'#EXT-X-START:TIME-OFFSET={offset:.3f},PRECISE=YES',
+              ]
+              stamp = start
+              for duration, name in entries:
+                  lines.append(f'#EXT-X-PROGRAM-DATE-TIME:{stamp.isoformat(timespec="milliseconds")}')
+                  lines.append(f'#EXTINF:{duration:.3f},')
+                  lines.append(name)
+                  stamp += timedelta(seconds=duration)
+              lines += ['#EXT-X-ENDLIST', '']
+              (out / 'video.m3u8').write_text('\n'.join(lines), encoding='utf-8')
+              (out / 'master.m3u8').write_text('\n'.join([
+                  '#EXTM3U',
+                  '#EXT-X-VERSION:6',
+                  '#EXT-X-INDEPENDENT-SEGMENTS',
+                  f'#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="radio",NAME="{sid} radio",DEFAULT=YES,AUTOSELECT=YES,CHANNELS="2",URI="https://himitsu-six.vercel.app/api/radiko?station={sid}&stage=media"',
+                  '#EXT-X-STREAM-INF:BANDWIDTH=180000,AVERAGE-BANDWIDTH=120000,RESOLUTION=320x180,FRAME-RATE=1.000,CODECS="avc1.42e01e,mp4a.40.5",AUDIO="radio",CLOSED-CAPTIONS=NONE',
+                  'video.m3u8',
+                  '',
+              ]), encoding='utf-8')
+              (out / 'raw.m3u8').unlink(missing_ok=True)
+              print(f'{sid}: {start.isoformat()} -> {stamp.isoformat()}')
+          PY
+
+      - name: Publish generated TS assets to rolling branch
+        shell: bash
+        env:
+          OUTROOT: ${{ runner.temp }}/radio-ts-assets
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+
+          git switch --orphan radio-ts-assets-publish
+          git rm -rf . >/dev/null 2>&1 || true
+          git clean -fdx >/dev/null 2>&1 || true
+          cp -a "$OUTROOT"/. .
+          git add -f .
+          git commit -m 'Refresh 180p radio TS assets'
+          git push --force origin HEAD:radio-ts-assets
+
+      - name: Switch FreeWiFi radiko stations to stable TS visuals
+        shell: bash
+        run: |
+          set -euo pipefail
+          git switch main
+          git reset --hard origin/main
+
+          python - <<'PY'
+          from pathlib import Path
+
+          stations = [
+              'JOEU-FM','RNB','ABC','CCL','802','FMO','MBS','OBC',
+              'KBS','ALPHA-STATION','E-RADIO','CRK'
+          ]
+          p = Path('freewifi')
+          text = p.read_text(encoding='utf-8')
+          changed = 0
+          for sid in stations:
+              old = f'https://himitsu-six.vercel.app/api/radiko?station={sid}'
+              new = f'https://raw.githubusercontent.com/ajiousama/himitsu/radio-ts-assets/{sid}/master.m3u8'
+              if old in text:
+                  text = text.replace(old, new)
+                  changed += 1
+              elif new not in text:
+                  raise SystemExit(f'{sid}: neither direct-audio nor TS URL found in freewifi')
+          p.write_text(text, encoding='utf-8')
+          print(f'FreeWiFi radio entries switched: {changed}')
+          PY
+
+          git add freewifi
+          if git diff --cached --quiet; then
+            echo 'FreeWiFi already uses TS visuals'
+            exit 0
+          fi
+          git commit -m 'Use stable 180p TS visuals for radiko stations'
+          git push origin main
