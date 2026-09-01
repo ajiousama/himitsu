@@ -6,6 +6,7 @@ on:
     paths:
       - 'radio_tv_nationwide.py'
       - 'radiko_cloud_start.py'
+      - 'radiko_freewifi.py'
       - 'radio_tv_nationwide_freewifi.py'
       - '.github/workflows/apply_nationwide_radio_tv.yml'
   workflow_dispatch:
@@ -67,32 +68,53 @@ jobs:
             test "$bytes" -gt 10000
           done
 
-      - name: Build nationwide RADIO section
+      - name: Restore compact FreeWiFi radio section
         run: python radio_tv_nationwide_freewifi.py
 
-      - name: Validate nationwide FreeWiFi RADIO
+      - name: Build standalone nationwide radio.m3u
+        run: python radiko_freewifi.py --playlist-only
+
+      - name: Validate separated radio layouts
         shell: bash
         run: |
           set -euo pipefail
-          count="$(grep -c '^https://ajiousama-radiko.onrender.com/radio-tv/' freewifi)"
-          echo "Render RADIO count=$count"
-          test "$count" -ge 100
-          grep -q '^https://ajiousama-radiko.onrender.com/radio-tv/TBS$' freewifi
-          grep -q '^https://ajiousama-radiko.onrender.com/radio-tv/JOZK$' freewifi
-          grep -q '^https://simul2.drdi.st.nhk/live/17/joined/master.m3u8$' freewifi
+
+          radio_start="$(grep -n '^## ラジオ$' freewifi | head -1 | cut -d: -f1)"
+          catv_start="$(grep -n '^## 愛媛CATV$' freewifi | head -1 | cut -d: -f1)"
+          test -n "$radio_start"
+          test -n "$catv_start"
+          test "$catv_start" -gt "$radio_start"
+          sed -n "${radio_start},$((catv_start - 1))p" freewifi > /tmp/freewifi-radio.txt
+
+          free_count="$(grep -c '^https://ajiousama-radiko.onrender.com/radio-tv/' /tmp/freewifi-radio.txt || true)"
+          nationwide_count="$(grep -c '^https://ajiousama-radiko.onrender.com/radio-tv/' radio.m3u || true)"
+          echo "FreeWiFi compact image+audio radio count=$free_count"
+          echo "Standalone nationwide image+audio radio count=$nationwide_count"
+
+          test "$free_count" -ge 12
+          test "$free_count" -le 20
+          test "$nationwide_count" -ge 100
+
+          ! grep -q '^### 北海道$' /tmp/freewifi-radio.txt
+          ! grep -q '^https://ajiousama-radiko.onrender.com/radio-tv/TBS$' /tmp/freewifi-radio.txt
+          grep -q '^https://ajiousama-radiko.onrender.com/radio-tv/TBS$' radio.m3u
+          grep -q '^https://ajiousama-radiko.onrender.com/radio-tv/JOZK$' radio.m3u
+          grep -q '^https://ajiousama-radiko.onrender.com/radio-tv/JOZK$' /tmp/freewifi-radio.txt
+          grep -q '^https://simul2.drdi.st.nhk/live/17/joined/master.m3u8$' /tmp/freewifi-radio.txt
+          grep -q '^https://simul2.drdi.st.nhk/live/17/joined/master.m3u8$' radio.m3u
           grep -q '^## Rakuten-JP$' freewifi
 
-      - name: Commit nationwide RADIO
+      - name: Commit separated radio playlists
         shell: bash
         run: |
           set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add freewifi
+          git add freewifi radio.m3u
           if git diff --cached --quiet; then
-            echo 'Nationwide RADIO already current'
+            echo 'Radio playlists already current'
             exit 0
           fi
-          git commit -m 'Expand RADIO to nationwide image and audio streams'
+          git commit -m 'Separate nationwide radio from FreeWiFi'
           git pull --rebase origin main
           git push origin HEAD:main
