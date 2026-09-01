@@ -1,0 +1,61 @@
+name: Apply Radio TV to FreeWiFi
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/apply_radio_tv.yml'
+      - 'radio_tv.py'
+      - 'radio_tv_freewifi.py'
+      - 'radiko_cloud_start.py'
+      - 'requirements.txt'
+      - 'render.yaml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    env:
+      RADIO_TV_BASE: https://ajiousama-radiko.onrender.com
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Wait for Render radio TV endpoint
+        shell: bash
+        run: |
+          set -euo pipefail
+          ok=0
+          for i in $(seq 1 40); do
+            echo "Render check $i/40"
+            if curl -fsS --max-time 20 "$RADIO_TV_BASE/health" >/tmp/radio-health.txt \
+              && curl -fsS --max-time 30 "$RADIO_TV_BASE/radio-art/ABC.jpg" -o /tmp/radio-abc.jpg \
+              && test -s /tmp/radio-abc.jpg; then
+              cat /tmp/radio-health.txt
+              file /tmp/radio-abc.jpg
+              ok=1
+              break
+            fi
+            sleep 15
+          done
+          test "$ok" = 1
+
+      - name: Switch 16 FreeWiFi radio entries to image streams
+        run: python radio_tv_freewifi.py
+
+      - name: Commit FreeWiFi update
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          if git diff --quiet -- freewifi; then
+            echo 'freewifi already uses radio TV URLs'
+            exit 0
+          fi
+          git add freewifi
+          git commit -m 'Use image streams for FreeWiFi radio channels'
+          git push
