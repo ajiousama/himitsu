@@ -1,0 +1,31 @@
+name: Probe NHK alternate radio URLs
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/probe_nhk_alt_urls.yml'
+  workflow_dispatch:
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Probe NHK direct media URL variants
+        shell: bash
+        run: |
+          set +e
+          for n in 12 13 16 17; do
+            echo "===== live/$n ====="
+            for url in \
+              "https://simul2.drdi.st.nhk/live/$n/joined/master.m3u8" \
+              "https://simul2.drdi.st.nhk/live/$n/joined/audio/media.m3u8" \
+              "https://simulosa2.drdi.st.nhk/live/$n/joined/audio/media.m3u8" \
+              "https://simulosa.drdi.st.nhk/live/$n/joined/audio/media.m3u8"; do
+              code=$(curl -L -A 'Mozilla/5.0' -sS -o /tmp/nhk.out -w '%{http_code}' --max-time 15 "$url")
+              bytes=$(wc -c < /tmp/nhk.out 2>/dev/null || echo 0)
+              first=$(head -c 80 /tmp/nhk.out | tr '\n' ' ')
+              echo "$code bytes=$bytes $url :: $first"
+            done
+          done
+          exit 0
