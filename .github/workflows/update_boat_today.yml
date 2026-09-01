@@ -3,10 +3,11 @@ name: Update BOAT Today Independently
 on:
   workflow_dispatch:
   schedule:
-    # 09:00 / 12:00 / 17:00 / 21:00 JST: refresh + ended-venue check
-    - cron: "0 0,3,8,12 * * *"
-    # 15:00 JST: refresh night-race stream URLs only (no extra end-check policy)
-    - cron: "0 6 * * *"
+    # 09:05-22:35 JST: refresh every 30 minutes, offset from the 15-minute
+    # general-YouTube writer to reduce repository-writer contention.
+    - cron: "5,35 0-13 * * *"
+    # 23:05 JST: final cleanup after night racing.
+    - cron: "5 14 * * *"
   push:
     branches:
       - main
@@ -43,6 +44,8 @@ jobs:
 
       - name: Fetch BOAT stream URLs independently
         shell: pwsh
+        env:
+          BOATRACE_STREAKS_API_KEY: ${{ secrets.BOATRACE_STREAKS_API_KEY }}
         run: ./boat_stream_fetch.ps1
 
       - name: Build independent BOAT current venues
@@ -89,7 +92,7 @@ jobs:
             echo "BOAT push moved; rebuild from latest main ($attempt/3)"
             git fetch origin main
             git reset --hard origin/main
-            pwsh -NoProfile -File ./boat_stream_fetch.ps1
+            BOATRACE_STREAKS_API_KEY="$BOATRACE_STREAKS_API_KEY" pwsh -NoProfile -File ./boat_stream_fetch.ps1
             python -u freewifi_boat_today_runner.py
             if publish; then
               exit 0
