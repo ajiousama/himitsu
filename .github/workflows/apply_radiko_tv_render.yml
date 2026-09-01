@@ -26,14 +26,17 @@ jobs:
       - name: Apply Render radio TV URLs to 12 radiko stations
         run: python radio_tv_freewifi.py
 
-      - name: Validate 12 Render URLs and keep NHK direct
+      - name: Validate 12 Render URLs and keep NHK entries untouched
         shell: bash
         run: |
           set -euo pipefail
           test "$(grep -c '^https://ajiousama-radiko.onrender.com/radio-tv/' freewifi)" -eq 12
-          test "$(grep -c '^https://simul2.drdi.st.nhk/live/' freewifi)" -ge 4
+          test "$(grep -c '^https://simul2.drdi.st.nhk/live/' freewifi)" -ge 2
           grep -q '^https://ajiousama-radiko.onrender.com/radio-tv/ABC$' freewifi
-          echo '12 radiko Render TV URLs validated; NHK remains direct'
+          grep -q '^https://ajiousama-radiko.onrender.com/radio-tv/RNB$' freewifi
+          grep -q '^https://himitsu-six.vercel.app/api/radio-tv?station=nhk_r1_osaka$' freewifi
+          grep -q '^https://himitsu-six.vercel.app/api/radio-tv?station=nhk_r1_matsuyama$' freewifi
+          echo '12 radiko Render TV URLs validated; NHK entries preserved'
 
       - name: Commit FreeWiFi update
         shell: bash
