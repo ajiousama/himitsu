@@ -70,6 +70,14 @@ def strip_entries(text, ids):
     return '\n'.join(out)
 
 
+def put_kanto_before_kansai(text):
+    """Keep the terrestrial-region display order as Kanto -> Kansai."""
+    pat = re.compile(r'(### 関西\n.*?)(### 関東\n.*?)(?=\n## )', re.S)
+    if pat.search(text):
+        text = pat.sub(lambda m: m.group(2).rstrip() + '\n\n' + m.group(1).rstrip() + '\n', text, count=1)
+    return text
+
+
 def main():
     if not FREEWIFI.exists() or not PUBLIC_STATUS.exists():
         return
@@ -93,6 +101,7 @@ def main():
         text = re.sub(r'# === JRA_OFFICIAL_YOUTUBE_START ===.*?# === JRA_OFFICIAL_YOUTUBE_END ===\n?', '', text, flags=re.S)
         text = strip_entries(text, {'jra.east','jra.west','jra.hokkaido','jra.official','jra.gch.free'})
 
+    text = put_kanto_before_kansai(text)
     FREEWIFI.write_text(text.rstrip() + '\n', encoding='utf-8')
 
     # Keep every Green Channel viewing route in its dedicated player group.
