@@ -56,11 +56,89 @@ jobs:
           fi
           echo "RADIO_TS_ASSETS=$ASSETS" >> "$GITHUB_ENV"
 
+      - name: Invalidate stale TS encodes once
+        shell: bash
+        run: |
+          set -euo pipefail
+          REV='radio-ts-320x180-1fps-baseline-v2'
+          MARKER="$RADIO_TS_ASSETS/.radio_ts_build_rev"
+          OLD=''
+          test -f "$MARKER" && OLD="$(cat "$MARKER")"
+          if [ "$OLD" != "$REV" ]; then
+            echo "TS build revision changed: ${OLD:-none} -> $REV"
+            find "$RADIO_TS_ASSETS" -type f \( -name 'segments.json' -o -name 'video.m3u8' -o -name 'master.m3u8' -o -name 'seg_*.ts' \) -delete
+            printf '%s\n' "$REV" > "$MARKER"
+          else
+            echo "TS build revision already current: $REV"
+          fi
+
       - name: Build or reuse every nationwide radio visual
         shell: bash
         run: |
           set -euo pipefail
           python build_all_radio_ts.py --assets-root "$RADIO_TS_ASSETS" --workers 3
+
+      - name: Probe every generated TS video
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          import subprocess
+          from pathlib import Path
+
+          root = Path(__import__('os').environ['RADIO_TS_ASSETS'])
+          masters = sorted(root.glob('*/master.m3u8'))
+          if len(masters) < 116:
+              raise SystemExit(f'too few radio masters: {len(masters)}')
+
+          bad = []
+          checked = 0
+          for master in masters:
+              station = master.parent.name
+              video = master.parent / 'video.m3u8'
+              if not video.is_file():
+                  bad.append((station, 'missing video.m3u8'))
+                  continue
+              segs = [x.strip() for x in video.read_text(encoding='utf-8').splitlines() if x.strip().endswith('.ts')]
+              if not segs:
+                  bad.append((station, 'no TS segments'))
+                  continue
+              seg = master.parent / segs[0]
+              if not seg.is_file() or seg.stat().st_size <= 0:
+                  bad.append((station, 'missing/empty first TS'))
+                  continue
+              p = subprocess.run([
+                  'ffprobe','-v','error','-select_streams','v:0',
+                  '-show_entries','stream=codec_name,width,height,pix_fmt,avg_frame_rate,profile',
+                  '-of','json',str(seg)
+              ], text=True, capture_output=True)
+              if p.returncode != 0:
+                  bad.append((station, 'ffprobe failed: ' + p.stderr.strip()[-300:]))
+                  continue
+              try:
+                  streams = json.loads(p.stdout).get('streams') or []
+                  s = streams[0]
+              except Exception:
+                  bad.append((station, 'no decodable video stream'))
+                  continue
+              problems = []
+              if s.get('codec_name') != 'h264': problems.append('codec=' + str(s.get('codec_name')))
+              if (s.get('width'), s.get('height')) != (320, 180): problems.append(f"size={s.get('width')}x{s.get('height')}")
+              if s.get('pix_fmt') != 'yuv420p': problems.append('pix_fmt=' + str(s.get('pix_fmt')))
+              if s.get('avg_frame_rate') not in ('1/1', '1'): problems.append('fps=' + str(s.get('avg_frame_rate')))
+              if problems:
+                  bad.append((station, ', '.join(problems)))
+              else:
+                  checked += 1
+
+          print(f'ffprobe OK: {checked}/{len(masters)}')
+          if bad:
+              print('BAD RADIO TS:')
+              for station, why in bad:
+                  print(f'  {station}: {why}')
+              raise SystemExit(f'{len(bad)} radio TS visuals failed validation')
+          PY
 
       - name: Publish TS assets
         shell: bash
