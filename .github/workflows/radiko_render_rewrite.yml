@@ -36,7 +36,7 @@ jobs:
           free_direct_count="$(grep -Fc "$direct" /tmp/freewifi-radio.txt || true)"
           free_ts_count="$(grep -Fc "$tsbase" /tmp/freewifi-radio.txt || true)"
           radio_ts_count="$(grep -Fc "$tsbase" radio.m3u || true)"
-          legacy_count="$(grep -Eh 'desktop-h41fq90\.tailde6548\.ts\.net|ajiousama-radiko\.onrender\.com/(live|radio-tv/)' freewifi radio.m3u | wc -l)"
+          legacy_count="$( (grep -Eh 'desktop-h41fq90\.tailde6548\.ts\.net|ajiousama-radiko\.onrender\.com/(live|radio-tv/)' freewifi radio.m3u || true) | wc -l)"
 
           echo "FreeWiFi direct Radiko URLs: $free_direct_count"
           echo "FreeWiFi TS visual URLs: $free_ts_count"
