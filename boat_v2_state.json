@@ -1,18 +1,19 @@
 {
   "system": "boat-v2-resolver",
-  "generated_at": "2026-09-03T08:06:12.560142+09:00",
+  "generated_at": "2026-09-03T08:15:55.533467+09:00",
   "date": "2026-09-03",
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/",
   "resolver_base": "https://ajiousama-radiko.onrender.com/boat",
   "resolver_ready": false,
-  "resolver_probe_status": 502,
+  "resolver_probe_status": 0,
   "prestart_minutes": 30,
   "grace_minutes": 30,
   "card_count": 14,
-  "held_count": 1,
+  "held_count": 2,
   "visible_count": 0,
   "active_window": [
-    "三国"
+    "三国",
+    "徳山"
   ],
   "scheduled_waiting": [
     "戸田",
@@ -23,7 +24,6 @@
     "尼崎",
     "児島",
     "宮島",
-    "徳山",
     "下関",
     "若松",
     "福岡",
@@ -114,7 +114,7 @@
         "start": "08:32"
       },
       "stream_window": "live_or_vtr",
-      "source": "Render unhealthy (502); no safe fallback"
+      "source": "Render unhealthy (0); no safe fallback"
     },
     "boat.suminoe": {
       "jcd": "12",
@@ -198,8 +198,8 @@
         "race": 1,
         "start": "08:44"
       },
-      "scheduled": true,
-      "stream_window": "waiting"
+      "stream_window": "live_or_vtr",
+      "source": "Render unhealthy (0); no safe fallback"
     },
     "boat.shimonoseki": {
       "jcd": "19",
@@ -270,5 +270,5 @@
       "stream_window": "waiting"
     }
   },
-  "resolver_guard": "unhealthy probe=502; safe fallback only"
+  "resolver_guard": "unhealthy probe=0; safe fallback only"
 }
