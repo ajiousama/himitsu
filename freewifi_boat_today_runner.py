@@ -1,6 +1,9 @@
 import json
 import os
+import re
+import xml.etree.ElementTree as ET
 from pathlib import Path
+
 import freewifi_boat_today as boat
 
 headers = {
@@ -34,4 +37,53 @@ def playback_url(code, ymd):
 
 boat.playback_url = playback_url
 print(f'BOAT prefetched PowerShell streams: {len(stream_map)}')
+
+# The main workflow has already generated today's BOAT schedule into the local
+# XMLTV file.  Reuse it here instead of hitting all 24 BOAT RACE raceindex
+# pages serially again.  This removes a blocked-network dependency from the
+# final M3U application step while preserving the official data captured by
+# the local generator / same-repo verified fallback.
+LOCAL_EPG = Path('public_sports_epg_local.xml')
+JCD_TO_ID = {jcd: tvg_id for jcd, _name, _code, tvg_id, _slug, _logo in boat.VENUES}
+LOCAL_TIMES = {}
+
+if LOCAL_EPG.exists():
+    try:
+        root = ET.parse(LOCAL_EPG).getroot()
+        for jcd, tvg_id in JCD_TO_ID.items():
+            races = {}
+            for prog in root.findall('programme'):
+                if prog.get('channel') != tvg_id:
+                    continue
+                title = (prog.findtext('title') or '').strip()
+                mr = re.search(r'(?:【\s*)?([０-９0-9]{1,2})\s*[ＲR](?:\s*】)?', title)
+                mt = re.search(r'([0-9]{1,2}:[0-5][0-9])\s*発走', title)
+                if not mr or not mt:
+                    continue
+                trans = str.maketrans('０１２３４５６７８９', '0123456789')
+                try:
+                    rno = int(mr.group(1).translate(trans))
+                except Exception:
+                    continue
+                if 1 <= rno <= 12:
+                    races[rno] = mt.group(1)
+            if races:
+                LOCAL_TIMES[jcd] = races
+        print(f'BOAT local EPG schedules: {len(LOCAL_TIMES)} venues')
+    except Exception as e:
+        print('BOAT local EPG schedule read failed:', e)
+
+original_race_times = boat.race_times
+
+def race_times(jcd, ymd):
+    local = LOCAL_TIMES.get(jcd)
+    if local:
+        return dict(local), None
+    # A venue missing from today's local EPG is treated as non-event here.
+    # The independent generator is responsible for schedule acquisition and
+    # same-repo fallback before this step runs.
+    return {}, 'local_epg:no_schedule'
+
+boat.race_times = race_times
+
 raise SystemExit(boat.main())
