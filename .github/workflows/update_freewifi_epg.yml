@@ -1,4 +1,4 @@
-name: Update FreeWiFi ALL（手動一発 / 自動EPG）
+name: Update FreeWiFi ALL（ajiousama単独 / 自動EPG）
 
 on:
   workflow_dispatch:
@@ -10,6 +10,7 @@ on:
       - main
     paths:
       - "freewifi"
+      - "ganble"
       - "other_live.m3u"
       - "epg_build.py"
       - "radiko_epg.py"
@@ -18,6 +19,7 @@ on:
       - "radio_tv_nationwide_freewifi.py"
       - "kick_channels.json"
       - "kick_epg.py"
+      - "public_sports_epg_local.py"
       - "public_sports_epg_merge.py"
       - "keiba_epg_direct.py"
       - "keirin_epg_direct.py"
@@ -25,14 +27,14 @@ on:
       - "jra_epg_merge.py"
       - "jra_freewifi_finalize.py"
       - "freewifi_today_public_sports.py"
+      - "freewifi_today_jra.py"
+      - "freewifi_boat_today.py"
+      - "freewifi_boat_today_runner.py"
+      - "boat_stream_fetch.ps1"
       - "finalize_today_public_sports.py"
       - "prune_expired_boat_freewifi.py"
       - "public_sports_youtube_fallback.py"
       - "public_sports_youtube_fallback.m3u"
-      - "freewifi_today_jra.py"
-      - "verified_daily_status.json"
-      - "verified_daily_override.py"
-      - "apply_verified_status.py"
       - "build_today_event_counts.py"
       - ".github/workflows/update_freewifi_epg.yml"
 
@@ -46,6 +48,7 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 35
 
     steps:
       - name: Checkout
@@ -94,8 +97,29 @@ jobs:
           python general_youtube_update.py
           python jra_freewifi_finalize.py
 
+      - name: Generate public sports EPG and verified status locally
+        run: python -u public_sports_epg_local.py
+
+      - name: Validate local-only public sports source
+        shell: bash
+        run: |
+          python -c "import xml.etree.ElementTree as ET; ET.parse('public_sports_epg_local.xml'); print('LOCAL PUBLIC SPORTS XML OK')"
+          test -s verified_daily_status.json
+          ! grep -E 'earphone1981/public-sports-iptv' public_sports_epg_local.py freewifi_today_public_sports.py public_sports_epg_merge.py freewifi_today_jra.py jra_epg_merge.py
+
       - name: Sync today's public sports venues into FreeWiFi
         run: python freewifi_today_public_sports.py
+
+      - name: Refresh BOAT streams inside ajiousama
+        shell: pwsh
+        env:
+          BOATRACE_STREAKS_API_KEY: ${{ secrets.BOATRACE_STREAKS_API_KEY }}
+        run: ./boat_stream_fetch.ps1
+
+      - name: Apply independent BOAT current venues
+        env:
+          BOATRACE_STREAKS_API_KEY: ${{ secrets.BOATRACE_STREAKS_API_KEY }}
+        run: python -u freewifi_boat_today_runner.py
 
       - name: Drop expired BOAT stream URLs
         run: python prune_expired_boat_freewifi.py
@@ -103,34 +127,28 @@ jobs:
       - name: Sync today's JRA channels into FreeWiFi
         run: python freewifi_today_jra.py
 
-      - name: Apply verified sports/JRA status
-        run: |
-          python verified_daily_override.py
-          python apply_verified_status.py
-
       - name: Finalize ended venues and time order
         run: python finalize_today_public_sports.py
 
       - name: Build compact current event counts
         run: python build_today_event_counts.py
 
-      - name: Commit venue state before EPG work
+      - name: Commit local venue state before EPG work
         shell: bash
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-          git add freewifi today_public_sports_status.json today_jra_status.json today_event_counts.json
+          git add freewifi today_public_sports_status.json today_jra_status.json today_event_counts.json verified_daily_status.json public_sports_epg_local.xml
+          [ ! -f today_boat_status.json ] || git add today_boat_status.json
           [ ! -f public_sports_youtube_fallback.m3u ] || git add public_sports_youtube_fallback.m3u
           if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -f general_youtube.m3u ]; then
             git add general_youtube.m3u
           fi
-
           if git diff --cached --quiet; then
-            echo "Venue state already current"
+            echo "Local venue state already current"
           else
-            git commit -m "Update FreeWiFi current venues"
+            git commit -m "Update ajiousama public sports state [skip ci]"
             git pull --rebase origin main
             git push origin HEAD:main
           fi
@@ -144,7 +162,7 @@ jobs:
       - name: Merge selected Radiko EPG
         run: python radiko_epg_merge.py
 
-      - name: Merge public sports EPG for today's venues
+      - name: Merge local public sports EPG for today's venues
         run: python public_sports_epg_merge.py
 
       - name: Repair today's local horse racing EPG directly from NAR
@@ -156,7 +174,7 @@ jobs:
       - name: Repair today's AutoRace EPG from official race cards
         run: python autorace_epg_direct.py
 
-      - name: Merge JRA race EPG for official YouTube
+      - name: Merge local JRA race EPG
         run: python jra_epg_merge.py
 
       - name: Add persistent KICK receiver EPG
@@ -176,12 +194,12 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
           publish_epg() {
-            git add guides.xml epg_coverage.txt
+            git add guides.xml epg_coverage.txt public_sports_epg_local.xml verified_daily_status.json
             if git diff --cached --quiet; then
               echo "EPG already current"
               return 0
             fi
-            git commit -m "Update FreeWiFi EPG"
+            git commit -m "Update FreeWiFi local EPG [skip ci]"
             git push origin HEAD:main
           }
 
@@ -193,6 +211,7 @@ jobs:
             echo "EPG push moved; rebuild attempt $attempt/3"
             git fetch origin main
             git reset --hard origin/main
+            python -u public_sports_epg_local.py
             python epg_build.py
             python radiko_epg_merge.py
             python public_sports_epg_merge.py
@@ -201,7 +220,7 @@ jobs:
             python autorace_epg_direct.py
             python jra_epg_merge.py
             python kick_epg.py
-            python -c "import xml.etree.ElementTree as ET; ET.parse('guides.xml'); print('XML OK')"
+            python -c "import xml.etree.ElementTree as ET; ET.parse('guides.xml'); ET.parse('public_sports_epg_local.xml'); print('XML OK')"
             test "$(grep -c '<channel id=\"radiko\.' guides.xml || true)" -gt 0
             test "$(grep -c '<programme .*channel=\"radiko\.' guides.xml || true)" -gt 0
             if publish_epg; then
