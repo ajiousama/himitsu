@@ -2,12 +2,11 @@ from pathlib import Path
 from datetime import datetime, timezone, timedelta
 import json
 import re
-import urllib.request
 import xml.etree.ElementTree as ET
 
 FREEWIFI = Path('freewifi')
 STATUS_JSON = Path('today_public_sports_status.json')
-PUBLIC_EPG_URL = 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/epg.xml'
+LOCAL_EPG = Path('public_sports_epg_local.xml')
 START = '# === TODAY_PUBLIC_SPORTS_START ==='
 END = '# === TODAY_PUBLIC_SPORTS_END ==='
 JST = timezone(timedelta(hours=9))
@@ -15,16 +14,8 @@ NON_EVENT_WORDS = (
     '本日非開催', '非開催', '開催していません', '開催予定はありません',
     '本日開催なし', '開催なし', '次回開催', 'データ取得準備中',
     '休止中', '休止', '準備中', '現在準備中',
+    '本日の開催は終了しました', '開催は終了しました', '開催終了', '終了しました',
 )
-
-
-def fetch_text(url, timeout=45):
-    req = urllib.request.Request(url, headers={
-        'User-Agent': 'FreeWiFi-Final-End-Check/1.0',
-        'Cache-Control': 'no-cache',
-    })
-    with urllib.request.urlopen(req, timeout=timeout) as r:
-        return r.read().decode('utf-8-sig', errors='replace')
 
 
 def parse_xmltv_time(value):
@@ -127,6 +118,8 @@ def main():
     now = datetime.now(JST)
     if not FREEWIFI.exists():
         raise SystemExit('freewifi not found')
+    if not LOCAL_EPG.exists() or LOCAL_EPG.stat().st_size == 0:
+        raise SystemExit('public_sports_epg_local.xml missing or empty')
 
     text = FREEWIFI.read_text(encoding='utf-8-sig', errors='replace')
     entries, match = parse_managed_entries(text)
@@ -134,7 +127,7 @@ def main():
         print('Today public sports managed block not found')
         return 0
 
-    state = epg_state(fetch_text(PUBLIC_EPG_URL), now)
+    state = epg_state(LOCAL_EPG.read_text(encoding='utf-8-sig', errors='replace'), now)
     old_status = {}
     if STATUS_JSON.exists():
         try:
@@ -149,7 +142,7 @@ def main():
     for entry in entries:
         cid = entry['id']
         s = state.get(cid)
-        # 今日の実番組が存在し、その最終stopを過ぎた場合だけ終了確定として削除する。
+        # Local EPGの実レース番組だけを基準にし、最終stopを過ぎたら終了確定。
         if s and s.get('has_today') and s.get('last_stop') and now >= s['last_stop']:
             removed.append((cid, entry['name'], s['last_stop'].strftime('%H:%M')))
             continue
@@ -184,11 +177,13 @@ def main():
     result = dict(old_status)
     result['generated_at'] = now.isoformat()
     result['end_check_at'] = now.isoformat()
+    result['end_check_source'] = 'public_sports_epg_local.xml'
     result['end_check_removed'] = [cid for cid, _, _ in removed]
     result['channels'] = channels
     STATUS_JSON.write_text(json.dumps(result, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
 
     print('Final venue end check:', now.strftime('%H:%M JST'))
+    print('End check source: public_sports_epg_local.xml')
     print('Removed ended venues:', len(removed))
     for cid, name, stop in removed:
         print(f'  REMOVE {stop} {name} [{cid}]')
