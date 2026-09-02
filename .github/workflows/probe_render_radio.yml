@@ -23,7 +23,7 @@ jobs:
           for attempt in $(seq 1 30); do
             health="$(curl -fsS --max-time 15 "$base/health" || true)"
             echo "attempt=$attempt $health"
-            if grep -Fq '20260903-radio-tv-head-prewarm-v5' <<<"$health"; then
+            if grep -Fq '20260903-radio-tv-ring-prewarm-v6' <<<"$health"; then
               exit 0
             fi
             sleep 10

@@ -34,9 +34,38 @@ REGION_LABELS = {
 SID_RE = re.compile(r"^[A-Za-z0-9_-]{2,32}$")
 PUBLIC_RADIKO_BASE = os.environ.get("RADIO_AUDIO_BASE", "https://himitsu-six.vercel.app").rstrip("/")
 _PREWARM_LOCK = threading.Lock()
-_PREWARM: dict[str, tuple[subprocess.Popen, bytes, float]] = {}
 _PREWARMING: set[str] = set()
 _PREWARM_SLOTS = threading.BoundedSemaphore(4)
+
+
+class _WarmStream:
+    def __init__(self, proc: subprocess.Popen, first: bytes):
+        self.proc = proc
+        self.chunks = collections.deque([first], maxlen=80)
+        self.stop = threading.Event()
+        self.reader = threading.Thread(target=self._drain, daemon=True)
+
+    def _drain(self) -> None:
+        while not self.stop.is_set() and self.proc.poll() is None:
+            ready, _, _ = select.select([self.proc.stdout], [], [], 0.25)
+            if not ready:
+                continue
+            chunk = self.proc.stdout.read(188 * 7)
+            if not chunk:
+                break
+            self.chunks.append(chunk)
+
+    def take(self) -> tuple[subprocess.Popen, bytes]:
+        self.stop.set()
+        self.reader.join(timeout=1.0)
+        return self.proc, b"".join(self.chunks)
+
+    def close(self) -> None:
+        self.stop.set()
+        base._stop_proc(self.proc)
+
+
+_PREWARM: dict[str, _WarmStream] = {}
 
 
 def _accent(sid: str) -> tuple[int, int, int]:
@@ -235,14 +264,14 @@ def _start_attempt(station: str, source: str, timeout: float):
     return proc, first, ""
 
 
-def _expire_prewarm(station: str, proc: subprocess.Popen) -> None:
+def _expire_prewarm(station: str, warm: _WarmStream) -> None:
     time.sleep(75)
     with _PREWARM_LOCK:
         cached = _PREWARM.get(station)
-        if cached is None or cached[0] is not proc:
+        if cached is not warm:
             return
         _PREWARM.pop(station, None)
-    base._stop_proc(proc)
+    warm.close()
 
 
 def prewarm_station(station: str) -> None:
@@ -251,11 +280,11 @@ def prewarm_station(station: str) -> None:
         return
     with _PREWARM_LOCK:
         cached = _PREWARM.get(station)
-        if cached is not None and cached[0].poll() is None:
+        if cached is not None and cached.proc.poll() is None:
             return
         if cached is not None:
             _PREWARM.pop(station, None)
-            base._stop_proc(cached[0])
+            cached.close()
         if station in _PREWARMING:
             return
         _PREWARMING.add(station)
@@ -268,12 +297,14 @@ def prewarm_station(station: str) -> None:
                 proc, first, _detail = _start_attempt(station, source, 18.0)
             if proc is None or not first:
                 return
+            warm = _WarmStream(proc, first)
+            warm.reader.start()
             with _PREWARM_LOCK:
                 old = _PREWARM.pop(station, None)
-                _PREWARM[station] = (proc, first, time.time())
+                _PREWARM[station] = warm
             if old is not None:
-                base._stop_proc(old[0])
-            threading.Thread(target=_expire_prewarm, args=(station, proc), daemon=True).start()
+                old.close()
+            threading.Thread(target=_expire_prewarm, args=(station, warm), daemon=True).start()
             proc = None
         finally:
             with _PREWARM_LOCK:
@@ -303,12 +334,12 @@ def _stream_station(handler, station: str):
     with _PREWARM_LOCK:
         cached = _PREWARM.pop(station, None)
     if cached is not None:
-        candidate, data, _created = cached
+        candidate, data = cached.take()
         if candidate.poll() is None:
             winner = candidate
             first = data
         else:
-            base._stop_proc(candidate)
+            cached.close()
     # One verified source gets the complete cold-start budget.
     budgets = [18.0]
 
