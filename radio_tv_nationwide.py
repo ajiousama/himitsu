@@ -171,14 +171,23 @@ def _ffmpeg_cmd(station: str, src: str | None = None) -> list[str]:
         "-re", "-loop", "1", "-framerate", "1", "-i", str(art),
         "-rw_timeout", "12000000",
         "-user_agent", "Mozilla/5.0",
-        "-probesize", "65536",
-        "-analyzeduration", "1000000",
+        # Tune directly to the newest Radiko fragment and emit the first TS
+        # packets quickly.  IPTV clients give up on a silent GET after roughly
+        # ten seconds, so a full HLS probe is too expensive here.
+        "-fflags", "nobuffer",
+        "-flags", "low_delay",
+        "-live_start_index", "-1",
+        "-probesize", "32768",
+        "-analyzeduration", "200000",
         "-i", source,
         "-map", "0:v:0", "-map", "1:a:0",
         "-c:v", "libx264", "-preset", "ultrafast", "-tune", "stillimage",
         "-crf", "31", "-pix_fmt", "yuv420p", "-r", "1", "-g", "2",
-        "-c:a", "aac", "-b:a", "96k", "-ar", "48000", "-ac", "2",
+        # Radiko is already AAC. MPEG-TS accepts it directly, and copying it
+        # avoids an unnecessary transcode on Render's small instance.
+        "-c:a", "copy",
         "-muxdelay", "0", "-muxpreload", "0", "-flush_packets", "1",
+        "-max_delay", "0",
         "-mpegts_flags", "resend_headers",
         "-f", "mpegts", "pipe:1",
     ]

@@ -124,7 +124,7 @@ def tun_capability_report() -> str:
 
 
 core.auth = cloud_auth
-core.BUILD = "20260903-radio-tv-vercel-audio-v2"
+core.BUILD = "20260903-radio-tv-low-latency-v3"
 
 _original_do_get = core.Handler.do_GET
 
