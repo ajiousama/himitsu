@@ -47,6 +47,9 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Install BOAT player browser probe
+        run: python -m pip install --disable-pip-version-check -q selenium
+
       - name: Ensure today's local BOAT schedule exists
         shell: bash
         run: |
@@ -86,7 +89,7 @@ jobs:
         run: python -u freewifi_boat_today_runner.py
 
       # Publish every improvement first. Validation still fails the run on a
-      # partial mismatch, but a 1->8 recovery is no longer discarded.
+      # partial mismatch, but recovered venues are not discarded.
       - name: Publish BOAT state safely
         shell: bash
         env:
