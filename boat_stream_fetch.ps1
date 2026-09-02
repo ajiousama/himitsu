@@ -32,6 +32,7 @@ $venues = @(
 )
 
 $ua = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36'
+$webHeaders = @{ 'User-Agent'=$ua; 'Accept'='application/json,text/plain,*/*'; 'Referer'='https://front.player.boatrace-cdn.jp/' }
 
 function New-PlaybackHeaders([string]$apiKey) {
   $h = @{
@@ -40,166 +41,85 @@ function New-PlaybackHeaders([string]$apiKey) {
     'Referer'    = 'https://front.player.boatrace-cdn.jp/'
     'User-Agent' = $ua
   }
-  if (-not [string]::IsNullOrWhiteSpace($apiKey)) {
-    $h['X-Streaks-Api-Key'] = $apiKey
-  }
+  if (-not [string]::IsNullOrWhiteSpace($apiKey)) { $h['X-Streaks-Api-Key'] = $apiKey }
   return $h
-}
-
-function Test-StreaksKey([string]$candidate) {
-  if ([string]::IsNullOrWhiteSpace($candidate)) { return $false }
-  foreach ($v in $venues) {
-    $url = "https://playback.api.streaks.jp/v1/projects/cp-boatrace-prod/medias/ref:lm-br-$($v.Code)-tokyo-$d?audio_only=false"
-    try {
-      $r = Invoke-WebRequest -Uri $url -Headers (New-PlaybackHeaders $candidate) -TimeoutSec 8 -ErrorAction Stop
-      if ($r.StatusCode -eq 200) { return $true }
-    }
-    catch {
-      $status = $null
-      try { $status = [int]$_.Exception.Response.StatusCode } catch {}
-      if ($status -eq 403) { return $false }
-    }
-  }
-  return $false
 }
 
 function Get-PlayerBodies([string]$stadium, [int]$maxScripts = 30) {
   $playerUrl = "https://front.player.boatrace-cdn.jp/player/live?service=boatcast&stadium=$stadium&sourceType=mix&dvr=1&audioMode=0&autoplay=1&bitrate=high"
-  $webHeaders = @{ 'User-Agent'=$ua; 'Accept'='text/html,application/xhtml+xml,application/javascript,*/*' }
+  $headers = @{ 'User-Agent'=$ua; 'Accept'='text/html,application/xhtml+xml,application/javascript,*/*' }
   $bodies = New-Object System.Collections.Generic.List[string]
   try {
-    $page = Invoke-WebRequest -Uri $playerUrl -Headers $webHeaders -TimeoutSec 15 -ErrorAction Stop
+    $page = Invoke-WebRequest -Uri $playerUrl -Headers $headers -TimeoutSec 15 -ErrorAction Stop
     $bodies.Add([string]$page.Content)
     $base = [Uri]$playerUrl
     $seen = @{}
-    $matches = [regex]::Matches([string]$page.Content, '(?is)<script[^>]+src=["'']([^"'']+)["'']')
-    foreach ($m in $matches) {
+    foreach ($m in [regex]::Matches([string]$page.Content, '(?is)<script[^>]+src=["'']([^"'']+)["'']')) {
       if ($bodies.Count -ge ($maxScripts + 1)) { break }
       try {
         $src = [Uri]::new($base, $m.Groups[1].Value).AbsoluteUri
         if ($seen.ContainsKey($src)) { continue }
         $seen[$src] = $true
-        $js = Invoke-WebRequest -Uri $src -Headers $webHeaders -TimeoutSec 12 -ErrorAction Stop
+        $js = Invoke-WebRequest -Uri $src -Headers $headers -TimeoutSec 12 -ErrorAction Stop
         $bodies.Add([string]$js.Content)
-      }
-      catch {}
+      } catch {}
     }
-  }
-  catch {
-    Write-Host "BOATCAST player scan unavailable: $($_.Exception.GetType().Name)"
-  }
+  } catch { Write-Host "BOATCAST player scan unavailable: $($_.Exception.GetType().Name)" }
   return ,$bodies.ToArray()
 }
 
-function Find-StreaksKeyFromPlayer {
-  $bodies = Get-PlayerBodies '12suminoe' 25
-  if (-not $bodies -or $bodies.Count -eq 0) { return '' }
-
-  $candidates = New-Object System.Collections.Generic.List[string]
-  $candidateSeen = @{}
-  foreach ($body in $bodies) {
-    $patterns = @(
-      '(?i)x-streaks-api-key[^A-Za-z0-9_-]{0,80}["'']([A-Za-z0-9_-]{8,128})["'']',
-      '(?i)(?:streaksApiKey|streaks_api_key)[^A-Za-z0-9_-]{0,40}["'']([A-Za-z0-9_-]{8,128})["'']'
-    )
-    foreach ($pattern in $patterns) {
-      foreach ($m in [regex]::Matches($body, $pattern)) {
-        $c = $m.Groups[1].Value
-        if (-not $candidateSeen.ContainsKey($c)) {
-          $candidateSeen[$c] = $true
-          $candidates.Add($c)
-        }
-      }
-    }
+function Write-CurrentSettingDiagnostic {
+  $epoch = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
+  $settingUrl = "https://front.player.boatrace-cdn.jp/setting/live/12suminoe/setting.json?t=$epoch"
+  try {
+    $r = Invoke-WebRequest -Uri $settingUrl -Headers $webHeaders -TimeoutSec 15 -ErrorAction Stop
+    $j = $r.Content | ConvertFrom-Json
+    Write-Host "BOATCAST SETTING URL: $settingUrl"
+    Write-Host ('BOATCAST SETTING JSON: ' + ($j | ConvertTo-Json -Depth 20 -Compress))
+  } catch {
+    $status = $null; try { $status = [int]$_.Exception.Response.StatusCode } catch {}
+    Write-Host "BOATCAST SETTING ERROR: status=$status type=$($_.Exception.GetType().Name)"
   }
 
-  Write-Host "BOATCAST key candidates discovered: $($candidates.Count)"
-  foreach ($c in $candidates) {
-    if (Test-StreaksKey $c) {
-      Write-Host 'BOATCAST API key auto-detected and validated'
-      return $c
-    }
-  }
-  return ''
-}
-
-function Write-PlayerDiagnostics {
   $bodies = Get-PlayerBodies '12suminoe' 30
-  Write-Host "BOATCAST DIAG bodies=$($bodies.Count)"
-  $needles = @('playback.api.streaks.jp','cp-boatrace-prod','medias/ref:','m3u8','mediaRef','media_ref','sourceType','stadium')
-  $shown = @{}
   $bodyNo = 0
   foreach ($body0 in $bodies) {
     $bodyNo++
-    $body = [string]$body0
-    $body = $body.Replace('\/','/').Replace('\u002F','/').Replace('\u0026','&').Replace('&amp;','&')
-    foreach ($needle in $needles) {
-      if ($shown.ContainsKey($needle)) { continue }
+    $body = ([string]$body0).Replace('\/','/').Replace('\u002F','/').Replace('\u0026','&').Replace('&amp;','&')
+    foreach ($needle in @('/setting/live/','media_id','mediaId','mix_live','mix_dvr','playback.api.streaks.jp')) {
       $idx = $body.IndexOf($needle, [System.StringComparison]::OrdinalIgnoreCase)
       if ($idx -ge 0) {
-        $start = [Math]::Max(0, $idx - 220)
-        $len = [Math]::Min(900, $body.Length - $start)
+        $start = [Math]::Max(0, $idx - 350)
+        $len = [Math]::Min(1800, $body.Length - $start)
         $snippet = $body.Substring($start, $len) -replace "[\r\n\t]+", ' '
-        Write-Host "BOATCAST DIAG $needle body=$bodyNo :: $snippet"
-        $shown[$needle] = $true
+        Write-Host "BOATCAST CODE DIAG $needle body=$bodyNo :: $snippet"
+        break
       }
     }
   }
 }
 
-# First try public playback exactly as the front player does, with no key.
-$apiKey = ''
-$publicProbeOk = $false
-foreach ($v in $venues) {
-  $url = "https://playback.api.streaks.jp/v1/projects/cp-boatrace-prod/medias/ref:lm-br-$($v.Code)-tokyo-$d?audio_only=false"
-  try {
-    $r = Invoke-WebRequest -Uri $url -Headers (New-PlaybackHeaders '') -TimeoutSec 8 -ErrorAction Stop
-    if ($r.StatusCode -eq 200) {
-      $publicProbeOk = $true
-      Write-Host 'BOATCAST public playback headers validated'
-      break
-    }
-  }
-  catch {}
-}
+# The old date-derived media refs now return 404. Dump the current public
+# setting contract once per run so the resolver can follow BOATCAST's actual
+# media IDs rather than guessing them.
+Write-CurrentSettingDiagnostic
 
-if (-not $publicProbeOk) {
-  $apiKey = [Environment]::GetEnvironmentVariable('BOATRACE_STREAKS_API_KEY')
-  if (-not [string]::IsNullOrWhiteSpace($apiKey) -and -not (Test-StreaksKey $apiKey)) {
-    Write-Host 'BOATCAST API key secret invalid; trying auto-detection'
-    $apiKey = ''
-  }
-  if ([string]::IsNullOrWhiteSpace($apiKey)) {
-    $apiKey = Find-StreaksKeyFromPlayer
-  }
-  if ([string]::IsNullOrWhiteSpace($apiKey)) {
-    Write-Host '::warning::BOATCAST public probe/key resolution failed; probing current player implementation'
-    Write-PlayerDiagnostics
-  }
-}
-
+$apiKey = [Environment]::GetEnvironmentVariable('BOATRACE_STREAKS_API_KEY')
 $headers = New-PlaybackHeaders $apiKey
 $result = [ordered]@{}
 foreach ($v in $venues) {
   $url = "https://playback.api.streaks.jp/v1/projects/cp-boatrace-prod/medias/ref:lm-br-$($v.Code)-tokyo-$d?audio_only=false"
   try {
-    $r = Invoke-WebRequest -Uri $url -Headers $headers -TimeoutSec 15 -ErrorAction Stop
+    $r = Invoke-WebRequest -Uri $url -Headers $headers -TimeoutSec 10 -ErrorAction Stop
     $j = $r.Content | ConvertFrom-Json
     if ($j.sources -and $j.sources.Count -gt 0 -and $j.sources[0].src) {
       $result[$v.Code] = [string]$j.sources[0].src
       Write-Host "STREAM OK $($v.Id)"
-    } else {
-      Write-Host "STREAM WAIT $($v.Id): no source"
-    }
-  }
-  catch {
-    $status = $null
-    try { $status = [int]$_.Exception.Response.StatusCode } catch {}
-    if ($status) {
-      Write-Host "STREAM WAIT $($v.Id): HTTP $status"
-    } else {
-      Write-Host "STREAM WAIT $($v.Id): $($_.Exception.GetType().Name)"
-    }
+    } else { Write-Host "STREAM WAIT $($v.Id): no source" }
+  } catch {
+    $status = $null; try { $status = [int]$_.Exception.Response.StatusCode } catch {}
+    if ($status) { Write-Host "STREAM WAIT $($v.Id): HTTP $status" }
+    else { Write-Host "STREAM WAIT $($v.Id): $($_.Exception.GetType().Name)" }
   }
 }
 
