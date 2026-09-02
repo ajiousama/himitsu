@@ -1,27 +1,30 @@
 {
-  "date": "2026-09-02",
-  "checked_at": "2026-09-02T23:34:30.086933+09:00",
+  "date": "2026-09-03",
+  "checked_at": "2026-09-03T00:29:20+09:00",
   "public_sports": {
     "競輪": [
-      "弥彦",
-      "宇都宮",
-      "西武園",
       "松戸",
+      "弥彦",
       "伊東",
-      "松阪",
       "玉野",
-      "松山"
+      "青森",
+      "立川",
+      "富山",
+      "武雄"
     ],
     "地方競馬": [
       "門別",
       "大井",
       "名古屋",
-      "園田"
+      "園田",
+      "佐賀"
     ],
     "ボートレース": [
-      "多摩川",
+      "戸田",
       "浜名湖",
       "常滑",
+      "津",
+      "三国",
       "住之江",
       "尼崎",
       "児島",
@@ -29,7 +32,6 @@
       "徳山",
       "下関",
       "若松",
-      "芦屋",
       "福岡",
       "大村"
     ],
@@ -40,34 +42,36 @@
   },
   "public_sports_modes": {
     "競輪": {
-      "弥彦": "midnight",
-      "宇都宮": "night",
-      "西武園": "day",
       "松戸": "night",
+      "弥彦": "midnight",
       "伊東": "midnight",
-      "松阪": "morning",
       "玉野": "midnight",
-      "松山": "day"
+      "青森": "day",
+      "立川": "day",
+      "富山": "morning",
+      "武雄": "night"
     },
     "地方競馬": {
       "門別": "night",
       "大井": "night",
       "名古屋": "night",
-      "園田": "day"
+      "園田": "day",
+      "佐賀": "night"
     },
     "ボートレース": {
-      "多摩川": "day",
+      "戸田": "day",
       "浜名湖": "day",
       "常滑": "day",
+      "津": "day",
+      "三国": "morning",
       "住之江": "night",
       "尼崎": "day",
-      "児島": "day",
-      "宮島": "day",
+      "児島": "twilight",
+      "宮島": "twilight",
       "徳山": "morning",
       "下関": "night",
       "若松": "night",
-      "芦屋": "morning",
-      "福岡": "day",
+      "福岡": "twilight",
       "大村": "night"
     },
     "オートレース": {
@@ -76,11 +80,11 @@
     }
   },
   "jra_active_ids": [],
-  "source": "ajiousama/himitsu direct acquisition + Boatrace Open API fallback",
+  "source": "official schedules + earphone1981/public-sports-iptv boatrace_today.json",
   "boat_schedule_fallback": {
-    "source": "boatraceopenapi/api v1",
-    "date": "2026-09-02",
-    "venues": 13,
-    "races": 156
+    "source": "earphone1981/public-sports-iptv/boatrace_today.json",
+    "date": "2026-09-03",
+    "venues": 14,
+    "races": 168
   }
 }
