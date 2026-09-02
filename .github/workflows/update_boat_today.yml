@@ -92,8 +92,8 @@ jobs:
           held = int(d.get('held_count') or 0)
           visible = int(d.get('visible_count') or 0)
           print('BOAT held=', held, 'visible=', visible, 'end_check=', d.get('scheduled_end_check'))
-          if held and visible == 0:
-              raise SystemExit('BOAT held venues exist but no playable venue is visible')
+          if held and visible != held:
+              raise SystemExit(f'BOAT venue mismatch: held={held} visible={visible}')
           PY
 
       - name: Publish BOAT state safely
