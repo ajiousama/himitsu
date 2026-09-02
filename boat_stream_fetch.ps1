@@ -34,9 +34,12 @@ $venues = @(
 $ua = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36'
 
 function New-PlaybackHeaders([string]$apiKey) {
+  # BOATCAST's public front player is the proven origin for playback.api.
+  # Do not require a Streaks key: current public media refs can be resolved
+  # without one when these headers match the player.
   $h = @{
     'Accept'     = 'application/json'
-    'Origin'     = 'https://players.streaks.jp'
+    'Origin'     = 'https://front.player.boatrace-cdn.jp'
     'Referer'    = 'https://front.player.boatrace-cdn.jp/'
     'User-Agent' = $ua
   }
@@ -48,8 +51,6 @@ function New-PlaybackHeaders([string]$apiKey) {
 
 function Test-StreaksKey([string]$candidate) {
   if ([string]::IsNullOrWhiteSpace($candidate)) { return $false }
-  # Use several current-day venue refs. 200 with or without sources proves that
-  # the key is accepted; 403 means the candidate is not the BOATCAST key.
   foreach ($v in $venues) {
     $url = "https://playback.api.streaks.jp/v1/projects/cp-boatrace-prod/medias/ref:lm-br-$($v.Code)-tokyo-$d?audio_only=false"
     try {
@@ -60,7 +61,6 @@ function Test-StreaksKey([string]$candidate) {
       $status = $null
       try { $status = [int]$_.Exception.Response.StatusCode } catch {}
       if ($status -eq 403) { return $false }
-      # 404/non-event does not disprove the key; try the next venue.
     }
   }
   return $false
@@ -71,7 +71,7 @@ function Find-StreaksKeyFromPlayer {
   $webHeaders = @{ 'User-Agent'=$ua; 'Accept'='text/html,application/xhtml+xml,application/javascript,*/*' }
   $bodies = New-Object System.Collections.Generic.List[string]
   try {
-    $page = Invoke-WebRequest -Uri $playerUrl -Headers $webHeaders -TimeoutSec 20 -ErrorAction Stop
+    $page = Invoke-WebRequest -Uri $playerUrl -Headers $webHeaders -TimeoutSec 15 -ErrorAction Stop
     $bodies.Add([string]$page.Content)
     $base = [Uri]$playerUrl
     $seen = @{}
@@ -82,7 +82,7 @@ function Find-StreaksKeyFromPlayer {
         $src = [Uri]::new($base, $m.Groups[1].Value).AbsoluteUri
         if ($seen.ContainsKey($src)) { continue }
         $seen[$src] = $true
-        $js = Invoke-WebRequest -Uri $src -Headers $webHeaders -TimeoutSec 15 -ErrorAction Stop
+        $js = Invoke-WebRequest -Uri $src -Headers $webHeaders -TimeoutSec 12 -ErrorAction Stop
         $bodies.Add([string]$js.Content)
       }
       catch {}
@@ -109,27 +109,10 @@ function Find-StreaksKeyFromPlayer {
         }
       }
     }
-    # Minified bundles sometimes assign the header through a variable. Search
-    # only near STREAKS/API-key text, then validate every token against playback.
-    foreach ($m in [regex]::Matches($body, '(?i)(?:streaks|api-key)')) {
-      $start = [Math]::Max(0, $m.Index - 350)
-      $len = [Math]::Min(700, $body.Length - $start)
-      $near = $body.Substring($start, $len)
-      foreach ($t in [regex]::Matches($near, '(?<![A-Za-z0-9_-])([A-Fa-f0-9]{24,64})(?![A-Za-z0-9_-])')) {
-        $c = $t.Groups[1].Value
-        if (-not $candidateSeen.ContainsKey($c)) {
-          $candidateSeen[$c] = $true
-          $candidates.Add($c)
-        }
-      }
-    }
   }
 
   Write-Host "BOATCAST key candidates discovered: $($candidates.Count)"
-  $tested = 0
   foreach ($c in $candidates) {
-    if ($tested -ge 30) { break }
-    $tested++
     if (Test-StreaksKey $c) {
       Write-Host 'BOATCAST API key auto-detected and validated'
       return $c
@@ -138,21 +121,34 @@ function Find-StreaksKeyFromPlayer {
   return ''
 }
 
-$apiKey = [Environment]::GetEnvironmentVariable('BOATRACE_STREAKS_API_KEY')
-if (-not [string]::IsNullOrWhiteSpace($apiKey)) {
-  if (Test-StreaksKey $apiKey) {
-    Write-Host 'BOATCAST API key from GitHub secret validated'
+# First try public playback exactly as the front player does, with no key.
+$apiKey = ''
+$publicProbeOk = $false
+foreach ($v in $venues) {
+  $url = "https://playback.api.streaks.jp/v1/projects/cp-boatrace-prod/medias/ref:lm-br-$($v.Code)-tokyo-$d?audio_only=false"
+  try {
+    $r = Invoke-WebRequest -Uri $url -Headers (New-PlaybackHeaders '') -TimeoutSec 8 -ErrorAction Stop
+    if ($r.StatusCode -eq 200) {
+      $publicProbeOk = $true
+      Write-Host 'BOATCAST public playback headers validated'
+      break
+    }
   }
-  else {
-    Write-Host 'BOATCAST API key secret is missing/invalid for current player; trying auto-detection'
+  catch {}
+}
+
+if (-not $publicProbeOk) {
+  $apiKey = [Environment]::GetEnvironmentVariable('BOATRACE_STREAKS_API_KEY')
+  if (-not [string]::IsNullOrWhiteSpace($apiKey) -and -not (Test-StreaksKey $apiKey)) {
+    Write-Host 'BOATCAST API key secret invalid; trying auto-detection'
     $apiKey = ''
   }
-}
-if ([string]::IsNullOrWhiteSpace($apiKey)) {
-  $apiKey = Find-StreaksKeyFromPlayer
-}
-if ([string]::IsNullOrWhiteSpace($apiKey)) {
-  Write-Host '::warning::BOATCAST API key could not be resolved; direct playback API may return 403'
+  if ([string]::IsNullOrWhiteSpace($apiKey)) {
+    $apiKey = Find-StreaksKeyFromPlayer
+  }
+  if ([string]::IsNullOrWhiteSpace($apiKey)) {
+    Write-Host '::warning::BOATCAST public probe/key resolution failed; playback may be unavailable'
+  }
 }
 
 $headers = New-PlaybackHeaders $apiKey
@@ -160,7 +156,7 @@ $result = [ordered]@{}
 foreach ($v in $venues) {
   $url = "https://playback.api.streaks.jp/v1/projects/cp-boatrace-prod/medias/ref:lm-br-$($v.Code)-tokyo-$d?audio_only=false"
   try {
-    $r = Invoke-WebRequest -Uri $url -Headers $headers -TimeoutSec 20 -ErrorAction Stop
+    $r = Invoke-WebRequest -Uri $url -Headers $headers -TimeoutSec 15 -ErrorAction Stop
     $j = $r.Content | ConvertFrom-Json
     if ($j.sources -and $j.sources.Count -gt 0 -and $j.sources[0].src) {
       $result[$v.Code] = [string]$j.sources[0].src
