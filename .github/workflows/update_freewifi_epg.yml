@@ -13,6 +13,7 @@ on:
       - "normalize_ganble_local.py"
       - "other_live.m3u"
       - "epg_build.py"
+      - "epg_build_safe.py"
       - "radiko_epg.py"
       - "radiko_epg_merge.py"
       - "radio_tv_nationwide.py"
@@ -40,8 +41,7 @@ on:
 permissions:
   contents: write
 
-# Shared write lock only. BOAT V2 has a separate acquisition pipeline but
-# both workflows physically update the same freewifi file.
+# One repository-wide writer mutex for freewifi/guides.xml state.
 concurrency:
   group: himitsu-freewifi-state-writer
   cancel-in-progress: false
@@ -147,8 +147,8 @@ jobs:
       - name: Sync latest main before EPG build
         run: git pull --ff-only origin main
 
-      - name: Build merged EPG
-        run: python epg_build.py
+      - name: Build merged EPG safely without external public-sports source
+        run: python epg_build_safe.py
 
       - name: Merge selected Radiko EPG
         run: python radiko_epg_merge.py
@@ -171,9 +171,21 @@ jobs:
       - name: Add persistent KICK receiver EPG
         run: python kick_epg.py
 
-      - name: Validate XML
+      - name: Validate XML and reject empty/sparse guides
         run: |
-          python -c "import xml.etree.ElementTree as ET; ET.parse('guides.xml'); print('XML OK')"
+          python - <<'PY'
+          import xml.etree.ElementTree as ET
+          from pathlib import Path
+          p = Path('guides.xml')
+          if not p.is_file() or p.stat().st_size < 100000:
+              raise SystemExit(f'guides.xml missing or suspiciously small: {p.stat().st_size if p.exists() else 0} bytes')
+          root = ET.parse(p).getroot()
+          channels = len(root.findall('channel'))
+          programmes = len(root.findall('programme'))
+          print(f'XML OK bytes={p.stat().st_size} channels={channels} programmes={programmes}')
+          if channels < 50 or programmes < 100:
+              raise SystemExit(f'guides.xml suspiciously sparse: channels={channels} programmes={programmes}')
+          PY
           test "$(grep -c '<channel id=\"radiko\.' guides.xml || true)" -gt 0
           test "$(grep -c '<programme .*channel=\"radiko\.' guides.xml || true)" -gt 0
 
@@ -199,7 +211,19 @@ jobs:
             cp "$snapshot/public_sports_epg_local.xml" public_sports_epg_local.xml
             cp "$snapshot/verified_daily_status.json" verified_daily_status.json
 
-            python -c "import xml.etree.ElementTree as ET; ET.parse('guides.xml'); ET.parse('public_sports_epg_local.xml'); print('PUBLISH XML OK')"
+            python - <<'PY'
+          import xml.etree.ElementTree as ET
+          from pathlib import Path
+          g = Path('guides.xml')
+          p = Path('public_sports_epg_local.xml')
+          if g.stat().st_size < 100000:
+              raise SystemExit(f'publish blocked: guides.xml only {g.stat().st_size} bytes')
+          gr = ET.parse(g).getroot()
+          ET.parse(p)
+          if len(gr.findall('channel')) < 50 or len(gr.findall('programme')) < 100:
+              raise SystemExit('publish blocked: guides.xml is too sparse')
+          print('PUBLISH XML OK')
+          PY
             git add guides.xml epg_coverage.txt public_sports_epg_local.xml verified_daily_status.json
             if git diff --cached --quiet; then
               echo "EPG already current on latest main"
