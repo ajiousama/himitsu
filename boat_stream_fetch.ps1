@@ -60,8 +60,8 @@ function Get-CurrentSetting([string]$stadium) {
   }
   catch {
     $status = Get-HttpStatus $_
-    if ($status) { Write-Host "SETTING WAIT $stadium: HTTP $status" }
-    else { Write-Host "SETTING WAIT $stadium: $($_.Exception.GetType().Name)" }
+    if ($status) { Write-Host "SETTING WAIT ${stadium}: HTTP $status" }
+    else { Write-Host "SETTING WAIT ${stadium}: $($_.Exception.GetType().Name)" }
     return $null
   }
 }
@@ -75,7 +75,6 @@ function Test-TimeWindow($item) {
     return ($now -ge $start -and $now -le $end)
   }
   catch {
-    # If BOATCAST changes timestamp formatting, still let playback decide.
     return $true
   }
 }
@@ -84,10 +83,9 @@ function Resolve-Playback([string]$refId, [string]$apiKey) {
   if ([string]::IsNullOrWhiteSpace($refId)) { return '' }
   $url = "https://playback.api.streaks.jp/v1/projects/cp-boatrace-prod/medias/ref:${refId}?audio_only=false"
 
-  # Current BOATCAST player works as a public front player. Try without a
-  # secret first; retain the optional secret only as a compatibility retry.
-  foreach ($key in @('', $apiKey)) {
-    if ($key -ne '' -and [string]::IsNullOrWhiteSpace($key)) { continue }
+  $keys = @('')
+  if (-not [string]::IsNullOrWhiteSpace($apiKey)) { $keys += $apiKey }
+  foreach ($key in $keys) {
     try {
       $r = Invoke-WebRequest -Uri $url -Headers (New-PlaybackHeaders $key) -TimeoutSec 12 -ErrorAction Stop
       $j = $r.Content | ConvertFrom-Json
@@ -98,10 +96,9 @@ function Resolve-Playback([string]$refId, [string]$apiKey) {
     catch {
       $status = Get-HttpStatus $_
       if ($status -and $status -notin @(401,403,404)) {
-        Write-Host "PLAYBACK $refId: HTTP $status"
+        Write-Host "PLAYBACK ${refId}: HTTP $status"
       }
     }
-    if ([string]::IsNullOrWhiteSpace($apiKey)) { break }
   }
   return ''
 }
@@ -113,9 +110,8 @@ foreach ($v in $venues) {
   $setting = Get-CurrentSetting $v.Code
   if ($null -eq $setting) { continue }
 
-  # The current BOATCAST player is opened with sourceType=mix and dvr=1.
-  # Prefer exactly that public setting, then gracefully fall back to the
-  # live mix and broadcast-only variants if the service changes per venue.
+  # BOATCAST currently opens sourceType=mix + dvr=1. Follow its public
+  # setting contract instead of deriving date-based media refs ourselves.
   $candidates = @('mix_dvr', 'mix_live', 'br_dvr', 'br_live')
   $resolved = ''
   $usedRef = ''
