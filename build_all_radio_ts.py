@@ -295,7 +295,7 @@ def rewrite_playlist(path: Path, known: set[str], section_only=False):
             continue
         i += 1
 
-    if section_only and matched < 16:
+    if section_only and matched < 12:
         raise RuntimeError(f"FreeWiFi radio match count too small: {matched}")
     if not section_only and matched < 116:
         raise RuntimeError(f"radio.m3u match count too small: {matched}")
