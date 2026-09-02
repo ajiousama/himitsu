@@ -337,7 +337,8 @@ def main():
 
     known = set(entries)
     rewrite_playlist(RADIO, known, section_only=False)
-    rewrite_playlist(FREEWIFI, known, section_only=True)
+    # FreeWiFi uses the direct Radiko audio URLs for APTV/APTV Live compatibility.
+    # Keep visual TS generation for radio.m3u, but do not overwrite FreeWiFi.
     print(f"all-radio TS ready: stations={len(entries)} newly_built={built}")
 
 
