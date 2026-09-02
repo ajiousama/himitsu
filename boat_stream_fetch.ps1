@@ -55,8 +55,7 @@ function Get-CurrentSetting([string]$stadium) {
   try {
     $r = Invoke-WebRequest -Uri $url -Headers $settingHeaders -TimeoutSec 12 -ErrorAction Stop
     return ($r.Content | ConvertFrom-Json)
-  }
-  catch {
+  } catch {
     $status = Get-HttpStatus $_
     if ($status) { Write-Host "SETTING WAIT ${stadium}: HTTP $status" }
     else { Write-Host "SETTING WAIT ${stadium}: $($_.Exception.GetType().Name)" }
@@ -74,42 +73,106 @@ function Test-TimeWindow($item) {
   } catch { return $true }
 }
 
-function Resolve-Playback([string]$refId, [string]$apiKey) {
-  if ([string]::IsNullOrWhiteSpace($refId)) { return '' }
-  $mediaIds = @("ref:$refId", $refId)
-  $keys = @('')
-  if (-not [string]::IsNullOrWhiteSpace($apiKey)) { $keys += $apiKey }
+function Test-PlaybackKey([string]$refId, [string]$candidate) {
+  if ([string]::IsNullOrWhiteSpace($refId) -or [string]::IsNullOrWhiteSpace($candidate)) { return $false }
+  $url = "https://playback.api.streaks.jp/v1/projects/cp-boatrace-prod/medias/ref:${refId}?audio_only=false"
+  try {
+    $r = Invoke-WebRequest -Uri $url -Headers (New-PlaybackHeaders $candidate) -TimeoutSec 10 -ErrorAction Stop
+    $j = $r.Content | ConvertFrom-Json
+    return [bool]($j.sources -and $j.sources.Count -gt 0 -and $j.sources[0].src)
+  } catch { return $false }
+}
 
-  foreach ($mediaId in $mediaIds) {
-    $escaped = [Uri]::EscapeDataString($mediaId)
-    foreach ($encoded in @($mediaId, $escaped)) {
-      $url = "https://playback.api.streaks.jp/v1/projects/cp-boatrace-prod/medias/${encoded}?audio_only=false"
-      foreach ($key in $keys) {
-        try {
-          $r = Invoke-WebRequest -Uri $url -Headers (New-PlaybackHeaders $key) -TimeoutSec 12 -ErrorAction Stop
-          $j = $r.Content | ConvertFrom-Json
-          if ($j.sources -and $j.sources.Count -gt 0 -and $j.sources[0].src) {
-            return ([string]$j.sources[0].src).Trim()
-          }
-          Write-Host "PLAYBACK EMPTY ref=$refId media=$encoded"
-        }
-        catch {
-          $status = Get-HttpStatus $_
-          if ($status) { Write-Host "PLAYBACK WAIT ref=$refId media=$encoded HTTP=$status" }
-          else { Write-Host "PLAYBACK WAIT ref=$refId media=$encoded type=$($_.Exception.GetType().Name)" }
-        }
+function Get-PlayerBodies {
+  $playerUrl = 'https://front.player.boatrace-cdn.jp/player/live?service=boatcast&stadium=12suminoe&sourceType=mix&dvr=1&audioMode=0&autoplay=1&bitrate=high'
+  $headers = @{ 'User-Agent'=$ua; 'Accept'='text/html,application/xhtml+xml,application/javascript,*/*' }
+  $bodies = New-Object System.Collections.Generic.List[string]
+  try {
+    $page = Invoke-WebRequest -Uri $playerUrl -Headers $headers -TimeoutSec 15 -ErrorAction Stop
+    $bodies.Add([string]$page.Content)
+    $base = [Uri]$playerUrl
+    $seen = @{}
+    foreach ($m in [regex]::Matches([string]$page.Content, '(?is)<script[^>]+src=["'']([^"'']+)["'']')) {
+      if ($bodies.Count -ge 32) { break }
+      try {
+        $src = [Uri]::new($base, $m.Groups[1].Value).AbsoluteUri
+        if ($seen.ContainsKey($src)) { continue }
+        $seen[$src] = $true
+        $js = Invoke-WebRequest -Uri $src -Headers $headers -TimeoutSec 12 -ErrorAction Stop
+        $bodies.Add([string]$js.Content)
+      } catch {}
+    }
+  } catch {}
+  return ,$bodies.ToArray()
+}
+
+function Discover-PlaybackKey([string]$probeRef) {
+  $configured = [Environment]::GetEnvironmentVariable('BOATRACE_STREAKS_API_KEY')
+  if (-not [string]::IsNullOrWhiteSpace($configured) -and (Test-PlaybackKey $probeRef $configured)) {
+    Write-Host 'BOATCAST playback key: configured key validated'
+    return $configured
+  }
+
+  $candidates = New-Object System.Collections.Generic.List[string]
+  $seen = @{}
+  foreach ($body in (Get-PlayerBodies)) {
+    foreach ($pattern in @(
+      '(?<![A-Za-z0-9_$])Wa\s*=\s*["'']([^"'']{8,200})["'']',
+      '(?i)apiKey\s*[:=]\s*["'']([^"'']{8,200})["'']',
+      '(?i)x-streaks-api-key[^"'']*["'']([^"'']{8,200})["'']'
+    )) {
+      foreach ($m in [regex]::Matches([string]$body, $pattern)) {
+        $c = [string]$m.Groups[1].Value
+        if (-not $seen.ContainsKey($c)) { $seen[$c] = $true; $candidates.Add($c) }
       }
+    }
+  }
+  Write-Host "BOATCAST playback key candidates=$($candidates.Count)"
+  foreach ($c in $candidates) {
+    if (Test-PlaybackKey $probeRef $c) {
+      Write-Host 'BOATCAST playback key: public player key auto-detected and validated'
+      return $c
     }
   }
   return ''
 }
 
-$apiKey = [Environment]::GetEnvironmentVariable('BOATRACE_STREAKS_API_KEY')
+function Resolve-Playback([string]$refId, [string]$apiKey) {
+  if ([string]::IsNullOrWhiteSpace($refId)) { return '' }
+  $url = "https://playback.api.streaks.jp/v1/projects/cp-boatrace-prod/medias/ref:${refId}?audio_only=false"
+  try {
+    $r = Invoke-WebRequest -Uri $url -Headers (New-PlaybackHeaders $apiKey) -TimeoutSec 12 -ErrorAction Stop
+    $j = $r.Content | ConvertFrom-Json
+    if ($j.sources -and $j.sources.Count -gt 0 -and $j.sources[0].src) {
+      return ([string]$j.sources[0].src).Trim()
+    }
+  } catch {
+    $status = Get-HttpStatus $_
+    if ($status) { Write-Host "PLAYBACK WAIT ref=$refId HTTP=$status" }
+  }
+  return ''
+}
+
+# Use one currently scheduled BOATCAST ref only to validate the public player
+# API key. The key value itself is never printed to Actions logs.
+$probeSetting = Get-CurrentSetting '12suminoe'
+$probeRef = ''
+if ($probeSetting) {
+  foreach ($n in @('mix_dvr','mix_live','br_dvr','br_live')) {
+    $p = $probeSetting.PSObject.Properties[$n]
+    if ($p -and (Test-TimeWindow $p.Value)) { $probeRef = [string]$p.Value.ref_id; if ($probeRef) { break } }
+  }
+}
+$apiKey = ''
+if ($probeRef) { $apiKey = Discover-PlaybackKey $probeRef }
+if ([string]::IsNullOrWhiteSpace($apiKey)) {
+  Write-Host '::warning::BOATCAST playback API key could not be validated from current public player'
+}
+
 $result = [ordered]@{}
 foreach ($v in $venues) {
   $setting = Get-CurrentSetting $v.Code
   if ($null -eq $setting) { continue }
-
   $resolved = ''
   $usedRef = ''
   foreach ($name in @('mix_dvr', 'mix_live', 'br_dvr', 'br_live')) {
@@ -122,7 +185,6 @@ foreach ($v in $venues) {
     $resolved = Resolve-Playback $refId $apiKey
     if ($resolved) { $usedRef = $refId; break }
   }
-
   if ($resolved) {
     $result[$v.Code] = $resolved
     Write-Host "STREAM OK $($v.Id) ref=$usedRef"
