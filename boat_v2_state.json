@@ -1,16 +1,16 @@
 {
   "system": "boat-v2-resolver",
-  "generated_at": "2026-09-02T22:16:50.203636+09:00",
+  "generated_at": "2026-09-02T22:20:57.805123+09:00",
   "date": "2026-09-02",
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/",
   "resolver_base": "https://ajiousama-radiko.onrender.com/boat",
   "resolver_ready": false,
-  "resolver_probe_status": 502,
+  "resolver_probe_status": 0,
   "prestart_minutes": 30,
   "grace_minutes": 30,
   "card_count": 13,
   "held_count": 1,
-  "visible_count": 0,
+  "visible_count": 1,
   "active_window": [
     "大村"
   ],
@@ -202,7 +202,7 @@
       "jcd": "24",
       "name": "大村",
       "held": true,
-      "visible": false,
+      "visible": true,
       "first_race": "17:41",
       "show_from": "2026-09-02T17:11:00+09:00",
       "last_race": "22:41",
@@ -213,8 +213,9 @@
         "start": "22:41"
       },
       "stream_window": "live_or_vtr",
-      "source": "Render unhealthy (502); no safe fallback"
+      "url": "https://manifest.googlevideo.com/api/manifest/hls_playlist/expire/1788376819/ei/kyKYarWvKeSRsfIP84qg0Q8/ip/172.184.219.161/id/nAue1QW3qtU.1/itag/301/source/yt_live_broadcast/requiressl/yes/ratebypass/yes/live/1/sgoap/gir%3Dyes%3Bitag%3D140/sgovp/gir%3Dyes%3Bitag%3D299/rqh/1/hls_chunk_host/rr4---sn-aj2im9-5q.googlevideo.com/xpc/EgVo2aDSNQ%3D%3D/playlist_duration/30/manifest_duration/30/siu/1/bui/AR3QkAkT6byS3a79AVT6TFdBXw5e3NHqFa55PW7ruIGdPOvRMVVHmQ2vZC6x-zOGizALQQ7eVQ/spc/I-rgIY02Zl7J7nR6-s6ZkJVYHvF6vvbMXlq7YCeshST0GslbeS8d9_hBZA-OnlKHuq9h4wmUTbzyKA/vprv/1/ns/hhzqQ56GjqFU7B15Ee-T08MY/reg/0/playlist_type/DVR/met/1788355222,/mh/Hu/mm/44/mn/sn-aj2im9-5q/ms/lva/mv/u/mvi/4/pl/15/rms/lva,lva/dover/11/pacing/0/keepalive/yes/fexp/51565115,52135441/n/Ppe4JXyFRB37UA/mt/1788353655/sparams/expire,ei,ip,id,itag,source,requiressl,ratebypass,live,sgoap,sgovp,rqh,xpc,playlist_duration,manifest_duration,siu,bui,spc,vprv,ns,reg,playlist_type/sig/AE0s2JYwRQIgW09OMeXxLq2NJj_UOSNfRfkfWXbgCoY-ufYOWfHIoZkCIQC5nmiBYp7ltkcn8CRZTOtFUZliWZtqP0SPg57NVXePAg%3D%3D/lsparams/hls_chunk_host,met,mh,mm,mn,ms,mv,mvi,pl,rms/lsig/APaTxxMwRQIgEuvhjYg4_jQnJPR0Q-G9KmRCVUbe5gd4LiAyM4zIgMwCIQDBD0TTBR19BS9WLVtmx3j6h39E8_lVAx1r6N9xip-0Zg%3D%3D/playlist/index.m3u8",
+      "source": "valid seed fallback while Render unhealthy (0)"
     }
   },
-  "resolver_guard": "unhealthy probe=502; safe fallback only"
+  "resolver_guard": "unhealthy probe=0; safe fallback only"
 }
