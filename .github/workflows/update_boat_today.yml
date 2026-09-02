@@ -15,6 +15,7 @@ on:
       - "freewifi_boat_today_runner.py"
       - "boat_stream_fetch.ps1"
       - "boatcast_browser_key_probe.py"
+      - "boat_stream_seed.m3u"
       - "repair_boat_local_epg_openapi.py"
       - "public_sports_youtube_fallback.m3u"
       - ".github/workflows/update_boat_today.yml"
@@ -46,9 +47,6 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install BOATCAST browser probe
-        run: python -m pip install --disable-pip-version-check -q selenium
-
       - name: Ensure today's local BOAT schedule exists
         shell: bash
         run: |
@@ -73,7 +71,7 @@ jobs:
             python -u public_sports_epg_local_fast.py
           fi
 
-      - name: Capture BOATCAST public playback key
+      - name: Recover BOAT streams from JLC and local history
         run: python -u boatcast_browser_key_probe.py
 
       - name: Fetch BOAT stream URLs independently
@@ -87,22 +85,8 @@ jobs:
           BOATRACE_STREAKS_API_KEY: ${{ secrets.BOATRACE_STREAKS_API_KEY }}
         run: python -u freewifi_boat_today_runner.py
 
-      - name: Validate independent BOAT state
-        run: |
-          python - <<'PY'
-          import json
-          from pathlib import Path
-          p = Path('today_boat_status.json')
-          if not p.exists():
-              raise SystemExit('today_boat_status.json missing')
-          d = json.loads(p.read_text(encoding='utf-8'))
-          held = int(d.get('held_count') or 0)
-          visible = int(d.get('visible_count') or 0)
-          print('BOAT held=', held, 'visible=', visible, 'end_check=', d.get('scheduled_end_check'))
-          if held and visible != held:
-              raise SystemExit(f'BOAT venue mismatch: held={held} visible={visible}')
-          PY
-
+      # Publish every improvement first. Validation still fails the run on a
+      # partial mismatch, but a 1->8 recovery is no longer discarded.
       - name: Publish BOAT state safely
         shell: bash
         env:
@@ -145,6 +129,7 @@ jobs:
             then
               python -u public_sports_epg_local_fast.py
             fi
+            python -u boatcast_browser_key_probe.py
             BOATRACE_STREAKS_API_KEY="$BOATRACE_STREAKS_API_KEY" pwsh -NoProfile -File ./boat_stream_fetch.ps1
             BOATRACE_STREAKS_API_KEY="$BOATRACE_STREAKS_API_KEY" python -u freewifi_boat_today_runner.py
             if publish; then
@@ -154,3 +139,19 @@ jobs:
 
           echo "::error::BOAT publish failed after rebuild retries"
           exit 1
+
+      - name: Validate independent BOAT state
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path('today_boat_status.json')
+          if not p.exists():
+              raise SystemExit('today_boat_status.json missing')
+          d = json.loads(p.read_text(encoding='utf-8'))
+          held = int(d.get('held_count') or 0)
+          visible = int(d.get('visible_count') or 0)
+          print('BOAT held=', held, 'visible=', visible, 'end_check=', d.get('scheduled_end_check'))
+          if held and visible != held:
+              raise SystemExit(f'BOAT venue mismatch: held={held} visible={visible}')
+          PY
