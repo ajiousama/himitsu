@@ -3,8 +3,7 @@ name: Update BOAT Today Independently
 on:
   workflow_dispatch:
   schedule:
-    # 09:05-22:35 JST: refresh every 30 minutes, offset from the 15-minute
-    # general-YouTube writer to reduce repository-writer contention.
+    # 09:05-22:35 JST: refresh every 30 minutes.
     - cron: "5,35 0-13 * * *"
     # 23:05 JST: final cleanup after night racing.
     - cron: "5 14 * * *"
@@ -21,13 +20,16 @@ on:
 permissions:
   contents: write
 
+# BOAT is intentionally isolated from the general FreeWiFi/EPG writer.
+# Publish logic below rebases/rebuilds if main moves while both are active.
 concurrency:
-  group: himitsu-freewifi-writer
+  group: himitsu-boat-writer
   cancel-in-progress: false
 
 jobs:
   update:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -41,6 +43,30 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: "3.12"
+
+      - name: Ensure today's local BOAT schedule exists
+        shell: bash
+        run: |
+          set -euo pipefail
+          if python - <<'PY'
+          from datetime import datetime, timedelta, timezone
+          from pathlib import Path
+          import xml.etree.ElementTree as ET
+          p=Path('public_sports_epg_local.xml')
+          JST=timezone(timedelta(hours=9))
+          today=datetime.now(JST).strftime('%Y%m%d')
+          if not p.exists(): raise SystemExit(1)
+          r=ET.parse(p).getroot()
+          boats=[x for x in r.findall('programme') if (x.get('channel') or '').startswith('boat.') and (x.get('start') or '').startswith(today)]
+          print('Persisted local BOAT programmes today=',len(boats))
+          raise SystemExit(0 if boats else 1)
+          PY
+          then
+            echo 'Local BOAT schedule is current'
+          else
+            echo 'Local BOAT schedule missing/stale; regenerate inside ajiousama'
+            python -u public_sports_epg_local_fast.py
+          fi
 
       - name: Fetch BOAT stream URLs independently
         shell: pwsh
@@ -62,7 +88,11 @@ jobs:
           if not p.exists():
               raise SystemExit('today_boat_status.json missing')
           d = json.loads(p.read_text(encoding='utf-8'))
-          print('BOAT held=', d.get('held_count'), 'visible=', d.get('visible_count'), 'end_check=', d.get('scheduled_end_check'))
+          held = int(d.get('held_count') or 0)
+          visible = int(d.get('visible_count') or 0)
+          print('BOAT held=', held, 'visible=', visible, 'end_check=', d.get('scheduled_end_check'))
+          if held and visible == 0:
+              raise SystemExit('BOAT held venues exist but no playable venue is visible')
           PY
 
       - name: Publish BOAT state safely
@@ -76,6 +106,8 @@ jobs:
 
           publish() {
             git add freewifi today_boat_status.json
+            if [ -f public_sports_epg_local.xml ]; then git add public_sports_epg_local.xml; fi
+            if [ -f verified_daily_status.json ]; then git add verified_daily_status.json; fi
             if git diff --cached --quiet; then
               echo "BOAT state already current"
               return 0
@@ -92,8 +124,20 @@ jobs:
             echo "BOAT push moved; rebuild from latest main ($attempt/3)"
             git fetch origin main
             git reset --hard origin/main
+            if ! python - <<'PY'
+          from datetime import datetime, timedelta, timezone
+          from pathlib import Path
+          import xml.etree.ElementTree as ET
+          p=Path('public_sports_epg_local.xml'); JST=timezone(timedelta(hours=9)); today=datetime.now(JST).strftime('%Y%m%d')
+          if not p.exists(): raise SystemExit(1)
+          r=ET.parse(p).getroot(); boats=[x for x in r.findall('programme') if (x.get('channel') or '').startswith('boat.') and (x.get('start') or '').startswith(today)]
+          raise SystemExit(0 if boats else 1)
+          PY
+            then
+              python -u public_sports_epg_local_fast.py
+            fi
             BOATRACE_STREAKS_API_KEY="$BOATRACE_STREAKS_API_KEY" pwsh -NoProfile -File ./boat_stream_fetch.ps1
-            python -u freewifi_boat_today_runner.py
+            BOATRACE_STREAKS_API_KEY="$BOATRACE_STREAKS_API_KEY" python -u freewifi_boat_today_runner.py
             if publish; then
               exit 0
             fi
