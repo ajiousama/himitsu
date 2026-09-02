@@ -21,6 +21,7 @@ on:
       - "kick_channels.json"
       - "kick_epg.py"
       - "public_sports_epg_local.py"
+      - "public_sports_epg_local_fast.py"
       - "public_sports_epg_merge.py"
       - "keiba_epg_direct.py"
       - "keirin_epg_direct.py"
@@ -102,14 +103,14 @@ jobs:
         run: python normalize_ganble_local.py
 
       - name: Generate public sports EPG and verified status locally
-        run: python -u public_sports_epg_local.py
+        run: python -u public_sports_epg_local_fast.py
 
       - name: Validate local-only public sports source
         shell: bash
         run: |
           python -c "import xml.etree.ElementTree as ET; ET.parse('public_sports_epg_local.xml'); print('LOCAL PUBLIC SPORTS XML OK')"
           test -s verified_daily_status.json
-          ! grep -E 'earphone1981/public-sports-iptv' ganble public_sports_epg_local.py freewifi_today_public_sports.py public_sports_epg_merge.py freewifi_today_jra.py jra_epg_merge.py
+          ! grep -E 'earphone1981/public-sports-iptv' ganble public_sports_epg_local.py public_sports_epg_local_fast.py freewifi_today_public_sports.py public_sports_epg_merge.py freewifi_today_jra.py jra_epg_merge.py verified_daily_override.py
 
       - name: Sync today's public sports venues into FreeWiFi
         run: python freewifi_today_public_sports.py
@@ -216,7 +217,7 @@ jobs:
             git fetch origin main
             git reset --hard origin/main
             python normalize_ganble_local.py
-            python -u public_sports_epg_local.py
+            python -u public_sports_epg_local_fast.py
             python epg_build.py
             python radiko_epg_merge.py
             python public_sports_epg_merge.py
