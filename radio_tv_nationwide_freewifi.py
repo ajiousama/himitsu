@@ -5,12 +5,12 @@ from pathlib import Path
 from urllib.parse import quote
 
 FREEWIFI = Path("freewifi")
-RADIO_TV_BASE = "https://ajiousama-radiko.onrender.com/radio-tv"
-RADIO_TV_URL_VERSION = "20260903b"
+RADIO_AUDIO_BASE = "https://himitsu-six.vercel.app/api/radiko"
+RADIO_RENDER_BASE = "https://ajiousama-radiko.onrender.com/radio-tv"
 
 
 def radio_url(sid: str) -> str:
-    return f"{RADIO_TV_BASE}/{quote(sid, safe='')}?v={RADIO_TV_URL_VERSION}"
+    return f"{RADIO_AUDIO_BASE}?station={quote(sid, safe='')}&stage=media"
 
 
 def radiko_entry(tvgid: str, sid: str, name: str, logo: str | None = None) -> str:
@@ -57,9 +57,11 @@ def main() -> int:
         raise RuntimeError("Rakuten-JP section disappeared; refusing to write")
 
     radio_section = updated[start:updated.find("## 愛媛CATV", start)]
-    radio_tv_count = radio_section.count(RADIO_TV_BASE + "/")
-    if radio_tv_count != 12:
-        raise RuntimeError(f"compact FreeWiFi radio-TV count unexpected: {radio_tv_count}")
+    audio_count = radio_section.count(RADIO_AUDIO_BASE + "?station=")
+    if audio_count != 12:
+        raise RuntimeError(f"compact FreeWiFi direct-radio count unexpected: {audio_count}")
+    if RADIO_RENDER_BASE + "/" in radio_section:
+        raise RuntimeError("slow Render radio-TV route leaked into FreeWiFi radio section")
     if "NHKラジオ" in radio_section or "NHK-FM" in radio_section or "nhk_r1_" in radio_section or "nhk_fm_" in radio_section:
         raise RuntimeError("NHK radio leaked into FreeWiFi radio section")
     extinf_lines = [line for line in radio_section.splitlines() if line.startswith("#EXTINF:")]
@@ -67,15 +69,13 @@ def main() -> int:
         raise RuntimeError("FreeWiFi radio groups are not uniformly ラジオ")
     if "### 北海道" in radio_section or "station=TBS" in radio_section:
         raise RuntimeError("nationwide catalog leaked into FreeWiFi radio section")
-    if "himitsu-six.vercel.app/api/radiko?station=" in radio_section:
-        raise RuntimeError("audio-only Radiko URL leaked into compact FreeWiFi radio section")
     if "himitsu-six.vercel.app/api/radio-tv" in radio_section:
         raise RuntimeError("Vercel radio-TV URL leaked into compact FreeWiFi radio section")
     if "raw.githubusercontent.com/ajiousama/himitsu/radio-ts-assets/" in radio_section:
         raise RuntimeError("TS visual master leaked into compact FreeWiFi radio section")
 
     FREEWIFI.write_text(updated, encoding="utf-8")
-    print(f"FreeWiFi compact radio restored: {radio_tv_count} image+audio stations")
+    print(f"FreeWiFi compact radio restored: {audio_count} audio-first stations")
     return 0
 
 
