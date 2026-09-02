@@ -41,8 +41,29 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
       - name: Install BOAT live extractor
-        run: python -m pip install --disable-pip-version-check -q -U yt-dlp
+        run: |
+          python -m pip install --disable-pip-version-check -q -U --pre 'yt-dlp[default]' curl_cffi
+          yt-dlp --version
+
+      - name: Restore YouTube cookies
+        shell: bash
+        env:
+          YOUTUBE_COOKIES: ${{ secrets.YOUTUBE_COOKIES }}
+        run: |
+          rm -f youtube_cookies.txt
+          if [ -n "$YOUTUBE_COOKIES" ]; then
+            printf '%s' "$YOUTUBE_COOKIES" > youtube_cookies.txt
+            chmod 600 youtube_cookies.txt
+            echo 'BOAT YouTube cookies restored'
+          else
+            echo '::warning::YOUTUBE_COOKIES is not set'
+          fi
 
       - name: Refresh official YouTube BOAT fallback
         run: python -u boat_youtube_refresh.py
@@ -158,3 +179,7 @@ jobs:
           if held and not visible:
               print('::warning::BOAT active venue exists but no playable source is currently available')
           PY
+
+      - name: Remove YouTube cookies
+        if: always()
+        run: rm -f youtube_cookies.txt
