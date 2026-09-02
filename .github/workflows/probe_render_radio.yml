@@ -20,11 +20,10 @@ jobs:
         run: |
           set -euo pipefail
           base='https://ajiousama-radiko.onrender.com'
-          health=''
           for attempt in $(seq 1 30); do
             health="$(curl -fsS --max-time 15 "$base/health" || true)"
             echo "attempt=$attempt $health"
-            if grep -Fq '20260903-radio-tv-filemux-v11' <<<"$health"; then
+            if grep -Fq '20260903-radio-tv-filemux-v12' <<<"$health"; then
               exit 0
             fi
             sleep 10
@@ -32,12 +31,13 @@ jobs:
           echo 'new Render radio build did not become ready' >&2
           exit 1
 
-      - name: Diagnose exact FM Ehime file mux
+      - name: Diagnose completed-segment FM Ehime mux
         shell: bash
         run: |
           set -euo pipefail
           root='https://ajiousama-radiko.onrender.com'
           curl -fsS --max-time 30 "$root/radio-file-debug/JOEU-FM" | tee /tmp/file-debug.txt
+          grep -q '^live_start_index=-3$' /tmp/file-debug.txt
           grep -q '^started=True$' /tmp/file-debug.txt
           awk -F= '/^bytes=/{if ($2 >= 1316) ok=1} END{exit !ok}' /tmp/file-debug.txt
 
@@ -56,7 +56,7 @@ jobs:
             echo '=== IPTV HEAD capability probe ==='
             time curl -fsSI --max-time 15 "$root/radio-tv/$sid"
             sleep 1
-            echo '=== file-backed GET 20s capture ==='
+            echo '=== completed-segment GET 20s capture ==='
             start=$(date +%s)
             curl -v --max-time 20 "$root/radio-tv/$sid" -o /tmp/radio.ts 2>/tmp/curl.err
             rc=$?
@@ -71,8 +71,8 @@ jobs:
             if [ "$ffprobe_rc" -eq 0 ] && grep -q 'codec_type=video' /tmp/ffprobe.txt && grep -q 'codec_type=audio' /tmp/ffprobe.txt; then
               probe_ok=1
             else
-              echo '=== normal debug after failed live probe ==='
-              time curl -fsS --max-time 45 "$root/radio-debug/$sid" || true
+              echo '=== file mux debug after failed live probe ==='
+              curl -fsS --max-time 30 "$root/radio-file-debug/$sid" || true
             fi
           } > /tmp/probe.txt 2>&1
           cat /tmp/probe.txt
