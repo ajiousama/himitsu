@@ -19,7 +19,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - name: Validate separated Radiko image+audio layout
+      - name: Validate APTV-compatible direct radio layout
         shell: bash
         run: |
           set -euo pipefail
@@ -28,23 +28,31 @@ jobs:
           catv_start="$(grep -n '^## 愛媛CATV$' freewifi | head -1 | cut -d: -f1)"
           test -n "$radio_start"
           test -n "$catv_start"
+          test "$catv_start" -gt "$radio_start"
           sed -n "${radio_start},$((catv_start - 1))p" freewifi > /tmp/freewifi-radio.txt
 
-          FREE_RENDER_COUNT=$(grep -c 'https://ajiousama-radiko.onrender.com/radio-tv/' /tmp/freewifi-radio.txt || true)
-          RADIO_RENDER_COUNT=$(grep -c 'https://ajiousama-radiko.onrender.com/radio-tv/' radio.m3u || true)
-          RADIO_VERCEL_COUNT=$(grep -c 'https://himitsu-six.vercel.app/api/radiko?station=' radio.m3u || true)
-          LEGACY_COUNT=$(grep -E -c 'desktop-h41fq90\.tailde6548\.ts\.net|ajiousama-radiko\.onrender\.com/live/' freewifi radio.m3u || true)
+          direct='https://himitsu-six.vercel.app/api/radiko?station='
+          tsbase='https://raw.githubusercontent.com/ajiousama/himitsu/radio-ts-assets/'
+          free_direct_count="$(grep -Fc "$direct" /tmp/freewifi-radio.txt || true)"
+          free_ts_count="$(grep -Fc "$tsbase" /tmp/freewifi-radio.txt || true)"
+          radio_ts_count="$(grep -Fc "$tsbase" radio.m3u || true)"
+          legacy_count="$(grep -Eh 'desktop-h41fq90\.tailde6548\.ts\.net|ajiousama-radiko\.onrender\.com/(live|radio-tv/)' freewifi radio.m3u | wc -l)"
 
-          echo "FreeWiFi compact image+audio radio URLs: $FREE_RENDER_COUNT"
-          echo "radio.m3u nationwide image+audio URLs: $RADIO_RENDER_COUNT"
-          echo "radio.m3u old audio-only Vercel URLs: $RADIO_VERCEL_COUNT"
-          echo "obsolete gateway URLs: $LEGACY_COUNT"
+          echo "FreeWiFi direct Radiko URLs: $free_direct_count"
+          echo "FreeWiFi TS visual URLs: $free_ts_count"
+          echo "radio.m3u nationwide TS URLs: $radio_ts_count"
+          echo "obsolete gateway URLs: $legacy_count"
 
-          test "$LEGACY_COUNT" -eq 0
-          test "$RADIO_VERCEL_COUNT" -eq 0
-          test "$FREE_RENDER_COUNT" -ge 12
-          test "$FREE_RENDER_COUNT" -le 20
-          test "$RADIO_RENDER_COUNT" -ge 100
+          test "$free_direct_count" -eq 12
+          test "$free_ts_count" -eq 0
+          test "$radio_ts_count" -ge 100
+          test "$legacy_count" -eq 0
+          test "$(grep -c '^#EXTINF:' /tmp/freewifi-radio.txt)" -eq 12
+          test "$(grep -c 'group-title="ラジオ"' /tmp/freewifi-radio.txt)" -eq 12
           ! grep -q '^### 北海道$' /tmp/freewifi-radio.txt
-          grep -q '^https://ajiousama-radiko.onrender.com/radio-tv/TBS$' radio.m3u
+          ! grep -q 'himitsu-six.vercel.app/api/radio-tv' /tmp/freewifi-radio.txt
+          ! grep -Eq 'NHKラジオ|NHK-FM|nhk_(r1|fm)_' /tmp/freewifi-radio.txt
+          grep -Fq "${direct}RNB" /tmp/freewifi-radio.txt
+          grep -Fq "${direct}OBC" /tmp/freewifi-radio.txt
+          grep -Fq "${direct}KBS" /tmp/freewifi-radio.txt
           grep -q '^https://simul2.drdi.st.nhk/live/17/joined/master.m3u8$' radio.m3u
