@@ -36,7 +36,6 @@ def cloud_auth(force: bool = False):
     with core.LOCK:
         if not force and core.STATE["token"] and now - core.STATE["token_time"] < 2100:
             return core.STATE["token"], core.STATE["detected_area"]
-
     session = core.premium_login(force=force)
     try:
         with core.open_url(core.API + "/v2/api/auth1", core.BASE_HEADERS, timeout=30) as r:
@@ -45,44 +44,33 @@ def cloud_auth(force: bool = False):
             length = r.headers.get("X-Radiko-KeyLength")
     except Exception as e:
         raise RuntimeError(f"auth1 failed: {type(e).__name__}: {e}") from e
-
     if not token or off is None or length is None:
         raise RuntimeError("auth1 failed: required response headers are missing")
-
     off = int(off)
     length = int(length)
     part = core.AUTH_KEY[off : off + length]
     if len(part) != length:
         raise RuntimeError("auth1 failed: partial-key range is invalid")
-
     headers = dict(core.BASE_HEADERS)
-    headers.update(
-        {
-            "X-Radiko-AuthToken": token,
-            "X-Radiko-PartialKey": base64.b64encode(part).decode(),
-            "X-Radiko-Session": session,
-        }
-    )
+    headers.update({
+        "X-Radiko-AuthToken": token,
+        "X-Radiko-PartialKey": base64.b64encode(part).decode(),
+        "X-Radiko-Session": session,
+    })
     try:
         with core.open_url(core.API + "/v2/api/auth2", headers, timeout=30) as r:
             body = r.read().decode("utf-8", "replace").strip()
     except Exception as e:
         raise RuntimeError(f"auth2 failed: {type(e).__name__}: {e}") from e
-
     if not body or body == "OUT":
-        raise RuntimeError(
-            "auth2 returned OUT after X-Radiko-Session; cloud egress is likely outside Radiko Japan service area"
-        )
-
+        raise RuntimeError("auth2 returned OUT after X-Radiko-Session; cloud egress is likely outside Radiko Japan service area")
     detected = body.split(",", 1)[0].strip()
     if not re.fullmatch(r"JP\d{1,2}", detected):
         raise RuntimeError(f"auth2 returned invalid area: {body[:80]}")
-
     with core.LOCK:
         core.STATE["token"] = token
         core.STATE["token_time"] = now
         core.STATE["detected_area"] = detected
-
     print(f"[radiko] cloud auth OK detected={detected} mode=premium-session-header", flush=True)
     return token, detected
 
@@ -94,7 +82,6 @@ def tun_capability_report() -> str:
         lines.append("tun_create=false")
         lines.append("reason=no_/dev/net/tun")
         return "\n".join(lines) + "\n"
-
     fd = None
     try:
         fd = os.open(path, os.O_RDWR)
@@ -114,7 +101,7 @@ def tun_capability_report() -> str:
 
 
 core.auth = cloud_auth
-core.BUILD = "20260903-radio-tv-filemux-v12"
+core.BUILD = "20260903-radio-tv-filemux-v13"
 
 _original_do_get = core.Handler.do_GET
 
@@ -130,10 +117,8 @@ def _cloud_do_get(self):
     if radio_tv is not None and radio_tv.handle_request(self):
         return
     if radio_tv is None and (
-        path.startswith("/radio-tv/")
-        or path.startswith("/radio-art/")
-        or path.startswith("/radio-debug/")
-        or path.startswith("/radio-file-debug/")
+        path.startswith("/radio-tv/") or path.startswith("/radio-art/")
+        or path.startswith("/radio-debug/") or path.startswith("/radio-file-debug/")
     ):
         message = f"radio-tv unavailable: {RADIO_TV_IMPORT_ERROR or 'dependency import failed'}\n"
         self.send_bytes(503, message.encode(), "text/plain; charset=utf-8")
