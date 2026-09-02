@@ -124,7 +124,7 @@ def tun_capability_report() -> str:
 
 
 core.auth = cloud_auth
-core.BUILD = "20260903-radio-tv-filemux-v10"
+core.BUILD = "20260903-radio-tv-filemux-v11"
 
 _original_do_get = core.Handler.do_GET
 
@@ -143,6 +143,7 @@ def _cloud_do_get(self):
         path.startswith("/radio-tv/")
         or path.startswith("/radio-art/")
         or path.startswith("/radio-debug/")
+        or path.startswith("/radio-file-debug/")
     ):
         message = f"radio-tv unavailable: {RADIO_TV_IMPORT_ERROR or 'dependency import failed'}\n"
         self.send_bytes(503, message.encode(), "text/plain; charset=utf-8")
@@ -159,10 +160,6 @@ core.Handler.do_GET = _cloud_do_get
 def _cloud_do_head(self):
     path = urllib.parse.urlsplit(self.path).path
     if path.startswith("/radio-tv/"):
-        # HEAD is only a cheap capability probe. Starting FFmpeg in the
-        # background here raced with the following GET on cold stations and
-        # could leave the real playback request waiting with zero bytes.
-        # Let the GET own its mux from start to finish instead.
         self.send_response(200)
         self.send_header("Content-Type", "video/mp2t")
         self.send_header("Cache-Control", "no-store")
