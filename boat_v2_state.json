@@ -1,6 +1,6 @@
 {
   "system": "boat-v2-resolver",
-  "generated_at": "2026-09-02T17:07:29.250146+09:00",
+  "generated_at": "2026-09-02T17:10:36.246627+09:00",
   "date": "2026-09-02",
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/",
   "resolver_base": "https://ajiousama-radiko.onrender.com/boat",
@@ -9,14 +9,13 @@
   "prestart_minutes": 30,
   "grace_minutes": 30,
   "card_count": 13,
-  "held_count": 8,
-  "visible_count": 8,
+  "held_count": 7,
+  "visible_count": 7,
   "active_window": [
     "多摩川",
     "浜名湖",
     "住之江",
     "児島",
-    "宮島",
     "下関",
     "若松",
     "福岡"
@@ -27,6 +26,7 @@
   "ended_removed": [
     "常滑",
     "尼崎",
+    "宮島",
     "徳山",
     "芦屋"
   ],
@@ -132,16 +132,15 @@
       "jcd": "17",
       "name": "宮島",
       "held": true,
-      "visible": true,
+      "visible": false,
       "first_race": "10:56",
       "show_from": "2026-09-02T10:26:00+09:00",
       "last_race": "16:40",
       "remove_after": "2026-09-02T17:10:00+09:00",
       "mode": "day",
       "next_race": null,
-      "stream_window": "live_or_vtr",
-      "url": "https://ajiousama-radiko.onrender.com/boat/17",
-      "source": "ajiousama Render on-demand resolver"
+      "ended": true,
+      "stream_window": "ended"
     },
     "boat.tokuyama": {
       "jcd": "18",
@@ -186,8 +185,8 @@
       "remove_after": "2026-09-02T21:08:00+09:00",
       "mode": "night",
       "next_race": {
-        "race": 5,
-        "start": "17:10"
+        "race": 6,
+        "start": "17:34"
       },
       "stream_window": "live_or_vtr",
       "url": "https://ajiousama-radiko.onrender.com/boat/20",
