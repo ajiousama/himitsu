@@ -14,9 +14,7 @@ import radio_tv_nationwide as impl
 
 
 def prewarm_station(station: str) -> None:
-    # v10 intentionally avoids background muxers. IPTV clients often issue a
-    # HEAD immediately before GET; starting FFmpeg on HEAD made the real GET
-    # race or wait behind a second muxer on Render's small instance.
+    # HEAD stays a cheap capability check. GET owns the real mux.
     return
 
 
@@ -31,20 +29,29 @@ def _drain_stderr(pipe, tail) -> None:
         pass
 
 
-def _start_file_mux(station: str, source: str, timeout: float = 12.0):
+def _new_output_path() -> pathlib.Path:
     fd, name = tempfile.mkstemp(prefix="radio-tv-", suffix=".ts", dir="/tmp")
     os.close(fd)
     path = pathlib.Path(name)
-    try:
-        path.unlink(missing_ok=True)
-    except Exception:
-        pass
+    # Match radio-debug exactly: the target must not exist before FFmpeg starts.
+    path.unlink(missing_ok=True)
+    return path
 
+
+def _file_cmd(station: str, source: str, path: pathlib.Path) -> list[str]:
     cmd = impl._ffmpeg_cmd(station, source)
     if cmd[-1] != "pipe:1":
         raise RuntimeError("unexpected FFmpeg output target")
-    cmd = cmd[:-1] + ["-y", str(path)]
+    # Important: change ONLY the output target. radio-debug uses this exact
+    # command shape successfully; adding an extra output/global option made the
+    # production path unnecessarily different from the known-good probe.
+    cmd[-1] = str(path)
+    return cmd
 
+
+def _start_file_mux(station: str, source: str, timeout: float = 12.0):
+    path = _new_output_path()
+    cmd = _file_cmd(station, source, path)
     proc = subprocess.Popen(
         cmd,
         stdout=subprocess.DEVNULL,
@@ -93,7 +100,6 @@ def _stream_file(handler, proc: subprocess.Popen, path: pathlib.Path) -> None:
                     handler.wfile.flush()
                     continue
                 if proc.poll() is not None:
-                    # FFmpeg ended; drain any final bytes written just before exit.
                     chunk = src.read(64 * 1024)
                     if chunk:
                         handler.wfile.write(chunk)
@@ -137,8 +143,58 @@ def _stream_station(handler, station: str) -> None:
     handler.send_error(504, (" | ".join(failures)[-3000:] or "radio file mux failed"))
 
 
+def _debug_file_mux(handler, station: str) -> None:
+    if station not in impl.base.STATIONS:
+        handler.send_error(404, "unknown radio station")
+        return
+
+    lines = [f"station={station}"]
+    source = impl._audio_sources(station)[0]
+    lines.append(f"source={source}")
+    started = time.monotonic()
+    proc = None
+    path = None
+    try:
+        proc, path, detail = _start_file_mux(station, source, 15.0)
+        elapsed = time.monotonic() - started
+        lines.append(f"elapsed={elapsed:.3f}")
+        lines.append(f"started={proc is not None}")
+        if proc is not None and path is not None:
+            try:
+                size = path.stat().st_size
+            except FileNotFoundError:
+                size = -1
+            lines.append(f"bytes={size}")
+            lines.append(f"proc_poll={proc.poll()}")
+        else:
+            lines.append("bytes=0")
+            lines.append("detail=" + str(detail).replace("\n", " | ")[-5000:])
+    except Exception as e:
+        lines.append(f"error={type(e).__name__}: {e}")
+    finally:
+        if proc is not None:
+            impl.base._stop_proc(proc)
+        if path is not None:
+            try:
+                path.unlink(missing_ok=True)
+            except Exception:
+                pass
+
+    body = ("\n".join(lines) + "\n").encode("utf-8")
+    handler.send_response(200)
+    handler.send_header("Content-Type", "text/plain; charset=utf-8")
+    handler.send_header("Content-Length", str(len(body)))
+    handler.send_header("Cache-Control", "no-store")
+    handler.end_headers()
+    handler.wfile.write(body)
+
+
 def handle_request(handler) -> bool:
     parsed = urllib.parse.urlsplit(handler.path)
+    if parsed.path.startswith("/radio-file-debug/"):
+        station = urllib.parse.unquote(parsed.path.split("/", 2)[2]).strip()
+        _debug_file_mux(handler, station)
+        return True
     if parsed.path.startswith("/radio-tv/"):
         station = urllib.parse.unquote(parsed.path.split("/", 2)[2]).strip()
         _stream_station(handler, station)
