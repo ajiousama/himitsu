@@ -15,6 +15,7 @@ PUBLIC_START = '# === TODAY_PUBLIC_SPORTS_START ==='
 PUBLIC_END = '# === TODAY_PUBLIC_SPORTS_END ==='
 GROUP = '今日の開催場'
 JST = timezone(timedelta(hours=9))
+PRESTART_MINUTES = 30
 GRACE_MINUTES = 30
 API = 'https://boatraceopenapi.github.io/api/v1/{year}/{ymd}.json'
 RESOLVER = 'https://himitsu-six.vercel.app/api/boat?venue={jcd}'
@@ -178,12 +179,14 @@ def main():
     rows = []
     venues_status = {}
     ended = []
+    waiting = []
     for jcd, races in sorted(cards.items()):
         name, tvg_id, logo = VENUES[jcd]
         first_dt = races[0][1]
         last_dt = races[-1][1]
+        show_from = first_dt - timedelta(minutes=PRESTART_MINUTES)
         remove_after = last_dt + timedelta(minutes=GRACE_MINUTES)
-        is_visible = now < remove_after
+        is_visible = show_from <= now < remove_after
         nr = next_race(races, now)
         item = {
             'jcd': jcd,
@@ -191,6 +194,7 @@ def main():
             'held': True,
             'visible': is_visible,
             'first_race': first_dt.strftime('%H:%M'),
+            'show_from': show_from.isoformat(),
             'last_race': last_dt.strftime('%H:%M'),
             'remove_after': remove_after.isoformat(),
             'mode': mode(races),
@@ -198,11 +202,17 @@ def main():
             'resolver': RESOLVER.format(jcd=jcd),
             'source': 'boatraceopenapi schedule + ajiousama Vercel on-demand resolver',
         }
-        if is_visible:
-            rows.append({'jcd': jcd, 'name': name, 'tvg_id': tvg_id, 'block': make_entry(jcd, name, tvg_id, logo), 'next': nr})
-        else:
+        if now < show_from:
+            item['scheduled'] = True
+            item['stream_window'] = 'waiting'
+            waiting.append(name)
+        elif now >= remove_after:
             item['ended'] = True
+            item['stream_window'] = 'ended'
             ended.append(name)
+        else:
+            item['stream_window'] = 'live_or_vtr'
+            rows.append({'jcd': jcd, 'name': name, 'tvg_id': tvg_id, 'block': make_entry(jcd, name, tvg_id, logo), 'next': nr})
         venues_status[tvg_id] = item
 
     def sort_key(row):
@@ -231,17 +241,21 @@ def main():
         'date': day.isoformat(),
         'schedule_source': 'https://boatraceopenapi.github.io/api/v1/',
         'resolver_base': 'https://himitsu-six.vercel.app/api/boat',
+        'prestart_minutes': PRESTART_MINUTES,
         'grace_minutes': GRACE_MINUTES,
         'card_count': len(cards),
         'held_count': visible_count,
         'visible_count': visible_count,
+        'scheduled_waiting': waiting,
         'ended_removed': ended,
         'venues': venues_status,
     }
     STATUS.write_text(json.dumps(status, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
     STATE.write_text(json.dumps(status, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
-    print(f'BOAT v2: cards={len(cards)} visible={visible_count} ended_removed={len(ended)}')
+    print(f'BOAT v2: cards={len(cards)} visible={visible_count} waiting={len(waiting)} ended_removed={len(ended)}')
     print('BOAT v2 visible:', ', '.join(row['name'] for row in rows))
+    if waiting:
+        print('BOAT v2 waiting:', ', '.join(waiting))
     if ended:
         print('BOAT v2 removed:', ', '.join(ended))
     return 0
