@@ -33,7 +33,6 @@ def _new_output_path() -> pathlib.Path:
     fd, name = tempfile.mkstemp(prefix="radio-tv-", suffix=".ts", dir="/tmp")
     os.close(fd)
     path = pathlib.Path(name)
-    # Match radio-debug exactly: the target must not exist before FFmpeg starts.
     path.unlink(missing_ok=True)
     return path
 
@@ -42,9 +41,20 @@ def _file_cmd(station: str, source: str, path: pathlib.Path) -> list[str]:
     cmd = impl._ffmpeg_cmd(station, source)
     if cmd[-1] != "pipe:1":
         raise RuntimeError("unexpected FFmpeg output target")
-    # Important: change ONLY the output target. radio-debug uses this exact
-    # command shape successfully; adding an extra output/global option made the
-    # production path unnecessarily different from the known-good probe.
+
+    # Radiko's media playlist contains a short rolling window. Starting at -1
+    # can point FFmpeg at the newest edge and make it wait for the next fragment.
+    # Use the oldest fragment in the three-item window instead: playback is only
+    # about ten seconds behind live, but the audio fragment is already complete.
+    try:
+        idx = cmd.index("-live_start_index")
+        cmd[idx + 1] = "-3"
+    except (ValueError, IndexError):
+        pass
+
+    # Ask the MPEG-TS writer to avoid unnecessary AVIO buffering. Combined with
+    # flush_packets this lets the HTTP handler see the first TS packets quickly.
+    cmd[-1:-1] = ["-avioflags", "direct"]
     cmd[-1] = str(path)
     return cmd
 
@@ -148,7 +158,7 @@ def _debug_file_mux(handler, station: str) -> None:
         handler.send_error(404, "unknown radio station")
         return
 
-    lines = [f"station={station}"]
+    lines = [f"station={station}", "live_start_index=-3", "avioflags=direct"]
     source = impl._audio_sources(station)[0]
     lines.append(f"source={source}")
     started = time.monotonic()
@@ -199,5 +209,4 @@ def handle_request(handler) -> bool:
         station = urllib.parse.unquote(parsed.path.split("/", 2)[2]).strip()
         _stream_station(handler, station)
         return True
-    # Keep the existing debug/art routes and nationwide station discovery.
     return impl.handle_request(handler)
