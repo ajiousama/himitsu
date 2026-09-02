@@ -44,6 +44,27 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Wake BOAT Render resolver
+        shell: bash
+        run: |
+          set +e
+          base='https://ajiousama-radiko.onrender.com'
+          echo 'Waking Render service before BOAT probe...'
+          curl -L -sS -o /tmp/render-wake.txt -w 'Render root HTTP=%{http_code}\n' \
+            --connect-timeout 15 --max-time 45 "$base/" || true
+          for attempt in 1 2 3; do
+            code="$(curl -sS -o /tmp/boat-probe.json -w '%{http_code}' \
+              --connect-timeout 15 --max-time 45 \
+              "$base/boat/05?debug=1" || true)"
+            echo "BOAT Render warm probe $attempt/3 HTTP=${code:-000}"
+            if [ "$code" = '200' ] || [ "$code" = '503' ]; then
+              cat /tmp/boat-probe.json || true
+              break
+            fi
+            sleep 5
+          done
+          set -e
+
       - name: Build BOAT V2 streaming window
         run: |
           python -u boat_v2_build.py
