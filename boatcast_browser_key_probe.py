@@ -1,134 +1,154 @@
 #!/usr/bin/env python3
 import json
-import os
+import re
 import time
-import urllib.request
-from datetime import datetime, timezone
+import xml.etree.ElementTree as ET
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from urllib.parse import urlsplit
 
-KEY_OUT = Path('.boatcast_playback_key')
 STREAM_OUT = Path('.boatcast_browser_streams.json')
 STATUS_OUT = Path('.boatcast_browser_status.json')
-VENUES = [
-    '01kiryu','02toda','03edogawa','04heiwajima','05tamagawa','06hamanako',
-    '07gamagori','08tokoname','09tsu','10mikuni','11biwako','12suminoe',
-    '13amagasaki','14naruto','15marugame','16kojima','17miyajima','18tokuyama',
-    '19shimonoseki','20wakamatsu','21ashiya','22fukuoka','23karatsu','24omura',
-]
-UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36'
+EPG = Path('public_sports_epg_local.xml')
+JST = timezone(timedelta(hours=9))
+
+VENUES = {
+    'boat.kiryu': ('01kiryu', 'kiryu'),
+    'boat.toda': ('02toda', 'toda'),
+    'boat.edogawa': ('03edogawa', 'edogawa'),
+    'boat.heiwajima': ('04heiwajima', 'heiwajima'),
+    'boat.tamagawa': ('05tamagawa', 'tamagawa'),
+    'boat.hamanako': ('06hamanako', 'hamanako'),
+    'boat.gamagori': ('07gamagori', 'gamagori'),
+    'boat.tokoname': ('08tokoname', 'tokoname'),
+    'boat.tsu': ('09tsu', 'tsu'),
+    'boat.mikuni': ('10mikuni', 'mikuni'),
+    'boat.biwako': ('11biwako', 'biwako'),
+    'boat.suminoe': ('12suminoe', 'suminoe'),
+    'boat.amagasaki': ('13amagasaki', 'amagasaki'),
+    'boat.naruto': ('14naruto', 'naruto'),
+    'boat.marugame': ('15marugame', 'marugame'),
+    'boat.kojima': ('16kojima', 'kojima'),
+    'boat.miyajima': ('17miyajima', 'miyajima'),
+    'boat.tokuyama': ('18tokuyama', 'tokuyama'),
+    'boat.shimonoseki': ('19shimonoseki', 'shimonoseki'),
+    'boat.wakamatsu': ('20wakamatsu', 'wakamatsu'),
+    'boat.ashiya': ('21ashiya', 'ashiya'),
+    'boat.fukuoka': ('22fukuoka', 'fukuoka'),
+    'boat.karatsu': ('23karatsu', 'karatsu'),
+    'boat.omura': ('24omura', 'omura'),
+}
 
 
-def parse_dt(value):
-    if not value:
-        return None
-    s = str(value).strip().replace('Z', '+00:00')
+def held_today():
+    today = datetime.now(JST).strftime('%Y%m%d')
+    found = []
+    if EPG.exists():
+        try:
+            root = ET.parse(EPG).getroot()
+            seen = set()
+            for p in root.findall('programme'):
+                ch = (p.get('channel') or '').strip()
+                start = (p.get('start') or '').strip()
+                if ch in VENUES and start.startswith(today) and ch not in seen:
+                    found.append(ch)
+                    seen.add(ch)
+        except Exception as e:
+            print(f'SAKURA held detection EPG error: {type(e).__name__}')
+    return found
+
+
+def looks_like_stream(url):
+    u = (url or '').lower()
+    return '.m3u8' in u and u.startswith(('http://', 'https://'))
+
+
+def stream_score(url):
+    u = (url or '').lower()
+    score = 0
+    if 'master' in u: score += 50
+    if 'playlist' in u: score += 30
+    if 'index' in u: score += 20
+    if 'chunklist' in u: score -= 30
+    if re.search(r'/\d+p?/', u): score -= 5
+    return score
+
+
+def drain_streams(driver):
+    urls = []
     try:
-        d = datetime.fromisoformat(s)
-        if d.tzinfo is None:
-            d = d.replace(tzinfo=timezone.utc)
-        return d.astimezone(timezone.utc)
+        logs = driver.get_log('performance')
     except Exception:
-        return None
-
-
-def active_item(item):
-    if not isinstance(item, dict) or not item.get('ref_id'):
-        return False
-    start = parse_dt(item.get('start_at'))
-    end = parse_dt(item.get('end_at'))
-    now = datetime.now(timezone.utc)
-    if start and now < start:
-        return False
-    if end and now > end:
-        return False
-    return True
-
-
-def get_setting(stadium):
-    url = f'https://front.player.boatrace-cdn.jp/setting/live/{stadium}/setting.json?t={int(time.time())}'
-    req = urllib.request.Request(url, headers={
-        'User-Agent': UA,
-        'Accept': 'application/json,text/plain,*/*',
-        'Referer': 'https://front.player.boatrace-cdn.jp/',
-    })
-    try:
-        with urllib.request.urlopen(req, timeout=5) as r:
-            return json.load(r)
-    except Exception:
-        return None
-
-
-def collect_active():
-    active = []
-    for stadium in VENUES:
-        setting = get_setting(stadium)
-        if not isinstance(setting, dict):
+        return urls
+    for entry in logs:
+        try:
+            msg = json.loads(entry['message'])['message']
+            params = msg.get('params') or {}
+            if msg.get('method') == 'Network.requestWillBeSent':
+                url = str((params.get('request') or {}).get('url') or '')
+            elif msg.get('method') == 'Network.responseReceived':
+                url = str((params.get('response') or {}).get('url') or '')
+            else:
+                continue
+            if looks_like_stream(url):
+                urls.append(url)
+        except Exception:
             continue
-        picked = None
-        for name in ('mix_dvr', 'mix_live', 'br_dvr', 'br_live'):
-            item = setting.get(name)
-            if active_item(item):
-                picked = {'stadium': stadium, 'source': name, 'ref_id': str(item.get('ref_id'))}
-                break
-        if picked:
-            active.append(picked)
-    return active
+    return urls
 
 
-def find_key(headers):
-    if not isinstance(headers, dict):
-        return None
-    for k, v in headers.items():
-        if str(k).lower() == 'x-streaks-api-key' and v:
-            return str(v).strip()
-    return None
-
-
-def extract_src(payload):
-    if not isinstance(payload, dict):
+def pick_stream(urls):
+    uniq = []
+    seen = set()
+    for u in urls:
+        if u not in seen:
+            uniq.append(u); seen.add(u)
+    if not uniq:
         return ''
-    sources = payload.get('sources')
-    if isinstance(sources, list) and sources:
-        src = (sources[0] or {}).get('src') if isinstance(sources[0], dict) else None
-        if src:
-            return str(src).strip()
-    return ''
+    uniq.sort(key=stream_score, reverse=True)
+    return uniq[0]
+
+
+def livebb_href(driver):
+    try:
+        hrefs = driver.execute_script('''
+            return Array.from(document.querySelectorAll('a[href]'))
+              .map(a => a.href)
+              .filter(h => h && h.includes('livebb.jlc.ne.jp'));
+        ''') or []
+        return str(hrefs[0]) if hrefs else ''
+    except Exception:
+        return ''
 
 
 def main():
-    for p in (KEY_OUT, STREAM_OUT, STATUS_OUT):
+    for p in (STREAM_OUT, STATUS_OUT):
         p.unlink(missing_ok=True)
 
-    active = collect_active()
+    active = held_today()
+    streams = {}
     status = {
+        'source': 'https://boatrace.sakura.tv',
         'active_count': len(active),
-        'active_stadiums': [x['stadium'] for x in active],
+        'active_stadiums': [VENUES[x][0] for x in active],
         'resolved_count': 0,
         'resolved_stadiums': [],
-        'probe_http_status': None,
+        'details': {},
     }
     if not active:
         STREAM_OUT.write_text('{}', encoding='utf-8')
-        STATUS_OUT.write_text(json.dumps(status, ensure_ascii=False), encoding='utf-8')
-        print('BOATCAST browser: no currently active venue')
+        STATUS_OUT.write_text(json.dumps(status, ensure_ascii=False, indent=2), encoding='utf-8')
+        print('SAKURA browser: no held BOAT venue in local EPG')
         return 0
-
-    probe = active[0]
-    print(f"BOATCAST browser: active={len(active)} probe={probe['stadium']} source={probe['source']}")
-    player = (
-        'https://front.player.boatrace-cdn.jp/player/live?'
-        f"service=boatcast&stadium={probe['stadium']}&sourceType=mix&dvr=1&"
-        'audioMode=0&autoplay=1&bitrate=high'
-    )
 
     try:
         from selenium import webdriver
         from selenium.common.exceptions import TimeoutException
         from selenium.webdriver.chrome.options import Options
     except Exception as e:
-        print(f'BOATCAST browser unavailable: selenium import failed ({type(e).__name__})')
+        print(f'SAKURA browser unavailable: selenium import failed ({type(e).__name__})')
         STREAM_OUT.write_text('{}', encoding='utf-8')
-        STATUS_OUT.write_text(json.dumps(status, ensure_ascii=False), encoding='utf-8')
+        STATUS_OUT.write_text(json.dumps(status, ensure_ascii=False, indent=2), encoding='utf-8')
         return 0
 
     opts = Options()
@@ -142,99 +162,70 @@ def main():
     opts.set_capability('goog:loggingPrefs', {'performance': 'ALL'})
 
     driver = None
-    streams = {}
     try:
         driver = webdriver.Chrome(options=opts)
-        driver.set_page_load_timeout(12)
-        driver.set_script_timeout(12)
+        driver.set_page_load_timeout(15)
         driver.execute_cdp_cmd('Network.enable', {})
-        try:
-            driver.get(player)
-        except TimeoutException:
+
+        for ch in active:
+            code, slug = VENUES[ch]
+            page = f'https://boatrace.sakura.tv/{slug}/'
+            detail = {'page': page, 'livebb': '', 'captured': False}
+            candidates = []
             try:
-                driver.execute_script('window.stop();')
-            except Exception:
-                pass
-
-        official_url = None
-        official_key = None
-        probe_status = None
-        deadline = time.time() + 12
-        while time.time() < deadline and (official_url is None or probe_status is None):
-            time.sleep(0.35)
-            for entry in driver.get_log('performance'):
                 try:
-                    msg = json.loads(entry['message'])['message']
-                    method = msg.get('method')
-                    params = msg.get('params') or {}
-                    if method == 'Network.requestWillBeSent':
-                        req = params.get('request') or {}
-                        url = str(req.get('url') or '')
-                        if 'playback.api.streaks.jp/' in url:
-                            official_url = official_url or url
-                            official_key = official_key or find_key(req.get('headers') or {})
-                    elif method == 'Network.responseReceived':
-                        resp = params.get('response') or {}
-                        url = str(resp.get('url') or '')
-                        if 'playback.api.streaks.jp/' in url:
-                            probe_status = int(resp.get('status') or 0)
-                            official_url = official_url or url
-                except Exception:
-                    continue
+                    driver.get(page)
+                except TimeoutException:
+                    try: driver.execute_script('window.stop();')
+                    except Exception: pass
 
-        status['probe_http_status'] = probe_status
-        if official_key:
-            KEY_OUT.write_text(official_key, encoding='utf-8')
-            try:
-                os.chmod(KEY_OUT, 0o600)
-            except OSError:
-                pass
-            print('BOATCAST browser: first-party playback key observed')
-        print(f'BOATCAST browser: official playback status={probe_status or 0}')
+                deadline = time.time() + 6
+                while time.time() < deadline:
+                    time.sleep(0.4)
+                    candidates.extend(drain_streams(driver))
+                    if candidates:
+                        break
 
-        # Use the exact URL shape produced by the official player, preserving
-        # any current query parameters. Replace only the media ref per venue.
-        if official_url and probe['ref_id'] in official_url:
-            for item in active:
-                target = official_url.replace(probe['ref_id'], item['ref_id'])
-                script = r'''
-                    const url = arguments[0];
-                    const done = arguments[arguments.length - 1];
-                    fetch(url, {method:'GET', credentials:'include', cache:'no-store'})
-                      .then(async r => done({status:r.status, text:await r.text()}))
-                      .catch(e => done({status:0, error:String(e)}));
-                '''
-                try:
-                    ans = driver.execute_async_script(script, target) or {}
-                    code = int(ans.get('status') or 0)
-                    if code != 200:
-                        print(f"BOATCAST browser WAIT {item['stadium']}: HTTP {code}")
-                        continue
-                    payload = json.loads(ans.get('text') or '{}')
-                    src = extract_src(payload)
-                    if src:
-                        streams[item['stadium']] = src
-                        print(f"BOATCAST browser OK {item['stadium']} ref={item['ref_id']}")
-                    else:
-                        print(f"BOATCAST browser WAIT {item['stadium']}: no source")
-                except Exception as e:
-                    print(f"BOATCAST browser WAIT {item['stadium']}: {type(e).__name__}")
-        else:
-            print('BOATCAST browser: official playback URL/ref template not captured')
+                if not candidates:
+                    href = livebb_href(driver)
+                    detail['livebb'] = href
+                    if href:
+                        try:
+                            driver.get(href)
+                        except TimeoutException:
+                            try: driver.execute_script('window.stop();')
+                            except Exception: pass
+                        deadline = time.time() + 7
+                        while time.time() < deadline:
+                            time.sleep(0.4)
+                            candidates.extend(drain_streams(driver))
+                            if candidates:
+                                break
+
+                src = pick_stream(candidates)
+                if src:
+                    streams[code] = src
+                    detail['captured'] = True
+                    detail['host'] = urlsplit(src).netloc
+                    print(f'SAKURA STREAM OK {ch} via {detail.get("host", "") }')
+                else:
+                    print(f'SAKURA STREAM WAIT {ch}: no m3u8 observed')
+            except Exception as e:
+                detail['error'] = type(e).__name__
+                print(f'SAKURA STREAM WAIT {ch}: {type(e).__name__}')
+            status['details'][code] = detail
     except Exception as e:
-        print(f'BOATCAST browser unavailable: {type(e).__name__}')
+        print(f'SAKURA browser unavailable: {type(e).__name__}')
     finally:
         if driver is not None:
-            try:
-                driver.quit()
-            except Exception:
-                pass
+            try: driver.quit()
+            except Exception: pass
 
     status['resolved_count'] = len(streams)
     status['resolved_stadiums'] = list(streams)
-    STREAM_OUT.write_text(json.dumps(streams, ensure_ascii=False), encoding='utf-8')
-    STATUS_OUT.write_text(json.dumps(status, ensure_ascii=False), encoding='utf-8')
-    print(f"BOATCAST browser streams: active={status['active_count']} resolved={status['resolved_count']}")
+    STREAM_OUT.write_text(json.dumps(streams, ensure_ascii=False, indent=2), encoding='utf-8')
+    STATUS_OUT.write_text(json.dumps(status, ensure_ascii=False, indent=2), encoding='utf-8')
+    print(f'SAKURA browser streams: active={len(active)} resolved={len(streams)}')
     return 0
 
 
