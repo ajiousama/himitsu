@@ -19,6 +19,7 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
         with:
@@ -32,6 +33,7 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Ensure ffmpeg
+        timeout-minutes: 2
         shell: bash
         run: |
           set -euo pipefail
@@ -39,6 +41,8 @@ jobs:
             sudo apt-get update
             sudo apt-get install -y ffmpeg
           fi
+          ffmpeg -version | head -n 1
+          ffprobe -version | head -n 1
 
       - name: Reuse existing TS asset branch
         shell: bash
