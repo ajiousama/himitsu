@@ -332,6 +332,16 @@ function send(res, status, body, contentType) {
 
 export default async function handler(req, res) {
   try {
+    if (req.method === 'HEAD') {
+      res.setHeader('Allow', 'GET, HEAD, OPTIONS');
+      return send(res, 200, '', 'application/vnd.apple.mpegurl; charset=utf-8');
+    }
+    if (req.method === 'OPTIONS') {
+      res.setHeader('Allow', 'GET, HEAD, OPTIONS');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', '*');
+      return send(res, 204, '', 'text/plain; charset=utf-8');
+    }
     if (req.method !== 'GET') return send(res, 405, 'method not allowed\n', 'text/plain; charset=utf-8');
 
     if (String(req.query?.status || '') === '1') {
