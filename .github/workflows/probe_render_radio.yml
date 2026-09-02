@@ -23,12 +23,9 @@ jobs:
           for attempt in $(seq 1 30); do
             health="$(curl -fsS --max-time 15 "$base/health" || true)"
             echo "attempt=$attempt $health"
-            if grep -Fq '20260903-radio-tv-filemux-v12' <<<"$health"; then
-              exit 0
-            fi
+            if grep -Fq '20260903-radio-tv-filemux-v13' <<<"$health"; then exit 0; fi
             sleep 10
           done
-          echo 'new Render radio build did not become ready' >&2
           exit 1
 
       - name: Diagnose completed-segment FM Ehime mux
@@ -38,6 +35,7 @@ jobs:
           root='https://ajiousama-radiko.onrender.com'
           curl -fsS --max-time 30 "$root/radio-file-debug/JOEU-FM" | tee /tmp/file-debug.txt
           grep -q '^live_start_index=-3$' /tmp/file-debug.txt
+          grep -q '^avioflags=default$' /tmp/file-debug.txt
           grep -q '^started=True$' /tmp/file-debug.txt
           awk -F= '/^bytes=/{if ($2 >= 1316) ok=1} END{exit !ok}' /tmp/file-debug.txt
 
@@ -53,10 +51,8 @@ jobs:
           sid='JOEU-FM'
           probe_ok=0
           {
-            echo '=== IPTV HEAD capability probe ==='
             time curl -fsSI --max-time 15 "$root/radio-tv/$sid"
             sleep 1
-            echo '=== completed-segment GET 20s capture ==='
             start=$(date +%s)
             curl -v --max-time 20 "$root/radio-tv/$sid" -o /tmp/radio.ts 2>/tmp/curl.err
             rc=$?
@@ -64,14 +60,12 @@ jobs:
             echo "curl_rc=$rc elapsed=$((end-start))s"
             sed -n '1,120p' /tmp/curl.err
             ls -l /tmp/radio.ts || true
-            file /tmp/radio.ts || true
             timeout 20 ffprobe -v error -show_entries stream=codec_name,codec_type,width,height,sample_rate,channels -show_entries format=duration,size,bit_rate /tmp/radio.ts > /tmp/ffprobe.txt 2>&1
             ffprobe_rc=$?
             cat /tmp/ffprobe.txt
             if [ "$ffprobe_rc" -eq 0 ] && grep -q 'codec_type=video' /tmp/ffprobe.txt && grep -q 'codec_type=audio' /tmp/ffprobe.txt; then
               probe_ok=1
             else
-              echo '=== file mux debug after failed live probe ==='
               curl -fsS --max-time 30 "$root/radio-file-debug/$sid" || true
             fi
           } > /tmp/probe.txt 2>&1
