@@ -20,7 +20,7 @@ import radiko_proxy_core as core
 # take down the existing Radiko gateway during Render startup.
 RADIO_TV_IMPORT_ERROR = None
 try:
-    import radio_tv_nationwide as radio_tv
+    import radio_tv_filemux as radio_tv
 except Exception as e:
     radio_tv = None
     RADIO_TV_IMPORT_ERROR = f"{type(e).__name__}: {e}"
@@ -124,7 +124,7 @@ def tun_capability_report() -> str:
 
 
 core.auth = cloud_auth
-core.BUILD = "20260903-radio-tv-direct-get-v9"
+core.BUILD = "20260903-radio-tv-filemux-v10"
 
 _original_do_get = core.Handler.do_GET
 
