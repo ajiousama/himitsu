@@ -1,11 +1,11 @@
 {
   "system": "boat-v2-resolver",
-  "generated_at": "2026-09-02T22:10:59.315152+09:00",
+  "generated_at": "2026-09-02T22:16:50.203636+09:00",
   "date": "2026-09-02",
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/",
   "resolver_base": "https://ajiousama-radiko.onrender.com/boat",
   "resolver_ready": false,
-  "resolver_probe_status": 0,
+  "resolver_probe_status": 502,
   "prestart_minutes": 30,
   "grace_minutes": 30,
   "card_count": 13,
@@ -209,12 +209,12 @@
       "remove_after": "2026-09-02T23:11:00+09:00",
       "mode": "night",
       "next_race": {
-        "race": 11,
-        "start": "22:16"
+        "race": 12,
+        "start": "22:41"
       },
       "stream_window": "live_or_vtr",
-      "source": "Render unhealthy (0); no safe fallback"
+      "source": "Render unhealthy (502); no safe fallback"
     }
   },
-  "resolver_guard": "unhealthy probe=0; safe fallback only"
+  "resolver_guard": "unhealthy probe=502; safe fallback only"
 }
