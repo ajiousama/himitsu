@@ -22,6 +22,7 @@ on:
       - "kick_epg.py"
       - "public_sports_epg_local.py"
       - "public_sports_epg_local_fast.py"
+      - "repair_boat_local_epg_openapi.py"
       - "public_sports_epg_merge.py"
       - "keiba_epg_direct.py"
       - "keirin_epg_direct.py"
@@ -191,48 +192,46 @@ jobs:
           test "$(grep -c '<channel id=\"radiko\.' guides.xml || true)" -gt 0
           test "$(grep -c '<programme .*channel=\"radiko\.' guides.xml || true)" -gt 0
 
-      - name: Publish generated EPG with rebuild retry
+      - name: Publish generated EPG onto latest main
         shell: bash
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          publish_epg() {
-            git add guides.xml epg_coverage.txt public_sports_epg_local.xml verified_daily_status.json
-            if git diff --cached --quiet; then
-              echo "EPG already current"
-              return 0
-            fi
-            git commit -m "Update FreeWiFi local EPG [skip ci]"
-            git push origin HEAD:main
-          }
+          # The long EPG build may overlap the independent BOAT/GCH writers.
+          # Freeze only the finished artifacts, then overlay them on the newest
+          # main for each push attempt. No expensive rebuild and no lost BOAT
+          # commit just because main moved while guides.xml was being built.
+          snapshot="$(mktemp -d)"
+          cp guides.xml "$snapshot/guides.xml"
+          cp epg_coverage.txt "$snapshot/epg_coverage.txt"
+          cp public_sports_epg_local.xml "$snapshot/public_sports_epg_local.xml"
+          cp verified_daily_status.json "$snapshot/verified_daily_status.json"
 
-          if publish_epg; then
-            exit 0
-          fi
-
-          for attempt in 2 3; do
-            echo "EPG push moved; rebuild attempt $attempt/3"
+          for attempt in 1 2 3 4 5; do
+            echo "EPG overlay publish attempt $attempt/5"
             git fetch origin main
             git reset --hard origin/main
-            python normalize_ganble_local.py
-            python -u public_sports_epg_local_fast.py
-            python epg_build.py
-            python radiko_epg_merge.py
-            python public_sports_epg_merge.py
-            python keiba_epg_direct.py
-            python keirin_epg_direct.py
-            python autorace_epg_direct.py
-            python jra_epg_merge.py
-            python kick_epg.py
-            python -c "import xml.etree.ElementTree as ET; ET.parse('guides.xml'); ET.parse('public_sports_epg_local.xml'); print('XML OK')"
-            test "$(grep -c '<channel id=\"radiko\.' guides.xml || true)" -gt 0
-            test "$(grep -c '<programme .*channel=\"radiko\.' guides.xml || true)" -gt 0
-            if publish_epg; then
+            cp "$snapshot/guides.xml" guides.xml
+            cp "$snapshot/epg_coverage.txt" epg_coverage.txt
+            cp "$snapshot/public_sports_epg_local.xml" public_sports_epg_local.xml
+            cp "$snapshot/verified_daily_status.json" verified_daily_status.json
+
+            python -c "import xml.etree.ElementTree as ET; ET.parse('guides.xml'); ET.parse('public_sports_epg_local.xml'); print('PUBLISH XML OK')"
+            git add guides.xml epg_coverage.txt public_sports_epg_local.xml verified_daily_status.json
+            if git diff --cached --quiet; then
+              echo "EPG already current on latest main"
               exit 0
             fi
+            git commit -m "Update FreeWiFi local EPG [skip ci]"
+            if git push origin HEAD:main; then
+              echo "EPG overlay published successfully"
+              exit 0
+            fi
+            echo "::warning::main moved during EPG push; retrying on newest main"
+            sleep 1
           done
 
-          echo "::error::EPG publish failed after rebuild retries"
+          echo "::error::EPG overlay publish failed after 5 attempts"
           exit 1
