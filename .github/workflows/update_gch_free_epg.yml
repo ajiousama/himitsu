@@ -15,8 +15,10 @@ on:
 permissions:
   contents: write
 
+# guides.xml is also written by the main FreeWiFi workflow. Use the same
+# repository writer mutex so two jobs can never rewrite guides.xml at once.
 concurrency:
-  group: himitsu-gch-epg-writer
+  group: himitsu-freewifi-state-writer
   cancel-in-progress: false
 
 jobs:
@@ -50,6 +52,10 @@ jobs:
               echo 'Local public sports EPG has not been generated yet; main FreeWiFi workflow will create it.'
               exit 0
             fi
+            if [ ! -s guides.xml ]; then
+              echo '::warning::guides.xml is empty; main FreeWiFi workflow must rebuild it first.'
+              exit 0
+            fi
 
             python jra_epg_merge.py
 
@@ -62,7 +68,13 @@ jobs:
                   raise SystemExit(f'{path} missing or empty')
               ET.parse(path)
 
+          if Path('guides.xml').stat().st_size < 100000:
+              raise SystemExit('guides.xml suspiciously small after GCH merge')
+
           guides = ET.parse('guides.xml').getroot()
+          if len(guides.findall('channel')) < 50 or len(guides.findall('programme')) < 100:
+              raise SystemExit('guides.xml suspiciously sparse after GCH merge')
+
           for cid in ('jra.east', 'jra.west', 'jra.hokkaido'):
               src = [p for p in ET.parse('public_sports_epg_local.xml').getroot().findall('programme') if p.get('channel') == cid]
               dst = [p for p in guides.findall('programme') if p.get('channel') == cid]
