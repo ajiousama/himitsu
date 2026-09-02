@@ -15,7 +15,7 @@ permissions:
 jobs:
   hotfix:
     runs-on: ubuntu-latest
-    timeout-minutes: 4
+    timeout-minutes: 6
     steps:
       - uses: actions/checkout@v4
         with:
@@ -25,22 +25,25 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          if ! command -v ffprobe >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install -y ffmpeg
+          fi
           base='https://himitsu-six.vercel.app/api/radiko'
           for sid in JOEU-FM RNB ABC; do
-            out="/tmp/${sid}.bin"
-            rm -f "$out"
-            set +e
-            curl -L -A 'VLC/3.0.20 LibVLC/3.0.20' --connect-timeout 10 --max-time 18 \
-              "$base?station=$sid&stage=media" -o "$out"
-            rc=$?
-            set -e
-            size=0
-            if [ -f "$out" ]; then size=$(wc -c < "$out"); fi
-            echo "$sid curl_rc=$rc bytes=$size"
-            if [ "$size" -lt 1024 ]; then
-              echo "$sid direct radio gateway returned too little data" >&2
-              exit 1
-            fi
+            url="$base?station=$sid&stage=media"
+            list="/tmp/${sid}.m3u8"
+            curl -fsSL -A 'VLC/3.0.20 LibVLC/3.0.20' --connect-timeout 10 --max-time 18 "$url" -o "$list"
+            bytes=$(wc -c < "$list")
+            echo "$sid playlist_bytes=$bytes"
+            grep -q '^#EXTM3U' "$list"
+            probe="/tmp/${sid}.probe"
+            timeout 30 ffprobe -v error -rw_timeout 15000000 \
+              -user_agent 'VLC/3.0.20 LibVLC/3.0.20' \
+              -select_streams a:0 -show_entries stream=codec_name,codec_type \
+              -of default=noprint_wrappers=1 "$url" > "$probe"
+            cat "$probe"
+            grep -q 'codec_type=audio' "$probe"
           done
 
       - name: Reapply playback-first FreeWiFi radio block
