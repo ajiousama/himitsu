@@ -41,6 +41,33 @@ _PREWARMING: set[str] = set()
 _PREWARM_SLOTS = threading.BoundedSemaphore(2)
 
 
+# A cold Render instance must not spend up to 12 seconds downloading a logo
+# before FFmpeg can even start. Try the real Radiko logo briefly; if that CDN is
+# slow, generate a local station-ID badge immediately. The playback image is
+# therefore always available even when the logo CDN is not.
+def _fast_logo(radiko_sid: str):
+    try:
+        req = urllib.request.Request(base._logo_url(radiko_sid), headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=1.25) as r:
+            data = r.read()
+        return base.Image.open(base.io.BytesIO(data)).convert("RGBA")
+    except Exception:
+        w, h = 470, 120
+        im = base.Image.new("RGBA", (w, h), (255, 255, 255, 0))
+        dr = base.ImageDraw.Draw(im)
+        font = base._font(42, True)
+        text = str(radiko_sid)
+        box = dr.textbbox((0, 0), text, font=font)
+        tw = box[2] - box[0]
+        th = box[3] - box[1]
+        dr.rounded_rectangle((4, 4, w - 4, h - 4), 18, fill=(255, 255, 255, 235))
+        dr.text(((w - tw) // 2, (h - th) // 2 - box[1]), text, fill=(24, 30, 38, 255), font=font)
+        return im
+
+
+base._fetch_logo = _fast_logo
+
+
 class _WarmStream:
     def __init__(self, proc: subprocess.Popen, first: bytes):
         self.proc = proc
@@ -188,10 +215,12 @@ def _audio_sources(station: str) -> list[str]:
     if fixed:
         return [fixed]
     sid = urllib.parse.quote(radiko_sid, safe="")
-    # Render's internal Radiko gateway can return OUT/502 from its cloud region.
-    # The Vercel gateway is already verified live, so give FFmpeg the full
-    # startup budget on that single source instead of losing 10 seconds locally.
-    return [f"{PUBLIC_RADIKO_BASE}/api/radiko?station={sid}&stage=media"]
+    direct = f"{PUBLIC_RADIKO_BASE}/api/radiko?station={sid}&stage=media"
+    master = f"{PUBLIC_RADIKO_BASE}/api/radiko?station={sid}"
+    # The direct media playlist is fastest. If its one serverless invocation
+    # happens to fail during a cold start, retry through the stable synthetic
+    # master endpoint instead of immediately returning 5XX to the IPTV client.
+    return [direct, master]
 
 
 def _audio_url(station: str) -> str:
@@ -205,9 +234,11 @@ def _ffmpeg_cmd(station: str, src: str | None = None) -> list[str]:
         base.ffmpeg_exe(),
         "-nostdin",
         "-hide_banner", "-loglevel", "warning",
+        "-thread_queue_size", "64",
         "-re", "-loop", "1", "-framerate", "1", "-i", str(art),
-        "-rw_timeout", "12000000",
+        "-rw_timeout", "10000000",
         "-user_agent", "Mozilla/5.0",
+        "-thread_queue_size", "64",
         # Tune directly to the newest Radiko fragment and emit the first TS
         # packets quickly. IPTV clients give up on a silent GET after roughly
         # ten seconds, so a full HLS probe is too expensive here.
@@ -268,6 +299,17 @@ def _start_attempt(station: str, source: str, timeout: float):
     return proc, first, ""
 
 
+def _try_sources(station: str, per_source_timeout: float = 8.0):
+    failures = []
+    for source in _audio_sources(station):
+        proc, first, detail = _start_attempt(station, source, per_source_timeout)
+        if proc is not None and first:
+            return proc, first, failures
+        failures.append(f"{source}: {detail[-1200:]}")
+        print(f"[radio-tv] startup failed station={station} source={source} detail={detail[-500:]}", flush=True)
+    return None, b"", failures
+
+
 def _expire_prewarm(station: str, warm: _WarmStream) -> None:
     time.sleep(75)
     with _PREWARM_LOCK:
@@ -297,8 +339,7 @@ def prewarm_station(station: str) -> None:
         proc = None
         try:
             with _PREWARM_SLOTS:
-                source = _audio_url(station)
-                proc, first, _detail = _start_attempt(station, source, 18.0)
+                proc, first, _failures = _try_sources(station, 8.0)
             if proc is None or not first:
                 return
             warm = _WarmStream(proc, first)
@@ -319,7 +360,7 @@ def prewarm_station(station: str) -> None:
     threading.Thread(target=worker, daemon=True).start()
 
 
-def _take_ready_prewarm(station: str, wait_seconds: float = 18.5):
+def _take_ready_prewarm(station: str, wait_seconds: float = 17.0):
     """Reuse an in-flight HEAD prewarm instead of starting a duplicate mux."""
     deadline = time.monotonic() + wait_seconds
     while True:
@@ -344,7 +385,6 @@ def _stream_station(handler, station: str):
         return
 
     try:
-        sources = _audio_sources(station)
         base.make_art(station)
         base.ffmpeg_exe()
     except Exception as e:
@@ -357,17 +397,8 @@ def _stream_station(handler, station: str):
     # station and exhausting Render during rapid channel scans.
     winner, first = _take_ready_prewarm(station)
 
-    # One verified source gets the complete cold-start budget when there was no
-    # usable HEAD prewarm.
-    budgets = [18.0]
     if winner is None:
-        for source, timeout in zip(sources, budgets):
-            proc, data, detail = _start_attempt(station, source, timeout)
-            if proc is not None and data:
-                winner = proc
-                first = data
-                break
-            failures.append(f"{source}: {detail[-1200:]}")
+        winner, first, failures = _try_sources(station, 8.0)
 
     if winner is None:
         detail = " | ".join(failures)[-3000:] or "radio transcoder failed"
