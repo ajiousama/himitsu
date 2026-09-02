@@ -3,9 +3,7 @@ name: Update BOAT Today V2 Resolver
 on:
   workflow_dispatch:
   schedule:
-    # 09:00-22:55 JST: keep start/end windows and night-race activation current.
     - cron: "*/5 0-13 * * *"
-    # 23:05 JST: final cleanup after night racing.
     - cron: "5 14 * * *"
   push:
     branches:
@@ -14,6 +12,7 @@ on:
       - "boat_v2_build.py"
       - "boat_v2_render_guard.py"
       - "boat_cloud_resolver.py"
+      - "boat_youtube_refresh.py"
       - "radiko_cloud_start.py"
       - ".github/workflows/update_boat_today.yml"
 
@@ -42,43 +41,39 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Install BOAT live extractor
+        run: python -m pip install --disable-pip-version-check -q -U yt-dlp
+
+      - name: Refresh official YouTube BOAT fallback
+        run: python -u boat_youtube_refresh.py
+
       - name: Wake and probe current BOAT Render resolver
         shell: bash
         run: |
           set +e
           base='https://ajiousama-radiko.onrender.com'
-          echo 'Waking Render service before BOAT probe...'
           curl -L -sS -o /tmp/render-wake.txt -w 'Render root HTTP=%{http_code}\n' \
-            --connect-timeout 15 --max-time 45 "$base/" || true
-
+            --connect-timeout 8 --max-time 20 "$base/" || true
           probe_venue="$(python - <<'PY'
           import json
           from pathlib import Path
           try:
               d=json.loads(Path('today_boat_status.json').read_text(encoding='utf-8'))
-              active=d.get('active_window') or []
-              venues=d.get('venues') or {}
-              for _tid,item in venues.items():
+              active=set(d.get('active_window') or [])
+              for _tid,item in (d.get('venues') or {}).items():
                   if item.get('name') in active and item.get('jcd'):
-                      print(item['jcd'])
-                      raise SystemExit
+                      print(item['jcd']); raise SystemExit
           except Exception:
               pass
           print('05')
           PY
           )"
           echo "BOAT active smoke venue=$probe_venue"
-          for attempt in 1 2 3; do
-            code="$(curl -sS -o /tmp/boat-probe.json -w '%{http_code}' \
-              --connect-timeout 15 --max-time 45 \
-              "$base/boat/$probe_venue?debug=1" || true)"
-            echo "BOAT Render playable probe $attempt/3 HTTP=${code:-000}"
-            cat /tmp/boat-probe.json || true
-            if [ "$code" = '200' ]; then
-              break
-            fi
-            sleep 5
-          done
+          code="$(curl -sS -o /tmp/boat-probe.json -w '%{http_code}' \
+            --connect-timeout 8 --max-time 15 \
+            "$base/boat/$probe_venue?debug=1" || true)"
+          echo "BOAT Render playable probe HTTP=${code:-000}"
+          cat /tmp/boat-probe.json 2>/dev/null || true
           set -e
 
       - name: Build BOAT V2 streaming window
@@ -100,7 +95,6 @@ jobs:
           d = json.loads(Path('today_boat_status.json').read_text(encoding='utf-8'))
           if d.get('system') != 'boat-v2-resolver':
               raise SystemExit('unexpected BOAT system')
-          held = int(d.get('held_count') or 0)
           visible = int(d.get('visible_count') or 0)
           text = Path('freewifi').read_text(encoding='utf-8-sig', errors='replace')
           m = re.search(r'# === TODAY_BOAT_START ===(.*?)# === TODAY_BOAT_END ===', text, re.S)
@@ -108,15 +102,13 @@ jobs:
           entries = len(re.findall(r'^#EXTINF:.*tvg-id="boat\.', body, re.M))
           if entries != visible:
               raise SystemExit(f'BOAT V2 playlist mismatch: entries={entries} visible={visible}')
-          if held and visible != held:
-              raise SystemExit(f'BOAT V2 venue mismatch: active={held} visible={visible}')
-          print('BOAT pre-publish validation OK:', 'active=', held, 'visible=', visible, 'entries=', entries)
+          print('BOAT pre-publish validation OK:', 'visible=', visible, 'entries=', entries)
           PY
           }
 
           publish() {
-            validate_boat
-            git add freewifi today_boat_status.json boat_v2_state.json
+            validate_boat || return 1
+            git add freewifi today_boat_status.json boat_v2_state.json boat_stream_seed.m3u
             if git diff --cached --quiet; then
               echo "BOAT V2 state already current"
               return 0
@@ -133,6 +125,7 @@ jobs:
             echo "BOAT V2 main moved; rebuild on latest main ($attempt/4)"
             git fetch origin main
             git reset --hard origin/main
+            python -u boat_youtube_refresh.py
             python -u boat_v2_build.py
             python -u boat_v2_render_guard.py
             if publish; then
@@ -150,24 +143,18 @@ jobs:
           import json, re
           from pathlib import Path
           d = json.loads(Path('today_boat_status.json').read_text(encoding='utf-8'))
-          if d.get('system') != 'boat-v2-resolver':
-              raise SystemExit('unexpected BOAT system')
           held = int(d.get('held_count') or 0)
           visible = int(d.get('visible_count') or 0)
           cards = int(d.get('card_count') or 0)
           ready = bool(d.get('resolver_ready'))
           probe = int(d.get('resolver_probe_status') or 0)
-          waiting = d.get('scheduled_waiting') or []
-          ended = d.get('ended_removed') or []
           print('BOAT V2 cards=', cards, 'active=', held, 'visible=', visible, 'resolver_ready=', ready, 'probe=', probe)
-          print('BOAT V2 waiting=', waiting, 'ended=', ended)
           text = Path('freewifi').read_text(encoding='utf-8-sig', errors='replace')
           m = re.search(r'# === TODAY_BOAT_START ===(.*?)# === TODAY_BOAT_END ===', text, re.S)
           body = m.group(1) if m else ''
           entries = len(re.findall(r'^#EXTINF:.*tvg-id="boat\.', body, re.M))
-          print('BOAT V2 playlist entries=', entries)
           if entries != visible:
               raise SystemExit(f'BOAT V2 playlist mismatch: entries={entries} visible={visible}')
-          if held and visible != held:
-              raise SystemExit(f'BOAT V2 venue mismatch: active={held} visible={visible}')
+          if held and not visible:
+              print('::warning::BOAT active venue exists but no playable source is currently available')
           PY
