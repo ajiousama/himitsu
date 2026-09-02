@@ -53,16 +53,18 @@ jobs:
           echo "FreeWiFi stable TS radio count=$free_count"
           echo "Standalone nationwide stable TS count=$nationwide_count"
 
-          test "$free_count" -eq 16
+          test "$free_count" -eq 12
           test "$nationwide_count" -ge 100
+          test "$(grep -c '^#EXTINF:' /tmp/freewifi-radio.txt)" -eq 12
+          test "$(grep -c 'group-title="ラジオ"' /tmp/freewifi-radio.txt)" -eq 12
           ! grep -q 'ajiousama-radiko.onrender.com/radio-tv/' radio.m3u
           ! grep -q 'ajiousama-radiko.onrender.com/radio-tv/' /tmp/freewifi-radio.txt
           ! grep -q 'himitsu-six.vercel.app/api/radio-tv' /tmp/freewifi-radio.txt
+          ! grep -Eq 'NHKラジオ|NHK-FM|nhk_(r1|fm)_' /tmp/freewifi-radio.txt
+          ! grep -Eq '^## (愛媛|在阪|京都|滋賀|兵庫)（ラジオ）$' /tmp/freewifi-radio.txt
           grep -Fq "${base}RNB/master.m3u8" /tmp/freewifi-radio.txt
           grep -Fq "${base}OBC/master.m3u8" /tmp/freewifi-radio.txt
           grep -Fq "${base}KBS/master.m3u8" /tmp/freewifi-radio.txt
-          grep -Fq "${base}nhk_r1_matsuyama/master.m3u8" /tmp/freewifi-radio.txt
-          grep -Fq "${base}nhk_fm_matsuyama/master.m3u8" /tmp/freewifi-radio.txt
           grep -q '^## Rakuten-JP$' freewifi
 
       - name: Commit separated radio playlists

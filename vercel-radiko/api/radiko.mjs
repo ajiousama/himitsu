@@ -294,10 +294,6 @@ function mediaSelfUrl(req, station) {
   return `${selfBase(req)}/api/radiko?station=${encodeURIComponent(station)}&stage=media`;
 }
 
-function upstreamSelfUrl(req, station, upstream) {
-  return `${selfBase(req)}/api/radiko?station=${encodeURIComponent(station)}&u=${encodeURIComponent(upstream)}`;
-}
-
 function syntheticMaster(req, station) {
   return [
     '#EXTM3U',
@@ -308,16 +304,19 @@ function syntheticMaster(req, station) {
   ].join('\n');
 }
 
-function rewriteMediaPlaylist(text, source, req, station) {
+function rewriteMediaPlaylist(text, source) {
   const base = new URL(source);
   const out = [];
   for (let line of text.split(/\r?\n/)) {
     line = line.replace(/URI="([^"]+)"/g, (_, raw) => {
       const absolute = new URL(raw, base).toString();
-      return `URI="${upstreamSelfUrl(req, station, absolute)}"`;
+      return `URI="${absolute}"`;
     });
     const s = line.trim();
-    if (s && !s.startsWith('#')) line = upstreamSelfUrl(req, station, new URL(s, base).toString());
+    // Radiko's AAC segment URLs are self-authorizing. Let the player fetch them
+    // from the CDN directly instead of relaying every five-second segment through
+    // a separate Vercel invocation.
+    if (s && !s.startsWith('#')) line = new URL(s, base).toString();
     out.push(line);
   }
   return out.join('\n');
@@ -367,7 +366,7 @@ export default async function handler(req, res) {
       return send(
         res,
         200,
-        rewriteMediaPlaylist(media.text, media.url, req, station),
+        rewriteMediaPlaylist(media.text, media.url),
         'application/vnd.apple.mpegurl; charset=utf-8',
       );
     }
@@ -394,7 +393,7 @@ export default async function handler(req, res) {
         return send(
           res,
           200,
-          rewriteMediaPlaylist(data.toString('utf8'), r.url || upstream.toString(), req, station),
+          rewriteMediaPlaylist(data.toString('utf8'), r.url || upstream.toString()),
           'application/vnd.apple.mpegurl; charset=utf-8',
         );
       }
