@@ -1,6 +1,6 @@
 {
   "date": "2026-09-02",
-  "checked_at": "2026-09-02T11:09:19.400103+09:00",
+  "checked_at": "2026-09-02T11:11:33.564863+09:00",
   "public_sports": {
     "競輪": [
       "弥彦",
@@ -59,16 +59,16 @@
       "多摩川": "day",
       "浜名湖": "day",
       "常滑": "day",
-      "住之江": "day",
+      "住之江": "night",
       "尼崎": "day",
       "児島": "day",
       "宮島": "day",
       "徳山": "morning",
-      "下関": "day",
-      "若松": "day",
+      "下関": "night",
+      "若松": "night",
       "芦屋": "morning",
       "福岡": "day",
-      "大村": "day"
+      "大村": "night"
     },
     "オートレース": {
       "飯塚": "overnight",
@@ -76,5 +76,11 @@
     }
   },
   "jra_active_ids": [],
-  "source": "ajiousama/himitsu direct official acquisition"
+  "source": "ajiousama/himitsu direct acquisition + Boatrace Open API fallback",
+  "boat_schedule_fallback": {
+    "source": "boatraceopenapi/api v1",
+    "date": "2026-09-02",
+    "venues": 13,
+    "races": 156
+  }
 }
