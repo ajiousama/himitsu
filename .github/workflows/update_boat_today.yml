@@ -20,10 +20,12 @@ on:
 permissions:
   contents: write
 
-# BOAT acquisition is independent, but writes to the same physical freewifi
-# file as the general updater, so both use one repository write mutex.
+# BOAT runs every five minutes and must not wait behind the much heavier
+# FreeWiFi/EPG writer queue.  Publishing is already conflict-safe below:
+# every failed push resets to the latest main, rebuilds only the managed
+# BOAT state/block, validates that state, and retries.
 concurrency:
-  group: himitsu-freewifi-state-writer
+  group: himitsu-boat-today-writer
   cancel-in-progress: false
 
 jobs:
@@ -79,7 +81,29 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
+          validate_boat() {
+            python - <<'PY'
+          import json, re
+          from pathlib import Path
+          d = json.loads(Path('today_boat_status.json').read_text(encoding='utf-8'))
+          if d.get('system') != 'boat-v2-resolver':
+              raise SystemExit('unexpected BOAT system')
+          held = int(d.get('held_count') or 0)
+          visible = int(d.get('visible_count') or 0)
+          text = Path('freewifi').read_text(encoding='utf-8-sig', errors='replace')
+          m = re.search(r'# === TODAY_BOAT_START ===(.*?)# === TODAY_BOAT_END ===', text, re.S)
+          body = m.group(1) if m else ''
+          entries = len(re.findall(r'^#EXTINF:.*tvg-id="boat\.', body, re.M))
+          if entries != visible:
+              raise SystemExit(f'BOAT V2 playlist mismatch: entries={entries} visible={visible}')
+          if held and visible != held:
+              raise SystemExit(f'BOAT V2 venue mismatch: active={held} visible={visible}')
+          print('BOAT pre-publish validation OK:', 'active=', held, 'visible=', visible, 'entries=', entries)
+          PY
+          }
+
           publish() {
+            validate_boat
             git add freewifi today_boat_status.json boat_v2_state.json
             if git diff --cached --quiet; then
               echo "BOAT V2 state already current"
