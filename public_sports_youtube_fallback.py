@@ -4,18 +4,19 @@ import subprocess
 
 OUT = Path('public_sports_youtube_fallback.m3u')
 COOKIES = Path('youtube_cookies.txt')
+LOCAL_DEFAULT_LOGO = 'https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/youtube/youtube_live_camera_default.png'
 SOURCES = [
     {
         'id': 'youtube.boat_kiryu',
         'name': 'BOATRACE桐生（公式LIVE予備）',
         'page': 'https://www.youtube.com/channel/UCT2pRt_me0tOA8B2sakEv7Q/live',
-        'logo': 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports_logos_github_43/boatrace_24_spaced_cut_1024/kiryu.png',
+        'logo': LOCAL_DEFAULT_LOGO,
     },
     {
         'id': 'youtube.boat_suminoe',
         'name': 'BOATRACE住之江（公式LIVE予備）',
         'page': 'https://www.youtube.com/channel/UCW3AReETO-oDmEoE-m3i7dQ/live',
-        'logo': 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports_logos_github_43/boatrace_24_spaced_cut_1024/suminoe.png',
+        'logo': LOCAL_DEFAULT_LOGO,
     },
 ]
 
@@ -73,6 +74,21 @@ def existing_entries():
     return entries
 
 
+def normalize_preserved_block(block, source):
+    """Keep a last-known-good URL but refresh metadata to local-only values."""
+    if not block:
+        return []
+    url = next((line.strip() for line in block[1:]
+                if line.strip().startswith(('http://', 'https://'))), None)
+    if not url:
+        return []
+    extinf = (
+        f'#EXTINF:-1 tvg-id="{source["id"]}" tvg-name="{source["name"]}" '
+        f'tvg-logo="{source["logo"]}" group-title="今日の開催場",{source["name"]}'
+    )
+    return [extinf, url]
+
+
 def main():
     previous = existing_entries()
     output = ['#EXTM3U', '']
@@ -90,10 +106,14 @@ def main():
             successes += 1
             print(f'Fallback LIVE OK: {source["name"]}')
         elif source['id'] in previous:
-            output.extend(previous[source['id']])
-            output.append('')
-            preserved += 1
-            print(f'Fallback LIVE preserved: {source["name"]}')
+            block = normalize_preserved_block(previous[source['id']], source)
+            if block:
+                output.extend(block)
+                output.append('')
+                preserved += 1
+                print(f'Fallback LIVE preserved: {source["name"]}')
+            else:
+                print(f'Fallback LIVE unavailable: {source["name"]}')
         else:
             print(f'Fallback LIVE unavailable: {source["name"]}')
     OUT.write_text('\n'.join(output).rstrip() + '\n', encoding='utf-8')
