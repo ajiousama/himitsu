@@ -1,13 +1,17 @@
 {
   "system": "boat-v2-resolver",
-  "generated_at": "2026-09-02T15:47:06.644248+09:00",
+  "generated_at": "2026-09-02T15:49:28.922213+09:00",
   "date": "2026-09-02",
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/",
   "resolver_base": "https://himitsu-six.vercel.app/api/boat",
+  "prestart_minutes": 30,
   "grace_minutes": 30,
   "card_count": 13,
-  "held_count": 11,
-  "visible_count": 11,
+  "held_count": 10,
+  "visible_count": 10,
+  "scheduled_waiting": [
+    "大村"
+  ],
   "ended_removed": [
     "徳山",
     "芦屋"
@@ -19,6 +23,7 @@
       "held": true,
       "visible": true,
       "first_race": "11:29",
+      "show_from": "2026-09-02T10:59:00+09:00",
       "last_race": "17:15",
       "remove_after": "2026-09-02T17:45:00+09:00",
       "mode": "day",
@@ -27,7 +32,8 @@
         "start": "16:08"
       },
       "resolver": "https://himitsu-six.vercel.app/api/boat?venue=05",
-      "source": "boatraceopenapi schedule + ajiousama Vercel on-demand resolver"
+      "source": "boatraceopenapi schedule + ajiousama Vercel on-demand resolver",
+      "stream_window": "live_or_vtr"
     },
     "boat.hamanako": {
       "jcd": "06",
@@ -35,6 +41,7 @@
       "held": true,
       "visible": true,
       "first_race": "11:24",
+      "show_from": "2026-09-02T10:54:00+09:00",
       "last_race": "17:07",
       "remove_after": "2026-09-02T17:37:00+09:00",
       "mode": "day",
@@ -43,7 +50,8 @@
         "start": "15:56"
       },
       "resolver": "https://himitsu-six.vercel.app/api/boat?venue=06",
-      "source": "boatraceopenapi schedule + ajiousama Vercel on-demand resolver"
+      "source": "boatraceopenapi schedule + ajiousama Vercel on-demand resolver",
+      "stream_window": "live_or_vtr"
     },
     "boat.tokoname": {
       "jcd": "08",
@@ -51,15 +59,17 @@
       "held": true,
       "visible": true,
       "first_race": "10:34",
-      "last_race": "16:15",
-      "remove_after": "2026-09-02T16:45:00+09:00",
+      "show_from": "2026-09-02T10:04:00+09:00",
+      "last_race": "16:17",
+      "remove_after": "2026-09-02T16:47:00+09:00",
       "mode": "day",
       "next_race": {
         "race": 12,
-        "start": "16:15"
+        "start": "16:17"
       },
       "resolver": "https://himitsu-six.vercel.app/api/boat?venue=08",
-      "source": "boatraceopenapi schedule + ajiousama Vercel on-demand resolver"
+      "source": "boatraceopenapi schedule + ajiousama Vercel on-demand resolver",
+      "stream_window": "live_or_vtr"
     },
     "boat.suminoe": {
       "jcd": "12",
@@ -67,6 +77,7 @@
       "held": true,
       "visible": true,
       "first_race": "15:17",
+      "show_from": "2026-09-02T14:47:00+09:00",
       "last_race": "20:31",
       "remove_after": "2026-09-02T21:01:00+09:00",
       "mode": "night",
@@ -75,7 +86,8 @@
         "start": "16:06"
       },
       "resolver": "https://himitsu-six.vercel.app/api/boat?venue=12",
-      "source": "boatraceopenapi schedule + ajiousama Vercel on-demand resolver"
+      "source": "boatraceopenapi schedule + ajiousama Vercel on-demand resolver",
+      "stream_window": "live_or_vtr"
     },
     "boat.amagasaki": {
       "jcd": "13",
@@ -83,6 +95,7 @@
       "held": true,
       "visible": true,
       "first_race": "10:42",
+      "show_from": "2026-09-02T10:12:00+09:00",
       "last_race": "16:25",
       "remove_after": "2026-09-02T16:55:00+09:00",
       "mode": "day",
@@ -91,7 +104,8 @@
         "start": "15:50"
       },
       "resolver": "https://himitsu-six.vercel.app/api/boat?venue=13",
-      "source": "boatraceopenapi schedule + ajiousama Vercel on-demand resolver"
+      "source": "boatraceopenapi schedule + ajiousama Vercel on-demand resolver",
+      "stream_window": "live_or_vtr"
     },
     "boat.kojima": {
       "jcd": "16",
@@ -99,6 +113,7 @@
       "held": true,
       "visible": true,
       "first_race": "11:19",
+      "show_from": "2026-09-02T10:49:00+09:00",
       "last_race": "17:20",
       "remove_after": "2026-09-02T17:50:00+09:00",
       "mode": "day",
@@ -107,7 +122,8 @@
         "start": "16:11"
       },
       "resolver": "https://himitsu-six.vercel.app/api/boat?venue=16",
-      "source": "boatraceopenapi schedule + ajiousama Vercel on-demand resolver"
+      "source": "boatraceopenapi schedule + ajiousama Vercel on-demand resolver",
+      "stream_window": "live_or_vtr"
     },
     "boat.miyajima": {
       "jcd": "17",
@@ -115,6 +131,7 @@
       "held": true,
       "visible": true,
       "first_race": "10:56",
+      "show_from": "2026-09-02T10:26:00+09:00",
       "last_race": "16:40",
       "remove_after": "2026-09-02T17:10:00+09:00",
       "mode": "day",
@@ -123,7 +140,8 @@
         "start": "16:05"
       },
       "resolver": "https://himitsu-six.vercel.app/api/boat?venue=17",
-      "source": "boatraceopenapi schedule + ajiousama Vercel on-demand resolver"
+      "source": "boatraceopenapi schedule + ajiousama Vercel on-demand resolver",
+      "stream_window": "live_or_vtr"
     },
     "boat.tokuyama": {
       "jcd": "18",
@@ -131,13 +149,15 @@
       "held": true,
       "visible": false,
       "first_race": "08:44",
+      "show_from": "2026-09-02T08:14:00+09:00",
       "last_race": "14:22",
       "remove_after": "2026-09-02T14:52:00+09:00",
       "mode": "morning",
       "next_race": null,
       "resolver": "https://himitsu-six.vercel.app/api/boat?venue=18",
       "source": "boatraceopenapi schedule + ajiousama Vercel on-demand resolver",
-      "ended": true
+      "ended": true,
+      "stream_window": "ended"
     },
     "boat.shimonoseki": {
       "jcd": "19",
@@ -145,6 +165,7 @@
       "held": true,
       "visible": true,
       "first_race": "15:25",
+      "show_from": "2026-09-02T14:55:00+09:00",
       "last_race": "20:45",
       "remove_after": "2026-09-02T21:15:00+09:00",
       "mode": "night",
@@ -153,7 +174,8 @@
         "start": "15:52"
       },
       "resolver": "https://himitsu-six.vercel.app/api/boat?venue=19",
-      "source": "boatraceopenapi schedule + ajiousama Vercel on-demand resolver"
+      "source": "boatraceopenapi schedule + ajiousama Vercel on-demand resolver",
+      "stream_window": "live_or_vtr"
     },
     "boat.wakamatsu": {
       "jcd": "20",
@@ -161,6 +183,7 @@
       "held": true,
       "visible": true,
       "first_race": "15:21",
+      "show_from": "2026-09-02T14:51:00+09:00",
       "last_race": "20:38",
       "remove_after": "2026-09-02T21:08:00+09:00",
       "mode": "night",
@@ -169,7 +192,8 @@
         "start": "16:13"
       },
       "resolver": "https://himitsu-six.vercel.app/api/boat?venue=20",
-      "source": "boatraceopenapi schedule + ajiousama Vercel on-demand resolver"
+      "source": "boatraceopenapi schedule + ajiousama Vercel on-demand resolver",
+      "stream_window": "live_or_vtr"
     },
     "boat.ashiya": {
       "jcd": "21",
@@ -177,13 +201,15 @@
       "held": true,
       "visible": false,
       "first_race": "08:32",
+      "show_from": "2026-09-02T08:02:00+09:00",
       "last_race": "14:10",
       "remove_after": "2026-09-02T14:40:00+09:00",
       "mode": "morning",
       "next_race": null,
       "resolver": "https://himitsu-six.vercel.app/api/boat?venue=21",
       "source": "boatraceopenapi schedule + ajiousama Vercel on-demand resolver",
-      "ended": true
+      "ended": true,
+      "stream_window": "ended"
     },
     "boat.fukuoka": {
       "jcd": "22",
@@ -191,6 +217,7 @@
       "held": true,
       "visible": true,
       "first_race": "11:43",
+      "show_from": "2026-09-02T11:13:00+09:00",
       "last_race": "17:25",
       "remove_after": "2026-09-02T17:55:00+09:00",
       "mode": "day",
@@ -199,14 +226,16 @@
         "start": "16:18"
       },
       "resolver": "https://himitsu-six.vercel.app/api/boat?venue=22",
-      "source": "boatraceopenapi schedule + ajiousama Vercel on-demand resolver"
+      "source": "boatraceopenapi schedule + ajiousama Vercel on-demand resolver",
+      "stream_window": "live_or_vtr"
     },
     "boat.omura": {
       "jcd": "24",
       "name": "大村",
       "held": true,
-      "visible": true,
+      "visible": false,
       "first_race": "17:41",
+      "show_from": "2026-09-02T17:11:00+09:00",
       "last_race": "22:41",
       "remove_after": "2026-09-02T23:11:00+09:00",
       "mode": "night",
@@ -215,7 +244,9 @@
         "start": "17:41"
       },
       "resolver": "https://himitsu-six.vercel.app/api/boat?venue=24",
-      "source": "boatraceopenapi schedule + ajiousama Vercel on-demand resolver"
+      "source": "boatraceopenapi schedule + ajiousama Vercel on-demand resolver",
+      "scheduled": true,
+      "stream_window": "waiting"
     }
   }
 }
