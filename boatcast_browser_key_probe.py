@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 import base64
 import datetime as dt
+import html
 import json
 import re
 import subprocess
+import urllib.request
 import xml.etree.ElementTree as ET
 from pathlib import Path
+from urllib.parse import urljoin, urlsplit
 
 EPG = Path('public_sports_epg_local.xml')
 FREEWIFI = Path('freewifi')
@@ -14,6 +17,7 @@ STREAM_OUT = Path('.boatcast_browser_streams.json')
 STATUS_OUT = Path('.boatcast_browser_status.json')
 NOW = dt.datetime.now(dt.timezone.utc)
 JST = dt.timezone(dt.timedelta(hours=9))
+UA = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) AppleWebKit/605.1.15 Version/18.0 Mobile/15E148 Safari/604.1'
 
 VENUES = {
     'boat.kiryu':'01kiryu','boat.toda':'02toda','boat.edogawa':'03edogawa','boat.heiwajima':'04heiwajima',
@@ -73,8 +77,7 @@ def parse_entries(text):
 
 def held_today():
     today = dt.datetime.now(JST).strftime('%Y%m%d')
-    held = []
-    seen = set()
+    held, seen = [], set()
     if not EPG.exists():
         return held
     try:
@@ -85,8 +88,84 @@ def held_today():
             if ch in VENUES and start.startswith(today) and ch not in seen:
                 held.append(ch); seen.add(ch)
     except Exception as e:
-        print(f'BOAT history held detection error: {type(e).__name__}')
+        print(f'BOAT held detection error: {type(e).__name__}')
     return held
+
+
+def fetch_text(url, timeout=10):
+    req = urllib.request.Request(url, headers={
+        'User-Agent': UA,
+        'Accept': 'text/html,application/xhtml+xml,application/javascript,text/javascript,*/*;q=0.8',
+        'Referer': 'https://live.kyotei.fun/',
+    })
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        raw = r.read()
+        ctype = (r.headers.get('Content-Type') or '').lower()
+        m = re.search(r'charset=([\w-]+)', ctype)
+        charset = m.group(1) if m else 'utf-8'
+        try:
+            return raw.decode(charset, errors='replace')
+        except LookupError:
+            return raw.decode('utf-8', errors='replace')
+
+
+def normalize(s):
+    return html.unescape(s or '').replace('\\/','/').replace('\\u0026','&').replace('\\x26','&')
+
+
+def extract_urls(text, base):
+    s = normalize(text)
+    out = []
+    for m in re.finditer(r'https?://[^\s\"\'<>\\]+', s, re.I):
+        u = m.group(0).rstrip(');,]}')
+        if u not in out:
+            out.append(u)
+    for m in re.finditer(r'(?:src|href)\s*=\s*[\"\']([^\"\']+)[\"\']', s, re.I):
+        u = urljoin(base, m.group(1).strip())
+        if u.startswith(('http://','https://')) and u not in out:
+            out.append(u)
+    return out
+
+
+def streamer_probe(jcd):
+    jo = str(int(jcd))
+    root = f'https://livebb.jlc.ne.jp/bb_top/new_bb/streamer/streamer.php?jo={jo}&md=L'
+    queue = [root]
+    seen = set()
+    candidates = []
+    clues = []
+    while queue and len(seen) < 12:
+        url = queue.pop(0)
+        if url in seen:
+            continue
+        seen.add(url)
+        try:
+            text = fetch_text(url)
+        except Exception as e:
+            clues.append(f'{urlsplit(url).path}:{type(e).__name__}')
+            continue
+        norm = normalize(text)
+        urls = extract_urls(norm, url)
+        for u in urls:
+            if '.m3u8' in u.lower() or 'manifest.streaks.jp' in u.lower():
+                candidates.append(u)
+        for line in norm.splitlines():
+            low = line.lower()
+            if any(k in low for k in ('m3u8','manifest','playlist','uliza','streaks','hls','stream')):
+                clean = re.sub(r'\s+', ' ', line).strip()
+                if clean and len(clues) < 16:
+                    clues.append(clean[:420])
+        for u in urls:
+            p = urlsplit(u)
+            path = p.path.lower()
+            if u in seen:
+                continue
+            if p.netloc.lower() == 'livebb.jlc.ne.jp' and (path.endswith('.js') or path.endswith('.php') or 'streamer' in path):
+                queue.append(u)
+    for u in candidates:
+        if valid_url(u):
+            return u, clues
+    return '', clues
 
 
 def recent_freewifi_versions(limit=80):
@@ -101,20 +180,35 @@ def main():
     held = held_today()
     chosen = {}
     source = {}
+    details = {}
 
-    # 1) Current ajiousama/freewifi.
+    # 1) Actual JLC streamer URL used by Sakura/live.kyotei.fun.
+    for tvg in held:
+        code = VENUES[tvg]
+        src, clues = streamer_probe(code[:2])
+        details[code] = {'streamer': f'https://livebb.jlc.ne.jp/bb_top/new_bb/streamer/streamer.php?jo={int(code[:2])}&md=L', 'clues': clues[:12]}
+        if src:
+            chosen[tvg] = src
+            source[tvg] = 'JLC streamer'
+            print(f'BOAT JLC OK {tvg} exp={jwt_exp(src)}')
+        else:
+            print(f'BOAT JLC WAIT {tvg}: no valid literal stream clues={len(clues)}')
+            if clues:
+                print('BOAT JLC CLUES ' + tvg + ': ' + ' | '.join(clues[:4]))
+
+    # 2) Current ajiousama/freewifi.
     if FREEWIFI.exists():
         for tvg, url in parse_entries(FREEWIFI.read_text(encoding='utf-8-sig', errors='replace')).items():
-            if tvg in held and valid_url(url):
+            if tvg in held and tvg not in chosen and valid_url(url):
                 chosen[tvg] = url; source[tvg] = 'current freewifi'
 
-    # 2) Current seed copied once from known-valid history. Runtime does not depend on another repo.
+    # 3) Local seed, copied once; no runtime dependency on another repository.
     if SEED.exists():
         for tvg, url in parse_entries(SEED.read_text(encoding='utf-8-sig', errors='replace')).items():
             if tvg in held and tvg not in chosen and valid_url(url):
                 chosen[tvg] = url; source[tvg] = 'local seed'
 
-    # 3) Same-repository Git history, identical idea to the old public-sports implementation.
+    # 4) Same-repository Git history (old earphone strategy, now self-contained).
     missing = set(held) - set(chosen)
     if missing:
         for sha, entries in recent_freewifi_versions():
@@ -130,21 +224,22 @@ def main():
     for tvg in held:
         if tvg in chosen:
             exp = jwt_exp(chosen[tvg])
-            print(f'BOAT HISTORY OK {tvg} source={source[tvg]} exp={exp.isoformat() if exp else "?"}')
+            print(f'BOAT RECOVERED {tvg} source={source[tvg]} exp={exp.isoformat() if exp else "?"}')
         else:
-            print(f'BOAT HISTORY WAIT {tvg}: no unexpired URL in ajiousama history/seed')
+            print(f'BOAT RECOVERY WAIT {tvg}: unresolved')
 
     status = {
-        'source': 'ajiousama local current/seed/git history',
+        'source': 'JLC streamer -> ajiousama current/seed/git history',
         'active_count': len(held),
         'active_stadiums': [VENUES[x] for x in held],
         'resolved_count': len(streams),
         'resolved_stadiums': list(streams),
         'sources': {VENUES[tvg]: source[tvg] for tvg in chosen},
+        'details': details,
     }
     STREAM_OUT.write_text(json.dumps(streams, ensure_ascii=False, indent=2), encoding='utf-8')
     STATUS_OUT.write_text(json.dumps(status, ensure_ascii=False, indent=2), encoding='utf-8')
-    print(f'BOAT history streams: active={len(held)} resolved={len(streams)}')
+    print(f'BOAT recovered streams: active={len(held)} resolved={len(streams)}')
     return 0
 
 
