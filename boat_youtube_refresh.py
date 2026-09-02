@@ -81,9 +81,15 @@ def main():
     old = SEED.read_text(encoding='utf-8-sig', errors='replace') if SEED.exists() else '#EXTM3U\n'
     entries = parse_existing(old)
     successes = 0
+    skipped_primary = 0
 
     for tvg_id in active:
         name, page = CHANNELS[tvg_id]
+        current = entries.get(tvg_id)
+        if current and 'manifest.streaks.jp' in current[1]:
+            skipped_primary += 1
+            print(f'BOAT YouTube {name}: skipped; Streaks primary is available')
+            continue
         try:
             hls = extract_hls(page)
         except Exception as e:
@@ -91,13 +97,13 @@ def main():
             continue
         entries[tvg_id] = (f'#EXTINF:-1 tvg-id="{tvg_id}",BOATRACE{name}', hls)
         successes += 1
-        print(f'BOAT YouTube {name}: refreshed HLS')
+        print(f'BOAT YouTube {name}: refreshed emergency HLS')
 
     lines = ['#EXTM3U', '']
     for _tvg_id, (extinf, url) in entries.items():
         lines.extend([extinf, url, ''])
     SEED.write_text('\n'.join(lines).rstrip() + '\n', encoding='utf-8')
-    print(f'BOAT YouTube refresh successes={successes} active_targets={len(active)} cookies={COOKIES.exists()}')
+    print(f'BOAT YouTube refresh successes={successes} skipped_streaks={skipped_primary} active_targets={len(active)} cookies={COOKIES.exists()}')
 
 
 if __name__ == '__main__':
