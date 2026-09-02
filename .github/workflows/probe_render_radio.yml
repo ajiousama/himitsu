@@ -23,19 +23,18 @@ jobs:
           for attempt in $(seq 1 30); do
             health="$(curl -fsS --max-time 15 "$base/health" || true)"
             echo "attempt=$attempt $health"
-            if grep -Fq '20260903-radio-tv-filemux-v13' <<<"$health"; then exit 0; fi
+            if grep -Fq '20260903-radio-tv-filemux-v14' <<<"$health"; then exit 0; fi
             sleep 10
           done
           exit 1
 
-      - name: Diagnose completed-segment FM Ehime mux
+      - name: Diagnose middle-segment FM Ehime mux
         shell: bash
         run: |
           set -euo pipefail
           root='https://ajiousama-radiko.onrender.com'
           curl -fsS --max-time 30 "$root/radio-file-debug/JOEU-FM" | tee /tmp/file-debug.txt
-          grep -q '^live_start_index=-3$' /tmp/file-debug.txt
-          grep -q '^avioflags=default$' /tmp/file-debug.txt
+          grep -q '^live_start_index=-2$' /tmp/file-debug.txt
           grep -q '^started=True$' /tmp/file-debug.txt
           awk -F= '/^bytes=/{if ($2 >= 1316) ok=1} END{exit !ok}' /tmp/file-debug.txt
 
@@ -63,11 +62,7 @@ jobs:
             timeout 20 ffprobe -v error -show_entries stream=codec_name,codec_type,width,height,sample_rate,channels -show_entries format=duration,size,bit_rate /tmp/radio.ts > /tmp/ffprobe.txt 2>&1
             ffprobe_rc=$?
             cat /tmp/ffprobe.txt
-            if [ "$ffprobe_rc" -eq 0 ] && grep -q 'codec_type=video' /tmp/ffprobe.txt && grep -q 'codec_type=audio' /tmp/ffprobe.txt; then
-              probe_ok=1
-            else
-              curl -fsS --max-time 30 "$root/radio-file-debug/$sid" || true
-            fi
+            if [ "$ffprobe_rc" -eq 0 ] && grep -q 'codec_type=video' /tmp/ffprobe.txt && grep -q 'codec_type=audio' /tmp/ffprobe.txt; then probe_ok=1; fi
           } > /tmp/probe.txt 2>&1
           cat /tmp/probe.txt
           test "$probe_ok" -eq 1
