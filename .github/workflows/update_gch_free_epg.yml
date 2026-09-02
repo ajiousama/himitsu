@@ -1,4 +1,4 @@
-name: Update GCH Free EPG
+name: Update GCH Free EPG（ajiousama単独）
 
 on:
   workflow_dispatch:
@@ -7,6 +7,7 @@ on:
       - main
     paths:
       - 'jra_epg_merge.py'
+      - 'public_sports_epg_local.xml'
       - '.github/workflows/update_gch_free_epg.yml'
   schedule:
     - cron: '10,25,40,55 * * * *'
@@ -33,7 +34,7 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Build and publish dedicated GCH EPG safely
+      - name: Merge persisted local JRA EPG safely
         shell: bash
         run: |
           set -euo pipefail
@@ -41,9 +42,14 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
 
           for attempt in 1 2 3; do
-            echo "GCH EPG publish attempt $attempt/3"
+            echo "GCH local EPG publish attempt $attempt/3"
             git fetch origin main
             git reset --hard origin/main
+
+            if [ ! -s public_sports_epg_local.xml ]; then
+              echo 'Local public sports EPG has not been generated yet; main FreeWiFi workflow will create it.'
+              exit 0
+            fi
 
             python jra_epg_merge.py
 
@@ -51,57 +57,40 @@ jobs:
           import xml.etree.ElementTree as ET
           from pathlib import Path
 
-          for path in ('gch_free_epg.xml', 'guides.xml'):
+          for path in ('public_sports_epg_local.xml', 'guides.xml'):
               if not Path(path).is_file() or Path(path).stat().st_size == 0:
                   raise SystemExit(f'{path} missing or empty')
               ET.parse(path)
 
-          g = ET.parse('gch_free_epg.xml').getroot()
-          a = [p for p in g.findall('programme') if p.get('channel') == 'jra.official']
-          b = [p for p in g.findall('programme') if p.get('channel') == 'jra.gch.free']
-          print(f'GCH dedicated EPG: A={len(a)} B={len(b)}')
-
-          # B exists only for race dates inside the rolling 3-day window.
-          if not 0 <= len(b) <= 3:
-              raise SystemExit(f'B programme count must be 0..3, got {len(b)}')
-          if not all((p.findtext('title') or '') == '競馬全レース中継　GCH（無料版）' for p in b):
-              raise SystemExit('B fixed title mismatch')
-
           guides = ET.parse('guides.xml').getroot()
-          ga = [p for p in guides.findall('programme') if p.get('channel') == 'jra.official']
-          gb = [p for p in guides.findall('programme') if p.get('channel') == 'jra.gch.free']
-          if len(ga) != len(a) or len(gb) != len(b):
-              raise SystemExit(f'guides merge mismatch: A {len(ga)}/{len(a)} B {len(gb)}/{len(b)}')
+          for cid in ('jra.east', 'jra.west', 'jra.hokkaido'):
+              src = [p for p in ET.parse('public_sports_epg_local.xml').getroot().findall('programme') if p.get('channel') == cid]
+              dst = [p for p in guides.findall('programme') if p.get('channel') == cid]
+              if src and not dst:
+                  raise SystemExit(f'{cid}: local EPG exists but guides merge is empty')
 
-          # Custom-logo HQ/LQ pairs share one XMLTV id. Verify the channel IDs
-          # exist and jra.gch mirrors the normal Green Channel programme grid.
-          for cid in ('jra.gch', 'jra.east', 'jra.west', 'jra.hokkaido'):
-              channels = [ch for ch in guides.findall('channel') if ch.get('id') == cid]
-              if len(channels) != 1:
-                  raise SystemExit(f'{cid} channel node count must be 1, got {len(channels)}')
-
-          normal_gch = [p for p in guides.findall('programme') if p.get('channel') == 'グリーンチャンネル_jp']
-          custom_gch = [p for p in guides.findall('programme') if p.get('channel') == 'jra.gch']
-          print(f'GCH base EPG: normal={len(normal_gch)} custom={len(custom_gch)}')
-          if normal_gch and len(custom_gch) != len(normal_gch):
-              raise SystemExit(f'jra.gch mirror mismatch: {len(custom_gch)}/{len(normal_gch)}')
+          a = [p for p in guides.findall('programme') if p.get('channel') == 'jra.official']
+          b = [p for p in guides.findall('programme') if p.get('channel') == 'jra.gch.free']
+          print(f'GCH local merge: A={len(a)} B={len(b)}')
+          if len(b) > 3:
+              raise SystemExit(f'B programme count must be 0..3, got {len(b)}')
           PY
 
-            git add guides.xml gch_free_epg.xml
+            git add guides.xml
             if git diff --cached --quiet; then
               echo 'GCH EPG already current'
               exit 0
             fi
 
-            git commit -m 'Update dedicated GCH free EPG'
+            git commit -m 'Update GCH from ajiousama local EPG [skip ci]'
             if git push origin HEAD:main; then
-              echo 'GCH EPG published successfully'
+              echo 'GCH local EPG published successfully'
               exit 0
             fi
 
-            echo '::warning::main moved during GCH EPG publish; rebuilding from latest main'
+            echo '::warning::main moved during GCH publish; rebuilding from latest main'
             sleep 2
           done
 
-          echo '::error::Failed to publish GCH EPG after 3 attempts'
+          echo '::error::Failed to publish GCH local EPG after 3 attempts'
           exit 1
