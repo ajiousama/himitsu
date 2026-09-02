@@ -32,6 +32,7 @@ REGION_LABELS = {
     "九州沖縄": "KYUSHU / OKINAWA",
 }
 SID_RE = re.compile(r"^[A-Za-z0-9_-]{2,32}$")
+PUBLIC_RADIKO_BASE = os.environ.get("RADIO_AUDIO_BASE", "https://himitsu-six.vercel.app").rstrip("/")
 
 
 def _accent(sid: str) -> tuple[int, int, int]:
@@ -49,7 +50,7 @@ class NationwideStations(dict):
         now = time.time()
         if not force and self._nationwide and now - self._nationwide_at < 6 * 3600:
             return
-        url = f"{base.RADIKO_BASE}/api/radiko?list=1"
+        url = f"{PUBLIC_RADIKO_BASE}/api/radiko?list=1"
         req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
         with urllib.request.urlopen(req, timeout=20) as r:
             payload = json.loads(r.read().decode("utf-8", "replace"))
@@ -145,19 +146,15 @@ def _fast_latest_master(sid: str, refresh: bool = False):
 
 core.latest_master = _fast_latest_master
 
-_LOCAL_RADIKO_BASE = os.environ.get(
-    "RADIKO_LOCAL_BASE", f"http://127.0.0.1:{core.PORT}"
-).rstrip("/")
-
-
 def _audio_sources(station: str) -> list[str]:
     _display, _freq, _accent_value, radiko_sid, fixed = base.STATIONS[station]
     if fixed:
         return [fixed]
     sid = urllib.parse.quote(radiko_sid, safe="")
-    local = f"{_LOCAL_RADIKO_BASE}/live/{sid}"
-    public = f"{base.RADIKO_BASE}/api/radiko?station={sid}&stage=media"
-    return [local] if local == public else [local, public]
+    # Render's internal Radiko gateway can return OUT/502 from its cloud region.
+    # The Vercel gateway is already verified live, so give FFmpeg the full
+    # startup budget on that single source instead of losing 10 seconds locally.
+    return [f"{PUBLIC_RADIKO_BASE}/api/radiko?station={sid}&stage=media"]
 
 
 def _audio_url(station: str) -> str:
@@ -238,9 +235,8 @@ def _stream_station(handler, station: str):
     failures = []
     winner = None
     first = b""
-    # Keep the overall startup budget close to the old 18-second limit:
-    # prefer the same-Render local gateway, then quickly fall back to Vercel.
-    budgets = [10.0, 8.0] if len(sources) > 1 else [18.0]
+    # One verified source gets the complete cold-start budget.
+    budgets = [18.0]
 
     for source, timeout in zip(sources, budgets):
         proc, data, detail = _start_attempt(station, source, timeout)

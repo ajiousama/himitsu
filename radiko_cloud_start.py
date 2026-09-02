@@ -124,7 +124,7 @@ def tun_capability_report() -> str:
 
 
 core.auth = cloud_auth
-core.BUILD = "20260902-boat-v2-render-resolver"
+core.BUILD = "20260903-radio-tv-vercel-audio-v2"
 
 _original_do_get = core.Handler.do_GET
 
@@ -154,6 +154,28 @@ def _cloud_do_get(self):
 
 
 core.Handler.do_GET = _cloud_do_get
+
+
+def _cloud_do_head(self):
+    path = urllib.parse.urlsplit(self.path).path
+    if path.startswith("/radio-tv/"):
+        self.send_response(200)
+        self.send_header("Content-Type", "video/mp2t")
+        self.send_header("Cache-Control", "no-store")
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.end_headers()
+        return
+    if path == "/health":
+        self.send_response(200)
+        self.send_header("Content-Type", "text/plain; charset=utf-8")
+        self.end_headers()
+        return
+    self.send_response(405)
+    self.send_header("Allow", "GET, HEAD")
+    self.end_headers()
+
+
+core.Handler.do_HEAD = _cloud_do_head
 
 if __name__ == "__main__":
     core.main()

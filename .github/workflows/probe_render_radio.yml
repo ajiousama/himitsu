@@ -1,22 +1,42 @@
-# Manual probe trigger: 2026-09-03T05:55+09:00
 name: Probe Render Radio
 
 on:
   push:
     branches: [main]
     paths:
+      - 'radio_tv_nationwide.py'
+      - 'radiko_cloud_start.py'
       - '.github/workflows/probe_render_radio.yml'
   workflow_dispatch:
 
 jobs:
   probe:
     runs-on: ubuntu-latest
+    timeout-minutes: 8
     steps:
-      - name: Probe RNB debug and stream
+      - name: Wait for Render radio build
+        shell: bash
+        run: |
+          set -euo pipefail
+          base='https://ajiousama-radiko.onrender.com'
+          health=''
+          for attempt in $(seq 1 30); do
+            health="$(curl -fsS --max-time 15 "$base/health" || true)"
+            echo "attempt=$attempt $health"
+            if grep -Fq '20260903-radio-tv-vercel-audio-v2' <<<"$health"; then
+              exit 0
+            fi
+            sleep 10
+          done
+          echo 'new Render radio build did not become ready' >&2
+          exit 1
+
+      - name: Probe RNB MPEG-TS video and audio
         shell: bash
         run: |
           set +e
           base='https://ajiousama-radiko.onrender.com'
+          probe_ok=0
           {
             echo '=== debug ==='
             time curl -fsS --max-time 45 "$base/radio-debug/RNB" || true
@@ -31,10 +51,16 @@ jobs:
             ls -l /tmp/rnb.ts || true
             file /tmp/rnb.ts || true
             if command -v ffprobe >/dev/null 2>&1; then
-              ffprobe -v error -show_entries format=duration,size,bit_rate -show_streams /tmp/rnb.ts || true
+              ffprobe -v error -show_entries stream=codec_name,codec_type,width,height,sample_rate,channels -show_entries format=duration,size,bit_rate /tmp/rnb.ts > /tmp/ffprobe.txt 2>&1
+              ffprobe_rc=$?
+              cat /tmp/ffprobe.txt
+              if [ "$ffprobe_rc" -eq 0 ] && grep -q 'codec_type=video' /tmp/ffprobe.txt && grep -q 'codec_type=audio' /tmp/ffprobe.txt; then
+                probe_ok=1
+              fi
             fi
           } > /tmp/probe.txt 2>&1
           cat /tmp/probe.txt
+          test "$probe_ok" -eq 1
 
       - uses: actions/upload-artifact@v4
         with:
