@@ -52,11 +52,7 @@ def cloud_auth(force: bool = False):
     if len(part) != length:
         raise RuntimeError("auth1 failed: partial-key range is invalid")
     headers = dict(core.BASE_HEADERS)
-    headers.update({
-        "X-Radiko-AuthToken": token,
-        "X-Radiko-PartialKey": base64.b64encode(part).decode(),
-        "X-Radiko-Session": session,
-    })
+    headers.update({"X-Radiko-AuthToken": token,"X-Radiko-PartialKey": base64.b64encode(part).decode(),"X-Radiko-Session": session})
     try:
         with core.open_url(core.API + "/v2/api/auth2", headers, timeout=30) as r:
             body = r.read().decode("utf-8", "replace").strip()
@@ -79,21 +75,16 @@ def tun_capability_report() -> str:
     path = "/dev/net/tun"
     lines = [f"tun_exists={os.path.exists(path)}"]
     if not os.path.exists(path):
-        lines.append("tun_create=false")
-        lines.append("reason=no_/dev/net/tun")
+        lines.extend(["tun_create=false", "reason=no_/dev/net/tun"])
         return "\n".join(lines) + "\n"
     fd = None
     try:
         fd = os.open(path, os.O_RDWR)
         lines.append("tun_open=true")
-        ifr = struct.pack("16sH", b"rgate%d", 0x0001 | 0x1000)
-        result = fcntl.ioctl(fd, 0x400454CA, ifr)
-        name = result[:16].split(b"\x00", 1)[0].decode("ascii", "replace")
-        lines.append("tun_create=true")
-        lines.append(f"interface={name}")
+        result = fcntl.ioctl(fd, 0x400454CA, struct.pack("16sH", b"rgate%d", 0x0001 | 0x1000))
+        lines.extend(["tun_create=true", f"interface={result[:16].split(b'\x00',1)[0].decode('ascii','replace')}"])
     except Exception as e:
-        lines.append("tun_create=false")
-        lines.append(f"reason={type(e).__name__}:{e}")
+        lines.extend(["tun_create=false", f"reason={type(e).__name__}:{e}"])
     finally:
         if fd is not None:
             os.close(fd)
@@ -101,31 +92,20 @@ def tun_capability_report() -> str:
 
 
 core.auth = cloud_auth
-core.BUILD = "20260903-radio-tv-filemux-v14"
-
+core.BUILD = "20260903-radio-tv-preencoded-v15"
 _original_do_get = core.Handler.do_GET
 
 
 def _cloud_do_get(self):
     path = urllib.parse.urlsplit(self.path).path
-    if boat_cloud is not None and boat_cloud.handle_request(self):
-        return
+    if boat_cloud is not None and boat_cloud.handle_request(self): return
     if boat_cloud is None and (path == "/boat" or path.startswith("/boat/")):
-        message = f"boat resolver unavailable: {BOAT_IMPORT_ERROR or 'dependency import failed'}\n"
-        self.send_bytes(503, message.encode(), "text/plain; charset=utf-8")
-        return
-    if radio_tv is not None and radio_tv.handle_request(self):
-        return
-    if radio_tv is None and (
-        path.startswith("/radio-tv/") or path.startswith("/radio-art/")
-        or path.startswith("/radio-debug/") or path.startswith("/radio-file-debug/")
-    ):
-        message = f"radio-tv unavailable: {RADIO_TV_IMPORT_ERROR or 'dependency import failed'}\n"
-        self.send_bytes(503, message.encode(), "text/plain; charset=utf-8")
-        return
+        self.send_bytes(503, f"boat resolver unavailable: {BOAT_IMPORT_ERROR or 'dependency import failed'}\n".encode(), "text/plain; charset=utf-8"); return
+    if radio_tv is not None and radio_tv.handle_request(self): return
+    if radio_tv is None and (path.startswith("/radio-tv/") or path.startswith("/radio-art/") or path.startswith("/radio-debug/") or path.startswith("/radio-file-debug/")):
+        self.send_bytes(503, f"radio-tv unavailable: {RADIO_TV_IMPORT_ERROR or 'dependency import failed'}\n".encode(), "text/plain; charset=utf-8"); return
     if path == "/vpncheck":
-        self.send_bytes(200, tun_capability_report().encode(), "text/plain; charset=utf-8")
-        return
+        self.send_bytes(200, tun_capability_report().encode(), "text/plain; charset=utf-8"); return
     return _original_do_get(self)
 
 
@@ -135,20 +115,10 @@ core.Handler.do_GET = _cloud_do_get
 def _cloud_do_head(self):
     path = urllib.parse.urlsplit(self.path).path
     if path.startswith("/radio-tv/"):
-        self.send_response(200)
-        self.send_header("Content-Type", "video/mp2t")
-        self.send_header("Cache-Control", "no-store")
-        self.send_header("Access-Control-Allow-Origin", "*")
-        self.end_headers()
-        return
+        self.send_response(200); self.send_header("Content-Type", "video/mp2t"); self.send_header("Cache-Control", "no-store"); self.send_header("Access-Control-Allow-Origin", "*"); self.end_headers(); return
     if path == "/health":
-        self.send_response(200)
-        self.send_header("Content-Type", "text/plain; charset=utf-8")
-        self.end_headers()
-        return
-    self.send_response(405)
-    self.send_header("Allow", "GET, HEAD")
-    self.end_headers()
+        self.send_response(200); self.send_header("Content-Type", "text/plain; charset=utf-8"); self.end_headers(); return
+    self.send_response(405); self.send_header("Allow", "GET, HEAD"); self.end_headers()
 
 
 core.Handler.do_HEAD = _cloud_do_head
