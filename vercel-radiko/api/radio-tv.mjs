@@ -256,7 +256,21 @@ function videoPlaylist(req, station, anchorMs = Date.now()) {
   return lines.join('\n');
 }
 
-function master(req, station) {
+function master(req, station, cfg) {
+  if (cfg.radiko) {
+    const audio = `${selfBase(req)}/api/radiko?station=${encodeURIComponent(cfg.radiko)}&stage=media`;
+    const video = `https://raw.githubusercontent.com/ajiousama/himitsu/radio-ts-assets/${encodeURIComponent(station)}/video.m3u8`;
+    return [
+      '#EXTM3U',
+      '#EXT-X-VERSION:6',
+      '#EXT-X-INDEPENDENT-SEGMENTS',
+      `#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="radio",NAME="${station} radio",DEFAULT=YES,AUTOSELECT=YES,CHANNELS="2",URI="${audio}"`,
+      '#EXT-X-STREAM-INF:BANDWIDTH=180000,AVERAGE-BANDWIDTH=120000,RESOLUTION=320x180,FRAME-RATE=1.000,CODECS="avc1.42e01e,mp4a.40.5",AUDIO="radio",CLOSED-CAPTIONS=NONE',
+      video,
+      '',
+    ].join('\n');
+  }
+
   const audio = selfUrl(req, station, { stage: 'audio' });
   const video = selfUrl(req, station, { stage: 'video' });
   return [
@@ -271,10 +285,24 @@ function master(req, station) {
 
 export default async function handler(req, res) {
   try {
-    if (req.method !== 'GET') return send(res, 405, 'method not allowed\n', 'text/plain; charset=utf-8');
     const station = String(req.query?.station || 'ABC').trim();
     const cfg = STATIONS[station];
     if (!cfg) return send(res, 404, 'unknown radio station\n', 'text/plain; charset=utf-8');
+    if (req.method === 'HEAD') {
+      return send(res, 200, '', 'application/vnd.apple.mpegurl; charset=utf-8', {
+        headers: { Allow: 'GET, HEAD, OPTIONS' },
+      });
+    }
+    if (req.method === 'OPTIONS') {
+      return send(res, 204, '', 'text/plain; charset=utf-8', {
+        headers: {
+          Allow: 'GET, HEAD, OPTIONS',
+          'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS',
+          'Access-Control-Allow-Headers': '*',
+        },
+      });
+    }
+    if (req.method !== 'GET') return send(res, 405, 'method not allowed\n', 'text/plain; charset=utf-8');
 
     const relay = String(req.query?.relay || '');
     if (relay) {
@@ -313,7 +341,7 @@ export default async function handler(req, res) {
       ]);
       return send(res, 200, JSON.stringify({ ok: initOk && segOk, station, initOk, segOk }, null, 2), 'application/json; charset=utf-8');
     }
-    return send(res, 200, master(req, station), 'application/vnd.apple.mpegurl; charset=utf-8');
+    return send(res, 200, master(req, station, cfg), 'application/vnd.apple.mpegurl; charset=utf-8');
   } catch (e) {
     return send(res, 502, JSON.stringify({ ok: false, error: `${e?.name || 'Error'}: ${e?.message || String(e)}` }, null, 2), 'application/json; charset=utf-8');
   }
