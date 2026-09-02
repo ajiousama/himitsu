@@ -1,14 +1,28 @@
 {
   "system": "boat-v2-resolver",
-  "generated_at": "2026-09-02T15:49:28.922213+09:00",
+  "generated_at": "2026-09-02T15:53:19.895393+09:00",
   "date": "2026-09-02",
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/",
-  "resolver_base": "https://himitsu-six.vercel.app/api/boat",
+  "resolver_base": "https://ajiousama-radiko.onrender.com/boat",
+  "resolver_ready": true,
+  "resolver_probe_status": 502,
   "prestart_minutes": 30,
   "grace_minutes": 30,
   "card_count": 13,
   "held_count": 10,
   "visible_count": 10,
+  "active_window": [
+    "多摩川",
+    "浜名湖",
+    "常滑",
+    "住之江",
+    "尼崎",
+    "児島",
+    "宮島",
+    "下関",
+    "若松",
+    "福岡"
+  ],
   "scheduled_waiting": [
     "大村"
   ],
@@ -31,9 +45,9 @@
         "race": 10,
         "start": "16:08"
       },
-      "resolver": "https://himitsu-six.vercel.app/api/boat?venue=05",
-      "source": "boatraceopenapi schedule + ajiousama Vercel on-demand resolver",
-      "stream_window": "live_or_vtr"
+      "stream_window": "live_or_vtr",
+      "url": "https://ajiousama-radiko.onrender.com/boat/05",
+      "source": "ajiousama Render on-demand resolver"
     },
     "boat.hamanako": {
       "jcd": "06",
@@ -49,9 +63,9 @@
         "race": 10,
         "start": "15:56"
       },
-      "resolver": "https://himitsu-six.vercel.app/api/boat?venue=06",
-      "source": "boatraceopenapi schedule + ajiousama Vercel on-demand resolver",
-      "stream_window": "live_or_vtr"
+      "stream_window": "live_or_vtr",
+      "url": "https://ajiousama-radiko.onrender.com/boat/06",
+      "source": "ajiousama Render on-demand resolver"
     },
     "boat.tokoname": {
       "jcd": "08",
@@ -67,9 +81,9 @@
         "race": 12,
         "start": "16:17"
       },
-      "resolver": "https://himitsu-six.vercel.app/api/boat?venue=08",
-      "source": "boatraceopenapi schedule + ajiousama Vercel on-demand resolver",
-      "stream_window": "live_or_vtr"
+      "stream_window": "live_or_vtr",
+      "url": "https://ajiousama-radiko.onrender.com/boat/08",
+      "source": "ajiousama Render on-demand resolver"
     },
     "boat.suminoe": {
       "jcd": "12",
@@ -85,9 +99,9 @@
         "race": 3,
         "start": "16:06"
       },
-      "resolver": "https://himitsu-six.vercel.app/api/boat?venue=12",
-      "source": "boatraceopenapi schedule + ajiousama Vercel on-demand resolver",
-      "stream_window": "live_or_vtr"
+      "stream_window": "live_or_vtr",
+      "url": "https://ajiousama-radiko.onrender.com/boat/12",
+      "source": "ajiousama Render on-demand resolver"
     },
     "boat.amagasaki": {
       "jcd": "13",
@@ -100,12 +114,12 @@
       "remove_after": "2026-09-02T16:55:00+09:00",
       "mode": "day",
       "next_race": {
-        "race": 11,
-        "start": "15:50"
+        "race": 12,
+        "start": "16:25"
       },
-      "resolver": "https://himitsu-six.vercel.app/api/boat?venue=13",
-      "source": "boatraceopenapi schedule + ajiousama Vercel on-demand resolver",
-      "stream_window": "live_or_vtr"
+      "stream_window": "live_or_vtr",
+      "url": "https://ajiousama-radiko.onrender.com/boat/13",
+      "source": "ajiousama Render on-demand resolver"
     },
     "boat.kojima": {
       "jcd": "16",
@@ -121,9 +135,9 @@
         "race": 10,
         "start": "16:11"
       },
-      "resolver": "https://himitsu-six.vercel.app/api/boat?venue=16",
-      "source": "boatraceopenapi schedule + ajiousama Vercel on-demand resolver",
-      "stream_window": "live_or_vtr"
+      "stream_window": "live_or_vtr",
+      "url": "https://ajiousama-radiko.onrender.com/boat/16",
+      "source": "ajiousama Render on-demand resolver"
     },
     "boat.miyajima": {
       "jcd": "17",
@@ -139,9 +153,9 @@
         "race": 11,
         "start": "16:05"
       },
-      "resolver": "https://himitsu-six.vercel.app/api/boat?venue=17",
-      "source": "boatraceopenapi schedule + ajiousama Vercel on-demand resolver",
-      "stream_window": "live_or_vtr"
+      "stream_window": "live_or_vtr",
+      "url": "https://ajiousama-radiko.onrender.com/boat/17",
+      "source": "ajiousama Render on-demand resolver"
     },
     "boat.tokuyama": {
       "jcd": "18",
@@ -154,8 +168,6 @@
       "remove_after": "2026-09-02T14:52:00+09:00",
       "mode": "morning",
       "next_race": null,
-      "resolver": "https://himitsu-six.vercel.app/api/boat?venue=18",
-      "source": "boatraceopenapi schedule + ajiousama Vercel on-demand resolver",
       "ended": true,
       "stream_window": "ended"
     },
@@ -170,12 +182,12 @@
       "remove_after": "2026-09-02T21:15:00+09:00",
       "mode": "night",
       "next_race": {
-        "race": 2,
-        "start": "15:52"
+        "race": 3,
+        "start": "16:20"
       },
-      "resolver": "https://himitsu-six.vercel.app/api/boat?venue=19",
-      "source": "boatraceopenapi schedule + ajiousama Vercel on-demand resolver",
-      "stream_window": "live_or_vtr"
+      "stream_window": "live_or_vtr",
+      "url": "https://ajiousama-radiko.onrender.com/boat/19",
+      "source": "ajiousama Render on-demand resolver"
     },
     "boat.wakamatsu": {
       "jcd": "20",
@@ -191,9 +203,9 @@
         "race": 3,
         "start": "16:13"
       },
-      "resolver": "https://himitsu-six.vercel.app/api/boat?venue=20",
-      "source": "boatraceopenapi schedule + ajiousama Vercel on-demand resolver",
-      "stream_window": "live_or_vtr"
+      "stream_window": "live_or_vtr",
+      "url": "https://ajiousama-radiko.onrender.com/boat/20",
+      "source": "ajiousama Render on-demand resolver"
     },
     "boat.ashiya": {
       "jcd": "21",
@@ -206,8 +218,6 @@
       "remove_after": "2026-09-02T14:40:00+09:00",
       "mode": "morning",
       "next_race": null,
-      "resolver": "https://himitsu-six.vercel.app/api/boat?venue=21",
-      "source": "boatraceopenapi schedule + ajiousama Vercel on-demand resolver",
       "ended": true,
       "stream_window": "ended"
     },
@@ -225,9 +235,9 @@
         "race": 10,
         "start": "16:18"
       },
-      "resolver": "https://himitsu-six.vercel.app/api/boat?venue=22",
-      "source": "boatraceopenapi schedule + ajiousama Vercel on-demand resolver",
-      "stream_window": "live_or_vtr"
+      "stream_window": "live_or_vtr",
+      "url": "https://ajiousama-radiko.onrender.com/boat/22",
+      "source": "ajiousama Render on-demand resolver"
     },
     "boat.omura": {
       "jcd": "24",
@@ -243,8 +253,6 @@
         "race": 1,
         "start": "17:41"
       },
-      "resolver": "https://himitsu-six.vercel.app/api/boat?venue=24",
-      "source": "boatraceopenapi schedule + ajiousama Vercel on-demand resolver",
       "scheduled": true,
       "stream_window": "waiting"
     }
