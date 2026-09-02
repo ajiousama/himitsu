@@ -2,291 +2,73 @@ from pathlib import Path
 from datetime import datetime, timezone, timedelta
 import json
 import re
-import urllib.request
 import xml.etree.ElementTree as ET
 
-FREEWIFI = Path('freewifi')
 GUIDES = Path('guides.xml')
+LOCAL_EPG = Path('public_sports_epg_local.xml')
 STATUS_JSON = Path('today_public_sports_status.json')
 VERIFIED_JSON = Path('verified_daily_status.json')
-PUBLIC_EPG_URL = 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/epg.xml'
 PREFIXES = ('keirin.', 'chihou.', 'boat.', 'auto.')
 JST = timezone(timedelta(hours=9))
-
-MODE_WINDOWS = {
-    'morning': (8, 30, 12, 30),
-    'day': (10, 30, 17, 30),
-    'night': (15, 0, 21, 30),
-    'midnight': (20, 30, 24, 0),
-    'overnight': (21, 0, 24, 30),
-}
-MODE_LABELS = {
-    'morning': 'モーニング',
-    'day': 'デイ',
-    'night': 'ナイター',
-    'midnight': 'ミッドナイト',
-    'overnight': 'オーバーミッドナイト',
-}
-
-BOAT_IDS = {
-    '桐生': 'boat.kiryu',
-    '戸田': 'boat.toda',
-    '江戸川': 'boat.edogawa',
-    '平和島': 'boat.heiwajima',
-    '多摩川': 'boat.tamagawa',
-    '浜名湖': 'boat.hamanako',
-    '蒲郡': 'boat.gamagori',
-    '常滑': 'boat.tokoname',
-    '津': 'boat.tsu',
-    '三国': 'boat.mikuni',
-    'びわこ': 'boat.biwako',
-    '住之江': 'boat.suminoe',
-    '尼崎': 'boat.amagasaki',
-    '鳴門': 'boat.naruto',
-    '丸亀': 'boat.marugame',
-    '児島': 'boat.kojima',
-    '宮島': 'boat.miyajima',
-    '徳山': 'boat.tokuyama',
-    '下関': 'boat.shimonoseki',
-    '若松': 'boat.wakamatsu',
-    '芦屋': 'boat.ashiya',
-    '福岡': 'boat.fukuoka',
-    '唐津': 'boat.karatsu',
-    '大村': 'boat.omura',
-}
-
 FULLWIDTH = str.maketrans('0123456789', '０１２３４５６７８９')
 
 
-def load_status():
-    if not STATUS_JSON.exists():
-        return {}
-    try:
-        return json.loads(STATUS_JSON.read_text(encoding='utf-8')).get('channels', {})
-    except Exception:
-        return {}
+def load_json(path):
+    try: return json.loads(path.read_text(encoding='utf-8-sig'))
+    except Exception: return {}
 
 
-def load_verified_boat_meta():
-    """Keep today's officially verified BOAT venues in EPG even when stream lookup fails."""
-    if not VERIFIED_JSON.exists():
-        return {}
-    try:
-        cfg = json.loads(VERIFIED_JSON.read_text(encoding='utf-8-sig'))
-    except Exception:
-        return {}
-    if cfg.get('date') != datetime.now(JST).date().isoformat():
-        return {}
-
-    venues = (cfg.get('public_sports') or {}).get('ボートレース') or []
-    modes = (cfg.get('public_sports_modes') or {}).get('ボートレース') or {}
-    out = {}
-    for venue in venues:
-        cid = BOAT_IDS.get(venue)
-        if not cid:
-            print(f'WARNING: verified BOAT venue has no tvg-id mapping: {venue}')
-            continue
-        mode = modes.get(venue) or 'day'
-        out[cid] = {
-            'section': 'ボートレース',
-            'name': f'BOATRACE{venue}',
-            'mode': mode,
-            'source': 'verified daily schedule',
-            'epg_available': True,
-            'next_race': None,
-            'next_race_text': '本日開催あり／EPG確保',
-        }
-    return out
-
-
-def wanted_ids(status=None, verified_boats=None):
-    # today_public_sports_status.json is normally authoritative, but BOAT stream
-    # acquisition must not decide EPG eligibility.  Verified official BOAT venues
-    # are therefore always added independently of playback/playlist state.
-    if status is None:
-        status = load_status()
-    if verified_boats is None:
-        verified_boats = load_verified_boat_meta()
-
+def wanted_ids():
+    status = load_json(STATUS_JSON).get('channels', {})
     ids = {cid for cid in status if cid.startswith(PREFIXES)}
-    ids.update(verified_boats)
-    if ids:
-        return ids
-
-    # Status JSONも当日確認表も無い時だけ従来方式へフォールバック。
-    ids = set()
-    text = FREEWIFI.read_text(encoding='utf-8-sig', errors='replace')
-    for line in text.splitlines():
-        if not line.startswith('#EXTINF:'):
-            continue
-        m = re.search(r'tvg-id="([^"]+)"', line)
-        if m and m.group(1).startswith(PREFIXES):
-            ids.add(m.group(1))
-    return ids
+    cfg = load_json(VERIFIED_JSON)
+    if cfg.get('date') == datetime.now(JST).date().isoformat():
+        for section in ('競輪','地方競馬','ボートレース','オートレース'):
+            pass
+    if ids: return ids
+    if not LOCAL_EPG.exists(): return set()
+    root = ET.parse(LOCAL_EPG).getroot(); today = datetime.now(JST).strftime('%Y%m%d')
+    return {p.get('channel') for p in root.findall('programme') if (p.get('channel') or '').startswith(PREFIXES) and (p.get('start') or '').startswith(today)}
 
 
-def fetch_public_epg():
-    req = urllib.request.Request(PUBLIC_EPG_URL, headers={'User-Agent': 'FreeWiFi-PublicSports-EPG/2.3', 'Cache-Control': 'no-cache'})
-    with urllib.request.urlopen(req, timeout=60) as r:
-        return ET.fromstring(r.read())
-
-
-def fmt(dt):
-    return dt.strftime('%Y%m%d%H%M%S %z')
-
-
-def fallback_times(mode):
-    now = datetime.now(JST)
-    y, m, d = now.year, now.month, now.day
-    sh, sm, eh, em = MODE_WINDOWS.get(mode, MODE_WINDOWS['day'])
-    start = datetime(y, m, d, sh, sm, tzinfo=JST)
-    if eh >= 24:
-        stop = datetime(y, m, d, 0, em, tzinfo=JST) + timedelta(days=1, hours=eh - 24)
-    else:
-        stop = datetime(y, m, d, eh, em, tzinfo=JST)
-    return start, stop
-
-
-def add_fallback(dst, cid, meta):
-    name = meta.get('name') or cid
-    section = meta.get('section') or '公営競技'
-    mode = meta.get('mode') or 'day'
-    label = MODE_LABELS.get(mode, 'デイ')
-    start, stop = fallback_times(mode)
-
-    ch = ET.Element('channel', {'id': cid})
-    ET.SubElement(ch, 'display-name').text = name
-    dst.append(ch)
-
-    p = ET.Element('programme', {'channel': cid, 'start': fmt(start), 'stop': fmt(stop)})
-    ET.SubElement(p, 'title', {'lang': 'ja'}).text = f'{name} 本日開催あり／現在準備中'
-    ET.SubElement(p, 'desc', {'lang': 'ja'}).text = f'{section}・{label}開催。番組詳細を取得できていないため、現在準備中です。開催自体は公式日程で確認済みです。'
-    dst.append(p)
-
-
-def _race_no(text):
-    if not text:
-        return None
-    norm = text.translate(str.maketrans('０１２３４５６７８９Ｒｒ', '0123456789Rr'))
-    m = re.search(r'(?:【\s*)?(?:第\s*)?(1[0-2]|[1-9])\s*[Rr](?:\s*】)?', norm)
-    return int(m.group(1)) if m else None
-
-
-def _departure_time(title, desc):
-    for text in (title or '', desc or ''):
-        m = re.search(r'([0-2]?\d:[0-5]\d)\s*(?:発走|発走予定)?', text)
-        if m:
-            return m.group(1)
-    return None
-
-
-def normalize_race_title(programme):
-    title_el = programme.find('title')
-    if title_el is None or not (title_el.text or '').strip():
-        return
-    title = title_el.text.strip()
-    desc_el = programme.find('desc')
-    desc = (desc_el.text or '') if desc_el is not None else ''
-    n = _race_no(title) or _race_no(desc)
-    if not n:
-        return
-
-    marker = f'【{str(n).translate(FULLWIDTH)}Ｒ】'
-    tm = _departure_time(title, desc)
-    rest = re.sub(r'^\s*(?:【\s*)?(?:第\s*)?[０-９0-9]{1,2}\s*[ＲRｒr](?:\s*】)?\s*', '', title, count=1)
-    if rest == title:
-        rest = re.sub(r'(?:【\s*)?(?:第\s*)?[０-９0-9]{1,2}\s*[ＲRｒr](?:\s*】)?', '', title, count=1).strip()
-
+def normalize_title(p):
+    t = p.find('title')
+    if t is None or not (t.text or '').strip(): return
+    text = t.text.strip().translate(str.maketrans('０１２３４５６７８９Ｒ','0123456789R'))
+    m = re.search(r'(?:【\s*)?(1[0-2]|[1-9])\s*R(?:\s*】)?', text)
+    if not m: return
+    n = int(m.group(1)); marker = f'【{str(n).translate(FULLWIDTH)}Ｒ】'
+    tm = re.search(r'([0-2]?\d:[0-5]\d)\s*発走', text)
+    original = (t.text or '').strip()
+    rest = re.sub(r'^(?:【\s*)?[０-９0-9]{1,2}\s*[ＲR](?:\s*】)?\s*', '', original, count=1).strip()
     if tm:
-        rest = re.sub(rf'\s*{re.escape(tm)}\s*(?:発走|発走予定)?\s*', ' ', rest, count=1).strip()
-        title_el.text = f'{marker} {tm}発走' + (f'  {rest}' if rest else '')
+        rest = re.sub(rf'^\s*{re.escape(tm.group(1))}\s*発走\s*', '', rest).strip()
+        t.text = f'{marker} {tm.group(1)}発走' + (f'  {rest}' if rest else '')
     else:
-        title_el.text = marker + (f'  {rest}' if rest else '')
-
-
-def validate_written_guides(wanted):
-    root = ET.parse(GUIDES).getroot()
-    channel_ids = {ch.get('id') for ch in root.findall('channel')}
-    programme_ids = {p.get('channel') for p in root.findall('programme')}
-    missing_channels = sorted(wanted - channel_ids)
-    missing_programmes = sorted(wanted - programme_ids)
-    if missing_channels or missing_programmes:
-        raise SystemExit(
-            'Public sports EPG validation failed: '
-            f'missing_channels={missing_channels}, missing_programmes={missing_programmes}'
-        )
-    print(f'Public sports EPG validation OK: {len(wanted)}/{len(wanted)} active/verified channels have EPG')
+        t.text = marker + (f'  {rest}' if rest else '')
 
 
 def main():
-    status = load_status()
-    verified_boats = load_verified_boat_meta()
-    wanted = wanted_ids(status, verified_boats)
-    if not wanted:
-        raise SystemExit('Public sports EPG: no active target channels found')
-
-    # Stream/playlist status wins when available; verified BOAT schedule fills the
-    # holes when BOATCAST playback acquisition is temporarily broken.
-    effective_meta = dict(verified_boats)
-    effective_meta.update(status)
-
-    dst = ET.parse(GUIDES).getroot()
-    try:
-        src = fetch_public_epg()
-    except Exception as e:
-        print(f'Public sports EPG fetch failed: {e}')
-        src = ET.Element('tv')
-
-    # 全公営競技EPGを一度除去してから「現在対象＋当日確認済みボート」を戻す。
-    removed = 0
-    for el in list(dst):
-        cid = el.get('id') if el.tag == 'channel' else el.get('channel') if el.tag == 'programme' else None
-        if cid and cid.startswith(PREFIXES):
-            dst.remove(el)
-            removed += 1
-
-    source_channels = {ch.get('id'): ch for ch in src.findall('channel') if ch.get('id') in wanted}
-    source_programmes = {}
+    if not GUIDES.exists() or not LOCAL_EPG.exists(): raise SystemExit('guides/local public EPG missing')
+    wanted = wanted_ids()
+    if not wanted: raise SystemExit('Public sports EPG: no active local channels')
+    dst = ET.parse(GUIDES); root = dst.getroot(); src = ET.parse(LOCAL_EPG).getroot()
+    for el in list(root):
+        cid = el.get('id') if el.tag == 'channel' else el.get('channel') if el.tag == 'programme' else ''
+        if cid and cid.startswith(PREFIXES): root.remove(el)
+    channels = {c.get('id'):c for c in src.findall('channel') if c.get('id') in wanted}
+    progs = {}
     for p in src.findall('programme'):
         cid = p.get('channel')
-        if cid in wanted:
-            source_programmes.setdefault(cid, []).append(p)
-
-    channels = 0
-    programmes = 0
-    fallbacks = 0
-    normalized = 0
+        if cid in wanted: progs.setdefault(cid, []).append(p)
+    missing=[]; pc=0
     for cid in sorted(wanted):
-        progs = source_programmes.get(cid, [])
-        if cid in source_channels and progs:
-            dst.append(ET.fromstring(ET.tostring(source_channels[cid], encoding='utf-8')))
-            channels += 1
-            for p in progs:
-                copied = ET.fromstring(ET.tostring(p, encoding='utf-8'))
-                before = (copied.findtext('title') or '')
-                normalize_race_title(copied)
-                after = (copied.findtext('title') or '')
-                if before != after:
-                    normalized += 1
-                dst.append(copied)
-                programmes += 1
-        else:
-            meta = effective_meta.get(cid)
-            if meta:
-                add_fallback(dst, cid, meta)
-                channels += 1
-                programmes += 1
-                fallbacks += 1
+        if cid not in channels or not progs.get(cid): missing.append(cid); continue
+        root.append(ET.fromstring(ET.tostring(channels[cid], encoding='utf-8')))
+        for p in progs[cid]:
+            cp = ET.fromstring(ET.tostring(p, encoding='utf-8')); normalize_title(cp); root.append(cp); pc += 1
+    if missing: raise SystemExit(f'Local public sports EPG missing active channels: {missing}')
+    ET.indent(dst, space='  '); dst.write(GUIDES, encoding='utf-8', xml_declaration=True)
+    print(f'Public sports LOCAL EPG merged: channels={len(wanted)} programmes={pc}')
 
-    ET.indent(dst, space='  ')
-    GUIDES.write_bytes(ET.tostring(dst, encoding='utf-8', xml_declaration=True))
-    validate_written_guides(wanted)
-    print(
-        f'Public sports EPG merged: channels={channels}, programmes={programmes}, '
-        f'wanted={len(wanted)}, verified_boats={len(verified_boats)}, fallbacks={fallbacks}, '
-        f'removed_old={removed}, race_titles_normalized={normalized}'
-    )
-
-
-if __name__ == '__main__':
-    main()
+if __name__ == '__main__': main()
