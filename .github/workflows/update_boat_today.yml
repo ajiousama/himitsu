@@ -12,6 +12,7 @@ on:
       - "boat_v2_build.py"
       - "boat_v2_render_guard.py"
       - "boat_cloud_resolver.py"
+      - "boat_streaks_refresh.py"
       - "boat_youtube_refresh.py"
       - "radiko_cloud_start.py"
       - ".github/workflows/update_boat_today.yml"
@@ -51,6 +52,9 @@ jobs:
           python -m pip install --disable-pip-version-check -q -U --pre 'yt-dlp[default]' curl_cffi
           yt-dlp --version
 
+      - name: Refresh official BOATRACE Streaks primary
+        run: python -u boat_streaks_refresh.py
+
       - name: Restore YouTube cookies
         shell: bash
         env:
@@ -65,7 +69,7 @@ jobs:
             echo '::warning::YOUTUBE_COOKIES is not set'
           fi
 
-      - name: Refresh official YouTube BOAT fallback
+      - name: Refresh official YouTube BOAT emergency fallback
         run: python -u boat_youtube_refresh.py
 
       - name: Wake and probe current BOAT Render resolver
@@ -146,6 +150,7 @@ jobs:
             echo "BOAT V2 main moved; rebuild on latest main ($attempt/4)"
             git fetch origin main
             git reset --hard origin/main
+            python -u boat_streaks_refresh.py
             python -u boat_youtube_refresh.py
             python -u boat_v2_build.py
             python -u boat_v2_render_guard.py
