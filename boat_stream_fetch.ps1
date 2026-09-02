@@ -107,6 +107,18 @@ function Get-PlayerBodies {
 }
 
 function Discover-PlaybackKey([string]$probeRef) {
+  $capturedPath = Join-Path $PSScriptRoot '.boatcast_playback_key'
+  if (Test-Path $capturedPath) {
+    try {
+      $captured = ([System.IO.File]::ReadAllText($capturedPath)).Trim()
+      if (-not [string]::IsNullOrWhiteSpace($captured) -and (Test-PlaybackKey $probeRef $captured)) {
+        Write-Host 'BOATCAST playback key: browser-captured key validated'
+        return $captured
+      }
+      Write-Host 'BOATCAST playback key: browser capture present but validation failed'
+    } catch {}
+  }
+
   $configured = [Environment]::GetEnvironmentVariable('BOATRACE_STREAKS_API_KEY')
   if (-not [string]::IsNullOrWhiteSpace($configured) -and (Test-PlaybackKey $probeRef $configured)) {
     Write-Host 'BOATCAST playback key: configured key validated'
@@ -153,8 +165,6 @@ function Resolve-Playback([string]$refId, [string]$apiKey) {
   return ''
 }
 
-# Use one currently scheduled BOATCAST ref only to validate the public player
-# API key. The key value itself is never printed to Actions logs.
 $probeSetting = Get-CurrentSetting '12suminoe'
 $probeRef = ''
 if ($probeSetting) {
