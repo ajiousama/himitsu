@@ -18,9 +18,10 @@ on:
 permissions:
   contents: write
 
-# BOAT V2 owns only the BOAT block and BOAT state files.
+# BOAT acquisition is independent, but writes to the same physical freewifi
+# file as the general updater, so both use one repository write mutex.
 concurrency:
-  group: himitsu-boat-v2-writer
+  group: himitsu-freewifi-state-writer
   cancel-in-progress: false
 
 jobs:
