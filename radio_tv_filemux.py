@@ -40,13 +40,14 @@ def _file_cmd(station: str, source: str, path: pathlib.Path) -> list[str]:
     cmd = impl._ffmpeg_cmd(station, source)
     if cmd[-1] != "pipe:1":
         raise RuntimeError("unexpected FFmpeg output target")
-    # Start from a completed fragment instead of the newest live edge.
+    # The newest (-1) often waits for the live edge; the oldest (-3) can age
+    # out before FFmpeg fetches it. The middle segment is already complete but
+    # still fresh, giving roughly five seconds of acceptable radio delay.
     try:
         idx = cmd.index("-live_start_index")
-        cmd[idx + 1] = "-3"
+        cmd[idx + 1] = "-2"
     except (ValueError, IndexError):
         pass
-    # Keep the otherwise known-good command exactly as radio-debug uses it.
     cmd[-1] = str(path)
     return cmd
 
@@ -57,7 +58,6 @@ def _start_file_mux(station: str, source: str, timeout: float = 12.0):
     proc = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, bufsize=0)
     tail = collections.deque(maxlen=120)
     threading.Thread(target=_drain_stderr, args=(proc.stderr, tail), daemon=True).start()
-
     deadline = time.monotonic() + timeout
     while time.monotonic() < deadline:
         try:
@@ -69,7 +69,6 @@ def _start_file_mux(station: str, source: str, timeout: float = 12.0):
         if proc.poll() is not None:
             break
         time.sleep(0.05)
-
     impl.base._stop_proc(proc)
     detail = b"".join(tail).decode("utf-8", "replace").strip()
     try:
@@ -122,7 +121,6 @@ def _stream_station(handler, station: str) -> None:
     except Exception as e:
         handler.send_error(500, f"ffmpeg setup failed: {type(e).__name__}: {e}")
         return
-
     failures = []
     for source in impl._audio_sources(station):
         proc, path, detail = _start_file_mux(station, source, 12.0)
@@ -138,7 +136,7 @@ def _debug_file_mux(handler, station: str) -> None:
     if station not in impl.base.STATIONS:
         handler.send_error(404, "unknown radio station")
         return
-    lines = [f"station={station}", "live_start_index=-3", "avioflags=default"]
+    lines = [f"station={station}", "live_start_index=-2", "avioflags=default"]
     source = impl._audio_sources(station)[0]
     lines.append(f"source={source}")
     started = time.monotonic()
@@ -169,7 +167,6 @@ def _debug_file_mux(handler, station: str) -> None:
                 path.unlink(missing_ok=True)
             except Exception:
                 pass
-
     body = ("\n".join(lines) + "\n").encode("utf-8")
     handler.send_response(200)
     handler.send_header("Content-Type", "text/plain; charset=utf-8")
