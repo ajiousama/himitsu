@@ -42,18 +42,19 @@ VENUES = {
     '24': ('24omura', 'boat.omura', 'omura'),
 }
 
-# Keep /boat-fetch from becoming an unrestricted public proxy.
 ALLOWED_HOSTS = {
     'playback.api.streaks.jp',
     'manifest.streaks.jp',
     'front.player.boatrace-cdn.jp',
     'livebb.jlc.ne.jp',
+    'live.boatcast.jp',
     'boatrace.sakura.tv',
 }
 ALLOWED_SUFFIXES = (
     '.streaks.jp',
     '.boatrace-cdn.jp',
     '.jlc.ne.jp',
+    '.boatcast.jp',
     '.uliza.jp',
     '.uliza.net',
     '.uliza.com',
@@ -64,11 +65,7 @@ def allowed_upstream(url):
     try:
         p = urllib.parse.urlsplit(url)
         host = (p.hostname or '').lower()
-        return (
-            p.scheme in ('http', 'https')
-            and bool(host)
-            and (host in ALLOWED_HOSTS or any(host.endswith(x) for x in ALLOWED_SUFFIXES))
-        )
+        return p.scheme in ('http', 'https') and bool(host) and (host in ALLOWED_HOSTS or any(host.endswith(x) for x in ALLOWED_SUFFIXES))
     except Exception:
         return False
 
@@ -77,10 +74,11 @@ def upstream_headers(url, extra=None):
     host = (urllib.parse.urlsplit(url).hostname or '').lower()
     headers = {'User-Agent': UA, 'Accept': '*/*'}
     if host.endswith('.streaks.jp') or 'boatrace-cdn.jp' in host:
-        headers.update({
-            'Origin': 'https://front.player.boatrace-cdn.jp',
-            'Referer': 'https://front.player.boatrace-cdn.jp/',
-        })
+        headers.update({'Origin': 'https://front.player.boatrace-cdn.jp', 'Referer': 'https://front.player.boatrace-cdn.jp/'})
+    elif host.endswith('.jlc.ne.jp') or 'uliza' in host:
+        headers.update({'Origin': 'https://livebb.jlc.ne.jp', 'Referer': 'https://livebb.jlc.ne.jp/bb_top/new_bb/'})
+    elif host.endswith('.boatcast.jp'):
+        headers.update({'Origin': 'https://live.boatcast.jp', 'Referer': 'https://live.boatcast.jp/'})
     else:
         headers['Referer'] = 'https://boatrace.sakura.tv/'
     if extra:
@@ -91,12 +89,7 @@ def upstream_headers(url, extra=None):
 def fetch_response(url, headers=None, timeout=15):
     req = urllib.request.Request(url, headers=headers or upstream_headers(url))
     with urllib.request.urlopen(req, timeout=timeout) as r:
-        return (
-            r.read(),
-            r.geturl(),
-            int(getattr(r, 'status', 200)),
-            {str(k).lower(): str(v) for k, v in r.headers.items()},
-        )
+        return r.read(), r.geturl(), int(getattr(r, 'status', 200)), {str(k).lower(): str(v) for k, v in r.headers.items()}
 
 
 def fetch_text(url, headers=None, timeout=12):
@@ -157,10 +150,7 @@ def file_fallback(tvg_id, slug):
 
 
 def streaks_url(code, ymd):
-    endpoint = (
-        'https://playback.api.streaks.jp/v1/projects/cp-boatrace-prod/'
-        f'medias/ref:lm-br-{code}-tokyo-{ymd}?audio_only=false'
-    )
+    endpoint = 'https://playback.api.streaks.jp/v1/projects/cp-boatrace-prod/' + f'medias/ref:lm-br-{code}-tokyo-{ymd}?audio_only=false'
     variants = [
         {'Origin': 'https://players.streaks.jp', 'Referer': 'https://front.player.boatrace-cdn.jp/'},
         {'Origin': 'https://front.player.boatrace-cdn.jp', 'Referer': 'https://front.player.boatrace-cdn.jp/'},
@@ -174,8 +164,7 @@ def streaks_url(code, ymd):
             headers['X-Streaks-Api-Key'] = api_key
         try:
             data = fetch_json(endpoint, headers=headers)
-            sources = data.get('sources') or []
-            for item in sources:
+            for item in data.get('sources') or []:
                 if isinstance(item, dict):
                     src = str(item.get('src') or '').strip()
                     if src.startswith(('http://', 'https://')):
@@ -192,10 +181,7 @@ def decode_html(raw):
 def m3u8_candidates(raw, base):
     raw = decode_html(raw)
     out = []
-    patterns = [
-        r'https?://[^\s"\'<>]+?\.m3u8(?:\?[^\s"\'<>]*)?',
-        r'["\']([^"\']+?\.m3u8(?:\?[^"\']*)?)["\']',
-    ]
+    patterns = [r'https?://[^\s"\'<>]+?\.m3u8(?:\?[^\s"\'<>]*)?', r'["\']([^"\']+?\.m3u8(?:\?[^"\']*)?)["\']']
     for idx, pattern in enumerate(patterns):
         for m in re.finditer(pattern, raw, re.I):
             value = m.group(0) if idx == 0 else m.group(1)
@@ -208,37 +194,60 @@ def m3u8_candidates(raw, base):
     return out
 
 
-def jlc_url(jcd):
-    root = f'https://livebb.jlc.ne.jp/bb_top/sp_bb/live_{jcd}.php'
-    headers = {'User-Agent': UA, 'Referer': 'https://boatrace.sakura.tv/'}
-    errors = []
-    try:
-        page, final_url, _ = fetch_text(root, headers=headers)
-        direct = m3u8_candidates(page, final_url)
-        if direct:
-            return direct[0], 'jlc-mobile', errors
+def linked_candidates(raw, base):
+    raw = decode_html(raw)
+    out = []
+    values = []
+    for m in re.finditer(r'(?:src|href)=["\']([^"\']+)["\']', raw, re.I):
+        values.append(m.group(1))
+    for m in re.finditer(r'["\'](https?://[^"\']+)["\']', raw, re.I):
+        values.append(m.group(1))
+    for value in values:
+        try:
+            url = urllib.parse.urljoin(base, value)
+        except Exception:
+            continue
+        if not allowed_upstream(url):
+            continue
+        path = urllib.parse.urlsplit(url).path.lower()
+        if re.search(r'\.(?:css|png|jpe?g|gif|svg|ico|woff2?|ttf|map)(?:$|\?)', path):
+            continue
+        if url not in out:
+            out.append(url)
+    return out
 
-        resources = []
-        for m in re.finditer(r'(?:src|href)=["\']([^"\']+)["\']', decode_html(page), re.I):
-            u = urllib.parse.urljoin(final_url, m.group(1))
-            host = (urllib.parse.urlsplit(u).hostname or '').lower()
-            if (
-                (host == 'livebb.jlc.ne.jp' or 'uliza' in host or 'boatrace-cdn.jp' in host)
-                and re.search(r'\.(?:js|php)(?:$|\?)', u, re.I)
-                and u not in resources
-            ):
-                resources.append(u)
-        for u in resources[:12]:
-            try:
-                body, final_resource, _ = fetch_text(u, headers=upstream_headers(u), timeout=8)
-                candidates = m3u8_candidates(body, final_resource)
-                if candidates:
-                    return candidates[0], 'jlc-resource', errors
-            except Exception as e:
-                errors.append(f'{type(e).__name__}:{getattr(e, "code", "") or e}')
-    except Exception as e:
-        errors.append(f'{type(e).__name__}:{getattr(e, "code", "") or e}')
+
+def crawl_stream(roots, label):
+    errors = []
+    queue = list(roots)
+    seen = set()
+    while queue and len(seen) < 40:
+        url = queue.pop(0)
+        if url in seen or not allowed_upstream(url):
+            continue
+        seen.add(url)
+        try:
+            body, final_url, _ = fetch_text(url, headers=upstream_headers(url), timeout=9)
+        except Exception as e:
+            errors.append(f'{label}:{urllib.parse.urlsplit(url).path}:{type(e).__name__}:{getattr(e, "code", "") or e}')
+            continue
+        candidates = m3u8_candidates(body, final_url)
+        if candidates:
+            return candidates[0], label, errors
+        for child in linked_candidates(body, final_url):
+            if child not in seen and child not in queue:
+                queue.append(child)
     return '', '', errors
+
+
+def jlc_url(jcd):
+    roots = [
+        f'https://livebb.jlc.ne.jp/bb_top/new_bb/index.php?tpl={jcd}',
+        f'https://livebb.jlc.ne.jp/bb_top/sp_bb/live_{jcd}.php',
+        f'https://live.boatcast.jp/boatcastpc/index.php?tpl={jcd}',
+        f'https://live.boatcast.jp/boatcastsp/live_{jcd}.php',
+    ]
+    return crawl_stream(roots, 'jlc-current')
 
 
 def sakura_url(slug):
@@ -249,6 +258,12 @@ def sakura_url(slug):
         candidates = m3u8_candidates(page, final_url)
         if candidates:
             return candidates[0], 'sakura', errors
+        links = linked_candidates(page, final_url)
+        if links:
+            url, source, crawl_errors = crawl_stream(links[:12], 'sakura-official')
+            errors.extend(crawl_errors)
+            if url:
+                return url, source, errors
     except Exception as e:
         errors.append(f'{type(e).__name__}:{getattr(e, "code", "") or e}')
     return '', '', errors
@@ -257,36 +272,19 @@ def sakura_url(slug):
 def resolve(jcd):
     code, tvg_id, slug = VENUES[jcd]
     ymd = datetime.now(JST).strftime('%Y%m%d')
-
     url, source, streaks_errors = streaks_url(code, ymd)
     if url:
         return url, source, {'streaks': streaks_errors}
-
     url, source, jlc_errors = jlc_url(jcd)
     if url:
         return url, source, {'streaks': streaks_errors, 'jlc': jlc_errors}
-
     url, source, sakura_errors = sakura_url(slug)
     if url:
-        return url, source, {
-            'streaks': streaks_errors,
-            'jlc': jlc_errors,
-            'sakura': sakura_errors,
-        }
-
+        return url, source, {'streaks': streaks_errors, 'jlc': jlc_errors, 'sakura': sakura_errors}
     url, source = file_fallback(tvg_id, slug)
     if url:
-        return url, source, {
-            'streaks': streaks_errors,
-            'jlc': jlc_errors,
-            'sakura': sakura_errors,
-        }
-
-    return '', '', {
-        'streaks': streaks_errors,
-        'jlc': jlc_errors,
-        'sakura': sakura_errors,
-    }
+        return url, source, {'streaks': streaks_errors, 'jlc': jlc_errors, 'sakura': sakura_errors}
+    return '', '', {'streaks': streaks_errors, 'jlc': jlc_errors, 'sakura': sakura_errors}
 
 
 def normalize_jcd(path, query):
@@ -308,41 +306,28 @@ def public_base(handler):
 
 
 def relay_url(handler, upstream):
-    return (
-        public_base(handler)
-        + '/boat-fetch?u='
-        + urllib.parse.quote(upstream, safe='')
-    )
+    return public_base(handler) + '/boat-fetch?u=' + urllib.parse.quote(upstream, safe='')
 
 
 def rewrite_playlist(text, src, handler):
     def quoted(m):
-        raw = m.group(1)
-        return 'URI="' + relay_url(handler, urllib.parse.urljoin(src, raw)) + '"'
-
+        return 'URI="' + relay_url(handler, urllib.parse.urljoin(src, m.group(1))) + '"'
     def single_quoted(m):
-        raw = m.group(1)
-        return "URI='" + relay_url(handler, urllib.parse.urljoin(src, raw)) + "'"
-
+        return "URI='" + relay_url(handler, urllib.parse.urljoin(src, m.group(1))) + "'"
     out = []
     for line in text.splitlines():
         line = re.sub(r'URI="([^"]+)"', quoted, line)
         line = re.sub(r"URI='([^']+)'", single_quoted, line)
         stripped = line.strip()
         if stripped and not stripped.startswith('#'):
-            absolute = urllib.parse.urljoin(src, stripped)
-            line = relay_url(handler, absolute)
+            line = relay_url(handler, urllib.parse.urljoin(src, stripped))
         out.append(line)
     return '\n'.join(out) + '\n'
 
 
 def is_playlist(data, final_url, headers):
     ctype = (headers.get('content-type') or '').lower()
-    return (
-        data.lstrip().startswith(b'#EXTM3U')
-        or 'mpegurl' in ctype
-        or urllib.parse.urlsplit(final_url).path.lower().endswith('.m3u8')
-    )
+    return data.lstrip().startswith(b'#EXTM3U') or 'mpegurl' in ctype or urllib.parse.urlsplit(final_url).path.lower().endswith('.m3u8')
 
 
 def send_raw(handler, status, data, content_type, response_headers=None, cache='no-store'):
@@ -362,48 +347,23 @@ def send_raw(handler, status, data, content_type, response_headers=None, cache='
 def relay_upstream(handler, upstream):
     if not allowed_upstream(upstream):
         raise ValueError('upstream host is not allowed')
-
     extra = {}
     request_range = handler.headers.get('Range')
     if request_range:
         extra['Range'] = request_range
-
-    data, final_url, status, headers = fetch_response(
-        upstream,
-        headers=upstream_headers(upstream, extra=extra),
-        timeout=18,
-    )
-
+    data, final_url, status, headers = fetch_response(upstream, headers=upstream_headers(upstream, extra=extra), timeout=18)
     if not allowed_upstream(final_url):
         raise ValueError('redirected upstream host is not allowed')
-
     if is_playlist(data, final_url, headers):
-        text = data.decode('utf-8', 'replace')
-        body = rewrite_playlist(text, final_url, handler).encode('utf-8')
-        send_raw(
-            handler,
-            200,
-            body,
-            'application/vnd.apple.mpegurl; charset=utf-8',
-            cache='no-store',
-        )
+        body = rewrite_playlist(data.decode('utf-8', 'replace'), final_url, handler).encode('utf-8')
+        send_raw(handler, 200, body, 'application/vnd.apple.mpegurl; charset=utf-8', cache='no-store')
         return
-
-    ctype = headers.get('content-type') or 'application/octet-stream'
-    send_raw(
-        handler,
-        status,
-        data,
-        ctype,
-        response_headers=headers,
-        cache='public, max-age=5',
-    )
+    send_raw(handler, status, data, headers.get('content-type') or 'application/octet-stream', response_headers=headers, cache='public, max-age=5')
 
 
 def handle_request(handler):
     split = urllib.parse.urlsplit(handler.path)
     query = urllib.parse.parse_qs(split.query)
-
     if split.path == '/boat-fetch':
         upstream = (query.get('u') or [''])[0]
         if not upstream or not allowed_upstream(upstream):
@@ -412,70 +372,33 @@ def handle_request(handler):
         try:
             relay_upstream(handler, upstream)
         except Exception as e:
-            body = f'BOAT relay failed: {type(e).__name__}: {e}\n'.encode()
-            handler.send_bytes(502, body, 'text/plain; charset=utf-8')
+            handler.send_bytes(502, f'BOAT relay failed: {type(e).__name__}: {e}\n'.encode(), 'text/plain; charset=utf-8')
         return True
-
     if not (split.path.startswith('/boat/') or split.path == '/boat'):
         return False
-
     jcd = normalize_jcd(split.path, query)
     if not jcd:
         handler.send_bytes(400, b'invalid BOAT venue\n', 'text/plain; charset=utf-8')
         return True
-
     url, source, details = resolve(jcd)
-
     if (query.get('debug') or [''])[0] == '1':
         probe = None
         playable = False
         if url:
             try:
-                data, final_url, status, headers = fetch_response(
-                    url,
-                    headers=upstream_headers(url),
-                    timeout=10,
-                )
+                data, final_url, status, headers = fetch_response(url, headers=upstream_headers(url), timeout=10)
                 playable = is_playlist(data, final_url, headers) and status in (200, 206)
-                probe = {
-                    'status': status,
-                    'final_url': final_url,
-                    'content_type': headers.get('content-type', ''),
-                    'playlist': playable,
-                }
+                probe = {'status': status, 'final_url': final_url, 'content_type': headers.get('content-type', ''), 'playlist': playable}
             except Exception as e:
                 probe = {'error': f'{type(e).__name__}:{getattr(e, "code", "") or e}'}
-        body = json.dumps(
-            {
-                'ok': bool(url),
-                'playable': playable,
-                'relay': True,
-                'venue': jcd,
-                'source': source,
-                'url': url,
-                'probe': probe,
-                'details': details,
-            },
-            ensure_ascii=False,
-            indent=2,
-        ).encode()
+        body = json.dumps({'ok': bool(url), 'playable': playable, 'relay': True, 'venue': jcd, 'source': source, 'url': url, 'probe': probe, 'details': details}, ensure_ascii=False, indent=2).encode()
         handler.send_bytes(200 if url and playable else 503, body, 'application/json; charset=utf-8')
         return True
-
     if not url:
-        handler.send_bytes(
-            503,
-            b'#EXTM3U\n# BOAT stream unavailable\n',
-            'application/vnd.apple.mpegurl; charset=utf-8',
-        )
+        handler.send_bytes(503, b'#EXTM3U\n# BOAT stream unavailable\n', 'application/vnd.apple.mpegurl; charset=utf-8')
         return True
-
     try:
         relay_upstream(handler, url)
     except Exception as e:
-        body = (
-            '#EXTM3U\n'
-            f'# BOAT relay error: {type(e).__name__}: {e}\n'
-        ).encode()
-        handler.send_bytes(502, body, 'application/vnd.apple.mpegurl; charset=utf-8')
+        handler.send_bytes(502, ('#EXTM3U\n' + f'# BOAT relay error: {type(e).__name__}: {e}\n').encode(), 'application/vnd.apple.mpegurl; charset=utf-8')
     return True
