@@ -14,6 +14,7 @@ on:
       - "freewifi_boat_today.py"
       - "freewifi_boat_today_runner.py"
       - "boat_stream_fetch.ps1"
+      - "boatcast_browser_key_probe.py"
       - "repair_boat_local_epg_openapi.py"
       - "public_sports_youtube_fallback.m3u"
       - ".github/workflows/update_boat_today.yml"
@@ -45,6 +46,9 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Install BOATCAST browser probe
+        run: python -m pip install --disable-pip-version-check -q selenium
+
       - name: Ensure today's local BOAT schedule exists
         shell: bash
         run: |
@@ -68,6 +72,9 @@ jobs:
             echo 'Local BOAT schedule missing/stale; regenerate inside ajiousama'
             python -u public_sports_epg_local_fast.py
           fi
+
+      - name: Capture BOATCAST public playback key
+        run: python -u boatcast_browser_key_probe.py
 
       - name: Fetch BOAT stream URLs independently
         shell: pwsh
