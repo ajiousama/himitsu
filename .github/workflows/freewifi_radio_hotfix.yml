@@ -1,4 +1,5 @@
 # Emergency image+audio radio repair for FreeWiFi.
+# v7 matrix: deliberately GET shortly after HEAD to exercise in-flight prewarm reuse.
 name: FreeWiFi Radio Hotfix
 
 on:
@@ -15,7 +16,7 @@ permissions:
 jobs:
   hotfix:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
         with:
@@ -47,13 +48,14 @@ jobs:
             sudo apt-get update
             sudo apt-get install -y ffmpeg
           fi
-          base='https://ajiousama-radiko.onrender.com/radio-tv'
+          root='https://ajiousama-radiko.onrender.com'
+          base="$root/radio-tv"
           stations='JOEU-FM RNB ABC CCL 802 FMO MBS OBC KBS ALPHA-STATION E-RADIO CRK'
           failures=0
           for sid in $stations; do
             echo "=== $sid ==="
             curl -fsSI -A 'VLC/3.0.20 LibVLC/3.0.20' --connect-timeout 10 --max-time 15 "$base/$sid" >/dev/null || true
-            sleep 3
+            sleep 1
             probe="/tmp/${sid}.probe"
             set +e
             timeout 35 ffprobe -v error -rw_timeout 20000000 \
@@ -65,6 +67,9 @@ jobs:
             cat "$probe" || true
             if [ "$rc" -ne 0 ] || ! grep -q 'codec_type=video' "$probe" || ! grep -q 'codec_type=audio' "$probe"; then
               echo "$sid FAILED image+audio probe" >&2
+              echo "--- $sid debug ---" >&2
+              curl -fsS --max-time 30 "$root/radio-debug/$sid" || true
+              echo
               failures=$((failures+1))
             else
               echo "$sid OK image+audio"
