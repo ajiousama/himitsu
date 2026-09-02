@@ -5,11 +5,11 @@ from pathlib import Path
 from urllib.parse import quote
 
 FREEWIFI = Path("freewifi")
-RADIO_TS_BASE = "https://raw.githubusercontent.com/ajiousama/himitsu/radio-ts-assets"
+RADIO_TV_BASE = "https://himitsu-six.vercel.app/api/radio-tv"
 
 
 def radio_tv_url(sid: str) -> str:
-    return f"{RADIO_TS_BASE}/{quote(sid, safe='')}/master.m3u8"
+    return f"{RADIO_TV_BASE}?station={quote(sid, safe='')}"
 
 
 def radiko_entry(tvgid: str, sid: str, name: str, logo: str | None = None) -> str:
@@ -56,9 +56,9 @@ def main() -> int:
         raise RuntimeError("Rakuten-JP section disappeared; refusing to write")
 
     radio_section = updated[start:updated.find("## 愛媛CATV", start)]
-    ts_count = radio_section.count(RADIO_TS_BASE + "/")
-    if ts_count != 12:
-        raise RuntimeError(f"compact FreeWiFi stable TS count unexpected: {ts_count}")
+    route_count = radio_section.count(RADIO_TV_BASE + "?station=")
+    if route_count != 12:
+        raise RuntimeError(f"compact FreeWiFi synchronized radio count unexpected: {route_count}")
     if "NHKラジオ" in radio_section or "NHK-FM" in radio_section or "nhk_r1_" in radio_section or "nhk_fm_" in radio_section:
         raise RuntimeError("NHK radio leaked into FreeWiFi radio section")
     extinf_lines = [line for line in radio_section.splitlines() if line.startswith("#EXTINF:")]
@@ -68,11 +68,9 @@ def main() -> int:
         raise RuntimeError("nationwide catalog leaked into FreeWiFi radio section")
     if "ajiousama-radiko.onrender.com/radio-tv/" in radio_section:
         raise RuntimeError("Render radio-TV URL leaked into compact FreeWiFi radio section")
-    if "himitsu-six.vercel.app/api/radio-tv" in radio_section:
-        raise RuntimeError("old Vercel radio-TV URL leaked into compact FreeWiFi radio section")
 
     FREEWIFI.write_text(updated, encoding="utf-8")
-    print(f"FreeWiFi compact radio restored: {ts_count} stable TS stations")
+    print(f"FreeWiFi compact radio restored: {route_count} synchronized stations")
     return 0
 
 

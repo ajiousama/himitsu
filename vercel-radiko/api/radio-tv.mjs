@@ -1,5 +1,8 @@
 const SEGMENT_SECONDS = 5;
 const TIMESCALE = 12800;
+const TS_SEGMENT_SECONDS = 300;
+const TS_SEGMENT_COUNT = 24;
+const TS_BASE = 'https://raw.githubusercontent.com/ajiousama/himitsu/radio-ts-assets';
 
 const STATIONS = {
   nhk_r1_osaka: { nhk: 'https://simul2.drdi.st.nhk/live/12/joined/master.m3u8' },
@@ -236,21 +239,29 @@ function patchSegment(source, sequence) {
   return out;
 }
 
-function videoPlaylist(req, station, anchorMs = Date.now()) {
-  const nowSeq = Math.floor(anchorMs / (SEGMENT_SECONDS * 1000));
-  const first = nowSeq - 7;
+function tsSegmentUrl(station, sequence) {
+  const index = ((sequence % TS_SEGMENT_COUNT) + TS_SEGMENT_COUNT) % TS_SEGMENT_COUNT;
+  const file = `seg_${String(index).padStart(3, '0')}.ts`;
+  return `${TS_BASE}/${encodeURIComponent(station)}/${file}?sequence=${sequence}`;
+}
+
+function videoPlaylist(station, anchorMs = Date.now()) {
+  const nowSeq = Math.floor(anchorMs / (TS_SEGMENT_SECONDS * 1000));
+  const first = nowSeq - 1;
   const lines = [
     '#EXTM3U',
-    '#EXT-X-VERSION:7',
-    `#EXT-X-TARGETDURATION:${SEGMENT_SECONDS}`,
+    '#EXT-X-VERSION:3',
+    `#EXT-X-TARGETDURATION:${TS_SEGMENT_SECONDS}`,
     `#EXT-X-MEDIA-SEQUENCE:${first}`,
+    `#EXT-X-DISCONTINUITY-SEQUENCE:${Math.floor(first / TS_SEGMENT_COUNT)}`,
     '#EXT-X-INDEPENDENT-SEGMENTS',
-    `#EXT-X-MAP:URI="${selfUrl(req, station, { asset: 'init' })}"`,
   ];
-  for (let n = first; n <= nowSeq; n++) {
-    lines.push(`#EXT-X-PROGRAM-DATE-TIME:${new Date(n * SEGMENT_SECONDS * 1000).toISOString()}`);
-    lines.push(`#EXTINF:${SEGMENT_SECONDS.toFixed(3)},`);
-    lines.push(selfUrl(req, station, { asset: 'seg', n: String(n) }));
+  for (let n = first; n <= nowSeq + 1; n++) {
+    const index = ((n % TS_SEGMENT_COUNT) + TS_SEGMENT_COUNT) % TS_SEGMENT_COUNT;
+    if (n !== first && index === 0) lines.push('#EXT-X-DISCONTINUITY');
+    lines.push(`#EXT-X-PROGRAM-DATE-TIME:${new Date(n * TS_SEGMENT_SECONDS * 1000).toISOString()}`);
+    lines.push(`#EXTINF:${TS_SEGMENT_SECONDS.toFixed(3)},`);
+    lines.push(tsSegmentUrl(station, n));
   }
   lines.push('');
   return lines.join('\n');
@@ -261,9 +272,9 @@ function master(req, station) {
   const video = selfUrl(req, station, { stage: 'video' });
   return [
     '#EXTM3U',
-    '#EXT-X-VERSION:7',
+    '#EXT-X-VERSION:3',
     `#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="radio",NAME="Radio",DEFAULT=YES,AUTOSELECT=YES,URI="${audio}"`,
-    '#EXT-X-STREAM-INF:BANDWIDTH=320000,AVERAGE-BANDWIDTH=210000,RESOLUTION=640x360,FRAME-RATE=25.000,AUDIO="radio"',
+    '#EXT-X-STREAM-INF:BANDWIDTH=180000,AVERAGE-BANDWIDTH=120000,RESOLUTION=320x180,FRAME-RATE=1.000,CODECS="avc1.42e01e,mp4a.40.5",AUDIO="radio"',
     video,
     '',
   ].join('\n');
@@ -304,7 +315,7 @@ export default async function handler(req, res) {
       const audioText = await audioMedia(req, station, cfg);
       const audioEdge = latestProgramDateTime(audioText);
       const anchorMs = Number.isFinite(audioEdge) ? audioEdge : Date.now();
-      return send(res, 200, videoPlaylist(req, station, anchorMs), 'application/vnd.apple.mpegurl; charset=utf-8');
+      return send(res, 200, videoPlaylist(station, anchorMs), 'application/vnd.apple.mpegurl; charset=utf-8');
     }
     if (stage === 'status') {
       const [initOk, segOk] = await Promise.all([
