@@ -29,58 +29,72 @@ jobs:
           echo 'v15 did not become ready' >&2
           exit 1
 
-      - name: Diagnose preencoded FM Ehime mux
-        shell: bash
-        run: |
-          set -euo pipefail
-          root='https://ajiousama-radiko.onrender.com'
-          curl -fsS --max-time 30 "$root/radio-file-debug/JOEU-FM" | tee /tmp/file-debug.txt
-          grep -q '^video_mode=preencoded-h264-copy$' /tmp/file-debug.txt
-          grep -q '^live_start_index=-1$' /tmp/file-debug.txt
-          grep -q '^started=True$' /tmp/file-debug.txt
-          awk -F= '/^bytes=/{if ($2 >= 1316) ok=1} END{exit !ok}' /tmp/file-debug.txt
-
-      - name: Cold-start probe FM Ehime MPEG-TS video and audio
+      - name: Install ffprobe
         shell: bash
         run: |
           if ! command -v ffprobe >/dev/null 2>&1; then
             sudo apt-get update
             sudo apt-get install -y ffmpeg
           fi
-          set +e
+
+      - name: Probe all 12 FreeWiFi radios with image and audio
+        shell: bash
+        run: |
+          set -u
           root='https://ajiousama-radiko.onrender.com'
-          sid='JOEU-FM'
-          probe_ok=0
-          {
-            echo '=== HEAD ==='
-            time curl -fsSI --max-time 15 "$root/radio-tv/$sid"
-            sleep 1
-            echo '=== GET capture ==='
+          stations=(JOEU-FM RNB ABC CCL 802 FMO MBS OBC KBS ALPHA-STATION E-RADIO CRK)
+          : > /tmp/all-radio-probe.txt
+          failed=0
+
+          for sid in "${stations[@]}"; do
+            echo "===== $sid =====" | tee -a /tmp/all-radio-probe.txt
+            curl -fsSI --max-time 10 "$root/radio-tv/$sid" >/tmp/head.txt 2>&1 || true
+            cat /tmp/head.txt >> /tmp/all-radio-probe.txt
+            rm -f "/tmp/${sid}.ts" /tmp/ffprobe.txt /tmp/curl.err
+
             start=$(date +%s)
-            curl -v --max-time 20 "$root/radio-tv/$sid" -o /tmp/radio.ts 2>/tmp/curl.err
+            curl --max-time 15 "$root/radio-tv/$sid" -o "/tmp/${sid}.ts" 2>/tmp/curl.err
             rc=$?
             end=$(date +%s)
-            echo "curl_rc=$rc elapsed=$((end-start))s"
-            sed -n '1,120p' /tmp/curl.err
-            ls -l /tmp/radio.ts || true
-            timeout 20 ffprobe -v error -show_entries stream=codec_name,codec_type,width,height,sample_rate,channels -show_entries format=duration,size,bit_rate /tmp/radio.ts > /tmp/ffprobe.txt 2>&1
-            ffprobe_rc=$?
-            cat /tmp/ffprobe.txt
-            if [ "$ffprobe_rc" -eq 0 ] && grep -q 'codec_type=video' /tmp/ffprobe.txt && grep -q 'codec_type=audio' /tmp/ffprobe.txt; then probe_ok=1; fi
-            if [ "$probe_ok" -ne 1 ]; then
-              echo '=== debug after failed live GET ==='
-              curl -fsS --max-time 30 "$root/radio-file-debug/$sid" || true
+            bytes=$(wc -c < "/tmp/${sid}.ts" 2>/dev/null || echo 0)
+            echo "curl_rc=$rc elapsed=$((end-start))s bytes=$bytes" | tee -a /tmp/all-radio-probe.txt
+            sed -n '1,60p' /tmp/curl.err >> /tmp/all-radio-probe.txt
+
+            ffprobe -v error \
+              -show_entries stream=codec_name,codec_type,width,height,sample_rate,channels \
+              -show_entries format=duration,size,bit_rate \
+              "/tmp/${sid}.ts" > /tmp/ffprobe.txt 2>&1
+            probe_rc=$?
+            cat /tmp/ffprobe.txt | tee -a /tmp/all-radio-probe.txt
+
+            if [ "$probe_rc" -eq 0 ] \
+              && grep -q 'codec_name=h264' /tmp/ffprobe.txt \
+              && grep -q 'codec_type=video' /tmp/ffprobe.txt \
+              && grep -q 'width=640' /tmp/ffprobe.txt \
+              && grep -q 'height=360' /tmp/ffprobe.txt \
+              && grep -q 'codec_name=aac' /tmp/ffprobe.txt \
+              && grep -q 'codec_type=audio' /tmp/ffprobe.txt \
+              && [ "$bytes" -ge 10000 ]; then
+              echo "PASS $sid image+audio" | tee -a /tmp/all-radio-probe.txt
+            else
+              echo "FAIL $sid" | tee -a /tmp/all-radio-probe.txt
+              echo "--- internal debug ---" | tee -a /tmp/all-radio-probe.txt
+              curl -fsS --max-time 30 "$root/radio-file-debug/$sid" 2>&1 | tee -a /tmp/all-radio-probe.txt || true
+              failed=1
             fi
-          } > /tmp/probe.txt 2>&1
-          cat /tmp/probe.txt
-          test "$probe_ok" -eq 1
+            echo | tee -a /tmp/all-radio-probe.txt
+          done
+
+          echo '===== SUMMARY =====' | tee -a /tmp/all-radio-probe.txt
+          grep -E '^(PASS|FAIL) ' /tmp/all-radio-probe.txt | tee -a /tmp/summary.txt
+          test "$failed" -eq 0
 
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
-          name: render-radio-probe
+          name: render-radio-all-12-probe
           path: |
-            /tmp/file-debug.txt
-            /tmp/probe.txt
-            /tmp/radio.ts
+            /tmp/all-radio-probe.txt
+            /tmp/summary.txt
           if-no-files-found: warn
           retention-days: 1
