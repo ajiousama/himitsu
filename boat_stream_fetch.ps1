@@ -53,7 +53,7 @@ function Get-CurrentSetting([string]$stadium) {
   $epoch = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
   $url = "https://front.player.boatrace-cdn.jp/setting/live/$stadium/setting.json?t=$epoch"
   try {
-    $r = Invoke-WebRequest -Uri $url -Headers $settingHeaders -TimeoutSec 12 -ErrorAction Stop
+    $r = Invoke-WebRequest -Uri $url -Headers $settingHeaders -TimeoutSec 8 -ErrorAction Stop
     return ($r.Content | ConvertFrom-Json)
   } catch {
     $status = Get-HttpStatus $_
@@ -73,87 +73,11 @@ function Test-TimeWindow($item) {
   } catch { return $true }
 }
 
-function Test-PlaybackKey([string]$refId, [string]$candidate) {
-  if ([string]::IsNullOrWhiteSpace($refId) -or [string]::IsNullOrWhiteSpace($candidate)) { return $false }
-  $url = "https://playback.api.streaks.jp/v1/projects/cp-boatrace-prod/medias/ref:${refId}?audio_only=false"
-  try {
-    $r = Invoke-WebRequest -Uri $url -Headers (New-PlaybackHeaders $candidate) -TimeoutSec 10 -ErrorAction Stop
-    $j = $r.Content | ConvertFrom-Json
-    return [bool]($j.sources -and $j.sources.Count -gt 0 -and $j.sources[0].src)
-  } catch { return $false }
-}
-
-function Get-PlayerBodies {
-  $playerUrl = 'https://front.player.boatrace-cdn.jp/player/live?service=boatcast&stadium=12suminoe&sourceType=mix&dvr=1&audioMode=0&autoplay=1&bitrate=high'
-  $headers = @{ 'User-Agent'=$ua; 'Accept'='text/html,application/xhtml+xml,application/javascript,*/*' }
-  $bodies = New-Object System.Collections.Generic.List[string]
-  try {
-    $page = Invoke-WebRequest -Uri $playerUrl -Headers $headers -TimeoutSec 15 -ErrorAction Stop
-    $bodies.Add([string]$page.Content)
-    $base = [Uri]$playerUrl
-    $seen = @{}
-    foreach ($m in [regex]::Matches([string]$page.Content, '(?is)<script[^>]+src=["'']([^"'']+)["'']')) {
-      if ($bodies.Count -ge 32) { break }
-      try {
-        $src = [Uri]::new($base, $m.Groups[1].Value).AbsoluteUri
-        if ($seen.ContainsKey($src)) { continue }
-        $seen[$src] = $true
-        $js = Invoke-WebRequest -Uri $src -Headers $headers -TimeoutSec 12 -ErrorAction Stop
-        $bodies.Add([string]$js.Content)
-      } catch {}
-    }
-  } catch {}
-  return ,$bodies.ToArray()
-}
-
-function Discover-PlaybackKey([string]$probeRef) {
-  $capturedPath = Join-Path $PSScriptRoot '.boatcast_playback_key'
-  if (Test-Path $capturedPath) {
-    try {
-      $captured = ([System.IO.File]::ReadAllText($capturedPath)).Trim()
-      if (-not [string]::IsNullOrWhiteSpace($captured) -and (Test-PlaybackKey $probeRef $captured)) {
-        Write-Host 'BOATCAST playback key: browser-captured key validated'
-        return $captured
-      }
-      Write-Host 'BOATCAST playback key: browser capture present but validation failed'
-    } catch {}
-  }
-
-  $configured = [Environment]::GetEnvironmentVariable('BOATRACE_STREAKS_API_KEY')
-  if (-not [string]::IsNullOrWhiteSpace($configured) -and (Test-PlaybackKey $probeRef $configured)) {
-    Write-Host 'BOATCAST playback key: configured key validated'
-    return $configured
-  }
-
-  $candidates = New-Object System.Collections.Generic.List[string]
-  $seen = @{}
-  foreach ($body in (Get-PlayerBodies)) {
-    foreach ($pattern in @(
-      '(?<![A-Za-z0-9_$])Wa\s*=\s*["'']([^"'']{8,200})["'']',
-      '(?i)apiKey\s*[:=]\s*["'']([^"'']{8,200})["'']',
-      '(?i)x-streaks-api-key[^"'']*["'']([^"'']{8,200})["'']'
-    )) {
-      foreach ($m in [regex]::Matches([string]$body, $pattern)) {
-        $c = [string]$m.Groups[1].Value
-        if (-not $seen.ContainsKey($c)) { $seen[$c] = $true; $candidates.Add($c) }
-      }
-    }
-  }
-  Write-Host "BOATCAST playback key candidates=$($candidates.Count)"
-  foreach ($c in $candidates) {
-    if (Test-PlaybackKey $probeRef $c) {
-      Write-Host 'BOATCAST playback key: public player key auto-detected and validated'
-      return $c
-    }
-  }
-  return ''
-}
-
 function Resolve-Playback([string]$refId, [string]$apiKey) {
-  if ([string]::IsNullOrWhiteSpace($refId)) { return '' }
+  if ([string]::IsNullOrWhiteSpace($refId) -or [string]::IsNullOrWhiteSpace($apiKey)) { return '' }
   $url = "https://playback.api.streaks.jp/v1/projects/cp-boatrace-prod/medias/ref:${refId}?audio_only=false"
   try {
-    $r = Invoke-WebRequest -Uri $url -Headers (New-PlaybackHeaders $apiKey) -TimeoutSec 12 -ErrorAction Stop
+    $r = Invoke-WebRequest -Uri $url -Headers (New-PlaybackHeaders $apiKey) -TimeoutSec 10 -ErrorAction Stop
     $j = $r.Content | ConvertFrom-Json
     if ($j.sources -and $j.sources.Count -gt 0 -and $j.sources[0].src) {
       return ([string]$j.sources[0].src).Trim()
@@ -165,45 +89,84 @@ function Resolve-Playback([string]$refId, [string]$apiKey) {
   return ''
 }
 
-$probeSetting = Get-CurrentSetting '12suminoe'
-$probeRef = ''
-if ($probeSetting) {
-  foreach ($n in @('mix_dvr','mix_live','br_dvr','br_live')) {
-    $p = $probeSetting.PSObject.Properties[$n]
-    if ($p -and (Test-TimeWindow $p.Value)) { $probeRef = [string]$p.Value.ref_id; if ($probeRef) { break } }
+$result = [ordered]@{}
+$browserPath = Join-Path $PSScriptRoot '.boatcast_browser_streams.json'
+if (Test-Path $browserPath) {
+  try {
+    $b = ([System.IO.File]::ReadAllText($browserPath) | ConvertFrom-Json)
+    foreach ($p in $b.PSObject.Properties) {
+      $url = ([string]$p.Value).Trim()
+      if ($url) { $result[$p.Name] = $url }
+    }
+    Write-Host "BOATCAST browser-prefetched streams: $($result.Count)"
+  } catch {
+    Write-Host "::warning::Could not read browser-prefetched BOAT streams"
   }
 }
-$apiKey = ''
-if ($probeRef) { $apiKey = Discover-PlaybackKey $probeRef }
-if ([string]::IsNullOrWhiteSpace($apiKey)) {
-  Write-Host '::warning::BOATCAST playback API key could not be validated from current public player'
+
+$apiKey = [Environment]::GetEnvironmentVariable('BOATRACE_STREAKS_API_KEY')
+$capturedKeyPath = Join-Path $PSScriptRoot '.boatcast_playback_key'
+if ([string]::IsNullOrWhiteSpace($apiKey) -and (Test-Path $capturedKeyPath)) {
+  try { $apiKey = ([System.IO.File]::ReadAllText($capturedKeyPath)).Trim() } catch {}
 }
 
-$result = [ordered]@{}
+$activeCodes = New-Object System.Collections.Generic.List[string]
 foreach ($v in $venues) {
   $setting = Get-CurrentSetting $v.Code
   if ($null -eq $setting) { continue }
-  $resolved = ''
-  $usedRef = ''
+
+  $activeRefs = New-Object System.Collections.Generic.List[string]
   foreach ($name in @('mix_dvr', 'mix_live', 'br_dvr', 'br_live')) {
     $prop = $setting.PSObject.Properties[$name]
     if ($null -eq $prop) { continue }
     $item = $prop.Value
     if (-not (Test-TimeWindow $item)) { continue }
-    $refId = [string]$item.ref_id
-    if ([string]::IsNullOrWhiteSpace($refId)) { continue }
-    $resolved = Resolve-Playback $refId $apiKey
-    if ($resolved) { $usedRef = $refId; break }
+    $refId = ([string]$item.ref_id).Trim()
+    if ($refId) { $activeRefs.Add($refId) }
+  }
+
+  if ($activeRefs.Count -eq 0) {
+    Write-Host "STREAM WAIT $($v.Id): no active BOATCAST window"
+    continue
+  }
+  $activeCodes.Add($v.Code)
+
+  if ($result.Contains($v.Code)) {
+    Write-Host "STREAM OK $($v.Id) via first-party browser"
+    continue
+  }
+
+  $resolved = ''
+  if (-not [string]::IsNullOrWhiteSpace($apiKey)) {
+    foreach ($refId in $activeRefs) {
+      $resolved = Resolve-Playback $refId $apiKey
+      if ($resolved) { break }
+    }
   }
   if ($resolved) {
     $result[$v.Code] = $resolved
-    Write-Host "STREAM OK $($v.Id) ref=$usedRef"
+    Write-Host "STREAM OK $($v.Id) via playback API"
   } else {
-    Write-Host "STREAM WAIT $($v.Id): no active BOATCAST source"
+    Write-Host "STREAM WAIT $($v.Id): active but unresolved"
   }
 }
 
 $utf8 = New-Object System.Text.UTF8Encoding($false)
-$json = $result | ConvertTo-Json -Depth 4
-[System.IO.File]::WriteAllText((Join-Path $PSScriptRoot 'boat_stream_urls.json'), $json, $utf8)
-Write-Host "BOAT stream URLs fetched: $($result.Count)"
+[System.IO.File]::WriteAllText(
+  (Join-Path $PSScriptRoot 'boat_stream_urls.json'),
+  ($result | ConvertTo-Json -Depth 4),
+  $utf8
+)
+
+$status = [ordered]@{
+  active_count = $activeCodes.Count
+  active_stadiums = @($activeCodes)
+  stream_count = $result.Count
+  stream_stadiums = @($result.Keys)
+}
+[System.IO.File]::WriteAllText(
+  (Join-Path $PSScriptRoot 'boat_stream_fetch_status.json'),
+  ($status | ConvertTo-Json -Depth 4),
+  $utf8
+)
+Write-Host "BOAT stream coverage: active=$($activeCodes.Count) resolved=$($result.Count)"
