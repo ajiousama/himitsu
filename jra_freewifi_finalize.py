@@ -83,6 +83,12 @@ def remove_jra_from_managed(text):
     return '\n'.join(out).rstrip() + '\n'
 
 
+def apply_radio_block():
+    """Keep the FreeWiFi radio section on the playback-first routes after every refresh."""
+    from radio_tv_nationwide_freewifi import main as repair_radio
+    repair_radio()
+
+
 def main():
     if not FREEWIFI.exists():
         raise SystemExit('freewifi not found')
@@ -97,6 +103,7 @@ def main():
 
     if not jra_active_today():
         FREEWIFI.write_text(base.rstrip() + '\n', encoding='utf-8')
+        apply_radio_block()
         print('JRA is not active today; GCH free YouTube entry removed')
         return
 
@@ -130,6 +137,7 @@ def main():
         print('GCH free YouTube is not LIVE yet')
 
     FREEWIFI.write_text(base.rstrip() + '\n', encoding='utf-8')
+    apply_radio_block()
 
 
 if __name__ == '__main__':
