@@ -1,9 +1,9 @@
-name: Update BOAT Today Independently
+name: Update BOAT Today V2 Resolver
 
 on:
   workflow_dispatch:
   schedule:
-    # 09:05-22:35 JST: refresh every 30 minutes.
+    # 09:05-22:35 JST: refresh the held-venue list every 30 minutes.
     - cron: "5,35 0-13 * * *"
     # 23:05 JST: final cleanup after night racing.
     - cron: "5 14 * * *"
@@ -11,28 +11,22 @@ on:
     branches:
       - main
     paths:
-      - "freewifi_boat_today.py"
-      - "freewifi_boat_today_runner.py"
-      - "boat_stream_fetch.ps1"
-      - "boatcast_browser_key_probe.py"
-      - "boat_stream_seed.m3u"
-      - "repair_boat_local_epg_openapi.py"
-      - "public_sports_youtube_fallback.m3u"
+      - "boat_v2_build.py"
+      - "api/boat.js"
       - ".github/workflows/update_boat_today.yml"
 
 permissions:
   contents: write
 
-# BOAT is intentionally isolated from the general FreeWiFi/EPG writer.
-# It publishes only BOAT presentation state, never the shared EPG artifacts.
+# BOAT V2 owns only the BOAT block and BOAT state files.
 concurrency:
-  group: himitsu-boat-writer
+  group: himitsu-boat-v2-writer
   cancel-in-progress: false
 
 jobs:
   update:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 8
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -47,68 +41,44 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install BOAT player browser probe
-        run: python -m pip install --disable-pip-version-check -q selenium
+      - name: Build BOAT V2 held venues
+        run: python -u boat_v2_build.py
 
-      - name: Ensure today's local BOAT schedule exists
-        shell: bash
+      - name: Validate BOAT V2 state
         run: |
-          set -euo pipefail
-          if python - <<'PY'
-          from datetime import datetime, timedelta, timezone
+          python - <<'PY'
+          import json
           from pathlib import Path
-          import xml.etree.ElementTree as ET
-          p=Path('public_sports_epg_local.xml')
-          JST=timezone(timedelta(hours=9))
-          today=datetime.now(JST).strftime('%Y%m%d')
-          if not p.exists(): raise SystemExit(1)
-          r=ET.parse(p).getroot()
-          boats=[x for x in r.findall('programme') if (x.get('channel') or '').startswith('boat.') and (x.get('start') or '').startswith(today)]
-          print('Persisted local BOAT programmes today=',len(boats))
-          raise SystemExit(0 if boats else 1)
+          d = json.loads(Path('today_boat_status.json').read_text(encoding='utf-8'))
+          if d.get('system') != 'boat-v2-resolver':
+              raise SystemExit('unexpected BOAT system')
+          held = int(d.get('held_count') or 0)
+          visible = int(d.get('visible_count') or 0)
+          cards = int(d.get('card_count') or 0)
+          print('BOAT V2 cards=', cards, 'held=', held, 'visible=', visible)
+          if held != visible:
+              raise SystemExit(f'BOAT V2 venue mismatch: held={held} visible={visible}')
+          text = Path('freewifi').read_text(encoding='utf-8-sig', errors='replace')
+          count = text.count('https://himitsu-six.vercel.app/api/boat?venue=')
+          print('BOAT V2 resolver entries=', count)
+          if count != visible:
+              raise SystemExit(f'BOAT V2 playlist mismatch: resolver_entries={count} visible={visible}')
           PY
-          then
-            echo 'Local BOAT schedule is current'
-          else
-            echo 'Local BOAT schedule missing/stale; regenerate inside ajiousama'
-            python -u public_sports_epg_local_fast.py
-          fi
 
-      - name: Recover BOAT streams from JLC and local history
-        run: python -u boatcast_browser_key_probe.py
-
-      - name: Fetch BOAT stream URLs independently
-        shell: pwsh
-        env:
-          BOATRACE_STREAKS_API_KEY: ${{ secrets.BOATRACE_STREAKS_API_KEY }}
-        run: ./boat_stream_fetch.ps1
-
-      - name: Build independent BOAT current venues
-        env:
-          BOATRACE_STREAKS_API_KEY: ${{ secrets.BOATRACE_STREAKS_API_KEY }}
-        run: python -u freewifi_boat_today_runner.py
-
-      # Publish every improvement first. Validation still fails the run on a
-      # partial mismatch, but recovered venues are not discarded.
-      - name: Publish BOAT state safely
+      - name: Publish BOAT V2 state safely
         shell: bash
-        env:
-          BOATRACE_STREAKS_API_KEY: ${{ secrets.BOATRACE_STREAKS_API_KEY }}
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
           publish() {
-            # Deliberately do NOT stage public_sports_epg_local.xml or
-            # verified_daily_status.json here. The main EPG workflow owns
-            # those shared artifacts, so BOAT cannot invalidate its final push.
-            git add freewifi today_boat_status.json
+            git add freewifi today_boat_status.json boat_v2_state.json
             if git diff --cached --quiet; then
-              echo "BOAT state already current"
+              echo "BOAT V2 state already current"
               return 0
             fi
-            git commit -m "Update independent BOAT current venues [skip ci]"
+            git commit -m "Update BOAT V2 current venues [skip ci]"
             git push origin HEAD:main
           }
 
@@ -116,45 +86,16 @@ jobs:
             exit 0
           fi
 
-          for attempt in 2 3; do
-            echo "BOAT push moved; rebuild BOAT state from latest main ($attempt/3)"
+          for attempt in 2 3 4; do
+            echo "BOAT V2 main moved; rebuild on latest main ($attempt/4)"
             git fetch origin main
             git reset --hard origin/main
-            if ! python - <<'PY'
-          from datetime import datetime, timedelta, timezone
-          from pathlib import Path
-          import xml.etree.ElementTree as ET
-          p=Path('public_sports_epg_local.xml'); JST=timezone(timedelta(hours=9)); today=datetime.now(JST).strftime('%Y%m%d')
-          if not p.exists(): raise SystemExit(1)
-          r=ET.parse(p).getroot(); boats=[x for x in r.findall('programme') if (x.get('channel') or '').startswith('boat.') and (x.get('start') or '').startswith(today)]
-          raise SystemExit(0 if boats else 1)
-          PY
-            then
-              python -u public_sports_epg_local_fast.py
-            fi
-            python -u boatcast_browser_key_probe.py
-            BOATRACE_STREAKS_API_KEY="$BOATRACE_STREAKS_API_KEY" pwsh -NoProfile -File ./boat_stream_fetch.ps1
-            BOATRACE_STREAKS_API_KEY="$BOATRACE_STREAKS_API_KEY" python -u freewifi_boat_today_runner.py
+            python -u boat_v2_build.py
             if publish; then
               exit 0
             fi
+            sleep 1
           done
 
-          echo "::error::BOAT publish failed after rebuild retries"
+          echo "::error::BOAT V2 publish failed after retries"
           exit 1
-
-      - name: Validate independent BOAT state
-        run: |
-          python - <<'PY'
-          import json
-          from pathlib import Path
-          p = Path('today_boat_status.json')
-          if not p.exists():
-              raise SystemExit('today_boat_status.json missing')
-          d = json.loads(p.read_text(encoding='utf-8'))
-          held = int(d.get('held_count') or 0)
-          visible = int(d.get('visible_count') or 0)
-          print('BOAT held=', held, 'visible=', visible, 'end_check=', d.get('scheduled_end_check'))
-          if held and visible != held:
-              raise SystemExit(f'BOAT venue mismatch: held={held} visible={visible}')
-          PY
