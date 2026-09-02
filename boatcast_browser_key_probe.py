@@ -54,7 +54,7 @@ def held_today():
                     found.append(ch)
                     seen.add(ch)
         except Exception as e:
-            print(f'SAKURA held detection EPG error: {type(e).__name__}')
+            print(f'JLC held detection EPG error: {type(e).__name__}')
     return found
 
 
@@ -74,51 +74,103 @@ def stream_score(url):
     return score
 
 
-def drain_streams(driver):
+def extract_src(payload):
+    if not isinstance(payload, dict):
+        return ''
+    sources = payload.get('sources')
+    if isinstance(sources, list) and sources:
+        item = sources[0]
+        if isinstance(item, dict) and item.get('src'):
+            return str(item['src']).strip()
+    return ''
+
+
+def drain_media(driver):
     urls = []
+    playback_srcs = []
     try:
         logs = driver.get_log('performance')
     except Exception:
-        return urls
+        return urls, playback_srcs
     for entry in logs:
         try:
             msg = json.loads(entry['message'])['message']
+            method = msg.get('method')
             params = msg.get('params') or {}
-            if msg.get('method') == 'Network.requestWillBeSent':
+            request_id = ''
+            if method == 'Network.requestWillBeSent':
                 url = str((params.get('request') or {}).get('url') or '')
-            elif msg.get('method') == 'Network.responseReceived':
-                url = str((params.get('response') or {}).get('url') or '')
+            elif method == 'Network.responseReceived':
+                resp = params.get('response') or {}
+                url = str(resp.get('url') or '')
+                request_id = str(params.get('requestId') or '')
             else:
                 continue
             if looks_like_stream(url):
                 urls.append(url)
+            if method == 'Network.responseReceived' and 'playback.api.streaks.jp/' in url and request_id:
+                try:
+                    body = driver.execute_cdp_cmd('Network.getResponseBody', {'requestId': request_id})
+                    payload = json.loads((body or {}).get('body') or '{}')
+                    src = extract_src(payload)
+                    if src:
+                        playback_srcs.append(src)
+                except Exception:
+                    pass
         except Exception:
             continue
-    return urls
+    return urls, playback_srcs
 
 
 def pick_stream(urls):
     uniq = []
     seen = set()
     for u in urls:
-        if u not in seen:
-            uniq.append(u); seen.add(u)
+        if u and u not in seen:
+            uniq.append(u)
+            seen.add(u)
     if not uniq:
         return ''
     uniq.sort(key=stream_score, reverse=True)
     return uniq[0]
 
 
-def livebb_href(driver):
+def iframe_srcs(driver):
     try:
-        hrefs = driver.execute_script('''
-            return Array.from(document.querySelectorAll('a[href]'))
-              .map(a => a.href)
-              .filter(h => h && h.includes('livebb.jlc.ne.jp'));
+        vals = driver.execute_script('''
+            return Array.from(document.querySelectorAll('iframe[src]'))
+              .map(x => x.src)
+              .filter(Boolean);
         ''') or []
-        return str(hrefs[0]) if hrefs else ''
+        out = []
+        for x in vals:
+            s = str(x)
+            if s.startswith(('http://', 'https://')) and 'googletagmanager.com' not in s:
+                out.append(s)
+        return out
     except Exception:
-        return ''
+        return []
+
+
+def load_and_capture(driver, url, timeout_cls, seconds=8):
+    candidates = []
+    playback = []
+    try:
+        driver.get(url)
+    except timeout_cls:
+        try:
+            driver.execute_script('window.stop();')
+        except Exception:
+            pass
+    deadline = time.time() + seconds
+    while time.time() < deadline:
+        time.sleep(0.4)
+        a, b = drain_media(driver)
+        candidates.extend(a)
+        playback.extend(b)
+        if candidates or playback:
+            break
+    return candidates, playback
 
 
 def main():
@@ -128,7 +180,7 @@ def main():
     active = held_today()
     streams = {}
     status = {
-        'source': 'https://boatrace.sakura.tv',
+        'source': 'boatrace.sakura.tv -> livebb.jlc.ne.jp',
         'active_count': len(active),
         'active_stadiums': [VENUES[x][0] for x in active],
         'resolved_count': 0,
@@ -138,7 +190,7 @@ def main():
     if not active:
         STREAM_OUT.write_text('{}', encoding='utf-8')
         STATUS_OUT.write_text(json.dumps(status, ensure_ascii=False, indent=2), encoding='utf-8')
-        print('SAKURA browser: no held BOAT venue in local EPG')
+        print('JLC browser: no held BOAT venue in local EPG')
         return 0
 
     try:
@@ -146,7 +198,7 @@ def main():
         from selenium.common.exceptions import TimeoutException
         from selenium.webdriver.chrome.options import Options
     except Exception as e:
-        print(f'SAKURA browser unavailable: selenium import failed ({type(e).__name__})')
+        print(f'JLC browser unavailable: selenium import failed ({type(e).__name__})')
         STREAM_OUT.write_text('{}', encoding='utf-8')
         STATUS_OUT.write_text(json.dumps(status, ensure_ascii=False, indent=2), encoding='utf-8')
         return 0
@@ -169,63 +221,53 @@ def main():
 
         for ch in active:
             code, slug = VENUES[ch]
-            page = f'https://boatrace.sakura.tv/{slug}/'
-            detail = {'page': page, 'livebb': '', 'captured': False}
+            jcd = code[:2]
+            sakura_page = f'https://boatrace.sakura.tv/{slug}/'
+            livebb = f'https://livebb.jlc.ne.jp/bb_top/new_bb/index.php?tpl={jcd}'
+            detail = {'sakura': sakura_page, 'livebb': livebb, 'frames': [], 'captured': False}
             candidates = []
+            playback = []
             try:
-                try:
-                    driver.get(page)
-                except TimeoutException:
-                    try: driver.execute_script('window.stop();')
-                    except Exception: pass
+                a, b = load_and_capture(driver, livebb, TimeoutException, 7)
+                candidates.extend(a)
+                playback.extend(b)
 
-                deadline = time.time() + 6
-                while time.time() < deadline:
-                    time.sleep(0.4)
-                    candidates.extend(drain_streams(driver))
-                    if candidates:
-                        break
+                frames = iframe_srcs(driver)
+                detail['frames'] = frames[:8]
+                if not candidates and not playback:
+                    for frame in frames[:4]:
+                        a, b = load_and_capture(driver, frame, TimeoutException, 7)
+                        candidates.extend(a)
+                        playback.extend(b)
+                        if candidates or playback:
+                            break
 
-                if not candidates:
-                    href = livebb_href(driver)
-                    detail['livebb'] = href
-                    if href:
-                        try:
-                            driver.get(href)
-                        except TimeoutException:
-                            try: driver.execute_script('window.stop();')
-                            except Exception: pass
-                        deadline = time.time() + 7
-                        while time.time() < deadline:
-                            time.sleep(0.4)
-                            candidates.extend(drain_streams(driver))
-                            if candidates:
-                                break
-
-                src = pick_stream(candidates)
+                src = pick_stream(playback + candidates)
                 if src:
                     streams[code] = src
                     detail['captured'] = True
                     detail['host'] = urlsplit(src).netloc
-                    print(f'SAKURA STREAM OK {ch} via {detail.get("host", "") }')
+                    print(f'JLC STREAM OK {ch} via {detail.get("host", "")}')
                 else:
-                    print(f'SAKURA STREAM WAIT {ch}: no m3u8 observed')
+                    print(f'JLC STREAM WAIT {ch}: no playable stream observed frames={len(frames)}')
             except Exception as e:
                 detail['error'] = type(e).__name__
-                print(f'SAKURA STREAM WAIT {ch}: {type(e).__name__}')
+                print(f'JLC STREAM WAIT {ch}: {type(e).__name__}')
             status['details'][code] = detail
     except Exception as e:
-        print(f'SAKURA browser unavailable: {type(e).__name__}')
+        print(f'JLC browser unavailable: {type(e).__name__}')
     finally:
         if driver is not None:
-            try: driver.quit()
-            except Exception: pass
+            try:
+                driver.quit()
+            except Exception:
+                pass
 
     status['resolved_count'] = len(streams)
     status['resolved_stadiums'] = list(streams)
     STREAM_OUT.write_text(json.dumps(streams, ensure_ascii=False, indent=2), encoding='utf-8')
     STATUS_OUT.write_text(json.dumps(status, ensure_ascii=False, indent=2), encoding='utf-8')
-    print(f'SAKURA browser streams: active={len(active)} resolved={len(streams)}')
+    print(f'JLC browser streams: active={len(active)} resolved={len(streams)}')
     return 0
 
 
