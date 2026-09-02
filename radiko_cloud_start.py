@@ -26,6 +26,15 @@ except Exception as e:
     RADIO_TV_IMPORT_ERROR = f"{type(e).__name__}: {e}"
     print(f"[radio-tv] disabled at startup: {RADIO_TV_IMPORT_ERROR}", flush=True)
 
+# BOAT resolver is isolated from Radiko. If it fails to import, Radiko stays up.
+BOAT_IMPORT_ERROR = None
+try:
+    import boat_cloud_resolver as boat_cloud
+except Exception as e:
+    boat_cloud = None
+    BOAT_IMPORT_ERROR = f"{type(e).__name__}: {e}"
+    print(f"[boat] disabled at startup: {BOAT_IMPORT_ERROR}", flush=True)
+
 
 def cloud_auth(force: bool = False):
     """Current 2026 Radiko auth flow for api.radiko.jp."""
@@ -115,13 +124,19 @@ def tun_capability_report() -> str:
 
 
 core.auth = cloud_auth
-core.BUILD = "20260901-radio-tv-nationwide-v1"
+core.BUILD = "20260902-boat-v2-render-resolver"
 
 _original_do_get = core.Handler.do_GET
 
 
 def _cloud_do_get(self):
     path = urllib.parse.urlsplit(self.path).path
+    if boat_cloud is not None and boat_cloud.handle_request(self):
+        return
+    if boat_cloud is None and (path == "/boat" or path.startswith("/boat/")):
+        message = f"boat resolver unavailable: {BOAT_IMPORT_ERROR or 'dependency import failed'}\n"
+        self.send_bytes(503, message.encode(), "text/plain; charset=utf-8")
+        return
     if radio_tv is not None and radio_tv.handle_request(self):
         return
     if radio_tv is None and (
