@@ -124,7 +124,7 @@ def tun_capability_report() -> str:
 
 
 core.auth = cloud_auth
-core.BUILD = "20260903-radio-tv-fast-first-packet-v4"
+core.BUILD = "20260903-radio-tv-head-prewarm-v5"
 
 _original_do_get = core.Handler.do_GET
 
@@ -159,6 +159,9 @@ core.Handler.do_GET = _cloud_do_get
 def _cloud_do_head(self):
     path = urllib.parse.urlsplit(self.path).path
     if path.startswith("/radio-tv/"):
+        if radio_tv is not None:
+            station = urllib.parse.unquote(path.removeprefix("/radio-tv/")).strip("/")
+            radio_tv.prewarm_station(station)
         self.send_response(200)
         self.send_header("Content-Type", "video/mp2t")
         self.send_header("Cache-Control", "no-store")

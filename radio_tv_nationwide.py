@@ -33,6 +33,10 @@ REGION_LABELS = {
 }
 SID_RE = re.compile(r"^[A-Za-z0-9_-]{2,32}$")
 PUBLIC_RADIKO_BASE = os.environ.get("RADIO_AUDIO_BASE", "https://himitsu-six.vercel.app").rstrip("/")
+_PREWARM_LOCK = threading.Lock()
+_PREWARM: dict[str, tuple[subprocess.Popen, bytes, float]] = {}
+_PREWARMING: set[str] = set()
+_PREWARM_SLOTS = threading.BoundedSemaphore(4)
 
 
 def _accent(sid: str) -> tuple[int, int, int]:
@@ -231,6 +235,55 @@ def _start_attempt(station: str, source: str, timeout: float):
     return proc, first, ""
 
 
+def _expire_prewarm(station: str, proc: subprocess.Popen) -> None:
+    time.sleep(75)
+    with _PREWARM_LOCK:
+        cached = _PREWARM.get(station)
+        if cached is None or cached[0] is not proc:
+            return
+        _PREWARM.pop(station, None)
+    base._stop_proc(proc)
+
+
+def prewarm_station(station: str) -> None:
+    """Prepare one mux after an IPTV client's cheap HEAD channel probe."""
+    if station not in base.STATIONS:
+        return
+    with _PREWARM_LOCK:
+        cached = _PREWARM.get(station)
+        if cached is not None and cached[0].poll() is None:
+            return
+        if cached is not None:
+            _PREWARM.pop(station, None)
+            base._stop_proc(cached[0])
+        if station in _PREWARMING:
+            return
+        _PREWARMING.add(station)
+
+    def worker() -> None:
+        proc = None
+        try:
+            with _PREWARM_SLOTS:
+                source = _audio_url(station)
+                proc, first, _detail = _start_attempt(station, source, 18.0)
+            if proc is None or not first:
+                return
+            with _PREWARM_LOCK:
+                old = _PREWARM.pop(station, None)
+                _PREWARM[station] = (proc, first, time.time())
+            if old is not None:
+                base._stop_proc(old[0])
+            threading.Thread(target=_expire_prewarm, args=(station, proc), daemon=True).start()
+            proc = None
+        finally:
+            with _PREWARM_LOCK:
+                _PREWARMING.discard(station)
+            if proc is not None:
+                base._stop_proc(proc)
+
+    threading.Thread(target=worker, daemon=True).start()
+
+
 def _stream_station(handler, station: str):
     if station not in base.STATIONS:
         handler.send_error(404, "unknown radio station")
@@ -247,16 +300,26 @@ def _stream_station(handler, station: str):
     failures = []
     winner = None
     first = b""
+    with _PREWARM_LOCK:
+        cached = _PREWARM.pop(station, None)
+    if cached is not None:
+        candidate, data, _created = cached
+        if candidate.poll() is None:
+            winner = candidate
+            first = data
+        else:
+            base._stop_proc(candidate)
     # One verified source gets the complete cold-start budget.
     budgets = [18.0]
 
-    for source, timeout in zip(sources, budgets):
-        proc, data, detail = _start_attempt(station, source, timeout)
-        if proc is not None and data:
-            winner = proc
-            first = data
-            break
-        failures.append(f"{source}: {detail[-1200:]}")
+    if winner is None:
+        for source, timeout in zip(sources, budgets):
+            proc, data, detail = _start_attempt(station, source, timeout)
+            if proc is not None and data:
+                winner = proc
+                first = data
+                break
+            failures.append(f"{source}: {detail[-1200:]}")
 
     if winner is None:
         detail = " | ".join(failures)[-3000:] or "radio transcoder failed"

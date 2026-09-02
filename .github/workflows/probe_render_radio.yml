@@ -23,7 +23,7 @@ jobs:
           for attempt in $(seq 1 30); do
             health="$(curl -fsS --max-time 15 "$base/health" || true)"
             echo "attempt=$attempt $health"
-            if grep -Fq '20260903-radio-tv-fast-first-packet-v4' <<<"$health"; then
+            if grep -Fq '20260903-radio-tv-head-prewarm-v5' <<<"$health"; then
               exit 0
             fi
             sleep 10
@@ -42,6 +42,9 @@ jobs:
           base='https://ajiousama-radiko.onrender.com'
           probe_ok=0
           {
+            echo '=== IPTV HEAD prewarm ==='
+            time curl -fsSI --max-time 15 "$base/radio-tv/RNB"
+            sleep 10
             echo '=== debug ==='
             time curl -fsS --max-time 45 "$base/radio-debug/RNB" || true
             echo
