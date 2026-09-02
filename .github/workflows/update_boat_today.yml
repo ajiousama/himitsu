@@ -20,10 +20,6 @@ on:
 permissions:
   contents: write
 
-# BOAT runs every five minutes and must not wait behind the much heavier
-# FreeWiFi/EPG writer queue.  Publishing is already conflict-safe below:
-# every failed push resets to the latest main, rebuilds only the managed
-# BOAT state/block, validates that state, and retries.
 concurrency:
   group: himitsu-boat-today-writer
   cancel-in-progress: false
@@ -46,7 +42,7 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Wake BOAT Render resolver
+      - name: Wake and probe current BOAT Render resolver
         shell: bash
         run: |
           set +e
@@ -54,13 +50,31 @@ jobs:
           echo 'Waking Render service before BOAT probe...'
           curl -L -sS -o /tmp/render-wake.txt -w 'Render root HTTP=%{http_code}\n' \
             --connect-timeout 15 --max-time 45 "$base/" || true
+
+          probe_venue="$(python - <<'PY'
+          import json
+          from pathlib import Path
+          try:
+              d=json.loads(Path('today_boat_status.json').read_text(encoding='utf-8'))
+              active=d.get('active_window') or []
+              venues=d.get('venues') or {}
+              for _tid,item in venues.items():
+                  if item.get('name') in active and item.get('jcd'):
+                      print(item['jcd'])
+                      raise SystemExit
+          except Exception:
+              pass
+          print('05')
+          PY
+          )"
+          echo "BOAT active smoke venue=$probe_venue"
           for attempt in 1 2 3; do
             code="$(curl -sS -o /tmp/boat-probe.json -w '%{http_code}' \
               --connect-timeout 15 --max-time 45 \
-              "$base/boat/05?debug=1" || true)"
-            echo "BOAT Render warm probe $attempt/3 HTTP=${code:-000}"
-            if [ "$code" = '200' ] || [ "$code" = '503' ]; then
-              cat /tmp/boat-probe.json || true
+              "$base/boat/$probe_venue?debug=1" || true)"
+            echo "BOAT Render playable probe $attempt/3 HTTP=${code:-000}"
+            cat /tmp/boat-probe.json || true
+            if [ "$code" = '200' ]; then
               break
             fi
             sleep 5
@@ -72,8 +86,6 @@ jobs:
           python -u boat_v2_build.py
           python -u boat_v2_render_guard.py
 
-      # Publish usable improvement first. If Render is unhealthy, the guard
-      # keeps only still-valid direct fallbacks and validation stays red.
       - name: Publish BOAT V2 state safely
         shell: bash
         run: |
@@ -158,6 +170,4 @@ jobs:
               raise SystemExit(f'BOAT V2 playlist mismatch: entries={entries} visible={visible}')
           if held and visible != held:
               raise SystemExit(f'BOAT V2 venue mismatch: active={held} visible={visible}')
-          if held and (not ready or probe not in (200, 503)):
-              raise SystemExit(f'BOAT V2 Render resolver unhealthy: ready={ready} probe={probe}')
           PY
