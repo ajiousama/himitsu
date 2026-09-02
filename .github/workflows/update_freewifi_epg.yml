@@ -9,7 +9,6 @@ on:
     branches:
       - main
     paths:
-      - "freewifi"
       - "ganble"
       - "normalize_ganble_local.py"
       - "other_live.m3u"
@@ -30,13 +29,9 @@ on:
       - "jra_epg_merge.py"
       - "jra_freewifi_finalize.py"
       - "freewifi_today_public_sports.py"
+      - "freewifi_strip_public_boat.py"
       - "freewifi_today_jra.py"
-      - "freewifi_boat_today.py"
-      - "freewifi_boat_today_runner.py"
-      - "boat_stream_fetch.ps1"
-      - "boatcast_browser_key_probe.py"
       - "finalize_today_public_sports.py"
-      - "prune_expired_boat_freewifi.py"
       - "public_sports_youtube_fallback.py"
       - "public_sports_youtube_fallback.m3u"
       - "build_today_event_counts.py"
@@ -45,8 +40,10 @@ on:
 permissions:
   contents: write
 
+# Shared write lock only. BOAT V2 has a separate acquisition pipeline but
+# both workflows physically update the same freewifi file.
 concurrency:
-  group: himitsu-freewifi-writer
+  group: himitsu-freewifi-state-writer
   cancel-in-progress: false
 
 jobs:
@@ -67,9 +64,6 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: "3.12"
-
-      - name: Install BOATCAST browser probe
-        run: python -m pip install --disable-pip-version-check -q selenium
 
       - name: Set up Node.js for manual YouTube refresh
         if: github.event_name == 'workflow_dispatch'
@@ -117,25 +111,10 @@ jobs:
           test -s verified_daily_status.json
           ! grep -E 'earphone1981/public-sports-iptv' ganble public_sports_epg_local.py public_sports_epg_local_fast.py freewifi_today_public_sports.py public_sports_epg_merge.py freewifi_today_jra.py jra_epg_merge.py verified_daily_override.py
 
-      - name: Sync today's public sports venues into FreeWiFi
-        run: python freewifi_today_public_sports.py
-
-      - name: Capture BOATCAST public playback key
-        run: python -u boatcast_browser_key_probe.py
-
-      - name: Refresh BOAT streams inside ajiousama
-        shell: pwsh
-        env:
-          BOATRACE_STREAKS_API_KEY: ${{ secrets.BOATRACE_STREAKS_API_KEY }}
-        run: ./boat_stream_fetch.ps1
-
-      - name: Apply independent BOAT current venues
-        env:
-          BOATRACE_STREAKS_API_KEY: ${{ secrets.BOATRACE_STREAKS_API_KEY }}
-        run: python -u freewifi_boat_today_runner.py
-
-      - name: Drop expired BOAT stream URLs
-        run: python prune_expired_boat_freewifi.py
+      - name: Sync today's non-BOAT public sports venues into FreeWiFi
+        run: |
+          python freewifi_today_public_sports.py
+          python freewifi_strip_public_boat.py
 
       - name: Sync today's JRA channels into FreeWiFi
         run: python freewifi_today_jra.py
@@ -153,7 +132,6 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add ganble freewifi today_public_sports_status.json today_jra_status.json today_event_counts.json verified_daily_status.json public_sports_epg_local.xml
-          [ ! -f today_boat_status.json ] || git add today_boat_status.json
           [ ! -f public_sports_youtube_fallback.m3u ] || git add public_sports_youtube_fallback.m3u
           if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -f general_youtube.m3u ]; then
             git add general_youtube.m3u
