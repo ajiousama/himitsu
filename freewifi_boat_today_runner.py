@@ -20,6 +20,15 @@ if api_key:
     headers['X-Streaks-Api-Key'] = api_key
 boat.PLAYER_HEADERS = headers
 
+# Keep the useful part of the old earphone BOAT behaviour: a venue does not
+# disappear at the instant the final race starts/finishes. Preserve a still-
+# valid stream/VTR briefly, then prune that venue on the next independent
+# BOAT refresh. This is per-venue (last race + grace), not coarse fixed hours.
+# setting.json is currently 403 from GitHub Actions, so use a conservative
+# 30-minute VTR window until the official end_at can be read reliably again.
+boat.FINISH_GRACE_MINUTES = 30
+boat.END_CHECK_HOURS = set(range(24))
+
 stream_map = {}
 p = Path('boat_stream_urls.json')
 if p.exists():
