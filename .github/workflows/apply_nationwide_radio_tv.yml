@@ -29,17 +29,18 @@ jobs:
       - name: Sync latest main
         run: git pull --ff-only origin main
 
-      - name: Restore compact FreeWiFi radio section
+      - name: Restore compact FreeWiFi image and audio radio section
         run: python radio_tv_nationwide_freewifi.py
 
       - name: Build standalone nationwide radio.m3u
         run: python radiko_freewifi.py --playlist-only
 
-      - name: Validate APTV-compatible radio routing
+      - name: Validate IPTV-compatible image and audio radio routing
         shell: bash
         run: |
           set -euo pipefail
           direct='https://himitsu-six.vercel.app/api/radiko?station='
+          render='https://ajiousama-radiko.onrender.com/radio-tv/'
           base='https://raw.githubusercontent.com/ajiousama/himitsu/radio-ts-assets/'
 
           radio_start="$(grep -n '^## ラジオ$' freewifi | head -1 | cut -d: -f1)"
@@ -50,25 +51,27 @@ jobs:
           sed -n "${radio_start},$((catv_start - 1))p" freewifi > /tmp/freewifi-radio.txt
 
           free_direct_count="$(grep -Fc "$direct" /tmp/freewifi-radio.txt || true)"
+          free_render_count="$(grep -Fc "$render" /tmp/freewifi-radio.txt || true)"
           free_ts_count="$(grep -Fc "$base" /tmp/freewifi-radio.txt || true)"
           nationwide_count="$(grep -Fc "$base" radio.m3u || true)"
           echo "FreeWiFi direct Radiko count=$free_direct_count"
+          echo "FreeWiFi Render image+audio count=$free_render_count"
           echo "FreeWiFi stable TS count=$free_ts_count"
           echo "Standalone nationwide stable TS count=$nationwide_count"
 
-          test "$free_direct_count" -eq 12
+          test "$free_direct_count" -eq 0
+          test "$free_render_count" -eq 12
           test "$free_ts_count" -eq 0
           test "$nationwide_count" -ge 100
           test "$(grep -c '^#EXTINF:' /tmp/freewifi-radio.txt)" -eq 12
           test "$(grep -c 'group-title="ラジオ"' /tmp/freewifi-radio.txt)" -eq 12
           ! grep -q 'ajiousama-radiko.onrender.com/radio-tv/' radio.m3u
-          ! grep -q 'ajiousama-radiko.onrender.com/radio-tv/' /tmp/freewifi-radio.txt
           ! grep -q 'himitsu-six.vercel.app/api/radio-tv' /tmp/freewifi-radio.txt
           ! grep -Eq 'NHKラジオ|NHK-FM|nhk_(r1|fm)_' /tmp/freewifi-radio.txt
           ! grep -Eq '^## (愛媛|在阪|京都|滋賀|兵庫)（ラジオ）$' /tmp/freewifi-radio.txt
-          grep -Fq "${direct}RNB" /tmp/freewifi-radio.txt
-          grep -Fq "${direct}OBC" /tmp/freewifi-radio.txt
-          grep -Fq "${direct}KBS" /tmp/freewifi-radio.txt
+          grep -Fq "${render}RNB" /tmp/freewifi-radio.txt
+          grep -Fq "${render}OBC" /tmp/freewifi-radio.txt
+          grep -Fq "${render}KBS" /tmp/freewifi-radio.txt
           grep -q '^## Rakuten-JP$' freewifi
 
       - name: Commit separated radio playlists
@@ -82,6 +85,6 @@ jobs:
             echo 'Radio playlists already current'
             exit 0
           fi
-          git commit -m 'Keep FreeWiFi on direct Radiko audio'
+          git commit -m 'Serve FreeWiFi radio with image and audio'
           git pull --rebase origin main
           git push origin HEAD:main
