@@ -124,7 +124,7 @@ def tun_capability_report() -> str:
 
 
 core.auth = cloud_auth
-core.BUILD = "20260903-radio-tv-ring-prewarm-v7"
+core.BUILD = "20260903-radio-tv-ring-prewarm-v8"
 
 _original_do_get = core.Handler.do_GET
 
