@@ -23,7 +23,7 @@ jobs:
           for attempt in $(seq 1 30); do
             health="$(curl -fsS --max-time 15 "$base/health" || true)"
             echo "attempt=$attempt $health"
-            if grep -Fq '20260903-radio-tv-ring-prewarm-v7' <<<"$health"; then
+            if grep -Fq '20260903-radio-tv-ring-prewarm-v8' <<<"$health"; then
               exit 0
             fi
             sleep 10
@@ -31,7 +31,7 @@ jobs:
           echo 'new Render radio build did not become ready' >&2
           exit 1
 
-      - name: Probe RNB MPEG-TS video and audio
+      - name: Cold-start probe FM Ehime MPEG-TS video and audio
         shell: bash
         run: |
           if ! command -v ffprobe >/dev/null 2>&1; then
@@ -39,29 +39,30 @@ jobs:
             sudo apt-get install -y ffmpeg
           fi
           set +e
-          base='https://ajiousama-radiko.onrender.com'
+          root='https://ajiousama-radiko.onrender.com'
+          sid='JOEU-FM'
           probe_ok=0
           {
             echo '=== IPTV HEAD prewarm ==='
-            time curl -fsSI --max-time 15 "$base/radio-tv/RNB"
-            sleep 3
-            echo '=== debug ==='
-            time curl -fsS --max-time 45 "$base/radio-debug/RNB" || true
-            echo
-            echo '=== headers and 20s capture ==='
+            time curl -fsSI --max-time 15 "$root/radio-tv/$sid"
+            sleep 1
+            echo '=== immediate 20s capture ==='
             start=$(date +%s)
-            curl -v --max-time 20 "$base/radio-tv/RNB" -o /tmp/rnb.ts 2>/tmp/curl.err
+            curl -v --max-time 20 "$root/radio-tv/$sid" -o /tmp/radio.ts 2>/tmp/curl.err
             rc=$?
             end=$(date +%s)
             echo "curl_rc=$rc elapsed=$((end-start))s"
             sed -n '1,120p' /tmp/curl.err
-            ls -l /tmp/rnb.ts || true
-            file /tmp/rnb.ts || true
-            timeout 20 ffprobe -v error -show_entries stream=codec_name,codec_type,width,height,sample_rate,channels -show_entries format=duration,size,bit_rate /tmp/rnb.ts > /tmp/ffprobe.txt 2>&1
+            ls -l /tmp/radio.ts || true
+            file /tmp/radio.ts || true
+            timeout 20 ffprobe -v error -show_entries stream=codec_name,codec_type,width,height,sample_rate,channels -show_entries format=duration,size,bit_rate /tmp/radio.ts > /tmp/ffprobe.txt 2>&1
             ffprobe_rc=$?
             cat /tmp/ffprobe.txt
             if [ "$ffprobe_rc" -eq 0 ] && grep -q 'codec_type=video' /tmp/ffprobe.txt && grep -q 'codec_type=audio' /tmp/ffprobe.txt; then
               probe_ok=1
+            else
+              echo '=== debug after failed cold probe ==='
+              time curl -fsS --max-time 45 "$root/radio-debug/$sid" || true
             fi
           } > /tmp/probe.txt 2>&1
           cat /tmp/probe.txt
@@ -72,6 +73,6 @@ jobs:
           name: render-radio-probe
           path: |
             /tmp/probe.txt
-            /tmp/rnb.ts
+            /tmp/radio.ts
           if-no-files-found: warn
           retention-days: 1
