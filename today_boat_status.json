@@ -1,22 +1,20 @@
 {
   "system": "boat-v2-resolver",
-  "generated_at": "2026-09-02T15:54:56.144624+09:00",
+  "generated_at": "2026-09-02T17:04:51.593756+09:00",
   "date": "2026-09-02",
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/",
   "resolver_base": "https://ajiousama-radiko.onrender.com/boat",
-  "resolver_ready": true,
-  "resolver_probe_status": 200,
+  "resolver_ready": false,
+  "resolver_probe_status": 0,
   "prestart_minutes": 30,
   "grace_minutes": 30,
   "card_count": 13,
-  "held_count": 10,
-  "visible_count": 10,
+  "held_count": 8,
+  "visible_count": 3,
   "active_window": [
     "多摩川",
     "浜名湖",
-    "常滑",
     "住之江",
-    "尼崎",
     "児島",
     "宮島",
     "下関",
@@ -27,6 +25,8 @@
     "大村"
   ],
   "ended_removed": [
+    "常滑",
+    "尼崎",
     "徳山",
     "芦屋"
   ],
@@ -42,12 +42,12 @@
       "remove_after": "2026-09-02T17:45:00+09:00",
       "mode": "day",
       "next_race": {
-        "race": 10,
-        "start": "16:08"
+        "race": 12,
+        "start": "17:15"
       },
       "stream_window": "live_or_vtr",
-      "url": "https://ajiousama-radiko.onrender.com/boat/05",
-      "source": "ajiousama Render on-demand resolver"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/5de393a079554579a7f54a01b2e45792/16afcfc1b7a04736949ae6828e419820/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4ODQwMDgwMCwic3RhcnQiOjE3ODgyMjc3MDAsImlvcyI6MTgsImNwIjoiMjEwNDIzMzAwXzIxMDQ2NjQ5OSIsInBwdyI6IjQwayJ9.xKy3i16Qg4IoZP1XEcaQ2Ah3JYvCc5B1mA_ct614hpQ",
+      "source": "valid seed fallback while Render unhealthy (0)"
     },
     "boat.hamanako": {
       "jcd": "06",
@@ -60,66 +60,57 @@
       "remove_after": "2026-09-02T17:37:00+09:00",
       "mode": "day",
       "next_race": {
-        "race": 10,
-        "start": "15:56"
+        "race": 12,
+        "start": "17:07"
       },
       "stream_window": "live_or_vtr",
-      "url": "https://ajiousama-radiko.onrender.com/boat/06",
-      "source": "ajiousama Render on-demand resolver"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/0ea8c1af990d44c19507ef6afd7bd0eb/65d7363095b44d9c8dd8a9b3f67d52d1/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4ODQwMDgwMCwic3RhcnQiOjE3ODgyMjc0MDAsImlvcyI6MTgsImNwIjoiMjEwNDIzMDAwXzIxMDQ2NjE5OSIsInBwdyI6IjQwayJ9.m_QOaR2XN7xR17m610YZA5_OfG80X02JdORdt0IJFuo",
+      "source": "valid seed fallback while Render unhealthy (0)"
     },
     "boat.tokoname": {
       "jcd": "08",
       "name": "常滑",
       "held": true,
-      "visible": true,
+      "visible": false,
       "first_race": "10:34",
       "show_from": "2026-09-02T10:04:00+09:00",
       "last_race": "16:17",
       "remove_after": "2026-09-02T16:47:00+09:00",
       "mode": "day",
-      "next_race": {
-        "race": 12,
-        "start": "16:17"
-      },
-      "stream_window": "live_or_vtr",
-      "url": "https://ajiousama-radiko.onrender.com/boat/08",
-      "source": "ajiousama Render on-demand resolver"
+      "next_race": null,
+      "ended": true,
+      "stream_window": "ended"
     },
     "boat.suminoe": {
       "jcd": "12",
       "name": "住之江",
       "held": true,
-      "visible": true,
+      "visible": false,
       "first_race": "15:17",
       "show_from": "2026-09-02T14:47:00+09:00",
       "last_race": "20:31",
       "remove_after": "2026-09-02T21:01:00+09:00",
       "mode": "night",
       "next_race": {
-        "race": 3,
-        "start": "16:06"
+        "race": 6,
+        "start": "17:29"
       },
       "stream_window": "live_or_vtr",
-      "url": "https://ajiousama-radiko.onrender.com/boat/12",
-      "source": "ajiousama Render on-demand resolver"
+      "source": "Render unhealthy (0); no safe fallback"
     },
     "boat.amagasaki": {
       "jcd": "13",
       "name": "尼崎",
       "held": true,
-      "visible": true,
+      "visible": false,
       "first_race": "10:42",
       "show_from": "2026-09-02T10:12:00+09:00",
       "last_race": "16:25",
       "remove_after": "2026-09-02T16:55:00+09:00",
       "mode": "day",
-      "next_race": {
-        "race": 12,
-        "start": "16:25"
-      },
-      "stream_window": "live_or_vtr",
-      "url": "https://ajiousama-radiko.onrender.com/boat/13",
-      "source": "ajiousama Render on-demand resolver"
+      "next_race": null,
+      "ended": true,
+      "stream_window": "ended"
     },
     "boat.kojima": {
       "jcd": "16",
@@ -132,30 +123,26 @@
       "remove_after": "2026-09-02T17:50:00+09:00",
       "mode": "day",
       "next_race": {
-        "race": 10,
-        "start": "16:11"
+        "race": 12,
+        "start": "17:20"
       },
       "stream_window": "live_or_vtr",
-      "url": "https://ajiousama-radiko.onrender.com/boat/16",
-      "source": "ajiousama Render on-demand resolver"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/431061c6e8674d4da3e6b81c5efe0a4d/e223b55120b64d12b31ee2e77d865c85/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4ODQwMDgwMCwic3RhcnQiOjE3ODgyMjUwMDAsImlvcyI6MTgsImNwIjoiMjEwNDIwNjAwXzIxMDQ2Mzc5OSIsInBwdyI6IjQwayJ9.sOTnGXeGaiO0llNUvnPBfJtBqKl1TfPGzFjqGXvEwjg",
+      "source": "valid seed fallback while Render unhealthy (0)"
     },
     "boat.miyajima": {
       "jcd": "17",
       "name": "宮島",
       "held": true,
-      "visible": true,
+      "visible": false,
       "first_race": "10:56",
       "show_from": "2026-09-02T10:26:00+09:00",
       "last_race": "16:40",
       "remove_after": "2026-09-02T17:10:00+09:00",
       "mode": "day",
-      "next_race": {
-        "race": 11,
-        "start": "16:05"
-      },
+      "next_race": null,
       "stream_window": "live_or_vtr",
-      "url": "https://ajiousama-radiko.onrender.com/boat/17",
-      "source": "ajiousama Render on-demand resolver"
+      "source": "Render unhealthy (0); no safe fallback"
     },
     "boat.tokuyama": {
       "jcd": "18",
@@ -175,37 +162,35 @@
       "jcd": "19",
       "name": "下関",
       "held": true,
-      "visible": true,
+      "visible": false,
       "first_race": "15:25",
       "show_from": "2026-09-02T14:55:00+09:00",
       "last_race": "20:45",
       "remove_after": "2026-09-02T21:15:00+09:00",
       "mode": "night",
       "next_race": {
-        "race": 3,
-        "start": "16:20"
+        "race": 5,
+        "start": "17:17"
       },
       "stream_window": "live_or_vtr",
-      "url": "https://ajiousama-radiko.onrender.com/boat/19",
-      "source": "ajiousama Render on-demand resolver"
+      "source": "Render unhealthy (0); no safe fallback"
     },
     "boat.wakamatsu": {
       "jcd": "20",
       "name": "若松",
       "held": true,
-      "visible": true,
+      "visible": false,
       "first_race": "15:21",
       "show_from": "2026-09-02T14:51:00+09:00",
       "last_race": "20:38",
       "remove_after": "2026-09-02T21:08:00+09:00",
       "mode": "night",
       "next_race": {
-        "race": 3,
-        "start": "16:13"
+        "race": 5,
+        "start": "17:10"
       },
       "stream_window": "live_or_vtr",
-      "url": "https://ajiousama-radiko.onrender.com/boat/20",
-      "source": "ajiousama Render on-demand resolver"
+      "source": "Render unhealthy (0); no safe fallback"
     },
     "boat.ashiya": {
       "jcd": "21",
@@ -225,19 +210,18 @@
       "jcd": "22",
       "name": "福岡",
       "held": true,
-      "visible": true,
+      "visible": false,
       "first_race": "11:43",
       "show_from": "2026-09-02T11:13:00+09:00",
       "last_race": "17:25",
       "remove_after": "2026-09-02T17:55:00+09:00",
       "mode": "day",
       "next_race": {
-        "race": 10,
-        "start": "16:18"
+        "race": 12,
+        "start": "17:25"
       },
       "stream_window": "live_or_vtr",
-      "url": "https://ajiousama-radiko.onrender.com/boat/22",
-      "source": "ajiousama Render on-demand resolver"
+      "source": "Render unhealthy (0); no safe fallback"
     },
     "boat.omura": {
       "jcd": "24",
@@ -256,5 +240,6 @@
       "scheduled": true,
       "stream_window": "waiting"
     }
-  }
+  },
+  "resolver_guard": "unhealthy probe=0; safe fallback only"
 }
