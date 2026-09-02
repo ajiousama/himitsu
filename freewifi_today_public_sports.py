@@ -4,6 +4,8 @@ import json
 import re
 import xml.etree.ElementTree as ET
 
+import repair_boat_local_epg_openapi
+
 FREEWIFI = Path('freewifi')
 STATUS_JSON = Path('today_public_sports_status.json')
 PUBLIC_M3U = Path('ganble')
@@ -79,9 +81,6 @@ def epg_state():
             start = parse_xmltv_time(p.get('start'))
             if not start:
                 bad += 1; continue
-            # A 24:xx race is stored by XMLTV on the following calendar day.
-            # Accept the current day's grid plus the immediate after-midnight
-            # tail only when its title itself uses 24:xx or later.
             title = (p.findtext('title') or '').strip()
             desc = (p.findtext('desc') or '').strip()
             tm = re.search(r'([0-9]{1,2}:[0-5]\d)\s*発走', title)
@@ -150,6 +149,11 @@ def replace_block(text, payload):
 def main():
     if not FREEWIFI.exists() or not PUBLIC_M3U.exists():
         raise SystemExit('freewifi/ganble missing')
+    # Official BOAT RACE pages are intermittently unreachable from Actions.
+    # Repair today's BOAT grid with the current OpenAPI snapshot before
+    # deriving "next race" / "ended" state, while preserving official data
+    # whenever a complete grid is already present.
+    repair_boat_local_epg_openapi.main()
     real, modes, next_race = epg_state()
     entries = parse_m3u(PUBLIC_M3U.read_text(encoding='utf-8-sig', errors='replace'))
     if not entries:
