@@ -5,6 +5,7 @@ import json
 JST = timezone(timedelta(hours=9))
 PUBLIC = Path('today_public_sports_status.json')
 JRA = Path('today_jra_status.json')
+BOAT = Path('today_boat_status.json')
 OUT = Path('today_event_counts.json')
 
 
@@ -20,6 +21,7 @@ def load(path):
 def main():
     pub = load(PUBLIC)
     jra = load(JRA)
+    boat = load(BOAT)
     channels = pub.get('channels', {})
 
     mapping = {
@@ -36,8 +38,20 @@ def main():
         key = mapping.get(section)
         if not key:
             continue
+        # BOAT V2 is authoritative for BOAT. Ignore any transient legacy BOAT
+        # rows that may still exist in the general status file.
+        if key == 'boat' and boat.get('system') == 'boat-v2-resolver':
+            continue
         counts[key] += 1
         venues[key].append(info.get('name') or '')
+
+    if boat.get('system') == 'boat-v2-resolver':
+        counts['boat'] = int(boat.get('visible_count') or 0)
+        venues['boat'] = [
+            info.get('name') or ''
+            for info in (boat.get('venues') or {}).values()
+            if info.get('visible')
+        ]
 
     counts['jra'] = int(jra.get('active_count') or 0)
     venues['jra'] = jra.get('active_labels') or []
