@@ -220,7 +220,10 @@ def _start_attempt(station: str, source: str, timeout: float):
         detail = b"".join(tail).decode("utf-8", "replace").strip()
         return None, b"", detail or "startup timeout"
 
-    first = proc.stdout.read(64 * 1024)
+    # One small aligned TS burst is enough to prove FFmpeg is ready. Waiting
+    # for 64 KiB delayed the HTTP 200 response by another five seconds and
+    # caused stricter IPTV clients to declare the channel unplayable.
+    first = proc.stdout.read(188 * 7)
     if not first:
         base._stop_proc(proc)
         detail = b"".join(tail).decode("utf-8", "replace").strip()
