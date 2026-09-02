@@ -1,8 +1,7 @@
 """Compatibility entry point for the ajiousama-only public-sports pipeline.
 
-The old version fetched earphone1981/public-sports-iptv at runtime.  Keep this
-filename for any legacy workflow/caller, but delegate entirely to local state
-and local masters generated inside ajiousama/himitsu.
+Legacy callers may still invoke this filename.  The implementation delegates
+entirely to state and masters generated inside ajiousama/himitsu.
 """
 from pathlib import Path
 from datetime import datetime, timezone, timedelta
