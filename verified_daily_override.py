@@ -1,225 +1,32 @@
+"""Compatibility entry point for the ajiousama-only public-sports pipeline.
+
+The old version fetched earphone1981/public-sports-iptv at runtime.  Keep this
+filename for any legacy workflow/caller, but delegate entirely to local state
+and local masters generated inside ajiousama/himitsu.
+"""
 from pathlib import Path
 from datetime import datetime, timezone, timedelta
 import json
-import re
-import urllib.request
+
+import freewifi_today_public_sports
+import freewifi_today_jra
 
 JST = timezone(timedelta(hours=9))
-FREEWIFI = Path('freewifi')
 VERIFY = Path('verified_daily_status.json')
-PUBLIC_STATUS = Path('today_public_sports_status.json')
-JRA_STATUS = Path('today_jra_status.json')
-PUBLIC_M3U_URL = 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports.m3u'
-GENERAL_YOUTUBE = Path('public_sports_youtube_fallback.m3u')
-FALLBACK_ENTRIES = {
-    ('競輪', '川崎'): {
-        'source_id': 'youtube.keirin_kawasaki', 'tvg_id': 'keirin.kawasaki', 'name': '川崎けいりん',
-        'logo': 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports_logos_github_43/keirin_square_final_43/kawasaki.png',
-        'waiting_url': 'https://www.youtube.com/@%E5%B7%9D%E5%B4%8E%E7%AB%B6%E8%BC%AA%E5%A0%B4%E5%85%AC%E5%BC%8F/live',
-    },
-    ('ボートレース', '桐生'): {
-        'source_id': 'youtube.boat_kiryu', 'tvg_id': 'boat.kiryu', 'name': 'BOATRACE桐生',
-        'logo': 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports_logos_github_43/boatrace_24_spaced_cut_1024/kiryu.png',
-    },
-    ('ボートレース', '住之江'): {
-        'source_id': 'youtube.boat_suminoe', 'tvg_id': 'boat.suminoe', 'name': 'BOATRACE住之江',
-        'logo': 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports_logos_github_43/boatrace_24_spaced_cut_1024/suminoe.png',
-    },
-    # earphone1981 側にチャンネルが無い場合でも、公式開催確認済みなら
-    # 「今日の開催場」とEPGの準備中表示から落とさないための待機エントリ。
-    ('地方競馬', '帯広ば'): {
-        'source_id': 'youtube.chihou_obihiro', 'tvg_id': 'chihou.obihiro', 'name': '帯広ば（ばんえい十勝）',
-        'logo': 'https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/youtube/youtube_live_camera_default.png',
-        'waiting_url': 'https://www.youtube.com/channel/UCyjlxPcoYAbpwlr5wjUA_5g/live',
-    },
-}
-CANONICAL_ALIASES = {'こうち': '高知', 'からつ': '唐津'}
-PSTART = '# === TODAY_PUBLIC_SPORTS_START ==='
-PEND = '# === TODAY_PUBLIC_SPORTS_END ==='
-JSTART = '# === TODAY_JRA_START ==='
-JEND = '# === TODAY_JRA_END ==='
-GROUP = '今日の開催場'
-VALID_MODES = {'morning', 'day', 'twilight', 'night', 'midnight', 'overnight'}
-
-
-def fetch_text(url):
-    req = urllib.request.Request(url, headers={'User-Agent': 'FreeWiFi-Verified-Daily/1.2', 'Cache-Control': 'no-cache'})
-    with urllib.request.urlopen(req, timeout=45) as r:
-        return r.read().decode('utf-8-sig', errors='replace')
-
-
-def norm(s):
-    s = re.sub(r'[（(].*?[）)]', '', s or '')
-    for w in ('けいりん', '競輪場', '競輪', 'けいば', '競馬場', '競馬', 'ボートレース', 'BOATRACE', 'ボート', 'オートレース', 'オート', '温泉'):
-        s = s.replace(w, '')
-    value = re.sub(r'[^0-9A-Za-z一-龥ぁ-んァ-ン]+', '', s).lower()
-    return CANONICAL_ALIASES.get(value, value)
-
-
-def parse_entries(text):
-    out = []
-    section = ''
-    lines = text.splitlines()
-    i = 0
-    while i < len(lines):
-        line = lines[i]
-        if line.startswith('## '):
-            section = line[3:].strip(); i += 1; continue
-        if not line.startswith('#EXTINF:'):
-            i += 1; continue
-        block = [line]
-        j = i + 1
-        while j < len(lines) and not lines[j].startswith('#EXTINF:') and not lines[j].startswith('## '):
-            if lines[j].strip(): block.append(lines[j])
-            j += 1
-        mid = re.search(r'tvg-id="([^"]+)"', line)
-        display = line.rsplit(',', 1)[-1].strip() if ',' in line else ''
-        mn = re.search(r'tvg-name="([^"]+)"', line)
-        name = display or (mn.group(1) if mn else '')
-        if mid: out.append((mid.group(1), section, name, block))
-        i = j
-    return out
-
-
-def fallback_source_entries():
-    if not GENERAL_YOUTUBE.exists(): return {}
-    return {cid: block for cid, _section, _name, block in parse_entries(GENERAL_YOUTUBE.read_text(encoding='utf-8-sig', errors='replace'))}
-
-
-def materialize_fallback(section, venue, sources):
-    spec = FALLBACK_ENTRIES.get((section, venue))
-    if not spec: return None
-    block = sources.get(spec['source_id'])
-    waiting = False
-    if not block:
-        waiting_url = spec.get('waiting_url')
-        if not waiting_url:
-            return None
-        waiting = True
-        block = [
-            f'#EXTINF:-1 tvg-id="{spec["tvg_id"]}" tvg-name="{spec["name"]}" tvg-logo="{spec["logo"]}" group-title="{GROUP}",{spec["name"]}',
-            waiting_url,
-        ]
-    b = block[:]; line = b[0]
-    line = re.sub(r'tvg-id="[^"]+"', f'tvg-id="{spec["tvg_id"]}"', line, count=1)
-    if 'tvg-name=' in line: line = re.sub(r'tvg-name="[^"]*"', f'tvg-name="{spec["name"]}"', line, count=1)
-    else: line = line.replace('#EXTINF:-1', f'#EXTINF:-1 tvg-name="{spec["name"]}"', 1)
-    if 'tvg-logo=' in line: line = re.sub(r'tvg-logo="[^"]*"', f'tvg-logo="{spec["logo"]}"', line, count=1)
-    else: line = line.replace(' group-title=', f' tvg-logo="{spec["logo"]}" group-title=', 1)
-    line = re.sub(r',.*$', ',' + spec['name'], line, count=1); b[0] = line
-    return spec['tvg_id'], spec['name'], b, waiting
-
-
-def rewrite_group(line):
-    if 'group-title=' in line: return re.sub(r'group-title="[^"]*"', f'group-title="{GROUP}"', line, count=1)
-    p = line.find(','); return line[:p] + f' group-title="{GROUP}"' + line[p:] if p >= 0 else line
-
-
-def replace_block(text, start, end, heading, blocks):
-    body = []
-    for block in blocks:
-        b = block[:]; b[0] = rewrite_group(b[0]); body.extend(b); body.append('')
-    payload = '\n'.join(body).rstrip()
-    managed = start + '\n## ' + heading + '\n' + payload + ('\n' if payload else '') + end
-    pat = re.compile(re.escape(start) + r'.*?' + re.escape(end) + r'\n?', re.S)
-    if pat.search(text): return pat.sub(managed + '\n', text, count=1)
-    anchor = '# === GENERAL_YOUTUBE_MANAGED_START ==='
-    return text.replace(anchor, managed + '\n\n' + anchor, 1) if anchor in text else text.rstrip() + '\n\n' + managed + '\n'
-
-
-def strip_tvg_ids(text, ids):
-    lines = text.splitlines(); out = []; i = 0
-    while i < len(lines):
-        line = lines[i]
-        if line.startswith('#EXTINF:') and any(f'tvg-id="{cid}"' in line for cid in ids):
-            i += 1
-            while i < len(lines) and not lines[i].startswith('#EXTINF:') and not lines[i].startswith('## ') and not lines[i].startswith('# ==='): i += 1
-            continue
-        out.append(line); i += 1
-    return '\n'.join(out).rstrip() + '\n'
-
-
-def strip_jra_entries(text):
-    text = re.sub(re.escape(JSTART) + r'.*?' + re.escape(JEND) + r'\n?', '', text, flags=re.S)
-    text = re.sub(r'# === JRA_GCH_FREE_START ===.*?# === JRA_GCH_FREE_END ===\n?', '', text, flags=re.S)
-    text = re.sub(r'# === JRA_OFFICIAL_YOUTUBE_START ===.*?# === JRA_OFFICIAL_YOUTUBE_END ===\n?', '', text, flags=re.S)
-    return strip_tvg_ids(text, {'jra.east', 'jra.west', 'jra.hokkaido', 'jra.official', 'jra.gch.free'})
-
-
-def configured_mode(cfg_modes, section, venue, display_name):
-    section_modes = cfg_modes.get(section) or {}
-    for key, value in section_modes.items():
-        if norm(key) in {norm(venue), norm(display_name)} and value in VALID_MODES:
-            return value
-    n = norm(display_name)
-    if section == '競輪':
-        if n in {norm(x) for x in ('青森', '宇都宮', '熊本', '岸和田', '小松島')}: return 'midnight'
-        if n in {norm(x) for x in ('松戸', '松阪', '小倉', '四日市')}: return 'night'
-        if n == norm('伊東'): return 'morning'
-    if section == 'ボートレース':
-        if n in {norm(x) for x in ('桐生', '蒲郡', '丸亀', '若松', '下関', '大村')}: return 'night'
-        if n in {norm(x) for x in ('三国', '鳴門', '徳山', '芦屋', '唐津')}: return 'morning'
-    if section == 'オートレース' and n == norm('飯塚'): return 'overnight'
-    return 'day'
 
 
 def main():
-    now = datetime.now(JST)
-    if not VERIFY.exists() or not FREEWIFI.exists(): return
+    if not VERIFY.exists():
+        raise SystemExit('verified_daily_status.json missing; run public_sports_epg_local.py first')
     cfg = json.loads(VERIFY.read_text(encoding='utf-8-sig'))
-    if cfg.get('date') != now.date().isoformat():
-        print('Verified daily override expired/not for today; skipped'); return
-    wanted = cfg.get('public_sports') or {}
-    cfg_modes = cfg.get('public_sports_modes') or {}
-    entries = parse_entries(fetch_text(PUBLIC_M3U_URL))
-    fallback_sources = fallback_source_entries()
-    selected = []; status = {}; matched = {k: [] for k in wanted}; selected_ids = set()
-    for cid, section, name, block in entries:
-        if section not in wanted: continue
-        n = norm(name); target = None
-        for v in wanted.get(section, []):
-            if n and n == norm(v): target = v; break
-        if target is None or cid in selected_ids: continue
-        selected_ids.add(cid); selected.append(block); matched[section].append(target)
-        mode = configured_mode(cfg_modes, section, target, name)
-        status[cid] = {'section': section, 'name': name, 'mode': mode, 'source': 'verified daily override', 'epg_available': True, 'next_race': None, 'next_race_text': '本日開催'}
-    for section, venues in wanted.items():
-        have = {norm(x) for x in matched.get(section, [])}
-        for venue in venues:
-            if norm(venue) in have: continue
-            fallback = materialize_fallback(section, venue, fallback_sources)
-            if not fallback: continue
-            cid, name, block, waiting = fallback
-            if cid in selected_ids: continue
-            selected_ids.add(cid); selected.append(block); matched[section].append(venue); have.add(norm(venue))
-            mode = configured_mode(cfg_modes, section, venue, name)
-            status[cid] = {
-                'section': section,
-                'name': name,
-                'mode': mode,
-                'source': 'official waiting entry' if waiting else 'official YouTube fallback',
-                'epg_available': False,
-                'next_race': None,
-                'next_race_text': '本日開催あり／現在準備中' if waiting else '本日開催',
-            }
-    expected = sum(len(v) for v in wanted.values()); missing = []
-    for section, vals in wanted.items():
-        have = {norm(x) for x in matched.get(section, [])}
-        missing += [f'{section}:{v}' for v in vals if norm(v) not in have]
-    if missing: print(f'WARNING: verified upstream channels missing: matched={len(selected)}/{expected}, missing={missing}')
-    text = FREEWIFI.read_text(encoding='utf-8-sig', errors='replace')
-    text = strip_tvg_ids(text, {x['source_id'] for x in FALLBACK_ENTRIES.values()})
-    text = replace_block(text, PSTART, PEND, '今日の開催場', selected)
-    jra_ids = cfg.get('jra_active_ids') or []
-    if not jra_ids:
-        text = strip_jra_entries(text)
-        text = replace_block(text, JSTART, JEND, 'JRA', [])
-    FREEWIFI.write_text(text.rstrip() + '\n', encoding='utf-8')
-    PUBLIC_STATUS.write_text(json.dumps({'generated_at': now.isoformat(), 'verified_date': cfg['date'], 'expected_count': expected, 'matched_count': len(selected), 'missing': missing, 'channels': status}, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
-    JRA_STATUS.write_text(json.dumps({'generated_at': now.isoformat(), 'verified_date': cfg['date'], 'active_count': len(jra_ids), 'active_ids': jra_ids, 'active_labels': [], 'special_entries': 0, 'channels': {}}, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
-    print('Verified daily override applied:', len(selected), 'public sports; JRA=', len(jra_ids))
-    for section in ('地方競馬', '競輪', 'ボートレース', 'オートレース'):
-        print(section, len(wanted.get(section, [])))
+    today = datetime.now(JST).date().isoformat()
+    if cfg.get('date') != today:
+        raise SystemExit(f'verified_daily_status.json is stale: {cfg.get("date")} != {today}')
+
+    freewifi_today_public_sports.main()
+    freewifi_today_jra.main()
+    print('Verified daily override: applied ajiousama-local state only')
+
 
 if __name__ == '__main__':
     main()
