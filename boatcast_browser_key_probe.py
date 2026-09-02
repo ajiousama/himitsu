@@ -25,12 +25,14 @@ def main():
     OUT.unlink(missing_ok=True)
     try:
         from selenium import webdriver
+        from selenium.common.exceptions import TimeoutException
         from selenium.webdriver.chrome.options import Options
     except Exception as e:
         print(f'BOATCAST browser probe unavailable: selenium import failed ({type(e).__name__})')
         return 0
 
     opts = Options()
+    opts.page_load_strategy = 'eager'
     opts.add_argument('--headless=new')
     opts.add_argument('--no-sandbox')
     opts.add_argument('--disable-dev-shm-usage')
@@ -42,14 +44,24 @@ def main():
     driver = None
     try:
         driver = webdriver.Chrome(options=opts)
+        driver.set_page_load_timeout(15)
         driver.execute_cdp_cmd('Network.enable', {})
-        driver.get(PLAYER)
+        try:
+            driver.get(PLAYER)
+        except TimeoutException:
+            print('BOATCAST browser probe: page-load timeout accepted; continuing with network capture')
+            try:
+                driver.execute_script('window.stop();')
+            except Exception:
+                pass
+
         deadline = time.time() + 12
         request_urls = {}
         extra_headers = {}
         key = None
+        playback_seen = False
         while time.time() < deadline and not key:
-            time.sleep(0.75)
+            time.sleep(0.5)
             for entry in driver.get_log('performance'):
                 try:
                     msg = json.loads(entry['message'])['message']
@@ -62,6 +74,7 @@ def main():
                         if rid:
                             request_urls[rid] = url
                         if 'playback.api.streaks.jp/' in url:
+                            playback_seen = True
                             key = find_key(req.get('headers')) or key
                             if not key and rid:
                                 key = find_key(extra_headers.get(rid)) or key
@@ -69,6 +82,7 @@ def main():
                         if rid:
                             extra_headers[rid] = params.get('headers') or {}
                             if 'playback.api.streaks.jp/' in request_urls.get(rid, ''):
+                                playback_seen = True
                                 key = find_key(extra_headers[rid]) or key
                 except Exception:
                     continue
@@ -80,6 +94,8 @@ def main():
             except OSError:
                 pass
             print('BOATCAST browser probe: playback API key captured from first-party request')
+        elif playback_seen:
+            print('BOATCAST browser probe: playback request observed but API-key header was not visible')
         else:
             print('BOATCAST browser probe: playback request/key not observed')
     except Exception as e:
