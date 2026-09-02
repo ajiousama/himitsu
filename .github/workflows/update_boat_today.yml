@@ -12,6 +12,7 @@ on:
       - main
     paths:
       - "boat_v2_build.py"
+      - "boat_v2_render_guard.py"
       - "boat_cloud_resolver.py"
       - "radiko_cloud_start.py"
       - ".github/workflows/update_boat_today.yml"
@@ -44,11 +45,12 @@ jobs:
           python-version: "3.12"
 
       - name: Build BOAT V2 streaming window
-        run: python -u boat_v2_build.py
+        run: |
+          python -u boat_v2_build.py
+          python -u boat_v2_render_guard.py
 
-      # Publish usable improvement first. If Render is still deploying, the
-      # builder writes only still-valid direct fallbacks and validation stays
-      # red until the fixed resolver is live.
+      # Publish usable improvement first. If Render is unhealthy, the guard
+      # keeps only still-valid direct fallbacks and validation stays red.
       - name: Publish BOAT V2 state safely
         shell: bash
         run: |
@@ -75,6 +77,7 @@ jobs:
             git fetch origin main
             git reset --hard origin/main
             python -u boat_v2_build.py
+            python -u boat_v2_render_guard.py
             if publish; then
               exit 0
             fi
@@ -96,9 +99,10 @@ jobs:
           visible = int(d.get('visible_count') or 0)
           cards = int(d.get('card_count') or 0)
           ready = bool(d.get('resolver_ready'))
+          probe = int(d.get('resolver_probe_status') or 0)
           waiting = d.get('scheduled_waiting') or []
           ended = d.get('ended_removed') or []
-          print('BOAT V2 cards=', cards, 'active=', held, 'visible=', visible, 'resolver_ready=', ready)
+          print('BOAT V2 cards=', cards, 'active=', held, 'visible=', visible, 'resolver_ready=', ready, 'probe=', probe)
           print('BOAT V2 waiting=', waiting, 'ended=', ended)
           text = Path('freewifi').read_text(encoding='utf-8-sig', errors='replace')
           m = re.search(r'# === TODAY_BOAT_START ===(.*?)# === TODAY_BOAT_END ===', text, re.S)
@@ -109,6 +113,6 @@ jobs:
               raise SystemExit(f'BOAT V2 playlist mismatch: entries={entries} visible={visible}')
           if held and visible != held:
               raise SystemExit(f'BOAT V2 venue mismatch: active={held} visible={visible}')
-          if held and not ready:
-              raise SystemExit('BOAT V2 Render resolver is not live yet')
+          if held and (not ready or probe not in (200, 503)):
+              raise SystemExit(f'BOAT V2 Render resolver unhealthy: ready={ready} probe={probe}')
           PY
