@@ -35,7 +35,10 @@ SID_RE = re.compile(r"^[A-Za-z0-9_-]{2,32}$")
 PUBLIC_RADIKO_BASE = os.environ.get("RADIO_AUDIO_BASE", "https://himitsu-six.vercel.app").rstrip("/")
 _PREWARM_LOCK = threading.Lock()
 _PREWARMING: set[str] = set()
-_PREWARM_SLOTS = threading.BoundedSemaphore(4)
+# Render's small instance gets unstable when several static-image muxers spin up
+# at the same time. Two concurrent warmers are enough for channel scanning while
+# leaving headroom for an actual playback request.
+_PREWARM_SLOTS = threading.BoundedSemaphore(2)
 
 
 class _WarmStream:
@@ -179,6 +182,7 @@ def _fast_latest_master(sid: str, refresh: bool = False):
 
 core.latest_master = _fast_latest_master
 
+
 def _audio_sources(station: str) -> list[str]:
     _display, _freq, _accent_value, radiko_sid, fixed = base.STATIONS[station]
     if fixed:
@@ -205,7 +209,7 @@ def _ffmpeg_cmd(station: str, src: str | None = None) -> list[str]:
         "-rw_timeout", "12000000",
         "-user_agent", "Mozilla/5.0",
         # Tune directly to the newest Radiko fragment and emit the first TS
-        # packets quickly.  IPTV clients give up on a silent GET after roughly
+        # packets quickly. IPTV clients give up on a silent GET after roughly
         # ten seconds, so a full HLS probe is too expensive here.
         "-fflags", "nobuffer",
         "-flags", "low_delay",
@@ -315,6 +319,25 @@ def prewarm_station(station: str) -> None:
     threading.Thread(target=worker, daemon=True).start()
 
 
+def _take_ready_prewarm(station: str, wait_seconds: float = 18.5):
+    """Reuse an in-flight HEAD prewarm instead of starting a duplicate mux."""
+    deadline = time.monotonic() + wait_seconds
+    while True:
+        with _PREWARM_LOCK:
+            cached = _PREWARM.pop(station, None)
+            warming = station in _PREWARMING
+
+        if cached is not None:
+            candidate, data = cached.take()
+            if candidate.poll() is None and data:
+                return candidate, data
+            cached.close()
+
+        if not warming or time.monotonic() >= deadline:
+            return None, b""
+        time.sleep(0.20)
+
+
 def _stream_station(handler, station: str):
     if station not in base.STATIONS:
         handler.send_error(404, "unknown radio station")
@@ -329,20 +352,14 @@ def _stream_station(handler, station: str):
         return
 
     failures = []
-    winner = None
-    first = b""
-    with _PREWARM_LOCK:
-        cached = _PREWARM.pop(station, None)
-    if cached is not None:
-        candidate, data = cached.take()
-        if candidate.poll() is None:
-            winner = candidate
-            first = data
-        else:
-            cached.close()
-    # One verified source gets the complete cold-start budget.
-    budgets = [18.0]
+    # If the IPTV client just sent HEAD, that background mux may still be
+    # warming. Waiting for it avoids two FFmpeg processes racing for the same
+    # station and exhausting Render during rapid channel scans.
+    winner, first = _take_ready_prewarm(station)
 
+    # One verified source gets the complete cold-start budget when there was no
+    # usable HEAD prewarm.
+    budgets = [18.0]
     if winner is None:
         for source, timeout in zip(sources, budgets):
             proc, data, detail = _start_attempt(station, source, timeout)
