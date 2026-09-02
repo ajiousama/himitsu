@@ -34,9 +34,6 @@ $venues = @(
 $ua = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36'
 
 function New-PlaybackHeaders([string]$apiKey) {
-  # BOATCAST's public front player is the proven origin for playback.api.
-  # Do not require a Streaks key: current public media refs can be resolved
-  # without one when these headers match the player.
   $h = @{
     'Accept'     = 'application/json'
     'Origin'     = 'https://front.player.boatrace-cdn.jp'
@@ -66,8 +63,8 @@ function Test-StreaksKey([string]$candidate) {
   return $false
 }
 
-function Find-StreaksKeyFromPlayer {
-  $playerUrl = 'https://front.player.boatrace-cdn.jp/player/live?service=boatcast&stadium=12suminoe&sourceType=mix&dvr=1&audioMode=0&autoplay=1&bitrate=high'
+function Get-PlayerBodies([string]$stadium, [int]$maxScripts = 30) {
+  $playerUrl = "https://front.player.boatrace-cdn.jp/player/live?service=boatcast&stadium=$stadium&sourceType=mix&dvr=1&audioMode=0&autoplay=1&bitrate=high"
   $webHeaders = @{ 'User-Agent'=$ua; 'Accept'='text/html,application/xhtml+xml,application/javascript,*/*' }
   $bodies = New-Object System.Collections.Generic.List[string]
   try {
@@ -77,7 +74,7 @@ function Find-StreaksKeyFromPlayer {
     $seen = @{}
     $matches = [regex]::Matches([string]$page.Content, '(?is)<script[^>]+src=["'']([^"'']+)["'']')
     foreach ($m in $matches) {
-      if ($bodies.Count -ge 25) { break }
+      if ($bodies.Count -ge ($maxScripts + 1)) { break }
       try {
         $src = [Uri]::new($base, $m.Groups[1].Value).AbsoluteUri
         if ($seen.ContainsKey($src)) { continue }
@@ -90,8 +87,13 @@ function Find-StreaksKeyFromPlayer {
   }
   catch {
     Write-Host "BOATCAST player scan unavailable: $($_.Exception.GetType().Name)"
-    return ''
   }
+  return ,$bodies.ToArray()
+}
+
+function Find-StreaksKeyFromPlayer {
+  $bodies = Get-PlayerBodies '12suminoe' 25
+  if (-not $bodies -or $bodies.Count -eq 0) { return '' }
 
   $candidates = New-Object System.Collections.Generic.List[string]
   $candidateSeen = @{}
@@ -121,6 +123,30 @@ function Find-StreaksKeyFromPlayer {
   return ''
 }
 
+function Write-PlayerDiagnostics {
+  $bodies = Get-PlayerBodies '12suminoe' 30
+  Write-Host "BOATCAST DIAG bodies=$($bodies.Count)"
+  $needles = @('playback.api.streaks.jp','cp-boatrace-prod','medias/ref:','m3u8','mediaRef','media_ref','sourceType','stadium')
+  $shown = @{}
+  $bodyNo = 0
+  foreach ($body0 in $bodies) {
+    $bodyNo++
+    $body = [string]$body0
+    $body = $body.Replace('\/','/').Replace('\u002F','/').Replace('\u0026','&').Replace('&amp;','&')
+    foreach ($needle in $needles) {
+      if ($shown.ContainsKey($needle)) { continue }
+      $idx = $body.IndexOf($needle, [System.StringComparison]::OrdinalIgnoreCase)
+      if ($idx -ge 0) {
+        $start = [Math]::Max(0, $idx - 220)
+        $len = [Math]::Min(900, $body.Length - $start)
+        $snippet = $body.Substring($start, $len) -replace "[\r\n\t]+", ' '
+        Write-Host "BOATCAST DIAG $needle body=$bodyNo :: $snippet"
+        $shown[$needle] = $true
+      }
+    }
+  }
+}
+
 # First try public playback exactly as the front player does, with no key.
 $apiKey = ''
 $publicProbeOk = $false
@@ -147,7 +173,8 @@ if (-not $publicProbeOk) {
     $apiKey = Find-StreaksKeyFromPlayer
   }
   if ([string]::IsNullOrWhiteSpace($apiKey)) {
-    Write-Host '::warning::BOATCAST public probe/key resolution failed; playback may be unavailable'
+    Write-Host '::warning::BOATCAST public probe/key resolution failed; probing current player implementation'
+    Write-PlayerDiagnostics
   }
 }
 
