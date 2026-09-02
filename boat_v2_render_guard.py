@@ -13,12 +13,20 @@ STATUS = Path('today_boat_status.json')
 STATE = Path('boat_v2_state.json')
 SEED = Path('boat_stream_seed.m3u')
 FREEWIFI = Path('freewifi')
-HEALTHY_CODES = {200, 503}
+# 503 means the resolver is reachable but has no playable stream; never treat it as healthy.
+HEALTHY_CODES = {200}
 
 
 def token_expired(url):
     try:
-        token = (parse_qs(urlsplit(url).query).get('token') or [None])[0]
+        q = parse_qs(urlsplit(url).query)
+        # YouTube/googlevideo HLS URLs use a plain Unix `expire` query parameter.
+        exp_values = q.get('expire') or []
+        if exp_values:
+            exp = int(exp_values[0])
+            return exp <= int(time.time()) + 300
+
+        token = (q.get('token') or [None])[0]
         if not token or token.count('.') < 2:
             return False
         payload = token.split('.')[1]
