@@ -1,27 +1,28 @@
 FreeWiFi merged EPG coverage
-wanted=239
-matched_real=141
+wanted=244
+matched_real=146
 fallback=98
 unmatched_real=98
-covered_total=239
-output_bytes=10032004
+covered_total=244
+output_bytes=10076951
 
 [source errors]
-none
+epgshare_jp1: HTTPError: HTTP Error 404: Not Found
+epgshare_jp2: HTTPError: HTTP Error 404: Not Found
 
 [coverage]
 OK	NHK東京・総合_jp	NHK G	japanterebi	JOAKDTV.jp	134 programmes
 OK	NHK東京・教育_jp	NHK E	japanterebi	JOABDTV.jp	151 programmes
 OK	日本テレビ_jp	日本テレビ	japanterebi	JOAXDTV.jp	70 programmes
-OK	tver_ntv	Tver 日テレ系	tver	ntv	80 programmes
+OK	tver_ntv	Tver 日テレ系	tver	ntv	81 programmes
 OK	TBS_jp	ＴＢＳ	japanterebi	JORXDTV.jp	51 programmes
-OK	tver_tbs	Tver TBS系	tver	tbs	92 programmes
+OK	tver_tbs	Tver TBS系	tver	tbs	91 programmes
 OK	フジテレビ_jp	フジテレビ	japanterebi	JOCXDTV.jp	59 programmes
 OK	tver_cx	Tver フジ系	tver	cx	131 programmes
 OK	テレビ朝日_jp	テレビ朝日	japanterebi	JOEXDTV.jp	67 programmes
 OK	tver_ex	Tver テレ朝系	tver	ex	53 programmes
 OK	テレビ東京_jp	テレビ東京	japanterebi	JOTXDTV.jp	88 programmes
-OK	tver_tx	Tver テレ東系	tver	tx	100 programmes
+OK	tver_tx	Tver テレ東系	tver	tx	101 programmes
 OK	テレ東_jp	テレビ東京	japanterebi	JOTXDTV.jp	88 programmes
 OK	TOKYO・MX_jp	TOKYO MX1	japanterebi	TokyoMX1.jp	111 programmes
 OK	TOKYO・MX2_jp	TOKYO MX2	japanterebi	TokyoMX2.jp	24 programmes
@@ -161,13 +162,19 @@ OK	rch_40	刺激ストロング	karenda	rch_40	74 programmes
 OK	rch_42	映画	karenda	rch_42	0 programmes
 FALLBACK	kick.gccx	ゲームセンターＣＸ	その他	12 programmes
 FALLBACK	kick.nogizaka	乃木坂	その他	12 programmes
+OK	boat.kojima	BOATRACE児島	public_sports	boat.kojima	18 programmes
+OK	boat.tokoname	BOATRACE常滑	public_sports	boat.tokoname	18 programmes
+OK	boat.tamagawa	BOATRACE多摩川	public_sports	boat.tamagawa	18 programmes
+OK	boat.ashiya	BOATRACE芦屋	public_sports	boat.ashiya	18 programmes
+OK	boat.amagasaki	BOATRACE尼崎	public_sports	boat.amagasaki	18 programmes
+OK	boat.hamanako	BOATRACE浜名湖	public_sports	boat.hamanako	18 programmes
+OK	boat.tokuyama	BOATRACE徳山	public_sports	boat.tokuyama	18 programmes
 OK	boat.suminoe	BOATRACE住之江	public_sports	boat.suminoe	18 programmes
 OK	keirin.matsuyama	松山	public_sports	keirin.matsuyama	18 programmes
-OK	chihou.sonoda	園田けいば（園田競馬）	public_sports	chihou.sonoda	40 programmes
 OK	keirin.seibuen	西武園	public_sports	keirin.seibuen	17 programmes
+OK	chihou.sonoda	園田けいば（園田競馬）	public_sports	chihou.sonoda	40 programmes
 OK	chihou.mombetsu	門別けいば（ホッカイドウ競馬）	public_sports	chihou.mombetsu	29 programmes
 OK	chihou.nagoya_keiba	名古屋けいば（名古屋競馬）	public_sports	chihou.nagoya_keiba	40 programmes
-OK	auto.sanyo	山陽	public_sports	auto.sanyo	21 programmes
 OK	chihou.oi	大井けいば（南関東競馬）	public_sports	chihou.oi	40 programmes
 OK	keirin.utsunomiya	宇都宮	public_sports	keirin.utsunomiya	18 programmes
 OK	keirin.matsudo	松戸	public_sports	keirin.matsudo	19 programmes
@@ -175,7 +182,6 @@ OK	keirin.ito	伊東温泉	public_sports	keirin.ito	17 programmes
 OK	keirin.yahiko	弥彦	public_sports	keirin.yahiko	17 programmes
 OK	keirin.tamano	玉野	public_sports	keirin.tamano	17 programmes
 OK	keirin.matsusaka	松阪	public_sports	keirin.matsusaka	13 programmes
-OK	auto.iizuka	飯塚	public_sports	auto.iizuka	8 programmes
 FALLBACK	youtube.konodo1	コノド・馬の映るお天気カメラ	動物	12 programmes
 FALLBACK	youtube.natsu_shiba	柴犬なつと子供たち	動物	12 programmes
 FALLBACK	youtube.konodo2	コノド・馬の映るお天気カメラ2	動物	12 programmes
@@ -190,7 +196,6 @@ FALLBACK	youtube.airport_kumamoto	熊本空港 LIVE	空港	12 programmes
 FALLBACK	youtube.airport_oita	大分空港 LIVE	空港	12 programmes
 FALLBACK	youtube.airport_miyazaki	宮崎空港 LIVE	空港	12 programmes
 FALLBACK	youtube.muko	向日市・向日町 まちてらすMUKO	その他LIVE	12 programmes
-FALLBACK	youtube.katsuragawa	淀川水系 桂川	その他LIVE	12 programmes
 FALLBACK	youtube.airport_amami	奄美空港 LIVE	空港	12 programmes
 FALLBACK	youtube.matsuyama_castle_rnb	松山城【南海放送】	愛媛県内ライブカメラ	12 programmes
 FALLBACK	youtube.matsuyama_clean	松山市クリーンセンター	愛媛県内ライブカメラ	12 programmes
@@ -205,12 +210,13 @@ FALLBACK	youtube.kbn_seto_bridge	KBN 瀬戸大橋ライブカメラ	交通	12 pr
 FALLBACK	youtube.awaji_monkey	淡路島モンキーセンター	動物	12 programmes
 FALLBACK	youtube.airport_naha	那覇空港 LIVE	空港	12 programmes
 FALLBACK	youtube.airport_sendai	仙台空港 LIVE	空港	12 programmes
-FALLBACK	youtube.akashi_bridge	明石海峡大橋	交通	12 programmes
 FALLBACK	youtube.osaka_loop	大阪環状線	交通	12 programmes
 FALLBACK	youtube.nomura_dam	野村ダム	愛媛県内ライブカメラ	12 programmes
 FALLBACK	youtube.maiko_villa_akashi	舞子ビラ・明石海峡ライブ	交通	12 programmes
 FALLBACK	youtube.tokyo_dome_city	東京ドームシティ公式ライブカメラ	その他LIVE	12 programmes
+FALLBACK	youtube.shinhotaka_ropeway	新穂高ロープウェイ ライブカメラ	その他LIVE	12 programmes
 FALLBACK	youtube.ehime_mishima_kawanoe_port	三島川之江港	愛媛県内ライブカメラ	12 programmes
+FALLBACK	youtube.ehime_toyo_port	東予港	愛媛県内ライブカメラ	12 programmes
 FALLBACK	youtube.ehime_hashihama_port	波止浜港	愛媛県内ライブカメラ	12 programmes
 FALLBACK	youtube.ehime_misaki_port	三崎港	愛媛県内ライブカメラ	12 programmes
 FALLBACK	youtube.ehime_misho_port	御荘港	愛媛県内ライブカメラ	12 programmes
