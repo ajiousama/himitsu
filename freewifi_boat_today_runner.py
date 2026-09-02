@@ -5,10 +5,10 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 import freewifi_boat_today as boat
+import repair_boat_local_epg_openapi
 
-# BOATCAST's playback endpoint accepts the public front-player origin.  Keep
-# this aligned with the header set used by the working BOAT updater; the
-# players.streaks.jp origin causes current BOAT media refs to return 404.
+# BOATCAST's playback endpoint accepts the public front-player origin. Keep
+# this aligned with the header set used by the player.
 headers = {
     'User-Agent': boat.UA,
     'Accept': 'application/json',
@@ -41,11 +41,11 @@ def playback_url(code, ymd):
 boat.playback_url = playback_url
 print(f'BOAT prefetched PowerShell streams: {len(stream_map)}')
 
-# The main workflow has already generated today's BOAT schedule into the local
-# XMLTV file.  Reuse it here instead of hitting all 24 BOAT RACE raceindex
-# pages serially again.  This removes a blocked-network dependency from the
-# final M3U application step while preserving the official data captured by
-# the local generator / same-repo verified fallback.
+# Make sure today's local BOAT grid contains all races. The main generator
+# prefers BOAT RACE official pages; when Actions cannot reach them, the helper
+# replaces only today's incomplete cards with the current OpenAPI snapshot.
+repair_boat_local_epg_openapi.main()
+
 LOCAL_EPG = Path('public_sports_epg_local.xml')
 JCD_TO_ID = {jcd: tvg_id for jcd, _name, _code, tvg_id, _slug, _logo in boat.VENUES}
 LOCAL_TIMES = {}
@@ -72,7 +72,7 @@ if LOCAL_EPG.exists():
                     races[rno] = mt.group(1)
             if races:
                 LOCAL_TIMES[jcd] = races
-        print(f'BOAT local EPG schedules: {len(LOCAL_TIMES)} venues')
+        print('BOAT local EPG schedules:', {jcd: len(races) for jcd, races in LOCAL_TIMES.items()})
     except Exception as e:
         print('BOAT local EPG schedule read failed:', e)
 
