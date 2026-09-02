@@ -17,7 +17,7 @@ GROUP = '今日の開催場'
 JST = timezone(timedelta(hours=9))
 GRACE_MINUTES = 30
 API = 'https://boatraceopenapi.github.io/api/v1/{year}/{ymd}.json'
-RESOLVER = 'https://himitsu-six.vercel.app/api/boat.m3u8?venue={jcd}'
+RESOLVER = 'https://himitsu-six.vercel.app/api/boat?venue={jcd}'
 UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/152 Safari/537.36'
 
 VENUES = {
@@ -230,7 +230,7 @@ def main():
         'generated_at': now.isoformat(),
         'date': day.isoformat(),
         'schedule_source': 'https://boatraceopenapi.github.io/api/v1/',
-        'resolver_base': 'https://himitsu-six.vercel.app/api/boat.m3u8',
+        'resolver_base': 'https://himitsu-six.vercel.app/api/boat',
         'grace_minutes': GRACE_MINUTES,
         'card_count': len(cards),
         'held_count': visible_count,
