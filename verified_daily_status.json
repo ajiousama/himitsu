@@ -1,15 +1,15 @@
 {
   "date": "2026-09-03",
-  "checked_at": "2026-09-03T00:29:20+09:00",
+  "checked_at": "2026-09-03T00:45:09.384060+09:00",
   "public_sports": {
     "競輪": [
-      "松戸",
-      "弥彦",
-      "伊東",
-      "玉野",
       "青森",
+      "弥彦",
       "立川",
+      "松戸",
+      "伊東",
       "富山",
+      "玉野",
       "武雄"
     ],
     "地方競馬": [
@@ -36,19 +36,18 @@
       "大村"
     ],
     "オートレース": [
-      "飯塚",
       "山陽"
     ]
   },
   "public_sports_modes": {
     "競輪": {
-      "松戸": "night",
-      "弥彦": "midnight",
-      "伊東": "midnight",
-      "玉野": "midnight",
       "青森": "day",
+      "弥彦": "midnight",
       "立川": "day",
+      "松戸": "night",
+      "伊東": "midnight",
       "富山": "morning",
+      "玉野": "midnight",
       "武雄": "night"
     },
     "地方競馬": {
@@ -66,23 +65,22 @@
       "三国": "morning",
       "住之江": "night",
       "尼崎": "day",
-      "児島": "twilight",
-      "宮島": "twilight",
+      "児島": "day",
+      "宮島": "day",
       "徳山": "morning",
       "下関": "night",
       "若松": "night",
-      "福岡": "twilight",
+      "福岡": "day",
       "大村": "night"
     },
     "オートレース": {
-      "飯塚": "overnight",
       "山陽": "night"
     }
   },
   "jra_active_ids": [],
-  "source": "official schedules + earphone1981/public-sports-iptv boatrace_today.json",
+  "source": "ajiousama/himitsu direct acquisition + Boatrace Open API fallback",
   "boat_schedule_fallback": {
-    "source": "earphone1981/public-sports-iptv/boatrace_today.json",
+    "source": "boatraceopenapi/api v1",
     "date": "2026-09-03",
     "venues": 14,
     "races": 168
