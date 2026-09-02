@@ -6,10 +6,11 @@ from urllib.parse import quote
 
 FREEWIFI = Path("freewifi")
 RADIKO_BASE = "https://himitsu-six.vercel.app/api/radiko"
+RADIKO_URL_VERSION = "20260903a"
 
 
 def radio_url(sid: str) -> str:
-    return f"{RADIKO_BASE}?station={quote(sid, safe='')}"
+    return f"{RADIKO_BASE}?station={quote(sid, safe='')}&v={RADIKO_URL_VERSION}"
 
 
 def radiko_entry(tvgid: str, sid: str, name: str, logo: str | None = None) -> str:
