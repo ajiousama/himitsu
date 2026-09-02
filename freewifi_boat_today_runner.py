@@ -6,10 +6,13 @@ from pathlib import Path
 
 import freewifi_boat_today as boat
 
+# BOATCAST's playback endpoint accepts the public front-player origin.  Keep
+# this aligned with the header set used by the working BOAT updater; the
+# players.streaks.jp origin causes current BOAT media refs to return 404.
 headers = {
     'User-Agent': boat.UA,
     'Accept': 'application/json',
-    'Origin': 'https://players.streaks.jp',
+    'Origin': 'https://front.player.boatrace-cdn.jp',
     'Referer': 'https://front.player.boatrace-cdn.jp/',
 }
 api_key = os.getenv('BOATRACE_STREAKS_API_KEY', '').strip()
@@ -73,15 +76,11 @@ if LOCAL_EPG.exists():
     except Exception as e:
         print('BOAT local EPG schedule read failed:', e)
 
-original_race_times = boat.race_times
 
 def race_times(jcd, ymd):
     local = LOCAL_TIMES.get(jcd)
     if local:
         return dict(local), None
-    # A venue missing from today's local EPG is treated as non-event here.
-    # The independent generator is responsible for schedule acquisition and
-    # same-repo fallback before this step runs.
     return {}, 'local_epg:no_schedule'
 
 boat.race_times = race_times
