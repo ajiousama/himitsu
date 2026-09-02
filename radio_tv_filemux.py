@@ -14,7 +14,6 @@ import radio_tv_nationwide as impl
 
 
 def prewarm_station(station: str) -> None:
-    # HEAD stays a cheap capability check. GET owns the real mux.
     return
 
 
@@ -41,20 +40,13 @@ def _file_cmd(station: str, source: str, path: pathlib.Path) -> list[str]:
     cmd = impl._ffmpeg_cmd(station, source)
     if cmd[-1] != "pipe:1":
         raise RuntimeError("unexpected FFmpeg output target")
-
-    # Radiko's media playlist contains a short rolling window. Starting at -1
-    # can point FFmpeg at the newest edge and make it wait for the next fragment.
-    # Use the oldest fragment in the three-item window instead: playback is only
-    # about ten seconds behind live, but the audio fragment is already complete.
+    # Start from a completed fragment instead of the newest live edge.
     try:
         idx = cmd.index("-live_start_index")
         cmd[idx + 1] = "-3"
     except (ValueError, IndexError):
         pass
-
-    # Ask the MPEG-TS writer to avoid unnecessary AVIO buffering. Combined with
-    # flush_packets this lets the HTTP handler see the first TS packets quickly.
-    cmd[-1:-1] = ["-avioflags", "direct"]
+    # Keep the otherwise known-good command exactly as radio-debug uses it.
     cmd[-1] = str(path)
     return cmd
 
@@ -62,12 +54,7 @@ def _file_cmd(station: str, source: str, path: pathlib.Path) -> list[str]:
 def _start_file_mux(station: str, source: str, timeout: float = 12.0):
     path = _new_output_path()
     cmd = _file_cmd(station, source, path)
-    proc = subprocess.Popen(
-        cmd,
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.PIPE,
-        bufsize=0,
-    )
+    proc = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, bufsize=0)
     tail = collections.deque(maxlen=120)
     threading.Thread(target=_drain_stderr, args=(proc.stderr, tail), daemon=True).start()
 
@@ -100,7 +87,6 @@ def _stream_file(handler, proc: subprocess.Popen, path: pathlib.Path) -> None:
     handler.send_header("Connection", "close")
     handler.end_headers()
     handler.close_connection = True
-
     try:
         with path.open("rb", buffering=0) as src:
             while True:
@@ -130,7 +116,6 @@ def _stream_station(handler, station: str) -> None:
     if station not in impl.base.STATIONS:
         handler.send_error(404, "unknown radio station")
         return
-
     try:
         impl.base.make_art(station)
         impl.base.ffmpeg_exe()
@@ -145,11 +130,7 @@ def _stream_station(handler, station: str) -> None:
             _stream_file(handler, proc, path)
             return
         failures.append(f"{source}: {detail[-1200:]}")
-        print(
-            f"[radio-tv-filemux] startup failed station={station} source={source} detail={detail[-500:]}",
-            flush=True,
-        )
-
+        print(f"[radio-tv-filemux] startup failed station={station} source={source} detail={detail[-500:]}", flush=True)
     handler.send_error(504, (" | ".join(failures)[-3000:] or "radio file mux failed"))
 
 
@@ -157,8 +138,7 @@ def _debug_file_mux(handler, station: str) -> None:
     if station not in impl.base.STATIONS:
         handler.send_error(404, "unknown radio station")
         return
-
-    lines = [f"station={station}", "live_start_index=-3", "avioflags=direct"]
+    lines = [f"station={station}", "live_start_index=-3", "avioflags=default"]
     source = impl._audio_sources(station)[0]
     lines.append(f"source={source}")
     started = time.monotonic()
