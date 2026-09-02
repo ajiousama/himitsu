@@ -3,7 +3,7 @@ name: Update BOAT Today V2 Resolver
 on:
   workflow_dispatch:
   schedule:
-    # 09:05-22:35 JST: refresh the held-venue list every 30 minutes.
+    # 09:05-22:35 JST: refresh the current streaming/VTR window every 30 minutes.
     - cron: "5,35 0-13 * * *"
     # 23:05 JST: final cleanup after night racing.
     - cron: "5 14 * * *"
@@ -12,7 +12,8 @@ on:
       - main
     paths:
       - "boat_v2_build.py"
-      - "api/boat.js"
+      - "boat_cloud_resolver.py"
+      - "radiko_cloud_start.py"
       - ".github/workflows/update_boat_today.yml"
 
 permissions:
@@ -42,30 +43,12 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Build BOAT V2 held venues
+      - name: Build BOAT V2 streaming window
         run: python -u boat_v2_build.py
 
-      - name: Validate BOAT V2 state
-        run: |
-          python - <<'PY'
-          import json
-          from pathlib import Path
-          d = json.loads(Path('today_boat_status.json').read_text(encoding='utf-8'))
-          if d.get('system') != 'boat-v2-resolver':
-              raise SystemExit('unexpected BOAT system')
-          held = int(d.get('held_count') or 0)
-          visible = int(d.get('visible_count') or 0)
-          cards = int(d.get('card_count') or 0)
-          print('BOAT V2 cards=', cards, 'held=', held, 'visible=', visible)
-          if held != visible:
-              raise SystemExit(f'BOAT V2 venue mismatch: held={held} visible={visible}')
-          text = Path('freewifi').read_text(encoding='utf-8-sig', errors='replace')
-          count = text.count('https://himitsu-six.vercel.app/api/boat?venue=')
-          print('BOAT V2 resolver entries=', count)
-          if count != visible:
-              raise SystemExit(f'BOAT V2 playlist mismatch: resolver_entries={count} visible={visible}')
-          PY
-
+      # Publish usable improvement first. If Render is still deploying, the
+      # builder writes only still-valid direct fallbacks and validation stays
+      # red until the fixed resolver is live.
       - name: Publish BOAT V2 state safely
         shell: bash
         run: |
@@ -100,3 +83,32 @@ jobs:
 
           echo "::error::BOAT V2 publish failed after retries"
           exit 1
+
+      - name: Validate BOAT V2 state
+        run: |
+          python - <<'PY'
+          import json, re
+          from pathlib import Path
+          d = json.loads(Path('today_boat_status.json').read_text(encoding='utf-8'))
+          if d.get('system') != 'boat-v2-resolver':
+              raise SystemExit('unexpected BOAT system')
+          held = int(d.get('held_count') or 0)
+          visible = int(d.get('visible_count') or 0)
+          cards = int(d.get('card_count') or 0)
+          ready = bool(d.get('resolver_ready'))
+          waiting = d.get('scheduled_waiting') or []
+          ended = d.get('ended_removed') or []
+          print('BOAT V2 cards=', cards, 'active=', held, 'visible=', visible, 'resolver_ready=', ready)
+          print('BOAT V2 waiting=', waiting, 'ended=', ended)
+          text = Path('freewifi').read_text(encoding='utf-8-sig', errors='replace')
+          m = re.search(r'# === TODAY_BOAT_START ===(.*?)# === TODAY_BOAT_END ===', text, re.S)
+          body = m.group(1) if m else ''
+          entries = len(re.findall(r'^#EXTINF:.*tvg-id="boat\.', body, re.M))
+          print('BOAT V2 playlist entries=', entries)
+          if entries != visible:
+              raise SystemExit(f'BOAT V2 playlist mismatch: entries={entries} visible={visible}')
+          if held and visible != held:
+              raise SystemExit(f'BOAT V2 venue mismatch: active={held} visible={visible}')
+          if held and not ready:
+              raise SystemExit('BOAT V2 Render resolver is not live yet')
+          PY
