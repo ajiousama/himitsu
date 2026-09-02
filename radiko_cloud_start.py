@@ -9,15 +9,11 @@ import struct
 import time
 import urllib.parse
 
-# Render exposes its HTTP port through PORT. Configure the existing Radiko
-# gateway before importing it so module-level HOST/PORT use cloud values.
 os.environ.setdefault("RADIKO_PROXY_HOST", "0.0.0.0")
 os.environ.setdefault("RADIKO_PROXY_PORT", os.environ.get("PORT", "10000"))
 
 import radiko_proxy_core as core
 
-# Radio TV is optional. A missing Pillow/ffmpeg dependency must never
-# take down the existing Radiko gateway during Render startup.
 RADIO_TV_IMPORT_ERROR = None
 try:
     import radio_tv_filemux as radio_tv
@@ -26,7 +22,6 @@ except Exception as e:
     RADIO_TV_IMPORT_ERROR = f"{type(e).__name__}: {e}"
     print(f"[radio-tv] disabled at startup: {RADIO_TV_IMPORT_ERROR}", flush=True)
 
-# BOAT resolver is isolated from Radiko. If it fails to import, Radiko stays up.
 BOAT_IMPORT_ERROR = None
 try:
     import boat_cloud_resolver as boat_cloud
@@ -37,14 +32,12 @@ except Exception as e:
 
 
 def cloud_auth(force: bool = False):
-    """Current 2026 Radiko auth flow for api.radiko.jp."""
     now = time.time()
     with core.LOCK:
         if not force and core.STATE["token"] and now - core.STATE["token_time"] < 2100:
             return core.STATE["token"], core.STATE["detected_area"]
 
     session = core.premium_login(force=force)
-
     try:
         with core.open_url(core.API + "/v2/api/auth1", core.BASE_HEADERS, timeout=30) as r:
             token = r.headers.get("X-Radiko-AuthToken")
@@ -70,7 +63,6 @@ def cloud_auth(force: bool = False):
             "X-Radiko-Session": session,
         }
     )
-
     try:
         with core.open_url(core.API + "/v2/api/auth2", headers, timeout=30) as r:
             body = r.read().decode("utf-8", "replace").strip()
@@ -107,8 +99,6 @@ def tun_capability_report() -> str:
     try:
         fd = os.open(path, os.O_RDWR)
         lines.append("tun_open=true")
-        # Linux TUNSETIFF, IFF_TUN | IFF_NO_PI. Creating a temporary interface
-        # verifies CAP_NET_ADMIN rather than merely checking the device node.
         ifr = struct.pack("16sH", b"rgate%d", 0x0001 | 0x1000)
         result = fcntl.ioctl(fd, 0x400454CA, ifr)
         name = result[:16].split(b"\x00", 1)[0].decode("ascii", "replace")
@@ -124,7 +114,7 @@ def tun_capability_report() -> str:
 
 
 core.auth = cloud_auth
-core.BUILD = "20260903-radio-tv-filemux-v11"
+core.BUILD = "20260903-radio-tv-filemux-v12"
 
 _original_do_get = core.Handler.do_GET
 
