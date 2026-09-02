@@ -1,30 +1,30 @@
 $ErrorActionPreference = 'Continue'
 
 $venues = @(
-  @{ Code='01kiryu';       Id='boat.kiryu' },
-  @{ Code='02toda';        Id='boat.toda' },
-  @{ Code='03edogawa';     Id='boat.edogawa' },
-  @{ Code='04heiwajima';   Id='boat.heiwajima' },
-  @{ Code='05tamagawa';    Id='boat.tamagawa' },
-  @{ Code='06hamanako';    Id='boat.hamanako' },
-  @{ Code='07gamagori';    Id='boat.gamagori' },
-  @{ Code='08tokoname';    Id='boat.tokoname' },
-  @{ Code='09tsu';         Id='boat.tsu' },
-  @{ Code='10mikuni';      Id='boat.mikuni' },
-  @{ Code='11biwako';      Id='boat.biwako' },
-  @{ Code='12suminoe';     Id='boat.suminoe' },
-  @{ Code='13amagasaki';   Id='boat.amagasaki' },
-  @{ Code='14naruto';      Id='boat.naruto' },
-  @{ Code='15marugame';    Id='boat.marugame' },
-  @{ Code='16kojima';      Id='boat.kojima' },
-  @{ Code='17miyajima';    Id='boat.miyajima' },
-  @{ Code='18tokuyama';    Id='boat.tokuyama' },
-  @{ Code='19shimonoseki'; Id='boat.shimonoseki' },
-  @{ Code='20wakamatsu';   Id='boat.wakamatsu' },
-  @{ Code='21ashiya';      Id='boat.ashiya' },
-  @{ Code='22fukuoka';     Id='boat.fukuoka' },
-  @{ Code='23karatsu';     Id='boat.karatsu' },
-  @{ Code='24omura';       Id='boat.omura' }
+  @{ Stadium='01'; Code='01kiryu';       Id='boat.kiryu' },
+  @{ Stadium='02'; Code='02toda';        Id='boat.toda' },
+  @{ Stadium='03'; Code='03edogawa';     Id='boat.edogawa' },
+  @{ Stadium='04'; Code='04heiwajima';   Id='boat.heiwajima' },
+  @{ Stadium='05'; Code='05tamagawa';    Id='boat.tamagawa' },
+  @{ Stadium='06'; Code='06hamanako';    Id='boat.hamanako' },
+  @{ Stadium='07'; Code='07gamagori';    Id='boat.gamagori' },
+  @{ Stadium='08'; Code='08tokoname';    Id='boat.tokoname' },
+  @{ Stadium='09'; Code='09tsu';         Id='boat.tsu' },
+  @{ Stadium='10'; Code='10mikuni';      Id='boat.mikuni' },
+  @{ Stadium='11'; Code='11biwako';      Id='boat.biwako' },
+  @{ Stadium='12'; Code='12suminoe';     Id='boat.suminoe' },
+  @{ Stadium='13'; Code='13amagasaki';   Id='boat.amagasaki' },
+  @{ Stadium='14'; Code='14naruto';      Id='boat.naruto' },
+  @{ Stadium='15'; Code='15marugame';    Id='boat.marugame' },
+  @{ Stadium='16'; Code='16kojima';      Id='boat.kojima' },
+  @{ Stadium='17'; Code='17miyajima';    Id='boat.miyajima' },
+  @{ Stadium='18'; Code='18tokuyama';    Id='boat.tokuyama' },
+  @{ Stadium='19'; Code='19shimonoseki'; Id='boat.shimonoseki' },
+  @{ Stadium='20'; Code='20wakamatsu';   Id='boat.wakamatsu' },
+  @{ Stadium='21'; Code='21ashiya';      Id='boat.ashiya' },
+  @{ Stadium='22'; Code='22fukuoka';     Id='boat.fukuoka' },
+  @{ Stadium='23'; Code='23karatsu';     Id='boat.karatsu' },
+  @{ Stadium='24'; Code='24omura';       Id='boat.omura' }
 )
 
 $ua = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36'
@@ -74,15 +74,12 @@ function Test-TimeWindow($item) {
     $end = [DateTimeOffset]::Parse([string]$item.end_at)
     return ($now -ge $start -and $now -le $end)
   }
-  catch {
-    return $true
-  }
+  catch { return $true }
 }
 
 function Resolve-Playback([string]$refId, [string]$apiKey) {
   if ([string]::IsNullOrWhiteSpace($refId)) { return '' }
   $url = "https://playback.api.streaks.jp/v1/projects/cp-boatrace-prod/medias/ref:${refId}?audio_only=false"
-
   $keys = @('')
   if (-not [string]::IsNullOrWhiteSpace($apiKey)) { $keys += $apiKey }
   foreach ($key in $keys) {
@@ -95,9 +92,7 @@ function Resolve-Playback([string]$refId, [string]$apiKey) {
     }
     catch {
       $status = Get-HttpStatus $_
-      if ($status -and $status -notin @(401,403,404)) {
-        Write-Host "PLAYBACK ${refId}: HTTP $status"
-      }
+      if ($status -and $status -notin @(401,403,404)) { Write-Host "PLAYBACK ${refId}: HTTP $status" }
     }
   }
   return ''
@@ -107,15 +102,12 @@ $apiKey = [Environment]::GetEnvironmentVariable('BOATRACE_STREAKS_API_KEY')
 $result = [ordered]@{}
 
 foreach ($v in $venues) {
-  $setting = Get-CurrentSetting $v.Code
+  $setting = Get-CurrentSetting $v.Stadium
   if ($null -eq $setting) { continue }
 
-  # BOATCAST currently opens sourceType=mix + dvr=1. Follow its public
-  # setting contract instead of deriving date-based media refs ourselves.
   $candidates = @('mix_dvr', 'mix_live', 'br_dvr', 'br_live')
   $resolved = ''
   $usedRef = ''
-
   foreach ($name in $candidates) {
     $prop = $setting.PSObject.Properties[$name]
     if ($null -eq $prop) { continue }
@@ -123,17 +115,13 @@ foreach ($v in $venues) {
     if (-not (Test-TimeWindow $item)) { continue }
     $refId = [string]$item.ref_id
     if ([string]::IsNullOrWhiteSpace($refId)) { continue }
-
     $resolved = Resolve-Playback $refId $apiKey
-    if ($resolved) {
-      $usedRef = $refId
-      break
-    }
+    if ($resolved) { $usedRef = $refId; break }
   }
 
   if ($resolved) {
     $result[$v.Code] = $resolved
-    Write-Host "STREAM OK $($v.Id) ref=$usedRef"
+    Write-Host "STREAM OK $($v.Id) stadium=$($v.Stadium) ref=$usedRef"
   }
   else {
     Write-Host "STREAM WAIT $($v.Id): no active BOATCAST source"
