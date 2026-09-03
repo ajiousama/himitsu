@@ -132,7 +132,7 @@ jobs:
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add ganble freewifi today_public_sports_status.json today_jra_status.json today_event_counts.json verified_daily_status.json public_sports_epg_local.xml
+          git add ganble freewifi today_public_sports_status.json today_boat_status.json boat_v2_state.json today_jra_status.json today_event_counts.json verified_daily_status.json public_sports_epg_local.xml
           [ ! -f public_sports_youtube_fallback.m3u ] || git add public_sports_youtube_fallback.m3u
           if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -f general_youtube.m3u ]; then
             git add general_youtube.m3u
