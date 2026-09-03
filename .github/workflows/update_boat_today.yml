@@ -1,4 +1,4 @@
-name: Update BOAT Today V2 Resolver
+name: Update BOAT Today iPhone Seed
 
 on:
   workflow_dispatch:
@@ -9,12 +9,9 @@ on:
     branches:
       - main
     paths:
+      - "boat_stream_seed.m3u"
+      - "boat_iphone_seed_build.py"
       - "boat_v2_build.py"
-      - "boat_v2_render_guard.py"
-      - "boat_cloud_resolver.py"
-      - "boat_streaks_refresh.py"
-      - "boat_youtube_refresh.py"
-      - "radiko_cloud_start.py"
       - ".github/workflows/update_boat_today.yml"
 
 permissions:
@@ -27,7 +24,7 @@ concurrency:
 jobs:
   update:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 12
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -42,71 +39,30 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-
-      - name: Install BOAT live extractor
-        run: |
-          python -m pip install --disable-pip-version-check -q -U --pre 'yt-dlp[default]' curl_cffi
-          yt-dlp --version
-
-      - name: Refresh official BOATRACE Streaks primary
-        run: python -u boat_streaks_refresh.py
-
-      - name: Restore YouTube cookies
-        shell: bash
-        env:
-          YOUTUBE_COOKIES: ${{ secrets.YOUTUBE_COOKIES }}
-        run: |
-          rm -f youtube_cookies.txt
-          if [ -n "$YOUTUBE_COOKIES" ]; then
-            printf '%s' "$YOUTUBE_COOKIES" > youtube_cookies.txt
-            chmod 600 youtube_cookies.txt
-            echo 'BOAT YouTube cookies restored'
-          else
-            echo '::warning::YOUTUBE_COOKIES is not set'
-          fi
-
-      - name: Refresh official YouTube BOAT emergency fallback
-        run: python -u boat_youtube_refresh.py
-
-      - name: Wake and probe current BOAT Render resolver
+      - name: Verify and preserve iPhone BOAT seed
         shell: bash
         run: |
-          set +e
-          base='https://ajiousama-radiko.onrender.com'
-          curl -L -sS -o /tmp/render-wake.txt -w 'Render root HTTP=%{http_code}\n' \
-            --connect-timeout 8 --max-time 20 "$base/" || true
-          probe_venue="$(python - <<'PY'
-          import json
-          from pathlib import Path
-          try:
-              d=json.loads(Path('today_boat_status.json').read_text(encoding='utf-8'))
-              active=set(d.get('active_window') or [])
-              for _tid,item in (d.get('venues') or {}).items():
-                  if item.get('name') in active and item.get('jcd'):
-                      print(item['jcd']); raise SystemExit
-          except Exception:
-              pass
-          print('05')
-          PY
-          )"
-          echo "BOAT active smoke venue=$probe_venue"
-          code="$(curl -sS -o /tmp/boat-probe.json -w '%{http_code}' \
-            --connect-timeout 8 --max-time 15 \
-            "$base/boat/$probe_venue?debug=1" || true)"
-          echo "BOAT Render playable probe HTTP=${code:-000}"
-          cat /tmp/boat-probe.json 2>/dev/null || true
-          set -e
+          set -euo pipefail
+          test -s boat_stream_seed.m3u
+          cp boat_stream_seed.m3u /tmp/boat_stream_seed.m3u.before
+          streams="$(grep -Ec '^https?://' boat_stream_seed.m3u || true)"
+          echo "iPhone BOAT seed streams=$streams"
+          sha256sum boat_stream_seed.m3u
 
-      - name: Build BOAT V2 streaming window
+      - name: Build today's BOAT from iPhone seed only
+        run: python -u boat_iphone_seed_build.py
+
+      - name: Confirm workflow did not rewrite iPhone seed
+        shell: bash
         run: |
-          python -u boat_v2_build.py
-          python -u boat_v2_render_guard.py
+          set -euo pipefail
+          cmp -s /tmp/boat_stream_seed.m3u.before boat_stream_seed.m3u || {
+            echo '::error::boat_stream_seed.m3u was modified by the workflow'
+            exit 1
+          }
+          echo 'iPhone BOAT seed preserved byte-for-byte'
 
-      - name: Publish BOAT V2 state safely
+      - name: Publish BOAT state safely
         shell: bash
         run: |
           set -euo pipefail
@@ -117,28 +73,47 @@ jobs:
             python - <<'PY'
           import json, re
           from pathlib import Path
+
           d = json.loads(Path('today_boat_status.json').read_text(encoding='utf-8'))
-          if d.get('system') != 'boat-v2-resolver':
-              raise SystemExit('unexpected BOAT system')
+          if d.get('system') != 'boat-v2-iphone-seed':
+              raise SystemExit(f"unexpected BOAT system: {d.get('system')}")
+
           visible = int(d.get('visible_count') or 0)
           text = Path('freewifi').read_text(encoding='utf-8-sig', errors='replace')
           m = re.search(r'# === TODAY_BOAT_START ===(.*?)# === TODAY_BOAT_END ===', text, re.S)
           body = m.group(1) if m else ''
           entries = len(re.findall(r'^#EXTINF:.*tvg-id="boat\.', body, re.M))
           if entries != visible:
-              raise SystemExit(f'BOAT V2 playlist mismatch: entries={entries} visible={visible}')
-          print('BOAT pre-publish validation OK:', 'visible=', visible, 'entries=', entries)
+              raise SystemExit(f'BOAT playlist mismatch: entries={entries} visible={visible}')
+          if 'ajiousama-radiko.onrender.com/boat/' in body:
+              raise SystemExit('cloud resolver URL leaked into TODAY_BOAT block')
+
+          seed = Path('boat_stream_seed.m3u').read_text(encoding='utf-8-sig', errors='replace')
+          for url in re.findall(r'(?m)^https?://\S+$', body):
+              if url not in seed:
+                  raise SystemExit('TODAY_BOAT contains a URL not present in iPhone seed')
+
+          print('BOAT iPhone-seed validation OK:', 'visible=', visible, 'entries=', entries)
           PY
+          }
+
+          build_from_latest_seed() {
+            cp boat_stream_seed.m3u /tmp/boat_stream_seed.m3u.before
+            python -u boat_iphone_seed_build.py
+            cmp -s /tmp/boat_stream_seed.m3u.before boat_stream_seed.m3u || {
+              echo '::error::boat_stream_seed.m3u changed during build'
+              return 1
+            }
           }
 
           publish() {
             validate_boat || return 1
-            git add freewifi today_boat_status.json boat_v2_state.json boat_stream_seed.m3u
+            git add freewifi today_boat_status.json boat_v2_state.json
             if git diff --cached --quiet; then
-              echo "BOAT V2 state already current"
+              echo "BOAT iPhone-seed state already current"
               return 0
             fi
-            git commit -m "Update BOAT V2 current venues [skip ci]"
+            git commit -m "Update BOAT from iPhone one-click seed [skip ci]"
             git push origin HEAD:main
           }
 
@@ -147,44 +122,37 @@ jobs:
           fi
 
           for attempt in 2 3 4; do
-            echo "BOAT V2 main moved; rebuild on latest main ($attempt/4)"
+            echo "BOAT main moved; rebuild from newest iPhone seed ($attempt/4)"
             git fetch origin main
             git reset --hard origin/main
-            python -u boat_streaks_refresh.py
-            python -u boat_youtube_refresh.py
-            python -u boat_v2_build.py
-            python -u boat_v2_render_guard.py
+            build_from_latest_seed
             if publish; then
               exit 0
             fi
             sleep 1
           done
 
-          echo "::error::BOAT V2 publish failed after retries"
+          echo "::error::BOAT iPhone-seed publish failed after retries"
           exit 1
 
-      - name: Validate BOAT V2 state
+      - name: Validate final BOAT state
         run: |
           python - <<'PY'
           import json, re
           from pathlib import Path
+
           d = json.loads(Path('today_boat_status.json').read_text(encoding='utf-8'))
           held = int(d.get('held_count') or 0)
           visible = int(d.get('visible_count') or 0)
           cards = int(d.get('card_count') or 0)
-          ready = bool(d.get('resolver_ready'))
-          probe = int(d.get('resolver_probe_status') or 0)
-          print('BOAT V2 cards=', cards, 'active=', held, 'visible=', visible, 'resolver_ready=', ready, 'probe=', probe)
+          print('BOAT iPhone seed cards=', cards, 'active=', held, 'visible=', visible)
+
           text = Path('freewifi').read_text(encoding='utf-8-sig', errors='replace')
           m = re.search(r'# === TODAY_BOAT_START ===(.*?)# === TODAY_BOAT_END ===', text, re.S)
           body = m.group(1) if m else ''
           entries = len(re.findall(r'^#EXTINF:.*tvg-id="boat\.', body, re.M))
           if entries != visible:
-              raise SystemExit(f'BOAT V2 playlist mismatch: entries={entries} visible={visible}')
+              raise SystemExit(f'BOAT playlist mismatch: entries={entries} visible={visible}')
           if held and not visible:
-              print('::warning::BOAT active venue exists but no playable source is currently available')
+              print('::warning::BOAT active venue exists but iPhone seed has no currently valid URL; run Scriptable one-click')
           PY
-
-      - name: Remove YouTube cookies
-        if: always()
-        run: rm -f youtube_cookies.txt
