@@ -8,6 +8,7 @@ BASE = ROOT / 'youtube_live_camera_default.png'
 # Dedicated labels for sources that previously shared the generic live-camera logo.
 # Airport labels use IATA codes so they render reliably on GitHub Actions without
 # depending on Japanese fonts. Ehime live cameras use short Roman labels.
+# Keep this list synchronized with the supplemental airport/port source files.
 LOGOS = {
     'airport_okayama.png': ('OKJ', 'AIRPORT'),
     'airport_hiroshima.png': ('HIJ', 'AIRPORT'),
