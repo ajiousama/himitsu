@@ -1,14 +1,12 @@
 from pathlib import Path
-from PIL import Image, ImageDraw, ImageFont, ImageEnhance
+from PIL import Image, ImageDraw, ImageFont
 
 ROOT = Path('logos/youtube')
 ROOT.mkdir(parents=True, exist_ok=True)
-BASE = ROOT / 'youtube_live_camera_default.png'
+SIZE = 384
+FONT = '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'
 
-# Dedicated labels for sources that previously shared the generic live-camera logo.
-# Airport labels use IATA codes so they render reliably on GitHub Actions without
-# depending on Japanese fonts. Ehime live cameras use short Roman labels.
-# Keep this list synchronized with the supplemental airport/port source files.
+# Dedicated labels for sources that previously shared one generic logo.
 LOGOS = {
     'airport_okayama.png': ('OKJ', 'AIRPORT'),
     'airport_hiroshima.png': ('HIJ', 'AIRPORT'),
@@ -35,57 +33,57 @@ LOGOS = {
 }
 
 
-def fit_font(draw, text, max_width, start_size, font_path=None):
-    size = start_size
+def font_for(draw, text, max_width, start):
+    size = start
     while size >= 18:
         try:
-            font = ImageFont.truetype(font_path or '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf', size)
+            f = ImageFont.truetype(FONT, size)
         except Exception:
-            font = ImageFont.load_default()
-        box = draw.textbbox((0, 0), text, font=font)
-        if box[2] - box[0] <= max_width:
-            return font
+            f = ImageFont.load_default()
+        b = draw.textbbox((0, 0), text, font=f)
+        if b[2] - b[0] <= max_width:
+            return f
         size -= 2
-    return font
+    return f
+
+
+def centered(draw, text, y, font, fill):
+    b = draw.textbbox((0, 0), text, font=font)
+    x = (SIZE - (b[2] - b[0])) / 2 - b[0]
+    draw.text((x, y - b[1]), text, font=font, fill=fill)
+
+
+def draw_symbol(draw, kind):
+    # Simple monochrome symbols keep all icons readable in IPTV players.
+    if kind == 'AIRPORT':
+        draw.polygon([(192,54),(209,116),(292,145),(292,162),(207,153),(200,213),(184,213),(177,153),(92,162),(92,145),(175,116)], fill='black')
+    elif kind == 'PORT':
+        draw.rectangle((184,72,200,154), fill='black')
+        draw.polygon([(145,119),(192,74),(239,119)], outline='black')
+        draw.arc((108,136,276,214), 10, 170, fill='black', width=8)
+        draw.arc((108,158,276,236), 10, 170, fill='black', width=8)
+    elif kind in {'MT.','SKI'}:
+        draw.polygon([(79,190),(153,90),(195,146),(235,96),(310,190)], outline='black')
+        draw.line((79,190,310,190), fill='black', width=8)
+    else:
+        draw.ellipse((143,78,241,176), outline='black', width=9)
+        draw.ellipse((177,112,207,142), fill='black')
 
 
 def build_one(filename, label, kind):
-    if not BASE.exists():
-        raise FileNotFoundError(BASE)
-    img = Image.open(BASE).convert('RGBA')
-    # Keep the existing project look, while slightly dimming the source image so
-    # the dedicated code is readable at IPTV icon size.
-    rgb = ImageEnhance.Brightness(img.convert('RGB')).enhance(0.72)
-    img = rgb.convert('RGBA')
-    w, h = img.size
-    draw = ImageDraw.Draw(img, 'RGBA')
+    img = Image.new('RGB', (SIZE, SIZE), 'white')
+    draw = ImageDraw.Draw(img)
+    draw.rounded_rectangle((16,16,SIZE-16,SIZE-16), radius=34, outline='black', width=8)
+    draw_symbol(draw, kind)
+    draw.rounded_rectangle((34,224,SIZE-34,SIZE-34), radius=22, fill='black')
 
-    pad = max(12, w // 24)
-    panel_top = int(h * 0.58)
-    draw.rounded_rectangle(
-        (pad, panel_top, w - pad, h - pad),
-        radius=max(12, w // 28),
-        fill=(0, 0, 0, 188),
-        outline=(255, 255, 255, 220),
-        width=max(2, w // 110),
-    )
-
-    main = fit_font(draw, label, int(w * 0.78), max(42, int(h * 0.19)))
-    sub = fit_font(draw, kind, int(w * 0.72), max(20, int(h * 0.075)))
-
-    mb = draw.textbbox((0, 0), label, font=main)
-    sw = mb[2] - mb[0]
-    sh = mb[3] - mb[1]
-    y = panel_top + max(4, int((h - pad - panel_top) * 0.16))
-    draw.text(((w - sw) / 2, y - mb[1]), label, font=main, fill=(255, 255, 255, 255))
-
-    sb = draw.textbbox((0, 0), kind, font=sub)
-    ssw = sb[2] - sb[0]
-    sy = min(h - pad - (sb[3] - sb[1]) - 5, y + sh + max(4, h // 55))
-    draw.text(((w - ssw) / 2, sy - sb[1]), kind, font=sub, fill=(240, 240, 240, 255))
+    main = font_for(draw, label, 286, 70)
+    sub = font_for(draw, kind, 230, 30)
+    centered(draw, label, 237, main, 'white')
+    centered(draw, kind, 319, sub, 'white')
 
     out = ROOT / filename
-    img.convert('RGB').save(out, 'PNG', optimize=True)
+    img.save(out, 'PNG', optimize=True)
     print('generated', out)
 
 
