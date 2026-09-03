@@ -10,7 +10,7 @@ FREEWIFI=Path('freewifi')
 COOKIES=Path('youtube_cookies.txt')
 START='# === GENERAL_YOUTUBE_MANAGED_START ==='
 END='# === GENERAL_YOUTUBE_MANAGED_END ==='
-SKIP_IDS={'youtube.kobe_waterfront2','youtube.narita_t1','youtube.kana_tube','jra.official'}
+SKIP_IDS={'youtube.kobe_waterfront2','youtube.narita_t1','jra.official'}
 CMD_TIMEOUT=22
 SEARCH_TIMEOUT=18
 MAX_WORKERS=2
