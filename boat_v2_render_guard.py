@@ -84,15 +84,28 @@ def main():
         if item.get('stream_window') != 'live_or_vtr':
             item['visible'] = False
             continue
+
+        # Keep every currently active venue in FreeWiFi. Prefer a known-good
+        # direct seed when one exists; otherwise leave the stable on-demand
+        # resolver URL in place so the channel recovers automatically as soon
+        # as Render/upstream comes back. A transient resolver probe must not
+        # make today's開催場 disappear from the playlist.
         url = seeds.get(tvg_id, '')
-        if not url:
-            item['visible'] = False
-            item['source'] = f'Render unhealthy ({code}); no safe fallback'
-            item.pop('url', None)
-            continue
+        if url:
+            source = f'valid seed fallback while Render unhealthy ({code})'
+        else:
+            jcd = item.get('jcd') or ''
+            if not jcd:
+                item['visible'] = False
+                item['source'] = f'Render unhealthy ({code}); missing JCD'
+                item.pop('url', None)
+                continue
+            url = b.RESOLVER.format(jcd=jcd)
+            source = f'stable resolver URL retained while probe unhealthy ({code})'
+
         item['visible'] = True
         item['url'] = url
-        item['source'] = f'valid seed fallback while Render unhealthy ({code})'
+        item['source'] = source
         name = item.get('name') or tvg_id
         jcd = item.get('jcd') or ''
         venue = b.VENUES.get(jcd)
@@ -114,15 +127,15 @@ def main():
         body.append(f'#EXTINF:-1 tvg-id="{tvg_id}" tvg-name="BOATRACE{name}" tvg-logo="{logo}" group-title="{b.GROUP}",BOATRACE{name}')
         body.append(url)
         body.append('')
-    managed = b.START + '\n## 今日の開催場 / BOAT v2 fallback\n' + '\n'.join(body).rstrip() + ('\n' if body else '') + b.END
+    managed = b.START + '\n## 今日の開催場 / BOAT v2 resilient fallback\n' + '\n'.join(body).rstrip() + ('\n' if body else '') + b.END
 
     text = FREEWIFI.read_text(encoding='utf-8-sig', errors='replace')
     FREEWIFI.write_text(replace_boat_block(text, managed).rstrip() + '\n', encoding='utf-8')
     d['visible_count'] = len(rows)
-    d['resolver_guard'] = f'unhealthy probe={code}; safe fallback only'
+    d['resolver_guard'] = f'unhealthy probe={code}; active venues retained with seed/resolver URLs'
     STATUS.write_text(json.dumps(d, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
     STATE.write_text(json.dumps(d, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
-    print(f'BOAT V2 Render guard: unhealthy probe={code}; fallback_visible={len(rows)} active={d.get("held_count")}')
+    print(f'BOAT V2 Render guard: unhealthy probe={code}; retained_visible={len(rows)} active={d.get("held_count")}')
     return 0
 
 
