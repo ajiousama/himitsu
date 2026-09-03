@@ -19,6 +19,8 @@ JST=ZoneInfo('Asia/Tokyo')
 SERIOUS_CODES={'RATE_LIMIT','BOT_CHECK','COOKIE_ERROR'}
 KANA_ID='youtube.kana_tube'
 KANA_PAGE='https://www.youtube.com/@kanatubechannel/live'
+OSAKA_LOOP_ID='youtube.osaka_loop'
+OSAKA_LOOP_PAGE='https://www.youtube.com/@osakalive/live'
 _call_lock=threading.Lock()
 _last_call_at=0.0
 
@@ -213,6 +215,11 @@ def resolve_item(index,item):
             url,reason=direct_url(KANA_PAGE)
             if not url and not (reason and reason[0] in SERIOUS_CODES):
                 url,reason=channel_live(KANA_PAGE,30 if focus else 15,live_only=True)
+        elif tvg==OSAKA_LOOP_ID:
+            print(' OSAKA LOOP official-only @osakalive',flush=True)
+            url,reason=direct_url(OSAKA_LOOP_PAGE)
+            if not url and not (reason and reason[0] in SERIOUS_CODES):
+                url,reason=channel_live(OSAKA_LOOP_PAGE,20,live_only=True)
         else:
             if page: url,reason=direct_url(page)
             if not url and not (reason and reason[0] in SERIOUS_CODES):
@@ -240,7 +247,7 @@ def build():
     for _,item,url,reason in results:
         name=item['name']; tvg=item['id']; code=(reason or ('NO_LIVE',''))[0]
         old_url=old_urls.get(tvg)
-        allow_old_fallback=(tvg!=KANA_ID and tvg in active_ids)
+        allow_old_fallback=(tvg not in {KANA_ID,OSAKA_LOOP_ID} and tvg in active_ids)
         if not url and code in SERIOUS_CODES and old_url and allow_old_fallback:
             url=old_url; fallback_count+=1
             failed.append((name,code,(reason or ('',''))[1]+' [previous URL kept]'))
