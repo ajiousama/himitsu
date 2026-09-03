@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import concurrent.futures
 import datetime as dt
-import html
+import time
 import urllib.request
 import xml.etree.ElementTree as ET
 
@@ -9,7 +9,7 @@ UA = {"User-Agent": "Mozilla/5.0"}
 JST = dt.timezone(dt.timedelta(hours=9))
 
 
-def _open(url, timeout=12):
+def _open(url, timeout=15):
     req = urllib.request.Request(url, headers=UA)
     return urllib.request.urlopen(req, timeout=timeout)
 
@@ -21,12 +21,17 @@ def _fetch_program_area(date_yyyymmdd, pref):
         f"https://radiko.jp/v3/program/date/{date_yyyymmdd}/{area}.xml",
     ]
     last = None
-    for url in urls:
-        try:
-            with _open(url) as r:
-                return ET.fromstring(r.read())
-        except Exception as e:
-            last = e
+    # Radiko occasionally fails on individual area/date requests. Retry both
+    # endpoints before giving up so one transient error does not wipe RADIO EPG.
+    for attempt in range(3):
+        for url in urls:
+            try:
+                with _open(url) as r:
+                    return ET.fromstring(r.read())
+            except Exception as e:
+                last = e
+        if attempt < 2:
+            time.sleep(0.8 * (attempt + 1))
     raise last
 
 
@@ -52,6 +57,7 @@ def build_xmltv(days=3):
     dates = [(today + dt.timedelta(days=i)).strftime("%Y%m%d") for i in range(days)]
 
     roots = {}
+    failures = []
     with concurrent.futures.ThreadPoolExecutor(max_workers=12) as ex:
         futs = {
             ex.submit(_fetch_program_area, d, p): (d, p)
@@ -61,8 +67,15 @@ def build_xmltv(days=3):
             key = futs[fut]
             try:
                 roots[key] = fut.result()
-            except Exception:
-                pass
+            except Exception as e:
+                failures.append((key[0], key[1], str(e)))
+
+    if failures:
+        print(f"Radiko EPG fetch warning: {len(failures)} area/date request(s) failed after retries")
+        for d, p, err in failures[:12]:
+            print(f"  - {d} JP{p}: {err}")
+        if len(failures) > 12:
+            print(f"  ... and {len(failures) - 12} more")
 
     channels = {}
     programmes = []
