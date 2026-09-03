@@ -37,9 +37,6 @@ on:
       - "public_sports_youtube_fallback.m3u"
       - "build_today_event_counts.py"
       - "verified_daily_status.json"
-      - "boat_stream_seed.m3u"
-      - "boat_iphone_seed_build.py"
-      - "boat_v2_build.py"
       - ".github/workflows/update_freewifi_epg.yml"
 
 permissions:
@@ -126,18 +123,6 @@ jobs:
       - name: Finalize ended venues and time order
         run: python finalize_today_public_sports.py
 
-      - name: Re-apply BOAT from iPhone one-click seed without rewriting seed
-        shell: bash
-        run: |
-          set -euo pipefail
-          test -s boat_stream_seed.m3u
-          cp boat_stream_seed.m3u /tmp/boat_stream_seed.m3u.before
-          python -u boat_iphone_seed_build.py
-          cmp -s /tmp/boat_stream_seed.m3u.before boat_stream_seed.m3u || {
-            echo "::error::boat_stream_seed.m3u was modified by FreeWiFi build"
-            exit 1
-          }
-
       - name: Build compact current event counts
         run: python build_today_event_counts.py
 
@@ -147,7 +132,7 @@ jobs:
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add ganble freewifi today_public_sports_status.json today_boat_status.json boat_v2_state.json today_jra_status.json today_event_counts.json verified_daily_status.json public_sports_epg_local.xml
+          git add ganble freewifi today_public_sports_status.json today_jra_status.json today_event_counts.json verified_daily_status.json public_sports_epg_local.xml
           [ ! -f public_sports_youtube_fallback.m3u ] || git add public_sports_youtube_fallback.m3u
           if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -f general_youtube.m3u ]; then
             git add general_youtube.m3u
