@@ -20,7 +20,6 @@ HEALTHY_CODES = {200}
 def token_expired(url):
     try:
         q = parse_qs(urlsplit(url).query)
-        # YouTube/googlevideo HLS URLs use a plain Unix `expire` query parameter.
         exp_values = q.get('expire') or []
         if exp_values:
             exp = int(exp_values[0])
@@ -85,26 +84,26 @@ def main():
             item['visible'] = False
             continue
 
-        # Keep every currently active venue in FreeWiFi. Prefer a known-good
-        # direct seed when one exists; otherwise leave the stable on-demand
-        # resolver URL in place so the channel recovers automatically as soon
-        # as Render/upstream comes back. A transient resolver probe must not
-        # make today's開催場 disappear from the playlist.
+        # Fallback policy: primary resolver/Streaks first. When it is unhealthy,
+        # use only a refreshed valid seed. boat_youtube_refresh.py runs before
+        # this guard and fills missing Streaks entries with venue-specific live
+        # YouTube HLS, so YouTube is the intended secondary source. Never keep
+        # a known-unhealthy resolver URL merely to make the venue look visible.
         url = seeds.get(tvg_id, '')
-        if url:
-            source = f'valid seed fallback while Render unhealthy ({code})'
-        else:
-            jcd = item.get('jcd') or ''
-            if not jcd:
-                item['visible'] = False
-                item['source'] = f'Render unhealthy ({code}); missing JCD'
-                item.pop('url', None)
-                continue
-            url = b.RESOLVER.format(jcd=jcd)
-            source = f'stable resolver URL retained while probe unhealthy ({code})'
+        if not url:
+            item['visible'] = False
+            item['source'] = f'Render unhealthy ({code}); no valid Streaks/YouTube fallback'
+            item.pop('url', None)
+            continue
 
         item['visible'] = True
         item['url'] = url
+        if 'manifest.streaks.jp' in url:
+            source = f'Streaks direct fallback while resolver unhealthy ({code})'
+        elif 'googlevideo.com' in url or 'youtube.com' in url or 'youtu.be' in url:
+            source = f'YouTube live fallback while resolver unhealthy ({code})'
+        else:
+            source = f'valid refreshed fallback while resolver unhealthy ({code})'
         item['source'] = source
         name = item.get('name') or tvg_id
         jcd = item.get('jcd') or ''
@@ -127,15 +126,15 @@ def main():
         body.append(f'#EXTINF:-1 tvg-id="{tvg_id}" tvg-name="BOATRACE{name}" tvg-logo="{logo}" group-title="{b.GROUP}",BOATRACE{name}')
         body.append(url)
         body.append('')
-    managed = b.START + '\n## 今日の開催場 / BOAT v2 resilient fallback\n' + '\n'.join(body).rstrip() + ('\n' if body else '') + b.END
+    managed = b.START + '\n## 今日の開催場 / BOAT v2 Streaks -> YouTube fallback\n' + '\n'.join(body).rstrip() + ('\n' if body else '') + b.END
 
     text = FREEWIFI.read_text(encoding='utf-8-sig', errors='replace')
     FREEWIFI.write_text(replace_boat_block(text, managed).rstrip() + '\n', encoding='utf-8')
     d['visible_count'] = len(rows)
-    d['resolver_guard'] = f'unhealthy probe={code}; active venues retained with seed/resolver URLs'
+    d['resolver_guard'] = f'unhealthy probe={code}; valid Streaks/YouTube fallback only'
     STATUS.write_text(json.dumps(d, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
     STATE.write_text(json.dumps(d, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
-    print(f'BOAT V2 Render guard: unhealthy probe={code}; retained_visible={len(rows)} active={d.get("held_count")}')
+    print(f'BOAT V2 Render guard: unhealthy probe={code}; fallback_visible={len(rows)} active={d.get("held_count")}')
     return 0
 
 
