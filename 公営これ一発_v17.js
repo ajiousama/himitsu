@@ -3,13 +3,18 @@
 // icon-color: cyan; icon-glyph: magic;
 
 // 公営これ一発 v17
-// 公営更新 + Free Wi-Fi手動一発（YouTube→freewifi→EPG）
+// BOAT 24場取得 + 手動強制更新
+// ・YouTube 手動更新
+// ・オート／競輪／地方競馬 EPG 強制取得
+// ・ラジオ 強制取得
 // BOATRACEは毎回24場すべてを確認し、当日URL取得／前回URL継続／URLなしを分けて表示
 
 const OWNER="earphone1981", REPO="public-sports-iptv", BRANCH="main";
 const TOKEN_KEY="public_sports_github_pat_v4";
 const HIM_OWNER="ajiousama", HIM_REPO="himitsu", HIM_BRANCH="main";
-const HIM_TOKEN_KEY="himitsu_github_pat_v1", HIM_ALL_WORKFLOW="update_freewifi_epg.yml";
+const HIM_TOKEN_KEY="himitsu_github_pat_v1";
+const HIM_ALL_WORKFLOW="update_freewifi_epg.yml";
+const HIM_RADIO_WORKFLOW="force_freewifi_radio_vercel.yml";
 const RAW_BASE=`https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}`;
 const API_REPO=`/repos/${OWNER}/${REPO}`;
 const HIM_API_REPO=`/repos/${HIM_OWNER}/${HIM_REPO}`;
@@ -34,6 +39,6 @@ function append(out,label,text){const e=readEntries(text);if(!e.length)return;ou
 async function makePublic(boat){const out=[`#EXTM3U url-tvg="${EPG_URL}"`,""];append(out,"競輪",await getRaw("keirin_master.m3u"));append(out,"地方競馬",await getRaw("keiba_master.m3u"));append(out,"オートレース",await getRaw("autorace_master.m3u"));append(out,"ボートレース",boat);out.push("## 中央競馬");for(const [id,name,display,file,logo] of JRA)out.push(`#EXTINF:-1 tvg-id="${id}" tvg-name="${name}" tvg-logo="${rawUrl(logo)}" group-title="中央競馬",${display}`,rawUrl(file),"");return out.join("\n").replace(/\n{3,}/g,"\n\n").trimEnd()+"\n";}
 function saveICloud(name,text){const fm=FileManager.iCloud(),p=fm.joinPath(fm.documentsDirectory(),name);fm.writeString(p,text);}
 async function dispatchPublicEPG(t){await githubRequest(`${API_REPO}/actions/workflows/update_epg_3days.yml/dispatches`,t,"POST",{ref:BRANCH});}
-async function dispatchHimitsuAll(t){await githubRequest(`${HIM_API_REPO}/actions/workflows/${HIM_ALL_WORKFLOW}/dispatches`,t,"POST",{ref:HIM_BRANCH});}
+async function dispatchHimitsuWorkflow(t,w){await githubRequest(`${HIM_API_REPO}/actions/workflows/${w}/dispatches`,t,"POST",{ref:HIM_BRANCH});}
 async function show(title,message){const a=new Alert();a.title=title;a.message=message;a.addAction("OK");await a.present();}
-try{const token=await getSavedToken(TOKEN_KEY,"公営 GitHub Token");let existing="";try{existing=await getRaw("public_sports.m3u");}catch{}const boat=await makeBoat(existing);const publicM3U=await makePublic(boat.text);saveICloud("boatrace_today.m3u",boat.text);saveICloud("public_sports.m3u",publicM3U);await uploadFile("boatrace_today.m3u",boat.text,token,`Update BOATRACE M3U v17 ${boat.date}`);const changed=await uploadFile("public_sports.m3u",publicM3U,token,`Update public sports M3U v17 ${boat.date}`);let epg=false,free=false,freeToken=false;try{await dispatchPublicEPG(token);epg=true;}catch(e){console.warn("公営EPG起動失敗",e);}try{const ht=await getSavedToken(HIM_TOKEN_KEY,"Free Wi-Fi GitHub Token");freeToken=true;await dispatchHimitsuAll(ht);free=true;}catch(e){console.warn("Free Wi-Fi 手動一発起動失敗",e);}let msg=`🚤 BOATRACE：24場すべて確認済み\n🟢 本日URL取得：${boat.fresh}場\n🟡 前回URL継続：${boat.kept}場\n⚫ 現在URLなし：${boat.missing.length}場\n\n`;if(boat.freshNames.length)msg+=`🟢 本日取得\n${boat.freshNames.join(" / ")}\n\n`;if(boat.keptNames.length)msg+=`🟡 前回URL継続\n${boat.keptNames.join(" / ")}\n\n`;if(boat.missing.length)msg+=`⚫ URLなし\n${boat.missing.join(" / ")}\n\n`;msg+=`🏇 GCH/JRA：維持\n📋 公営M3U：${changed?"更新":"変更なし"}\n📅 公営EPG：${epg?"起動済み":"起動失敗"}\n🔑 Free Wi-Fi Token：${freeToken?"読込OK":"未設定/失敗"}\n🚀 Free Wi-Fi：${free?"YouTube→freewifi→EPG 起動済み":"起動失敗"}\n\n※ BOATRACEは毎回24場すべてを確認。\n当日URLが取れない場は前回URLを継続します。`;await show("✅ 公営これ一発 v17 完了",msg);}catch(e){console.error(e);await show("❌ 公営これ一発 v17 エラー",String(e));}Script.complete();
+try{const token=await getSavedToken(TOKEN_KEY,"公営 GitHub Token");let existing="";try{existing=await getRaw("public_sports.m3u");}catch{}const boat=await makeBoat(existing);const publicM3U=await makePublic(boat.text);saveICloud("boatrace_today.m3u",boat.text);saveICloud("public_sports.m3u",publicM3U);await uploadFile("boatrace_today.m3u",boat.text,token,`Update BOATRACE M3U v17 ${boat.date}`);const changed=await uploadFile("public_sports.m3u",publicM3U,token,`Update public sports M3U v17 ${boat.date}`);let epg=false,manual=false,radio=false,freeToken=false;try{await dispatchPublicEPG(token);epg=true;}catch(e){console.warn("公営EPG起動失敗",e);}try{const ht=await getSavedToken(HIM_TOKEN_KEY,"Free Wi-Fi GitHub Token");freeToken=true;try{await dispatchHimitsuWorkflow(ht,HIM_ALL_WORKFLOW);manual=true;}catch(e){console.warn("YouTube/公営EPG手動更新起動失敗",e);}try{await dispatchHimitsuWorkflow(ht,HIM_RADIO_WORKFLOW);radio=true;}catch(e){console.warn("ラジオ強制取得起動失敗",e);}}catch(e){console.warn("Free Wi-Fi Token取得失敗",e);}let msg=`🚤 BOATRACE：24場すべて確認済み\n🟢 本日URL取得：${boat.fresh}場\n🟡 前回URL継続：${boat.kept}場\n⚫ 現在URLなし：${boat.missing.length}場\n\n`;if(boat.freshNames.length)msg+=`🟢 本日取得\n${boat.freshNames.join(" / ")}\n\n`;if(boat.keptNames.length)msg+=`🟡 前回URL継続\n${boat.keptNames.join(" / ")}\n\n`;if(boat.missing.length)msg+=`⚫ URLなし\n${boat.missing.join(" / ")}\n\n`;msg+=`📋 公営M3U：${changed?"更新":"変更なし"}\n📅 公営側EPG：${epg?"起動済み":"起動失敗"}\n🔑 Free Wi-Fi Token：${freeToken?"読込OK":"未設定/失敗"}\n\n🎬 YouTube 手動更新：${manual?"起動済み":"起動失敗"}\n🏁 オート EPG強制取得：${manual?"起動済み":"起動失敗"}\n🚴 競輪 EPG強制取得：${manual?"起動済み":"起動失敗"}\n🐎 地方競馬 EPG強制取得：${manual?"起動済み":"起動失敗"}\n📻 ラジオ 強制取得：${radio?"起動済み":"起動失敗"}\n\n※ BOATRACEは毎回24場すべてを確認。\n当日URLが取れない場は前回URLを継続します。`;await show("✅ 公営これ一発 v17 完了",msg);}catch(e){console.error(e);await show("❌ 公営これ一発 v17 エラー",String(e));}Script.complete();
