@@ -1,24 +1,22 @@
 {
   "date": "2026-09-04",
-  "checked_at": "2026-09-04T00:29:34+09:00",
+  "checked_at": "2026-09-04T00:33:11.909261+09:00",
   "public_sports": {
     "競輪": [
       "青森",
-      "立川",
-      "豊橋",
-      "武雄",
       "弥彦",
+      "立川",
       "伊東",
-      "玉野",
+      "豊橋",
       "富山",
-      "防府"
+      "玉野",
+      "防府",
+      "武雄"
     ],
     "地方競馬": [
-      "門別",
       "大井",
       "名古屋",
-      "園田",
-      "佐賀"
+      "園田"
     ],
     "ボートレース": [
       "戸田",
@@ -43,21 +41,19 @@
   "public_sports_modes": {
     "競輪": {
       "青森": "day",
-      "立川": "day",
-      "豊橋": "night",
-      "武雄": "night",
       "弥彦": "midnight",
+      "立川": "day",
       "伊東": "midnight",
-      "玉野": "midnight",
+      "豊橋": "night",
       "富山": "morning",
-      "防府": "morning"
+      "玉野": "midnight",
+      "防府": "morning",
+      "武雄": "night"
     },
     "地方競馬": {
-      "門別": "night",
       "大井": "night",
       "名古屋": "night",
-      "園田": "night",
-      "佐賀": "night"
+      "園田": "night"
     },
     "ボートレース": {
       "戸田": "day",
@@ -80,9 +76,9 @@
     }
   },
   "jra_active_ids": [],
-  "source": "official/primary schedule verification + ajiousama/himitsu direct acquisition; BOAT schedule aligned to current series periods",
+  "source": "ajiousama/himitsu direct acquisition + Boatrace Open API fallback",
   "boat_schedule_fallback": {
-    "source": "BOAT RACE official series schedule + cross-check",
+    "source": "boatraceopenapi/api v1",
     "date": "2026-09-04",
     "venues": 13,
     "races": 156
