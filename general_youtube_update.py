@@ -178,6 +178,19 @@ def old_urls_by_id(text):
     return result
 
 
+def strip_m3u_id(text,tvg_id):
+    lines=text.splitlines(); out=[]; i=0
+    while i<len(lines):
+        line=lines[i]
+        if line.startswith('#EXTINF:') and f'tvg-id="{tvg_id}"' in line:
+            i+=1
+            while i<len(lines) and not lines[i].strip(): i+=1
+            if i<len(lines) and lines[i].strip().startswith(('http://','https://')): i+=1
+            continue
+        out.append(line); i+=1
+    return '\n'.join(out).rstrip()+'\n'
+
+
 def make_entry(item,url,old_logos):
     tvg=item['id']; name=item['name']; group=item.get('group','一般YouTube LIVE')
     logo=(item.get('logo') or old_logos.get(tvg) or '').strip()
@@ -231,7 +244,9 @@ def resolve_item(index,item):
 
 
 def build():
-    old_text=OUT.read_text(encoding='utf-8-sig',errors='replace') if OUT.exists() else ''
+    raw_old_text=OUT.read_text(encoding='utf-8-sig',errors='replace') if OUT.exists() else ''
+    # Never let a previously misidentified Osaka Loop URL survive a quality-gate fallback.
+    old_text=strip_m3u_id(raw_old_text,OSAKA_LOOP_ID)
     old_count=old_text.count('#EXTINF:')
     old_urls=old_urls_by_id(old_text)
     items=json.loads(SRC.read_text(encoding='utf-8'))
