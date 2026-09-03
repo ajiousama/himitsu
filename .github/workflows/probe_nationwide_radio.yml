@@ -1,0 +1,80 @@
+name: Probe nationwide radio playback
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/probe_nationwide_radio.yml'
+  workflow_dispatch:
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Ensure ffprobe
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! command -v ffprobe >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install -y ffmpeg
+          fi
+
+      - name: Probe known unstable nationwide radio masters
+        shell: bash
+        run: |
+          set -u
+          base='https://raw.githubusercontent.com/ajiousama/himitsu/radio-ts-assets'
+          stations=(BSS RCC HFM RN1 RN2 AFB RAB FMF BAYFM78 FMJ ZIP-FM FMAICHI TOKAIRADIO CBC)
+          : > /tmp/nationwide-radio-probe.txt
+          failed=0
+          tested=0
+
+          for sid in "${stations[@]}"; do
+            url="$base/$sid/master.m3u8"
+            echo "===== $sid =====" | tee -a /tmp/nationwide-radio-probe.txt
+            code=$(curl -L -sS -o /tmp/master.m3u8 -w '%{http_code}' --max-time 10 "$url" || true)
+            if [ "$code" != 200 ]; then
+              echo "SKIP missing master http=$code" | tee -a /tmp/nationwide-radio-probe.txt
+              continue
+            fi
+            tested=$((tested+1))
+            cat /tmp/master.m3u8 >> /tmp/nationwide-radio-probe.txt
+            echo >> /tmp/nationwide-radio-probe.txt
+
+            if timeout 35s ffprobe -v error \
+              -rw_timeout 25000000 \
+              -show_entries stream=codec_name,codec_type,width,height,sample_rate,channels \
+              -of default=noprint_wrappers=1 \
+              "$url" > /tmp/probe.txt 2>/tmp/probe.err; then
+              rc=0
+            else
+              rc=$?
+            fi
+            cat /tmp/probe.txt | tee -a /tmp/nationwide-radio-probe.txt
+            cat /tmp/probe.err >> /tmp/nationwide-radio-probe.txt
+            echo "ffprobe_rc=$rc" | tee -a /tmp/nationwide-radio-probe.txt
+
+            if grep -q 'codec_name=h264' /tmp/probe.txt \
+              && grep -q 'codec_type=video' /tmp/probe.txt \
+              && grep -q 'codec_name=aac' /tmp/probe.txt \
+              && grep -q 'codec_type=audio' /tmp/probe.txt; then
+              echo "PASS $sid image+audio" | tee -a /tmp/nationwide-radio-probe.txt
+            else
+              echo "FAIL $sid" | tee -a /tmp/nationwide-radio-probe.txt
+              failed=1
+            fi
+            echo | tee -a /tmp/nationwide-radio-probe.txt
+          done
+
+          echo "tested=$tested failed=$failed" | tee -a /tmp/nationwide-radio-probe.txt
+          test "$tested" -ge 8
+          test "$failed" -eq 0
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: nationwide-radio-probe
+          path: /tmp/nationwide-radio-probe.txt
+          retention-days: 1
