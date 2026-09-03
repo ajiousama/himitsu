@@ -1,35 +1,33 @@
 {
-  "system": "boat-v2-resolver",
-  "generated_at": "2026-09-03T17:00:12.524919+09:00",
+  "system": "boat-v2-iphone-seed",
+  "generated_at": "2026-09-03T21:52:51.373602+09:00",
   "date": "2026-09-03",
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/",
-  "resolver_base": "https://ajiousama-radiko.onrender.com/boat",
   "resolver_ready": false,
   "resolver_probe_status": 0,
   "prestart_minutes": 30,
   "grace_minutes": 30,
   "card_count": 14,
-  "held_count": 8,
-  "visible_count": 4,
+  "held_count": 1,
+  "visible_count": 1,
   "active_window": [
+    "大村"
+  ],
+  "scheduled_waiting": [],
+  "ended_removed": [
+    "戸田",
     "浜名湖",
+    "常滑",
     "津",
+    "三国",
     "住之江",
+    "尼崎",
     "児島",
     "宮島",
+    "徳山",
     "下関",
     "若松",
     "福岡"
-  ],
-  "scheduled_waiting": [
-    "大村"
-  ],
-  "ended_removed": [
-    "戸田",
-    "常滑",
-    "三国",
-    "尼崎",
-    "徳山"
   ],
   "venues": {
     "boat.toda": {
@@ -50,19 +48,15 @@
       "jcd": "06",
       "name": "浜名湖",
       "held": true,
-      "visible": true,
+      "visible": false,
       "first_race": "11:24",
       "show_from": "2026-09-03T10:54:00+09:00",
       "last_race": "17:10",
       "remove_after": "2026-09-03T17:40:00+09:00",
       "mode": "day",
-      "next_race": {
-        "race": 12,
-        "start": "17:10"
-      },
-      "stream_window": "live_or_vtr",
-      "url": "https://manifest.googlevideo.com/api/manifest/hls_playlist/expire/1788443528/ei/KCeZavazGqqRsfIPvNabmQM/ip/4.242.27.84/id/MFighdgfKR8.1/itag/96/source/yt_live_broadcast/requiressl/yes/ratebypass/yes/live/1/sgoap/gir%3Dyes%3Bitag%3D140/sgovp/gir%3Dyes%3Bitag%3D137/rqh/1/hls_chunk_host/rr1---sn-nx5e6nl7.googlevideo.com/xpc/EgVo2aDSNQ%3D%3D/playlist_duration/30/manifest_duration/30/siu/1/bui/AR3QkAli6sBXsjfll7oPmr6O75wjy2YFS6cyRg35HmN-fy776buqgqdp1LQgX6pDcqCxkb5RXQ/spc/I-rgIQAGSPP6_ajRMjpwSJ5SKufq_E-Gq0K7ntWy2VuLpKycTLIvxFLcw96nbRHsGQNsikv-AOk7Rg/vprv/1/ns/2XiN0iu404M457H2yqOolWEY/reg/0/playlist_type/DVR/met/1788421931,/mh/6O/mm/44/mn/sn-nx5e6nl7/ms/lva/mv/u/mvi/1/pl/16/rms/lva,lva/dover/11/pacing/0/keepalive/yes/fexp/51565115,52135441/n/vvun7WhmbFlKcA/mt/1788421680/sparams/expire,ei,ip,id,itag,source,requiressl,ratebypass,live,sgoap,sgovp,rqh,xpc,playlist_duration,manifest_duration,siu,bui,spc,vprv,ns,reg,playlist_type/sig/AE0s2JYwRAIgC6xJIWLz9k73WmEGFQFvFEWRz7iw9cWAzSpunb6459YCIBBZAs8ySRtn3XL1xaP1RkVVcaw82kywbi1gyrqFmyuI/lsparams/hls_chunk_host,met,mh,mm,mn,ms,mv,mvi,pl,rms/lsig/APaTxxMwRgIhAKzwWZC1IEq3FWk-_kX6seJBdjj1yGzOm_SwFBaNyCgbAiEAnDdxJI1EjFaXe66lBlN8Z3bPtve6WrJxipqSPKWXoZQ%3D/playlist/index.m3u8",
-      "source": "YouTube live fallback while resolver unhealthy (0)"
+      "next_race": null,
+      "ended": true,
+      "stream_window": "ended"
     },
     "boat.tokoname": {
       "jcd": "08",
@@ -89,8 +83,8 @@
       "remove_after": "2026-09-03T17:05:00+09:00",
       "mode": "day",
       "next_race": null,
-      "stream_window": "live_or_vtr",
-      "source": "Render unhealthy (0); no valid Streaks/YouTube fallback"
+      "ended": true,
+      "stream_window": "ended"
     },
     "boat.mikuni": {
       "jcd": "10",
@@ -116,12 +110,9 @@
       "last_race": "20:31",
       "remove_after": "2026-09-03T21:01:00+09:00",
       "mode": "night",
-      "next_race": {
-        "race": 5,
-        "start": "17:01"
-      },
-      "stream_window": "live_or_vtr",
-      "source": "Render unhealthy (0); no valid Streaks/YouTube fallback"
+      "next_race": null,
+      "ended": true,
+      "stream_window": "ended"
     },
     "boat.amagasaki": {
       "jcd": "13",
@@ -141,34 +132,29 @@
       "jcd": "16",
       "name": "児島",
       "held": true,
-      "visible": true,
+      "visible": false,
       "first_race": "11:22",
       "show_from": "2026-09-03T10:52:00+09:00",
       "last_race": "17:20",
       "remove_after": "2026-09-03T17:50:00+09:00",
       "mode": "day",
-      "next_race": {
-        "race": 12,
-        "start": "17:20"
-      },
-      "stream_window": "live_or_vtr",
-      "url": "https://manifest.googlevideo.com/api/manifest/hls_playlist/expire/1788443549/ei/PSeZapefKbf5sfIPqpv3-Aw/ip/4.242.27.84/id/5XfnzKByYqM.1/itag/96/source/yt_live_broadcast/requiressl/yes/ratebypass/yes/live/1/sgoap/gir%3Dyes%3Bitag%3D140/sgovp/gir%3Dyes%3Bitag%3D137/rqh/1/hls_chunk_host/rr1---sn-nx57ynsr.googlevideo.com/xpc/EgVo2aDSNQ%3D%3D/playlist_duration/30/manifest_duration/30/siu/1/bui/AR3QkAmG7MswE16RsbISNEaaQ1_8BJceYmxe5SptPzyNkGqyBbR3SShAgovcA2OMIzEaczEOtA/spc/I-rgIQ_TkPReXPn0wsyWjWPymIM4-abHC2HN7lq7EPJrRa61vQJ_u0p1AvnNfZec15zRj0gdWr4Hyw/vprv/1/ns/ezhWeFr8y4rOdnbWNz-f99QY/reg/0/playlist_type/DVR/met/1788421952,/mh/0O/mm/44/mn/sn-nx57ynsr/ms/lva/mv/u/mvi/1/pl/16/rms/lva,lva/dover/11/pacing/0/keepalive/yes/fexp/51565115,52135441/n/4fjkjkOJKfHWsQ/mt/1788421475/sparams/expire,ei,ip,id,itag,source,requiressl,ratebypass,live,sgoap,sgovp,rqh,xpc,playlist_duration,manifest_duration,siu,bui,spc,vprv,ns,reg,playlist_type/sig/AE0s2JYwRgIhAIDwycr184Zna3yja3ly_F2J_Q_ofg-R1W3LjkM5MknEAiEAh_aJtyB_tQY3_9jrlv4S9RzAZc7Vd68gvBZptv0w94M%3D/lsparams/hls_chunk_host,met,mh,mm,mn,ms,mv,mvi,pl,rms/lsig/APaTxxMwRQIgORraZcKvPfCjN70DVRzPh7Vykp2dmj4JOVyBxndxYJoCIQC_ARgDE4cgDK4Ev2VYUdc9hC41tL86Z2MTYk4lLrremQ%3D%3D/playlist/index.m3u8",
-      "source": "YouTube live fallback while resolver unhealthy (0)"
+      "next_race": null,
+      "ended": true,
+      "stream_window": "ended"
     },
     "boat.miyajima": {
       "jcd": "17",
       "name": "宮島",
       "held": true,
-      "visible": true,
+      "visible": false,
       "first_race": "10:57",
       "show_from": "2026-09-03T10:27:00+09:00",
       "last_race": "16:53",
       "remove_after": "2026-09-03T17:23:00+09:00",
       "mode": "day",
       "next_race": null,
-      "stream_window": "live_or_vtr",
-      "url": "https://manifest.googlevideo.com/api/manifest/hls_playlist/expire/1788443808/ei/QCiZaoyVKbGXsfIPtI7kwQw/ip/4.242.27.84/id/NJkFdHACfWU.1/itag/301/source/yt_live_broadcast/requiressl/yes/ratebypass/yes/live/1/sgoap/gir%3Dyes%3Bitag%3D140/sgovp/gir%3Dyes%3Bitag%3D299/rqh/1/hls_chunk_host/rr4---sn-2onx5c-53.googlevideo.com/xpc/EgVo2aDSNQ%3D%3D/playlist_duration/30/manifest_duration/30/siu/1/bui/AR3QkAl8S7kbOZGj9osgYJKJlg2ULyJSrSKgXpMYSuKrJjR3LiuonIFTl_E1e-vaCvTHpaYiyg/spc/I-rgIaOqcNXAlC8JiwJ1NyWddHPS4U82v-w54wbXV5gjoz-Iwo7H9Fcir-CvKkT0V3QV7mSGv6ZiTw/vprv/1/ns/Sr4X19V8_rLBOe0HRG0-A2YY/reg/0/playlist_type/DVR/met/1788422211,/mh/st/mm/44/mn/sn-2onx5c-53/ms/lva/mv/u/mvi/4/pl/16/rms/lva,lva/dover/11/pacing/0/keepalive/yes/fexp/51565115,52135441/n/Ok26Y_ey199aMg/mt/1788422200/sparams/expire,ei,ip,id,itag,source,requiressl,ratebypass,live,sgoap,sgovp,rqh,xpc,playlist_duration,manifest_duration,siu,bui,spc,vprv,ns,reg,playlist_type/sig/AE0s2JYwRgIhALB4QyFUFuQTi__f5xaUQNrgfKkKpKZNvavZQWyVSmmRAiEAp12WXWR7Lqboq2v2jqmEDM-4Y8ul5SHZSxcW33FQnB4%3D/lsparams/hls_chunk_host,met,mh,mm,mn,ms,mv,mvi,pl,rms/lsig/APaTxxMwRQIhAPfUtm6UI7lYJlxNdJobjiIUm3i7cwOSj5v9rWv1tds-AiAYAhPsgZmZ7XOZCn4udIi2lyv952ndfQ49AkMUCD_p8Q%3D%3D/playlist/index.m3u8",
-      "source": "YouTube live fallback while resolver unhealthy (0)"
+      "ended": true,
+      "stream_window": "ended"
     },
     "boat.tokuyama": {
       "jcd": "18",
@@ -194,12 +180,9 @@
       "last_race": "20:45",
       "remove_after": "2026-09-03T21:15:00+09:00",
       "mode": "night",
-      "next_race": {
-        "race": 5,
-        "start": "17:17"
-      },
-      "stream_window": "live_or_vtr",
-      "source": "Render unhealthy (0); no valid Streaks/YouTube fallback"
+      "next_race": null,
+      "ended": true,
+      "stream_window": "ended"
     },
     "boat.wakamatsu": {
       "jcd": "20",
@@ -211,48 +194,42 @@
       "last_race": "20:38",
       "remove_after": "2026-09-03T21:08:00+09:00",
       "mode": "night",
-      "next_race": {
-        "race": 5,
-        "start": "17:07"
-      },
-      "stream_window": "live_or_vtr",
-      "source": "Render unhealthy (0); no valid Streaks/YouTube fallback"
+      "next_race": null,
+      "ended": true,
+      "stream_window": "ended"
     },
     "boat.fukuoka": {
       "jcd": "22",
       "name": "福岡",
       "held": true,
-      "visible": true,
+      "visible": false,
       "first_race": "11:48",
       "show_from": "2026-09-03T11:18:00+09:00",
       "last_race": "17:25",
       "remove_after": "2026-09-03T17:55:00+09:00",
       "mode": "day",
-      "next_race": {
-        "race": 12,
-        "start": "17:25"
-      },
-      "stream_window": "live_or_vtr",
-      "url": "https://manifest.googlevideo.com/api/manifest/hls_playlist/expire/1788443572/ei/VCeZauTrGdGUt7EP5OG54Ak/ip/4.242.27.84/id/06d233wSVFs.1/itag/301/source/yt_live_broadcast/requiressl/yes/ratebypass/yes/live/1/sgoap/gir%3Dyes%3Bitag%3D140/sgovp/gir%3Dyes%3Bitag%3D299/rqh/1/hls_chunk_host/rr3---sn-2onx5c-5x.googlevideo.com/xpc/EgVo2aDSNQ%3D%3D/playlist_duration/30/manifest_duration/30/siu/1/bui/AR3QkAl3OHxhpG1mmnzNPTGa20bTExYRnM99It2VhwWRBMHyZfSVBbMyu92uTJxHDvWzbxGsuQ/spc/I-rgIaMhSddaS3qggteWqjZ-T5PAcMFunKtlTJTmrRvdqlUXKDFNootlet62iVmBcst_AtI4xVAZUw/vprv/1/ns/CRhqHzRT5cy61qVORdX0iwEY/reg/0/playlist_type/DVR/met/1788421975,/mh/uA/mm/44/mn/sn-2onx5c-5x/ms/lva/mv/u/mvi/3/pl/16/rms/lva,lva/dover/11/pacing/0/keepalive/yes/fexp/51565115,52135441/n/_ckYsi9gEDhtJg/mt/1788421680/sparams/expire,ei,ip,id,itag,source,requiressl,ratebypass,live,sgoap,sgovp,rqh,xpc,playlist_duration,manifest_duration,siu,bui,spc,vprv,ns,reg,playlist_type/sig/AE0s2JYwRQIhAJM58BiNpI2vTo_Zdh818zf1R5a0W83mZrPZ5G1uYca1AiA0CftM22yp3EWwevuuLRZHV-lA0udZ6zrTDPEWlbh1Gw%3D%3D/lsparams/hls_chunk_host,met,mh,mm,mn,ms,mv,mvi,pl,rms/lsig/APaTxxMwRAIgApsVNPOYJvl4CX96Z_MAywOkpV4eI1YjAk9jbFeow-0CIFqijp4q06uPyhwnvWIsnzfKJiLTApbCko_oIZWP112A/playlist/index.m3u8",
-      "source": "YouTube live fallback while resolver unhealthy (0)"
+      "next_race": null,
+      "ended": true,
+      "stream_window": "ended"
     },
     "boat.omura": {
       "jcd": "24",
       "name": "大村",
       "held": true,
-      "visible": false,
+      "visible": true,
       "first_race": "17:41",
       "show_from": "2026-09-03T17:11:00+09:00",
       "last_race": "22:41",
       "remove_after": "2026-09-03T23:11:00+09:00",
       "mode": "night",
       "next_race": {
-        "race": 1,
-        "start": "17:41"
+        "race": 11,
+        "start": "22:16"
       },
-      "scheduled": true,
-      "stream_window": "waiting"
+      "stream_window": "live_or_vtr",
+      "url": "https://manifest.googlevideo.com/api/manifest/hls_playlist/expire/1788377936/ei/8CaYapP4FYKgsfIPs9DTsA8/ip/20.168.94.22/id/nAue1QW3qtU.1/itag/301/source/yt_live_broadcast/requiressl/yes/ratebypass/yes/live/1/sgoap/gir%3Dyes%3Bitag%3D140/sgovp/gir%3Dyes%3Bitag%3D299/rqh/1/hls_chunk_host/rr4---sn-aj2im9-5q.googlevideo.com/xpc/EgVo2aDSNQ%3D%3D/playlist_duration/30/manifest_duration/30/siu/1/bui/AR3QkAnMOg0Ng3eUtgFwelifHsUdNvJSZgkyWgXqTfFCEvLtbj6peOjmJet_bD81WZQSxERTsg/spc/I-rgIeGrNDxA67Nk_wh-HyEAZwv2JJXDMOxu6AACpWT95i10vi_O1WJhsO3P5tTUm_5TvWsCeEjwjA/vprv/1/ns/qAkggNeeF1z0KQ5CYfOZs54Y/reg/0/playlist_type/DVR/initcwndbps/3758750/met/1788356340,/mh/Hu/mm/44/mn/sn-aj2im9-5q/ms/lva/mv/m/mvi/4/pl/15/rms/lva,lva/dover/11/pacing/0/keepalive/yes/fexp/51565115,52135441/n/RkmZiEP08lMgsA/mt/1788355723/sparams/expire,ei,ip,id,itag,source,requiressl,ratebypass,live,sgoap,sgovp,rqh,xpc,playlist_duration,manifest_duration,siu,bui,spc,vprv,ns,reg,playlist_type/sig/AE0s2JYwRQIgQ7eYCpbpHcs8Z2HrP7zpcHhOM65nTlcHkZKLqZvSXtUCIQCaUhPGZZgJto5pZuRIMkGgRvpXhuxlwwl_HsOnXGBiIg%3D%3D/lsparams/hls_chunk_host,initcwndbps,met,mh,mm,mn,ms,mv,mvi,pl,rms/lsig/APaTxxMwRQIhAPVvPtLZJJHAn4lrEIEjE_cNcjf9OAeLwuyBB4Ssr8xDAiAHsdeu7lsmV2rc8JVUYYEb-g3iBytw-nhWWba1NmFs5Q%3D%3D/playlist/index.m3u8",
+      "source": "iPhone one-click seed"
     }
   },
-  "resolver_guard": "unhealthy probe=0; valid Streaks/YouTube fallback only"
+  "stream_source": "boat_stream_seed.m3u from iPhone Scriptable one-click"
 }
