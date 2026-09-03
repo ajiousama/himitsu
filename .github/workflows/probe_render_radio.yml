@@ -44,6 +44,7 @@ jobs:
           root='https://ajiousama-radiko.onrender.com'
           stations=(JOEU-FM RNB ABC CCL 802 FMO MBS OBC KBS ALPHA-STATION E-RADIO CRK)
           : > /tmp/all-radio-probe.txt
+          : > /tmp/summary.txt
           failed=0
 
           for sid in "${stations[@]}"; do
@@ -53,20 +54,28 @@ jobs:
             rm -f "/tmp/${sid}.ts" /tmp/ffprobe.txt /tmp/curl.err
 
             start=$(date +%s)
-            curl --max-time 15 "$root/radio-tv/$sid" -o "/tmp/${sid}.ts" 2>/tmp/curl.err
-            rc=$?
+            if curl --max-time 25 "$root/radio-tv/$sid" -o "/tmp/${sid}.ts" 2>/tmp/curl.err; then
+              rc=0
+            else
+              rc=$?
+            fi
             end=$(date +%s)
             bytes=$(wc -c < "/tmp/${sid}.ts" 2>/dev/null || echo 0)
             echo "curl_rc=$rc elapsed=$((end-start))s bytes=$bytes" | tee -a /tmp/all-radio-probe.txt
             sed -n '1,60p' /tmp/curl.err >> /tmp/all-radio-probe.txt
 
-            ffprobe -v error \
+            if ffprobe -v error \
               -show_entries stream=codec_name,codec_type,width,height,sample_rate,channels \
               -show_entries format=duration,size,bit_rate \
-              "/tmp/${sid}.ts" > /tmp/ffprobe.txt 2>&1
-            probe_rc=$?
+              "/tmp/${sid}.ts" > /tmp/ffprobe.txt 2>&1; then
+              probe_rc=0
+            else
+              probe_rc=$?
+            fi
             cat /tmp/ffprobe.txt | tee -a /tmp/all-radio-probe.txt
 
+            # curl 28 is expected for an endless live stream. Judge the saved
+            # transport stream itself: it must contain both H.264 video and AAC audio.
             if [ "$probe_rc" -eq 0 ] \
               && grep -q 'codec_name=h264' /tmp/ffprobe.txt \
               && grep -q 'codec_type=video' /tmp/ffprobe.txt \
@@ -75,9 +84,9 @@ jobs:
               && grep -q 'codec_name=aac' /tmp/ffprobe.txt \
               && grep -q 'codec_type=audio' /tmp/ffprobe.txt \
               && [ "$bytes" -ge 10000 ]; then
-              echo "PASS $sid image+audio" | tee -a /tmp/all-radio-probe.txt
+              echo "PASS $sid image+audio" | tee -a /tmp/all-radio-probe.txt /tmp/summary.txt
             else
-              echo "FAIL $sid" | tee -a /tmp/all-radio-probe.txt
+              echo "FAIL $sid" | tee -a /tmp/all-radio-probe.txt /tmp/summary.txt
               echo "--- internal debug ---" | tee -a /tmp/all-radio-probe.txt
               curl -fsS --max-time 30 "$root/radio-file-debug/$sid" 2>&1 | tee -a /tmp/all-radio-probe.txt || true
               failed=1
@@ -86,7 +95,7 @@ jobs:
           done
 
           echo '===== SUMMARY =====' | tee -a /tmp/all-radio-probe.txt
-          grep -E '^(PASS|FAIL) ' /tmp/all-radio-probe.txt | tee -a /tmp/summary.txt
+          cat /tmp/summary.txt | tee -a /tmp/all-radio-probe.txt
           test "$failed" -eq 0
 
       - uses: actions/upload-artifact@v4
