@@ -1,33 +1,32 @@
 {
   "system": "boat-v2-iphone-seed",
-  "generated_at": "2026-09-03T23:17:01.994763+09:00",
-  "date": "2026-09-03",
+  "generated_at": "2026-09-04T02:52:16.660643+09:00",
+  "date": "2026-09-04",
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/",
   "resolver_ready": false,
   "resolver_probe_status": 0,
   "prestart_minutes": 30,
   "grace_minutes": 30,
-  "card_count": 14,
+  "card_count": 13,
   "held_count": 0,
   "visible_count": 0,
   "active_window": [],
-  "scheduled_waiting": [],
-  "ended_removed": [
+  "scheduled_waiting": [
     "戸田",
     "浜名湖",
-    "常滑",
+    "蒲郡",
     "津",
     "三国",
+    "びわこ",
     "住之江",
     "尼崎",
-    "児島",
     "宮島",
     "徳山",
-    "下関",
     "若松",
     "福岡",
     "大村"
   ],
+  "ended_removed": [],
   "venues": {
     "boat.toda": {
       "jcd": "02",
@@ -35,13 +34,16 @@
       "held": true,
       "visible": false,
       "first_race": "10:47",
-      "show_from": "2026-09-03T10:17:00+09:00",
+      "show_from": "2026-09-04T10:17:00+09:00",
       "last_race": "16:30",
-      "remove_after": "2026-09-03T17:00:00+09:00",
+      "remove_after": "2026-09-04T17:00:00+09:00",
       "mode": "day",
-      "next_race": null,
-      "ended": true,
-      "stream_window": "ended"
+      "next_race": {
+        "race": 1,
+        "start": "10:47"
+      },
+      "scheduled": true,
+      "stream_window": "waiting"
     },
     "boat.hamanako": {
       "jcd": "06",
@@ -49,27 +51,33 @@
       "held": true,
       "visible": false,
       "first_race": "11:24",
-      "show_from": "2026-09-03T10:54:00+09:00",
+      "show_from": "2026-09-04T10:54:00+09:00",
       "last_race": "17:10",
-      "remove_after": "2026-09-03T17:40:00+09:00",
+      "remove_after": "2026-09-04T17:40:00+09:00",
       "mode": "day",
-      "next_race": null,
-      "ended": true,
-      "stream_window": "ended"
+      "next_race": {
+        "race": 1,
+        "start": "11:24"
+      },
+      "scheduled": true,
+      "stream_window": "waiting"
     },
-    "boat.tokoname": {
-      "jcd": "08",
-      "name": "常滑",
+    "boat.gamagori": {
+      "jcd": "07",
+      "name": "蒲郡",
       "held": true,
       "visible": false,
-      "first_race": "10:32",
-      "show_from": "2026-09-03T10:02:00+09:00",
-      "last_race": "16:15",
-      "remove_after": "2026-09-03T16:45:00+09:00",
-      "mode": "day",
-      "next_race": null,
-      "ended": true,
-      "stream_window": "ended"
+      "first_race": "15:25",
+      "show_from": "2026-09-04T14:55:00+09:00",
+      "last_race": "20:38",
+      "remove_after": "2026-09-04T21:08:00+09:00",
+      "mode": "night",
+      "next_race": {
+        "race": 1,
+        "start": "15:25"
+      },
+      "scheduled": true,
+      "stream_window": "waiting"
     },
     "boat.tsu": {
       "jcd": "09",
@@ -77,13 +85,16 @@
       "held": true,
       "visible": false,
       "first_race": "10:42",
-      "show_from": "2026-09-03T10:12:00+09:00",
+      "show_from": "2026-09-04T10:12:00+09:00",
       "last_race": "16:35",
-      "remove_after": "2026-09-03T17:05:00+09:00",
+      "remove_after": "2026-09-04T17:05:00+09:00",
       "mode": "day",
-      "next_race": null,
-      "ended": true,
-      "stream_window": "ended"
+      "next_race": {
+        "race": 1,
+        "start": "10:42"
+      },
+      "scheduled": true,
+      "stream_window": "waiting"
     },
     "boat.mikuni": {
       "jcd": "10",
@@ -91,13 +102,33 @@
       "held": true,
       "visible": false,
       "first_race": "08:32",
-      "show_from": "2026-09-03T08:02:00+09:00",
+      "show_from": "2026-09-04T08:02:00+09:00",
       "last_race": "14:12",
-      "remove_after": "2026-09-03T14:42:00+09:00",
+      "remove_after": "2026-09-04T14:42:00+09:00",
       "mode": "morning",
-      "next_race": null,
-      "ended": true,
-      "stream_window": "ended"
+      "next_race": {
+        "race": 1,
+        "start": "08:32"
+      },
+      "scheduled": true,
+      "stream_window": "waiting"
+    },
+    "boat.biwako": {
+      "jcd": "11",
+      "name": "びわこ",
+      "held": true,
+      "visible": false,
+      "first_race": "10:33",
+      "show_from": "2026-09-04T10:03:00+09:00",
+      "last_race": "16:20",
+      "remove_after": "2026-09-04T16:50:00+09:00",
+      "mode": "day",
+      "next_race": {
+        "race": 1,
+        "start": "10:33"
+      },
+      "scheduled": true,
+      "stream_window": "waiting"
     },
     "boat.suminoe": {
       "jcd": "12",
@@ -105,41 +136,33 @@
       "held": true,
       "visible": false,
       "first_race": "15:17",
-      "show_from": "2026-09-03T14:47:00+09:00",
+      "show_from": "2026-09-04T14:47:00+09:00",
       "last_race": "20:31",
-      "remove_after": "2026-09-03T21:01:00+09:00",
+      "remove_after": "2026-09-04T21:01:00+09:00",
       "mode": "night",
-      "next_race": null,
-      "ended": true,
-      "stream_window": "ended"
+      "next_race": {
+        "race": 1,
+        "start": "15:17"
+      },
+      "scheduled": true,
+      "stream_window": "waiting"
     },
     "boat.amagasaki": {
       "jcd": "13",
       "name": "尼崎",
       "held": true,
       "visible": false,
-      "first_race": "10:34",
-      "show_from": "2026-09-03T10:04:00+09:00",
-      "last_race": "16:26",
-      "remove_after": "2026-09-03T16:56:00+09:00",
+      "first_race": "10:36",
+      "show_from": "2026-09-04T10:06:00+09:00",
+      "last_race": "16:23",
+      "remove_after": "2026-09-04T16:53:00+09:00",
       "mode": "day",
-      "next_race": null,
-      "ended": true,
-      "stream_window": "ended"
-    },
-    "boat.kojima": {
-      "jcd": "16",
-      "name": "児島",
-      "held": true,
-      "visible": false,
-      "first_race": "11:22",
-      "show_from": "2026-09-03T10:52:00+09:00",
-      "last_race": "17:20",
-      "remove_after": "2026-09-03T17:50:00+09:00",
-      "mode": "day",
-      "next_race": null,
-      "ended": true,
-      "stream_window": "ended"
+      "next_race": {
+        "race": 1,
+        "start": "10:36"
+      },
+      "scheduled": true,
+      "stream_window": "waiting"
     },
     "boat.miyajima": {
       "jcd": "17",
@@ -147,13 +170,16 @@
       "held": true,
       "visible": false,
       "first_race": "10:57",
-      "show_from": "2026-09-03T10:27:00+09:00",
-      "last_race": "16:53",
-      "remove_after": "2026-09-03T17:23:00+09:00",
+      "show_from": "2026-09-04T10:27:00+09:00",
+      "last_race": "16:51",
+      "remove_after": "2026-09-04T17:21:00+09:00",
       "mode": "day",
-      "next_race": null,
-      "ended": true,
-      "stream_window": "ended"
+      "next_race": {
+        "race": 1,
+        "start": "10:57"
+      },
+      "scheduled": true,
+      "stream_window": "waiting"
     },
     "boat.tokuyama": {
       "jcd": "18",
@@ -161,41 +187,33 @@
       "held": true,
       "visible": false,
       "first_race": "08:44",
-      "show_from": "2026-09-03T08:14:00+09:00",
-      "last_race": "14:29",
-      "remove_after": "2026-09-03T14:59:00+09:00",
+      "show_from": "2026-09-04T08:14:00+09:00",
+      "last_race": "14:30",
+      "remove_after": "2026-09-04T15:00:00+09:00",
       "mode": "morning",
-      "next_race": null,
-      "ended": true,
-      "stream_window": "ended"
-    },
-    "boat.shimonoseki": {
-      "jcd": "19",
-      "name": "下関",
-      "held": true,
-      "visible": false,
-      "first_race": "15:28",
-      "show_from": "2026-09-03T14:58:00+09:00",
-      "last_race": "20:45",
-      "remove_after": "2026-09-03T21:15:00+09:00",
-      "mode": "night",
-      "next_race": null,
-      "ended": true,
-      "stream_window": "ended"
+      "next_race": {
+        "race": 1,
+        "start": "08:44"
+      },
+      "scheduled": true,
+      "stream_window": "waiting"
     },
     "boat.wakamatsu": {
       "jcd": "20",
       "name": "若松",
       "held": true,
       "visible": false,
-      "first_race": "15:19",
-      "show_from": "2026-09-03T14:49:00+09:00",
-      "last_race": "20:38",
-      "remove_after": "2026-09-03T21:08:00+09:00",
+      "first_race": "15:29",
+      "show_from": "2026-09-04T14:59:00+09:00",
+      "last_race": "20:45",
+      "remove_after": "2026-09-04T21:15:00+09:00",
       "mode": "night",
-      "next_race": null,
-      "ended": true,
-      "stream_window": "ended"
+      "next_race": {
+        "race": 1,
+        "start": "15:29"
+      },
+      "scheduled": true,
+      "stream_window": "waiting"
     },
     "boat.fukuoka": {
       "jcd": "22",
@@ -203,13 +221,16 @@
       "held": true,
       "visible": false,
       "first_race": "11:48",
-      "show_from": "2026-09-03T11:18:00+09:00",
+      "show_from": "2026-09-04T11:18:00+09:00",
       "last_race": "17:25",
-      "remove_after": "2026-09-03T17:55:00+09:00",
+      "remove_after": "2026-09-04T17:55:00+09:00",
       "mode": "day",
-      "next_race": null,
-      "ended": true,
-      "stream_window": "ended"
+      "next_race": {
+        "race": 1,
+        "start": "11:48"
+      },
+      "scheduled": true,
+      "stream_window": "waiting"
     },
     "boat.omura": {
       "jcd": "24",
@@ -217,13 +238,16 @@
       "held": true,
       "visible": false,
       "first_race": "17:41",
-      "show_from": "2026-09-03T17:11:00+09:00",
-      "last_race": "22:41",
-      "remove_after": "2026-09-03T23:11:00+09:00",
+      "show_from": "2026-09-04T17:11:00+09:00",
+      "last_race": "22:45",
+      "remove_after": "2026-09-04T23:15:00+09:00",
       "mode": "night",
-      "next_race": null,
-      "ended": true,
-      "stream_window": "ended"
+      "next_race": {
+        "race": 1,
+        "start": "17:41"
+      },
+      "scheduled": true,
+      "stream_window": "waiting"
     }
   },
   "stream_source": "boat_stream_seed.m3u from iPhone Scriptable one-click / direct Streaks only"
