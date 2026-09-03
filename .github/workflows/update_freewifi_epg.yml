@@ -3,8 +3,8 @@ name: Update FreeWiFi ALL（ajiousama単独 / 自動EPG）
 on:
   workflow_dispatch:
   schedule:
-    # 09:00 / 12:00 / 17:00 / 21:00 JST
-    - cron: "0 0,3,8,12 * * *"
+    # Hourly at minute 07. Avoid top-of-hour congestion.
+    - cron: "7 * * * *"
   push:
     branches:
       - main
@@ -37,6 +37,9 @@ on:
       - "public_sports_youtube_fallback.m3u"
       - "build_today_event_counts.py"
       - "verified_daily_status.json"
+      - "boat_stream_seed.m3u"
+      - "boat_iphone_seed_build.py"
+      - "boat_v2_build.py"
       - ".github/workflows/update_freewifi_epg.yml"
 
 permissions:
@@ -122,6 +125,18 @@ jobs:
 
       - name: Finalize ended venues and time order
         run: python finalize_today_public_sports.py
+
+      - name: Re-apply BOAT from iPhone one-click seed without rewriting seed
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s boat_stream_seed.m3u
+          cp boat_stream_seed.m3u /tmp/boat_stream_seed.m3u.before
+          python -u boat_iphone_seed_build.py
+          cmp -s /tmp/boat_stream_seed.m3u.before boat_stream_seed.m3u || {
+            echo "::error::boat_stream_seed.m3u was modified by FreeWiFi build"
+            exit 1
+          }
 
       - name: Build compact current event counts
         run: python build_today_event_counts.py
