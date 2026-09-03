@@ -7,9 +7,9 @@ on:
       - 'kana_tube_update.py'
       - '.github/workflows/update_kana_tube.yml'
   schedule:
-    # 12:00-16:59 JST and 20:00-23:59 JST, every 5 minutes.
-    - cron: '*/5 3-7 * * *'
-    - cron: '*/5 11-14 * * *'
+    # 14:00 / 21:00 JST
+    - cron: '0 5 * * *'
+    - cron: '0 12 * * *'
 
 permissions:
   contents: write
