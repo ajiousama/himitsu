@@ -10,7 +10,8 @@ on:
       - 'public_sports_epg_local.xml'
       - '.github/workflows/update_gch_free_epg.yml'
   schedule:
-    # Fallback merge only; main FreeWiFi workflow rebuilds guides hourly.\n    - cron: '37 * * * *'
+    # Fallback merge only; main FreeWiFi workflow rebuilds guides hourly.
+    - cron: '37 * * * *'
 
 permissions:
   contents: write
