@@ -9,6 +9,7 @@ on:
       - 'general_youtube_sources_ports.json'
       - 'general_youtube_sources_airports.json'
       - 'general_youtube_update.py'
+      - 'generate_livecamera_logos.py'
       - 'general_youtube_guard.py'
       - 'freewifi_youtube_cleanup.py'
       - 'public_sports_youtube_fallback.py'
@@ -48,7 +49,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install --upgrade --pre 'yt-dlp[default]'
-          python -m pip install --upgrade curl_cffi
+          python -m pip install --upgrade curl_cffi pillow
           yt-dlp --version
 
       - name: Restore YouTube cookies
@@ -66,6 +67,9 @@ jobs:
 
       - name: Sync latest main
         run: git pull --ff-only origin main
+
+      - name: Generate dedicated live-camera logos
+        run: python generate_livecamera_logos.py
 
       - name: Refresh public sports YouTube fallbacks
         run: python public_sports_youtube_fallback.py
@@ -131,21 +135,22 @@ jobs:
           test -s freewifi
           grep -q '# === GENERAL_YOUTUBE_MANAGED_START ===' freewifi
           grep -q '# === GENERAL_YOUTUBE_MANAGED_END ===' freewifi
+          grep -q '## Rakuten-JP' freewifi
           test "$(grep -c 'tvg-id="jra.official"' freewifi || true)" -le 1
           test "$(grep -c 'tvg-id="jra.gch.free"' freewifi || true)" -le 1
 
-      - name: Commit updated YouTube LIVE URLs
+      - name: Commit updated YouTube LIVE URLs and logos
         shell: bash
         run: |
           rm -f general_youtube.prev.m3u freewifi.prev youtube_cookies.txt
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add general_youtube.m3u public_sports_youtube_fallback.m3u freewifi
+          git add general_youtube.m3u public_sports_youtube_fallback.m3u freewifi logos/youtube/*.png
           if git diff --cached --quiet; then
             echo 'No changes'
             exit 0
           fi
-          git commit -m 'Update YouTube-managed FreeWiFi entries'
+          git commit -m 'Update YouTube-managed FreeWiFi entries and logos'
           git reset --hard HEAD
           git clean -fd
           git pull --rebase origin main
