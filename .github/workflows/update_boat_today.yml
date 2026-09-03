@@ -3,6 +3,7 @@ name: Update BOAT Today V2 Resolver
 on:
   workflow_dispatch:
   schedule:
+    - cron: "*/5 23 * * *"
     - cron: "*/5 0-14 * * *"
   push:
     branches:
