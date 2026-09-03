@@ -1,0 +1,64 @@
+name: Build FreeWiFi Live-Camera Logos
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'generate_livecamera_logos.py'
+      - 'general_youtube_sources_ports.json'
+      - 'general_youtube_sources_airports.json'
+      - '.github/workflows/update_livecamera_logos.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  logos:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Install Pillow
+        run: python -m pip install --upgrade pillow
+
+      - name: Generate dedicated logos
+        run: python generate_livecamera_logos.py
+
+      - name: Validate dedicated logo files
+        shell: bash
+        run: |
+          set -e
+          for f in \
+            airport_okayama airport_hiroshima airport_nagasaki airport_goto \
+            airport_kumamoto airport_oita airport_miyazaki airport_amami \
+            airport_naha airport_sendai airport_hanamaki airport_yamagata \
+            airport_fukushima airport_obihiro ehime_port_toyo \
+            ehime_port_hashihama ehime_port_misaki ehime_kuma_skiland \
+            ehime_saragamine ehime_omogo_ishizuchi ehime_ainan_ebc \
+            ehime_dogo_honkan; do
+            test -s "logos/youtube/${f}.png"
+          done
+          grep -q '## Rakuten-JP' freewifi
+
+      - name: Commit dedicated logos
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add logos/youtube/*.png
+          if git diff --cached --quiet; then
+            echo 'No logo changes'
+            exit 0
+          fi
+          git commit -m 'Build dedicated FreeWiFi live-camera logos'
+          git pull --rebase origin main
+          git push origin main
