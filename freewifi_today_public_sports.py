@@ -15,19 +15,18 @@ END = '# === TODAY_PUBLIC_SPORTS_END ==='
 GROUP = '今日の開催場'
 RAW_BASE = 'https://raw.githubusercontent.com/ajiousama/himitsu/main'
 LOCAL_LOGOS = {
-    # Venue-specific logo cards. Never fall back to one shared sport logo.
-    'keirin.tachikawa': RAW_BASE + '/logos/public_sports/venues/keirin_tachikawa.svg',
-    'keirin.aomori': RAW_BASE + '/logos/public_sports/venues/keirin_aomori.svg',
-    'keirin.toyohashi': RAW_BASE + '/logos/public_sports/venues/keirin_toyohashi.svg',
-    'keirin.takeo': RAW_BASE + '/logos/public_sports/venues/keirin_takeo.svg',
-    'keirin.ito': RAW_BASE + '/logos/public_sports/venues/keirin_ito.svg',
-    'keirin.yahiko': RAW_BASE + '/logos/public_sports/venues/keirin_yahiko.svg',
-    'keirin.tamano': RAW_BASE + '/logos/public_sports/venues/keirin_tamano.svg',
-    'chihou.sonoda': RAW_BASE + '/logos/public_sports/venues/chihou_sonoda.svg',
-    'chihou.nagoya_keiba': RAW_BASE + '/logos/public_sports/venues/chihou_nagoya.svg',
-    'chihou.oi': RAW_BASE + '/logos/public_sports/venues/chihou_oi.svg',
-    'auto.hamamatsu': RAW_BASE + '/logos/public_sports/venues/auto_hamamatsu.svg',
-    'auto.sanyo': RAW_BASE + '/logos/public_sports/venues/auto_sanyo.svg',
+    'keirin.tachikawa': 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports_logos_github_43/keirin_square_final_43/tachikawa.png',
+    'keirin.aomori': 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports_logos_github_43/keirin_square_final_43/aomori.png',
+    'keirin.toyohashi': 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports_logos_github_43/keirin_square_final_43/toyohashi.png',
+    'keirin.takeo': 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports_logos_github_43/keirin_square_final_43/takeo.png',
+    'keirin.ito': 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports_logos_github_43/keirin_square_final_43/ito.png',
+    'keirin.yahiko': 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports_logos_github_43/keirin_square_final_43/yahiko.png',
+    'keirin.tamano': 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports_logos_github_43/keirin_square_final_43/tamano.png',
+    'chihou.sonoda': 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports_logos_github_43/local_keiba/sonoda.png',
+    'chihou.nagoya_keiba': 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports_logos_github_43/local_keiba/nagoya.png',
+    'chihou.oi': 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports_logos_github_43/local_keiba/ooi.png',
+    'auto.hamamatsu': 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports_logos_github_43/autorace/hamamatsu.png',
+    'auto.sanyo': 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports_logos_github_43/autorace/sanyo.png',
 }
 JST = timezone(timedelta(hours=9))
 TARGET_SECTIONS = {'競輪', '地方競馬', 'ボートレース', 'オートレース'}
