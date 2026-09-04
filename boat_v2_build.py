@@ -19,8 +19,10 @@ END = '# === TODAY_BOAT_END ==='
 PUBLIC_START = '# === TODAY_PUBLIC_SPORTS_START ==='
 PUBLIC_END = '# === TODAY_PUBLIC_SPORTS_END ==='
 GROUP = '今日の開催場'
+RAW_BASE = 'https://raw.githubusercontent.com/ajiousama/himitsu/main'
 JST = timezone(timedelta(hours=9))
 PRESTART_MINUTES = 30
+START_TOLERANCE_SECONDS = 60
 GRACE_MINUTES = 30
 API = 'https://boatraceopenapi.github.io/api/v1/{year}/{ymd}.json'
 RESOLVER_BASE = 'https://ajiousama-radiko.onrender.com/boat'
@@ -28,30 +30,30 @@ RESOLVER = RESOLVER_BASE + '/{jcd}'
 UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/152 Safari/537.36'
 
 VENUES = {
-    '01': ('桐生', 'boat.kiryu', 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports_logos_github_43/boatrace_24_spaced_cut_1024/kiryu.png'),
-    '02': ('戸田', 'boat.toda', 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports_logos_github_43/boatrace_24_spaced_cut_1024/toda.png'),
-    '03': ('江戸川', 'boat.edogawa', 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports_logos_github_43/boatrace_24_spaced_cut_1024/edogawa.png'),
-    '04': ('平和島', 'boat.heiwajima', 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports_logos_github_43/boatrace_24_spaced_cut_1024/heiwajima.png'),
-    '05': ('多摩川', 'boat.tamagawa', 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports_logos_github_43/boatrace_24_spaced_cut_1024/tamagawa.png'),
-    '06': ('浜名湖', 'boat.hamanako', 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports_logos_github_43/boatrace_24_spaced_cut_1024/hamanako.png'),
-    '07': ('蒲郡', 'boat.gamagori', 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports_logos_github_43/boatrace_24_spaced_cut_1024/gamagori.png'),
-    '08': ('常滑', 'boat.tokoname', 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports_logos_github_43/boatrace_24_spaced_cut_1024/tokoname.png'),
-    '09': ('津', 'boat.tsu', 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports_logos_github_43/boatrace_24_spaced_cut_1024/tsu.png'),
-    '10': ('三国', 'boat.mikuni', 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports_logos_github_43/boatrace_24_spaced_cut_1024/mikuni.png'),
-    '11': ('びわこ', 'boat.biwako', 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports_logos_github_43/boatrace_24_spaced_cut_1024/biwako.png'),
-    '12': ('住之江', 'boat.suminoe', 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports_logos_github_43/boatrace_24_spaced_cut_1024/suminoe.png'),
-    '13': ('尼崎', 'boat.amagasaki', 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports_logos_github_43/boatrace_24_spaced_cut_1024/amagasaki.png'),
-    '14': ('鳴門', 'boat.naruto', 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports_logos_github_43/boatrace_24_spaced_cut_1024/naruto.png'),
-    '15': ('丸亀', 'boat.marugame', 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports_logos_github_43/boatrace_24_spaced_cut_1024/marugame.png'),
-    '16': ('児島', 'boat.kojima', 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports_logos_github_43/boatrace_24_spaced_cut_1024/kojima.png'),
-    '17': ('宮島', 'boat.miyajima', 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports_logos_github_43/boatrace_24_spaced_cut_1024/miyajima.png'),
-    '18': ('徳山', 'boat.tokuyama', 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports_logos_github_43/boatrace_24_spaced_cut_1024/tokuyama.png'),
-    '19': ('下関', 'boat.shimonoseki', 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports_logos_github_43/boatrace_24_spaced_cut_1024/shimonoseki.png'),
-    '20': ('若松', 'boat.wakamatsu', 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports_logos_github_43/boatrace_24_spaced_cut_1024/wakamatsu.png'),
-    '21': ('芦屋', 'boat.ashiya', 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports_logos_github_43/boatrace_24_spaced_cut_1024/ashiya.png'),
-    '22': ('福岡', 'boat.fukuoka', 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports_logos_github_43/boatrace_24_spaced_cut_1024/fukuoka.png'),
-    '23': ('唐津', 'boat.karatsu', 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports_logos_github_43/boatrace_24_spaced_cut_1024/karatsu.png'),
-    '24': ('大村', 'boat.omura', 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports_logos_github_43/boatrace_24_spaced_cut_1024/omura.png'),
+    '01': ('桐生', 'boat.kiryu', f'{RAW_BASE}/logos/public_sports/venues/boat_kiryu.svg'),
+    '02': ('戸田', 'boat.toda', f'{RAW_BASE}/logos/public_sports/venues/boat_toda.svg'),
+    '03': ('江戸川', 'boat.edogawa', f'{RAW_BASE}/logos/public_sports/venues/boat_edogawa.svg'),
+    '04': ('平和島', 'boat.heiwajima', f'{RAW_BASE}/logos/public_sports/venues/boat_heiwajima.svg'),
+    '05': ('多摩川', 'boat.tamagawa', f'{RAW_BASE}/logos/public_sports/venues/boat_tamagawa.svg'),
+    '06': ('浜名湖', 'boat.hamanako', f'{RAW_BASE}/logos/public_sports/venues/boat_hamanako.svg'),
+    '07': ('蒲郡', 'boat.gamagori', f'{RAW_BASE}/logos/public_sports/venues/boat_gamagori.svg'),
+    '08': ('常滑', 'boat.tokoname', f'{RAW_BASE}/logos/public_sports/venues/boat_tokoname.svg'),
+    '09': ('津', 'boat.tsu', f'{RAW_BASE}/logos/public_sports/venues/boat_tsu.svg'),
+    '10': ('三国', 'boat.mikuni', f'{RAW_BASE}/logos/public_sports/venues/boat_mikuni.svg'),
+    '11': ('びわこ', 'boat.biwako', f'{RAW_BASE}/logos/public_sports/venues/boat_biwako.svg'),
+    '12': ('住之江', 'boat.suminoe', f'{RAW_BASE}/logos/public_sports/venues/boat_suminoe.svg'),
+    '13': ('尼崎', 'boat.amagasaki', f'{RAW_BASE}/logos/public_sports/venues/boat_amagasaki.svg'),
+    '14': ('鳴門', 'boat.naruto', f'{RAW_BASE}/logos/public_sports/venues/boat_naruto.svg'),
+    '15': ('丸亀', 'boat.marugame', f'{RAW_BASE}/logos/public_sports/venues/boat_marugame.svg'),
+    '16': ('児島', 'boat.kojima', f'{RAW_BASE}/logos/public_sports/venues/boat_kojima.svg'),
+    '17': ('宮島', 'boat.miyajima', f'{RAW_BASE}/logos/public_sports/venues/boat_miyajima.svg'),
+    '18': ('徳山', 'boat.tokuyama', f'{RAW_BASE}/logos/public_sports/venues/boat_tokuyama.svg'),
+    '19': ('下関', 'boat.shimonoseki', f'{RAW_BASE}/logos/public_sports/venues/boat_shimonoseki.svg'),
+    '20': ('若松', 'boat.wakamatsu', f'{RAW_BASE}/logos/public_sports/venues/boat_wakamatsu.svg'),
+    '21': ('芦屋', 'boat.ashiya', f'{RAW_BASE}/logos/public_sports/venues/boat_ashiya.svg'),
+    '22': ('福岡', 'boat.fukuoka', f'{RAW_BASE}/logos/public_sports/venues/boat_fukuoka.svg'),
+    '23': ('唐津', 'boat.karatsu', f'{RAW_BASE}/logos/public_sports/venues/boat_karatsu.svg'),
+    '24': ('大村', 'boat.omura', f'{RAW_BASE}/logos/public_sports/venues/boat_omura.svg'),
 }
 
 
@@ -246,7 +248,8 @@ def main():
         show_from = first_dt - timedelta(minutes=PRESTART_MINUTES)
         remove_after = last_dt + timedelta(minutes=GRACE_MINUTES)
         nr = next_race(races, now)
-        in_window = show_from <= now < remove_after
+        activation_now = now + timedelta(seconds=START_TOLERANCE_SECONDS)
+        in_window = show_from <= activation_now and now < remove_after
         item = {
             'jcd': jcd,
             'name': name,
@@ -259,7 +262,7 @@ def main():
             'mode': mode(races),
             'next_race': nr,
         }
-        if now < show_from:
+        if activation_now < show_from:
             item['scheduled'] = True
             item['stream_window'] = 'waiting'
             waiting.append(name)
@@ -315,6 +318,7 @@ def main():
         'resolver_ready': render_ready,
         'resolver_probe_status': render_status,
         'prestart_minutes': PRESTART_MINUTES,
+        'start_tolerance_seconds': START_TOLERANCE_SECONDS,
         'grace_minutes': GRACE_MINUTES,
         'card_count': len(cards),
         'held_count': held_count,
