@@ -1,26 +1,27 @@
 {
-  "date": "2026-09-04",
-  "checked_at": "2026-09-04T23:08:41.547784+09:00",
+  "date": "2026-09-05",
+  "checked_at": "2026-09-05T00:31:47.797852+09:00",
   "public_sports": {
     "競輪": [
       "青森",
-      "弥彦",
       "立川",
-      "伊東",
       "豊橋",
       "富山",
-      "玉野",
+      "松阪",
       "防府",
+      "久留米",
       "武雄"
     ],
     "地方競馬": [
-      "大井",
-      "名古屋",
-      "園田"
+      "帯広",
+      "高知",
+      "佐賀"
     ],
     "ボートレース": [
+      "桐生",
       "戸田",
-      "浜名湖",
+      "江戸川",
+      "平和島",
       "蒲郡",
       "津",
       "三国",
@@ -30,8 +31,7 @@
       "宮島",
       "徳山",
       "若松",
-      "福岡",
-      "大村"
+      "福岡"
     ],
     "オートレース": [
       "浜松",
@@ -41,23 +41,24 @@
   "public_sports_modes": {
     "競輪": {
       "青森": "day",
-      "弥彦": "midnight",
       "立川": "day",
-      "伊東": "midnight",
       "豊橋": "night",
       "富山": "morning",
-      "玉野": "midnight",
+      "松阪": "midnight",
       "防府": "morning",
+      "久留米": "midnight",
       "武雄": "night"
     },
     "地方競馬": {
-      "大井": "night",
-      "名古屋": "night",
-      "園田": "night"
+      "帯広": "night",
+      "高知": "night",
+      "佐賀": "night"
     },
     "ボートレース": {
+      "桐生": "night",
       "戸田": "day",
-      "浜名湖": "day",
+      "江戸川": "day",
+      "平和島": "day",
       "蒲郡": "night",
       "津": "day",
       "三国": "morning",
@@ -67,20 +68,23 @@
       "宮島": "day",
       "徳山": "morning",
       "若松": "night",
-      "福岡": "day",
-      "大村": "night"
+      "福岡": "day"
     },
     "オートレース": {
       "浜松": "day",
       "山陽": "night"
     }
   },
-  "jra_active_ids": [],
+  "jra_active_ids": [
+    "jra.east",
+    "jra.west",
+    "jra.hokkaido"
+  ],
   "source": "ajiousama/himitsu direct acquisition + Boatrace Open API fallback",
   "boat_schedule_fallback": {
     "source": "boatraceopenapi/api v1",
-    "date": "2026-09-04",
-    "venues": 13,
-    "races": 156
+    "date": "2026-09-05",
+    "venues": 14,
+    "races": 168
   }
 }
