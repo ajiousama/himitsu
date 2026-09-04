@@ -4,6 +4,12 @@ on:
   workflow_dispatch:
   schedule:
     - cron: "*/5 0-10 * * *"
+  push:
+    branches:
+      - main
+    paths:
+      - "freewifi_council_live.py"
+      - ".github/workflows/update_council_live.yml"
 
 permissions:
   contents: write
