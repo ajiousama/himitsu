@@ -18,8 +18,9 @@ on:
 permissions:
   contents: write
 
+# freewifi/guides writers share one mutex to prevent stale overwrite races.
 concurrency:
-  group: himitsu-boat-today-writer
+  group: himitsu-freewifi-state-writer
   cancel-in-progress: false
 
 jobs:
