@@ -1,6 +1,6 @@
 {
   "system": "boat-v2-iphone-seed",
-  "generated_at": "2026-09-05T07:14:37.762737+09:00",
+  "generated_at": "2026-09-05T08:05:00.579944+09:00",
   "date": "2026-09-05",
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/",
   "resolver_ready": false,
@@ -9,9 +9,11 @@
   "start_tolerance_seconds": 60,
   "grace_minutes": 30,
   "card_count": 14,
-  "held_count": 0,
-  "visible_count": 0,
-  "active_window": [],
+  "held_count": 1,
+  "visible_count": 1,
+  "active_window": [
+    "三国"
+  ],
   "scheduled_waiting": [
     "桐生",
     "戸田",
@@ -19,7 +21,6 @@
     "平和島",
     "蒲郡",
     "津",
-    "三国",
     "びわこ",
     "住之江",
     "尼崎",
@@ -136,7 +137,7 @@
       "jcd": "10",
       "name": "三国",
       "held": true,
-      "visible": false,
+      "visible": true,
       "first_race": "08:32",
       "show_from": "2026-09-05T08:02:00+09:00",
       "last_race": "14:11",
@@ -146,8 +147,9 @@
         "race": 1,
         "start": "08:32"
       },
-      "scheduled": true,
-      "stream_window": "waiting"
+      "stream_window": "live_or_vtr",
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/3133abc4d1fe42f2a21354d71afade18/429356a069a04d619310848ef40cace3/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4ODcwMzIwMCwic3RhcnQiOjE3ODg0NzYyMjAsImlvcyI6MTgsInBwdyI6IjQwayJ9.SntwKTi_VBRZ3PaGQXygqc6wINiyQ-tYT_s9Ch76nuE",
+      "source": "iPhone one-click direct Streaks seed"
     },
     "boat.biwako": {
       "jcd": "11",
