@@ -30,6 +30,7 @@ const TARGETS = [
 ];
 
 const LOCAL_BOAT_FILE = "boatrace_today.m3u";
+const RADIO_WORKFLOW = "force_freewifi_radio_vercel.yml";
 
 const venues = [
   ["01kiryu",       "boat.kiryu",       "01 桐生"],
@@ -153,6 +154,12 @@ async function dispatchWorkflow(target, token) {
   await githubRequest(target, `/repos/${target.owner}/${target.repo}/actions/workflows/${target.workflow}/dispatches`, token, "POST", { ref: target.branch });
 }
 
+async function dispatchAjiousamaRadio(token) {
+  const target = TARGETS.find(x => x.owner === "ajiousama" && x.repo === "himitsu");
+  if (!target) throw new Error("ajiousama/himitsu target not found");
+  await githubRequest(target, `/repos/${target.owner}/${target.repo}/actions/workflows/${RADIO_WORKFLOW}/dispatches`, token, "POST", { ref: target.branch });
+}
+
 async function generateBoatM3U() {
   const date = japanDateYYYYMMDD();
   let output = "#EXTM3U\n\n";
@@ -214,12 +221,29 @@ try {
 
   const results = [];
   const errors = [];
+  let ajiousamaToken = null;
   for (const target of TARGETS) {
     try {
-      results.push(await sendToTarget(target, boat));
+      const r = await sendToTarget(target, boat);
+      results.push(r);
+      if (target.owner === "ajiousama" && target.repo === "himitsu") {
+        ajiousamaToken = await getToken(target);
+      }
     } catch (e) {
       console.error(e);
       errors.push(`${target.label}: ${String(e)}`);
+    }
+  }
+
+  let radioAction = "未実行";
+  if (ajiousamaToken) {
+    try {
+      await dispatchAjiousamaRadio(ajiousamaToken);
+      radioAction = "workflow_dispatch 起動";
+    } catch (e) {
+      console.error(e);
+      errors.push(`ajiousama / radio force: ${String(e)}`);
+      radioAction = "起動失敗";
     }
   }
 
@@ -227,6 +251,7 @@ try {
   for (const r of results) {
     msg += `✅ ${r.target.label}\n   ${r.target.file}: ${r.changed ? "更新" : "変更なし"}\n   Action: ${r.action}\n`;
   }
+  msg += `\n📻 ラジオ強制更新\n   Action: ${radioAction}\n`;
   if (errors.length) msg += `\n❌ 送信エラー\n${errors.join("\n\n")}\n`;
   if (boat.failed.length) msg += `\n取得できなかった場：\n${boat.failed.join(" / ")}\n`;
   msg += `\niCloud Drive / Scriptable / ${LOCAL_BOAT_FILE}`;
