@@ -6,6 +6,8 @@ on:
     # 10分おき。UTC/JSTの時間帯境界で止まらないよう24時間単一cronにする。
     # 毎時ちょうどの混雑を避け、03/13/23/33/43/53分に実行。
     - cron: "3,13,23,33,43,53 * * * *"
+    # Backup schedule: if GitHub drops/delays the primary slot, retry 5 minutes later.
+    - cron: "8,18,28,38,48,58 * * * *"
   push:
     branches:
       - main
