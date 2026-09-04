@@ -3,10 +3,9 @@ name: Update BOAT Today iPhone Seed
 on:
   workflow_dispatch:
   schedule:
-    # 10分おき。毎時ちょうど系の混雑を避けて03分起点にする。
-    # UTC 23時 = JST 08時台 / UTC 0-14時 = JST 09-23時台
-    - cron: "3-59/10 23 * * *"
-    - cron: "3-59/10 0-14 * * *"
+    # 10分おき。UTC/JSTの時間帯境界で止まらないよう24時間単一cronにする。
+    # 毎時ちょうどの混雑を避け、03/13/23/33/43/53分に実行。
+    - cron: "3,13,23,33,43,53 * * * *"
   push:
     branches:
       - main
