@@ -132,18 +132,77 @@ jobs:
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add ganble freewifi today_public_sports_status.json today_jra_status.json today_event_counts.json verified_daily_status.json public_sports_epg_local.xml
-          [ ! -f public_sports_youtube_fallback.m3u ] || git add public_sports_youtube_fallback.m3u
+
+          # Snapshot only files owned by this workflow. freewifi is rebuilt again
+          # after syncing main so a concurrent BOAT one-click update can never be
+          # overwritten by this job's older checkout.
+          snapshot="$(mktemp -d)"
+          cp ganble "$snapshot/ganble"
+          cp today_public_sports_status.json "$snapshot/today_public_sports_status.json"
+          cp today_jra_status.json "$snapshot/today_jra_status.json"
+          cp today_event_counts.json "$snapshot/today_event_counts.json"
+          cp verified_daily_status.json "$snapshot/verified_daily_status.json"
+          cp public_sports_epg_local.xml "$snapshot/public_sports_epg_local.xml"
+          [ ! -f public_sports_youtube_fallback.m3u ] || cp public_sports_youtube_fallback.m3u "$snapshot/public_sports_youtube_fallback.m3u"
           if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -f general_youtube.m3u ]; then
-            git add general_youtube.m3u
+            cp general_youtube.m3u "$snapshot/general_youtube.m3u"
           fi
-          if git diff --cached --quiet; then
-            echo "Local venue state already current"
-          else
+
+          for attempt in 1 2 3 4 5; do
+            echo "FreeWiFi state publish attempt $attempt/5"
+            git fetch origin main
+            git reset --hard origin/main
+
+            cp "$snapshot/ganble" ganble
+            cp "$snapshot/today_public_sports_status.json" today_public_sports_status.json
+            cp "$snapshot/today_jra_status.json" today_jra_status.json
+            cp "$snapshot/today_event_counts.json" today_event_counts.json
+            cp "$snapshot/verified_daily_status.json" verified_daily_status.json
+            cp "$snapshot/public_sports_epg_local.xml" public_sports_epg_local.xml
+            [ ! -f "$snapshot/public_sports_youtube_fallback.m3u" ] || cp "$snapshot/public_sports_youtube_fallback.m3u" public_sports_youtube_fallback.m3u
+            [ ! -f "$snapshot/general_youtube.m3u" ] || cp "$snapshot/general_youtube.m3u" general_youtube.m3u
+
+            # IMPORTANT: rebuild FreeWiFi on newest main. This preserves the
+            # latest TODAY_BOAT block written by 公営これ一発 / iPhone seed.
+            python freewifi_today_public_sports.py
+            python freewifi_strip_public_boat.py
+            python freewifi_today_jra.py
+            python finalize_today_public_sports.py
+            python build_today_event_counts.py
+
+            python - <<'PY'
+          import json, re
+          from pathlib import Path
+          d = json.loads(Path('today_boat_status.json').read_text(encoding='utf-8'))
+          visible = int(d.get('visible_count') or 0)
+          text = Path('freewifi').read_text(encoding='utf-8-sig', errors='replace')
+          m = re.search(r'# === TODAY_BOAT_START ===(.*?)# === TODAY_BOAT_END ===', text, re.S)
+          body = m.group(1) if m else ''
+          entries = len(re.findall(r'^#EXTINF:.*tvg-id="boat\.', body, re.M))
+          print(f'Preserve BOAT check: status visible={visible} freewifi entries={entries}')
+          if entries != visible:
+              raise SystemExit(f'FreeWiFi publish blocked: BOAT mismatch entries={entries} visible={visible}')
+          PY
+
+            git add ganble freewifi today_public_sports_status.json today_jra_status.json today_event_counts.json verified_daily_status.json public_sports_epg_local.xml
+            [ ! -f public_sports_youtube_fallback.m3u ] || git add public_sports_youtube_fallback.m3u
+            [ ! -f "$snapshot/general_youtube.m3u" ] || git add general_youtube.m3u
+
+            if git diff --cached --quiet; then
+              echo "Local venue state already current"
+              exit 0
+            fi
             git commit -m "Update ajiousama public sports state [skip ci]"
-            git pull --rebase origin main
-            git push origin HEAD:main
-          fi
+            if git push origin HEAD:main; then
+              echo "FreeWiFi state published without overwriting BOAT"
+              exit 0
+            fi
+            echo "::warning::main moved during FreeWiFi publish; rebuilding on newest main"
+            sleep 1
+          done
+
+          echo "::error::FreeWiFi state publish failed after 5 attempts"
+          exit 1
 
       - name: Sync latest main before EPG build
         run: git pull --ff-only origin main
