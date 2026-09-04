@@ -15,9 +15,19 @@ END = '# === TODAY_PUBLIC_SPORTS_END ==='
 GROUP = '今日の開催場'
 RAW_BASE = 'https://raw.githubusercontent.com/ajiousama/himitsu/main'
 LOCAL_LOGOS = {
-    'keirin.': RAW_BASE + '/logos/public_sports/keirin.svg',
-    'chihou.': RAW_BASE + '/logos/public_sports/horse.svg',
-    'auto.': RAW_BASE + '/logos/public_sports/autorace.svg',
+    # Venue-specific logo cards. Never fall back to one shared sport logo.
+    'keirin.tachikawa': RAW_BASE + '/logos/public_sports/venues/keirin_tachikawa.svg',
+    'keirin.aomori': RAW_BASE + '/logos/public_sports/venues/keirin_aomori.svg',
+    'keirin.toyohashi': RAW_BASE + '/logos/public_sports/venues/keirin_toyohashi.svg',
+    'keirin.takeo': RAW_BASE + '/logos/public_sports/venues/keirin_takeo.svg',
+    'keirin.ito': RAW_BASE + '/logos/public_sports/venues/keirin_ito.svg',
+    'keirin.yahiko': RAW_BASE + '/logos/public_sports/venues/keirin_yahiko.svg',
+    'keirin.tamano': RAW_BASE + '/logos/public_sports/venues/keirin_tamano.svg',
+    'chihou.sonoda': RAW_BASE + '/logos/public_sports/venues/chihou_sonoda.svg',
+    'chihou.nagoya_keiba': RAW_BASE + '/logos/public_sports/venues/chihou_nagoya.svg',
+    'chihou.oi': RAW_BASE + '/logos/public_sports/venues/chihou_oi.svg',
+    'auto.hamamatsu': RAW_BASE + '/logos/public_sports/venues/auto_hamamatsu.svg',
+    'auto.sanyo': RAW_BASE + '/logos/public_sports/venues/auto_sanyo.svg',
 }
 JST = timezone(timedelta(hours=9))
 TARGET_SECTIONS = {'競輪', '地方競馬', 'ボートレース', 'オートレース'}
@@ -125,7 +135,7 @@ def sanitize_extinf(line):
     line = re.sub(r'\s+tvg-logo="[^"]*earphone1981[^"]*"', '', line, flags=re.I)
     mid = re.search(r'tvg-id="([^"]+)"', line)
     cid = mid.group(1) if mid else ''
-    logo = next((url for prefix, url in LOCAL_LOGOS.items() if cid.startswith(prefix)), None)
+    logo = LOCAL_LOGOS.get(cid)
     if logo:
         if 'tvg-logo=' in line:
             line = re.sub(r'tvg-logo="[^"]*"', f'tvg-logo="{logo}"', line, count=1)
