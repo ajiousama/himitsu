@@ -15,6 +15,21 @@ END = '# === TODAY_PUBLIC_SPORTS_END ==='
 GROUP = '今日の開催場'
 RAW_BASE = 'https://raw.githubusercontent.com/ajiousama/himitsu/main'
 LOCAL_LOGOS = {
+    'chihou.obihiro': f'{RAW_BASE}/logos/public_sports/venues/localrace_obihiro_officialstyle.svg',
+    'chihou.mombetsu': f'{RAW_BASE}/logos/public_sports/venues/localrace_mombetsu_officialstyle.svg',
+    'chihou.morioka': f'{RAW_BASE}/logos/public_sports/venues/localrace_morioka_officialstyle.svg',
+    'chihou.mizusawa': f'{RAW_BASE}/logos/public_sports/venues/localrace_mizusawa_officialstyle.svg',
+    'chihou.urawa': f'{RAW_BASE}/logos/public_sports/venues/localrace_urawa_officialstyle.svg',
+    'chihou.funabashi': f'{RAW_BASE}/logos/public_sports/venues/localrace_funabashi_officialstyle.svg',
+    'chihou.oi': f'{RAW_BASE}/logos/public_sports/venues/localrace_oi_officialstyle.svg',
+    'chihou.kawasaki_keiba': f'{RAW_BASE}/logos/public_sports/venues/localrace_kawasaki_officialstyle.svg',
+    'chihou.kanazawa': f'{RAW_BASE}/logos/public_sports/venues/localrace_kanazawa_officialstyle.svg',
+    'chihou.kasamatsu': f'{RAW_BASE}/logos/public_sports/venues/localrace_kasamatsu_officialstyle.svg',
+    'chihou.nagoya_keiba': f'{RAW_BASE}/logos/public_sports/venues/localrace_nagoya_officialstyle.svg',
+    'chihou.sonoda': f'{RAW_BASE}/logos/public_sports/venues/localrace_sonoda_officialstyle.svg',
+    'chihou.himeji': f'{RAW_BASE}/logos/public_sports/venues/localrace_himeji_officialstyle.svg',
+    'chihou.kochi_keiba': f'{RAW_BASE}/logos/public_sports/venues/localrace_kochi_officialstyle.svg',
+    'chihou.saga': f'{RAW_BASE}/logos/public_sports/venues/localrace_saga_officialstyle.svg',
     'keirin.tachikawa': f'{RAW_BASE}/logos/public_sports/venues/keirin_tachikawa.svg',
     'keirin.aomori': f'{RAW_BASE}/logos/public_sports/venues/keirin_aomori.svg',
     'keirin.toyohashi': f'{RAW_BASE}/logos/public_sports/venues/keirin_toyohashi.svg',
@@ -22,9 +37,6 @@ LOCAL_LOGOS = {
     'keirin.ito': f'{RAW_BASE}/logos/public_sports/venues/keirin_ito.svg',
     'keirin.yahiko': f'{RAW_BASE}/logos/public_sports/venues/keirin_yahiko.svg',
     'keirin.tamano': f'{RAW_BASE}/logos/public_sports/venues/keirin_tamano.svg',
-    'chihou.sonoda': f'{RAW_BASE}/logos/public_sports/venues/chihou_sonoda.svg',
-    'chihou.nagoya_keiba': f'{RAW_BASE}/logos/public_sports/venues/chihou_nagoya.svg',
-    'chihou.oi': f'{RAW_BASE}/logos/public_sports/venues/chihou_oi.svg',
     'auto.hamamatsu': f'{RAW_BASE}/logos/public_sports/venues/auto_hamamatsu.svg',
     'auto.sanyo': f'{RAW_BASE}/logos/public_sports/venues/auto_sanyo.svg',
 }
