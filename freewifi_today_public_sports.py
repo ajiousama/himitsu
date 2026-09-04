@@ -37,8 +37,8 @@ LOCAL_LOGOS = {
     'keirin.ito': f'{RAW_BASE}/logos/public_sports/venues/keirin_ito.svg',
     'keirin.yahiko': f'{RAW_BASE}/logos/public_sports/venues/keirin_yahiko.svg',
     'keirin.tamano': f'{RAW_BASE}/logos/public_sports/venues/keirin_tamano.svg',
-    'auto.hamamatsu': f'{RAW_BASE}/logos/public_sports/venues/auto_hamamatsu.svg',
-    'auto.sanyo': f'{RAW_BASE}/logos/public_sports/venues/auto_sanyo.svg',
+    'auto.hamamatsu': f'{RAW_BASE}/logos/public_sports/venues/auto_hamamatsu.png',
+    'auto.sanyo': f'{RAW_BASE}/logos/public_sports/venues/auto_sanyo.png',
 }
 JST = timezone(timedelta(hours=9))
 TARGET_SECTIONS = {'競輪', '地方競馬', 'ボートレース', 'オートレース'}
