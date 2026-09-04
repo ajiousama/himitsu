@@ -28,8 +28,11 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Install Pillow
-        run: python -m pip install --upgrade pillow
+      - name: Install Pillow and Japanese font
+        run: |
+          python -m pip install --upgrade pillow
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq fonts-noto-cjk
 
       - name: Generate dedicated logos
         run: python generate_livecamera_logos.py
@@ -45,10 +48,12 @@ jobs:
             airport_okayama airport_hiroshima airport_nagasaki airport_goto \
             airport_kumamoto airport_oita airport_miyazaki airport_amami \
             airport_naha airport_sendai airport_hanamaki airport_yamagata \
-            airport_fukushima airport_obihiro ehime_port_toyo \
-            ehime_port_hashihama ehime_port_misaki ehime_kuma_skiland \
-            ehime_saragamine ehime_omogo_ishizuchi ehime_ainan_ebc \
-            ehime_dogo_honkan; do
+            airport_fukushima airport_obihiro ehime_port_mishima_kawanoe \
+            ehime_port_toyo ehime_port_hashihama ehime_port_misaki \
+            ehime_port_misho ehime_kuma_skiland ehime_saragamine \
+            ehime_omogo_ishizuchi ehime_ainan_ebc ehime_dogo_honkan \
+            yt54_44_maiko_villa_akashi yt54_45_tokyo_dome_city \
+            yt54_46_shinhotaka_ropeway; do
             test -s "logos/youtube/${f}.png"
           done
           grep -q '## Rakuten-JP' freewifi
