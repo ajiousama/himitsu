@@ -162,12 +162,21 @@ jobs:
             [ ! -f "$snapshot/public_sports_youtube_fallback.m3u" ] || cp "$snapshot/public_sports_youtube_fallback.m3u" public_sports_youtube_fallback.m3u
             [ ! -f "$snapshot/general_youtube.m3u" ] || cp "$snapshot/general_youtube.m3u" general_youtube.m3u
 
-            # IMPORTANT: rebuild FreeWiFi on newest main. This preserves the
-            # latest TODAY_BOAT block written by 公営これ一発 / iPhone seed.
+            # Rebuild on newest main, then regenerate BOAT from the newest
+            # 公営これ一発 iPhone seed so every currently active venue is kept.
             python freewifi_today_public_sports.py
             python freewifi_strip_public_boat.py
             python freewifi_today_jra.py
             python finalize_today_public_sports.py
+
+            test -s boat_stream_seed.m3u
+            cp boat_stream_seed.m3u /tmp/boat_stream_seed.m3u.freewifi-before
+            python -u boat_iphone_seed_build.py
+            cmp -s /tmp/boat_stream_seed.m3u.freewifi-before boat_stream_seed.m3u || {
+              echo "::error::FreeWiFi build modified 公営これ一発 seed"
+              exit 1
+            }
+
             python build_today_event_counts.py
 
             python - <<'PY'
