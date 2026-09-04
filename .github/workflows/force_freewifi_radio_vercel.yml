@@ -54,8 +54,8 @@ jobs:
               tmp="/tmp/radio-${sid}-${stage}.m3u8"
               echo "Checking $url"
               code="$(curl -sS -L --retry 2 --retry-all-errors --connect-timeout 10 --max-time 45 -o "$tmp" -w '%{http_code}' "$url")"
-              test "$code" = "200" || { echo "::error::Radio endpoint returned HTTP $code: $url"; sed -n '1,20p' "$tmp" || true; exit 1; }
-              head -c 16 "$tmp" | grep -q '^#EXTM3U' || { echo "::error::Not HLS: $url"; sed -n '1,20p' "$tmp" || true; exit 1; }
+              test "$code" = "200" || { echo "::error::Radio endpoint returned HTTP $code for $url"; sed -n '1,20p' "$tmp" || true; exit 1; }
+              head -c 16 "$tmp" | grep -q '^#EXTM3U' || { echo "::error::Not HLS for $url"; sed -n '1,20p' "$tmp" || true; exit 1; }
             done
           done
 
