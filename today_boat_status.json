@@ -1,18 +1,20 @@
 {
   "system": "boat-v2-iphone-seed",
-  "generated_at": "2026-09-04T14:54:42.656443+09:00",
+  "generated_at": "2026-09-04T14:56:39.390903+09:00",
   "date": "2026-09-04",
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/",
   "resolver_ready": false,
   "resolver_probe_status": 0,
   "prestart_minutes": 30,
+  "start_tolerance_seconds": 60,
   "grace_minutes": 30,
   "card_count": 13,
-  "held_count": 9,
-  "visible_count": 9,
+  "held_count": 10,
+  "visible_count": 10,
   "active_window": [
     "戸田",
     "浜名湖",
+    "蒲郡",
     "津",
     "びわこ",
     "住之江",
@@ -22,7 +24,6 @@
     "福岡"
   ],
   "scheduled_waiting": [
-    "蒲郡",
     "若松",
     "大村"
   ],
@@ -70,7 +71,7 @@
       "jcd": "07",
       "name": "蒲郡",
       "held": true,
-      "visible": false,
+      "visible": true,
       "first_race": "15:25",
       "show_from": "2026-09-04T14:55:00+09:00",
       "last_race": "20:38",
@@ -80,8 +81,9 @@
         "race": 1,
         "start": "15:25"
       },
-      "scheduled": true,
-      "stream_window": "waiting"
+      "stream_window": "live_or_vtr",
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/8c0269dcbcc7420d8d599be51afeb8ba/779f792c8c0245569b5cdc5dd16b93e4/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4ODY3NDQwMCwic3RhcnQiOjE3ODg0OTg2MDAsImlvcyI6MTgsImNwIjoiMjEwNjk0MjAwXzIxMDczNjc5OSIsInBwdyI6IjQwayJ9.jYXq-ySdjC1py5ZHVleRXF0ZFJLNu08aihX7pEMg9us",
+      "source": "iPhone one-click direct Streaks seed"
     },
     "boat.tsu": {
       "jcd": "09",
