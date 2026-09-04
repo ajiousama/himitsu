@@ -1,6 +1,6 @@
 {
   "system": "boat-v2-iphone-seed",
-  "generated_at": "2026-09-05T08:05:00.579944+09:00",
+  "generated_at": "2026-09-05T08:26:49.486974+09:00",
   "date": "2026-09-05",
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/",
   "resolver_ready": false,
@@ -9,10 +9,11 @@
   "start_tolerance_seconds": 60,
   "grace_minutes": 30,
   "card_count": 14,
-  "held_count": 1,
-  "visible_count": 1,
+  "held_count": 2,
+  "visible_count": 2,
   "active_window": [
-    "三国"
+    "三国",
+    "徳山"
   ],
   "scheduled_waiting": [
     "桐生",
@@ -25,7 +26,6 @@
     "住之江",
     "尼崎",
     "宮島",
-    "徳山",
     "若松",
     "福岡"
   ],
@@ -223,7 +223,7 @@
       "jcd": "18",
       "name": "徳山",
       "held": true,
-      "visible": false,
+      "visible": true,
       "first_race": "08:44",
       "show_from": "2026-09-05T08:14:00+09:00",
       "last_race": "14:30",
@@ -233,8 +233,9 @@
         "race": 1,
         "start": "08:44"
       },
-      "scheduled": true,
-      "stream_window": "waiting"
+      "stream_window": "live_or_vtr",
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/9231e21edca54729a35a8d0a1700f9b7/9fb687f52e2c41858d2d9204263554b3/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4ODcwMzIwMCwic3RhcnQiOjE3ODg0NzY5NDAsImlvcyI6MTgsInBwdyI6IjQwayJ9.RJOOB7hL9lsxHGr4oFIQBnX-f4Gkz7YjMfyXBarYmjg",
+      "source": "iPhone one-click direct Streaks seed"
     },
     "boat.wakamatsu": {
       "jcd": "20",
