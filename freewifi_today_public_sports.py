@@ -13,6 +13,12 @@ PUBLIC_EPG = Path('public_sports_epg_local.xml')
 START = '# === TODAY_PUBLIC_SPORTS_START ==='
 END = '# === TODAY_PUBLIC_SPORTS_END ==='
 GROUP = '今日の開催場'
+RAW_BASE = 'https://raw.githubusercontent.com/ajiousama/himitsu/main'
+LOCAL_LOGOS = {
+    'keirin.': RAW_BASE + '/logos/public_sports/keirin.svg',
+    'chihou.': RAW_BASE + '/logos/public_sports/horse.svg',
+    'auto.': RAW_BASE + '/logos/public_sports/autorace.svg',
+}
 JST = timezone(timedelta(hours=9))
 TARGET_SECTIONS = {'競輪', '地方競馬', 'ボートレース', 'オートレース'}
 NON_EVENT_WORDS = ('本日非開催','非開催','開催していません','開催予定はありません','本日開催なし','開催なし','次回開催','データ取得準備中','休止中','休止','準備中','現在準備中','本日の開催は終了しました')
@@ -117,6 +123,15 @@ def entry_name(block):
 
 def sanitize_extinf(line):
     line = re.sub(r'\s+tvg-logo="[^"]*earphone1981[^"]*"', '', line, flags=re.I)
+    mid = re.search(r'tvg-id="([^"]+)"', line)
+    cid = mid.group(1) if mid else ''
+    logo = next((url for prefix, url in LOCAL_LOGOS.items() if cid.startswith(prefix)), None)
+    if logo:
+        if 'tvg-logo=' in line:
+            line = re.sub(r'tvg-logo="[^"]*"', f'tvg-logo="{logo}"', line, count=1)
+        else:
+            pos = line.find(',')
+            line = line[:pos] + f' tvg-logo="{logo}"' + line[pos:] if pos >= 0 else line
     if 'group-title=' in line:
         line = re.sub(r'group-title="[^"]*"', f'group-title="{GROUP}"', line, count=1)
     else:
