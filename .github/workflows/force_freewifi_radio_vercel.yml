@@ -41,11 +41,82 @@ jobs:
           grep -Fq 'https://himitsu-six.vercel.app/api/radio-tv?station=RNB' /tmp/radio.txt
           grep -Fq 'https://himitsu-six.vercel.app/api/radio-tv?station=OBC' /tmp/radio.txt
           grep -Fq 'https://himitsu-six.vercel.app/api/radio-tv?station=KBS' /tmp/radio.txt
+          grep -q '^## Rakuten-JP
+
+      - name: Commit FreeWiFi radio switch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add freewifi
+          if git diff --cached --quiet; then
+            echo 'FreeWiFi radio is already on Vercel'
+          else
+            git commit -m 'Switch FreeWiFi radio to Vercel direct HLS'
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
+
+      - name: Sync latest main before radio EPG
+        run: git pull --ff-only origin main
+
+      - name: Force Radiko EPG refresh
+        run: python radiko_epg_merge.py
+
+      - name: Force NHK Radio EPG refresh
+        run: python nhk_radio_epg.py
+
+      - name: Validate radio EPG
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -c "import xml.etree.ElementTree as ET; ET.parse('guides.xml'); print('RADIO XML OK')"
+          test "$(grep -c '<channel id=\"radiko\.' guides.xml || true)" -gt 0
+          test "$(grep -c '<programme .*channel=\"radiko\.' guides.xml || true)" -gt 0
+          test "$(grep -E -c '<channel id=\"nhk_(r1|fm)_' guides.xml || true)" -gt 0
+          test "$(grep -E -c '<programme .*channel=\"nhk_(r1|fm)_' guides.xml || true)" -gt 0
           grep -q '^## Rakuten-JP$' freewifi
 
+      - name: Commit forced radio EPG
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp guides.xml /tmp/guides.xml.radio-force
+          git fetch origin main
+          git reset --hard origin/main
+          cp /tmp/guides.xml.radio-force guides.xml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add guides.xml
+          if git diff --cached --quiet; then
+            echo 'Radio EPG already current'
+          else
+            git commit -m 'Force update Radiko and NHK radio EPG'
+            git push origin HEAD:main
+          fi
+ freewifi
+
+          # Validate each endpoint explicitly. Do not use curl | grep with
+          # pipefail: grep -q can close the pipe after the first match and make
+          # curl report a broken pipe even when the playlist is healthy.
           for sid in RNB OBC KBS; do
-            curl -fsS --max-time 30 "https://himitsu-six.vercel.app/api/radio-tv?station=$sid" | grep -q '^#EXTM3U'
-            curl -fsS --max-time 30 "https://himitsu-six.vercel.app/api/radio-tv?station=$sid&stage=audio" | grep -q '^#EXTM3U'
+            for suffix in "" "&stage=audio"; do
+              url="https://himitsu-six.vercel.app/api/radio-tv?station=$sid$suffix"
+              tmp="/tmp/radio-$sid-${suffix//[^a-z]/}.m3u8"
+              echo "Checking $url"
+              code="$(curl -sS -L --retry 2 --retry-all-errors --connect-timeout 10 --max-time 45 -o "$tmp" -w '%{http_code}' "$url")"
+              if [ "$code" != "200" ]; then
+                echo "::error::Radio endpoint $url returned HTTP $code"
+                sed -n '1,20p' "$tmp" || true
+                exit 1
+              fi
+              if ! head -c 16 "$tmp" | grep -q '^#EXTM3U'; then
+                echo "::error::Radio endpoint $url did not return an HLS playlist"
+                sed -n '1,20p' "$tmp" || true
+                exit 1
+              fi
+            done
           done
 
       - name: Commit FreeWiFi radio switch
