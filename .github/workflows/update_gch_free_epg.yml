@@ -54,8 +54,8 @@ jobs:
               exit 0
             fi
             if [ ! -s guides.xml ]; then
-              echo '::warning::guides.xml is empty; main FreeWiFi workflow must rebuild it first.'
-              exit 0
+              echo '::warning::guides.xml is empty; restoring public-sports EPG immediately.'
+              cp public_sports_epg_local.xml guides.xml
             fi
 
             python jra_epg_merge.py
@@ -69,11 +69,10 @@ jobs:
                   raise SystemExit(f'{path} missing or empty')
               ET.parse(path)
 
-          if Path('guides.xml').stat().st_size < 100000:
-              raise SystemExit('guides.xml suspiciously small after GCH merge')
-
           guides = ET.parse('guides.xml').getroot()
-          if len(guides.findall('channel')) < 50 or len(guides.findall('programme')) < 100:
+          # Emergency fallback may contain only the locally generated public-sports EPG.
+          # Never publish an empty/sparse guide, but do not require unrelated TV channels.
+          if len(guides.findall('channel')) < 30 or len(guides.findall('programme')) < 100:
               raise SystemExit('guides.xml suspiciously sparse after GCH merge')
 
           for cid in ('jra.east', 'jra.west', 'jra.hokkaido'):
