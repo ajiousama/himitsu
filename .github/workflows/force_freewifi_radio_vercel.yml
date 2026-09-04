@@ -41,7 +41,23 @@ jobs:
           grep -Fq 'https://himitsu-six.vercel.app/api/radio-tv?station=RNB' /tmp/radio.txt
           grep -Fq 'https://himitsu-six.vercel.app/api/radio-tv?station=OBC' /tmp/radio.txt
           grep -Fq 'https://himitsu-six.vercel.app/api/radio-tv?station=KBS' /tmp/radio.txt
-          grep -q '^## Rakuten-JP
+          grep -q '^## Rakuten-JP$' freewifi
+
+          # Avoid curl|grep with pipefail: grep -q may close the pipe early.
+          for sid in RNB OBC KBS; do
+            for stage in tv audio; do
+              if [ "$stage" = audio ]; then
+                url="https://himitsu-six.vercel.app/api/radio-tv?station=$sid&stage=audio"
+              else
+                url="https://himitsu-six.vercel.app/api/radio-tv?station=$sid"
+              fi
+              tmp="/tmp/radio-${sid}-${stage}.m3u8"
+              echo "Checking $url"
+              code="$(curl -sS -L --retry 2 --retry-all-errors --connect-timeout 10 --max-time 45 -o "$tmp" -w '%{http_code}' "$url")"
+              test "$code" = "200" || { echo "::error::Radio endpoint returned HTTP $code: $url"; sed -n '1,20p' "$tmp" || true; exit 1; }
+              head -c 16 "$tmp" | grep -q '^#EXTM3U' || { echo "::error::Not HLS: $url"; sed -n '1,20p' "$tmp" || true; exit 1; }
+            done
+          done
 
       - name: Commit FreeWiFi radio switch
         shell: bash
