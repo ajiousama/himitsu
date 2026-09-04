@@ -1,6 +1,6 @@
 {
   "system": "boat-v2-iphone-seed",
-  "generated_at": "2026-09-04T22:57:34.669212+09:00",
+  "generated_at": "2026-09-04T23:32:39.688257+09:00",
   "date": "2026-09-04",
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/",
   "resolver_ready": false,
@@ -9,11 +9,9 @@
   "start_tolerance_seconds": 60,
   "grace_minutes": 30,
   "card_count": 13,
-  "held_count": 1,
-  "visible_count": 1,
-  "active_window": [
-    "大村"
-  ],
+  "held_count": 0,
+  "visible_count": 0,
+  "active_window": [],
   "scheduled_waiting": [],
   "ended_removed": [
     "戸田",
@@ -27,7 +25,8 @@
     "宮島",
     "徳山",
     "若松",
-    "福岡"
+    "福岡",
+    "大村"
   ],
   "venues": {
     "boat.toda": {
@@ -202,16 +201,15 @@
       "jcd": "24",
       "name": "大村",
       "held": true,
-      "visible": true,
+      "visible": false,
       "first_race": "17:41",
       "show_from": "2026-09-04T17:11:00+09:00",
       "last_race": "22:45",
       "remove_after": "2026-09-04T23:15:00+09:00",
       "mode": "night",
       "next_race": null,
-      "stream_window": "live_or_vtr",
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/bdd0dc3c4cf84a7385b09dd6157f7836/397b50b14627462ba8f0e5bc4d7bc275/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4ODcwMzIwMCwic3RhcnQiOjE3ODg1MDkxMDAsImlvcyI6MTgsImNwIjoiMjEwNzA0NzAwXzIxMDcyNjEyMCIsInBwdyI6IjQwayJ9.Lz4rtnAUEOpCX8ttXNTTDtra01C2mGIIQn01ZU3VQsg",
-      "source": "iPhone one-click direct Streaks seed"
+      "ended": true,
+      "stream_window": "ended"
     }
   },
   "stream_source": "boat_stream_seed.m3u from iPhone Scriptable one-click / direct Streaks only"
