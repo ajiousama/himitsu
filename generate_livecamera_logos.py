@@ -3,39 +3,72 @@ from PIL import Image, ImageDraw, ImageFont
 
 ROOT = Path('logos/youtube')
 ROOT.mkdir(parents=True, exist_ok=True)
-SIZE = 384
-FONT = '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'
+SIZE = 512
+RED = '#ff0033'
+TEXT = '#111111'
+MUTED = '#555555'
+BORDER = '#e5e7eb'
 
-# Dedicated labels for sources that previously shared one generic logo.
+# Keep the early numbered YouTube logos (かなチューブ / コノド etc.) untouched.
+# Regenerate only the later/add-on assets in one matching, readable YouTube-LIVE style.
 LOGOS = {
-    'airport_okayama.png': ('OKJ', 'AIRPORT'),
-    'airport_hiroshima.png': ('HIJ', 'AIRPORT'),
-    'airport_nagasaki.png': ('NGS', 'AIRPORT'),
-    'airport_goto.png': ('FUJ', 'AIRPORT'),
-    'airport_kumamoto.png': ('KMJ', 'AIRPORT'),
-    'airport_oita.png': ('OIT', 'AIRPORT'),
-    'airport_miyazaki.png': ('KMI', 'AIRPORT'),
-    'airport_amami.png': ('ASJ', 'AIRPORT'),
-    'airport_naha.png': ('OKA', 'AIRPORT'),
-    'airport_sendai.png': ('SDJ', 'AIRPORT'),
-    'airport_hanamaki.png': ('HNA', 'AIRPORT'),
-    'airport_yamagata.png': ('GAJ', 'AIRPORT'),
-    'airport_fukushima.png': ('FKS', 'AIRPORT'),
-    'airport_obihiro.png': ('OBO', 'AIRPORT'),
-    'ehime_port_toyo.png': ('TOYO', 'PORT'),
-    'ehime_port_hashihama.png': ('HASHI', 'PORT'),
-    'ehime_port_misaki.png': ('MISAKI', 'PORT'),
-    'ehime_kuma_skiland.png': ('KUMA', 'SKI'),
-    'ehime_saragamine.png': ('SARAGA', 'MT.'),
-    'ehime_omogo_ishizuchi.png': ('ISHIZU', 'MT.'),
-    'ehime_ainan_ebc.png': ('AINAN', 'LIVE'),
-    'ehime_dogo_honkan.png': ('DOGO', 'LIVE'),
+    'airport_okayama.png': ('岡山空港', 'AIRPORT LIVE'),
+    'airport_hiroshima.png': ('広島空港', 'AIRPORT LIVE'),
+    'airport_nagasaki.png': ('長崎空港', 'AIRPORT LIVE'),
+    'airport_goto.png': ('五島つばき空港', 'AIRPORT LIVE'),
+    'airport_kumamoto.png': ('阿蘇くまもと空港', 'AIRPORT LIVE'),
+    'airport_oita.png': ('大分空港', 'AIRPORT LIVE'),
+    'airport_miyazaki.png': ('宮崎空港', 'AIRPORT LIVE'),
+    'airport_amami.png': ('奄美空港', 'AIRPORT LIVE'),
+    'airport_naha.png': ('那覇空港', 'AIRPORT LIVE'),
+    'airport_sendai.png': ('仙台空港', 'AIRPORT LIVE'),
+    'airport_hanamaki.png': ('花巻空港', 'AIRPORT LIVE'),
+    'airport_yamagata.png': ('山形空港', 'AIRPORT LIVE'),
+    'airport_fukushima.png': ('福島空港', 'AIRPORT LIVE'),
+    'airport_obihiro.png': ('帯広空港', 'AIRPORT LIVE'),
+    'ehime_port_mishima_kawanoe.png': ('三島川之江港', 'PORT LIVE'),
+    'ehime_port_toyo.png': ('東予港', 'PORT LIVE'),
+    'ehime_port_hashihama.png': ('波止浜港', 'PORT LIVE'),
+    'ehime_port_misaki.png': ('三崎港', 'PORT LIVE'),
+    'ehime_port_misho.png': ('御荘港', 'PORT LIVE'),
+    'ehime_kuma_skiland.png': ('久万スキーランド', 'EHIME LIVE'),
+    'ehime_saragamine.png': ('皿ヶ嶺方面', 'EHIME LIVE'),
+    'ehime_omogo_ishizuchi.png': ('面河・石鎚山系', 'EHIME LIVE'),
+    'ehime_ainan_ebc.png': ('愛南町・御荘湾', 'EHIME LIVE'),
+    'ehime_dogo_honkan.png': ('道後温泉本館', 'EHIME LIVE'),
+    'yt54_44_maiko_villa_akashi.png': ('舞子ビラ・明石海峡', 'LIVE CAMERA'),
+    'yt54_45_tokyo_dome_city.png': ('東京ドームシティ', 'LIVE CAMERA'),
+    'yt54_46_shinhotaka_ropeway.png': ('新穂高ロープウェイ', 'LIVE CAMERA'),
 }
 
+FONT_CANDIDATES = [
+    '/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc',
+    '/usr/share/fonts/opentype/noto/NotoSansCJKjp-Bold.otf',
+    '/usr/share/fonts/opentype/noto/NotoSansJP-Bold.ttf',
+    '/usr/share/fonts/truetype/noto/NotoSansCJK-Bold.ttc',
+    '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf',
+]
 
-def font_for(draw, text, max_width, start):
+
+def choose_font():
+    for path in FONT_CANDIDATES:
+        p = Path(path)
+        if not p.exists():
+            continue
+        try:
+            ImageFont.truetype(str(p), 32)
+            return str(p)
+        except Exception:
+            pass
+    return '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'
+
+
+FONT = choose_font()
+
+
+def font_for(draw, text, max_width, start, minimum=22):
     size = start
-    while size >= 18:
+    while size >= minimum:
         try:
             f = ImageFont.truetype(FONT, size)
         except Exception:
@@ -53,34 +86,40 @@ def centered(draw, text, y, font, fill):
     draw.text((x, y - b[1]), text, font=font, fill=fill)
 
 
-def draw_symbol(draw, kind):
-    # Simple monochrome symbols keep all icons readable in IPTV players.
-    if kind == 'AIRPORT':
-        draw.polygon([(192,54),(209,116),(292,145),(292,162),(207,153),(200,213),(184,213),(177,153),(92,162),(92,145),(175,116)], fill='black')
-    elif kind == 'PORT':
-        draw.rectangle((184,72,200,154), fill='black')
-        draw.polygon([(145,119),(192,74),(239,119)], outline='black')
-        draw.arc((108,136,276,214), 10, 170, fill='black', width=8)
-        draw.arc((108,158,276,236), 10, 170, fill='black', width=8)
-    elif kind in {'MT.','SKI'}:
-        draw.polygon([(79,190),(153,90),(195,146),(235,96),(310,190)], outline='black')
-        draw.line((79,190,310,190), fill='black', width=8)
-    else:
-        draw.ellipse((143,78,241,176), outline='black', width=9)
-        draw.ellipse((177,112,207,142), fill='black')
+def title_lines(title):
+    # Prefer one strong line; split only the longest labels so the venue/place name stays large.
+    if title == '舞子ビラ・明石海峡':
+        return ['舞子ビラ', '明石海峡']
+    if title == '新穂高ロープウェイ':
+        return ['新穂高', 'ロープウェイ']
+    return [title]
 
 
-def build_one(filename, label, kind):
+def build_one(filename, title, category):
     img = Image.new('RGB', (SIZE, SIZE), 'white')
     draw = ImageDraw.Draw(img)
-    draw.rounded_rectangle((16,16,SIZE-16,SIZE-16), radius=34, outline='black', width=8)
-    draw_symbol(draw, kind)
-    draw.rounded_rectangle((34,224,SIZE-34,SIZE-34), radius=22, fill='black')
 
-    main = font_for(draw, label, 286, 70)
-    sub = font_for(draw, kind, 230, 30)
-    centered(draw, label, 237, main, 'white')
-    centered(draw, kind, 319, sub, 'white')
+    # Same visual language as the early YouTube set: white tile, red LIVE header,
+    # large plain name, thin red accent, no busy pictograms or black blocks.
+    draw.rounded_rectangle((16, 16, SIZE - 16, SIZE - 16), radius=46,
+                           outline=BORDER, width=8, fill='white')
+    draw.rounded_rectangle((44, 54, SIZE - 44, 140), radius=22, fill=RED)
+    draw.polygon([(112, 76), (112, 118), (156, 97)], fill='white')
+    live_font = font_for(draw, 'YouTube LIVE', 270, 38, 28)
+    centered(draw, 'YouTube LIVE', 81, live_font, 'white')
+
+    lines = title_lines(title)
+    if len(lines) == 1:
+        main = font_for(draw, lines[0], 420, 70, 36)
+        centered(draw, lines[0], 235, main, TEXT)
+    else:
+        main = font_for(draw, max(lines, key=len), 390, 64, 34)
+        centered(draw, lines[0], 205, main, TEXT)
+        centered(draw, lines[1], 278, main, TEXT)
+
+    draw.rectangle((88, 350, SIZE - 88, 354), fill=RED)
+    sub = font_for(draw, category, 300, 30, 22)
+    centered(draw, category, 390, sub, MUTED)
 
     out = ROOT / filename
     img.save(out, 'PNG', optimize=True)
@@ -88,8 +127,9 @@ def build_one(filename, label, kind):
 
 
 def main():
-    for filename, (label, kind) in LOGOS.items():
-        build_one(filename, label, kind)
+    print('logo font:', FONT)
+    for filename, (title, category) in LOGOS.items():
+        build_one(filename, title, category)
 
 
 if __name__ == '__main__':
