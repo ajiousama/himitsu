@@ -1,0 +1,96 @@
+name: Public Sports Update Watchdog
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Independent recovery path. Runs every 5 minutes and only dispatches stale/failed targets.
+    - cron: "*/5 * * * *"
+
+permissions:
+  actions: write
+  contents: read
+
+concurrency:
+  group: himitsu-public-sports-watchdog
+  cancel-in-progress: true
+
+jobs:
+  recover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Recover stale public-sports workflows
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          workflows="$(gh api "repos/$REPO/actions/workflows?per_page=100")"
+
+          find_id() {
+            local pattern="$1"
+            printf '%s' "$workflows" | jq -r --arg p "$pattern" '
+              .workflows[]
+              | select(.state == "active")
+              | select(.name | test($p; "i"))
+              | .id' | head -n1
+          }
+
+          should_recover() {
+            local workflow_id="$1"
+            local stale_minutes="$2"
+            local runs latest created status conclusion now epoch age
+
+            runs="$(gh api "repos/$REPO/actions/workflows/$workflow_id/runs?per_page=5")"
+            latest="$(printf '%s' "$runs" | jq -c '.workflow_runs[0] // empty')"
+
+            if [ -z "$latest" ]; then
+              return 0
+            fi
+
+            created="$(printf '%s' "$latest" | jq -r '.created_at')"
+            status="$(printf '%s' "$latest" | jq -r '.status')"
+            conclusion="$(printf '%s' "$latest" | jq -r '.conclusion // ""')"
+            now="$(date -u +%s)"
+            epoch="$(date -u -d "$created" +%s)"
+            age=$(( (now - epoch) / 60 ))
+
+            echo "workflow=$workflow_id latest_age=${age}m status=$status conclusion=$conclusion"
+
+            if [ "$status" = "in_progress" ] || [ "$status" = "queued" ]; then
+              return 1
+            fi
+
+            if [ "$conclusion" = "failure" ] || [ "$conclusion" = "cancelled" ] || [ "$conclusion" = "timed_out" ]; then
+              [ "$age" -ge 3 ] && return 0
+            fi
+
+            [ "$age" -ge "$stale_minutes" ]
+          }
+
+          recover() {
+            local pattern="$1"
+            local stale_minutes="$2"
+            local id
+
+            id="$(find_id "$pattern")"
+            if [ -z "$id" ]; then
+              echo "::warning::No active workflow matched: $pattern"
+              return 0
+            fi
+
+            if should_recover "$id" "$stale_minutes"; then
+              echo "::warning::Dispatching stale/failed workflow matching: $pattern"
+              gh api -X POST "repos/$REPO/actions/workflows/$id/dispatches" -f ref=main
+            else
+              echo "Healthy/recent: $pattern"
+            fi
+          }
+
+          # BOAT should normally refresh every 10 minutes.
+          recover "Update BOAT Today" 18
+          # Main FreeWiFi/EPG and GCH fallback are hourly jobs.
+          recover "Update FreeWiFi ALL" 80
+          recover "Update GCH Free EPG" 80
