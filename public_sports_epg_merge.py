@@ -21,14 +21,21 @@ def load_json(path):
 def wanted_ids():
     status = load_json(STATUS_JSON).get('channels', {})
     ids = {cid for cid in status if cid.startswith(PREFIXES)}
-    cfg = load_json(VERIFIED_JSON)
-    if cfg.get('date') == datetime.now(JST).date().isoformat():
-        for section in ('競輪','地方競馬','ボートレース','オートレース'):
-            pass
-    if ids: return ids
-    if not LOCAL_EPG.exists(): return set()
-    root = ET.parse(LOCAL_EPG).getroot(); today = datetime.now(JST).strftime('%Y%m%d')
-    return {p.get('channel') for p in root.findall('programme') if (p.get('channel') or '').startswith(PREFIXES) and (p.get('start') or '').startswith(today)}
+    if not LOCAL_EPG.exists():
+        return ids
+
+    # Always union today's locally generated public-sports EPG. BOAT is managed
+    # separately from today_public_sports_status.json, so relying only on that
+    # status file silently drops every boat.* programme from guides.xml.
+    root = ET.parse(LOCAL_EPG).getroot()
+    today = datetime.now(JST).strftime('%Y%m%d')
+    local_today = {
+        p.get('channel')
+        for p in root.findall('programme')
+        if (p.get('channel') or '').startswith(PREFIXES)
+        and (p.get('start') or '').startswith(today)
+    }
+    return ids | local_today
 
 
 def normalize_title(p):
