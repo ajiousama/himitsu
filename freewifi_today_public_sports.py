@@ -130,7 +130,7 @@ def epg_state():
                 continue
             real.add(cid)
             joined = title + ' ' + desc
-            modes[cid] = ('overnight' if 'オーバーミッドナイト' in joined else 'midnight' if 'ミッドナイト' in joined else 'night' if 'ナイター' in joined else 'morning' if 'モーニング' in joined else 'day')
+            modes[cid] = ('overnight' if 'オーバーミッドナイト' in joined else 'midnight' if 'ミッドナイト' in joined else 'night' if 'ナイター' in joined else 'morning' if 'モーニング' in joined else 'twilight' if '薄暮' in joined else 'day')
             m = re.search(r'(?:【\s*)?([０-９0-9]{1,2})\s*[ＲR](?:\s*】)?', title)
             if m and tm:
                 trans = str.maketrans('０１２３４５６７８９','0123456789')
