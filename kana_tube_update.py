@@ -8,8 +8,10 @@ from pathlib import Path
 FREEWIFI = Path('freewifi')
 OUT = Path('kana_tube.m3u')
 COOKIES = Path('youtube_cookies.txt')
-CHANNEL = 'https://www.youtube.com/@kanatubechannel'
-LIVE_PAGE = CHANNEL + '/live'
+CHANNELS = (
+    'https://www.youtube.com/channel/UCmHdGDdZGf4cMWRBmEw4Xww',
+    'https://www.youtube.com/@kana_tube',
+)
 ID = 'youtube.kana_tube'
 NAME = 'かなチューブ'
 LOGO = 'https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/youtube/yt43_01_kana_tube.png'
@@ -77,20 +79,26 @@ def candidate_ids_from_listing(listing: str, limit: int = 20) -> list[str]:
 
 
 def find_live() -> str | None:
-    # 1) Canonical /live endpoint when the stored handle resolves directly.
-    url = direct(LIVE_PAGE)
-    if url:
-        print('Kana tube detector: canonical /live')
-        return url
+    # 1) Prefer the immutable channel ID, with the current handle as fallback.
+    for channel in CHANNELS:
+        url = direct(channel + '/live')
+        if url:
+            print('Kana tube detector: canonical /live', channel)
+            return url
 
-    # 2) Channel listings. Do not require flat-playlist to report is_live;
-    # direct() validates each candidate against the real watch page.
-    for listing in (CHANNEL+'/streams', CHANNEL+'/videos'):
-        for vid in candidate_ids_from_listing(listing):
-            url=direct('https://www.youtube.com/watch?v='+vid)
-            if url:
-                print('Kana tube detector: channel listing', vid)
-                return url
+    # 2) Check streams/videos on both channel identities. Do not require
+    # flat-playlist to report is_live; direct() validates the actual watch page.
+    checked_ids=set()
+    for channel in CHANNELS:
+        for listing in (channel+'/streams', channel+'/videos'):
+            for vid in candidate_ids_from_listing(listing):
+                if vid in checked_ids:
+                    continue
+                checked_ids.add(vid)
+                url=direct('https://www.youtube.com/watch?v='+vid)
+                if url:
+                    print('Kana tube detector: channel listing', channel, vid)
+                    return url
 
     # 3) Handle-independent fallbacks. Search recent results by the official
     # channel name, then let direct() decide whether each candidate is live.
