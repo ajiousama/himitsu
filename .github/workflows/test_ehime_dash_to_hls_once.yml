@@ -13,8 +13,14 @@ permissions:
 jobs:
   test:
     runs-on: ubuntu-latest
-    timeout-minutes: 4
+    timeout-minutes: 6
     steps:
+      - name: Install ffmpeg
+        shell: bash
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+
       - name: Build temporary HLS manifests from DASH
         shell: bash
         run: |
@@ -50,7 +56,6 @@ jobs:
                   segs=expand_timeline(st)
                   media=st.attrib['media']
                   start_num=int(st.attrib.get('startNumber','1'))
-                  # keep last 12 segments from current 4-minute window
                   idx0=max(0,len(segs)-12)
                   chosen=[]
                   for i,(t,d,scale) in enumerate(segs[idx0:], start=idx0):
@@ -83,8 +88,6 @@ jobs:
               ]
               open(f'{name}/master.m3u8','w').write('\n'.join(master)+'\n')
               print('BUILT',name)
-              print(open(f'{name}/master.m3u8').read())
-              print('VIDEO_TAIL',open(f'{name}/video.m3u8').read()[-900:])
 
           for n in ('hc_town_news_24','hc_machi_cam_24'):
               make_channel(n)
@@ -93,9 +96,9 @@ jobs:
       - name: ffmpeg playback test - Town News24
         shell: bash
         run: |
-          timeout 20 ffmpeg -hide_banner -loglevel info -protocol_whitelist file,http,https,tcp,tls,crypto -i hc_town_news_24/master.m3u8 -t 3 -map 0:v:0 -map 0:a:0 -f null -
+          timeout 25 ffmpeg -hide_banner -loglevel info -protocol_whitelist file,http,https,tcp,tls,crypto -i hc_town_news_24/master.m3u8 -t 3 -map 0:v:0 -map 0:a:0 -f null -
 
       - name: ffmpeg playback test - Machi Cam24
         shell: bash
         run: |
-          timeout 20 ffmpeg -hide_banner -loglevel info -protocol_whitelist file,http,https,tcp,tls,crypto -i hc_machi_cam_24/master.m3u8 -t 3 -map 0:v:0 -map 0:a:0 -f null -
+          timeout 25 ffmpeg -hide_banner -loglevel info -protocol_whitelist file,http,https,tcp,tls,crypto -i hc_machi_cam_24/master.m3u8 -t 3 -map 0:v:0 -map 0:a:0 -f null -
