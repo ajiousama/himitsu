@@ -111,7 +111,7 @@ jobs:
         run: |
           python -c "import xml.etree.ElementTree as ET; ET.parse('public_sports_epg_local.xml'); print('LOCAL PUBLIC SPORTS XML OK')"
           test -s verified_daily_status.json
-          ! grep -E 'earphone1981/public-sports-iptv' ganble public_sports_epg_local.py public_sports_epg_local_fast.py freewifi_today_public_sports.py public_sports_epg_merge.py jra_epg_merge.py verified_daily_override.py
+          ! grep -E 'earphone1981/public-sports-iptv' ganble public_sports_epg_local.py public_sports_epg_local_fast.py public_sports_epg_merge.py jra_epg_merge.py verified_daily_override.py
 
       - name: Sync today's non-BOAT public sports venues into FreeWiFi
         run: |
