@@ -241,6 +241,23 @@ jobs:
       - name: Merge local JRA race EPG
         run: python jra_epg_merge.py
 
+      - name: Validate active AutoRace EPG survived final merge
+        run: |
+          python - <<'PY'
+          import json
+          import xml.etree.ElementTree as ET
+          from pathlib import Path
+          status = json.loads(Path('today_public_sports_status.json').read_text(encoding='utf-8-sig'))
+          active = sorted(cid for cid in (status.get('channels') or {}) if cid.startswith('auto.'))
+          root = ET.parse('guides.xml').getroot()
+          counts = {cid: sum(1 for p in root.findall('programme') if p.get('channel') == cid) for cid in active}
+          print('Active AutoRace EPG:', counts)
+          missing = [cid for cid, count in counts.items() if count == 0]
+          if missing:
+              raise SystemExit(f'Active AutoRace EPG lost from guides.xml: {missing}')
+          PY
+
+
       - name: Add persistent KICK receiver EPG
         run: python kick_epg.py
 
