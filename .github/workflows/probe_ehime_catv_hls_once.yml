@@ -1,0 +1,100 @@
+name: Probe Ehime CATV HLS alternatives
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/probe_ehime_catv_hls_once.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Probe current DASH and possible HLS URLs
+        shell: bash
+        run: |
+          set -u
+          python3 - <<'PY'
+          import subprocess, urllib.request, urllib.error, ssl, re
+
+          names = [
+              'hc_town_news_24',
+              'hc_machi_cam_24',
+              'hc_eventsel_channel',
+              'hc_ehime_channel',
+              'hc_bousai_channel',
+              'hc_gosho_channel',
+              'hc_ainan_live_cam',
+          ]
+
+          durasite = {
+              'hc_town_news_24': ['plala.news24','plala.townnews24','plala.town_news_24'],
+              'hc_machi_cam_24': ['plala.machicam24','plala.machi_cam_24','plala.camera'],
+              'hc_eventsel_channel': ['plala.eventsel','plala.event_selection'],
+              'hc_ehime_channel': ['plala.ehime','plala.ehime_channel'],
+              'hc_bousai_channel': ['plala.bousai','plala.bousai_channel'],
+              'hc_gosho_channel': ['plala.gosho','plala.igo_shogi'],
+              'hc_ainan_live_cam': ['plala.ainan','plala.ainan_live_cam'],
+          }
+
+          ctx = ssl.create_default_context()
+          ctx.check_hostname = True
+
+          def get(url, timeout=8):
+              req = urllib.request.Request(url, headers={'User-Agent':'Mozilla/5.0'})
+              try:
+                  with urllib.request.urlopen(req, timeout=timeout, context=ctx) as r:
+                      data = r.read(32768)
+                      return r.status, r.headers.get('Content-Type',''), data
+              except urllib.error.HTTPError as e:
+                  try: data=e.read(1024)
+                  except Exception: data=b''
+                  return e.code, e.headers.get('Content-Type','') if e.headers else '', data
+              except Exception as e:
+                  return 0, type(e).__name__+': '+str(e), b''
+
+          def ffprobe(url):
+              try:
+                  p = subprocess.run(['ffprobe','-v','error','-rw_timeout','8000000','-show_entries','format=format_name','-of','default=nw=1:nk=1',url],capture_output=True,text=True,timeout=12)
+                  return p.returncode, (p.stdout+p.stderr).strip().replace('\n',' | ')[:300]
+              except Exception as e:
+                  return 999, str(e)
+
+          for name in names:
+              print('\n' + '='*80)
+              print('CHANNEL', name)
+              mpd = f'https://cdn.e-catv.ne.jp/mpeg-dash/{name}/dash.mpd'
+              code, ctype, data = get(mpd)
+              print('MPD', code, ctype, mpd)
+              txt = data.decode('utf-8','replace')
+              print('MPD_HEAD', re.sub(r'\s+',' ',txt[:1200]))
+              rc, out = ffprobe(mpd)
+              print('MPD_FFPROBE', rc, out)
+
+              candidates = []
+              for fn in ('playlist.m3u8','master.m3u8','index.m3u8','hls.m3u8'):
+                  candidates.append(f'https://cdn.e-catv.ne.jp/mpeg-dash/{name}/{fn}')
+              for prefix in ('hls','mpeg-hls','hls-live','live'):
+                  for fn in ('playlist.m3u8','master.m3u8','index.m3u8'):
+                      candidates.append(f'https://cdn.e-catv.ne.jp/{prefix}/{name}/{fn}')
+              for stream in durasite.get(name,[]):
+                  candidates.append(f'https://cdn-ecatv-stream.durasite.net/live/{stream}/playlist.m3u8')
+
+              seen=set()
+              for u in candidates:
+                  if u in seen: continue
+                  seen.add(u)
+                  code, ctype, data = get(u, 6)
+                  head = data[:200].decode('utf-8','replace').replace('\n',' | ')
+                  looks = data.lstrip().startswith(b'#EXTM3U')
+                  if code < 400 or looks:
+                      rc,out = ffprobe(u)
+                      print('CANDIDATE', code, ctype, 'M3U8='+str(looks), 'FF='+str(rc), u, head[:120], out[:180])
+
+          print('\nDONE')
+          PY
