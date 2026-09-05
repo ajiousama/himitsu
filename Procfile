@@ -1,1 +1,1 @@
-web: python radiko_cloud_start.py
+web: python radiko_cloud_start_ehime.py
