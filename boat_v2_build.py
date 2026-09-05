@@ -262,23 +262,29 @@ def main():
             'mode': mode(races),
             'next_race': nr,
         }
-        if activation_now < show_from:
-            item['scheduled'] = True
-            item['stream_window'] = 'waiting'
-            waiting.append(name)
-        elif now >= remove_after:
+        if now >= remove_after:
             item['ended'] = True
             item['stream_window'] = 'ended'
             ended.append(name)
         else:
-            active_window.append(name)
-            item['stream_window'] = 'live_or_vtr'
+            # FreeWiFi policy: once today's BOAT card/EPG exists, publish any
+            # venue whose direct iPhone seed is already known. Do not wait for
+            # the old "30 minutes before 1R" visibility gate.
             if render_ready:
                 url = RESOLVER.format(jcd=jcd)
                 source = 'ajiousama Render on-demand resolver'
             else:
                 url = seeds.get(tvg_id, '')
-                source = 'temporary valid seed while Render deploy is pending' if url else 'resolver pending / no safe fallback'
+                source = 'iPhone direct Streaks seed' if url else 'EPG ready / iPhone seed pending'
+
+            if activation_now < show_from:
+                item['scheduled'] = True
+                item['stream_window'] = 'epg_ready'
+                waiting.append(name)
+            else:
+                active_window.append(name)
+                item['stream_window'] = 'live_or_vtr'
+
             if url:
                 item['visible'] = True
                 item['url'] = url
