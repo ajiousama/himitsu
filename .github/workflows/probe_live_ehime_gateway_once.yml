@@ -15,7 +15,7 @@ jobs:
         run: |
           set -euo pipefail
           base='https://ajiousama-ehime-catv-hls.onrender.com/ehime-catv.m3u8?ch='
-          for ch in town_news24 machicam24 event_selection ehime_channel bousai igo_shogi; do
+          for ch in town_news24 machicam24 event_selection ehime_channel bousai igo_shogi ainan; do
             echo "=== $ch ==="
             curl -fsS --max-time 15 "${base}${ch}&debug=1"
             timeout 30 ffmpeg -hide_banner -loglevel error -protocol_whitelist file,http,https,tcp,tls,crypto -i "${base}${ch}" -t 2 -map 0:v:0 -map 0:a:0 -f null -
