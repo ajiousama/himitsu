@@ -241,6 +241,28 @@ jobs:
       - name: Merge local JRA race EPG
         run: python jra_epg_merge.py
 
+      - name: Validate today's BOAT EPG survived final merge
+        run: |
+          python - <<'PY'
+          import xml.etree.ElementTree as ET
+          from pathlib import Path
+          local = ET.parse('public_sports_epg_local.xml').getroot()
+          guides = ET.parse('guides.xml').getroot()
+          today_ids = sorted({
+              p.get('channel')
+              for p in local.findall('programme')
+              if (p.get('channel') or '').startswith('boat.')
+          })
+          counts = {
+              cid: sum(1 for p in guides.findall('programme') if p.get('channel') == cid)
+              for cid in today_ids
+          }
+          print('BOAT EPG in guides:', counts)
+          missing = [cid for cid, count in counts.items() if count == 0]
+          if missing:
+              raise SystemExit(f'BOAT EPG lost from guides.xml: {missing}')
+          PY
+
       - name: Validate active AutoRace EPG survived final merge
         run: |
           python - <<'PY'
