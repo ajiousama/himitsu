@@ -6,6 +6,7 @@ on:
     paths:
       - 'generate_livecamera_logos.py'
       - 'apply_livecamera_logos.py'
+      - 'general_youtube_sources.json'
       - 'general_youtube_sources_ports.json'
       - 'general_youtube_sources_airports.json'
       - '.github/workflows/update_livecamera_logos.yml'
@@ -13,10 +14,14 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: himitsu-freewifi-writer
+  cancel-in-progress: false
+
 jobs:
   logos:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -28,46 +33,62 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Install Pillow and Japanese font
+      - name: Install logo dependencies
         run: |
-          python -m pip install --upgrade pillow
+          python -m pip install --upgrade pillow yt-dlp
           sudo apt-get update -qq
           sudo apt-get install -y -qq fonts-noto-cjk
 
-      - name: Generate dedicated logos
+      - name: Generate canonical yt43 logos
         run: python generate_livecamera_logos.py
 
-      - name: Apply dedicated logos to current playlists
+      - name: Apply canonical logos to current playlists
         run: python apply_livecamera_logos.py
 
-      - name: Validate dedicated logo files and Rakuten preservation
+      - name: Validate canonical yt43 series
         shell: bash
         run: |
           set -e
-          for f in \
-            airport_okayama airport_hiroshima airport_nagasaki airport_goto \
-            airport_kumamoto airport_oita airport_miyazaki airport_amami \
-            airport_naha airport_sendai airport_hanamaki airport_yamagata \
-            airport_fukushima airport_obihiro ehime_port_mishima_kawanoe \
-            ehime_port_toyo ehime_port_hashihama ehime_port_misaki \
-            ehime_port_misho ehime_kuma_skiland ehime_saragamine \
-            ehime_omogo_ishizuchi ehime_ainan_ebc ehime_dogo_honkan \
-            yt54_44_maiko_villa_akashi yt54_45_tokyo_dome_city \
-            yt54_46_shinhotaka_ropeway; do
-            test -s "logos/youtube/${f}.png"
+          for n in $(seq 44 70); do
+            f=$(find logos/youtube -maxdepth 1 -type f -name "yt43_${n}_*.png" | head -1)
+            test -n "$f"
+            test -s "$f"
+            python - "$f" <<'PY'
+          from PIL import Image
+          import sys
+          with Image.open(sys.argv[1]) as im:
+              assert im.size == (418, 418), (sys.argv[1], im.size)
+          PY
           done
+          ! grep -Eq 'yt54_(44|45|46)_' general_youtube_sources.json
+          ! grep -Eq 'logos/youtube/airport_[^\"]+\.png' general_youtube_sources_airports.json
+          ! grep -Eq 'logos/youtube/ehime_[^\"]+\.png' general_youtube_sources_ports.json
           grep -q '## Rakuten-JP' freewifi
 
-      - name: Commit dedicated logos and playlist mappings
+      - name: Remove superseded add-on logo files
+        shell: bash
+        run: |
+          rm -f logos/youtube/yt54_44_maiko_villa_akashi.png
+          rm -f logos/youtube/yt54_45_tokyo_dome_city.png
+          rm -f logos/youtube/yt54_46_shinhotaka_ropeway.png
+          rm -f logos/youtube/airport_*.png
+          rm -f logos/youtube/ehime_port_*.png
+          rm -f logos/youtube/ehime_kuma_skiland.png
+          rm -f logos/youtube/ehime_saragamine.png
+          rm -f logos/youtube/ehime_omogo_ishizuchi.png
+          rm -f logos/youtube/ehime_ainan_ebc.png
+          rm -f logos/youtube/ehime_dogo_honkan.png
+
+      - name: Commit canonical logos and mappings
         shell: bash
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add logos/youtube/*.png general_youtube.m3u freewifi
+          git add -A logos/youtube general_youtube_sources.json general_youtube_sources_ports.json general_youtube_sources_airports.json general_youtube.m3u freewifi
           if git diff --cached --quiet; then
             echo 'No logo changes'
             exit 0
           fi
-          git commit -m 'Apply dedicated FreeWiFi live-camera logos'
+          git commit -m 'Unify FreeWiFi YouTube logos as yt43 series'
           git pull --rebase origin main
           git push origin main
