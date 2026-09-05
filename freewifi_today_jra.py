@@ -10,6 +10,13 @@ STATUS = Path('today_jra_status.json')
 JST = timezone(timedelta(hours=9))
 START = '# === TODAY_JRA_START ==='; END = '# === TODAY_JRA_END ==='; GROUP='グリーンCh'
 RAW_BASE = 'https://raw.githubusercontent.com/ajiousama/himitsu/main'
+JRA_LOGO_BASE = 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main'
+JRA_LOGOS = {
+    'jra.gch': f'{JRA_LOGO_BASE}/gch.png',
+    'jra.east': f'{JRA_LOGO_BASE}/east_web3.png',
+    'jra.west': f'{JRA_LOGO_BASE}/west_web4.png',
+    'jra.hokkaido': f'{JRA_LOGO_BASE}/hokkaido_local.png',
+}
 ROUTES = {
     'jra.gch': ('グリーンチャンネル', 'gchmain_master.m3u8'),
     'jra.east': ('JRA EAST', 'gch_east_master.m3u8'),
