@@ -1,0 +1,67 @@
+name: Remove kaitekitv from FreeWiFi once
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/remove_kaitekitv_once.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  remove:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Remove kaitekitv entries from freewifi
+        shell: python
+        run: |
+          from pathlib import Path
+
+          path = Path('freewifi')
+          lines = path.read_text(encoding='utf-8').splitlines(keepends=True)
+          needles = ('kaitekitv', 'keitekitv')
+
+          out = []
+          removed = []
+          i = 0
+          while i < len(lines):
+              line = lines[i]
+              if line.lstrip().startswith('#EXTINF'):
+                  j = i + 1
+                  while j < len(lines) and not lines[j].strip():
+                      j += 1
+                  block_end = j if j < len(lines) else i
+                  block = ''.join(lines[i:block_end + 1])
+                  if any(n in block.lower() for n in needles):
+                      removed.append(block.strip())
+                      i = block_end + 1
+                      while i < len(lines) and not lines[i].strip():
+                          i += 1
+                      if out and out[-1].strip():
+                          out.append('\n')
+                      continue
+              out.append(line)
+              i += 1
+
+          if not removed:
+              raise SystemExit('No kaitekitv entries found; nothing changed')
+
+          path.write_text(''.join(out), encoding='utf-8')
+          print(f'Removed {len(removed)} kaitekitv entries')
+          for item in removed:
+              print('---')
+              print(item)
+
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add freewifi
+          git commit -m "Temporarily remove kaitekitv from FreeWiFi [skip ci]"
+          git pull --rebase origin main
+          git push origin main
