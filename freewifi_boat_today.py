@@ -17,34 +17,36 @@ PUBLIC_START = '# === TODAY_PUBLIC_SPORTS_START ==='
 PUBLIC_END = '# === TODAY_PUBLIC_SPORTS_END ==='
 GROUP = '今日の開催場'
 JST = timezone(timedelta(hours=9))
+RAW_BASE = 'https://raw.githubusercontent.com/ajiousama/himitsu/main'
+LOGO_BASE = f'{RAW_BASE}/logos/public_sports/venues'
 FINISH_GRACE_MINUTES = 10
 END_CHECK_HOURS = {9, 12, 17, 21}
 
 VENUES = [
-    ('01','桐生','01kiryu','boat.kiryu','kiryu','https://www.boatrace.jp/static/uploads/sites/8/01_N.jpg'),
-    ('02','戸田','02toda','boat.toda','toda','https://www.boatrace.jp/static/uploads/sites/8/02_N-1.jpg'),
-    ('03','江戸川','03edogawa','boat.edogawa','edogawa','https://www.boatrace.jp/static/uploads/sites/8/03_N-1.jpg'),
-    ('04','平和島','04heiwajima','boat.heiwajima','heiwajima','https://www.boatrace.jp/static/uploads/sites/8/04_N-1.jpg'),
-    ('05','多摩川','05tamagawa','boat.tamagawa','tamagawa','https://www.boatrace.jp/static/uploads/sites/8/05_N-1.jpg'),
-    ('06','浜名湖','06hamanako','boat.hamanako','hamanako','https://www.boatrace.jp/static/uploads/sites/8/06_N-1.jpg'),
-    ('07','蒲郡','07gamagori','boat.gamagori','gamagori','https://www.boatrace.jp/static/uploads/sites/8/07_N-1.jpg'),
-    ('08','常滑','08tokoname','boat.tokoname','tokoname','https://www.boatrace.jp/static/uploads/sites/8/08_N-1.jpg'),
-    ('09','津','09tsu','boat.tsu','tsu','https://www.boatrace.jp/static/uploads/sites/8/09_N-1-1.jpg'),
-    ('10','三国','10mikuni','boat.mikuni','mikuni','https://www.boatrace.jp/static/uploads/sites/8/10_N-1-1.jpg'),
-    ('11','びわこ','11biwako','boat.biwako','biwako','https://www.boatrace.jp/static/uploads/sites/8/11_N-1.jpg'),
-    ('12','住之江','12suminoe','boat.suminoe','suminoe','https://www.boatrace.jp/static/uploads/sites/8/12_N-1-1.jpg'),
-    ('13','尼崎','13amagasaki','boat.amagasaki','amagasaki','https://www.boatrace.jp/static/uploads/sites/8/13_N-1.jpg'),
-    ('14','鳴門','14naruto','boat.naruto','naruto','https://www.boatrace.jp/static/uploads/sites/8/14_N-1.jpg'),
-    ('15','丸亀','15marugame','boat.marugame','marugame','https://www.boatrace.jp/static/uploads/sites/8/15_N-1.jpg'),
-    ('16','児島','16kojima','boat.kojima','kojima','https://www.boatrace.jp/static/uploads/sites/8/16_N-1.jpg'),
-    ('17','宮島','17miyajima','boat.miyajima','miyajima','https://www.boatrace.jp/static/uploads/sites/8/17_N-1.jpg'),
-    ('18','徳山','18tokuyama','boat.tokuyama','tokuyama','https://www.boatrace.jp/static/uploads/sites/8/18_N-1.jpg'),
-    ('19','下関','19shimonoseki','boat.shimonoseki','shimonoseki','https://www.boatrace.jp/static/uploads/sites/8/19_N-1.jpg'),
-    ('20','若松','20wakamatsu','boat.wakamatsu','wakamatsu','https://www.boatrace.jp/static/uploads/sites/8/20_N-1.jpg'),
-    ('21','芦屋','21ashiya','boat.ashiya','ashiya','https://www.boatrace.jp/static/uploads/sites/8/21_N-1.jpg'),
-    ('22','福岡','22fukuoka','boat.fukuoka','fukuoka','https://www.boatrace.jp/static/uploads/sites/8/22_N-1-1.jpg'),
-    ('23','唐津','23karatsu','boat.karatsu','karatsu','https://www.boatrace.jp/static/uploads/sites/8/23_N-1.jpg'),
-    ('24','大村','24omura','boat.omura','omura','https://www.boatrace.jp/static/uploads/sites/8/24_N-1.jpg'),
+    ('01','桐生','01kiryu','boat.kiryu','kiryu',f'{LOGO_BASE}/boat_kiryu.svg'),
+    ('02','戸田','02toda','boat.toda','toda',f'{LOGO_BASE}/boat_toda.svg'),
+    ('03','江戸川','03edogawa','boat.edogawa','edogawa',f'{LOGO_BASE}/boat_edogawa.svg'),
+    ('04','平和島','04heiwajima','boat.heiwajima','heiwajima',f'{LOGO_BASE}/boat_heiwajima.svg'),
+    ('05','多摩川','05tamagawa','boat.tamagawa','tamagawa',f'{LOGO_BASE}/boat_tamagawa.svg'),
+    ('06','浜名湖','06hamanako','boat.hamanako','hamanako',f'{LOGO_BASE}/boat_hamanako.svg'),
+    ('07','蒲郡','07gamagori','boat.gamagori','gamagori',f'{LOGO_BASE}/boat_gamagori.svg'),
+    ('08','常滑','08tokoname','boat.tokoname','tokoname',f'{LOGO_BASE}/boat_tokoname.svg'),
+    ('09','津','09tsu','boat.tsu','tsu',f'{LOGO_BASE}/boat_tsu.svg'),
+    ('10','三国','10mikuni','boat.mikuni','mikuni',f'{LOGO_BASE}/boat_mikuni.svg'),
+    ('11','びわこ','11biwako','boat.biwako','biwako',f'{LOGO_BASE}/boat_biwako.svg'),
+    ('12','住之江','12suminoe','boat.suminoe','suminoe',f'{LOGO_BASE}/boat_suminoe.svg'),
+    ('13','尼崎','13amagasaki','boat.amagasaki','amagasaki',f'{LOGO_BASE}/boat_amagasaki.svg'),
+    ('14','鳴門','14naruto','boat.naruto','naruto',f'{LOGO_BASE}/boat_naruto.svg'),
+    ('15','丸亀','15marugame','boat.marugame','marugame',f'{LOGO_BASE}/boat_marugame.svg'),
+    ('16','児島','16kojima','boat.kojima','kojima',f'{LOGO_BASE}/boat_kojima.svg'),
+    ('17','宮島','17miyajima','boat.miyajima','miyajima',f'{LOGO_BASE}/boat_miyajima.svg'),
+    ('18','徳山','18tokuyama','boat.tokuyama','tokuyama',f'{LOGO_BASE}/boat_tokuyama.svg'),
+    ('19','下関','19shimonoseki','boat.shimonoseki','shimonoseki',f'{LOGO_BASE}/boat_shimonoseki.svg'),
+    ('20','若松','20wakamatsu','boat.wakamatsu','wakamatsu',f'{LOGO_BASE}/boat_wakamatsu.svg'),
+    ('21','芦屋','21ashiya','boat.ashiya','ashiya',f'{LOGO_BASE}/boat_ashiya.svg'),
+    ('22','福岡','22fukuoka','boat.fukuoka','fukuoka',f'{LOGO_BASE}/boat_fukuoka.svg'),
+    ('23','唐津','23karatsu','boat.karatsu','karatsu',f'{LOGO_BASE}/boat_karatsu.svg'),
+    ('24','大村','24omura','boat.omura','omura',f'{LOGO_BASE}/boat_omura.svg'),
 ]
 
 UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/151 Safari/537.36'
