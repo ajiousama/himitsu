@@ -1,0 +1,61 @@
+name: Apply ZooMoo cleanup and logo once
+
+on:
+  push:
+    paths:
+      - '.github/workflows/apply_zoomoo_once.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install accepted ZooMoo logo and keep one channel
+        shell: python
+        run: |
+          from pathlib import Path
+          import base64, re
+
+          logo_b64 = "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"
+          Path('logos').mkdir(exist_ok=True)
+          Path('logos/zoomoo.png').write_bytes(base64.b64decode(logo_b64))
+
+          p = Path('freewifi')
+          lines = p.read_text(encoding='utf-8').splitlines()
+          out = []
+          kept = False
+          i = 0
+          while i < len(lines):
+              line = lines[i]
+              if line.lstrip().startswith('#EXTINF') and 'tvg-id="ZooMoo_jp"' in line:
+                  url = lines[i+1] if i + 1 < len(lines) else ''
+                  if not kept:
+                      out.append('#EXTINF:-1 tvg-id="ZooMoo_jp" tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/zoomoo.png" group-title="CS",ZooMoo')
+                      out.append(url)
+                      out.append('')
+                      kept = True
+                  i += 2
+                  while i < len(lines) and not lines[i].strip():
+                      i += 1
+                  continue
+              out.append(line)
+              i += 1
+
+          if not kept:
+              raise SystemExit('ZooMoo entry not found')
+          p.write_text('\n'.join(out).rstrip() + '\n', encoding='utf-8')
+
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add freewifi logos/zoomoo.png
+          git commit -m "Keep one ZooMoo channel and add logo [skip ci]"
+          git pull --rebase origin main
+          git push origin main
