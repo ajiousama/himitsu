@@ -27,12 +27,18 @@ const VENUES = {
 
 const UA = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) AppleWebKit/605.1.15 Version/18.0 Mobile/15E148 Safari/604.1';
 
+function jstYmd(offsetDays = 0) {
+  const now = new Date();
+  const jst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+  jst.setUTCDate(jst.getUTCDate() + offsetDays);
+  const y = jst.getUTCFullYear();
+  const m = String(jst.getUTCMonth() + 1).padStart(2, '0');
+  const d = String(jst.getUTCDate()).padStart(2, '0');
+  return `${y}${m}${d}`;
+}
+
 function todayJst() {
-  const parts = new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'Asia/Tokyo', year: 'numeric', month: '2-digit', day: '2-digit'
-  }).formatToParts(new Date());
-  const obj = Object.fromEntries(parts.map(p => [p.type, p.value]));
-  return `${obj.year}${obj.month}${obj.day}`;
+  return jstYmd(0);
 }
 
 function normalizeVenue(v) {
@@ -75,32 +81,66 @@ async function fetchText(url, headers = {}, timeoutMs = 6000) {
   }
 }
 
-async function tryPlayback(code, ymd, attempts) {
+async function fetchPlaybackResponse(url, headers, timeoutMs = 3500) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+  try {
+    const r = await fetch(url, { headers, cache: 'no-store', redirect: 'follow', signal: ctrl.signal });
+    return { response: r, body: await r.text() };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function tryPlayback(code, ymd, attempts, quick = false) {
   const url = `https://playback.api.streaks.jp/v1/projects/cp-boatrace-prod/medias/ref:lm-br-${code}-tokyo-${ymd}?audio_only=false`;
   const variants = [
     { Origin: 'https://players.streaks.jp', Referer: 'https://front.player.boatrace-cdn.jp/' },
     { Origin: 'https://front.player.boatrace-cdn.jp', Referer: 'https://front.player.boatrace-cdn.jp/' },
     { Referer: 'https://front.player.boatrace-cdn.jp/' },
   ];
-  for (let i = 0; i < variants.length; i++) {
-    const headers = { 'User-Agent': UA, Accept: 'application/json', ...variants[i] };
+  const selected = quick ? variants.slice(0, 1) : variants;
+  for (let i = 0; i < selected.length; i++) {
+    const headers = { 'User-Agent': UA, Accept: 'application/json', ...selected[i] };
     if (process.env.BOATRACE_STREAKS_API_KEY) headers['X-Streaks-Api-Key'] = process.env.BOATRACE_STREAKS_API_KEY;
     try {
-      const r = await fetch(url, { headers, cache: 'no-store', redirect: 'follow' });
-      const body = await r.text();
-      attempts.push({ source: `streaks-${i + 1}`, status: r.status });
+      const { response: r, body } = await fetchPlaybackResponse(url, headers);
+      attempts.push({ source: `streaks-${quick ? 'history-' : ''}${i + 1}`, date: ymd, status: r.status });
       if (!r.ok) continue;
       let data;
       try { data = JSON.parse(body); } catch (_) { data = null; }
       const sources = data && Array.isArray(data.sources) ? data.sources : [];
       for (const item of sources) {
         const src = item && typeof item === 'object' ? String(item.src || '') : '';
-        if (/^https?:\/\//i.test(src)) return { url: src, source: 'streaks-playback' };
+        if (/^https?:\/\//i.test(src)) return { url: src, source: quick ? 'streaks-history' : 'streaks-playback', date: ymd };
       }
       const embedded = m3u8Candidates(body, url);
-      if (embedded[0]) return { url: embedded[0], source: 'streaks-body' };
+      if (embedded[0]) return { url: embedded[0], source: quick ? 'streaks-history-body' : 'streaks-body', date: ymd };
     } catch (e) {
-      attempts.push({ source: `streaks-${i + 1}`, error: String(e && e.name || e) });
+      attempts.push({ source: `streaks-${quick ? 'history-' : ''}${i + 1}`, date: ymd, error: String(e && e.name || e) });
+    }
+  }
+  return null;
+}
+
+async function tryNearbyPlayback(code, attempts) {
+  // A venue that is not racing today can still have a valid Streaks media ref on
+  // tomorrow or a recent race day. Probe in small parallel batches so iPhone seed
+  // refresh can recover all 24 venue refs without turning an old URL into a live hit.
+  const offsets = [1, -1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -11, -12, -13, -14];
+  const batchSize = 5;
+  for (let i = 0; i < offsets.length; i += batchSize) {
+    const batch = offsets.slice(i, i + batchSize);
+    const found = await Promise.all(batch.map(async offset => {
+      const localAttempts = [];
+      const date = jstYmd(offset);
+      const hit = await tryPlayback(code, date, localAttempts, true);
+      return { offset, date, hit, localAttempts };
+    }));
+    for (const item of found) attempts.push(...item.localAttempts);
+    for (const offset of batch) {
+      const item = found.find(x => x.offset === offset);
+      if (item && item.hit) return { ...item.hit, fallbackOffset: offset };
     }
   }
   return null;
@@ -164,11 +204,13 @@ export default async function handler(req, res) {
     res.status(400).json({ ok: false, error: 'venue must be 01-24' });
     return;
   }
-  const ymd = /^\d{8}$/.test(String(req.query.date || '')) ? String(req.query.date) : todayJst();
+  const explicitDate = /^\d{8}$/.test(String(req.query.date || '')) ? String(req.query.date) : '';
+  const ymd = explicitDate || todayJst();
   const attempts = [];
   let hit = await tryPlayback(venue.code, ymd, attempts);
   if (!hit) hit = await tryJlc(jcd, attempts);
   if (!hit) hit = await trySakura(venue.slug, attempts);
+  if (!hit && !explicitDate) hit = await tryNearbyPlayback(venue.code, attempts);
   if (String(req.query.debug || '') === '1') {
     res.status(hit ? 200 : 503).json({ ok: !!hit, venue: jcd, date: ymd, hit, attempts });
     return;
@@ -181,5 +223,7 @@ export default async function handler(req, res) {
   res.statusCode = 302;
   res.setHeader('Location', hit.url);
   res.setHeader('X-Boat-Resolver-Source', hit.source);
+  if (hit.date) res.setHeader('X-Boat-Resolver-Date', hit.date);
+  if (typeof hit.fallbackOffset === 'number') res.setHeader('X-Boat-Resolver-Offset', String(hit.fallbackOffset));
   res.end();
 }
