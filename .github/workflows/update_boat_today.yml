@@ -13,6 +13,7 @@ on:
       - main
     paths:
       - "boat_stream_seed.m3u"
+      - "boat_streaks_refresh.py"
       - "boat_iphone_seed_build.py"
       - "boat_v2_build.py"
       - ".github/workflows/update_boat_today.yml"
@@ -43,31 +44,34 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Verify and preserve iPhone BOAT seed
+      - name: Fill only missing BOAT direct Streaks seeds
+        run: python -u boat_streaks_refresh.py
+
+      - name: Verify effective BOAT seed
         shell: bash
         run: |
           set -euo pipefail
           test -s boat_stream_seed.m3u
           cp boat_stream_seed.m3u /tmp/boat_stream_seed.m3u.before
           streams="$(grep -Ec '^https?://' boat_stream_seed.m3u || true)"
-          echo "iPhone BOAT seed streams=$streams"
+          echo "effective BOAT seed streams=$streams"
           sha256sum boat_stream_seed.m3u
 
-      - name: Build today's BOAT from iPhone seed only
+      - name: Build today's BOAT from direct Streaks seed only
         run: python -u boat_iphone_seed_build.py
 
       - name: Refresh current event counts after BOAT visibility update
         run: python build_today_event_counts.py
 
-      - name: Confirm workflow did not rewrite iPhone seed
+      - name: Confirm builder did not rewrite effective seed
         shell: bash
         run: |
           set -euo pipefail
           cmp -s /tmp/boat_stream_seed.m3u.before boat_stream_seed.m3u || {
-            echo '::error::boat_stream_seed.m3u was modified by the workflow'
+            echo '::error::boat_stream_seed.m3u was modified by the builder'
             exit 1
           }
-          echo 'iPhone BOAT seed preserved byte-for-byte'
+          echo 'effective BOAT seed preserved byte-for-byte during build'
 
       - name: Publish BOAT state safely
         shell: bash
@@ -98,13 +102,14 @@ jobs:
           seed = Path('boat_stream_seed.m3u').read_text(encoding='utf-8-sig', errors='replace')
           for url in re.findall(r'(?m)^https?://\S+$', body):
               if url not in seed:
-                  raise SystemExit('TODAY_BOAT contains a URL not present in iPhone seed')
+                  raise SystemExit('TODAY_BOAT contains a URL not present in direct seed')
 
-          print('BOAT iPhone-seed validation OK:', 'visible=', visible, 'entries=', entries)
+          print('BOAT direct-seed validation OK:', 'visible=', visible, 'entries=', entries)
           PY
           }
 
-          build_from_latest_seed() {
+          rebuild_from_latest_seed() {
+            python -u boat_streaks_refresh.py
             cp boat_stream_seed.m3u /tmp/boat_stream_seed.m3u.before
             python -u boat_iphone_seed_build.py
             cmp -s /tmp/boat_stream_seed.m3u.before boat_stream_seed.m3u || {
@@ -115,12 +120,12 @@ jobs:
 
           publish() {
             validate_boat || return 1
-            git add freewifi today_boat_status.json boat_v2_state.json today_event_counts.json
+            git add boat_stream_seed.m3u freewifi today_boat_status.json boat_v2_state.json today_event_counts.json
             if git diff --cached --quiet; then
-              echo "BOAT iPhone-seed state already current"
+              echo "BOAT direct-seed state already current"
               return 0
             fi
-            git commit -m "Update BOAT from iPhone one-click seed [skip ci]"
+            git commit -m "Update BOAT direct Streaks seed and state [skip ci]"
             git push origin HEAD:main
           }
 
@@ -129,17 +134,17 @@ jobs:
           fi
 
           for attempt in 2 3 4; do
-            echo "BOAT main moved; rebuild from newest iPhone seed ($attempt/4)"
+            echo "BOAT main moved; rebuild from newest direct seed ($attempt/4)"
             git fetch origin main
             git reset --hard origin/main
-            build_from_latest_seed
+            rebuild_from_latest_seed
             if publish; then
               exit 0
             fi
             sleep 1
           done
 
-          echo "::error::BOAT iPhone-seed publish failed after retries"
+          echo "::error::BOAT direct-seed publish failed after retries"
           exit 1
 
       - name: Validate final BOAT state
@@ -152,7 +157,7 @@ jobs:
           held = int(d.get('held_count') or 0)
           visible = int(d.get('visible_count') or 0)
           cards = int(d.get('card_count') or 0)
-          print('BOAT iPhone seed cards=', cards, 'active=', held, 'visible=', visible)
+          print('BOAT direct seed cards=', cards, 'active=', held, 'visible=', visible)
 
           text = Path('freewifi').read_text(encoding='utf-8-sig', errors='replace')
           m = re.search(r'# === TODAY_BOAT_START ===(.*?)# === TODAY_BOAT_END ===', text, re.S)
@@ -161,5 +166,5 @@ jobs:
           if entries != visible:
               raise SystemExit(f'BOAT playlist mismatch: entries={entries} visible={visible}')
           if held and not visible:
-              print('::warning::BOAT active venue exists but iPhone seed has no currently valid URL; run Scriptable one-click')
+              print('::warning::BOAT active venue exists but direct seed has no currently valid URL')
           PY
