@@ -56,6 +56,9 @@ jobs:
       - name: Build today's BOAT from iPhone seed only
         run: python -u boat_iphone_seed_build.py
 
+      - name: Refresh current event counts after BOAT visibility update
+        run: python build_today_event_counts.py
+
       - name: Confirm workflow did not rewrite iPhone seed
         shell: bash
         run: |
@@ -112,7 +115,7 @@ jobs:
 
           publish() {
             validate_boat || return 1
-            git add freewifi today_boat_status.json boat_v2_state.json
+            git add freewifi today_boat_status.json boat_v2_state.json today_event_counts.json
             if git diff --cached --quiet; then
               echo "BOAT iPhone-seed state already current"
               return 0
