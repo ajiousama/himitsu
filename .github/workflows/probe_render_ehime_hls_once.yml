@@ -1,0 +1,72 @@
+name: Probe deployed Ehime CATV HLS gateway
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/probe_render_ehime_hls_once.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Wait for Render deployment
+        shell: bash
+        run: |
+          set -euo pipefail
+          URL='https://ajiousama-radiko.onrender.com/health'
+          for i in $(seq 1 30); do
+            body="$(curl -fsS --max-time 12 "$URL" || true)"
+            echo "attempt=$i body=$body"
+            if grep -q '20260905-radio-tv-ehime-hls-v1' <<<"$body"; then
+              echo 'Render deployment is ready.'
+              exit 0
+            fi
+            sleep 10
+          done
+          echo 'Timed out waiting for Render deployment.' >&2
+          exit 1
+
+      - name: Check generated manifests
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE='https://ajiousama-radiko.onrender.com/ehime-catv.m3u8'
+          for ch in town_news24 machicam24; do
+            echo "=== $ch master ==="
+            curl -fsS --max-time 15 "$BASE?ch=$ch" | tee "/tmp/${ch}-master.m3u8"
+            grep -q '^#EXTM3U' "/tmp/${ch}-master.m3u8"
+            grep -q 'kind=video' "/tmp/${ch}-master.m3u8"
+            grep -q 'kind=audio' "/tmp/${ch}-master.m3u8"
+
+            echo "=== $ch video ==="
+            curl -fsS --max-time 15 "$BASE?ch=$ch&kind=video" | tee "/tmp/${ch}-video.m3u8"
+            grep -q '^#EXT-X-MAP:' "/tmp/${ch}-video.m3u8"
+            grep -q '\.m4s$' "/tmp/${ch}-video.m3u8"
+
+            echo "=== $ch audio ==="
+            curl -fsS --max-time 15 "$BASE?ch=$ch&kind=audio" | tee "/tmp/${ch}-audio.m3u8"
+            grep -q '^#EXT-X-MAP:' "/tmp/${ch}-audio.m3u8"
+            grep -q '\.m4s$' "/tmp/${ch}-audio.m3u8"
+          done
+
+      - name: Install ffmpeg
+        shell: bash
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+
+      - name: Playback test Town News24
+        shell: bash
+        run: |
+          timeout 30 ffmpeg -hide_banner -loglevel info -i 'https://ajiousama-radiko.onrender.com/ehime-catv.m3u8?ch=town_news24' -t 3 -map 0:v:0 -map 0:a:0 -f null -
+
+      - name: Playback test Machi Cam24
+        shell: bash
+        run: |
+          timeout 30 ffmpeg -hide_banner -loglevel info -i 'https://ajiousama-radiko.onrender.com/ehime-catv.m3u8?ch=machicam24' -t 3 -map 0:v:0 -map 0:a:0 -f null -
