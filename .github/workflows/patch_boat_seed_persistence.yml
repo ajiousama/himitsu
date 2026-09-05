@@ -1,0 +1,81 @@
+name: Patch BOAT seed persistence in v17
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/patch_boat_seed_persistence.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: patch-boat-seed-persistence-v17
+  cancel-in-progress: false
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Patch v17 BOAT previous URL sources
+        shell: python
+        run: |
+          from pathlib import Path
+
+          path = Path('公営これ一発_v17.js')
+          s = path.read_text(encoding='utf-8')
+
+          old = 'async function getRaw(path){const r=new Request(rawUrl(path));r.headers={"Cache-Control":"no-cache","User-Agent":UA};r.timeoutInterval=30;return await r.loadString();}'
+          new = old + '\n' + 'async function getHimRaw(path){const u=`https://raw.githubusercontent.com/${HIM_OWNER}/${HIM_REPO}/${HIM_BRANCH}/`+path.split("/").map(encodeURIComponent).join("/");const r=new Request(u);r.headers={"Cache-Control":"no-cache, no-store","User-Agent":UA};r.timeoutInterval=30;return await r.loadString();}'
+          if old not in s and 'async function getHimRaw(path)' not in s:
+              raise SystemExit('getRaw anchor not found')
+          if 'async function getHimRaw(path)' not in s:
+              s = s.replace(old, new, 1)
+
+          old = 'function previousBoat(text){const m=new Map();for(const x of readEntries(text)){const id=tvgId(x.extinf);if(id?.startsWith("boat.")&&!m.has(id))m.set(id,x.url);}return m;}'
+          new = 'function previousBoat(...texts){const m=new Map();for(const text of texts){for(const x of readEntries(text)){const id=tvgId(x.extinf);if(id?.startsWith("boat.")&&!m.has(id))m.set(id,x.url);}}return m;}'
+          if old in s:
+              s = s.replace(old, new, 1)
+          elif 'function previousBoat(...texts)' not in s:
+              raise SystemExit('previousBoat anchor not found')
+
+          old = 'async function makeBoat(existing){const date=japanDate(),prev=previousBoat(existing);'
+          new = 'async function makeBoat(existing,himSeed=""){const date=japanDate(),prev=previousBoat(existing,himSeed);'
+          if old in s:
+              s = s.replace(old, new, 1)
+          elif 'async function makeBoat(existing,himSeed="")' not in s:
+              raise SystemExit('makeBoat anchor not found')
+
+          old = 'let existing="";try{existing=await getRaw("public_sports.m3u");}catch{}const boat=await makeBoat(existing);'
+          new = 'let existing="";try{existing=await getRaw("public_sports.m3u");}catch{}let himSeed="";try{himSeed=await getHimRaw("boat_stream_seed.m3u");}catch(e){console.warn("既存BOAT seed読込失敗",e);}const boat=await makeBoat(existing,himSeed);'
+          if old in s:
+              s = s.replace(old, new, 1)
+          elif 'const boat=await makeBoat(existing,himSeed);' not in s:
+              raise SystemExit('main makeBoat anchor not found')
+
+          if 'async function getHimRaw(path)' not in s:
+              raise SystemExit('getHimRaw patch missing')
+          if 'function previousBoat(...texts)' not in s:
+              raise SystemExit('previousBoat patch missing')
+          if 'const boat=await makeBoat(existing,himSeed);' not in s:
+              raise SystemExit('main patch missing')
+
+          path.write_text(s, encoding='utf-8')
+          print('v17 BOAT seed persistence patch OK')
+
+      - name: Commit v17 patch
+        run: |
+          if git diff --quiet -- '公営これ一発_v17.js'; then
+            echo 'No v17 changes'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add '公営これ一発_v17.js'
+          git commit -m 'Keep BOAT previous URLs from FreeWiFi seed in v17'
+          git push origin HEAD:main
