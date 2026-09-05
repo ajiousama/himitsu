@@ -148,7 +148,11 @@ jobs:
           rm -f general_youtube.prev.m3u freewifi.prev youtube_cookies.txt
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -A logos/youtube general_youtube_sources.json general_youtube_sources_ports.json general_youtube_sources_airports.json general_youtube.m3u public_sports_youtube_fallback.m3u freewifi
+          # The merged general_youtube_sources.json is runtime-only here. The
+          # dedicated logo workflow is the one that persists canonical source
+          # mappings, so the 15-minute refresh cannot permanently duplicate the
+          # supplemental source lists into the base file.
+          git add -A logos/youtube general_youtube.m3u public_sports_youtube_fallback.m3u freewifi
           if git diff --cached --quiet; then
             echo 'No changes'
             exit 0
