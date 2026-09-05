@@ -32,6 +32,7 @@ LOCAL_LOGOS = {
     'chihou.saga': f'{RAW_BASE}/logos/public_sports/venues/localrace_saga_officialstyle.svg',
     'keirin.tachikawa': f'{RAW_BASE}/logos/public_sports/venues/keirin_tachikawa.svg',
     'keirin.aomori': f'{RAW_BASE}/logos/public_sports/venues/keirin_aomori.svg',
+    'keirin.seibuen': f'{RAW_BASE}/logos/public_sports/venues/keirin_seibuen.svg',
     'keirin.hofu': f'{RAW_BASE}/logos/public_sports/venues/keirin_hofu.svg',
     'keirin.toyama': f'{RAW_BASE}/logos/public_sports/venues/keirin_toyama.svg',
     'keirin.matsusaka': f'{RAW_BASE}/logos/public_sports/venues/keirin_matsusaka.svg',
