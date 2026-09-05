@@ -32,7 +32,7 @@ VENUES = {
 }
 
 
-def get_json(url: str, timeout: int = 20):
+def get_json(url: str, timeout: int = 12):
     req = urllib.request.Request(url, headers=HEADERS)
     with urllib.request.urlopen(req, timeout=timeout) as r:
         return json.loads(r.read().decode('utf-8', 'replace'))
@@ -60,8 +60,6 @@ def parse_existing():
 
 
 def resolve(code: str, ymd: str):
-    # Match the proven earphone1981 sequence: touch official setting first,
-    # then request the Streaks playback source using official Origin/Referer.
     setting_url = f'https://front.player.boatrace-cdn.jp/setting/live/{code}/setting.json?t={int(datetime.now().timestamp())}'
     try:
         get_json(setting_url)
@@ -81,32 +79,50 @@ def resolve(code: str, ymd: str):
     return ''
 
 
+def candidate_dates():
+    today = datetime.now(JST).date()
+    # Current day first, then tomorrow, then the latest 14 previous days.
+    offsets = [0, 1] + list(range(-1, -15, -1))
+    for offset in offsets:
+        yield (today + timedelta(days=offset)).strftime('%Y%m%d'), offset
+
+
 def main():
-    ymd = datetime.now(JST).strftime('%Y%m%d')
     existing = parse_existing()
-    refreshed = {}
-    success = 0
+    merged = dict(existing)
+    missing_before = [tvg_id for _jcd, (_code, tvg_id, _name) in VENUES.items() if tvg_id not in existing]
+    added = 0
 
+    print(f'BOAT fill-only resolver: existing={len(existing)} missing={len(missing_before)}')
+
+    # iPhone seed is authoritative. Never replace or delete an existing venue URL.
+    # Only fill venues that are absent from boat_stream_seed.m3u.
     for jcd, (code, tvg_id, name) in VENUES.items():
-        try:
-            url = resolve(code, ymd)
-        except Exception as e:
-            print(f'BOAT Streaks {name}: failed: {type(e).__name__}: {e}')
+        if tvg_id in existing:
+            print(f'BOAT {name}: keep existing seed')
             continue
-        if url:
-            refreshed[tvg_id] = (f'#EXTINF:-1 tvg-id="{tvg_id}",BOATRACE{name}', url)
-            success += 1
-            print(f'BOAT Streaks {name}: refreshed')
 
-    # Keep only current Streaks successes plus an existing YouTube-derived boat.*
-    # fallback when that venue did not refresh. The next YouTube refresh may replace it.
-    merged = dict(refreshed)
-    for tvg_id, block in existing.items():
-        if tvg_id in merged or not tvg_id.startswith('boat.'):
-            continue
-        url = block[1]
-        if 'googlevideo.com' in url:
-            merged[tvg_id] = block
+        hit = ''
+        hit_date = ''
+        hit_offset = None
+        for ymd, offset in candidate_dates():
+            try:
+                hit = resolve(code, ymd)
+            except Exception as e:
+                print(f'BOAT {name} {ymd}: {type(e).__name__}: {e}')
+                continue
+            if hit:
+                hit_date = ymd
+                hit_offset = offset
+                break
+
+        if hit:
+            line = f'#EXTINF:-1 tvg-id="{tvg_id}" tvg-name="BOATRACE{name}" group-title="ボートレース",BOATRACE{name}'
+            merged[tvg_id] = (line, hit)
+            added += 1
+            print(f'BOAT {name}: FILLED from {hit_date} offset={hit_offset:+d}')
+        else:
+            print(f'BOAT {name}: still missing after nearby-date probe')
 
     lines = ['#EXTM3U', '']
     for _jcd, (_code, tvg_id, _name) in VENUES.items():
@@ -115,7 +131,11 @@ def main():
             continue
         lines.extend([block[0], block[1], ''])
     OUT.write_text('\n'.join(lines).rstrip() + '\n', encoding='utf-8')
-    print(f'BOAT Streaks refresh successes={success}')
+
+    missing_after = [tvg_id for _jcd, (_code, tvg_id, _name) in VENUES.items() if tvg_id not in merged]
+    print(f'BOAT fill-only result: added={added} total={len(merged)}/24 missing={len(missing_after)}')
+    if missing_after:
+        print('Missing:', ', '.join(missing_after))
 
 
 if __name__ == '__main__':
