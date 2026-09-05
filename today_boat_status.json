@@ -1,6 +1,6 @@
 {
   "system": "boat-v2-iphone-seed",
-  "generated_at": "2026-09-05T14:43:07.619363+09:00",
+  "generated_at": "2026-09-05T16:23:01.269854+09:00",
   "date": "2026-09-05",
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/",
   "resolver_ready": false,
@@ -9,46 +9,45 @@
   "start_tolerance_seconds": 60,
   "grace_minutes": 30,
   "card_count": 14,
-  "held_count": 9,
+  "held_count": 12,
   "visible_count": 12,
   "active_window": [
+    "桐生",
     "戸田",
     "江戸川",
     "平和島",
+    "蒲郡",
     "津",
     "びわこ",
+    "住之江",
     "尼崎",
     "宮島",
-    "徳山",
+    "若松",
     "福岡"
   ],
-  "scheduled_waiting": [
-    "桐生",
-    "蒲郡",
-    "住之江",
-    "若松"
-  ],
+  "scheduled_waiting": [],
   "ended_removed": [
-    "三国"
+    "三国",
+    "徳山"
   ],
   "venues": {
     "boat.kiryu": {
       "jcd": "01",
       "name": "桐生",
       "held": true,
-      "visible": false,
+      "visible": true,
       "first_race": "15:19",
       "show_from": "2026-09-05T14:49:00+09:00",
       "last_race": "20:30",
       "remove_after": "2026-09-05T21:00:00+09:00",
       "mode": "night",
       "next_race": {
-        "race": 1,
-        "start": "15:19"
+        "race": 4,
+        "start": "16:33"
       },
-      "scheduled": true,
-      "stream_window": "epg_ready",
-      "source": "EPG ready / iPhone seed pending"
+      "stream_window": "live_or_vtr",
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/998dacbecdcf45738cc683bc6894bc5f/e439e4d0ac244a58ba4af0b89b1614aa/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4ODc2ODAwMCwic3RhcnQiOjE3ODg1ODcxMDAsImlvcyI6MTgsImNwIjoiMjEwNzgyNzAwXzIxMDgyMzE5OSIsInBwdyI6IjQwayJ9.mW0rbl9ReI-0ym_23pmEBzLe_ftI4j-liStEBBctNDE",
+      "source": "iPhone one-click direct Streaks seed"
     },
     "boat.toda": {
       "jcd": "02",
@@ -61,11 +60,11 @@
       "remove_after": "2026-09-05T17:00:00+09:00",
       "mode": "day",
       "next_race": {
-        "race": 9,
-        "start": "14:48"
+        "race": 12,
+        "start": "16:30"
       },
       "stream_window": "live_or_vtr",
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/dace46ecc3bd48f293055c055c443bec/fadd12dd2bca45e5bbc41d3c79d03fac/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4ODc1MDAwMCwic3RhcnQiOjE3ODg1NzA1NDAsImlvcyI6MTgsImNwIjoiMjEwNzY2MTQwXzIxMDgwOTMzOSIsInBwdyI6IjQwayJ9.lUErVjC1Z658CuvZ0gNKklvq8C4SE4s1WXRUrzzj2vI",
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/dace46ecc3bd48f293055c055c443bec/fadd12dd2bca45e5bbc41d3c79d03fac/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4ODc2ODAwMCwic3RhcnQiOjE3ODg1NzA1NDAsImlvcyI6MTgsImNwIjoiMjEwNzY2MTQwXzIxMDgwOTMzOSIsInBwdyI6IjQwayJ9.ikg2aR2JmzDfXF_swZqHuKRx35thc7BIwUG0DvGNkP0",
       "source": "iPhone one-click direct Streaks seed"
     },
     "boat.edogawa": {
@@ -79,11 +78,11 @@
       "remove_after": "2026-09-05T16:55:00+09:00",
       "mode": "day",
       "next_race": {
-        "race": 9,
-        "start": "14:52"
+        "race": 12,
+        "start": "16:25"
       },
       "stream_window": "live_or_vtr",
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/01132c0509674bd7bf393efd33491e54/84a30207ce1148e69662de78df9f55f7/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4ODc1MDAwMCwic3RhcnQiOjE3ODg1NzIzNDAsImlvcyI6MTgsImNwIjoiMjEwNzY3OTQwXzIxMDgxMTEzOSIsInBwdyI6IjQwayJ9.5MNH6limQL68c6oGts_e3C_BoqO6wroKy9LjAkDsU-c",
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/01132c0509674bd7bf393efd33491e54/84a30207ce1148e69662de78df9f55f7/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4ODc2ODAwMCwic3RhcnQiOjE3ODg1NzIzNDAsImlvcyI6MTgsImNwIjoiMjEwNzY3OTQwXzIxMDgxMTEzOSIsInBwdyI6IjQwayJ9.sIftVrguV41n990Les6bP6UlwbM1HKJL4p9Hos4x9Gk",
       "source": "iPhone one-click direct Streaks seed"
     },
     "boat.heiwajima": {
@@ -97,11 +96,11 @@
       "remove_after": "2026-09-05T17:08:00+09:00",
       "mode": "day",
       "next_race": {
-        "race": 9,
-        "start": "14:56"
+        "race": 12,
+        "start": "16:38"
       },
       "stream_window": "live_or_vtr",
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/ee4be372e55146429010d17c40165f2b/334cf81485ab441a9cf1237f89b36962/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4ODc1MDAwMCwic3RhcnQiOjE3ODg1NzAwMDAsImlvcyI6MTgsImNwIjoiMjEwNzY1NjAwXzIxMDgwODc5OSIsInBwdyI6IjQwayJ9.FL56kNbelAS-nzn7FhLKOzzazbGqJyH8FELESqWDLbk",
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/ee4be372e55146429010d17c40165f2b/334cf81485ab441a9cf1237f89b36962/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4ODc2ODAwMCwic3RhcnQiOjE3ODg1NzAwMDAsImlvcyI6MTgsImNwIjoiMjEwNzY1NjAwXzIxMDgwODc5OSIsInBwdyI6IjQwayJ9.QqzN7_En8kVJOEdhLxjm59shNcMKZnXTl6G0ohyKJYs",
       "source": "iPhone one-click direct Streaks seed"
     },
     "boat.gamagori": {
@@ -115,12 +114,11 @@
       "remove_after": "2026-09-05T21:10:00+09:00",
       "mode": "night",
       "next_race": {
-        "race": 1,
-        "start": "15:25"
+        "race": 4,
+        "start": "16:46"
       },
-      "scheduled": true,
-      "stream_window": "epg_ready",
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/8c0269dcbcc7420d8d599be51afeb8ba/d1a7ac0e80224168af2115d8a107397c/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4ODcwMzIwMCwic3RhcnQiOjE3ODg0OTg2MDAsImlvcyI6MTgsInBwdyI6IjQwayJ9.ZN47uRgI0HdYPeEbLbZbw-Uieijv-fXp4-1mZATZLeY",
+      "stream_window": "live_or_vtr",
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/9fbd3684fd8b4df39cd12f0d7e753e3a/5f092403753f46e5ba103414e8440ee4/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4ODc2ODAwMCwic3RhcnQiOjE3ODg1ODUwMDAsImlvcyI6MTgsImNwIjoiMjEwNzgwNjAwXzIxMDgyMzE5OSIsInBwdyI6IjQwayJ9.bswjFujUeC_27HO3yg3TyqaSA6cYUvyfWm34hWvf_HY",
       "source": "iPhone one-click direct Streaks seed"
     },
     "boat.tsu": {
@@ -134,11 +132,11 @@
       "remove_after": "2026-09-05T17:05:00+09:00",
       "mode": "day",
       "next_race": {
-        "race": 9,
-        "start": "14:50"
+        "race": 12,
+        "start": "16:35"
       },
       "stream_window": "live_or_vtr",
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/0c5b03a3ea814e0286cdc3ceff854921/45fe0642585a40e1a981ccdc1a1d8b9f/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4ODc1MDAwMCwic3RhcnQiOjE3ODg1NzAwMDAsImlvcyI6MTgsImNwIjoiMjEwNzY1NjAwXzIxMDgwODc5OSIsInBwdyI6IjQwayJ9.FL56kNbelAS-nzn7FhLKOzzazbGqJyH8FELESqWDLbk",
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/0c5b03a3ea814e0286cdc3ceff854921/45fe0642585a40e1a981ccdc1a1d8b9f/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4ODc2ODAwMCwic3RhcnQiOjE3ODg1NzAwMDAsImlvcyI6MTgsImNwIjoiMjEwNzY1NjAwXzIxMDgwODc5OSIsInBwdyI6IjQwayJ9.QqzN7_En8kVJOEdhLxjm59shNcMKZnXTl6G0ohyKJYs",
       "source": "iPhone one-click direct Streaks seed"
     },
     "boat.mikuni": {
@@ -165,12 +163,9 @@
       "last_race": "16:14",
       "remove_after": "2026-09-05T16:44:00+09:00",
       "mode": "day",
-      "next_race": {
-        "race": 10,
-        "start": "15:09"
-      },
+      "next_race": null,
       "stream_window": "live_or_vtr",
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/f5bba9ebc98e4c72a8b1fe51c8d752f6/72ca7b42491e44a4b6fa3ef9450efab9/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4ODc1MDAwMCwic3RhcnQiOjE3ODg1Njk3MDAsImlvcyI6MTgsImNwIjoiMjEwNzY1MzAwXzIxMDgwODQ5OSIsInBwdyI6IjQwayJ9.HXhT2GFC_a8sjfKBF2_wtA1zkUVZRTNpCrWeAVtkf3k",
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/f5bba9ebc98e4c72a8b1fe51c8d752f6/72ca7b42491e44a4b6fa3ef9450efab9/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4ODc2ODAwMCwic3RhcnQiOjE3ODg1Njk3MDAsImlvcyI6MTgsImNwIjoiMjEwNzY1MzAwXzIxMDc4OTA2MCIsInBwdyI6IjQwayJ9.v36M1wNYz1Q9Ui9a8rsXl26m_tf25UDRwImrMUgYY6M",
       "source": "iPhone one-click direct Streaks seed"
     },
     "boat.suminoe": {
@@ -184,12 +179,11 @@
       "remove_after": "2026-09-05T21:05:00+09:00",
       "mode": "night",
       "next_race": {
-        "race": 1,
-        "start": "15:17"
+        "race": 4,
+        "start": "16:44"
       },
-      "scheduled": true,
-      "stream_window": "epg_ready",
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/48960da64e2245cfaa0f5dce48a59198/d61630ff0f2a44ab917c63c9f19e14b1/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4ODcwMzIwMCwic3RhcnQiOjE3ODg0OTk1MDAsImlvcyI6MTgsInBwdyI6IjQwayJ9.yfRtgggsd_1cVkoNDirKpOCQFRng0Iwtdcl370b3U0A",
+      "stream_window": "live_or_vtr",
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/f27ac4f9d63c446ab7c8d854e7e2f241/59e1f90367904620b2c0be8e8a376705/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4ODc2ODAwMCwic3RhcnQiOjE3ODg1ODU5MDAsImlvcyI6MTgsImNwIjoiMjEwNzgxNTAwXzIxMDgyMzE5OSIsInBwdyI6IjQwayJ9.pN809MeqDuU0B8n0eJhN0NGfU6sVWWWWVpbF2OS4sRo",
       "source": "iPhone one-click direct Streaks seed"
     },
     "boat.amagasaki": {
@@ -202,12 +196,9 @@
       "last_race": "16:09",
       "remove_after": "2026-09-05T16:39:00+09:00",
       "mode": "day",
-      "next_race": {
-        "race": 10,
-        "start": "15:07"
-      },
+      "next_race": null,
       "stream_window": "live_or_vtr",
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/e728804f71ad49a0a6ac4e4fbad979f2/22649c92c7714d81944cd6047935735c/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4ODc1MDAwMCwic3RhcnQiOjE3ODg1NzAxMjAsImlvcyI6MTgsImNwIjoiMjEwNzY1NzIwXzIxMDgwODkxOSIsInBwdyI6IjQwayJ9.1I7B0mrSzhum9fbJIxcx0lxXABcMfAcnAVot6VLdb0w",
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/e728804f71ad49a0a6ac4e4fbad979f2/22649c92c7714d81944cd6047935735c/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4ODc2ODAwMCwic3RhcnQiOjE3ODg1NzAxMjAsImlvcyI6MTgsImNwIjoiMjEwNzY1NzIwXzIxMDc4ODgyMCIsInBwdyI6IjQwayJ9.KZQ39Zdhb_NrpgotDKiJjW_BMTnPV6PX5u8Rufa8dQs",
       "source": "iPhone one-click direct Streaks seed"
     },
     "boat.miyajima": {
@@ -221,27 +212,26 @@
       "remove_after": "2026-09-05T17:19:00+09:00",
       "mode": "day",
       "next_race": {
-        "race": 8,
-        "start": "14:46"
+        "race": 12,
+        "start": "16:49"
       },
       "stream_window": "live_or_vtr",
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/7a68ff9c74b74a2d9b437f8d3585f0a4/4e38b592310d422ea27e2b2969399ad5/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4ODc1MDAwMCwic3RhcnQiOjE3ODg1NzA3ODAsImlvcyI6MTgsImNwIjoiMjEwNzY2MzgwXzIxMDgwOTU3OSIsInBwdyI6IjQwayJ9.IpRD93kMP7SFy6DHdpIfUvFXnjweWJjm-xEdtlf9MXI",
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/7a68ff9c74b74a2d9b437f8d3585f0a4/4e38b592310d422ea27e2b2969399ad5/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4ODc2ODAwMCwic3RhcnQiOjE3ODg1NzA3ODAsImlvcyI6MTgsImNwIjoiMjEwNzY2MzgwXzIxMDgwOTU3OSIsInBwdyI6IjQwayJ9.jKNutd7gMFoQRecl8qeOGh39DyHhfclTMVYUQCD9RQk",
       "source": "iPhone one-click direct Streaks seed"
     },
     "boat.tokuyama": {
       "jcd": "18",
       "name": "徳山",
       "held": true,
-      "visible": true,
+      "visible": false,
       "first_race": "08:44",
       "show_from": "2026-09-05T08:14:00+09:00",
       "last_race": "14:30",
       "remove_after": "2026-09-05T15:00:00+09:00",
       "mode": "morning",
       "next_race": null,
-      "stream_window": "live_or_vtr",
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/436e52a156f94542a8829aaf680f0787/640e2eee40d447ffb96a0d63fea9253b/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4ODc1MDAwMCwic3RhcnQiOjE3ODg1NjMzNDAsImlvcyI6MTgsImNwIjoiMjEwNzU4OTQwXzIxMDgwMjEzOSIsInBwdyI6IjQwayJ9.CvQF2Rj4U7ugAUMgltSdYer7V9ctRtv1tA2yUB_Bo7o",
-      "source": "iPhone one-click direct Streaks seed"
+      "ended": true,
+      "stream_window": "ended"
     },
     "boat.wakamatsu": {
       "jcd": "20",
@@ -254,12 +244,11 @@
       "remove_after": "2026-09-05T21:15:00+09:00",
       "mode": "night",
       "next_race": {
-        "race": 1,
-        "start": "15:27"
+        "race": 3,
+        "start": "16:27"
       },
-      "scheduled": true,
-      "stream_window": "epg_ready",
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/4c5ffde348c34fba994b994878035dcc/cfda20fbeea3446ea71caed8678fbb3a/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4ODcwMzIwMCwic3RhcnQiOjE3ODg1MDA3MDAsImlvcyI6MTgsInBwdyI6IjQwayJ9.yQq3sVtKFYlEMLgSf6JQ7ugkIdVZnCnNzrkZ5JMIyd4",
+      "stream_window": "live_or_vtr",
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/587805dd0af74de9bbe24f517d4da398/45f9a55a2c114895844211f07a5db7f4/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4ODc2ODAwMCwic3RhcnQiOjE3ODg1ODcxMDAsImlvcyI6MTgsImNwIjoiMjEwNzgyNzAwXzIxMDgyMzE5OSIsInBwdyI6IjQwayJ9.mW0rbl9ReI-0ym_23pmEBzLe_ftI4j-liStEBBctNDE",
       "source": "iPhone one-click direct Streaks seed"
     },
     "boat.fukuoka": {
@@ -273,11 +262,11 @@
       "remove_after": "2026-09-05T17:56:00+09:00",
       "mode": "day",
       "next_race": {
-        "race": 7,
-        "start": "15:01"
+        "race": 11,
+        "start": "16:51"
       },
       "stream_window": "live_or_vtr",
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/64056fcb39844c89a31edb8a1fd0e373/13ad4886666e47b5be656e71dd77bf1e/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4ODc1MDAwMCwic3RhcnQiOjE3ODg1NzQyMDAsImlvcyI6MTgsImNwIjoiMjEwNzY5ODAwXzIxMDgxMjk5OSIsInBwdyI6IjQwayJ9.BIjoz5vTRRhIe7BL-R1RvI0Rr81SACa2hlLlQKC2Pg8",
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/64056fcb39844c89a31edb8a1fd0e373/13ad4886666e47b5be656e71dd77bf1e/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4ODc2ODAwMCwic3RhcnQiOjE3ODg1NzQyMDAsImlvcyI6MTgsImNwIjoiMjEwNzY5ODAwXzIxMDgxMjk5OSIsInBwdyI6IjQwayJ9.Ra9Ee0CG_S0lAguMnMNFp9jK-LOiR1eaI51k4zVlLxo",
       "source": "iPhone one-click direct Streaks seed"
     }
   },
