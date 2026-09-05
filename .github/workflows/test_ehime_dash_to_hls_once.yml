@@ -1,0 +1,101 @@
+name: Test Ehime DASH to HLS conversion
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/test_ehime_dash_to_hls_once.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - name: Build temporary HLS manifests from DASH
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import urllib.request, xml.etree.ElementTree as ET, os, math
+          NS={'d':'urn:mpeg:dash:schema:mpd:2011'}
+
+          def expand_timeline(st):
+              scale=int(st.attrib.get('timescale','1'))
+              tl=st.find('d:SegmentTimeline',NS)
+              out=[]
+              cur=None
+              for s in tl.findall('d:S',NS):
+                  if 't' in s.attrib: cur=int(s.attrib['t'])
+                  d=int(s.attrib['d']); r=int(s.attrib.get('r','0'))
+                  for _ in range(r+1):
+                      out.append((cur,d,scale)); cur += d
+              return out
+
+          def make_channel(name):
+              url=f'https://cdn.e-catv.ne.jp/mpeg-dash/{name}/dash.mpd'
+              data=urllib.request.urlopen(urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0'}),timeout=8).read()
+              root=ET.fromstring(data)
+              base=(root.find('d:BaseURL',NS).text.strip() if root.find('d:BaseURL',NS) is not None else url.rsplit('/',1)[0]+'/')
+              period=root.find('d:Period',NS)
+              sets=period.findall('d:AdaptationSet',NS)
+              info={}
+              for aset in sets:
+                  ctype=aset.attrib.get('contentType')
+                  rep=aset.find('d:Representation',NS)
+                  st=aset.find('d:SegmentTemplate',NS)
+                  repid=rep.attrib['id']
+                  segs=expand_timeline(st)
+                  media=st.attrib['media']
+                  start_num=int(st.attrib.get('startNumber','1'))
+                  # keep last 12 segments from current 4-minute window
+                  idx0=max(0,len(segs)-12)
+                  chosen=[]
+                  for i,(t,d,scale) in enumerate(segs[idx0:], start=idx0):
+                      uri=media.replace('$RepresentationID$',repid)
+                      uri=uri.replace('$Time$',str(t)).replace('$Number$',str(start_num+i))
+                      chosen.append((base+uri,d/scale))
+                  init=st.attrib['initialization'].replace('$RepresentationID$',repid)
+                  info[ctype]={
+                      'rep':rep.attrib,'init':base+init,'segments':chosen,
+                      'sequence':start_num+idx0 if '$Number$' in media else idx0,
+                  }
+
+              os.makedirs(name,exist_ok=True)
+              def write_media(kind,fn):
+                  x=info[kind]; segs=x['segments']; target=max(3,math.ceil(max(d for _,d in segs)))
+                  lines=['#EXTM3U','#EXT-X-VERSION:7',f'#EXT-X-TARGETDURATION:{target}',f'#EXT-X-MEDIA-SEQUENCE:{x["sequence"]}',f'#EXT-X-MAP:URI="{x["init"]}"']
+                  for u,d in segs:
+                      lines += [f'#EXTINF:{d:.6f},',u]
+                  open(f'{name}/{fn}','w').write('\n'.join(lines)+'\n')
+
+              write_media('video','video.m3u8')
+              write_media('audio','audio.m3u8')
+              vr=info['video']['rep']; ar=info['audio']['rep']
+              bw=int(vr.get('bandwidth','4000000'))+int(ar.get('bandwidth','64000'))
+              master=[
+                '#EXTM3U','#EXT-X-VERSION:7','#EXT-X-INDEPENDENT-SEGMENTS',
+                '#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="aud",NAME="und",DEFAULT=YES,AUTOSELECT=YES,URI="audio.m3u8"',
+                f'#EXT-X-STREAM-INF:BANDWIDTH={bw},RESOLUTION={vr.get("width","1920")}x{vr.get("height","1080")},CODECS="{vr.get("codecs")},{ar.get("codecs")}",AUDIO="aud"',
+                'video.m3u8'
+              ]
+              open(f'{name}/master.m3u8','w').write('\n'.join(master)+'\n')
+              print('BUILT',name)
+              print(open(f'{name}/master.m3u8').read())
+              print('VIDEO_TAIL',open(f'{name}/video.m3u8').read()[-900:])
+
+          for n in ('hc_town_news_24','hc_machi_cam_24'):
+              make_channel(n)
+          PY
+
+      - name: ffmpeg playback test - Town News24
+        shell: bash
+        run: |
+          timeout 20 ffmpeg -hide_banner -loglevel info -protocol_whitelist file,http,https,tcp,tls,crypto -i hc_town_news_24/master.m3u8 -t 3 -map 0:v:0 -map 0:a:0 -f null -
+
+      - name: ffmpeg playback test - Machi Cam24
+        shell: bash
+        run: |
+          timeout 20 ffmpeg -hide_banner -loglevel info -protocol_whitelist file,http,https,tcp,tls,crypto -i hc_machi_cam_24/master.m3u8 -t 3 -map 0:v:0 -map 0:a:0 -f null -
