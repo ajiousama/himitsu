@@ -51,7 +51,7 @@ def main():
         ids=['jra.gch']+active
         for cid in ids:
             name,file=ROUTES[cid]
-            rows += [f'#EXTINF:-1 tvg-id="{cid}" tvg-name="{name}" group-title="{GROUP}",{name}', raw(file), '']
+            rows += [f'#EXTINF:-1 tvg-id="{cid}" tvg-name="{name}" tvg-logo="{JRA_LOGOS[cid]}" group-title="{GROUP}",{name}', raw(file), '']
     managed=START+'\n## グリーンCh（JRA開催日）\n'+'\n'.join(rows).rstrip()+('\n' if rows else '')+END
     anchor='# === GENERAL_YOUTUBE_MANAGED_START ==='
     text=base.replace(anchor, managed+'\n\n'+anchor,1) if anchor in base else base.rstrip()+'\n\n'+managed+'\n'
