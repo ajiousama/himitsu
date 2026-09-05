@@ -1,0 +1,70 @@
+name: Add Ainan Live Camera once
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/add_ainan_livecam_once.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: himitsu-freewifi-state-writer
+  cancel-in-progress: false
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout latest main
+        uses: actions/checkout@v5
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Add Ainan Live Camera to FreeWiFi
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('freewifi')
+          raw = path.read_bytes()
+          bom = raw.startswith(b'\xef\xbb\xbf')
+          text = raw.decode('utf-8-sig')
+
+          url = 'https://cdn.e-catv.ne.jp/mpeg-dash/hc_ainan_live_cam/dash.mpd'
+          if url not in text:
+              anchor = 'https://cdn.e-catv.ne.jp/mpeg-dash/hc_machi_cam_24/dash.mpd\n'
+              block = (
+                  '\n#EXTINF:-1 tvg-id="ecatv.ainan_livecam" group-title="愛媛CATV",愛南ライブカメラ\n'
+                  + url + '\n'
+              )
+              if anchor not in text:
+                  raise SystemExit('街カメ24の挿入位置が見つかりません')
+              text = text.replace(anchor, anchor + block, 1)
+
+          data = text.encode('utf-8')
+          if bom:
+              data = b'\xef\xbb\xbf' + data
+          path.write_bytes(data)
+          PY
+
+      - name: Commit FreeWiFi change and remove one-shot workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          rm -f .github/workflows/add_ainan_livecam_once.yml
+          git add freewifi .github/workflows/add_ainan_livecam_once.yml
+          if git diff --cached --quiet; then
+            echo "Nothing to change"
+            exit 0
+          fi
+          git commit -m "Add Ainan live camera to FreeWiFi [skip ci]"
+          git pull --rebase origin main
+          git push origin HEAD:main
