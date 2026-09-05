@@ -54,9 +54,21 @@ jobs:
               exit 0
             fi
             if [ ! -s guides.xml ]; then
-              echo '::warning::guides.xml is empty; restoring public-sports EPG immediately.'
-              cp public_sports_epg_local.xml guides.xml
+              echo '::warning::guides.xml is empty; refusing to publish from the GCH overlay workflow.'
+              echo 'The main FreeWiFi workflow owns full guides.xml reconstruction.'
+              exit 0
             fi
+
+            python - <<'PY'
+          import xml.etree.ElementTree as ET
+          from pathlib import Path
+          p=Path('guides.xml')
+          if p.stat().st_size < 100000:
+              raise SystemExit(f'guides.xml too small for safe overlay: {p.stat().st_size} bytes')
+          root=ET.parse(p).getroot()
+          if len(root.findall('channel')) < 50 or len(root.findall('programme')) < 100:
+              raise SystemExit('guides.xml too sparse for safe GCH overlay')
+          PY
 
             python jra_epg_merge.py
 
@@ -70,9 +82,9 @@ jobs:
               ET.parse(path)
 
           guides = ET.parse('guides.xml').getroot()
-          # Emergency fallback may contain only the locally generated public-sports EPG.
-          # Never publish an empty/sparse guide, but do not require unrelated TV channels.
-          if len(guides.findall('channel')) < 30 or len(guides.findall('programme')) < 100:
+          if Path('guides.xml').stat().st_size < 100000:
+              raise SystemExit('guides.xml suspiciously small after GCH merge')
+          if len(guides.findall('channel')) < 50 or len(guides.findall('programme')) < 100:
               raise SystemExit('guides.xml suspiciously sparse after GCH merge')
 
           for cid in ('jra.east', 'jra.west', 'jra.hokkaido'):
