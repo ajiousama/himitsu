@@ -1,0 +1,44 @@
+name: Fill missing BOAT direct seeds
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/fill_missing_boat_seeds.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fill-missing-boat-seeds
+  cancel-in-progress: false
+
+jobs:
+  fill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Fill only missing BOAT Streaks seeds
+        run: python boat_streaks_refresh.py
+
+      - name: Show seed count
+        run: |
+          echo "boat entries=$(grep -c '^#EXTINF:.*tvg-id=\"boat\.' boat_stream_seed.m3u || true)"
+          grep '^#EXTINF:.*tvg-id="boat\.' boat_stream_seed.m3u || true
+
+      - name: Commit fills
+        run: |
+          if git diff --quiet -- boat_stream_seed.m3u; then
+            echo "No BOAT seed changes"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add boat_stream_seed.m3u
+          git commit -m "Fill missing BOAT direct Streaks seeds"
+          git push origin HEAD:main
