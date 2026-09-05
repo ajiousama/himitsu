@@ -32,13 +32,20 @@ LOCAL_LOGOS = {
     'chihou.saga': f'{RAW_BASE}/logos/public_sports/venues/localrace_saga_officialstyle.svg',
     'keirin.tachikawa': f'{RAW_BASE}/logos/public_sports/venues/keirin_tachikawa.svg',
     'keirin.aomori': f'{RAW_BASE}/logos/public_sports/venues/keirin_aomori.svg',
+    'keirin.hofu': f'{RAW_BASE}/logos/public_sports/venues/keirin_hofu.svg',
+    'keirin.toyama': f'{RAW_BASE}/logos/public_sports/venues/keirin_toyama.svg',
+    'keirin.matsusaka': f'{RAW_BASE}/logos/public_sports/venues/keirin_matsusaka.svg',
+    'keirin.kurume': f'{RAW_BASE}/logos/public_sports/venues/keirin_kurume.svg',
     'keirin.toyohashi': f'{RAW_BASE}/logos/public_sports/venues/keirin_toyohashi.svg',
     'keirin.takeo': f'{RAW_BASE}/logos/public_sports/venues/keirin_takeo.svg',
     'keirin.ito': f'{RAW_BASE}/logos/public_sports/venues/keirin_ito.svg',
     'keirin.yahiko': f'{RAW_BASE}/logos/public_sports/venues/keirin_yahiko.svg',
     'keirin.tamano': f'{RAW_BASE}/logos/public_sports/venues/keirin_tamano.svg',
-    'auto.hamamatsu': f'{RAW_BASE}/logos/public_sports/venues/auto_hamamatsu.png',
-    'auto.sanyo': f'{RAW_BASE}/logos/public_sports/venues/auto_sanyo.png',
+    'auto.kawaguchi': 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports_logos_github_43/autorace/kawaguchi.png',
+    'auto.isesaki': 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports_logos_github_43/autorace/isesaki.png',
+    'auto.hamamatsu': 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports_logos_github_43/autorace/hamamatsu.png',
+    'auto.sanyo': 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports_logos_github_43/autorace/sanyo.png',
+    'auto.iizuka': 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports_logos_github_43/autorace/iizuka.png',
 }
 JST = timezone(timedelta(hours=9))
 TARGET_SECTIONS = {'競輪', '地方競馬', 'ボートレース', 'オートレース'}
