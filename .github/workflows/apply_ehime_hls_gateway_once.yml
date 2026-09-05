@@ -1,0 +1,79 @@
+name: Apply Ehime CATV HLS gateway once
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/apply_ehime_hls_gateway_once.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Replace six Ehime CATV DASH URLs with dynamic HLS gateway
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          p = Path('freewifi')
+          text = p.read_text(encoding='utf-8-sig')
+
+          replacements = {
+              'https://cdn.e-catv.ne.jp/mpeg-dash/hc_town_news_24/dash.mpd':
+                  'https://ajiousama-ehime-catv-hls.onrender.com/ehime-catv.m3u8?ch=town_news24',
+              'https://cdn.e-catv.ne.jp/mpeg-dash/hc_machi_cam_24/dash.mpd':
+                  'https://ajiousama-ehime-catv-hls.onrender.com/ehime-catv.m3u8?ch=machicam24',
+              'https://cdn.e-catv.ne.jp/mpeg-dash/hc_eventsel_channel/dash.mpd':
+                  'https://ajiousama-ehime-catv-hls.onrender.com/ehime-catv.m3u8?ch=event_selection',
+              'https://cdn.e-catv.ne.jp/mpeg-dash/hc_ehime_channel/dash.mpd':
+                  'https://ajiousama-ehime-catv-hls.onrender.com/ehime-catv.m3u8?ch=ehime_channel',
+              'https://cdn.e-catv.ne.jp/mpeg-dash/hc_bousai_channel/dash.mpd':
+                  'https://ajiousama-ehime-catv-hls.onrender.com/ehime-catv.m3u8?ch=bousai',
+              'https://cdn.e-catv.ne.jp/mpeg-dash/hc_gosho_channel/dash.mpd':
+                  'https://ajiousama-ehime-catv-hls.onrender.com/ehime-catv.m3u8?ch=igo_shogi',
+          }
+
+          for old, new in replacements.items():
+              old_count = text.count(old)
+              new_count = text.count(new)
+              if old_count != 1:
+                  raise SystemExit(f'Expected exactly 1 old URL, got {old_count}: {old}')
+              if new_count != 0:
+                  raise SystemExit(f'New URL already present unexpectedly ({new_count}): {new}')
+              text = text.replace(old, new, 1)
+
+          # Explicitly ensure Ainan remains untouched.
+          ainan = 'https://cdn.e-catv.ne.jp/mpeg-dash/hc_ainan_live_cam/dash.mpd'
+          if ainan not in text:
+              raise SystemExit('Ainan URL changed unexpectedly; refusing commit')
+
+          for old, new in replacements.items():
+              if old in text or text.count(new) != 1:
+                  raise SystemExit(f'Replacement verification failed: {old}')
+
+          p.write_text(text, encoding='utf-8')
+          print('Replaced 6 Ehime CATV DASH entries with dynamic HLS gateway.')
+          PY
+
+      - name: Commit FreeWiFi update
+        shell: bash
+        run: |
+          if git diff --quiet -- freewifi; then
+            echo 'No change.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add freewifi
+          git commit -m 'Use HLS gateway for Ehime CATV DASH channels [skip ci]'
+          git pull --rebase origin main
+          git push origin HEAD:main
