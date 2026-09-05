@@ -18,7 +18,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Replace six Ehime CATV DASH URLs with dynamic HLS gateway
+      - name: Apply Ehime CATV dynamic HLS gateway URLs
         shell: bash
         run: |
           python3 - <<'PY'
@@ -40,28 +40,32 @@ jobs:
                   'https://ajiousama-ehime-catv-hls.onrender.com/ehime-catv.m3u8?ch=bousai',
               'https://cdn.e-catv.ne.jp/mpeg-dash/hc_gosho_channel/dash.mpd':
                   'https://ajiousama-ehime-catv-hls.onrender.com/ehime-catv.m3u8?ch=igo_shogi',
+              'https://cdn.e-catv.ne.jp/mpeg-dash/hc_ainan_live_cam/dash.mpd':
+                  'https://ajiousama-ehime-catv-hls.onrender.com/ehime-catv.m3u8?ch=ainan',
           }
 
+          changed = []
           for old, new in replacements.items():
               old_count = text.count(old)
               new_count = text.count(new)
-              if old_count != 1:
-                  raise SystemExit(f'Expected exactly 1 old URL, got {old_count}: {old}')
-              if new_count != 0:
-                  raise SystemExit(f'New URL already present unexpectedly ({new_count}): {new}')
-              text = text.replace(old, new, 1)
-
-          # Explicitly ensure Ainan remains untouched.
-          ainan = 'https://cdn.e-catv.ne.jp/mpeg-dash/hc_ainan_live_cam/dash.mpd'
-          if ainan not in text:
-              raise SystemExit('Ainan URL changed unexpectedly; refusing commit')
+              if old_count == 1 and new_count == 0:
+                  text = text.replace(old, new, 1)
+                  changed.append(new)
+              elif old_count == 0 and new_count == 1:
+                  pass
+              else:
+                  raise SystemExit(
+                      f'Unexpected URL state old={old_count} new={new_count}: {old} -> {new}'
+                  )
 
           for old, new in replacements.items():
               if old in text or text.count(new) != 1:
                   raise SystemExit(f'Replacement verification failed: {old}')
 
           p.write_text(text, encoding='utf-8')
-          print('Replaced 6 Ehime CATV DASH entries with dynamic HLS gateway.')
+          print(f'Applied Ehime CATV HLS gateway; changed {len(changed)} entries.')
+          for x in changed:
+              print('CHANGED', x)
           PY
 
       - name: Commit FreeWiFi update
@@ -74,6 +78,6 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add freewifi
-          git commit -m 'Use HLS gateway for Ehime CATV DASH channels [skip ci]'
+          git commit -m 'Use HLS gateway for Ainan live camera [skip ci]'
           git pull --rebase origin main
           git push origin HEAD:main
