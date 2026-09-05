@@ -1,0 +1,84 @@
+name: Fast probe Ehime CATV HLS
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/probe_ehime_catv_hls_fast_once.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - name: Parallel HLS probe
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import urllib.request, urllib.error, ssl
+          from concurrent.futures import ThreadPoolExecutor, as_completed
+
+          names = [
+            'hc_town_news_24','hc_machi_cam_24','hc_eventsel_channel',
+            'hc_ehime_channel','hc_bousai_channel','hc_gosho_channel','hc_ainan_live_cam'
+          ]
+          dmap = {
+            'hc_town_news_24':['plala.news24','plala.townnews24','plala.town_news_24'],
+            'hc_machi_cam_24':['plala.machicam24','plala.machi_cam_24','plala.camera'],
+            'hc_eventsel_channel':['plala.eventsel','plala.event_selection'],
+            'hc_ehime_channel':['plala.ehime','plala.ehime_channel'],
+            'hc_bousai_channel':['plala.bousai','plala.bousai_channel'],
+            'hc_gosho_channel':['plala.gosho','plala.igo_shogi'],
+            'hc_ainan_live_cam':['plala.ainan','plala.ainan_live_cam'],
+          }
+          urls=[]
+          for n in names:
+            for fn in ('playlist.m3u8','master.m3u8','index.m3u8','hls.m3u8'):
+              urls.append((n,f'https://cdn.e-catv.ne.jp/mpeg-dash/{n}/{fn}'))
+            for prefix in ('hls','mpeg-hls','hls-live','live'):
+              for fn in ('playlist.m3u8','master.m3u8','index.m3u8'):
+                urls.append((n,f'https://cdn.e-catv.ne.jp/{prefix}/{n}/{fn}'))
+            for s in dmap[n]:
+              urls.append((n,f'https://cdn-ecatv-stream.durasite.net/live/{s}/playlist.m3u8'))
+
+          ctx=ssl.create_default_context()
+          def probe(item):
+            n,u=item
+            req=urllib.request.Request(u,headers={'User-Agent':'Mozilla/5.0','Range':'bytes=0-4095'})
+            try:
+              with urllib.request.urlopen(req,timeout=3,context=ctx) as r:
+                d=r.read(4096)
+                return n,u,r.status,r.headers.get('Content-Type',''),d
+            except urllib.error.HTTPError as e:
+              try:d=e.read(256)
+              except Exception:d=b''
+              return n,u,e.code,e.headers.get('Content-Type','') if e.headers else '',d
+            except Exception as e:
+              return n,u,0,type(e).__name__,b''
+
+          hits=[]
+          with ThreadPoolExecutor(max_workers=32) as ex:
+            futs=[ex.submit(probe,x) for x in urls]
+            for f in as_completed(futs):
+              n,u,code,ct,d=f.result()
+              if d.lstrip().startswith(b'#EXTM3U'):
+                hits.append((n,u,code,ct,d[:300]))
+              elif code in (200,206):
+                print('HTTP_OK_NON_HLS',n,code,ct,u,d[:80])
+
+          print('=== HLS HITS ===')
+          for n,u,code,ct,d in sorted(hits):
+            print('HIT',n,code,ct,u)
+            print(d.decode('utf-8','replace').replace('\n',' | ')[:300])
+          print('HIT_COUNT',len(hits))
+
+          print('=== CURRENT MPD HEADS ===')
+          for n in names:
+            u=f'https://cdn.e-catv.ne.jp/mpeg-dash/{n}/dash.mpd'
+            n2,u2,code,ct,d=probe((n,u))
+            print('MPD',n,code,ct,u,d[:500].decode('utf-8','replace').replace('\n',' ')[:500])
+          PY
