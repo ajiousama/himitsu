@@ -40,12 +40,12 @@ def main():
             continue
         # BOAT V2 is authoritative for BOAT. Ignore any transient legacy BOAT
         # rows that may still exist in the general status file.
-        if key == 'boat' and boat.get('system') == 'boat-v2-resolver':
+        if key == 'boat' and boat.get('system') in {'boat-v2-resolver', 'boat-v2-iphone-seed'}:
             continue
         counts[key] += 1
         venues[key].append(info.get('name') or '')
 
-    if boat.get('system') == 'boat-v2-resolver':
+    if boat.get('system') in {'boat-v2-resolver', 'boat-v2-iphone-seed'}:
         counts['boat'] = int(boat.get('visible_count') or 0)
         venues['boat'] = [
             info.get('name') or ''
