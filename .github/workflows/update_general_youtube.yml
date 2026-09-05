@@ -68,7 +68,7 @@ jobs:
       - name: Sync latest main
         run: git pull --ff-only origin main
 
-      - name: Generate dedicated live-camera logos
+      - name: Generate canonical yt43 live-camera logos
         run: python generate_livecamera_logos.py
 
       - name: Refresh public sports YouTube fallbacks
@@ -138,14 +138,17 @@ jobs:
           grep -q '## Rakuten-JP' freewifi
           test "$(grep -c 'tvg-id="jra.official"' freewifi || true)" -le 1
           test "$(grep -c 'tvg-id="jra.gch.free"' freewifi || true)" -le 1
+          ! grep -Eq 'yt54_(44|45|46)_' general_youtube_sources.json
+          ! grep -Eq 'logos/youtube/airport_[^\"]+\.png' general_youtube_sources_airports.json
+          ! grep -Eq 'logos/youtube/ehime_[^\"]+\.png' general_youtube_sources_ports.json
 
-      - name: Commit updated YouTube LIVE URLs and logos
+      - name: Commit updated YouTube LIVE URLs and canonical logos
         shell: bash
         run: |
           rm -f general_youtube.prev.m3u freewifi.prev youtube_cookies.txt
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add general_youtube.m3u public_sports_youtube_fallback.m3u freewifi logos/youtube/*.png
+          git add -A logos/youtube general_youtube_sources.json general_youtube_sources_ports.json general_youtube_sources_airports.json general_youtube.m3u public_sports_youtube_fallback.m3u freewifi
           if git diff --cached --quiet; then
             echo 'No changes'
             exit 0
