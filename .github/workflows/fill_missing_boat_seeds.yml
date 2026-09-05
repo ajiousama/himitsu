@@ -23,13 +23,67 @@ jobs:
           ref: main
           fetch-depth: 0
 
-      - name: Fill only missing BOAT Streaks seeds
+      - name: Restore missing venue history
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+          import urllib.request
+
+          seed = Path('boat_stream_seed.m3u')
+          text = seed.read_text(encoding='utf-8-sig', errors='replace') if seed.exists() else '#EXTM3U\n'
+
+          venues = {
+              'boat.tamagawa': ('BOATRACE多摩川', '05_tamagawa.png', 'f270eada8e1feadde836ea442d49d189af2af2a1'),
+              'boat.naruto': ('BOATRACE鳴門', '14_naruto.png', 'bdf7e72b8a5133d03720e223509f3664a4152b54'),
+              'boat.marugame': ('BOATRACE丸亀', '15_marugame.png', 'bdf7e72b8a5133d03720e223509f3664a4152b54'),
+              'boat.ashiya': ('BOATRACE芦屋', '21_ashiya.png', 'bdf7e72b8a5133d03720e223509f3664a4152b54'),
+              'boat.karatsu': ('BOATRACE唐津', '23_karatsu.png', 'bdf7e72b8a5133d03720e223509f3664a4152b54'),
+          }
+
+          cache = {}
+          added = []
+          for tvg_id, (name, logo, commit) in venues.items():
+              if re.search(rf'tvg-id="{re.escape(tvg_id)}"', text):
+                  continue
+              if commit not in cache:
+                  url = f'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/{commit}/public_sports.m3u'
+                  req = urllib.request.Request(url, headers={'User-Agent':'BOAT-seed-history-recovery/1.0'})
+                  with urllib.request.urlopen(req, timeout=30) as r:
+                      cache[commit] = r.read().decode('utf-8-sig', 'replace')
+              hist = cache[commit]
+              m = re.search(
+                  rf'^#EXTINF:[^\n]*tvg-id="{re.escape(tvg_id)}"[^\n]*\n(https://manifest\.streaks\.jp/[^\s]+)',
+                  hist,
+                  re.M,
+              )
+              if not m:
+                  raise SystemExit(f'historical direct URL not found: {tvg_id}')
+              stream = m.group(1).strip()
+              extinf = (
+                  f'#EXTINF:-1 tvg-id="{tvg_id}" tvg-name="{name}" '
+                  f'tvg-logo="https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/'
+                  f'public_sports_logos_github_43/boatrace/{logo}" group-title="ボートレース",{name}'
+              )
+              text = text.rstrip() + '\n\n' + extinf + '\n' + stream + '\n'
+              added.append(tvg_id)
+
+          seed.write_text(text.rstrip() + '\n', encoding='utf-8')
+          print('archive restored:', ', '.join(added) if added else 'none')
+
+      - name: Try current and nearby Streaks refs without deleting history
         run: python boat_streaks_refresh.py
 
-      - name: Show seed count
+      - name: Verify all 24 seed slots exist
+        shell: python
         run: |
-          echo "boat entries=$(grep -c '^#EXTINF:.*tvg-id=\"boat\.' boat_stream_seed.m3u || true)"
-          grep '^#EXTINF:.*tvg-id="boat\.' boat_stream_seed.m3u || true
+          from pathlib import Path
+          import re
+          text = Path('boat_stream_seed.m3u').read_text(encoding='utf-8-sig', errors='replace')
+          ids = set(re.findall(r'tvg-id="(boat\.[^"]+)"', text))
+          print(f'BOAT direct seed slots={len(ids)}/24')
+          if len(ids) != 24:
+              raise SystemExit('BOAT seed is not 24/24')
 
       - name: Commit fills
         run: |
@@ -40,5 +94,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add boat_stream_seed.m3u
-          git commit -m "Fill missing BOAT direct Streaks seeds"
+          git commit -m "Restore all 24 BOAT direct seed slots"
           git push origin HEAD:main
