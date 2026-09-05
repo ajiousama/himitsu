@@ -1,0 +1,43 @@
+name: Regenerate Ehime CATV Logos
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'generate_ehime_catv_logos.py'
+      - '.github/workflows/regenerate_ehime_catv_logos.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Install fonts and Pillow
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y fonts-noto-cjk
+          python -m pip install --upgrade pillow
+
+      - name: Generate unified logo set
+        run: python generate_ehime_catv_logos.py
+
+      - name: Commit generated logos
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add logos/ehime_catv freewifi
+          if git diff --cached --quiet; then
+            echo 'No logo changes'
+            exit 0
+          fi
+          git commit -m 'Redesign all Ehime CATV logos [skip ci]'
+          git push origin HEAD:main
