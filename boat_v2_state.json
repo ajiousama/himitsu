@@ -1,6 +1,6 @@
 {
   "system": "boat-v2-iphone-seed",
-  "generated_at": "2026-09-06T14:41:06.764463+09:00",
+  "generated_at": "2026-09-06T18:09:09.733211+09:00",
   "date": "2026-09-06",
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/",
   "resolver_ready": false,
@@ -9,25 +9,24 @@
   "start_tolerance_seconds": 60,
   "grace_minutes": 30,
   "card_count": 12,
-  "held_count": 8,
-  "visible_count": 2,
+  "held_count": 3,
+  "visible_count": 3,
   "active_window": [
-    "戸田",
-    "江戸川",
-    "平和島",
-    "津",
-    "びわこ",
-    "鳴門",
-    "宮島",
-    "福岡"
-  ],
-  "scheduled_waiting": [
     "桐生",
     "蒲郡",
     "住之江"
   ],
+  "scheduled_waiting": [],
   "ended_removed": [
-    "三国"
+    "戸田",
+    "江戸川",
+    "平和島",
+    "津",
+    "三国",
+    "びわこ",
+    "鳴門",
+    "宮島",
+    "福岡"
   ],
   "venues": {
     "boat.kiryu": {
@@ -41,34 +40,12 @@
       "remove_after": "2026-09-06T21:00:00+09:00",
       "mode": "night",
       "next_race": {
-        "race": 1,
-        "start": "15:19"
+        "race": 8,
+        "start": "18:23"
       },
-      "scheduled": true,
-      "stream_window": "epg_ready",
-      "url": "https://ajiousama-radiko.onrender.com/boat/01",
-      "source": "verified Render BOAT resolver (debug playable=true)",
-      "verified_resolver": true,
-      "resolver_debug": {
-        "jcd": "01",
-        "name": "桐生",
-        "http_status": 200,
-        "ok": true,
-        "playable": true,
-        "source": "public_sports_youtube_fallback.m3u",
-        "probe": {
-          "status": 200,
-          "content_type": "application/vnd.apple.mpegurl",
-          "playlist": true
-        },
-        "details": {
-          "streaks": [
-            "HTTPError:403"
-          ],
-          "jlc": [],
-          "sakura": []
-        }
-      }
+      "stream_window": "live_or_vtr",
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/ffbcd63cbfa84cf8b222c5bedd0a7644/9a32ac59674e45d6ac6c2dfec4b00007/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4ODg2MTYwMCwic3RhcnQiOjE3ODg2NzM1MDAsImlvcyI6MTgsImNwIjoiMjEwODY5MTAwXzIxMDkwOTU5OSIsInBwdyI6IjQwayJ9.bN3Zz1WyRBOOvub-o-W96pLUFUSE4IEQBDu-_5ILeUI",
+      "source": "iPhone one-click direct Streaks seed (current JST date)"
     },
     "boat.toda": {
       "jcd": "02",
@@ -80,27 +57,9 @@
       "last_race": "16:30",
       "remove_after": "2026-09-06T17:00:00+09:00",
       "mode": "day",
-      "next_race": {
-        "race": 9,
-        "start": "14:48"
-      },
-      "stream_window": "live_or_vtr",
-      "source": "current-day direct seed unavailable and resolver not verified playable",
-      "resolver_debug": {
-        "jcd": "02",
-        "name": "戸田",
-        "http_status": 503,
-        "ok": false,
-        "playable": false,
-        "source": "",
-        "details": {
-          "streaks": [
-            "HTTPError:403"
-          ],
-          "jlc": [],
-          "sakura": []
-        }
-      }
+      "next_race": null,
+      "ended": true,
+      "stream_window": "ended"
     },
     "boat.edogawa": {
       "jcd": "03",
@@ -112,27 +71,9 @@
       "last_race": "16:25",
       "remove_after": "2026-09-06T16:55:00+09:00",
       "mode": "day",
-      "next_race": {
-        "race": 9,
-        "start": "14:59"
-      },
-      "stream_window": "live_or_vtr",
-      "source": "current-day direct seed unavailable and resolver not verified playable",
-      "resolver_debug": {
-        "jcd": "03",
-        "name": "江戸川",
-        "http_status": 503,
-        "ok": false,
-        "playable": false,
-        "source": "",
-        "details": {
-          "streaks": [
-            "HTTPError:403"
-          ],
-          "jlc": [],
-          "sakura": []
-        }
-      }
+      "next_race": null,
+      "ended": true,
+      "stream_window": "ended"
     },
     "boat.heiwajima": {
       "jcd": "04",
@@ -144,64 +85,27 @@
       "last_race": "16:38",
       "remove_after": "2026-09-06T17:08:00+09:00",
       "mode": "day",
-      "next_race": {
-        "race": 9,
-        "start": "14:56"
-      },
-      "stream_window": "live_or_vtr",
-      "source": "current-day direct seed unavailable and resolver not verified playable",
-      "resolver_debug": {
-        "jcd": "04",
-        "name": "平和島",
-        "http_status": 503,
-        "ok": false,
-        "playable": false,
-        "source": "",
-        "details": {
-          "streaks": [
-            "HTTPError:403"
-          ],
-          "jlc": [
-            "jlc-fast:root:HTTPError:404"
-          ],
-          "sakura": []
-        }
-      }
+      "next_race": null,
+      "ended": true,
+      "stream_window": "ended"
     },
     "boat.gamagori": {
       "jcd": "07",
       "name": "蒲郡",
       "held": true,
-      "visible": false,
+      "visible": true,
       "first_race": "15:25",
       "show_from": "2026-09-06T14:55:00+09:00",
       "last_race": "20:45",
       "remove_after": "2026-09-06T21:15:00+09:00",
       "mode": "night",
       "next_race": {
-        "race": 1,
-        "start": "15:25"
+        "race": 7,
+        "start": "18:13"
       },
-      "scheduled": true,
-      "stream_window": "epg_ready",
-      "source": "current-day direct seed unavailable and resolver not verified playable",
-      "resolver_debug": {
-        "jcd": "07",
-        "name": "蒲郡",
-        "http_status": 503,
-        "ok": false,
-        "playable": false,
-        "source": "",
-        "details": {
-          "streaks": [
-            "HTTPError:403"
-          ],
-          "jlc": [
-            "jlc-fast:root:HTTPError:404"
-          ],
-          "sakura": []
-        }
-      }
+      "stream_window": "live_or_vtr",
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/0b367f77db4546d59235eee63d9f8125/d0ac0ebdc53f4afba5bfe6a510469f27/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4ODg2MTYwMCwic3RhcnQiOjE3ODg2NzE0MDAsImlvcyI6MTgsImNwIjoiMjEwODY3MDAwXzIxMDkwOTU5OSIsInBwdyI6IjQwayJ9.nBiI6kb1qChrLIU0CsyQEpxeIqBPWKwy7mrCUoPstjU",
+      "source": "iPhone one-click direct Streaks seed (current JST date)"
     },
     "boat.tsu": {
       "jcd": "09",
@@ -213,27 +117,9 @@
       "last_race": "16:35",
       "remove_after": "2026-09-06T17:05:00+09:00",
       "mode": "day",
-      "next_race": {
-        "race": 9,
-        "start": "14:50"
-      },
-      "stream_window": "live_or_vtr",
-      "source": "current-day direct seed unavailable and resolver not verified playable",
-      "resolver_debug": {
-        "jcd": "09",
-        "name": "津",
-        "http_status": 503,
-        "ok": false,
-        "playable": false,
-        "source": "",
-        "details": {
-          "streaks": [
-            "HTTPError:403"
-          ],
-          "jlc": [],
-          "sakura": []
-        }
-      }
+      "next_race": null,
+      "ended": true,
+      "stream_window": "ended"
     },
     "boat.mikuni": {
       "jcd": "10",
@@ -259,80 +145,41 @@
       "last_race": "16:20",
       "remove_after": "2026-09-06T16:50:00+09:00",
       "mode": "day",
-      "next_race": {
-        "race": 10,
-        "start": "15:11"
-      },
-      "stream_window": "live_or_vtr",
-      "source": "current-day direct seed unavailable and resolver not verified playable",
-      "resolver_debug": {
-        "jcd": "11",
-        "name": "びわこ",
-        "http_status": 503,
-        "ok": false,
-        "playable": false,
-        "source": "",
-        "details": {
-          "streaks": [
-            "HTTPError:403"
-          ],
-          "jlc": [],
-          "sakura": []
-        }
-      }
+      "next_race": null,
+      "ended": true,
+      "stream_window": "ended"
     },
     "boat.suminoe": {
       "jcd": "12",
       "name": "住之江",
       "held": true,
-      "visible": false,
+      "visible": true,
       "first_race": "15:17",
       "show_from": "2026-09-06T14:47:00+09:00",
       "last_race": "20:38",
       "remove_after": "2026-09-06T21:08:00+09:00",
       "mode": "night",
       "next_race": {
-        "race": 1,
-        "start": "15:17"
+        "race": 8,
+        "start": "18:33"
       },
-      "scheduled": true,
-      "stream_window": "epg_ready",
-      "source": "current-day direct seed unavailable and resolver not verified playable",
-      "resolver_debug": {
-        "jcd": "12",
-        "name": "住之江",
-        "http_status": 503,
-        "ok": true,
-        "playable": false,
-        "source": "public_sports_youtube_fallback.m3u",
-        "probe": {
-          "error": "HTTPError:403"
-        },
-        "details": {
-          "streaks": [
-            "HTTPError:403"
-          ],
-          "jlc": [
-            "jlc-fast:root:HTTPError:404"
-          ],
-          "sakura": []
-        }
-      }
+      "stream_window": "live_or_vtr",
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/e942dfd53ee140bcb74668922f387dc8/1ec69d34ae23456ebc422efae11ea82c/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4ODg2MTYwMCwic3RhcnQiOjE3ODg2NzIzMDAsImlvcyI6MTgsImNwIjoiMjEwODY3OTAwXzIxMDkwOTU5OSIsInBwdyI6IjQwayJ9.Y6y2lVLFfYo6p1nO0tRnfsKwKz9Kbp1khgCNNMUDvZA",
+      "source": "iPhone one-click direct Streaks seed (current JST date)"
     },
     "boat.naruto": {
       "jcd": "14",
       "name": "鳴門",
       "held": true,
-      "visible": true,
+      "visible": false,
       "first_race": "08:44",
       "show_from": "2026-09-06T08:14:00+09:00",
       "last_race": "14:28",
       "remove_after": "2026-09-06T14:58:00+09:00",
       "mode": "morning",
       "next_race": null,
-      "stream_window": "live_or_vtr",
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/71599f41340140378ef8c31228ed22e4/449c60711e894c0f9b4124eaf0d90eb7/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4ODgyMjAwMCwic3RhcnQiOjE3ODg2NDk3NDAsImlvcyI6MTgsImNwIjoiMjEwODQ1MzQwXzIxMDg4ODUzOSIsInBwdyI6IjQwayJ9.plheM_jcH9loCmaU50XIaELM5Lwbm1L36e6oueRgmEE",
-      "source": "iPhone one-click direct Streaks seed (current JST date)"
+      "ended": true,
+      "stream_window": "ended"
     },
     "boat.miyajima": {
       "jcd": "17",
@@ -344,27 +191,9 @@
       "last_race": "16:50",
       "remove_after": "2026-09-06T17:20:00+09:00",
       "mode": "day",
-      "next_race": {
-        "race": 9,
-        "start": "15:04"
-      },
-      "stream_window": "live_or_vtr",
-      "source": "current-day direct seed unavailable and resolver not verified playable",
-      "resolver_debug": {
-        "jcd": "17",
-        "name": "宮島",
-        "http_status": 503,
-        "ok": false,
-        "playable": false,
-        "source": "",
-        "details": {
-          "streaks": [
-            "HTTPError:403"
-          ],
-          "jlc": [],
-          "sakura": []
-        }
-      }
+      "next_race": null,
+      "ended": true,
+      "stream_window": "ended"
     },
     "boat.fukuoka": {
       "jcd": "22",
@@ -376,197 +205,14 @@
       "last_race": "17:25",
       "remove_after": "2026-09-06T17:55:00+09:00",
       "mode": "day",
-      "next_race": {
-        "race": 7,
-        "start": "14:44"
-      },
-      "stream_window": "live_or_vtr",
-      "source": "current-day direct seed unavailable and resolver not verified playable",
-      "resolver_debug": {
-        "jcd": "22",
-        "name": "福岡",
-        "http_status": 503,
-        "ok": false,
-        "playable": false,
-        "source": "",
-        "details": {
-          "streaks": [
-            "HTTPError:403"
-          ],
-          "jlc": [],
-          "sakura": []
-        }
-      }
+      "next_race": null,
+      "ended": true,
+      "stream_window": "ended"
     }
   },
   "stream_source": "current-JST-date iPhone direct Streaks + per-venue Render resolver verified playable=true",
   "seed_freshness_rule": "JWT start date must equal current JST date",
   "verified_resolver_base": "https://ajiousama-radiko.onrender.com/boat",
-  "resolver_diagnostics": {
-    "boat.heiwajima": {
-      "jcd": "04",
-      "name": "平和島",
-      "http_status": 503,
-      "ok": false,
-      "playable": false,
-      "source": "",
-      "details": {
-        "streaks": [
-          "HTTPError:403"
-        ],
-        "jlc": [
-          "jlc-fast:root:HTTPError:404"
-        ],
-        "sakura": []
-      }
-    },
-    "boat.edogawa": {
-      "jcd": "03",
-      "name": "江戸川",
-      "http_status": 503,
-      "ok": false,
-      "playable": false,
-      "source": "",
-      "details": {
-        "streaks": [
-          "HTTPError:403"
-        ],
-        "jlc": [],
-        "sakura": []
-      }
-    },
-    "boat.toda": {
-      "jcd": "02",
-      "name": "戸田",
-      "http_status": 503,
-      "ok": false,
-      "playable": false,
-      "source": "",
-      "details": {
-        "streaks": [
-          "HTTPError:403"
-        ],
-        "jlc": [],
-        "sakura": []
-      }
-    },
-    "boat.kiryu": {
-      "jcd": "01",
-      "name": "桐生",
-      "http_status": 200,
-      "ok": true,
-      "playable": true,
-      "source": "public_sports_youtube_fallback.m3u",
-      "probe": {
-        "status": 200,
-        "content_type": "application/vnd.apple.mpegurl",
-        "playlist": true
-      },
-      "details": {
-        "streaks": [
-          "HTTPError:403"
-        ],
-        "jlc": [],
-        "sakura": []
-      }
-    },
-    "boat.gamagori": {
-      "jcd": "07",
-      "name": "蒲郡",
-      "http_status": 503,
-      "ok": false,
-      "playable": false,
-      "source": "",
-      "details": {
-        "streaks": [
-          "HTTPError:403"
-        ],
-        "jlc": [
-          "jlc-fast:root:HTTPError:404"
-        ],
-        "sakura": []
-      }
-    },
-    "boat.suminoe": {
-      "jcd": "12",
-      "name": "住之江",
-      "http_status": 503,
-      "ok": true,
-      "playable": false,
-      "source": "public_sports_youtube_fallback.m3u",
-      "probe": {
-        "error": "HTTPError:403"
-      },
-      "details": {
-        "streaks": [
-          "HTTPError:403"
-        ],
-        "jlc": [
-          "jlc-fast:root:HTTPError:404"
-        ],
-        "sakura": []
-      }
-    },
-    "boat.tsu": {
-      "jcd": "09",
-      "name": "津",
-      "http_status": 503,
-      "ok": false,
-      "playable": false,
-      "source": "",
-      "details": {
-        "streaks": [
-          "HTTPError:403"
-        ],
-        "jlc": [],
-        "sakura": []
-      }
-    },
-    "boat.biwako": {
-      "jcd": "11",
-      "name": "びわこ",
-      "http_status": 503,
-      "ok": false,
-      "playable": false,
-      "source": "",
-      "details": {
-        "streaks": [
-          "HTTPError:403"
-        ],
-        "jlc": [],
-        "sakura": []
-      }
-    },
-    "boat.miyajima": {
-      "jcd": "17",
-      "name": "宮島",
-      "http_status": 503,
-      "ok": false,
-      "playable": false,
-      "source": "",
-      "details": {
-        "streaks": [
-          "HTTPError:403"
-        ],
-        "jlc": [],
-        "sakura": []
-      }
-    },
-    "boat.fukuoka": {
-      "jcd": "22",
-      "name": "福岡",
-      "http_status": 503,
-      "ok": false,
-      "playable": false,
-      "source": "",
-      "details": {
-        "streaks": [
-          "HTTPError:403"
-        ],
-        "jlc": [],
-        "sakura": []
-      }
-    }
-  },
-  "verified_resolver_count": 1
+  "resolver_diagnostics": {},
+  "verified_resolver_count": 0
 }
