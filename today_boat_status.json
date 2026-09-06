@@ -1,6 +1,6 @@
 {
   "system": "boat-v2-iphone-seed",
-  "generated_at": "2026-09-07T08:50:56.411693+09:00",
+  "generated_at": "2026-09-07T08:55:16.046972+09:00",
   "date": "2026-09-07",
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/",
   "resolver_ready": false,
@@ -61,9 +61,7 @@
             "HTTPError:403"
           ],
           "jlc": [],
-          "sakura": [
-            "sakura-fast:child-deadline"
-          ]
+          "sakura": []
         }
       }
     },
@@ -207,7 +205,7 @@
       "jcd": "10",
       "name": "三国",
       "held": true,
-      "visible": true,
+      "visible": false,
       "first_race": "08:32",
       "show_from": "2026-09-07T08:02:00+09:00",
       "last_race": "14:11",
@@ -218,8 +216,22 @@
         "start": "08:58"
       },
       "stream_window": "live_or_vtr",
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/04ca6b5a22c54202ad394bcfd1537065/dcb3bfa548e04daab5250e11a8d69796/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4ODkwODQwMCwic3RhcnQiOjE3ODg3MzU0MjAsImlvcyI6MTgsImNwIjoiMjEwOTMxMDIwXzIxMDk3NDIxOSIsInBwdyI6IjQwayJ9.oUkqlQBCWvczHcy72gW37cVoXdjGahkLGdpygl11uEc",
-      "source": "iPhone one-click direct Streaks seed (current JST date)"
+      "source": "current-day direct seed unavailable and resolver not verified playable",
+      "resolver_debug": {
+        "jcd": "10",
+        "name": "三国",
+        "http_status": 503,
+        "ok": false,
+        "playable": false,
+        "source": "",
+        "details": {
+          "streaks": [
+            "HTTPError:403"
+          ],
+          "jlc": [],
+          "sakura": []
+        }
+      }
     },
     "boat.biwako": {
       "jcd": "11",
@@ -302,14 +314,14 @@
         "start": "09:10"
       },
       "stream_window": "live_or_vtr",
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/19b2a55a5e7b419280e6e1ac2f15312b/f064634c90994053a00566d4017a887f/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4ODkwODQwMCwic3RhcnQiOjE3ODg3MzYxNDAsImlvcyI6MTgsImNwIjoiMjEwOTMxNzQwXzIxMDk3NDkzOSIsInBwdyI6IjQwayJ9.9vLkdywFwizx92bgSrzathXyIKSX36nXRCGkCvejalo",
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/19b2a55a5e7b419280e6e1ac2f15312b/f064634c90994053a00566d4017a887f/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4ODkxMjAwMCwic3RhcnQiOjE3ODg3MzYxNDAsImlvcyI6MTgsImNwIjoiMjEwOTMxNzQwXzIxMDk3NDkzOSIsInBwdyI6IjQwayJ9.rOlZRW6Q5jj3itMCM3Iz7jCrr7Qc0wFVMd44zILgueI",
       "source": "iPhone one-click direct Streaks seed (current JST date)"
     },
     "boat.kojima": {
       "jcd": "16",
       "name": "児島",
       "held": true,
-      "visible": false,
+      "visible": true,
       "first_race": "10:53",
       "show_from": "2026-09-07T10:23:00+09:00",
       "last_race": "16:48",
@@ -321,24 +333,8 @@
       },
       "scheduled": true,
       "stream_window": "epg_ready",
-      "source": "current-day direct seed unavailable and resolver not verified playable",
-      "resolver_debug": {
-        "jcd": "16",
-        "name": "児島",
-        "http_status": 503,
-        "ok": false,
-        "playable": false,
-        "source": "",
-        "details": {
-          "streaks": [
-            "HTTPError:403"
-          ],
-          "jlc": [
-            "jlc-fast:root:HTTPError:404"
-          ],
-          "sakura": []
-        }
-      }
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/8d6ccf93541e454fa4b5f3b6f9f19679/6b4a841bfff24966801cd8d76b79e2b2/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4ODkxMjAwMCwic3RhcnQiOjE3ODg3NDE2MDAsImlvcyI6MTgsImNwIjoiMjEwOTM3MjAwXzIxMDk4MDM5OSIsInBwdyI6IjQwayJ9.HWQis0aTcbAXC6E5OX4T4elgIqG7FKNvIKNcdDQWOZY",
+      "source": "iPhone one-click direct Streaks seed (current JST date)"
     },
     "boat.fukuoka": {
       "jcd": "22",
@@ -411,9 +407,9 @@
   "seed_freshness_rule": "JWT start date must equal current JST date",
   "verified_resolver_base": "https://ajiousama-radiko.onrender.com/boat",
   "resolver_diagnostics": {
-    "boat.gamagori": {
-      "jcd": "07",
-      "name": "蒲郡",
+    "boat.heiwajima": {
+      "jcd": "04",
+      "name": "平和島",
       "http_status": 503,
       "ok": false,
       "playable": false,
@@ -428,9 +424,9 @@
         "sakura": []
       }
     },
-    "boat.heiwajima": {
-      "jcd": "04",
-      "name": "平和島",
+    "boat.gamagori": {
+      "jcd": "07",
+      "name": "蒲郡",
       "http_status": 503,
       "ok": false,
       "playable": false,
@@ -475,40 +471,6 @@
           "HTTPError:403"
         ],
         "jlc": [],
-        "sakura": [
-          "sakura-fast:child-deadline"
-        ]
-      }
-    },
-    "boat.kojima": {
-      "jcd": "16",
-      "name": "児島",
-      "http_status": 503,
-      "ok": false,
-      "playable": false,
-      "source": "",
-      "details": {
-        "streaks": [
-          "HTTPError:403"
-        ],
-        "jlc": [
-          "jlc-fast:root:HTTPError:404"
-        ],
-        "sakura": []
-      }
-    },
-    "boat.biwako": {
-      "jcd": "11",
-      "name": "びわこ",
-      "http_status": 503,
-      "ok": false,
-      "playable": false,
-      "source": "",
-      "details": {
-        "streaks": [
-          "HTTPError:403"
-        ],
-        "jlc": [],
         "sakura": []
       }
     },
@@ -527,9 +489,39 @@
         "sakura": []
       }
     },
+    "boat.mikuni": {
+      "jcd": "10",
+      "name": "三国",
+      "http_status": 503,
+      "ok": false,
+      "playable": false,
+      "source": "",
+      "details": {
+        "streaks": [
+          "HTTPError:403"
+        ],
+        "jlc": [],
+        "sakura": []
+      }
+    },
     "boat.amagasaki": {
       "jcd": "13",
       "name": "尼崎",
+      "http_status": 503,
+      "ok": false,
+      "playable": false,
+      "source": "",
+      "details": {
+        "streaks": [
+          "HTTPError:403"
+        ],
+        "jlc": [],
+        "sakura": []
+      }
+    },
+    "boat.biwako": {
+      "jcd": "11",
+      "name": "びわこ",
       "http_status": 503,
       "ok": false,
       "playable": false,
