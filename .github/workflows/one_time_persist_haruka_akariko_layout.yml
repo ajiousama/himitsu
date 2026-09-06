@@ -17,162 +17,43 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Patch persistent Akariko restorer
+      - name: Patch persistent restorer
         shell: python
         run: |
           from pathlib import Path
-
           p = Path('restore_akariko_haru.py')
           s = p.read_text(encoding='utf-8')
-
-          s = s.replace('from pathlib import Path\n', 'from pathlib import Path\nimport re\nimport unicodedata\n', 1)
+          if 'from normalize_haruka_akariko import normalize_layout' not in s:
+              s = s.replace('from pathlib import Path\n', 'from pathlib import Path\nfrom normalize_haruka_akariko import normalize_layout\n', 1)
           s = s.replace('BASE = "http://haru.charandom.blog/stream/jp/"', 'BASE = "https://haru.charandom.blog/stream/jp/"')
-
-          helper = r'''
-
-def _tvg_id(block: str) -> str | None:
-    m = re.search(r'tvg-id="([^"]+)"', block)
-    return m.group(1) if m else None
-
-
-def _display_name(block: str) -> str:
-    if ',' not in block:
-        return ''
-    name = block.split(',', 1)[1].splitlines()[0]
-    name = re.sub(r'\s*\((?:haruka|akariko)\)\s*$', '', name, flags=re.I)
-    name = unicodedata.normalize('NFKC', name)
-    return re.sub(r'\s+', '', name).lower()
-
-
-def _parse_akariko_managed(body: str) -> list[str]:
-    lines = [x for x in body.splitlines() if x.strip()]
-    entries: list[str] = []
-    i = 0
-    while i < len(lines):
-        if lines[i].startswith('#EXTINF:') and i + 1 < len(lines) and not lines[i + 1].lstrip().startswith('#'):
-            entries.append(lines[i] + '\n' + lines[i + 1])
-            i += 2
-        else:
-            i += 1
-    return entries
-
-
-def normalize_layout(text: str) -> str:
-    """Keep only Haruka2 (renamed haruka), use HTTPS Akariko, and place matching Akariko immediately after Haruka."""
-    text = text.replace('http://haru.charandom.blog/', 'https://haru.charandom.blog/')
-
-    start = text.find(START)
-    end = text.find(END)
-    managed_entries: list[str] = []
-    if start >= 0 and end > start:
-        managed_body = text[start + len(START):end]
-        managed_entries = _parse_akariko_managed(managed_body)
-        base = text[:start].rstrip()
-        suffix = text[end + len(END):].strip()
-    else:
-        base = text.rstrip()
-        suffix = ''
-
-    by_id: dict[str, list[str]] = {}
-    by_name: dict[str, list[str]] = {}
-    remaining: list[str] = []
-    for entry in managed_entries:
-        remaining.append(entry)
-        tid = _tvg_id(entry)
-        if tid:
-            by_id.setdefault(tid, []).append(entry)
-        nm = _display_name(entry)
-        if nm:
-            by_name.setdefault(nm, []).append(entry)
-
-    def take_match(block: str) -> str | None:
-        candidates: list[str] = []
-        tid = _tvg_id(block)
-        if tid:
-            candidates.extend(by_id.get(tid, []))
-        nm = _display_name(block)
-        if nm:
-            candidates.extend(by_name.get(nm, []))
-        for entry in candidates:
-            if entry in remaining:
-                remaining.remove(entry)
-                return entry
-        return None
-
-    blocks = re.split(r'\n\s*\n', base.strip())
-    out: list[str] = []
-    for block in blocks:
-        if block.startswith('#EXTINF:') and (
-            'group-title="haruka1 ' in block
-            or 'group-title="haruka3 ' in block
-            or 'ハルカ1' in block
-            or 'ハルカ3' in block
-        ):
-            continue
-
-        block = block.replace('group-title="haruka2 ', 'group-title="haruka ')
-        block = block.replace('ハルカ2', 'haruka')
-        out.append(block)
-
-        if block.startswith('#EXTINF:') and 'group-title="haruka ' in block:
-            match = take_match(block)
-            if match:
-                out.append(match)
-
-    if remaining:
-        residual = [START]
-        residual.extend(remaining)
-        residual.append(END)
-        out.append('\n'.join(residual))
-
-    if suffix:
-        out.append(suffix)
-
-    result = '\n\n'.join(x for x in out if x.strip()).rstrip() + '\n'
-
-    forbidden = [
-        'group-title="haruka1 ', 'group-title="haruka2 ', 'group-title="haruka3 ',
-        'ハルカ1', 'ハルカ2', 'ハルカ3', 'http://haru.charandom.blog/'
-    ]
-    bad = [x for x in forbidden if x in result]
-    if bad:
-        raise RuntimeError(f'layout validation failed; stale labels/URLs: {bad}')
-    return result
-'''
-
-          if 'def normalize_layout(text: str) -> str:' not in s:
-              needle = '\ndef main() -> None:\n'
-              if needle not in s:
-                  raise SystemExit('main() insertion point not found')
-              s = s.replace(needle, helper + needle, 1)
-
           old = '    out = "\\n".join(lines).rstrip() + "\\n"\n'
           new = '    out = normalize_layout("\\n".join(lines).rstrip() + "\\n")\n'
           if old in s:
               s = s.replace(old, new, 1)
           elif new not in s:
-              raise SystemExit('output normalization insertion point not found')
-
+              raise SystemExit('restore output line not found')
           p.write_text(s, encoding='utf-8')
 
-      - name: Rebuild freewifi with persistent rules
+      - name: Rebuild FreeWiFi
+        run: python restore_akariko_haru.py
+
+      - name: Verify requested layout
+        shell: python
         run: |
-          python restore_akariko_haru.py
-          python - <<'PY'
           from pathlib import Path
           import re
           s = Path('freewifi').read_text(encoding='utf-8')
-          assert 'haruka1 ' not in s and 'haruka2 ' not in s and 'haruka3 ' not in s
-          assert 'ハルカ1' not in s and 'ハルカ2' not in s and 'ハルカ3' not in s
-          assert 'http://haru.charandom.blog/' not in s
-          assert 'https://haru.charandom.blog/' in s
-          # Spot-check the first Kanto channel: Haruka must be directly followed by Akariko.
-          m = re.search(r'NHK G \(haruka\).*?\nhttp://haruka-ipip\.f5\.si:9394/stream/14\.m3u8\n\n#EXTINF:[^\n]*NHK G \(akariko\)\nhttps://haru\.charandom\.blog/stream/jp/nhk_g/stream-output\.m3u8\?mode=hls', s, re.S)
-          assert m, 'NHK G order check failed'
-          print('persistent layout verification OK')
-          PY
+          for stale in ('haruka1 ', 'haruka2 ', 'haruka3 ', 'ハルカ1', 'ハルカ2', 'ハルカ3', 'http://haru.charandom.blog/'):
+              if stale in s:
+                  raise SystemExit('stale value remains: ' + stale)
+          if 'https://haru.charandom.blog/' not in s:
+              raise SystemExit('HTTPS Akariko URLs missing')
+          pattern = r'NHK G \(haruka\)\nhttp://haruka-ipip\.f5\.si:9394/stream/14\.m3u8\n\n#EXTINF:[^\n]*NHK G \(akariko\)\nhttps://haru\.charandom\.blog/stream/jp/nhk_g/stream-output\.m3u8\?mode=hls'
+          if not re.search(pattern, s):
+              raise SystemExit('NHK G Haruka -> Akariko order check failed')
+          print('Haruka/Akariko layout verified')
 
-      - name: Commit persistent fix and remove one-time workflow
+      - name: Commit final changes
         shell: bash
         run: |
           rm -f .github/workflows/one_time_persist_haruka_akariko_layout.yml
@@ -180,5 +61,5 @@ def normalize_layout(text: str) -> str:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add restore_akariko_haru.py freewifi .github/workflows/one_time_persist_haruka_akariko_layout.yml
           git diff --cached --check
-          git commit -m "Persist Haruka cleanup and place Akariko after Haruka"
+          git commit -m "Persist Haruka cleanup and Akariko ordering"
           git push
