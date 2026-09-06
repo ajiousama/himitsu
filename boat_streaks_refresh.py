@@ -3,8 +3,10 @@ from __future__ import annotations
 
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
+import base64
 import json
 import re
+import urllib.parse
 import urllib.request
 
 JST = timezone(timedelta(hours=9))
@@ -59,6 +61,31 @@ def parse_existing():
     return out
 
 
+def token_start_day(url: str):
+    """Return the JWT stream start date in JST, or None if it cannot be verified."""
+    try:
+        token = (urllib.parse.parse_qs(urllib.parse.urlsplit(url).query).get('token') or [None])[0]
+        if not token or token.count('.') < 2:
+            return None
+        payload = token.split('.')[1]
+        payload += '=' * (-len(payload) % 4)
+        data = json.loads(base64.urlsafe_b64decode(payload.encode()).decode('utf-8'))
+        start = int(data.get('start') or 0)
+        if not start:
+            return None
+        return datetime.fromtimestamp(start, JST).date()
+    except Exception:
+        return None
+
+
+def is_today_seed(url: str, today) -> bool:
+    return (
+        url.startswith('https://manifest.streaks.jp/')
+        and '.m3u8' in url
+        and token_start_day(url) == today
+    )
+
+
 def resolve(code: str, ymd: str):
     setting_url = f'https://front.player.boatrace-cdn.jp/setting/live/{code}/setting.json?t={int(datetime.now().timestamp())}'
     try:
@@ -79,50 +106,50 @@ def resolve(code: str, ymd: str):
     return ''
 
 
-def candidate_dates():
-    today = datetime.now(JST).date()
-    # Current day first, then tomorrow, then the latest 14 previous days.
-    offsets = [0, 1] + list(range(-1, -15, -1))
-    for offset in offsets:
-        yield (today + timedelta(days=offset)).strftime('%Y%m%d'), offset
-
-
 def main():
+    today = datetime.now(JST).date()
+    ymd = today.strftime('%Y%m%d')
     existing = parse_existing()
-    merged = dict(existing)
-    missing_before = [tvg_id for _jcd, (_code, tvg_id, _name) in VENUES.items() if tvg_id not in existing]
-    added = 0
+    merged = {}
+    kept = 0
+    refreshed = 0
+    missing = []
 
-    print(f'BOAT fill-only resolver: existing={len(existing)} missing={len(missing_before)}')
+    print(f'BOAT current-day resolver: date={ymd} existing={len(existing)}')
 
-    # iPhone seed is authoritative. Never replace or delete an existing venue URL.
-    # Only fill venues that are absent from boat_stream_seed.m3u.
-    for jcd, (code, tvg_id, name) in VENUES.items():
-        if tvg_id in existing:
-            print(f'BOAT {name}: keep existing seed')
+    # iPhone seed remains authoritative, but only for the current JST date.
+    # A previous-day Streaks URL must never survive simply because its JWT has
+    # not expired yet: it can point at yesterday's VTR/manifest and be unusable.
+    for _jcd, (code, tvg_id, name) in VENUES.items():
+        old = existing.get(tvg_id)
+        if old and is_today_seed(old[1], today):
+            merged[tvg_id] = old
+            kept += 1
+            print(f'BOAT {name}: keep current-day seed')
             continue
 
-        hit = ''
-        hit_date = ''
-        hit_offset = None
-        for ymd, offset in candidate_dates():
-            try:
-                hit = resolve(code, ymd)
-            except Exception as e:
-                print(f'BOAT {name} {ymd}: {type(e).__name__}: {e}')
-                continue
-            if hit:
-                hit_date = ymd
-                hit_offset = offset
-                break
-
-        if hit:
-            line = f'#EXTINF:-1 tvg-id="{tvg_id}" tvg-name="BOATRACE{name}" group-title="ボートレース",BOATRACE{name}'
-            merged[tvg_id] = (line, hit)
-            added += 1
-            print(f'BOAT {name}: FILLED from {hit_date} offset={hit_offset:+d}')
+        if old:
+            old_day = token_start_day(old[1])
+            print(f'BOAT {name}: stale/unverified seed ({old_day}) -> refresh {ymd}')
         else:
-            print(f'BOAT {name}: still missing after nearby-date probe')
+            print(f'BOAT {name}: seed missing -> resolve {ymd}')
+
+        hit = ''
+        try:
+            hit = resolve(code, ymd)
+        except Exception as e:
+            print(f'BOAT {name} {ymd}: {type(e).__name__}: {e}')
+
+        if hit and is_today_seed(hit, today):
+            line = old[0] if old else f'#EXTINF:-1 tvg-id="{tvg_id}" tvg-name="BOATRACE{name}" group-title="ボートレース",BOATRACE{name}'
+            merged[tvg_id] = (line, hit)
+            refreshed += 1
+            print(f'BOAT {name}: REFRESHED current-day seed')
+        else:
+            if hit:
+                print(f'BOAT {name}: rejected non-current seed start={token_start_day(hit)}')
+            print(f'BOAT {name}: current-day stream unavailable; stale seed removed')
+            missing.append(tvg_id)
 
     lines = ['#EXTM3U', '']
     for _jcd, (_code, tvg_id, _name) in VENUES.items():
@@ -132,10 +159,9 @@ def main():
         lines.extend([block[0], block[1], ''])
     OUT.write_text('\n'.join(lines).rstrip() + '\n', encoding='utf-8')
 
-    missing_after = [tvg_id for _jcd, (_code, tvg_id, _name) in VENUES.items() if tvg_id not in merged]
-    print(f'BOAT fill-only result: added={added} total={len(merged)}/24 missing={len(missing_after)}')
-    if missing_after:
-        print('Missing:', ', '.join(missing_after))
+    print(f'BOAT current-day result: kept={kept} refreshed={refreshed} total={len(merged)}/24 missing={len(missing)}')
+    if missing:
+        print('Missing current-day:', ', '.join(missing))
 
 
 if __name__ == '__main__':
