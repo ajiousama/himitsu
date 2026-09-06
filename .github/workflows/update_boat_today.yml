@@ -1,10 +1,10 @@
-name: Update BOAT Today iPhone Seed
+name: Update BOAT Today Verified Hybrid
 
 on:
   workflow_dispatch:
   schedule:
-    # Rebuild visibility/status from the latest iPhone seed. This workflow never
-    # acquires Streaks URLs itself.
+    # Rebuild every 5-10 minutes from current-day iPhone seed plus only
+    # individually verified Render/JLC/Sakura resolver fallbacks.
     - cron: "3,13,23,33,43,53 * * * *"
     - cron: "8,18,28,38,48,58 * * * *"
   push:
@@ -14,6 +14,7 @@ on:
       - "boat_stream_seed.m3u"
       - "boat_iphone_seed_build.py"
       - "boat_v2_build.py"
+      - "boat_cloud_resolver.py"
       - ".github/workflows/update_boat_today.yml"
 
 permissions:
@@ -52,7 +53,7 @@ jobs:
           echo "iPhone BOAT seed streams=$streams"
           sha256sum boat_stream_seed.m3u
 
-      - name: Build today's BOAT from iPhone direct Streaks seed only
+      - name: Build today's BOAT from current-day direct seed plus verified resolver fallback
         run: python -u boat_iphone_seed_build.py
 
       - name: Refresh current event counts after BOAT visibility update
@@ -80,11 +81,10 @@ jobs:
           import json, re
           from pathlib import Path
 
+          RENDER_PREFIX = 'https://ajiousama-radiko.onrender.com/boat/'
           d = json.loads(Path('today_boat_status.json').read_text(encoding='utf-8'))
           if d.get('system') != 'boat-v2-iphone-seed':
               raise SystemExit(f"unexpected BOAT system: {d.get('system')}")
-          if d.get('resolver_ready'):
-              raise SystemExit('cloud BOAT resolver must stay disabled')
 
           visible = int(d.get('visible_count') or 0)
           text = Path('freewifi').read_text(encoding='utf-8-sig', errors='replace')
@@ -93,15 +93,22 @@ jobs:
           entries = len(re.findall(r'^#EXTINF:.*tvg-id="boat\.', body, re.M))
           if entries != visible:
               raise SystemExit(f'BOAT playlist mismatch: entries={entries} visible={visible}')
-          if 'onrender.com/boat/' in body:
-              raise SystemExit('cloud resolver URL leaked into TODAY_BOAT block')
 
           seed = Path('boat_stream_seed.m3u').read_text(encoding='utf-8-sig', errors='replace')
+          venues = d.get('venues') or {}
+          reverse = {str(v.get('url') or ''): v for v in venues.values() if v.get('url')}
           for url in re.findall(r'(?m)^https?://\S+$', body):
-              if url not in seed:
-                  raise SystemExit('TODAY_BOAT contains a URL not present in iPhone direct seed')
+              if url in seed:
+                  continue
+              if url.startswith(RENDER_PREFIX) and re.fullmatch(r'https://ajiousama-radiko\.onrender\.com/boat/(?:0?[1-9]|1\d|2[0-4])', url):
+                  item = reverse.get(url) or {}
+                  if item.get('verified_resolver') is True:
+                      continue
+                  raise SystemExit(f'unverified BOAT resolver URL in TODAY_BOAT: {url}')
+              raise SystemExit(f'TODAY_BOAT contains unsupported URL: {url}')
 
-          print('BOAT iPhone direct-seed validation OK:', 'visible=', visible, 'entries=', entries)
+          print('BOAT verified-hybrid validation OK:', 'visible=', visible, 'entries=', entries,
+                'verified_resolver_count=', int(d.get('verified_resolver_count') or 0))
           PY
           }
 
@@ -119,10 +126,10 @@ jobs:
             validate_boat || return 1
             git add freewifi today_boat_status.json boat_v2_state.json today_event_counts.json
             if git diff --cached --quiet; then
-              echo "BOAT iPhone-seed state already current"
+              echo "BOAT verified-hybrid state already current"
               return 0
             fi
-            git commit -m "Update BOAT state from iPhone direct seed [skip ci]"
+            git commit -m "Update BOAT state from verified hybrid sources [skip ci]"
             git push origin HEAD:main
           }
 
@@ -131,7 +138,7 @@ jobs:
           fi
 
           for attempt in 2 3 4; do
-            echo "BOAT main moved; rebuild from newest iPhone direct seed ($attempt/4)"
+            echo "BOAT main moved; rebuild from newest seed ($attempt/4)"
             git fetch origin main
             git reset --hard origin/main
             rebuild_from_latest_seed
@@ -141,7 +148,7 @@ jobs:
             sleep 1
           done
 
-          echo "::error::BOAT iPhone-seed publish failed after retries"
+          echo "::error::BOAT verified-hybrid publish failed after retries"
           exit 1
 
       - name: Validate final BOAT state
@@ -154,7 +161,8 @@ jobs:
           held = int(d.get('held_count') or 0)
           visible = int(d.get('visible_count') or 0)
           cards = int(d.get('card_count') or 0)
-          print('BOAT iPhone direct seed cards=', cards, 'active=', held, 'visible=', visible)
+          verified = int(d.get('verified_resolver_count') or 0)
+          print('BOAT cards=', cards, 'active=', held, 'visible=', visible, 'verified-resolver=', verified)
 
           text = Path('freewifi').read_text(encoding='utf-8-sig', errors='replace')
           m = re.search(r'# === TODAY_BOAT_START ===(.*?)# === TODAY_BOAT_END ===', text, re.S)
@@ -163,5 +171,5 @@ jobs:
           if entries != visible:
               raise SystemExit(f'BOAT playlist mismatch: entries={entries} visible={visible}')
           if held and not visible:
-              print('::warning::BOAT active venue exists but iPhone has not supplied a current-JST-date Streaks session')
+              print('::warning::BOAT active venue exists but neither a current-day direct seed nor a verified resolver is playable')
           PY
