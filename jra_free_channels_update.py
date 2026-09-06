@@ -99,11 +99,11 @@ def strip_managed(text: str) -> str:
 def build_block(a_url: str, b_url: str) -> str:
     lines = [
         A_START,
-        f'#EXTINF:-1 tvg-id="{A_ID}" tvg-name="GCH無料版A（YouTube）" tvg-logo="{A_LOGO}" group-title="競馬",GCH無料版A（YouTube）',
+        f'#EXTINF:-1 tvg-id="{A_ID}" tvg-name="GCH無料版A（YouTube）" tvg-logo="{A_LOGO}" group-title="今日の開催場",GCH無料版A（YouTube）',
         a_url,
         A_END,
         B_START,
-        f'#EXTINF:-1 tvg-id="{B_ID}" tvg-name="GCH無料版B（グリーンチャンネルWeb）" tvg-logo="{B_LOGO}" group-title="競馬",GCH無料版B（グリーンチャンネルWeb）',
+        f'#EXTINF:-1 tvg-id="{B_ID}" tvg-name="GCH無料版B（グリーンチャンネルWeb）" tvg-logo="{B_LOGO}" group-title="今日の開催場",GCH無料版B（グリーンチャンネルWeb）',
         b_url,
         B_END,
     ]
@@ -137,8 +137,11 @@ def main() -> int:
     print("B GCH Web free 1ch: PINNED direct STREAKS manifest; exp=", jwt_expiry_from_url(b_url))
 
     block = build_block(a_url, b_url)
-    anchor = "## 競馬\n"
-    cleaned = cleaned.replace(anchor, anchor + "\n" + block, 1) if anchor in cleaned else cleaned.rstrip() + "\n\n" + block
+    anchor = "# === TODAY_JRA_END ==="
+    if anchor in cleaned:
+        cleaned = cleaned.replace(anchor, block + anchor, 1)
+    else:
+        cleaned = cleaned.rstrip() + "\n\n" + block
 
     if cleaned.count("#EXTINF:") < max(50, int(original.count("#EXTINF:") * 0.70)):
         raise RuntimeError("Refusing to update: playlist channel count collapsed")
