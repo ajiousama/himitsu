@@ -1,0 +1,82 @@
+name: Update Haruka2 endpoint
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: himitsu-haruka2-endpoint
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Update Haruka2 endpoint only
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+
+          path = Path("freewifi")
+          text = path.read_text(encoding="utf-8-sig", errors="strict")
+          lines = text.splitlines()
+
+          old = "http://42.118.247.37:9394/stream/"
+          new = "http://haruka-ipip.f5.si:9394/stream/"
+          changed = 0
+
+          for i, line in enumerate(lines):
+              if "(ハルカ2)" not in line or not line.startswith("#EXTINF:"):
+                  continue
+              j = i + 1
+              while j < len(lines) and not lines[j].strip():
+                  j += 1
+              if j < len(lines) and lines[j].startswith(old):
+                  suffix = lines[j][len(old):]
+                  if not re.fullmatch(r"\d+\.m3u8", suffix):
+                      raise SystemExit(f"Unexpected Haruka2 stream path: {lines[j]}")
+                  lines[j] = new + suffix
+                  changed += 1
+
+          if changed == 0:
+              print("No Haruka2 fixed-IP entries needed updating")
+          else:
+              path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+              print(f"Updated Haruka2 entries: {changed}")
+
+          # Safety checks: Haruka1/3 endpoints are untouched, and no old Haruka2 URL remains.
+          out = path.read_text(encoding="utf-8", errors="strict")
+          if "(ハルカ2)" in out and old in out:
+              # old may theoretically appear outside Haruka2; verify block-by-block instead.
+              out_lines = out.splitlines()
+              for i, line in enumerate(out_lines):
+                  if "(ハルカ2)" not in line or not line.startswith("#EXTINF:"):
+                      continue
+                  j = i + 1
+                  while j < len(out_lines) and not out_lines[j].strip():
+                      j += 1
+                  if j < len(out_lines) and out_lines[j].startswith(old):
+                      raise SystemExit(f"Old Haruka2 endpoint remains at line {j+1}")
+
+      - name: Commit and push
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- freewifi; then
+            echo "Already current; nothing to commit"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add freewifi
+          git commit -m "Update Haruka2 DDNS endpoint [skip ci]"
+          git pull --rebase origin main
+          git push origin HEAD:main
