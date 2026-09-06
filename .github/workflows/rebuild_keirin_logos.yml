@@ -1,0 +1,68 @@
+name: Rebuild Keirin Venue Logos
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'generate_keirin_logos.py'
+      - 'freewifi_today_public_sports.py'
+      - '.github/workflows/rebuild_keirin_logos.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: himitsu-keirin-logo-writer
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pillow
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq fonts-noto-cjk
+
+      - name: Generate keirin logos
+        run: python generate_keirin_logos.py
+
+      - name: Validate PNG set
+        shell: bash
+        run: |
+          set -e
+          count=$(find logos/public_sports/venues -maxdepth 1 -type f -name 'keirin_*.png' | wc -l)
+          test "$count" -ge 43
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          fs=sorted(Path('logos/public_sports/venues').glob('keirin_*.png'))
+          assert len(fs) >= 43, len(fs)
+          for f in fs:
+              with Image.open(f) as im:
+                  assert im.size == (512,512), (f,im.size)
+          PY
+
+      - name: Commit keirin logos
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A logos/public_sports/venues/keirin_*.png
+          if git diff --cached --quiet; then
+            echo 'No keirin logo changes'
+            exit 0
+          fi
+          git commit -m 'Rebuild keirin venue logos'
+          git pull --rebase origin main
+          git push origin main
