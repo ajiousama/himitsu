@@ -1,6 +1,6 @@
 {
   "system": "boat-v2-iphone-seed",
-  "generated_at": "2026-09-07T00:52:54.617305+09:00",
+  "generated_at": "2026-09-07T00:59:05.723157+09:00",
   "date": "2026-09-07",
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/",
   "resolver_ready": false,
@@ -423,28 +423,6 @@
   "seed_freshness_rule": "JWT start date must equal current JST date",
   "verified_resolver_base": "https://ajiousama-radiko.onrender.com/boat",
   "resolver_diagnostics": {
-    "boat.gamagori": {
-      "jcd": "07",
-      "name": "蒲郡",
-      "http_status": 503,
-      "ok": true,
-      "playable": false,
-      "source": "boat_stream_seed.m3u",
-      "probe": {
-        "error": "HTTPError:404"
-      }
-    },
-    "boat.kiryu": {
-      "jcd": "01",
-      "name": "桐生",
-      "http_status": 503,
-      "ok": true,
-      "playable": false,
-      "source": "boat_stream_seed.m3u",
-      "probe": {
-        "error": "HTTPError:404"
-      }
-    },
     "boat.heiwajima": {
       "jcd": "04",
       "name": "平和島",
@@ -471,19 +449,6 @@
         "playlist": true
       }
     },
-    "boat.biwako": {
-      "jcd": "11",
-      "name": "びわこ",
-      "http_status": 200,
-      "ok": true,
-      "playable": true,
-      "source": "boat_stream_seed.m3u",
-      "probe": {
-        "status": 200,
-        "content_type": "application/x-mpegURL",
-        "playlist": true
-      }
-    },
     "boat.tsu": {
       "jcd": "09",
       "name": "津",
@@ -497,9 +462,44 @@
         "playlist": true
       }
     },
+    "boat.gamagori": {
+      "jcd": "07",
+      "name": "蒲郡",
+      "http_status": 503,
+      "ok": true,
+      "playable": false,
+      "source": "boat_stream_seed.m3u",
+      "probe": {
+        "error": "HTTPError:404"
+      }
+    },
+    "boat.kiryu": {
+      "jcd": "01",
+      "name": "桐生",
+      "http_status": 503,
+      "ok": true,
+      "playable": false,
+      "source": "boat_stream_seed.m3u",
+      "probe": {
+        "error": "HTTPError:404"
+      }
+    },
     "boat.mikuni": {
       "jcd": "10",
       "name": "三国",
+      "http_status": 200,
+      "ok": true,
+      "playable": true,
+      "source": "boat_stream_seed.m3u",
+      "probe": {
+        "status": 200,
+        "content_type": "application/x-mpegURL",
+        "playlist": true
+      }
+    },
+    "boat.biwako": {
+      "jcd": "11",
+      "name": "びわこ",
       "http_status": 200,
       "ok": true,
       "playable": true,
