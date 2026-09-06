@@ -59,10 +59,33 @@ jobs:
             git reset --hard origin/main
             python kana_tube_update.py
             python freewifi_youtube_cleanup.py
+            python - <<'PY'
+          from pathlib import Path
+
+          p = Path('freewifi')
+          header = '#EXTM3U url-tvg="https://raw.githubusercontent.com/ajiousama/himitsu/main/guides.xml" tvg-shift=0 m3uautoload=1'
+          lines = p.read_text(encoding='utf-8-sig', errors='replace').splitlines() if p.exists() else []
+          body = []
+          for line in lines:
+              s = line.strip()
+              if s.startswith('#EXTM3U'):
+                  continue
+              if s.startswith('url-tvg=') and 'guides.xml' in s:
+                  continue
+              body.append(line)
+          while body and not body[0].strip():
+              body.pop(0)
+          text = header + '\n'
+          if body:
+              text += '\n' + '\n'.join(body).rstrip() + '\n'
+          p.write_text(text, encoding='utf-8')
+          PY
             test -s kana_tube.m3u
             test -s general_youtube.m3u
             test -s freewifi
             test -s kana_tube_status.json
+            test "$(head -n 1 freewifi)" = '#EXTM3U url-tvg="https://raw.githubusercontent.com/ajiousama/himitsu/main/guides.xml" tvg-shift=0 m3uautoload=1'
+            test "$(grep -c '^ *url-tvg=' freewifi || true)" -eq 0
             test "$(grep -c 'tvg-id=\"youtube.kana_tube\"' freewifi || true)" -le 1
             test "$(grep -c 'tvg-id=\"youtube.kana_tube\"' general_youtube.m3u || true)" -le 1
             git add kana_tube.m3u kana_tube_status.json general_youtube.m3u freewifi
