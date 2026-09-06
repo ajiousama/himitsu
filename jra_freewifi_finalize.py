@@ -113,7 +113,7 @@ def main():
         if entry:
             extinf, _ = entry
         else:
-            extinf = '#EXTINF:-1 tvg-id="jra.official" tvg-name="GCH無料版A（YouTube）" group-title="競馬",GCH無料版A（YouTube）'
+            extinf = '#EXTINF:-1 tvg-id="jra.official" tvg-name="GCH無料版A（YouTube）" group-title="今日の開催場",GCH無料版A（YouTube）'
         entry = (extinf, title_url)
 
     if entry:
@@ -125,9 +125,9 @@ def main():
         if legacy.search(base):
             base = legacy.sub(block, base, count=1)
         else:
-            race_header = '## 競馬\n'
-            if race_header in base:
-                base = base.replace(race_header, race_header + '\n' + block, 1)
+            today_jra_end = '# === TODAY_JRA_END ==='
+            if today_jra_end in base:
+                base = base.replace(today_jra_end, block + today_jra_end, 1)
             else:
                 base = base.rstrip() + '\n\n' + block
         print('GCH free YouTube LIVE installed')
