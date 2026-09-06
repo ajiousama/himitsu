@@ -24,7 +24,7 @@ except Exception as e:
 
 BOAT_IMPORT_ERROR = None
 try:
-    import boat_cloud_resolver as boat_cloud
+    import boat_cloud_resolver_fast as boat_cloud
 except Exception as e:
     boat_cloud = None
     BOAT_IMPORT_ERROR = f"{type(e).__name__}: {e}"
@@ -92,7 +92,7 @@ def tun_capability_report() -> str:
 
 
 core.auth = cloud_auth
-core.BUILD = "20260903-radio-tv-preencoded-v15"
+core.BUILD = "20260906-boat-fast-jlc-v1"
 _original_do_get = core.Handler.do_GET
 
 
