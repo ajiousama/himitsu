@@ -1,4 +1,4 @@
-name: Update Kana Tube LIVE
+name: Update Kana Tube LIVE and Schedule
 
 on:
   workflow_dispatch:
@@ -7,9 +7,7 @@ on:
       - 'kana_tube_update.py'
       - '.github/workflows/update_kana_tube.yml'
   schedule:
-    # 14:00 / 21:00 JST
-    - cron: '0 5 * * *'
-    - cron: '0 12 * * *'
+    - cron: '*/15 * * * *'
 
 permissions:
   contents: write
@@ -21,7 +19,7 @@ concurrency:
 jobs:
   update:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -50,7 +48,7 @@ jobs:
             printf '%s' "$YOUTUBE_COOKIES" > youtube_cookies.txt
             chmod 600 youtube_cookies.txt
           fi
-      - name: Refresh Kana tube only
+      - name: Refresh Kana tube reservation or LIVE
         shell: bash
         run: |
           set -euo pipefail
@@ -60,40 +58,19 @@ jobs:
             git fetch origin main
             git reset --hard origin/main
             python kana_tube_update.py
+            python freewifi_youtube_cleanup.py
             test -s kana_tube.m3u
+            test -s general_youtube.m3u
             test -s freewifi
+            test -s kana_tube_status.json
             test "$(grep -c 'tvg-id=\"youtube.kana_tube\"' freewifi || true)" -le 1
-            python - <<'PY'
-          from pathlib import Path
-          target=Path('general_youtube.m3u')
-          source=Path('kana_tube.m3u')
-          lines=(target.read_text(encoding='utf-8-sig',errors='replace') if target.exists() else '#EXTM3U\n').splitlines()
-          out=[]; i=0
-          while i < len(lines):
-              if lines[i].startswith('#EXTINF:') and 'tvg-id="youtube.kana_tube"' in lines[i]:
-                  i += 1
-                  while i < len(lines) and not lines[i].strip(): i += 1
-                  if i < len(lines) and lines[i].strip().startswith(('http://','https://')): i += 1
-                  continue
-              out.append(lines[i]); i += 1
-          base='\n'.join(out).rstrip()+'\n'
-          src=source.read_text(encoding='utf-8-sig',errors='replace').splitlines()
-          for j,line in enumerate(src):
-              if line.startswith('#EXTINF:') and 'tvg-id="youtube.kana_tube"' in line:
-                  k=j+1
-                  while k < len(src) and not src[k].strip(): k += 1
-                  if k < len(src) and src[k].strip().startswith(('http://','https://')):
-                      base=base.rstrip()+'\n\n'+line+'\n'+src[k].strip()+'\n'
-                  break
-          target.write_text(base,encoding='utf-8')
-          PY
             test "$(grep -c 'tvg-id=\"youtube.kana_tube\"' general_youtube.m3u || true)" -le 1
-            git add kana_tube.m3u general_youtube.m3u freewifi
+            git add kana_tube.m3u kana_tube_status.json general_youtube.m3u freewifi
             if git diff --cached --quiet; then
               echo 'Kana tube already current'
               exit 0
             fi
-            git commit -m 'Refresh standalone Kana tube LIVE'
+            git commit -m 'Refresh Kana tube schedule/LIVE'
             if git push origin HEAD:main; then
               echo 'Kana tube published successfully'
               exit 0
