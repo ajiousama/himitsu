@@ -19,6 +19,7 @@ jobs:
         run: |
           from pathlib import Path
           import subprocess
+          import re
 
           p = Path("restore_akariko_haru.py")
           s = p.read_text(encoding="utf-8")
