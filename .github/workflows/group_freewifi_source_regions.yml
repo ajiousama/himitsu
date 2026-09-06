@@ -1,0 +1,58 @@
+name: Group FreeWiFi source regions
+
+on:
+  push:
+    paths:
+      - group_freewifi_sources.py
+      - restore_akariko_haru.py
+      - .github/workflows/group_freewifi_source_regions.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: group-freewifi-source-regions
+  cancel-in-progress: false
+
+jobs:
+  group:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Restore grouped Akariko entries
+        run: python restore_akariko_haru.py
+
+      - name: Group Akariko and Haruka2 by region
+        run: python group_freewifi_sources.py
+
+      - name: Validate playlist
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('freewifi')
+          s = p.read_text(encoding='utf-8')
+          assert s.startswith('#EXTM3U')
+          for g in ('akariko関東', 'akariko関西', 'akarikoBS', 'akarikoCS',
+                    'haruka2 関東', 'haruka2 関西', 'haruka2 BS', 'haruka2 CS'):
+              if g not in s:
+                  print(f'warning: no entries for {g}')
+          PY
+          git diff --check
+
+      - name: Commit FreeWiFi grouping
+        run: |
+          if git diff --quiet -- freewifi; then
+            echo "No freewifi grouping changes"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add freewifi
+          git commit -m "Group Akariko and Haruka2 FreeWiFi channels"
+          git push
