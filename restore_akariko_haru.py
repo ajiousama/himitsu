@@ -34,6 +34,7 @@ CHANNELS = [
     ("TOKYO・MX2_jp", "関東", "TOKYO MX2 (akariko)", "tokyo_mx2", "https://tvguide.myjcom.jp/monomedia/ch_logo/otd/logo-7E87-093-400x400.png"),
 
     # BS
+    ("グリーンチャンネル_jp", "グリーンCh", "グリーンチャンネル (akariko)", "green_channel", "https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/contrast/jp_d11ee186.png"),
     ("BS10_jp", "BS", "BS10 (akariko)", "bs10", "https://tvguide.myjcom.jp/monomedia/ch_logo/bsd/logo-0004-200-400x400.png"),
     ("BS11_jp", "BS", "BS11 (akariko)", "bs11", "https://tvguide.myjcom.jp/monomedia/ch_logo/bsd/logo-0004-211-400x400.png"),
     ("BS12トゥエルビ_jp", "BS", "BS12 トゥエルビ (akariko)", "bs_12", "https://tvguide.myjcom.jp/monomedia/ch_logo/bsd/logo-0004-222-400x400.png"),
@@ -76,6 +77,8 @@ def stream_url(slug: str) -> str:
 
 
 def group_title(group: str) -> str:
+    if group == "グリーンCh":
+        return "グリーンCh"
     return f"akariko{group}"
 
 
