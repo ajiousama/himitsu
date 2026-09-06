@@ -179,3 +179,13 @@ print(
     f"SAFE EPG OK: bytes={out.stat().st_size} channels={channels} programmes={programmes} "
     f"ainan_programmes={ainan_programmes} rakuten={rakuten_counts}"
 )
+
+# Second line of defence for Rakuten R Channel:
+# 1) exact karenda ID (above), 2) Rakuten official schedule payload when exposed,
+# 3) previous committed real EPG while it is still current, 4) visible fallback.
+# Backup failure must never destroy the otherwise-valid merged guide.
+try:
+    import rakuten_epg_backup
+    rakuten_epg_backup.main()
+except Exception as exc:
+    print(f"::warning::Rakuten EPG backup skipped: {type(exc).__name__}: {exc}")
