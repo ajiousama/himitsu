@@ -18,11 +18,12 @@ OLD_HEADER = '## 今日の開催場 / BOAT v2 resolver'
 NEW_HEADER = '## 今日の開催場 / BOAT current-day verified hybrid'
 JST = timezone(timedelta(hours=9))
 RENDER_PREFIX = b.RESOLVER_BASE.rstrip('/') + '/'
+PROBE_DIAGNOSTICS = {}
 
 
 def disable_global_cloud_resolver():
     # Never let boat_v2_build blindly publish the same resolver pattern for all
-    # venues.  We inject only per-venue resolver URLs that passed ?debug=1 with
+    # venues. We inject only per-venue resolver URLs that passed ?debug=1 with
     # playable=true.
     print('BOAT global resolver disabled; per-venue verified fallback only')
     return False, 0
@@ -70,6 +71,37 @@ def iphone_streaks_seed_urls():
     return out
 
 
+def compact_debug(data, http_status):
+    """Keep enough resolver detail to diagnose failures without bloating status."""
+    if not isinstance(data, dict):
+        return {'http_status': http_status, 'parse_error': True}
+    out = {
+        'http_status': http_status,
+        'ok': bool(data.get('ok')),
+        'playable': bool(data.get('playable')),
+        'source': str(data.get('source') or ''),
+    }
+    probe = data.get('probe')
+    if isinstance(probe, dict):
+        out['probe'] = {
+            k: probe.get(k)
+            for k in ('status', 'content_type', 'playlist', 'error')
+            if probe.get(k) not in (None, '')
+        }
+    details = data.get('details')
+    if isinstance(details, dict):
+        compact = {}
+        for key in ('streaks', 'jlc', 'sakura'):
+            value = details.get(key)
+            if isinstance(value, list):
+                compact[key] = [str(x)[:240] for x in value[-4:]]
+            elif value not in (None, '', []):
+                compact[key] = str(value)[:500]
+        if compact:
+            out['details'] = compact
+    return out
+
+
 def probe_verified_resolver(jcd):
     endpoint = f'{RENDER_PREFIX}{jcd}'
     debug = endpoint + '?debug=1'
@@ -90,27 +122,34 @@ def probe_verified_resolver(jcd):
         except Exception:
             raw = b''
     except Exception as e:
-        return '', '', f'{type(e).__name__}:{e}'
+        diag = {'http_status': 0, 'transport_error': f'{type(e).__name__}:{e}'}
+        return '', '', f'{type(e).__name__}:{e}', diag
 
     try:
         data = json.loads(raw.decode('utf-8', 'replace')) if raw else {}
-    except Exception:
+    except Exception as e:
         data = {}
+        diag = {'http_status': status, 'parse_error': f'{type(e).__name__}:{e}', 'body': raw[:300].decode('utf-8', 'replace')}
+        return '', '', f'HTTP {status} invalid debug JSON', diag
+
+    diag = compact_debug(data, status)
     if status == 200 and data.get('ok') is True and data.get('playable') is True:
-        return endpoint, str(data.get('source') or 'resolver'), ''
+        return endpoint, str(data.get('source') or 'resolver'), '', diag
     detail = data.get('probe') or data.get('details') or {}
-    return '', '', f'HTTP {status} playable={data.get("playable")} detail={detail}'
+    return '', '', f'HTTP {status} playable={data.get("playable")} detail={detail}', diag
 
 
 def verified_effective_urls():
     direct = iphone_streaks_seed_urls()
     out = dict(direct)
     day = datetime.now(JST).date()
+    PROBE_DIAGNOSTICS.clear()
 
     try:
         cards = b.cards_from_snapshot(b.fetch_snapshot(day), day)
     except Exception as e:
         print(f'BOAT verified resolver schedule lookup failed: {type(e).__name__}: {e}')
+        PROBE_DIAGNOSTICS['_schedule'] = {'error': f'{type(e).__name__}:{e}'}
         return out
 
     targets = []
@@ -131,9 +170,10 @@ def verified_effective_urls():
             jcd = futures[future]
             name, tvg_id, _logo = b.VENUES[jcd]
             try:
-                endpoint, source, error = future.result()
+                endpoint, source, error, diag = future.result()
             except Exception as e:
-                endpoint, source, error = '', '', f'{type(e).__name__}:{e}'
+                endpoint, source, error, diag = '', '', f'{type(e).__name__}:{e}', {'worker_error': f'{type(e).__name__}:{e}'}
+            PROBE_DIAGNOSTICS[tvg_id] = {'jcd': jcd, 'name': name, **diag}
             if endpoint:
                 out[tvg_id] = endpoint
                 verified += 1
@@ -156,9 +196,10 @@ def normalize_status():
         data['resolver_ready'] = False
         data['resolver_probe_status'] = 0
         data['verified_resolver_base'] = b.RESOLVER_BASE
+        data['resolver_diagnostics'] = PROBE_DIAGNOSTICS
         data.pop('resolver_base', None)
         verified_count = 0
-        for item in (data.get('venues') or {}).values():
+        for tvg_id, item in (data.get('venues') or {}).items():
             url = item.get('url') or ''
             if url.startswith('https://manifest.streaks.jp/'):
                 item['source'] = 'iPhone one-click direct Streaks seed (current JST date)'
@@ -172,6 +213,8 @@ def normalize_status():
                 item.pop('url', None)
                 item.pop('verified_resolver', None)
                 item['source'] = 'current-day direct seed unavailable and resolver not verified playable'
+            if tvg_id in PROBE_DIAGNOSTICS:
+                item['resolver_debug'] = PROBE_DIAGNOSTICS[tvg_id]
         data['verified_resolver_count'] = verified_count
         path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
 
@@ -184,7 +227,7 @@ def normalize_status():
 
 
 def main():
-    # Keep the global resolver path disabled.  b.main receives a synthetic seed
+    # Keep the global resolver path disabled. b.main receives a synthetic seed
     # mapping made of current-day iPhone Streaks URLs plus only resolver routes
     # that were individually checked with ?debug=1 and playable=true.
     b.resolver_ready = disable_global_cloud_resolver
