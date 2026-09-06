@@ -20,6 +20,11 @@ PUBLIC_START = '# === TODAY_PUBLIC_SPORTS_START ==='
 PUBLIC_END = '# === TODAY_PUBLIC_SPORTS_END ==='
 GROUP = '今日の開催場'
 RAW_BASE = 'https://raw.githubusercontent.com/ajiousama/himitsu/main'
+LOGO_PROXY = 'https://images.weserv.nl/?url=raw.githubusercontent.com/ajiousama/himitsu/main'
+
+def venue_png(name):
+    return f'{LOGO_PROXY}/logos/public_sports/venues/{name}&output=png'
+
 JST = timezone(timedelta(hours=9))
 PRESTART_MINUTES = 30
 START_TOLERANCE_SECONDS = 60
@@ -30,30 +35,30 @@ RESOLVER = RESOLVER_BASE + '/{jcd}'
 UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/152 Safari/537.36'
 
 VENUES = {
-    '01': ('桐生', 'boat.kiryu', f'{RAW_BASE}/logos/public_sports/venues/boat_kiryu.svg'),
-    '02': ('戸田', 'boat.toda', f'{RAW_BASE}/logos/public_sports/venues/boat_toda.svg'),
-    '03': ('江戸川', 'boat.edogawa', f'{RAW_BASE}/logos/public_sports/venues/boat_edogawa.svg'),
-    '04': ('平和島', 'boat.heiwajima', f'{RAW_BASE}/logos/public_sports/venues/boat_heiwajima.svg'),
-    '05': ('多摩川', 'boat.tamagawa', f'{RAW_BASE}/logos/public_sports/venues/boat_tamagawa.svg'),
-    '06': ('浜名湖', 'boat.hamanako', f'{RAW_BASE}/logos/public_sports/venues/boat_hamanako.svg'),
-    '07': ('蒲郡', 'boat.gamagori', f'{RAW_BASE}/logos/public_sports/venues/boat_gamagori.svg'),
-    '08': ('常滑', 'boat.tokoname', f'{RAW_BASE}/logos/public_sports/venues/boat_tokoname.svg'),
-    '09': ('津', 'boat.tsu', f'{RAW_BASE}/logos/public_sports/venues/boat_tsu.svg'),
-    '10': ('三国', 'boat.mikuni', f'{RAW_BASE}/logos/public_sports/venues/boat_mikuni.svg'),
-    '11': ('びわこ', 'boat.biwako', f'{RAW_BASE}/logos/public_sports/venues/boat_biwako.svg'),
-    '12': ('住之江', 'boat.suminoe', f'{RAW_BASE}/logos/public_sports/venues/boat_suminoe.svg'),
-    '13': ('尼崎', 'boat.amagasaki', f'{RAW_BASE}/logos/public_sports/venues/boat_amagasaki.svg'),
-    '14': ('鳴門', 'boat.naruto', f'{RAW_BASE}/logos/public_sports/venues/boat_naruto.svg'),
-    '15': ('丸亀', 'boat.marugame', f'{RAW_BASE}/logos/public_sports/venues/boat_marugame.svg'),
-    '16': ('児島', 'boat.kojima', f'{RAW_BASE}/logos/public_sports/venues/boat_kojima.svg'),
-    '17': ('宮島', 'boat.miyajima', f'{RAW_BASE}/logos/public_sports/venues/boat_miyajima.svg'),
-    '18': ('徳山', 'boat.tokuyama', f'{RAW_BASE}/logos/public_sports/venues/boat_tokuyama.svg'),
-    '19': ('下関', 'boat.shimonoseki', f'{RAW_BASE}/logos/public_sports/venues/boat_shimonoseki.svg'),
-    '20': ('若松', 'boat.wakamatsu', f'{RAW_BASE}/logos/public_sports/venues/boat_wakamatsu.svg'),
-    '21': ('芦屋', 'boat.ashiya', f'{RAW_BASE}/logos/public_sports/venues/boat_ashiya.svg'),
-    '22': ('福岡', 'boat.fukuoka', f'{RAW_BASE}/logos/public_sports/venues/boat_fukuoka.svg'),
-    '23': ('唐津', 'boat.karatsu', f'{RAW_BASE}/logos/public_sports/venues/boat_karatsu.svg'),
-    '24': ('大村', 'boat.omura', f'{RAW_BASE}/logos/public_sports/venues/boat_omura.svg'),
+    '01': ('桐生', 'boat.kiryu', venue_png('boat_kiryu.svg')),
+    '02': ('戸田', 'boat.toda', venue_png('boat_toda.svg')),
+    '03': ('江戸川', 'boat.edogawa', venue_png('boat_edogawa.svg')),
+    '04': ('平和島', 'boat.heiwajima', venue_png('boat_heiwajima.svg')),
+    '05': ('多摩川', 'boat.tamagawa', venue_png('boat_tamagawa.svg')),
+    '06': ('浜名湖', 'boat.hamanako', venue_png('boat_hamanako.svg')),
+    '07': ('蒲郡', 'boat.gamagori', venue_png('boat_gamagori.svg')),
+    '08': ('常滑', 'boat.tokoname', venue_png('boat_tokoname.svg')),
+    '09': ('津', 'boat.tsu', venue_png('boat_tsu.svg')),
+    '10': ('三国', 'boat.mikuni', venue_png('boat_mikuni.svg')),
+    '11': ('びわこ', 'boat.biwako', venue_png('boat_biwako.svg')),
+    '12': ('住之江', 'boat.suminoe', venue_png('boat_suminoe.svg')),
+    '13': ('尼崎', 'boat.amagasaki', venue_png('boat_amagasaki.svg')),
+    '14': ('鳴門', 'boat.naruto', venue_png('boat_naruto.svg')),
+    '15': ('丸亀', 'boat.marugame', venue_png('boat_marugame.svg')),
+    '16': ('児島', 'boat.kojima', venue_png('boat_kojima.svg')),
+    '17': ('宮島', 'boat.miyajima', venue_png('boat_miyajima.svg')),
+    '18': ('徳山', 'boat.tokuyama', venue_png('boat_tokuyama.svg')),
+    '19': ('下関', 'boat.shimonoseki', venue_png('boat_shimonoseki.svg')),
+    '20': ('若松', 'boat.wakamatsu', venue_png('boat_wakamatsu.svg')),
+    '21': ('芦屋', 'boat.ashiya', venue_png('boat_ashiya.svg')),
+    '22': ('福岡', 'boat.fukuoka', venue_png('boat_fukuoka.svg')),
+    '23': ('唐津', 'boat.karatsu', venue_png('boat_karatsu.svg')),
+    '24': ('大村', 'boat.omura', venue_png('boat_omura.svg')),
 }
 
 
