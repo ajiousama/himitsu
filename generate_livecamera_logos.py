@@ -229,6 +229,59 @@ def patch_source_files():
         print(path, 'canonical yt43 logo mappings:', changed)
 
 
+
+def render_ehime_catv_ainan():
+    outdir = Path('logos/ehime_catv')
+    outdir.mkdir(parents=True, exist_ok=True)
+    size = 512
+    img = Image.new('RGB', (size, size), 'white')
+    d = ImageDraw.Draw(img)
+
+    # Outer card
+    d.rounded_rectangle((14, 14, 498, 498), radius=58, fill='white', outline=(30,30,34), width=14)
+
+    # Red live-camera field
+    d.rounded_rectangle((40, 40, 472, 285), radius=36, fill=(233, 52, 61))
+    # subtle gradient bands
+    for y in range(55, 270):
+        r = 233 + int((246-233)*(y-55)/215)
+        g = 52 + int((85-52)*(y-55)/215)
+        b = 61 + int((92-61)*(y-55)/215)
+        d.line((55, y, 457, y), fill=(min(255,r), min(255,g), min(255,b)))
+
+    # White sea / sun pictogram
+    d.ellipse((188, 82, 324, 218), fill='white')
+    d.ellipse((250, 105, 292, 147), fill=(233, 52, 61))
+    d.pieslice((205, 145, 307, 242), 190, 350, fill=(233, 52, 61))
+    d.arc((204, 158, 308, 245), 190, 350, fill='white', width=10)
+    d.arc((212, 172, 300, 250), 192, 348, fill='white', width=8)
+    d.arc((224, 188, 290, 251), 195, 345, fill='white', width=7)
+
+    # Japanese title
+    title_font = fit_font(d, '愛南', 260, 102, 72)
+    box = d.textbbox((0,0), '愛南', font=title_font)
+    tx = (size - (box[2]-box[0]))/2 - box[0]
+    d.text((tx, 292 - box[1]), '愛南', font=title_font, fill=(45,45,50))
+
+    sub_font = fit_font(d, 'ライブカメラ', 360, 56, 38)
+    box = d.textbbox((0,0), 'ライブカメラ', font=sub_font)
+    sx = (size - (box[2]-box[0]))/2 - box[0]
+    d.text((sx, 390 - box[1]), 'ライブカメラ', font=sub_font, fill=(54,54,58))
+
+    # Ehime CATV mark + text
+    green=(58,170,85)
+    d.rounded_rectangle((76, 436, 154, 484), radius=18, fill=green)
+    efont=fit_font(d,'e',58,44,36)
+    eb=d.textbbox((0,0),'e',font=efont)
+    d.text((114-(eb[2]-eb[0])/2-eb[0], 441-eb[1]), 'e', font=efont, fill='white')
+    catv_font=fit_font(d,'愛媛CATV',260,38,28)
+    d.text((172, 446), '愛媛CATV', font=catv_font, fill=green)
+
+    for name in ('14_ainan_livecam.png','14_ainan_livecam_v2.png'):
+        img.save(outdir / name, 'PNG', optimize=True)
+        print('generated', outdir / name)
+
+
 def main():
     sources = load_sources()
     pending = []
@@ -254,6 +307,7 @@ def main():
         render_logo(filename, title, group, legacy, thumbs.get(tvg))
 
     patch_source_files()
+    render_ehime_catv_ainan()
 
 
 if __name__ == '__main__':
