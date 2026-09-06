@@ -1,6 +1,6 @@
 {
   "system": "boat-v2-iphone-seed",
-  "generated_at": "2026-09-07T00:59:05.723157+09:00",
+  "generated_at": "2026-09-07T01:19:52.126185+09:00",
   "date": "2026-09-07",
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/",
   "resolver_ready": false,
@@ -449,17 +449,15 @@
         "playlist": true
       }
     },
-    "boat.tsu": {
-      "jcd": "09",
-      "name": "津",
-      "http_status": 200,
+    "boat.kiryu": {
+      "jcd": "01",
+      "name": "桐生",
+      "http_status": 503,
       "ok": true,
-      "playable": true,
+      "playable": false,
       "source": "boat_stream_seed.m3u",
       "probe": {
-        "status": 200,
-        "content_type": "application/x-mpegURL",
-        "playlist": true
+        "error": "HTTPError:404"
       }
     },
     "boat.gamagori": {
@@ -473,20 +471,35 @@
         "error": "HTTPError:404"
       }
     },
-    "boat.kiryu": {
-      "jcd": "01",
-      "name": "桐生",
-      "http_status": 503,
-      "ok": true,
-      "playable": false,
-      "source": "boat_stream_seed.m3u",
-      "probe": {
-        "error": "HTTPError:404"
-      }
-    },
     "boat.mikuni": {
       "jcd": "10",
       "name": "三国",
+      "http_status": 200,
+      "ok": true,
+      "playable": true,
+      "source": "boat_stream_seed.m3u",
+      "probe": {
+        "status": 200,
+        "content_type": "application/x-mpegURL",
+        "playlist": true
+      }
+    },
+    "boat.tsu": {
+      "jcd": "09",
+      "name": "津",
+      "http_status": 200,
+      "ok": true,
+      "playable": true,
+      "source": "boat_stream_seed.m3u",
+      "probe": {
+        "status": 200,
+        "content_type": "application/x-mpegURL",
+        "playlist": true
+      }
+    },
+    "boat.naruto": {
+      "jcd": "14",
+      "name": "鳴門",
       "http_status": 200,
       "ok": true,
       "playable": true,
@@ -513,19 +526,6 @@
     "boat.fukuoka": {
       "jcd": "22",
       "name": "福岡",
-      "http_status": 200,
-      "ok": true,
-      "playable": true,
-      "source": "boat_stream_seed.m3u",
-      "probe": {
-        "status": 200,
-        "content_type": "application/x-mpegURL",
-        "playlist": true
-      }
-    },
-    "boat.naruto": {
-      "jcd": "14",
-      "name": "鳴門",
       "http_status": 200,
       "ok": true,
       "playable": true,
