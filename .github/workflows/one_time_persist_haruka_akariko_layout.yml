@@ -1,0 +1,171 @@
+name: One-time persist Haruka Akariko layout
+
+on:
+  push:
+    paths:
+      - ".github/workflows/one_time_persist_haruka_akariko_layout.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Patch restorer and rebuild playlist
+        shell: python
+        run: |
+          from pathlib import Path
+          import subprocess
+
+          p = Path("restore_akariko_haru.py")
+          s = p.read_text(encoding="utf-8")
+
+          if "import re\n" not in s:
+              s = s.replace("from pathlib import Path\n", "from pathlib import Path\nimport re\nimport unicodedata\n", 1)
+          s = s.replace('BASE = "http://haru.charandom.blog/stream/jp/"', 'BASE = "https://haru.charandom.blog/stream/jp/"')
+
+          helper = r'''
+
+def _tvg_id(block: str):
+    m = re.search(r'tvg-id="([^"]+)"', block)
+    return m.group(1) if m else None
+
+
+def _display_name(block: str) -> str:
+    if ',' not in block:
+        return ''
+    name = block.split(',', 1)[1].splitlines()[0]
+    name = re.sub(r'\s*\((?:haruka|akariko)\)\s*$', '', name, flags=re.I)
+    name = unicodedata.normalize('NFKC', name)
+    return re.sub(r'\s+', '', name).lower()
+
+
+def _parse_akariko_managed(body: str) -> list[str]:
+    lines = [x for x in body.splitlines() if x.strip()]
+    entries = []
+    i = 0
+    while i < len(lines):
+        if lines[i].startswith('#EXTINF:') and i + 1 < len(lines) and not lines[i + 1].lstrip().startswith('#'):
+            entries.append(lines[i] + '\n' + lines[i + 1])
+            i += 2
+        else:
+            i += 1
+    return entries
+
+
+def normalize_layout(text: str) -> str:
+    text = text.replace('http://haru.charandom.blog/', 'https://haru.charandom.blog/')
+
+    start_pos = text.find(START)
+    end_pos = text.find(END)
+    managed_entries = []
+    if start_pos >= 0 and end_pos > start_pos:
+        managed_body = text[start_pos + len(START):end_pos]
+        managed_entries = _parse_akariko_managed(managed_body)
+        base = (text[:start_pos] + text[end_pos + len(END):]).strip()
+    else:
+        base = text.strip()
+
+    by_id = {}
+    by_name = {}
+    remaining = list(managed_entries)
+    for entry in managed_entries:
+        tid = _tvg_id(entry)
+        if tid:
+            by_id.setdefault(tid, []).append(entry)
+        nm = _display_name(entry)
+        if nm:
+            by_name.setdefault(nm, []).append(entry)
+
+    def take_match(block: str):
+        candidates = []
+        tid = _tvg_id(block)
+        if tid:
+            candidates.extend(by_id.get(tid, []))
+        nm = _display_name(block)
+        if nm:
+            candidates.extend(by_name.get(nm, []))
+        for entry in candidates:
+            if entry in remaining:
+                remaining.remove(entry)
+                return entry
+        return None
+
+    blocks = re.split(r'\n\s*\n', base)
+    out = []
+    for block in blocks:
+        if block.startswith('#EXTINF:') and (
+            'group-title="haruka1 ' in block or
+            'group-title="haruka3 ' in block or
+            'ハルカ1' in block or
+            'ハルカ3' in block
+        ):
+            continue
+
+        block = block.replace('group-title="haruka2 ', 'group-title="haruka ')
+        block = block.replace('ハルカ2', 'haruka')
+        out.append(block)
+
+        if block.startswith('#EXTINF:') and 'group-title="haruka ' in block:
+            match = take_match(block)
+            if match:
+                out.append(match)
+
+    if remaining:
+        out.append('\n'.join([START, *remaining, END]))
+
+    result = '\n\n'.join(x for x in out if x.strip()).rstrip() + '\n'
+    forbidden = [
+        'group-title="haruka1 ', 'group-title="haruka2 ', 'group-title="haruka3 ',
+        'ハルカ1', 'ハルカ2', 'ハルカ3', 'http://haru.charandom.blog/'
+    ]
+    bad = [x for x in forbidden if x in result]
+    if bad:
+        raise RuntimeError(f'layout validation failed: {bad}')
+    return result
+'''
+
+          if "def normalize_layout(text: str) -> str:" not in s:
+              needle = "\ndef main() -> None:\n"
+              if needle not in s:
+                  raise RuntimeError("main insertion point not found")
+              s = s.replace(needle, helper + needle, 1)
+
+          old = '    out = "\\n".join(lines).rstrip() + "\\n"\n'
+          new = '    out = normalize_layout("\\n".join(lines).rstrip() + "\\n")\n'
+          if old in s:
+              s = s.replace(old, new, 1)
+          elif new not in s:
+              raise RuntimeError("normalize output hook missing")
+
+          p.write_text(s, encoding="utf-8")
+          subprocess.run(["python", "restore_akariko_haru.py"], check=True)
+
+          freewifi = Path("freewifi").read_text(encoding="utf-8")
+          assert 'group-title="haruka1 ' not in freewifi
+          assert 'group-title="haruka2 ' not in freewifi
+          assert 'group-title="haruka3 ' not in freewifi
+          assert 'ハルカ1' not in freewifi and 'ハルカ2' not in freewifi and 'ハルカ3' not in freewifi
+          assert 'http://haru.charandom.blog/' not in freewifi
+          assert 'https://haru.charandom.blog/' in freewifi
+          assert re.search(r'NHK G \(haruka\)\nhttp://haruka-ipip\.f5\.si:9394/stream/14\.m3u8\n\n#EXTINF:[^\n]*NHK G \(akariko\)\nhttps://haru\.charandom\.blog/stream/jp/nhk_g/stream-output\.m3u8\?mode=hls', freewifi)
+
+      - name: Commit persistent layout
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add restore_akariko_haru.py freewifi
+          if ! git diff --cached --quiet; then
+            git commit -m "Persist Haruka cleanup and Akariko ordering"
+            git push
+          fi
+
+      - name: Remove one-time workflow
+        run: |
+          git pull --rebase
+          git rm .github/workflows/one_time_persist_haruka_akariko_layout.yml
+          git commit -m "Remove one-time persistent layout workflow"
+          git push
