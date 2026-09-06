@@ -9,6 +9,7 @@ on:
       - 'general_youtube_sources.json'
       - 'general_youtube_sources_ports.json'
       - 'general_youtube_sources_airports.json'
+      - 'logos/ehime_catv/**'
       - '.github/workflows/update_livecamera_logos.yml'
 
 permissions:
@@ -84,7 +85,7 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -A logos/youtube general_youtube_sources.json general_youtube_sources_ports.json general_youtube_sources_airports.json general_youtube.m3u freewifi
+          git add -A logos/youtube logos/ehime_catv general_youtube_sources.json general_youtube_sources_ports.json general_youtube_sources_airports.json general_youtube.m3u freewifi
           if git diff --cached --quiet; then
             echo 'No logo changes'
             exit 0
