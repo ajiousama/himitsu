@@ -1,7 +1,8 @@
 from pathlib import Path
+from normalize_haruka_akariko import normalize_layout
 
 FREEWIFI = Path("freewifi")
-BASE = "http://haru.charandom.blog/stream/jp/"
+BASE = "https://haru.charandom.blog/stream/jp/"
 START = "# === AKARIKO_HARU_MANAGED_START ==="
 END = "# === AKARIKO_HARU_MANAGED_END ==="
 
@@ -127,7 +128,7 @@ def main() -> None:
         lines.append(stream_url(slug))
     lines.append(END)
 
-    out = "\n".join(lines).rstrip() + "\n"
+    out = normalize_layout("\n".join(lines).rstrip() + "\n")
 
     expected = len(CHANNELS)
     actual_labels = out.lower().count("(akariko)")
