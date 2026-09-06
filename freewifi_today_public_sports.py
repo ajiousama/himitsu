@@ -19,6 +19,32 @@ LOGO_PROXY = 'https://images.weserv.nl/?url=raw.githubusercontent.com/ajiousama/
 def venue_png(name):
     return f'{LOGO_PROXY}/logos/public_sports/venues/{name}&output=png'
 
+    'auto.kawaguchi': f'{RAW_BASE}/logos/public_sports/venues/autorace_kawaguchi.png',
+    'auto.isesaki': f'{RAW_BASE}/logos/public_sports/venues/autorace_isesaki.png',
+    'auto.hamamatsu': f'{RAW_BASE}/logos/public_sports/venues/autorace_hamamatsu.png',
+    'auto.sanyo': f'{RAW_BASE}/logos/public_sports/venues/autorace_sanyo.png',
+    'auto.iizuka': f'{RAW_BASE}/logos/public_sports/venues/autorace_iizuka.png',
+rom pathlib import Path
+from datetime import datetime, timezone, timedelta, time
+import json
+import re
+import xml.etree.ElementTree as ET
+
+import repair_boat_local_epg_openapi
+
+FREEWIFI = Path('freewifi')
+STATUS_JSON = Path('today_public_sports_status.json')
+PUBLIC_M3U = Path('ganble')
+PUBLIC_EPG = Path('public_sports_epg_local.xml')
+START = '# === TODAY_PUBLIC_SPORTS_START ==='
+END = '# === TODAY_PUBLIC_SPORTS_END ==='
+GROUP = '今日の開催場'
+RAW_BASE = 'https://raw.githubusercontent.com/ajiousama/himitsu/main'
+LOGO_PROXY = 'https://images.weserv.nl/?url=raw.githubusercontent.com/ajiousama/himitsu/main'
+
+def venue_png(name):
+    return f'{LOGO_PROXY}/logos/public_sports/venues/{name}&output=png'
+
 LOCAL_LOGOS = {
     'chihou.obihiro': f'{RAW_BASE}/logos/public_sports/venues/localrace_obihiro.png',
     'chihou.mombetsu': f'{RAW_BASE}/logos/public_sports/venues/localrace_mombetsu.png',
