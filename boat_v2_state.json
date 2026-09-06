@@ -1,6 +1,6 @@
 {
   "system": "boat-v2-iphone-seed",
-  "generated_at": "2026-09-07T04:33:47.300580+09:00",
+  "generated_at": "2026-09-07T05:12:00.896201+09:00",
   "date": "2026-09-07",
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/",
   "resolver_ready": false,
@@ -10,7 +10,7 @@
   "grace_minutes": 30,
   "card_count": 12,
   "held_count": 0,
-  "visible_count": 7,
+  "visible_count": 0,
   "active_window": [],
   "scheduled_waiting": [
     "桐生",
@@ -51,9 +51,18 @@
         "http_status": 503,
         "ok": true,
         "playable": false,
-        "source": "boat_stream_seed.m3u",
+        "source": "public_sports_youtube_fallback.m3u",
         "probe": {
-          "error": "HTTPError:404"
+          "error": "HTTPError:403"
+        },
+        "details": {
+          "streaks": [
+            "HTTPError:404"
+          ],
+          "jlc": [],
+          "sakura": [
+            "sakura-fast:root:TimeoutError:The read operation timed out"
+          ]
         }
       }
     },
@@ -61,7 +70,7 @@
       "jcd": "03",
       "name": "江戸川",
       "held": true,
-      "visible": true,
+      "visible": false,
       "first_race": "11:14",
       "show_from": "2026-09-07T10:44:00+09:00",
       "last_race": "16:25",
@@ -73,20 +82,22 @@
       },
       "scheduled": true,
       "stream_window": "epg_ready",
-      "url": "https://ajiousama-radiko.onrender.com/boat/03",
-      "source": "verified Render BOAT resolver (debug playable=true)",
-      "verified_resolver": true,
+      "source": "current-day direct seed unavailable and resolver not verified playable",
       "resolver_debug": {
         "jcd": "03",
         "name": "江戸川",
-        "http_status": 200,
-        "ok": true,
-        "playable": true,
-        "source": "boat_stream_seed.m3u",
-        "probe": {
-          "status": 200,
-          "content_type": "application/x-mpegURL",
-          "playlist": true
+        "http_status": 503,
+        "ok": false,
+        "playable": false,
+        "source": "",
+        "details": {
+          "streaks": [
+            "HTTPError:404"
+          ],
+          "jlc": [],
+          "sakura": [
+            "sakura-fast:child-deadline"
+          ]
         }
       }
     },
@@ -94,7 +105,7 @@
       "jcd": "04",
       "name": "平和島",
       "held": true,
-      "visible": true,
+      "visible": false,
       "first_race": "10:55",
       "show_from": "2026-09-07T10:25:00+09:00",
       "last_race": "16:38",
@@ -106,20 +117,22 @@
       },
       "scheduled": true,
       "stream_window": "epg_ready",
-      "url": "https://ajiousama-radiko.onrender.com/boat/04",
-      "source": "verified Render BOAT resolver (debug playable=true)",
-      "verified_resolver": true,
+      "source": "current-day direct seed unavailable and resolver not verified playable",
       "resolver_debug": {
         "jcd": "04",
         "name": "平和島",
-        "http_status": 200,
-        "ok": true,
-        "playable": true,
-        "source": "boat_stream_seed.m3u",
-        "probe": {
-          "status": 200,
-          "content_type": "application/x-mpegURL",
-          "playlist": true
+        "http_status": 503,
+        "ok": false,
+        "playable": false,
+        "source": "",
+        "details": {
+          "streaks": [
+            "HTTPError:404"
+          ],
+          "jlc": [
+            "jlc-fast:root:HTTPError:404"
+          ],
+          "sakura": []
         }
       }
     },
@@ -144,11 +157,17 @@
         "jcd": "07",
         "name": "蒲郡",
         "http_status": 503,
-        "ok": true,
+        "ok": false,
         "playable": false,
-        "source": "boat_stream_seed.m3u",
-        "probe": {
-          "error": "HTTPError:404"
+        "source": "",
+        "details": {
+          "streaks": [
+            "HTTPError:404"
+          ],
+          "jlc": [
+            "jlc-fast:root:HTTPError:404"
+          ],
+          "sakura": []
         }
       }
     },
@@ -156,7 +175,7 @@
       "jcd": "09",
       "name": "津",
       "held": true,
-      "visible": true,
+      "visible": false,
       "first_race": "10:42",
       "show_from": "2026-09-07T10:12:00+09:00",
       "last_race": "16:35",
@@ -168,20 +187,20 @@
       },
       "scheduled": true,
       "stream_window": "epg_ready",
-      "url": "https://ajiousama-radiko.onrender.com/boat/09",
-      "source": "verified Render BOAT resolver (debug playable=true)",
-      "verified_resolver": true,
+      "source": "current-day direct seed unavailable and resolver not verified playable",
       "resolver_debug": {
         "jcd": "09",
         "name": "津",
-        "http_status": 200,
-        "ok": true,
-        "playable": true,
-        "source": "boat_stream_seed.m3u",
-        "probe": {
-          "status": 200,
-          "content_type": "application/x-mpegURL",
-          "playlist": true
+        "http_status": 503,
+        "ok": false,
+        "playable": false,
+        "source": "",
+        "details": {
+          "streaks": [
+            "HTTPError:404"
+          ],
+          "jlc": [],
+          "sakura": []
         }
       }
     },
@@ -189,7 +208,7 @@
       "jcd": "10",
       "name": "三国",
       "held": true,
-      "visible": true,
+      "visible": false,
       "first_race": "08:32",
       "show_from": "2026-09-07T08:02:00+09:00",
       "last_race": "14:11",
@@ -201,20 +220,20 @@
       },
       "scheduled": true,
       "stream_window": "epg_ready",
-      "url": "https://ajiousama-radiko.onrender.com/boat/10",
-      "source": "verified Render BOAT resolver (debug playable=true)",
-      "verified_resolver": true,
+      "source": "current-day direct seed unavailable and resolver not verified playable",
       "resolver_debug": {
         "jcd": "10",
         "name": "三国",
-        "http_status": 200,
-        "ok": true,
-        "playable": true,
-        "source": "boat_stream_seed.m3u",
-        "probe": {
-          "status": 200,
-          "content_type": "application/x-mpegURL",
-          "playlist": true
+        "http_status": 503,
+        "ok": false,
+        "playable": false,
+        "source": "",
+        "details": {
+          "streaks": [
+            "HTTPError:404"
+          ],
+          "jlc": [],
+          "sakura": []
         }
       }
     },
@@ -222,7 +241,7 @@
       "jcd": "11",
       "name": "びわこ",
       "held": true,
-      "visible": true,
+      "visible": false,
       "first_race": "10:35",
       "show_from": "2026-09-07T10:05:00+09:00",
       "last_race": "16:29",
@@ -234,20 +253,20 @@
       },
       "scheduled": true,
       "stream_window": "epg_ready",
-      "url": "https://ajiousama-radiko.onrender.com/boat/11",
-      "source": "verified Render BOAT resolver (debug playable=true)",
-      "verified_resolver": true,
+      "source": "current-day direct seed unavailable and resolver not verified playable",
       "resolver_debug": {
         "jcd": "11",
         "name": "びわこ",
-        "http_status": 200,
-        "ok": true,
-        "playable": true,
-        "source": "boat_stream_seed.m3u",
-        "probe": {
-          "status": 200,
-          "content_type": "application/x-mpegURL",
-          "playlist": true
+        "http_status": 503,
+        "ok": false,
+        "playable": false,
+        "source": "",
+        "details": {
+          "streaks": [
+            "HTTPError:404"
+          ],
+          "jlc": [],
+          "sakura": []
         }
       }
     },
@@ -288,7 +307,7 @@
       "jcd": "14",
       "name": "鳴門",
       "held": true,
-      "visible": true,
+      "visible": false,
       "first_race": "08:44",
       "show_from": "2026-09-07T08:14:00+09:00",
       "last_race": "14:28",
@@ -300,20 +319,20 @@
       },
       "scheduled": true,
       "stream_window": "epg_ready",
-      "url": "https://ajiousama-radiko.onrender.com/boat/14",
-      "source": "verified Render BOAT resolver (debug playable=true)",
-      "verified_resolver": true,
+      "source": "current-day direct seed unavailable and resolver not verified playable",
       "resolver_debug": {
         "jcd": "14",
         "name": "鳴門",
-        "http_status": 200,
-        "ok": true,
-        "playable": true,
-        "source": "boat_stream_seed.m3u",
-        "probe": {
-          "status": 200,
-          "content_type": "application/x-mpegURL",
-          "playlist": true
+        "http_status": 503,
+        "ok": false,
+        "playable": false,
+        "source": "",
+        "details": {
+          "streaks": [
+            "HTTPError:404"
+          ],
+          "jlc": [],
+          "sakura": []
         }
       }
     },
@@ -356,7 +375,7 @@
       "jcd": "22",
       "name": "福岡",
       "held": true,
-      "visible": true,
+      "visible": false,
       "first_race": "11:47",
       "show_from": "2026-09-07T11:17:00+09:00",
       "last_race": "17:25",
@@ -368,20 +387,20 @@
       },
       "scheduled": true,
       "stream_window": "epg_ready",
-      "url": "https://ajiousama-radiko.onrender.com/boat/22",
-      "source": "verified Render BOAT resolver (debug playable=true)",
-      "verified_resolver": true,
+      "source": "current-day direct seed unavailable and resolver not verified playable",
       "resolver_debug": {
         "jcd": "22",
         "name": "福岡",
-        "http_status": 200,
-        "ok": true,
-        "playable": true,
-        "source": "boat_stream_seed.m3u",
-        "probe": {
-          "status": 200,
-          "content_type": "application/x-mpegURL",
-          "playlist": true
+        "http_status": 503,
+        "ok": false,
+        "playable": false,
+        "source": "",
+        "details": {
+          "streaks": [
+            "HTTPError:404"
+          ],
+          "jlc": [],
+          "sakura": []
         }
       }
     },
@@ -423,67 +442,38 @@
   "seed_freshness_rule": "JWT start date must equal current JST date",
   "verified_resolver_base": "https://ajiousama-radiko.onrender.com/boat",
   "resolver_diagnostics": {
-    "boat.edogawa": {
-      "jcd": "03",
-      "name": "江戸川",
-      "http_status": 200,
-      "ok": true,
-      "playable": true,
-      "source": "boat_stream_seed.m3u",
-      "probe": {
-        "status": 200,
-        "content_type": "application/x-mpegURL",
-        "playlist": true
+    "boat.gamagori": {
+      "jcd": "07",
+      "name": "蒲郡",
+      "http_status": 503,
+      "ok": false,
+      "playable": false,
+      "source": "",
+      "details": {
+        "streaks": [
+          "HTTPError:404"
+        ],
+        "jlc": [
+          "jlc-fast:root:HTTPError:404"
+        ],
+        "sakura": []
       }
     },
     "boat.heiwajima": {
       "jcd": "04",
       "name": "平和島",
-      "http_status": 200,
-      "ok": true,
-      "playable": true,
-      "source": "boat_stream_seed.m3u",
-      "probe": {
-        "status": 200,
-        "content_type": "application/x-mpegURL",
-        "playlist": true
-      }
-    },
-    "boat.mikuni": {
-      "jcd": "10",
-      "name": "三国",
-      "http_status": 200,
-      "ok": true,
-      "playable": true,
-      "source": "boat_stream_seed.m3u",
-      "probe": {
-        "status": 200,
-        "content_type": "application/x-mpegURL",
-        "playlist": true
-      }
-    },
-    "boat.tsu": {
-      "jcd": "09",
-      "name": "津",
-      "http_status": 200,
-      "ok": true,
-      "playable": true,
-      "source": "boat_stream_seed.m3u",
-      "probe": {
-        "status": 200,
-        "content_type": "application/x-mpegURL",
-        "playlist": true
-      }
-    },
-    "boat.gamagori": {
-      "jcd": "07",
-      "name": "蒲郡",
       "http_status": 503,
-      "ok": true,
+      "ok": false,
       "playable": false,
-      "source": "boat_stream_seed.m3u",
-      "probe": {
-        "error": "HTTPError:404"
+      "source": "",
+      "details": {
+        "streaks": [
+          "HTTPError:404"
+        ],
+        "jlc": [
+          "jlc-fast:root:HTTPError:404"
+        ],
+        "sakura": []
       }
     },
     "boat.kiryu": {
@@ -492,48 +482,95 @@
       "http_status": 503,
       "ok": true,
       "playable": false,
-      "source": "boat_stream_seed.m3u",
+      "source": "public_sports_youtube_fallback.m3u",
       "probe": {
-        "error": "HTTPError:404"
+        "error": "HTTPError:403"
+      },
+      "details": {
+        "streaks": [
+          "HTTPError:404"
+        ],
+        "jlc": [],
+        "sakura": [
+          "sakura-fast:root:TimeoutError:The read operation timed out"
+        ]
+      }
+    },
+    "boat.edogawa": {
+      "jcd": "03",
+      "name": "江戸川",
+      "http_status": 503,
+      "ok": false,
+      "playable": false,
+      "source": "",
+      "details": {
+        "streaks": [
+          "HTTPError:404"
+        ],
+        "jlc": [],
+        "sakura": [
+          "sakura-fast:child-deadline"
+        ]
+      }
+    },
+    "boat.amagasaki": {
+      "jcd": "13",
+      "name": "尼崎",
+      "http_status": 503,
+      "ok": false,
+      "playable": false,
+      "source": "",
+      "details": {
+        "streaks": [
+          "HTTPError:404"
+        ],
+        "jlc": [],
+        "sakura": []
+      }
+    },
+    "boat.tsu": {
+      "jcd": "09",
+      "name": "津",
+      "http_status": 503,
+      "ok": false,
+      "playable": false,
+      "source": "",
+      "details": {
+        "streaks": [
+          "HTTPError:404"
+        ],
+        "jlc": [],
+        "sakura": []
+      }
+    },
+    "boat.mikuni": {
+      "jcd": "10",
+      "name": "三国",
+      "http_status": 503,
+      "ok": false,
+      "playable": false,
+      "source": "",
+      "details": {
+        "streaks": [
+          "HTTPError:404"
+        ],
+        "jlc": [],
+        "sakura": []
       }
     },
     "boat.biwako": {
       "jcd": "11",
       "name": "びわこ",
-      "http_status": 200,
-      "ok": true,
-      "playable": true,
-      "source": "boat_stream_seed.m3u",
-      "probe": {
-        "status": 200,
-        "content_type": "application/x-mpegURL",
-        "playlist": true
-      }
-    },
-    "boat.naruto": {
-      "jcd": "14",
-      "name": "鳴門",
-      "http_status": 200,
-      "ok": true,
-      "playable": true,
-      "source": "boat_stream_seed.m3u",
-      "probe": {
-        "status": 200,
-        "content_type": "application/x-mpegURL",
-        "playlist": true
-      }
-    },
-    "boat.fukuoka": {
-      "jcd": "22",
-      "name": "福岡",
-      "http_status": 200,
-      "ok": true,
-      "playable": true,
-      "source": "boat_stream_seed.m3u",
-      "probe": {
-        "status": 200,
-        "content_type": "application/x-mpegURL",
-        "playlist": true
+      "http_status": 503,
+      "ok": false,
+      "playable": false,
+      "source": "",
+      "details": {
+        "streaks": [
+          "HTTPError:404"
+        ],
+        "jlc": [],
+        "sakura": []
       }
     },
     "boat.kojima": {
@@ -553,9 +590,9 @@
         "sakura": []
       }
     },
-    "boat.amagasaki": {
-      "jcd": "13",
-      "name": "尼崎",
+    "boat.naruto": {
+      "jcd": "14",
+      "name": "鳴門",
       "http_status": 503,
       "ok": false,
       "playable": false,
@@ -582,7 +619,22 @@
         "jlc": [],
         "sakura": []
       }
+    },
+    "boat.fukuoka": {
+      "jcd": "22",
+      "name": "福岡",
+      "http_status": 503,
+      "ok": false,
+      "playable": false,
+      "source": "",
+      "details": {
+        "streaks": [
+          "HTTPError:404"
+        ],
+        "jlc": [],
+        "sakura": []
+      }
     }
   },
-  "verified_resolver_count": 7
+  "verified_resolver_count": 0
 }
