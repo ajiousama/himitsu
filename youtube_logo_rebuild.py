@@ -60,6 +60,50 @@ def play_badge(draw,x,y,s):
     tri=[(x+s*.40,y+s*.28),(x+s*.40,y+s*.72),(x+s*.72,y+s*.50)]
     draw.polygon(tri,fill=(255,255,255,255))
 
+def scene_icon(draw,cat,cx,cy,s,accent,title=''):
+    # Illustration-first icon set used by the adopted Library YouTube logo catalog.
+    if cat=='AIR':
+        # sky, terminal/control tower and aircraft
+        draw.rounded_rectangle((cx-s*.44,cy-s*.36,cx+s*.44,cy+s*.36),radius=int(s*.08),fill=(222,241,255,255))
+        draw.rectangle((cx-s*.38,cy+s*.10,cx+s*.38,cy+s*.30),fill=(110,145,170,255))
+        draw.rectangle((cx+s*.20,cy-s*.18,cx+s*.27,cy+s*.12),fill=(70,100,125,255))
+        draw.ellipse((cx+s*.14,cy-s*.25,cx+s*.33,cy-s*.10),fill=(70,100,125,255))
+        pts=[(cx-s*.38,cy-s*.02),(cx+s*.16,cy-s*.18),(cx+s*.02,cy-s*.02),(cx+s*.25,cy+s*.10),(cx+s*.13,cy+s*.15),(cx-s*.02,cy+s*.03),(cx-s*.22,cy+s*.14)]
+        draw.polygon(pts,fill=accent)
+    elif cat=='SEA':
+        # sea, hills/bridge and boat
+        draw.rectangle((cx-s*.44,cy-s*.34,cx+s*.44,cy+s*.02),fill=(218,240,250,255))
+        draw.polygon([(cx-s*.44,cy-s*.02),(cx-s*.20,cy-s*.22),(cx,cy-s*.06),(cx+s*.20,cy-s*.25),(cx+s*.44,cy-s*.04)],fill=(98,164,116,255))
+        draw.rectangle((cx-s*.44,cy+s*.02,cx+s*.44,cy+s*.36),fill=(99,190,222,255))
+        draw.polygon([(cx-s*.25,cy+s*.08),(cx+s*.18,cy+s*.08),(cx+s*.08,cy+s*.22),(cx-s*.16,cy+s*.22)],fill=(255,255,255,255))
+        draw.rectangle((cx-s*.04,cy-s*.05,cx+s*.06,cy+s*.08),fill=accent)
+    elif cat=='RAIL':
+        draw.rounded_rectangle((cx-s*.44,cy-s*.36,cx+s*.44,cy+s*.36),radius=int(s*.08),fill=(238,241,244,255))
+        draw.line((cx-s*.38,cy+s*.30,cx+s*.38,cy+s*.30),fill=(70,70,70,255),width=max(4,int(s*.05)))
+        draw.line((cx-s*.25,cy+s*.36,cx-s*.10,cy-s*.30),fill=(100,100,100,255),width=max(3,int(s*.035)))
+        rounded(draw,(cx-s*.24,cy-s*.24,cx+s*.24,cy+s*.22),int(s*.08),accent)
+        draw.rectangle((cx-s*.15,cy-s*.14,cx-s*.02,cy-s*.01),fill='white')
+        draw.rectangle((cx+s*.02,cy-s*.14,cx+s*.15,cy-s*.01),fill='white')
+    elif cat=='ANIMAL':
+        # pasture/savanna illustration, with horse-like animal silhouette
+        draw.rectangle((cx-s*.44,cy-s*.34,cx+s*.44,cy+s*.04),fill=(218,239,255,255))
+        draw.rectangle((cx-s*.44,cy+s*.04,cx+s*.44,cy+s*.36),fill=(111,181,92,255))
+        draw.ellipse((cx+s*.18,cy-s*.24,cx+s*.32,cy-s*.10),fill=(255,197,60,255))
+        body=(92,66,45,255) if 'ナミビア' not in title else (70,55,40,255)
+        draw.ellipse((cx-s*.22,cy-s*.02,cx+s*.15,cy+s*.18),fill=body)
+        draw.ellipse((cx+s*.08,cy-s*.15,cx+s*.25,cy+s*.03),fill=body)
+        draw.line((cx-s*.12,cy+s*.12,cx-s*.15,cy+s*.31),fill=body,width=max(4,int(s*.04)))
+        draw.line((cx+s*.06,cy+s*.12,cx+s*.08,cy+s*.31),fill=body,width=max(4,int(s*.04)))
+    elif cat=='SCENIC':
+        # location illustration: sky + hills/building/water
+        draw.rectangle((cx-s*.44,cy-s*.34,cx+s*.44,cy+s*.04),fill=(224,241,255,255))
+        draw.polygon([(cx-s*.44,cy+s*.12),(cx-s*.18,cy-s*.12),(cx,cy+s*.02),(cx+s*.20,cy-s*.18),(cx+s*.44,cy+s*.10)],fill=(92,156,94,255))
+        draw.rectangle((cx-s*.44,cy+s*.10,cx+s*.44,cy+s*.36),fill=(113,192,219,255))
+        draw.rectangle((cx-s*.16,cy-s*.02,cx+s*.16,cy+s*.20),fill=(245,245,238,255))
+        draw.polygon([(cx-s*.20,cy-s*.02),(cx,cy-s*.18),(cx+s*.20,cy-s*.02)],fill=accent)
+    else:
+        icon(draw,cat,cx,cy,s,accent)
+
 def icon(draw,cat,cx,cy,s,accent):
     if cat=='AIR':
         pts=[(cx-s*.38,cy+s*.05),(cx+s*.38,cy-s*.18),(cx+s*.16,cy+s*.05),(cx+s*.34,cy+s*.27),(cx+s*.18,cy+s*.31),(cx,cy+s*.12),(cx-s*.23,cy+s*.28),(cx-s*.34,cy+s*.23),(cx-s*.16,cy+s*.03)]
@@ -115,7 +159,7 @@ def render(item,path):
     play_badge(d,42,42,70)
     d.text((128,60),LABELS[cat],font=font(25),fill=(38,38,42,255))
     rounded(d,(386,52,470,102),22,(255,0,0,255)); d.text((402,60),'LIVE',font=font(22),fill='white')
-    icon(d,cat,420,190,92,accent)
+    scene_icon(d,cat,420,190,92,accent,logo_title(item))
     lines=split_lines(logo_title(item))
     f,spacing=fit_text(d,lines,390,220)
     boxes=[d.textbbox((0,0),t,font=f,stroke_width=2) for t in lines]
