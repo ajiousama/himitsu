@@ -72,6 +72,10 @@ def stream_url(slug: str) -> str:
     return f"{BASE}{slug}/stream-output.m3u8?mode=hls"
 
 
+def group_title(group: str) -> str:
+    return f"akariko{group}"
+
+
 def strip_previous_managed_entries(lines: list[str]) -> tuple[list[str], int]:
     out = []
     i = 0
@@ -118,7 +122,7 @@ def main() -> None:
     for tvg_id, group, name, slug, logo in CHANNELS:
         lines.append(
             f'#EXTINF:-1 tvg-id="{tvg_id}" tvg-logo="{logo}" '
-            f'group-title="{group}",{name}'
+            f'group-title="{group_title(group)}",{name}'
         )
         lines.append(stream_url(slug))
     lines.append(END)
