@@ -1,218 +1,423 @@
 {
-  "targets": [
+  "venues": [
     {
-      "url": "https://front.player.boatrace-cdn.jp/setting/live/02toda/setting.json?t=1788669571",
-      "status": 200,
-      "final": "https://front.player.boatrace-cdn.jp/setting/live/02toda/setting.json?t=1788669571",
-      "content_type": "application/json",
-      "body": "{\"br_dvr\":{\"ref_id\":\"lm-br-02toda-tokyo-20260906\",\"type\":\"dvr\",\"region\":\"tokyo\",\"source_type\":\"br\",\"start_at\":\"2026-09-06T10:09:00+09:00\",\"end_at\":\"2026-09-06T22:08:59+09:00\"},\"br_live\":{\"ref_id\":\"lm-br-02toda-tokyo\",\"type\":\"live\",\"region\":\"tokyo\",\"source_type\":\"br\",\"start_at\":\"2026-09-06T10:09:00+09:00\",\"end_at\":\"2026-09-06T22:08:59+09:00\"},\"mix_dvr\":{\"ref_id\":\"lm-mix-02toda-tokyo-20260906\",\"type\":\"dvr\",\"region\":\"tokyo\",\"source_type\":\"mix\",\"start_at\":\"2026-09-06T07:30:00+09:00\",\"end_at\":\"2026-09-06T19:29:59+09:00\"},\"mix_live\":{\"ref_id\":\"lm-mix-02toda-tokyo\",\"type\":\"live\",\"region\":\"tokyo\",\"source_type\":\"mix\",\"start_at\":\"2026-09-06T07:30:00+09:00\",\"end_at\":\"2026-09-06T19:29:59+09:00\"},\"update_from\":\"ライブスケジュール登録API\",\"last_update\":\"2026-09-06T07:00:09+09:00\"}",
-      "json": {
-        "br_dvr": {
-          "ref_id": "lm-br-02toda-tokyo-20260906",
-          "type": "dvr",
-          "region": "tokyo",
-          "source_type": "br",
-          "start_at": "2026-09-06T10:09:00+09:00",
-          "end_at": "2026-09-06T22:08:59+09:00"
-        },
-        "br_live": {
-          "ref_id": "lm-br-02toda-tokyo",
-          "type": "live",
-          "region": "tokyo",
-          "source_type": "br",
-          "start_at": "2026-09-06T10:09:00+09:00",
-          "end_at": "2026-09-06T22:08:59+09:00"
-        },
-        "mix_dvr": {
-          "ref_id": "lm-mix-02toda-tokyo-20260906",
-          "type": "dvr",
-          "region": "tokyo",
-          "source_type": "mix",
-          "start_at": "2026-09-06T07:30:00+09:00",
-          "end_at": "2026-09-06T19:29:59+09:00"
-        },
-        "mix_live": {
-          "ref_id": "lm-mix-02toda-tokyo",
-          "type": "live",
-          "region": "tokyo",
-          "source_type": "mix",
-          "start_at": "2026-09-06T07:30:00+09:00",
-          "end_at": "2026-09-06T19:29:59+09:00"
-        },
-        "update_from": "ライブスケジュール登録API",
-        "last_update": "2026-09-06T07:00:09+09:00"
+      "code": "02toda",
+      "setting": {
+        "status": 200,
+        "body": "{\"br_dvr\":{\"ref_id\":\"lm-br-02toda-tokyo-20260906\",\"type\":\"dvr\",\"region\":\"tokyo\",\"source_type\":\"br\",\"start_at\":\"2026-09-06T10:09:00+09:00\",\"end_at\":\"2026-09-06T22:08:59+09:00\"},\"br_live\":{\"ref_id\":\"lm-br-02toda-tokyo\",\"type\":\"live\",\"region\":\"tokyo\",\"source_type\":\"br\",\"start_at\":\"2026-09-06T10:09:00+09:00\",\"end_at\":\"2026-09-06T22:08:59+09:00\"},\"mix_dvr\":{\"ref_id\":\"lm-mix-02toda-tokyo-20260906\",\"type\":\"dvr\",\"region\":\"tokyo\",\"source_type\":\"mix\",\"start_at\":\"2026-09-06T07:30:00+09:00\",\"end_at\":\"2026-09-06T19:29:59+09:00\"},\"mix_live\":{\"ref_id\":\"lm-mix-02toda-tokyo\",\"type\":\"live\",\"region\":\"tokyo\",\"source_type\":\"mix\",\"start_at\":\"2026-09-06T07:30:00+09:00\",\"end_at\":\"2026-09-06T19:29:59+09:00\"},\"update_from\":\"ライブスケジュール登録API\",\"last_update\":\"2026-09-06T07:00:09+09:00\"}",
+        "headers": {
+          "Server": "openresty",
+          "Date": "Sun, 06 Sep 2026 04:41:00 GMT",
+          "Content-Type": "application/json",
+          "Content-Length": "788",
+          "Connection": "close",
+          "Last-Modified": "Sat, 05 Sep 2026 22:00:12 GMT",
+          "ETag": "\"48904ec454acdc5da8c59de8a3160502\"",
+          "x-amz-server-side-encryption": "AES256",
+          "X-Cache": "Miss from cloudfront",
+          "Via": "1.1 af476f5190e6156e7ad6d261b7ed9518.cloudfront.net (CloudFront)",
+          "X-Amz-Cf-Pop": "NRT12-P5",
+          "X-Amz-Cf-Id": "7GuaBLEDiYVzzkaFvlICrIs9i9DpDgWVhJ_NxdGqQJvZ_vqP4wxluw==",
+          "Cache-Control": "public, max-age=5, must-revalidate",
+          "x-oke-front3-via": "oke-p02c-lbs004 from 39.88",
+          "x-oke-front3-time": "0.041",
+          "x-oke-front2-cache": "REVALIDATED",
+          "x-oke-front2-ttl": "5",
+          "x-oke-front-ttl": "5",
+          "x-oke-front2-via": "oke-p02c-lbs004 from cache",
+          "x-oke-front2-time": "0.088",
+          "Accept-Ranges": "bytes",
+          "Cache-Status": "oke; fwd=stale; fwd-status=304",
+          "x-oke-front1-cache": "MISS",
+          "x-oke-front1-ttl": "5",
+          "x-oke-front-cache": "REVALIDATED",
+          "x-oke-front1-time": "0.089",
+          "x-oke-front1-via": "oke-p02c-lbs006 from oke-p02c-lbs004",
+          "x-oke-front-via": "oke-p02c-lbs006 from cache",
+          "access-control-allow-origin": "*",
+          "access-control-allow-methods": "GET,HEAD,OPTIONS",
+          "access-control-max-age": "3000",
+          "access-control-allow-headers": "*",
+          "Alt-Svc": "h3=\":443\"; ma=86400"
+        }
+      },
+      "live_ref": "lm-br-02toda-tokyo",
+      "dvr_ref": "lm-br-02toda-tokyo-20260906",
+      "live_playback": {
+        "status": 403,
+        "body": "{\"id\":124,\"code\":\"REQUEST_FAILED\",\"status\":403,\"message\":\"この動画の視聴は許可されていません。\"}",
+        "headers": {
+          "Content-Type": "application/json; charset=utf-8",
+          "Content-Length": "114",
+          "Connection": "close",
+          "Date": "Sun, 06 Sep 2026 04:41:00 GMT",
+          "Cache-Control": "max-age=0, s-maxage=10, stale-if-error=86400",
+          "Access-Control-Allow-Methods": "GET, POST, OPTIONS, HEAD",
+          "Access-Control-Allow-Headers": "Origin, Authorization, Accept, Content-Type, X-Requested-With, X-Streaks-Api-Key, X-Streaks-Session-Id, X-Streaks-User-Id, X-Streaks-Client",
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Origin": "https://front.player.boatrace-cdn.jp",
+          "Vary": "Origin,X-Streaks-Api-Key,X-Streaks-User-Id,X-Streaks-Session-Id,User-Agent,X-Streaks-Client,X-Forwarded-For",
+          "X-Cache": "Error from cloudfront",
+          "Via": "1.1 f2ece26b43ea74c5944bc1273fb843c6.cloudfront.net (CloudFront)",
+          "X-Amz-Cf-Pop": "ORD58-P15",
+          "X-Amz-Cf-Id": "BcjFkcMUn0CVm1vYaqhCVQEZUWGPDoe2XXxOrZQIG0lKnG8r9jINXg=="
+        }
+      },
+      "dvr_playback": {
+        "status": 403,
+        "body": "{\"id\":124,\"code\":\"REQUEST_FAILED\",\"status\":403,\"message\":\"この動画の視聴は許可されていません。\"}",
+        "headers": {
+          "Content-Type": "application/json; charset=utf-8",
+          "Content-Length": "114",
+          "Connection": "close",
+          "Date": "Sun, 06 Sep 2026 04:41:00 GMT",
+          "Cache-Control": "max-age=0, s-maxage=10, stale-if-error=86400",
+          "Access-Control-Allow-Methods": "GET, POST, OPTIONS, HEAD",
+          "Access-Control-Allow-Headers": "Origin, Authorization, Accept, Content-Type, X-Requested-With, X-Streaks-Api-Key, X-Streaks-Session-Id, X-Streaks-User-Id, X-Streaks-Client",
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Origin": "https://front.player.boatrace-cdn.jp",
+          "Vary": "Origin,X-Streaks-Api-Key,X-Streaks-User-Id,X-Streaks-Session-Id,User-Agent,X-Streaks-Client,X-Forwarded-For",
+          "X-Cache": "Error from cloudfront",
+          "Via": "1.1 fd407fe7b2bb39801ba9f32e29a6bd42.cloudfront.net (CloudFront)",
+          "X-Amz-Cf-Pop": "ORD58-P15",
+          "X-Amz-Cf-Id": "dUD6EBTl2hvAnMKhFKmX3hjO35INUXts2KMybl2qZoRPux5T8cEMaA=="
+        }
       }
     },
     {
-      "url": "https://front.player.boatrace-cdn.jp/setting/live/03edogawa/setting.json?t=1788669571",
-      "status": 200,
-      "final": "https://front.player.boatrace-cdn.jp/setting/live/03edogawa/setting.json?t=1788669571",
-      "content_type": "application/json",
-      "body": "{\"br_dvr\":{\"ref_id\":\"lm-br-03edogawa-tokyo-20260906\",\"type\":\"dvr\",\"region\":\"tokyo\",\"source_type\":\"br\",\"start_at\":\"2026-09-06T10:39:00+09:00\",\"end_at\":\"2026-09-06T22:38:59+09:00\"},\"br_live\":{\"ref_id\":\"lm-br-03edogawa-tokyo\",\"type\":\"live\",\"region\":\"tokyo\",\"source_type\":\"br\",\"start_at\":\"2026-09-06T10:39:00+09:00\",\"end_at\":\"2026-09-06T22:38:59+09:00\"},\"mix_dvr\":{\"ref_id\":\"lm-mix-03edogawa-tokyo-20260906\",\"type\":\"dvr\",\"region\":\"tokyo\",\"source_type\":\"mix\",\"start_at\":\"2026-09-06T07:30:00+09:00\",\"end_at\":\"2026-09-06T19:29:59+09:00\"},\"mix_live\":{\"ref_id\":\"lm-mix-03edogawa-tokyo\",\"type\":\"live\",\"region\":\"tokyo\",\"source_type\":\"mix\",\"start_at\":\"2026-09-06T07:30:00+09:00\",\"end_at\":\"2026-09-06T19:29:59+09:00\"},\"update_from\":\"ライブスケジュール登録API\",\"last_update\":\"2026-09-06T07:00:13+09:00\"}",
-      "json": {
-        "br_dvr": {
-          "ref_id": "lm-br-03edogawa-tokyo-20260906",
-          "type": "dvr",
-          "region": "tokyo",
-          "source_type": "br",
-          "start_at": "2026-09-06T10:39:00+09:00",
-          "end_at": "2026-09-06T22:38:59+09:00"
-        },
-        "br_live": {
-          "ref_id": "lm-br-03edogawa-tokyo",
-          "type": "live",
-          "region": "tokyo",
-          "source_type": "br",
-          "start_at": "2026-09-06T10:39:00+09:00",
-          "end_at": "2026-09-06T22:38:59+09:00"
-        },
-        "mix_dvr": {
-          "ref_id": "lm-mix-03edogawa-tokyo-20260906",
-          "type": "dvr",
-          "region": "tokyo",
-          "source_type": "mix",
-          "start_at": "2026-09-06T07:30:00+09:00",
-          "end_at": "2026-09-06T19:29:59+09:00"
-        },
-        "mix_live": {
-          "ref_id": "lm-mix-03edogawa-tokyo",
-          "type": "live",
-          "region": "tokyo",
-          "source_type": "mix",
-          "start_at": "2026-09-06T07:30:00+09:00",
-          "end_at": "2026-09-06T19:29:59+09:00"
-        },
-        "update_from": "ライブスケジュール登録API",
-        "last_update": "2026-09-06T07:00:13+09:00"
+      "code": "03edogawa",
+      "setting": {
+        "status": 200,
+        "body": "{\"br_dvr\":{\"ref_id\":\"lm-br-03edogawa-tokyo-20260906\",\"type\":\"dvr\",\"region\":\"tokyo\",\"source_type\":\"br\",\"start_at\":\"2026-09-06T10:39:00+09:00\",\"end_at\":\"2026-09-06T22:38:59+09:00\"},\"br_live\":{\"ref_id\":\"lm-br-03edogawa-tokyo\",\"type\":\"live\",\"region\":\"tokyo\",\"source_type\":\"br\",\"start_at\":\"2026-09-06T10:39:00+09:00\",\"end_at\":\"2026-09-06T22:38:59+09:00\"},\"mix_dvr\":{\"ref_id\":\"lm-mix-03edogawa-tokyo-20260906\",\"type\":\"dvr\",\"region\":\"tokyo\",\"source_type\":\"mix\",\"start_at\":\"2026-09-06T07:30:00+09:00\",\"end_at\":\"2026-09-06T19:29:59+09:00\"},\"mix_live\":{\"ref_id\":\"lm-mix-03edogawa-tokyo\",\"type\":\"live\",\"region\":\"tokyo\",\"source_type\":\"mix\",\"start_at\":\"2026-09-06T07:30:00+09:00\",\"end_at\":\"2026-09-06T19:29:59+09:00\"},\"update_from\":\"ライブスケジュール登録API\",\"last_update\":\"2026-09-06T07:00:13+09:00\"}",
+        "headers": {
+          "Server": "openresty",
+          "Date": "Sun, 06 Sep 2026 04:41:01 GMT",
+          "Content-Type": "application/json",
+          "Content-Length": "800",
+          "Connection": "close",
+          "Last-Modified": "Sat, 05 Sep 2026 22:00:14 GMT",
+          "ETag": "\"6d5c216ad5c70474b5afa382b5595de2\"",
+          "x-amz-server-side-encryption": "AES256",
+          "X-Cache": "Miss from cloudfront",
+          "Via": "1.1 08e02d8752214435881611cd88b0012a.cloudfront.net (CloudFront)",
+          "X-Amz-Cf-Pop": "NRT12-P5",
+          "X-Amz-Cf-Id": "CjiUn-hTvUyGFLDrNL4fpHhPgNT88a1OAervPzWNHHrv_5n2zYCfJQ==",
+          "Cache-Control": "public, max-age=5, must-revalidate",
+          "x-oke-front3-via": "oke-p00c-lbs004 from 39.121",
+          "x-oke-front3-time": "0.044",
+          "x-oke-front2-cache": "MISS",
+          "x-oke-front2-ttl": "5",
+          "x-oke-front-ttl": "5",
+          "x-oke-front2-via": "oke-p00c-lbs004 from oke-p00c-lbs004",
+          "x-oke-front2-time": "0.044",
+          "Accept-Ranges": "bytes",
+          "Cache-Status": "oke; fwd=miss",
+          "x-oke-front1-cache": "MISS",
+          "x-oke-front1-ttl": "5",
+          "x-oke-front-cache": "MISS",
+          "x-oke-front1-time": "0.044",
+          "x-oke-front1-via": "oke-p00c-lbs003 from oke-p00c-lbs004",
+          "x-oke-front-via": "oke-p00c-lbs003 from 39.121",
+          "access-control-allow-origin": "*",
+          "access-control-allow-methods": "GET,HEAD,OPTIONS",
+          "access-control-max-age": "3000",
+          "access-control-allow-headers": "*",
+          "Alt-Svc": "h3=\":443\"; ma=86400"
+        }
+      },
+      "live_ref": "lm-br-03edogawa-tokyo",
+      "dvr_ref": "lm-br-03edogawa-tokyo-20260906",
+      "live_playback": {
+        "status": 403,
+        "body": "{\"id\":124,\"code\":\"REQUEST_FAILED\",\"status\":403,\"message\":\"この動画の視聴は許可されていません。\"}",
+        "headers": {
+          "Content-Type": "application/json; charset=utf-8",
+          "Content-Length": "114",
+          "Connection": "close",
+          "Date": "Sun, 06 Sep 2026 04:41:01 GMT",
+          "Cache-Control": "max-age=0, s-maxage=10, stale-if-error=86400",
+          "Access-Control-Allow-Methods": "GET, POST, OPTIONS, HEAD",
+          "Access-Control-Allow-Headers": "Origin, Authorization, Accept, Content-Type, X-Requested-With, X-Streaks-Api-Key, X-Streaks-Session-Id, X-Streaks-User-Id, X-Streaks-Client",
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Origin": "https://front.player.boatrace-cdn.jp",
+          "Vary": "Origin,X-Streaks-Api-Key,X-Streaks-User-Id,X-Streaks-Session-Id,User-Agent,X-Streaks-Client,X-Forwarded-For",
+          "X-Cache": "Error from cloudfront",
+          "Via": "1.1 dfcc0f2afc6dcac628724b6d83070178.cloudfront.net (CloudFront)",
+          "X-Amz-Cf-Pop": "ORD58-P15",
+          "X-Amz-Cf-Id": "i3-tzZW58_3-N3080x9T514K3f8kR6BQL8sJbsi6-TC-J5ngHye01Q=="
+        }
+      },
+      "dvr_playback": {
+        "status": 403,
+        "body": "{\"id\":124,\"code\":\"REQUEST_FAILED\",\"status\":403,\"message\":\"この動画の視聴は許可されていません。\"}",
+        "headers": {
+          "Content-Type": "application/json; charset=utf-8",
+          "Content-Length": "114",
+          "Connection": "close",
+          "Date": "Sun, 06 Sep 2026 04:41:02 GMT",
+          "Cache-Control": "max-age=0, s-maxage=10, stale-if-error=86400",
+          "Access-Control-Allow-Methods": "GET, POST, OPTIONS, HEAD",
+          "Access-Control-Allow-Headers": "Origin, Authorization, Accept, Content-Type, X-Requested-With, X-Streaks-Api-Key, X-Streaks-Session-Id, X-Streaks-User-Id, X-Streaks-Client",
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Origin": "https://front.player.boatrace-cdn.jp",
+          "Vary": "Origin,X-Streaks-Api-Key,X-Streaks-User-Id,X-Streaks-Session-Id,User-Agent,X-Streaks-Client,X-Forwarded-For",
+          "X-Cache": "Error from cloudfront",
+          "Via": "1.1 7d020237cc496fbd54430564b7b9d26a.cloudfront.net (CloudFront)",
+          "X-Amz-Cf-Pop": "ORD58-P15",
+          "X-Amz-Cf-Id": "xiOQyYLHCCnzpUam0kg7ucM7TrG4ZfmOa8MabjlDQu7gCBSDMIsOCg=="
+        }
       }
     },
     {
-      "url": "https://front.player.boatrace-cdn.jp/setting/live/04heiwajima/setting.json?t=1788669571",
-      "status": 200,
-      "final": "https://front.player.boatrace-cdn.jp/setting/live/04heiwajima/setting.json?t=1788669571",
-      "content_type": "application/json",
-      "body": "{\"br_dvr\":{\"ref_id\":\"lm-br-04heiwajima-tokyo-20260906\",\"type\":\"dvr\",\"region\":\"tokyo\",\"source_type\":\"br\",\"start_at\":\"2026-09-06T10:00:00+09:00\",\"end_at\":\"2026-09-06T21:59:59+09:00\"},\"br_live\":{\"ref_id\":\"lm-br-04heiwajima-tokyo\",\"type\":\"live\",\"region\":\"tokyo\",\"source_type\":\"br\",\"start_at\":\"2026-09-06T10:00:00+09:00\",\"end_at\":\"2026-09-06T21:59:59+09:00\"},\"mix_dvr\":{\"ref_id\":\"lm-mix-04heiwajima-tokyo-20260906\",\"type\":\"dvr\",\"region\":\"tokyo\",\"source_type\":\"mix\",\"start_at\":\"2026-09-06T07:30:00+09:00\",\"end_at\":\"2026-09-06T19:29:59+09:00\"},\"mix_live\":{\"ref_id\":\"lm-mix-04heiwajima-tokyo\",\"type\":\"live\",\"region\":\"tokyo\",\"source_type\":\"mix\",\"start_at\":\"2026-09-06T07:30:00+09:00\",\"end_at\":\"2026-09-06T19:29:59+09:00\"},\"update_from\":\"ライブスケジュール登録API\",\"last_update\":\"2026-09-06T07:00:16+09:00\"}",
-      "json": {
-        "br_dvr": {
-          "ref_id": "lm-br-04heiwajima-tokyo-20260906",
-          "type": "dvr",
-          "region": "tokyo",
-          "source_type": "br",
-          "start_at": "2026-09-06T10:00:00+09:00",
-          "end_at": "2026-09-06T21:59:59+09:00"
-        },
-        "br_live": {
-          "ref_id": "lm-br-04heiwajima-tokyo",
-          "type": "live",
-          "region": "tokyo",
-          "source_type": "br",
-          "start_at": "2026-09-06T10:00:00+09:00",
-          "end_at": "2026-09-06T21:59:59+09:00"
-        },
-        "mix_dvr": {
-          "ref_id": "lm-mix-04heiwajima-tokyo-20260906",
-          "type": "dvr",
-          "region": "tokyo",
-          "source_type": "mix",
-          "start_at": "2026-09-06T07:30:00+09:00",
-          "end_at": "2026-09-06T19:29:59+09:00"
-        },
-        "mix_live": {
-          "ref_id": "lm-mix-04heiwajima-tokyo",
-          "type": "live",
-          "region": "tokyo",
-          "source_type": "mix",
-          "start_at": "2026-09-06T07:30:00+09:00",
-          "end_at": "2026-09-06T19:29:59+09:00"
-        },
-        "update_from": "ライブスケジュール登録API",
-        "last_update": "2026-09-06T07:00:16+09:00"
+      "code": "04heiwajima",
+      "setting": {
+        "status": 200,
+        "body": "{\"br_dvr\":{\"ref_id\":\"lm-br-04heiwajima-tokyo-20260906\",\"type\":\"dvr\",\"region\":\"tokyo\",\"source_type\":\"br\",\"start_at\":\"2026-09-06T10:00:00+09:00\",\"end_at\":\"2026-09-06T21:59:59+09:00\"},\"br_live\":{\"ref_id\":\"lm-br-04heiwajima-tokyo\",\"type\":\"live\",\"region\":\"tokyo\",\"source_type\":\"br\",\"start_at\":\"2026-09-06T10:00:00+09:00\",\"end_at\":\"2026-09-06T21:59:59+09:00\"},\"mix_dvr\":{\"ref_id\":\"lm-mix-04heiwajima-tokyo-20260906\",\"type\":\"dvr\",\"region\":\"tokyo\",\"source_type\":\"mix\",\"start_at\":\"2026-09-06T07:30:00+09:00\",\"end_at\":\"2026-09-06T19:29:59+09:00\"},\"mix_live\":{\"ref_id\":\"lm-mix-04heiwajima-tokyo\",\"type\":\"live\",\"region\":\"tokyo\",\"source_type\":\"mix\",\"start_at\":\"2026-09-06T07:30:00+09:00\",\"end_at\":\"2026-09-06T19:29:59+09:00\"},\"update_from\":\"ライブスケジュール登録API\",\"last_update\":\"2026-09-06T07:00:16+09:00\"}",
+        "headers": {
+          "Server": "openresty",
+          "Date": "Sun, 06 Sep 2026 04:41:02 GMT",
+          "Content-Type": "application/json",
+          "Content-Length": "808",
+          "Connection": "close",
+          "Last-Modified": "Sat, 05 Sep 2026 22:00:18 GMT",
+          "ETag": "\"8ad273e61aa362fcb24239731448ae95\"",
+          "x-amz-server-side-encryption": "AES256",
+          "X-Cache": "Miss from cloudfront",
+          "Via": "1.1 3ee628eed567db87f0794394caa3e332.cloudfront.net (CloudFront)",
+          "X-Amz-Cf-Pop": "NRT12-P5",
+          "X-Amz-Cf-Id": "tG66FGUJ6kZcodxUwCGOhgK-oF-08Gq2zISRYQv6itt47yrQh84Ttw==",
+          "Cache-Control": "public, max-age=5, must-revalidate",
+          "x-oke-front3-via": "oke-p00c-lbs005 from 39.121",
+          "x-oke-front3-time": "0.035",
+          "x-oke-front2-cache": "MISS",
+          "x-oke-front2-ttl": "5",
+          "x-oke-front-ttl": "5",
+          "x-oke-front2-via": "oke-p00c-lbs005 from oke-p00c-lbs005",
+          "x-oke-front2-time": "0.036",
+          "Accept-Ranges": "bytes",
+          "Cache-Status": "oke; fwd=miss",
+          "x-oke-front1-cache": "MISS",
+          "x-oke-front1-ttl": "5",
+          "x-oke-front-cache": "MISS",
+          "x-oke-front1-time": "0.037",
+          "x-oke-front1-via": "oke-p00c-lbs003 from oke-p00c-lbs005",
+          "x-oke-front-via": "oke-p00c-lbs003 from 39.121",
+          "access-control-allow-origin": "*",
+          "access-control-allow-methods": "GET,HEAD,OPTIONS",
+          "access-control-max-age": "3000",
+          "access-control-allow-headers": "*",
+          "Alt-Svc": "h3=\":443\"; ma=86400"
+        }
+      },
+      "live_ref": "lm-br-04heiwajima-tokyo",
+      "dvr_ref": "lm-br-04heiwajima-tokyo-20260906",
+      "live_playback": {
+        "status": 403,
+        "body": "{\"id\":124,\"code\":\"REQUEST_FAILED\",\"status\":403,\"message\":\"この動画の視聴は許可されていません。\"}",
+        "headers": {
+          "Content-Type": "application/json; charset=utf-8",
+          "Content-Length": "114",
+          "Connection": "close",
+          "Date": "Sun, 06 Sep 2026 04:41:02 GMT",
+          "Cache-Control": "max-age=0, s-maxage=10, stale-if-error=86400",
+          "Access-Control-Allow-Methods": "GET, POST, OPTIONS, HEAD",
+          "Access-Control-Allow-Headers": "Origin, Authorization, Accept, Content-Type, X-Requested-With, X-Streaks-Api-Key, X-Streaks-Session-Id, X-Streaks-User-Id, X-Streaks-Client",
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Origin": "https://front.player.boatrace-cdn.jp",
+          "Vary": "Origin,X-Streaks-Api-Key,X-Streaks-User-Id,X-Streaks-Session-Id,User-Agent,X-Streaks-Client,X-Forwarded-For",
+          "X-Cache": "Error from cloudfront",
+          "Via": "1.1 c8cdc9fbc50901560b8834415670070e.cloudfront.net (CloudFront)",
+          "X-Amz-Cf-Pop": "ORD58-P15",
+          "X-Amz-Cf-Id": "Q51TrdXV53o0R3sPuDgFE0axXlQZZZ8y_6QRhntFSeyuvnkdFT7sAw=="
+        }
+      },
+      "dvr_playback": {
+        "status": 403,
+        "body": "{\"id\":124,\"code\":\"REQUEST_FAILED\",\"status\":403,\"message\":\"この動画の視聴は許可されていません。\"}",
+        "headers": {
+          "Content-Type": "application/json; charset=utf-8",
+          "Content-Length": "114",
+          "Connection": "close",
+          "Date": "Sun, 06 Sep 2026 04:41:03 GMT",
+          "Cache-Control": "max-age=0, s-maxage=10, stale-if-error=86400",
+          "Access-Control-Allow-Methods": "GET, POST, OPTIONS, HEAD",
+          "Access-Control-Allow-Headers": "Origin, Authorization, Accept, Content-Type, X-Requested-With, X-Streaks-Api-Key, X-Streaks-Session-Id, X-Streaks-User-Id, X-Streaks-Client",
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Origin": "https://front.player.boatrace-cdn.jp",
+          "Vary": "Origin,X-Streaks-Api-Key,X-Streaks-User-Id,X-Streaks-Session-Id,User-Agent,X-Streaks-Client,X-Forwarded-For",
+          "X-Cache": "Error from cloudfront",
+          "Via": "1.1 58796d5e419578eb7cf5eb2c51fddf6e.cloudfront.net (CloudFront)",
+          "X-Amz-Cf-Pop": "ORD58-P15",
+          "X-Amz-Cf-Id": "u8vFuNTm5YlF9unYoJBdVlzxVZTVW2DM8libGTDJOittEYkyMup2XA=="
+        }
       }
     },
     {
-      "url": "https://front.player.boatrace-cdn.jp/setting/live/09tsu/setting.json?t=1788669571",
-      "status": 200,
-      "final": "https://front.player.boatrace-cdn.jp/setting/live/09tsu/setting.json?t=1788669571",
-      "content_type": "application/json",
-      "body": "{\"br_dvr\":{\"ref_id\":\"lm-br-09tsu-tokyo-20260906\",\"type\":\"dvr\",\"region\":\"tokyo\",\"source_type\":\"br\",\"start_at\":\"2026-09-06T10:00:00+09:00\",\"end_at\":\"2026-09-06T21:59:59+09:00\"},\"br_live\":{\"ref_id\":\"lm-br-09tsu-tokyo\",\"type\":\"live\",\"region\":\"tokyo\",\"source_type\":\"br\",\"start_at\":\"2026-09-06T10:00:00+09:00\",\"end_at\":\"2026-09-06T21:59:59+09:00\"},\"mix_dvr\":{\"ref_id\":\"lm-mix-09tsu-tokyo-20260906\",\"type\":\"dvr\",\"region\":\"tokyo\",\"source_type\":\"mix\",\"start_at\":\"2026-09-06T07:30:00+09:00\",\"end_at\":\"2026-09-06T19:29:59+09:00\"},\"mix_live\":{\"ref_id\":\"lm-mix-09tsu-tokyo\",\"type\":\"live\",\"region\":\"tokyo\",\"source_type\":\"mix\",\"start_at\":\"2026-09-06T07:30:00+09:00\",\"end_at\":\"2026-09-06T19:29:59+09:00\"},\"update_from\":\"ライブスケジュール登録API\",\"last_update\":\"2026-09-06T07:00:23+09:00\"}",
-      "json": {
-        "br_dvr": {
-          "ref_id": "lm-br-09tsu-tokyo-20260906",
-          "type": "dvr",
-          "region": "tokyo",
-          "source_type": "br",
-          "start_at": "2026-09-06T10:00:00+09:00",
-          "end_at": "2026-09-06T21:59:59+09:00"
-        },
-        "br_live": {
-          "ref_id": "lm-br-09tsu-tokyo",
-          "type": "live",
-          "region": "tokyo",
-          "source_type": "br",
-          "start_at": "2026-09-06T10:00:00+09:00",
-          "end_at": "2026-09-06T21:59:59+09:00"
-        },
-        "mix_dvr": {
-          "ref_id": "lm-mix-09tsu-tokyo-20260906",
-          "type": "dvr",
-          "region": "tokyo",
-          "source_type": "mix",
-          "start_at": "2026-09-06T07:30:00+09:00",
-          "end_at": "2026-09-06T19:29:59+09:00"
-        },
-        "mix_live": {
-          "ref_id": "lm-mix-09tsu-tokyo",
-          "type": "live",
-          "region": "tokyo",
-          "source_type": "mix",
-          "start_at": "2026-09-06T07:30:00+09:00",
-          "end_at": "2026-09-06T19:29:59+09:00"
-        },
-        "update_from": "ライブスケジュール登録API",
-        "last_update": "2026-09-06T07:00:23+09:00"
+      "code": "09tsu",
+      "setting": {
+        "status": 200,
+        "body": "{\"br_dvr\":{\"ref_id\":\"lm-br-09tsu-tokyo-20260906\",\"type\":\"dvr\",\"region\":\"tokyo\",\"source_type\":\"br\",\"start_at\":\"2026-09-06T10:00:00+09:00\",\"end_at\":\"2026-09-06T21:59:59+09:00\"},\"br_live\":{\"ref_id\":\"lm-br-09tsu-tokyo\",\"type\":\"live\",\"region\":\"tokyo\",\"source_type\":\"br\",\"start_at\":\"2026-09-06T10:00:00+09:00\",\"end_at\":\"2026-09-06T21:59:59+09:00\"},\"mix_dvr\":{\"ref_id\":\"lm-mix-09tsu-tokyo-20260906\",\"type\":\"dvr\",\"region\":\"tokyo\",\"source_type\":\"mix\",\"start_at\":\"2026-09-06T07:30:00+09:00\",\"end_at\":\"2026-09-06T19:29:59+09:00\"},\"mix_live\":{\"ref_id\":\"lm-mix-09tsu-tokyo\",\"type\":\"live\",\"region\":\"tokyo\",\"source_type\":\"mix\",\"start_at\":\"2026-09-06T07:30:00+09:00\",\"end_at\":\"2026-09-06T19:29:59+09:00\"},\"update_from\":\"ライブスケジュール登録API\",\"last_update\":\"2026-09-06T07:00:23+09:00\"}",
+        "headers": {
+          "Server": "openresty",
+          "Date": "Sun, 06 Sep 2026 04:41:03 GMT",
+          "Content-Type": "application/json",
+          "Content-Length": "784",
+          "Connection": "close",
+          "Last-Modified": "Sat, 05 Sep 2026 22:00:25 GMT",
+          "ETag": "\"a02f945606936f7fff9ecbad21b6ed38\"",
+          "x-amz-server-side-encryption": "AES256",
+          "X-Cache": "Miss from cloudfront",
+          "Via": "1.1 e87ffa8b01cfa4012f54adba22877422.cloudfront.net (CloudFront)",
+          "X-Amz-Cf-Pop": "KIX82-P2",
+          "X-Amz-Cf-Id": "M9DVoSjYHGlSic92WQmUFrWlBKd_6D5zmdCk2LgYFVrKO7d11mRXaQ==",
+          "Cache-Control": "public, max-age=5, must-revalidate",
+          "x-oke-front3-via": "oke-p02c-lbs005 from 159.29",
+          "x-oke-front3-time": "0.047",
+          "x-oke-front2-cache": "REVALIDATED",
+          "x-oke-front2-ttl": "5",
+          "x-oke-front-ttl": "5",
+          "x-oke-front2-via": "oke-p02c-lbs005 from cache",
+          "x-oke-front2-time": "0.067",
+          "Accept-Ranges": "bytes",
+          "Cache-Status": "oke; fwd=stale; fwd-status=304",
+          "x-oke-front1-cache": "MISS",
+          "x-oke-front1-ttl": "5",
+          "x-oke-front-cache": "REVALIDATED",
+          "x-oke-front1-time": "0.068",
+          "x-oke-front1-via": "oke-p02c-lbs006 from oke-p02c-lbs005",
+          "x-oke-front-via": "oke-p02c-lbs006 from cache",
+          "access-control-allow-origin": "*",
+          "access-control-allow-methods": "GET,HEAD,OPTIONS",
+          "access-control-max-age": "3000",
+          "access-control-allow-headers": "*",
+          "Alt-Svc": "h3=\":443\"; ma=86400"
+        }
+      },
+      "live_ref": "lm-br-09tsu-tokyo",
+      "dvr_ref": "lm-br-09tsu-tokyo-20260906",
+      "live_playback": {
+        "status": 403,
+        "body": "{\"id\":124,\"code\":\"REQUEST_FAILED\",\"status\":403,\"message\":\"この動画の視聴は許可されていません。\"}",
+        "headers": {
+          "Content-Type": "application/json; charset=utf-8",
+          "Content-Length": "114",
+          "Connection": "close",
+          "Date": "Sun, 06 Sep 2026 04:41:04 GMT",
+          "Cache-Control": "max-age=0, s-maxage=10, stale-if-error=86400",
+          "Access-Control-Allow-Methods": "GET, POST, OPTIONS, HEAD",
+          "Access-Control-Allow-Headers": "Origin, Authorization, Accept, Content-Type, X-Requested-With, X-Streaks-Api-Key, X-Streaks-Session-Id, X-Streaks-User-Id, X-Streaks-Client",
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Origin": "https://front.player.boatrace-cdn.jp",
+          "Vary": "Origin,X-Streaks-Api-Key,X-Streaks-User-Id,X-Streaks-Session-Id,User-Agent,X-Streaks-Client,X-Forwarded-For",
+          "X-Cache": "Error from cloudfront",
+          "Via": "1.1 c1640dfa604d412d17224777afa6e0d2.cloudfront.net (CloudFront)",
+          "X-Amz-Cf-Pop": "ORD58-P15",
+          "X-Amz-Cf-Id": "yHCxD_b1f9GWT6QCfe3Tiwsm48J14O67v0sylMHoeVRBlhbkVGR4fw=="
+        }
+      },
+      "dvr_playback": {
+        "status": 403,
+        "body": "{\"id\":124,\"code\":\"REQUEST_FAILED\",\"status\":403,\"message\":\"この動画の視聴は許可されていません。\"}",
+        "headers": {
+          "Content-Type": "application/json; charset=utf-8",
+          "Content-Length": "114",
+          "Connection": "close",
+          "Date": "Sun, 06 Sep 2026 04:41:04 GMT",
+          "Cache-Control": "max-age=0, s-maxage=10, stale-if-error=86400",
+          "Access-Control-Allow-Methods": "GET, POST, OPTIONS, HEAD",
+          "Access-Control-Allow-Headers": "Origin, Authorization, Accept, Content-Type, X-Requested-With, X-Streaks-Api-Key, X-Streaks-Session-Id, X-Streaks-User-Id, X-Streaks-Client",
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Origin": "https://front.player.boatrace-cdn.jp",
+          "Vary": "Origin,X-Streaks-Api-Key,X-Streaks-User-Id,X-Streaks-Session-Id,User-Agent,X-Streaks-Client,X-Forwarded-For",
+          "X-Cache": "Error from cloudfront",
+          "Via": "1.1 779529a2f7cbe89a724f1db628793338.cloudfront.net (CloudFront)",
+          "X-Amz-Cf-Pop": "ORD58-P15",
+          "X-Amz-Cf-Id": "OrkaLYl-ANtbwXhZMWOTq5N6Xp31zJpmXJkL2EqrkqJum_BNGuGgRA=="
+        }
       }
     },
     {
-      "url": "https://front.player.boatrace-cdn.jp/setting/live/11biwako/setting.json?t=1788669571",
-      "status": 200,
-      "final": "https://front.player.boatrace-cdn.jp/setting/live/11biwako/setting.json?t=1788669571",
-      "content_type": "application/json",
-      "body": "{\"br_dvr\":{\"ref_id\":\"lm-br-11biwako-tokyo-20260906\",\"type\":\"dvr\",\"region\":\"tokyo\",\"source_type\":\"br\",\"start_at\":\"2026-09-06T09:55:00+09:00\",\"end_at\":\"2026-09-06T21:54:59+09:00\"},\"br_live\":{\"ref_id\":\"lm-br-11biwako-tokyo\",\"type\":\"live\",\"region\":\"tokyo\",\"source_type\":\"br\",\"start_at\":\"2026-09-06T09:55:00+09:00\",\"end_at\":\"2026-09-06T21:54:59+09:00\"},\"mix_dvr\":{\"ref_id\":\"lm-mix-11biwako-tokyo-20260906\",\"type\":\"dvr\",\"region\":\"tokyo\",\"source_type\":\"mix\",\"start_at\":\"2026-09-06T07:30:00+09:00\",\"end_at\":\"2026-09-06T19:29:59+09:00\"},\"mix_live\":{\"ref_id\":\"lm-mix-11biwako-tokyo\",\"type\":\"live\",\"region\":\"tokyo\",\"source_type\":\"mix\",\"start_at\":\"2026-09-06T07:30:00+09:00\",\"end_at\":\"2026-09-06T19:29:59+09:00\"},\"update_from\":\"ライブスケジュール登録API\",\"last_update\":\"2026-09-06T07:00:30+09:00\"}",
-      "json": {
-        "br_dvr": {
-          "ref_id": "lm-br-11biwako-tokyo-20260906",
-          "type": "dvr",
-          "region": "tokyo",
-          "source_type": "br",
-          "start_at": "2026-09-06T09:55:00+09:00",
-          "end_at": "2026-09-06T21:54:59+09:00"
-        },
-        "br_live": {
-          "ref_id": "lm-br-11biwako-tokyo",
-          "type": "live",
-          "region": "tokyo",
-          "source_type": "br",
-          "start_at": "2026-09-06T09:55:00+09:00",
-          "end_at": "2026-09-06T21:54:59+09:00"
-        },
-        "mix_dvr": {
-          "ref_id": "lm-mix-11biwako-tokyo-20260906",
-          "type": "dvr",
-          "region": "tokyo",
-          "source_type": "mix",
-          "start_at": "2026-09-06T07:30:00+09:00",
-          "end_at": "2026-09-06T19:29:59+09:00"
-        },
-        "mix_live": {
-          "ref_id": "lm-mix-11biwako-tokyo",
-          "type": "live",
-          "region": "tokyo",
-          "source_type": "mix",
-          "start_at": "2026-09-06T07:30:00+09:00",
-          "end_at": "2026-09-06T19:29:59+09:00"
-        },
-        "update_from": "ライブスケジュール登録API",
-        "last_update": "2026-09-06T07:00:30+09:00"
+      "code": "11biwako",
+      "setting": {
+        "status": 200,
+        "body": "{\"br_dvr\":{\"ref_id\":\"lm-br-11biwako-tokyo-20260906\",\"type\":\"dvr\",\"region\":\"tokyo\",\"source_type\":\"br\",\"start_at\":\"2026-09-06T09:55:00+09:00\",\"end_at\":\"2026-09-06T21:54:59+09:00\"},\"br_live\":{\"ref_id\":\"lm-br-11biwako-tokyo\",\"type\":\"live\",\"region\":\"tokyo\",\"source_type\":\"br\",\"start_at\":\"2026-09-06T09:55:00+09:00\",\"end_at\":\"2026-09-06T21:54:59+09:00\"},\"mix_dvr\":{\"ref_id\":\"lm-mix-11biwako-tokyo-20260906\",\"type\":\"dvr\",\"region\":\"tokyo\",\"source_type\":\"mix\",\"start_at\":\"2026-09-06T07:30:00+09:00\",\"end_at\":\"2026-09-06T19:29:59+09:00\"},\"mix_live\":{\"ref_id\":\"lm-mix-11biwako-tokyo\",\"type\":\"live\",\"region\":\"tokyo\",\"source_type\":\"mix\",\"start_at\":\"2026-09-06T07:30:00+09:00\",\"end_at\":\"2026-09-06T19:29:59+09:00\"},\"update_from\":\"ライブスケジュール登録API\",\"last_update\":\"2026-09-06T07:00:30+09:00\"}",
+        "headers": {
+          "Server": "openresty",
+          "Date": "Sun, 06 Sep 2026 04:41:04 GMT",
+          "Content-Type": "application/json",
+          "Content-Length": "796",
+          "Connection": "close",
+          "Last-Modified": "Sat, 05 Sep 2026 22:00:31 GMT",
+          "ETag": "\"92b32b7d218a945d83de3056db9c7ebf\"",
+          "x-amz-server-side-encryption": "AES256",
+          "X-Cache": "Miss from cloudfront",
+          "Via": "1.1 bede6448886c2ab7daa3657e75e3ea6e.cloudfront.net (CloudFront)",
+          "X-Amz-Cf-Pop": "NRT12-P5",
+          "X-Amz-Cf-Id": "wLlv7SFGvN2ckg5IgPsWewfCd7n-rOAc3VcXKlTudPsqQ_nwJ9ttrQ==",
+          "Cache-Control": "public, max-age=5, must-revalidate",
+          "x-oke-front3-via": "oke-p00c-lbs004 from 39.88",
+          "x-oke-front3-time": "0.028",
+          "x-oke-front2-cache": "MISS",
+          "x-oke-front2-ttl": "5",
+          "x-oke-front-ttl": "5",
+          "x-oke-front2-via": "oke-p00c-lbs004 from oke-p00c-lbs004",
+          "x-oke-front2-time": "0.028",
+          "Accept-Ranges": "bytes",
+          "Cache-Status": "oke; fwd=miss",
+          "x-oke-front1-cache": "MISS",
+          "x-oke-front1-ttl": "5",
+          "x-oke-front-cache": "MISS",
+          "x-oke-front1-time": "0.028",
+          "x-oke-front1-via": "oke-p00c-lbs003 from oke-p00c-lbs004",
+          "x-oke-front-via": "oke-p00c-lbs003 from 39.88",
+          "access-control-allow-origin": "*",
+          "access-control-allow-methods": "GET,HEAD,OPTIONS",
+          "access-control-max-age": "3000",
+          "access-control-allow-headers": "*",
+          "Alt-Svc": "h3=\":443\"; ma=86400"
+        }
+      },
+      "live_ref": "lm-br-11biwako-tokyo",
+      "dvr_ref": "lm-br-11biwako-tokyo-20260906",
+      "live_playback": {
+        "status": 403,
+        "body": "{\"id\":124,\"code\":\"REQUEST_FAILED\",\"status\":403,\"message\":\"この動画の視聴は許可されていません。\"}",
+        "headers": {
+          "Content-Type": "application/json; charset=utf-8",
+          "Content-Length": "114",
+          "Connection": "close",
+          "Date": "Sun, 06 Sep 2026 04:41:04 GMT",
+          "Cache-Control": "max-age=0, s-maxage=10, stale-if-error=86400",
+          "Access-Control-Allow-Methods": "GET, POST, OPTIONS, HEAD",
+          "Access-Control-Allow-Headers": "Origin, Authorization, Accept, Content-Type, X-Requested-With, X-Streaks-Api-Key, X-Streaks-Session-Id, X-Streaks-User-Id, X-Streaks-Client",
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Origin": "https://front.player.boatrace-cdn.jp",
+          "Vary": "Origin,X-Streaks-Api-Key,X-Streaks-User-Id,X-Streaks-Session-Id,User-Agent,X-Streaks-Client,X-Forwarded-For",
+          "X-Cache": "Error from cloudfront",
+          "Via": "1.1 815eeed126c51190eabc58088e60c7aa.cloudfront.net (CloudFront)",
+          "X-Amz-Cf-Pop": "ORD58-P15",
+          "X-Amz-Cf-Id": "bOIsGr0vDE0OqQycpzx4v20bItLilsFXR3lp31I7hlfStptCKSoLZQ=="
+        }
+      },
+      "dvr_playback": {
+        "status": 403,
+        "body": "{\"id\":124,\"code\":\"REQUEST_FAILED\",\"status\":403,\"message\":\"この動画の視聴は許可されていません。\"}",
+        "headers": {
+          "Content-Type": "application/json; charset=utf-8",
+          "Content-Length": "114",
+          "Connection": "close",
+          "Date": "Sun, 06 Sep 2026 04:41:05 GMT",
+          "Cache-Control": "max-age=0, s-maxage=10, stale-if-error=86400",
+          "Access-Control-Allow-Methods": "GET, POST, OPTIONS, HEAD",
+          "Access-Control-Allow-Headers": "Origin, Authorization, Accept, Content-Type, X-Requested-With, X-Streaks-Api-Key, X-Streaks-Session-Id, X-Streaks-User-Id, X-Streaks-Client",
+          "Access-Control-Allow-Credentials": "true",
+          "Access-Control-Allow-Origin": "https://front.player.boatrace-cdn.jp",
+          "Vary": "Origin,X-Streaks-Api-Key,X-Streaks-User-Id,X-Streaks-Session-Id,User-Agent,X-Streaks-Client,X-Forwarded-For",
+          "X-Cache": "Error from cloudfront",
+          "Via": "1.1 6e69d9dbc818bfddcebd15ac17cb5b24.cloudfront.net (CloudFront)",
+          "X-Amz-Cf-Pop": "ORD58-P15",
+          "X-Amz-Cf-Id": "G5Om9GD_iQBdI3TGF7C1MKvGqdnEhksYbSpOabc8INCTytZvo3blsg=="
+        }
       }
     }
   ]
