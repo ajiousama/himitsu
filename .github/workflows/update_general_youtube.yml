@@ -9,6 +9,7 @@ on:
       - 'general_youtube_sources_ports.json'
       - 'general_youtube_sources_airports.json'
       - 'general_youtube_update.py'
+      - 'kana_tube_update.py'
       - 'generate_livecamera_logos.py'
       - 'general_youtube_guard.py'
       - 'freewifi_youtube_cleanup.py'
@@ -28,7 +29,7 @@ concurrency:
 jobs:
   update:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 18
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -125,6 +126,9 @@ jobs:
       - name: Finalize JRA official YouTube entry
         run: python jra_freewifi_finalize.py
 
+      - name: Re-apply Kana tube reservation or LIVE after general rebuild
+        run: python kana_tube_update.py
+
       - name: Clean duplicate YouTube entries
         run: python freewifi_youtube_cleanup.py
 
@@ -133,11 +137,15 @@ jobs:
         run: |
           test -s general_youtube.m3u
           test -s freewifi
+          test -s kana_tube.m3u
+          test -s kana_tube_status.json
           grep -q '# === GENERAL_YOUTUBE_MANAGED_START ===' freewifi
           grep -q '# === GENERAL_YOUTUBE_MANAGED_END ===' freewifi
           grep -q '## Rakuten-JP' freewifi
           test "$(grep -c 'tvg-id="jra.official"' freewifi || true)" -le 1
           test "$(grep -c 'tvg-id="jra.gch.free"' freewifi || true)" -le 1
+          test "$(grep -c 'tvg-id="youtube.kana_tube"' freewifi || true)" -le 1
+          test "$(grep -c 'tvg-id="youtube.kana_tube"' general_youtube.m3u || true)" -le 1
           ! grep -Eq 'yt54_(44|45|46)_' general_youtube_sources.json
           ! grep -Eq 'logos/youtube/airport_[^\"]+\.png' general_youtube_sources_airports.json
           ! grep -Eq 'logos/youtube/ehime_[^\"]+\.png' general_youtube_sources_ports.json
@@ -148,11 +156,7 @@ jobs:
           rm -f general_youtube.prev.m3u freewifi.prev youtube_cookies.txt
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          # The merged general_youtube_sources.json is runtime-only here. The
-          # dedicated logo workflow is the one that persists canonical source
-          # mappings, so the 15-minute refresh cannot permanently duplicate the
-          # supplemental source lists into the base file.
-          git add -A logos/youtube general_youtube.m3u public_sports_youtube_fallback.m3u freewifi
+          git add -A logos/youtube general_youtube.m3u public_sports_youtube_fallback.m3u freewifi kana_tube.m3u kana_tube_status.json
           if git diff --cached --quiet; then
             echo 'No changes'
             exit 0
