@@ -1,6 +1,6 @@
 {
   "system": "boat-v2-iphone-seed",
-  "generated_at": "2026-09-06T13:28:41.175636+09:00",
+  "generated_at": "2026-09-06T13:33:07.535901+09:00",
   "date": "2026-09-06",
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/",
   "resolver_ready": false,
@@ -49,9 +49,20 @@
       "resolver_debug": {
         "jcd": "01",
         "name": "桐生",
-        "http_status": 502,
-        "parse_error": "JSONDecodeError:Expecting value: line 1 column 1 (char 0)",
-        "body": "<!DOCTYPE html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"utf-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n    <title>502</title>\n    <style>@font-face {\n  font-family: \"Roobert\";\n  font-weight: 500;\n  font-style: normal;\n  font-stretch: normal;\n  src: url(\"data:fo"
+        "http_status": 503,
+        "ok": true,
+        "playable": false,
+        "source": "public_sports_youtube_fallback.m3u",
+        "probe": {
+          "error": "HTTPError:403"
+        },
+        "details": {
+          "streaks": [
+            "HTTPError:403"
+          ],
+          "jlc": [],
+          "sakura": []
+        }
       }
     },
     "boat.toda": {
@@ -73,9 +84,17 @@
       "resolver_debug": {
         "jcd": "02",
         "name": "戸田",
-        "http_status": 502,
-        "parse_error": "JSONDecodeError:Expecting value: line 1 column 1 (char 0)",
-        "body": "<!DOCTYPE html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"utf-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n    <title>502</title>\n    <style>@font-face {\n  font-family: \"Roobert\";\n  font-weight: 500;\n  font-style: normal;\n  font-stretch: normal;\n  src: url(\"data:fo"
+        "http_status": 503,
+        "ok": false,
+        "playable": false,
+        "source": "",
+        "details": {
+          "streaks": [
+            "HTTPError:403"
+          ],
+          "jlc": [],
+          "sakura": []
+        }
       }
     },
     "boat.edogawa": {
@@ -89,17 +108,25 @@
       "remove_after": "2026-09-06T16:55:00+09:00",
       "mode": "day",
       "next_race": {
-        "race": 6,
-        "start": "13:29"
+        "race": 7,
+        "start": "13:56"
       },
       "stream_window": "live_or_vtr",
       "source": "current-day direct seed unavailable and resolver not verified playable",
       "resolver_debug": {
         "jcd": "03",
         "name": "江戸川",
-        "http_status": 502,
-        "parse_error": "JSONDecodeError:Expecting value: line 1 column 1 (char 0)",
-        "body": "<!DOCTYPE html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"utf-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n    <title>502</title>\n    <style>@font-face {\n  font-family: \"Roobert\";\n  font-weight: 500;\n  font-style: normal;\n  font-stretch: normal;\n  src: url(\"data:fo"
+        "http_status": 503,
+        "ok": false,
+        "playable": false,
+        "source": "",
+        "details": {
+          "streaks": [
+            "HTTPError:403"
+          ],
+          "jlc": [],
+          "sakura": []
+        }
       }
     },
     "boat.heiwajima": {
@@ -121,9 +148,19 @@
       "resolver_debug": {
         "jcd": "04",
         "name": "平和島",
-        "http_status": 502,
-        "parse_error": "JSONDecodeError:Expecting value: line 1 column 1 (char 0)",
-        "body": "<!DOCTYPE html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"utf-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n    <title>502</title>\n    <style>@font-face {\n  font-family: \"Roobert\";\n  font-weight: 500;\n  font-style: normal;\n  font-stretch: normal;\n  src: url(\"data:fo"
+        "http_status": 503,
+        "ok": false,
+        "playable": false,
+        "source": "",
+        "details": {
+          "streaks": [
+            "HTTPError:403"
+          ],
+          "jlc": [
+            "jlc-fast:root:HTTPError:404"
+          ],
+          "sakura": []
+        }
       }
     },
     "boat.gamagori": {
@@ -146,8 +183,19 @@
       "resolver_debug": {
         "jcd": "07",
         "name": "蒲郡",
-        "http_status": 0,
-        "transport_error": "TimeoutError:The read operation timed out"
+        "http_status": 503,
+        "ok": false,
+        "playable": false,
+        "source": "",
+        "details": {
+          "streaks": [
+            "HTTPError:403"
+          ],
+          "jlc": [
+            "jlc-fast:root:HTTPError:404"
+          ],
+          "sakura": []
+        }
       }
     },
     "boat.tsu": {
@@ -169,8 +217,17 @@
       "resolver_debug": {
         "jcd": "09",
         "name": "津",
-        "http_status": 0,
-        "transport_error": "TimeoutError:The read operation timed out"
+        "http_status": 503,
+        "ok": false,
+        "playable": false,
+        "source": "",
+        "details": {
+          "streaks": [
+            "HTTPError:403"
+          ],
+          "jlc": [],
+          "sakura": []
+        }
       }
     },
     "boat.mikuni": {
@@ -202,16 +259,25 @@
       "remove_after": "2026-09-06T16:50:00+09:00",
       "mode": "day",
       "next_race": {
-        "race": 7,
-        "start": "13:32"
+        "race": 8,
+        "start": "14:08"
       },
       "stream_window": "live_or_vtr",
       "source": "current-day direct seed unavailable and resolver not verified playable",
       "resolver_debug": {
         "jcd": "11",
         "name": "びわこ",
-        "http_status": 0,
-        "transport_error": "TimeoutError:The read operation timed out"
+        "http_status": 503,
+        "ok": false,
+        "playable": false,
+        "source": "",
+        "details": {
+          "streaks": [
+            "HTTPError:403"
+          ],
+          "jlc": [],
+          "sakura": []
+        }
       }
     },
     "boat.suminoe": {
@@ -234,8 +300,22 @@
       "resolver_debug": {
         "jcd": "12",
         "name": "住之江",
-        "http_status": 0,
-        "transport_error": "TimeoutError:The read operation timed out"
+        "http_status": 503,
+        "ok": true,
+        "playable": false,
+        "source": "public_sports_youtube_fallback.m3u",
+        "probe": {
+          "error": "HTTPError:403"
+        },
+        "details": {
+          "streaks": [
+            "HTTPError:403"
+          ],
+          "jlc": [
+            "jlc-fast:root:HTTPError:404"
+          ],
+          "sakura": []
+        }
       }
     },
     "boat.naruto": {
@@ -275,9 +355,17 @@
       "resolver_debug": {
         "jcd": "17",
         "name": "宮島",
-        "http_status": 502,
-        "parse_error": "JSONDecodeError:Expecting value: line 1 column 1 (char 0)",
-        "body": "<!DOCTYPE html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"utf-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n    <title>502</title>\n    <style>@font-face {\n  font-family: \"Roobert\";\n  font-weight: 500;\n  font-style: normal;\n  font-stretch: normal;\n  src: url(\"data:fo"
+        "http_status": 503,
+        "ok": false,
+        "playable": false,
+        "source": "",
+        "details": {
+          "streaks": [
+            "HTTPError:403"
+          ],
+          "jlc": [],
+          "sakura": []
+        }
       }
     },
     "boat.fukuoka": {
@@ -299,9 +387,17 @@
       "resolver_debug": {
         "jcd": "22",
         "name": "福岡",
-        "http_status": 502,
-        "parse_error": "JSONDecodeError:Expecting value: line 1 column 1 (char 0)",
-        "body": "<!DOCTYPE html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"utf-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n    <title>502</title>\n    <style>@font-face {\n  font-family: \"Roobert\";\n  font-weight: 500;\n  font-style: normal;\n  font-stretch: normal;\n  src: url(\"data:fo"
+        "http_status": 503,
+        "ok": false,
+        "playable": false,
+        "source": "",
+        "details": {
+          "streaks": [
+            "HTTPError:403"
+          ],
+          "jlc": [],
+          "sakura": []
+        }
       }
     }
   },
@@ -312,68 +408,164 @@
     "boat.heiwajima": {
       "jcd": "04",
       "name": "平和島",
-      "http_status": 502,
-      "parse_error": "JSONDecodeError:Expecting value: line 1 column 1 (char 0)",
-      "body": "<!DOCTYPE html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"utf-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n    <title>502</title>\n    <style>@font-face {\n  font-family: \"Roobert\";\n  font-weight: 500;\n  font-style: normal;\n  font-stretch: normal;\n  src: url(\"data:fo"
+      "http_status": 503,
+      "ok": false,
+      "playable": false,
+      "source": "",
+      "details": {
+        "streaks": [
+          "HTTPError:403"
+        ],
+        "jlc": [
+          "jlc-fast:root:HTTPError:404"
+        ],
+        "sakura": []
+      }
     },
     "boat.kiryu": {
       "jcd": "01",
       "name": "桐生",
-      "http_status": 502,
-      "parse_error": "JSONDecodeError:Expecting value: line 1 column 1 (char 0)",
-      "body": "<!DOCTYPE html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"utf-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n    <title>502</title>\n    <style>@font-face {\n  font-family: \"Roobert\";\n  font-weight: 500;\n  font-style: normal;\n  font-stretch: normal;\n  src: url(\"data:fo"
+      "http_status": 503,
+      "ok": true,
+      "playable": false,
+      "source": "public_sports_youtube_fallback.m3u",
+      "probe": {
+        "error": "HTTPError:403"
+      },
+      "details": {
+        "streaks": [
+          "HTTPError:403"
+        ],
+        "jlc": [],
+        "sakura": []
+      }
     },
     "boat.edogawa": {
       "jcd": "03",
       "name": "江戸川",
-      "http_status": 502,
-      "parse_error": "JSONDecodeError:Expecting value: line 1 column 1 (char 0)",
-      "body": "<!DOCTYPE html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"utf-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n    <title>502</title>\n    <style>@font-face {\n  font-family: \"Roobert\";\n  font-weight: 500;\n  font-style: normal;\n  font-stretch: normal;\n  src: url(\"data:fo"
+      "http_status": 503,
+      "ok": false,
+      "playable": false,
+      "source": "",
+      "details": {
+        "streaks": [
+          "HTTPError:403"
+        ],
+        "jlc": [],
+        "sakura": []
+      }
     },
     "boat.toda": {
       "jcd": "02",
       "name": "戸田",
-      "http_status": 502,
-      "parse_error": "JSONDecodeError:Expecting value: line 1 column 1 (char 0)",
-      "body": "<!DOCTYPE html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"utf-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n    <title>502</title>\n    <style>@font-face {\n  font-family: \"Roobert\";\n  font-weight: 500;\n  font-style: normal;\n  font-stretch: normal;\n  src: url(\"data:fo"
+      "http_status": 503,
+      "ok": false,
+      "playable": false,
+      "source": "",
+      "details": {
+        "streaks": [
+          "HTTPError:403"
+        ],
+        "jlc": [],
+        "sakura": []
+      }
     },
     "boat.gamagori": {
       "jcd": "07",
       "name": "蒲郡",
-      "http_status": 0,
-      "transport_error": "TimeoutError:The read operation timed out"
-    },
-    "boat.tsu": {
-      "jcd": "09",
-      "name": "津",
-      "http_status": 0,
-      "transport_error": "TimeoutError:The read operation timed out"
-    },
-    "boat.biwako": {
-      "jcd": "11",
-      "name": "びわこ",
-      "http_status": 0,
-      "transport_error": "TimeoutError:The read operation timed out"
+      "http_status": 503,
+      "ok": false,
+      "playable": false,
+      "source": "",
+      "details": {
+        "streaks": [
+          "HTTPError:403"
+        ],
+        "jlc": [
+          "jlc-fast:root:HTTPError:404"
+        ],
+        "sakura": []
+      }
     },
     "boat.suminoe": {
       "jcd": "12",
       "name": "住之江",
-      "http_status": 0,
-      "transport_error": "TimeoutError:The read operation timed out"
+      "http_status": 503,
+      "ok": true,
+      "playable": false,
+      "source": "public_sports_youtube_fallback.m3u",
+      "probe": {
+        "error": "HTTPError:403"
+      },
+      "details": {
+        "streaks": [
+          "HTTPError:403"
+        ],
+        "jlc": [
+          "jlc-fast:root:HTTPError:404"
+        ],
+        "sakura": []
+      }
+    },
+    "boat.tsu": {
+      "jcd": "09",
+      "name": "津",
+      "http_status": 503,
+      "ok": false,
+      "playable": false,
+      "source": "",
+      "details": {
+        "streaks": [
+          "HTTPError:403"
+        ],
+        "jlc": [],
+        "sakura": []
+      }
+    },
+    "boat.biwako": {
+      "jcd": "11",
+      "name": "びわこ",
+      "http_status": 503,
+      "ok": false,
+      "playable": false,
+      "source": "",
+      "details": {
+        "streaks": [
+          "HTTPError:403"
+        ],
+        "jlc": [],
+        "sakura": []
+      }
     },
     "boat.miyajima": {
       "jcd": "17",
       "name": "宮島",
-      "http_status": 502,
-      "parse_error": "JSONDecodeError:Expecting value: line 1 column 1 (char 0)",
-      "body": "<!DOCTYPE html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"utf-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n    <title>502</title>\n    <style>@font-face {\n  font-family: \"Roobert\";\n  font-weight: 500;\n  font-style: normal;\n  font-stretch: normal;\n  src: url(\"data:fo"
+      "http_status": 503,
+      "ok": false,
+      "playable": false,
+      "source": "",
+      "details": {
+        "streaks": [
+          "HTTPError:403"
+        ],
+        "jlc": [],
+        "sakura": []
+      }
     },
     "boat.fukuoka": {
       "jcd": "22",
       "name": "福岡",
-      "http_status": 502,
-      "parse_error": "JSONDecodeError:Expecting value: line 1 column 1 (char 0)",
-      "body": "<!DOCTYPE html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"utf-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n    <title>502</title>\n    <style>@font-face {\n  font-family: \"Roobert\";\n  font-weight: 500;\n  font-style: normal;\n  font-stretch: normal;\n  src: url(\"data:fo"
+      "http_status": 503,
+      "ok": false,
+      "playable": false,
+      "source": "",
+      "details": {
+        "streaks": [
+          "HTTPError:403"
+        ],
+        "jlc": [],
+        "sakura": []
+      }
     }
   },
   "verified_resolver_count": 0
