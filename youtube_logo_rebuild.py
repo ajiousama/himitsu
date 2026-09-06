@@ -1,8 +1,12 @@
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
-import json, re, math
+import json, re
 
-SRC=Path('general_youtube_sources.json')
+SOURCE_FILES=[
+    Path('general_youtube_sources.json'),
+    Path('general_youtube_sources_airports.json'),
+    Path('general_youtube_sources_ports.json'),
+]
 PLAYLISTS=[Path('general_youtube.m3u'),Path('freewifi')]
 OUTDIR=Path('logos/youtube/unified')
 RAW='https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/youtube/unified/'
@@ -25,15 +29,21 @@ def slug(tvg):
     s=re.sub(r'[^A-Za-z0-9_-]+','_',s).strip('_')
     return s or 'youtube'
 
+def logo_title(item):
+    cid=item.get('id','')
+    if cid=='youtube.ehime_ainan_ebc':
+        return '愛南ライブカメラ'
+    return item.get('name','YouTube LIVE')
+
 def category(item):
-    name=item.get('name',''); group=item.get('group','')
+    name=logo_title(item); group=item.get('group','')
+    if item.get('id')=='youtube.kana_tube': return 'KANA'
     if '空港' in name or 'airport' in item.get('id',''): return 'AIR'
-    if any(k in name for k in ['港','海峡','ウォーターフロント','瀬戸大橋']): return 'SEA'
+    if any(k in name for k in ['港','湾','海峡','ウォーターフロント','瀬戸大橋']): return 'SEA'
     if any(k in name for k in ['駅','鉄道','環状線','バス','サービスエリア','道路']): return 'RAIL'
     if group=='動物' or any(k in name for k in ['犬','馬','猿','チンチラ','ナミビア']): return 'ANIMAL'
     if any(k in name for k in ['野球','パイレーツ']): return 'SPORT'
     if any(k in name for k in ['山','ダム','桂川','スキー','石鎚','皿ヶ嶺','道後','城']): return 'SCENIC'
-    if item.get('id')=='youtube.kana_tube': return 'KANA'
     return 'LIVE'
 
 ACCENTS={
@@ -51,7 +61,6 @@ def play_badge(draw,x,y,s):
     draw.polygon(tri,fill=(255,255,255,255))
 
 def icon(draw,cat,cx,cy,s,accent):
-    # Deliberately simple geometric pictograms: consistent, readable at IPTV icon size.
     if cat=='AIR':
         pts=[(cx-s*.38,cy+s*.05),(cx+s*.38,cy-s*.18),(cx+s*.16,cy+s*.05),(cx+s*.34,cy+s*.27),(cx+s*.18,cy+s*.31),(cx,cy+s*.12),(cx-s*.23,cy+s*.28),(cx-s*.34,cy+s*.23),(cx-s*.16,cy+s*.03)]
         draw.polygon(pts,fill=accent)
@@ -78,14 +87,11 @@ def icon(draw,cat,cx,cy,s,accent):
 
 def split_lines(text):
     text=re.sub(r'\s+',' ',text).strip()
-    # Remove noisy suffixes while keeping the identity visible.
     text=text.replace('公式ライブカメラ','').replace('ライブカメラ','').replace(' LIVE','').strip(' ・')
     if len(text)<=9: return [text]
     if len(text)<=18:
         mid=len(text)//2
-        cut=min(range(max(1,mid-3),min(len(text),mid+4)),key=lambda i: abs(i-mid))
-        return [text[:cut],text[cut:]]
-    # long names: balanced 3 lines
+        return [text[:mid],text[mid:]]
     n=len(text); a=max(1,n//3); b=max(a+1,2*n//3)
     return [text[:a],text[a:b],text[b:]]
 
@@ -104,16 +110,13 @@ def fit_text(draw,lines,maxw,maxh):
 def render(item,path):
     cat=category(item); accent=ACCENTS[cat]
     im=Image.new('RGBA',(W,H),(0,0,0,0)); d=ImageDraw.Draw(im)
-    # white card + dark rim: survives both black and white player backgrounds.
     rounded(d,(12,12,500,500),54,(255,255,255,255),(28,28,31,255),14)
-    # subtle category corner field
     rounded(d,(28,28,484,126),30,(246,247,249,255))
     play_badge(d,42,42,70)
-    lab=LABELS[cat]; lf=font(25)
-    d.text((128,60),lab,font=lf,fill=(38,38,42,255))
+    d.text((128,60),LABELS[cat],font=font(25),fill=(38,38,42,255))
     rounded(d,(386,52,470,102),22,(255,0,0,255)); d.text((402,60),'LIVE',font=font(22),fill='white')
     icon(d,cat,420,190,92,accent)
-    lines=split_lines(item.get('name','YouTube LIVE'))
+    lines=split_lines(logo_title(item))
     f,spacing=fit_text(d,lines,390,220)
     boxes=[d.textbbox((0,0),t,font=f,stroke_width=2) for t in lines]
     hs=[b[3]-b[1] for b in boxes]; total=sum(hs)+spacing*(len(lines)-1)
@@ -122,7 +125,6 @@ def render(item,path):
         tw=b[2]-b[0]
         d.text(((W-tw)/2,y),t,font=f,fill=(26,26,30,255),stroke_width=2,stroke_fill=(255,255,255,255))
         y+=h+spacing
-    # category accent rule and tiny YouTube marker
     rounded(d,(62,448,450,462),7,accent)
     im.save(path,optimize=True)
 
@@ -138,23 +140,49 @@ def patch_logo_in_text(text,mapping):
         out.append(line)
     return '\n'.join(out).rstrip()+'\n'
 
+def load_sources():
+    records=[]
+    targets={}
+    for src in SOURCE_FILES:
+        if not src.exists():
+            continue
+        items=json.loads(src.read_text(encoding='utf-8'))
+        records.append((src,items))
+        for item in items:
+            cid=str(item.get('id',''))
+            if cid.startswith('youtube.') and cid not in targets:
+                targets[cid]=item
+    return records,targets
+
 def main():
     OUTDIR.mkdir(parents=True,exist_ok=True)
-    items=json.loads(SRC.read_text(encoding='utf-8'))
-    targets=[x for x in items if str(x.get('id','')).startswith('youtube.')]
+    for old in OUTDIR.glob('yt_*.png'):
+        old.unlink()
+
+    records,targets=load_sources()
     mapping={}
-    for item in targets:
-        fn='yt_'+slug(item['id'])+'.png'; url=RAW+fn
-        render(item,OUTDIR/fn); mapping[item['id']]=url; item['logo']=url
-    SRC.write_text(json.dumps(items,ensure_ascii=False,separators=(',',':'))+'\n',encoding='utf-8')
+    for cid,item in targets.items():
+        fn='yt_'+slug(cid)+'.png'; url=RAW+fn
+        render(item,OUTDIR/fn); mapping[cid]=url
+
+    for src,items in records:
+        for item in items:
+            cid=str(item.get('id',''))
+            if cid in mapping:
+                item['logo']=mapping[cid]
+        src.write_text(json.dumps(items,ensure_ascii=False,separators=(',',':'))+'\n',encoding='utf-8')
+
     for p in PLAYLISTS:
-        if p.exists(): p.write_text(patch_logo_in_text(p.read_text(encoding='utf-8-sig',errors='replace'),mapping),encoding='utf-8')
-    # Keep the dedicated kana updater from restoring an old logo URL.
+        if p.exists():
+            p.write_text(patch_logo_in_text(p.read_text(encoding='utf-8-sig',errors='replace'),mapping),encoding='utf-8')
+
     kp=Path('kana_tube_update.py')
     if kp.exists() and 'youtube.kana_tube' in mapping:
         s=kp.read_text(encoding='utf-8',errors='replace')
         s=re.sub(r'^LOGO\s*=\s*.*$',f'LOGO = "{mapping["youtube.kana_tube"]}"',s,flags=re.M)
         kp.write_text(s,encoding='utf-8')
+
     print('unified YouTube logos:',len(mapping))
+    print('Ainan logo title: 愛南ライブカメラ')
 
 if __name__=='__main__': main()
