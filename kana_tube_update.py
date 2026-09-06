@@ -1,196 +1,303 @@
-from __future__ import annotations
-
+from pathlib import Path
+from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 import json
 import re
 import subprocess
-from pathlib import Path
 
-FREEWIFI = Path('freewifi')
-OUT = Path('kana_tube.m3u')
-COOKIES = Path('youtube_cookies.txt')
-CHANNELS = (
-    'https://www.youtube.com/channel/UCmHdGDdZGf4cMWRBmEw4Xww',
-    'https://www.youtube.com/@kana_tube',
-)
-ID = 'youtube.kana_tube'
-NAME = 'かなチューブ'
-LOGO = 'https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/youtube/yt43_01_kana_tube.png'
-START = '# === KANA_TUBE_MANAGED_START ==='
-END = '# === KANA_TUBE_MANAGED_END ==='
+FREEWIFI = Path("freewifi")
+GENERAL = Path("general_youtube.m3u")
+OUT = Path("kana_tube.m3u")
+STATUS = Path("kana_tube_status.json")
+COOKIES = Path("youtube_cookies.txt")
+
+HANDLE = "@kana_tube"
+CHANNEL_ID = "UCmHdGDdZGf4cMWRBmEw4Xww"
+CHANNEL = f"https://www.youtube.com/{HANDLE}"
+TVG_ID = "youtube.kana_tube"
+NAME = "かなチューブ"
+LOGO = "https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/youtube/yt43_01_kana_tube.png"
+START = "# === KANA_TUBE_MANAGED_START ==="
+END = "# === KANA_TUBE_MANAGED_END ==="
+GENERAL_START = "# === GENERAL_YOUTUBE_MANAGED_START ==="
+JST = ZoneInfo("Asia/Tokyo")
 
 
-def base_cmd() -> list[str]:
-    cmd = ['yt-dlp','--js-runtimes','node','--no-warnings','--no-cache-dir','--socket-timeout','10','--retries','1','--fragment-retries','1']
+def base_cmd():
+    cmd = ["yt-dlp", "--js-runtimes", "node", "--no-warnings", "--no-cache-dir",
+           "--socket-timeout", "12", "--retries", "1"]
     if COOKIES.exists() and COOKIES.stat().st_size > 20:
-        cmd += ['--cookies', str(COOKIES)]
+        cmd += ["--cookies", str(COOKIES)]
     return cmd
 
 
-def direct(page: str) -> str | None:
-    for fmt in ('best[protocol^=m3u8]','best'):
-        p = subprocess.run(
-            base_cmd()+[
-                '--extractor-args','youtube:player_client=default,web_safari,web',
-                '--no-playlist','--match-filter','is_live','-f',fmt,'-g',page
-            ],
-            capture_output=True, text=True, timeout=35,
-        )
-        urls=[x.strip() for x in p.stdout.splitlines() if x.strip().startswith(('http://','https://'))]
-        if p.returncode == 0 and len(urls) == 1:
-            return urls[0]
-    return None
-
-
-def candidate_ids_from_listing(listing: str, limit: int = 20) -> list[str]:
-    """Return likely video ids even when flat-playlist omits live_status.
-
-    YouTube sometimes leaves live_status blank in channel/search listings. The
-    old detector discarded those rows before testing the watch page, causing a
-    false 'not live'. Prefer rows explicitly marked live, but also validate a
-    small number of unknown/upcoming/recent rows with direct(), which itself
-    uses --match-filter is_live as the final truth check.
-    """
-    p = subprocess.run(
-        base_cmd()+['--flat-playlist','--dump-json','--playlist-end',str(limit),listing],
-        capture_output=True, text=True, timeout=40,
-    )
+def run_json(args, timeout=45):
+    try:
+        p = subprocess.run(base_cmd() + args, capture_output=True, text=True, timeout=timeout)
+    except subprocess.TimeoutExpired:
+        return None, "timeout"
     if p.returncode != 0:
-        return []
-    live=[]; other=[]
+        err = " | ".join(x.strip() for x in p.stderr.splitlines()[-3:] if x.strip())
+        return None, err[:600]
+    try:
+        return json.loads(p.stdout), None
+    except Exception:
+        return None, "invalid-json"
+
+
+def official(info):
+    cid = (info.get("channel_id") or info.get("uploader_id") or "").strip()
+    handle = (info.get("channel_url") or info.get("uploader_url") or "").lower()
+    name = (info.get("channel") or info.get("uploader") or "").lower()
+    return cid == CHANNEL_ID or HANDLE.lower() in handle or "華奈tube" in name or "かなtube" in name
+
+
+def inspect_watch(video_id):
+    return run_json(["--dump-single-json", "--no-playlist",
+                     f"https://www.youtube.com/watch?v={video_id}"], timeout=35)
+
+
+def listing_ids(url, limit=30):
+    try:
+        p = subprocess.run(base_cmd() + ["--flat-playlist", "--dump-json",
+                           "--playlist-end", str(limit), url],
+                           capture_output=True, text=True, timeout=45)
+    except subprocess.TimeoutExpired:
+        return [], "timeout"
+    if p.returncode != 0:
+        return [], (" | ".join(x.strip() for x in p.stderr.splitlines()[-3:] if x.strip()))[:600]
+    live, upcoming, other = [], [], []
     for line in p.stdout.splitlines():
         try:
-            item=json.loads(line)
+            item = json.loads(line)
         except Exception:
             continue
-        vid=item.get('id')
+        vid = item.get("id")
         if not vid:
             continue
-        vid=str(vid)
-        status=(item.get('live_status') or '').lower()
-        if status == 'is_live':
+        st = (item.get("live_status") or "").lower()
+        if st == "is_live":
             live.append(vid)
-        elif status not in {'was_live'}:
+        elif st == "is_upcoming":
+            upcoming.append(vid)
+        else:
             other.append(vid)
-    ordered=[]
-    for vid in live + other:
-        if vid not in ordered:
-            ordered.append(vid)
-    return ordered[:8]
+    return live + upcoming + other[:8], None
 
 
-def find_live() -> str | None:
-    # 1) Prefer the immutable channel ID, with the current handle as fallback.
-    for channel in CHANNELS:
-        url = direct(channel + '/live')
-        if url:
-            print('Kana tube detector: canonical /live', channel)
-            return url
+def search_ids():
+    ids = []
+    for query in ("ytsearchdate12:華奈tube 競輪", "ytsearchdate12:かなチューブ 競輪"):
+        found, _ = listing_ids(query, 12)
+        ids.extend(found)
+    return list(dict.fromkeys(ids))
 
-    # 2) Check streams/videos on both channel identities. Do not require
-    # flat-playlist to report is_live; direct() validates the actual watch page.
-    checked_ids=set()
-    for channel in CHANNELS:
-        for listing in (channel+'/streams', channel+'/videos'):
-            for vid in candidate_ids_from_listing(listing):
-                if vid in checked_ids:
-                    continue
-                checked_ids.add(vid)
-                url=direct('https://www.youtube.com/watch?v='+vid)
-                if url:
-                    print('Kana tube detector: channel listing', channel, vid)
-                    return url
 
-    # 3) Handle-independent fallbacks. Search recent results by the official
-    # channel name, then let direct() decide whether each candidate is live.
-    searches = (
-        'ytsearchdate20:華奈tube 競輪',
-        'ytsearch20:華奈tube 競輪 LIVE',
-        'ytsearch20:かなチューブ 競輪 LIVE',
-    )
-    checked=set()
-    for search in searches:
-        p = subprocess.run(
-            base_cmd()+['--flat-playlist','--dump-json','--playlist-end','20',search],
-            capture_output=True, text=True, timeout=45,
-        )
-        if p.returncode != 0:
-            continue
-        for line in p.stdout.splitlines():
-            try:
-                item=json.loads(line)
-            except Exception:
-                continue
-            if not item.get('id'):
-                continue
-            owner=' '.join(str(item.get(k) or '') for k in ('channel','uploader','channel_url','uploader_url'))
-            title=str(item.get('title') or '')
-            # Avoid publishing somebody else's keirin stream.
-            if not any(key in owner or key in title for key in ('華奈tube','華奈','かなチューブ')):
-                continue
-            vid=str(item['id'])
-            if vid in checked:
-                continue
-            checked.add(vid)
-            url=direct('https://www.youtube.com/watch?v='+vid)
-            if url:
-                print('Kana tube detector: YouTube search fallback', vid, title)
-                return url
-            if len(checked) >= 12:
-                break
-        if len(checked) >= 12:
-            break
-
+def start_timestamp(info):
+    for key in ("release_timestamp", "timestamp"):
+        try:
+            value = int(info.get(key) or 0)
+        except Exception:
+            value = 0
+        if value > 0:
+            return value
     return None
 
 
-def strip_entry(text: str, tvg_id: str) -> str:
-    text = re.sub(re.escape(START)+r'.*?'+re.escape(END)+r'\n?', '', text, flags=re.S)
-    lines=text.splitlines(); out=[]; i=0
+def choose_current():
+    candidates = []
+    diagnostics = []
+    reachable = False
+
+    # /streams is essential: reservation/upcoming frames live here before LIVE starts.
+    for url in (CHANNEL + "/live", CHANNEL + "/streams", CHANNEL + "/videos"):
+        ids, err = listing_ids(url, 35)
+        if not err:
+            reachable = True
+        else:
+            diagnostics.append(f"{url}: {err}")
+        candidates.extend(ids)
+
+    # Search is fallback only. Every candidate is re-verified as the official channel.
+    if not candidates:
+        candidates.extend(search_ids())
+
+    seen = set()
+    items = []
+    for vid in candidates:
+        if vid in seen:
+            continue
+        seen.add(vid)
+        info, err = inspect_watch(vid)
+        if err or not info:
+            if err:
+                diagnostics.append(f"{vid}: {err}")
+            continue
+        reachable = True
+        if not official(info):
+            continue
+        status = (info.get("live_status") or "").lower()
+        if status not in ("is_live", "is_upcoming"):
+            continue
+        items.append(info)
+
+    if not items:
+        return None, reachable, diagnostics
+
+    live = [x for x in items if (x.get("live_status") or "").lower() == "is_live"]
+    if live:
+        live.sort(key=lambda x: start_timestamp(x) or 0, reverse=True)
+        return live[0], True, diagnostics
+
+    now = int(datetime.now(timezone.utc).timestamp())
+    future = sorted(items, key=lambda x: (
+        0 if (start_timestamp(x) or now) >= now - 6 * 3600 else 1,
+        abs((start_timestamp(x) or now) - now)
+    ))
+    return future[0], True, diagnostics
+
+
+def direct_live_url(info):
+    manifest = (info.get("manifest_url") or "").strip()
+    if manifest.startswith(("http://", "https://")):
+        return manifest
+    vid = info.get("id")
+    if not vid:
+        return None
+    try:
+        p = subprocess.run(base_cmd() + ["--no-playlist", "--match-filter", "is_live",
+                           "-f", "best[protocol^=m3u8]", "-g",
+                           f"https://www.youtube.com/watch?v={vid}"],
+                           capture_output=True, text=True, timeout=35)
+    except subprocess.TimeoutExpired:
+        return None
+    urls = [x.strip() for x in p.stdout.splitlines()
+            if x.strip().startswith(("http://", "https://"))]
+    return urls[0] if p.returncode == 0 and len(urls) == 1 else None
+
+
+def entry(url, state):
+    suffix = "【LIVE】" if state == "is_live" else "【配信予定】"
+    label = NAME + suffix
+    return "\n".join([
+        f'#EXTINF:-1 tvg-id="{TVG_ID}" tvg-name="{NAME}" tvg-logo="{LOGO}" group-title="一般YouTube LIVE",{label}',
+        url
+    ])
+
+
+def strip_entry(text):
+    text = re.sub(re.escape(START) + r".*?" + re.escape(END) + r"\n?",
+                  "", text, flags=re.S)
+    lines = text.splitlines()
+    out = []
+    i = 0
     while i < len(lines):
-        line=lines[i]
-        if line.startswith('#EXTINF:') and f'tvg-id="{tvg_id}"' in line:
+        line = lines[i]
+        if line.startswith("#EXTINF:") and f'tvg-id="{TVG_ID}"' in line:
             i += 1
-            while i < len(lines) and not lines[i].strip():
-                i += 1
-            if i < len(lines) and lines[i].strip().startswith(('http://','https://')):
+            while i < len(lines) and not lines[i].startswith("#EXTINF:"):
+                if lines[i].strip().startswith(("http://", "https://")):
+                    i += 1
+                    break
                 i += 1
             continue
-        out.append(line); i += 1
-    return '\n'.join(out).rstrip()+'\n'
+        out.append(line)
+        i += 1
+    return "\n".join(out).rstrip() + "\n"
 
 
-def entry(url: str) -> str:
-    return (f'#EXTINF:-1 tvg-id="{ID}" tvg-name="{NAME}" tvg-logo="{LOGO}" group-title="かなチューブ",{NAME}\n'
-            f'{url}\n')
+def sync_general(payload):
+    base = GENERAL.read_text(encoding="utf-8-sig", errors="replace") if GENERAL.exists() else "#EXTM3U\n"
+    base = strip_entry(base)
+    if not base.strip():
+        base = "#EXTM3U\n"
+    if payload:
+        base = base.rstrip() + "\n\n" + payload + "\n"
+    GENERAL.write_text(base, encoding="utf-8")
 
 
-def normalized_urls(text: str) -> set[str]:
-    return {ln.strip().split('?',1)[0] for ln in text.splitlines() if ln.strip().startswith(('http://','https://'))}
-
-
-def main() -> int:
-    base=FREEWIFI.read_text(encoding='utf-8-sig',errors='replace') if FREEWIFI.exists() else '#EXTM3U\n'
-    clean=strip_entry(base, ID)
-    url=find_live()
-    if url:
-        key=url.split('?',1)[0]
-        if key in normalized_urls(clean):
-            raise RuntimeError('Kana tube live URL duplicates an existing channel URL; refusing duplicate insertion')
-        block=START+'\n'+entry(url)+END+'\n'
-        anchor='# === GENERAL_YOUTUBE_MANAGED_START ==='
-        if anchor in clean:
-            clean=clean.replace(anchor, block+'\n'+anchor, 1)
-        else:
-            clean=clean.rstrip()+'\n\n'+block
-        OUT.write_text('#EXTM3U\n\n'+entry(url),encoding='utf-8')
-        print('Kana tube: LIVE published')
+def sync_freewifi(payload):
+    base = FREEWIFI.read_text(encoding="utf-8-sig", errors="replace") if FREEWIFI.exists() else "#EXTM3U\n"
+    base = strip_entry(base)
+    if not payload:
+        FREEWIFI.write_text(base, encoding="utf-8")
+        return
+    block = START + "\n" + payload + "\n" + END + "\n"
+    pos = base.find(GENERAL_START)
+    if pos >= 0:
+        base = base[:pos].rstrip() + "\n\n" + block + "\n" + base[pos:]
     else:
-        OUT.write_text('#EXTM3U\n',encoding='utf-8')
-        print('Kana tube: not live; removed from FreeWiFi')
-    if clean.count(f'tvg-id="{ID}"') > 1:
-        raise RuntimeError('duplicate Kana tube tvg-id detected')
-    FREEWIFI.write_text(clean.rstrip()+'\n',encoding='utf-8')
-    return 0
+        base = base.rstrip() + "\n\n" + block
+    FREEWIFI.write_text(base, encoding="utf-8")
 
-if __name__ == '__main__':
-    raise SystemExit(main())
+
+def jst_text(ts):
+    if not ts:
+        return None
+    return datetime.fromtimestamp(ts, JST).isoformat(timespec="seconds")
+
+
+def write_status(data):
+    data["checked_at"] = datetime.now(JST).isoformat(timespec="seconds")
+    STATUS.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+
+def main():
+    selected, reachable, diagnostics = choose_current()
+
+    if selected is None and not reachable:
+        # Don't destroy a working entry during YouTube/yt-dlp failures.
+        write_status({
+            "state": "error",
+            "channel": HANDLE,
+            "channel_id": CHANNEL_ID,
+            "message": "YouTube確認失敗。既存エントリを保持",
+            "diagnostics": diagnostics[-8:]
+        })
+        print("KANA: YouTube確認失敗。既存エントリを保持")
+        return
+
+    if selected is None:
+        OUT.write_text("#EXTM3U\n", encoding="utf-8")
+        sync_general(None)
+        sync_freewifi(None)
+        write_status({
+            "state": "none",
+            "channel": HANDLE,
+            "channel_id": CHANNEL_ID,
+            "message": "現在LIVE/配信予定なし",
+            "diagnostics": diagnostics[-8:]
+        })
+        print("KANA: 現在LIVE/配信予定なし")
+        return
+
+    state = (selected.get("live_status") or "").lower()
+    vid = selected.get("id")
+    watch = f"https://www.youtube.com/watch?v={vid}"
+    direct = direct_live_url(selected) if state == "is_live" else None
+    play = direct or watch
+    payload = entry(play, state)
+    OUT.write_text("#EXTM3U\n" + payload + "\n", encoding="utf-8")
+    sync_general(payload)
+    sync_freewifi(payload)
+
+    ts = start_timestamp(selected)
+    write_status({
+        "state": state,
+        "channel": HANDLE,
+        "channel_id": CHANNEL_ID,
+        "video_id": vid,
+        "watch_url": watch,
+        "play_url": play,
+        "direct_hls": bool(direct),
+        "title": selected.get("title") or NAME,
+        "start_timestamp": ts,
+        "start_jst": jst_text(ts),
+        "diagnostics": diagnostics[-8:]
+    })
+    print(f"KANA: {state} {vid} {selected.get('title') or NAME}")
+    print(f"KANA: play_url={play}")
+
+
+if __name__ == "__main__":
+    main()
