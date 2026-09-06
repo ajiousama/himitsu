@@ -1,6 +1,6 @@
 {
   "system": "boat-v2-iphone-seed",
-  "generated_at": "2026-09-07T05:48:10.990385+09:00",
+  "generated_at": "2026-09-07T05:55:37.016017+09:00",
   "date": "2026-09-07",
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/",
   "resolver_ready": false,
@@ -187,17 +187,9 @@
       "resolver_debug": {
         "jcd": "09",
         "name": "津",
-        "http_status": 503,
-        "ok": false,
-        "playable": false,
-        "source": "",
-        "details": {
-          "streaks": [
-            "HTTPError:404"
-          ],
-          "jlc": [],
-          "sakura": []
-        }
+        "http_status": 502,
+        "parse_error": "JSONDecodeError:Expecting value: line 1 column 1 (char 0)",
+        "body": "<!DOCTYPE html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"utf-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n    <title>502</title>\n    <style>@font-face {\n  font-family: \"Roobert\";\n  font-weight: 500;\n  font-style: normal;\n  font-stretch: normal;\n  src: url(\"data:fo"
       }
     },
     "boat.mikuni": {
@@ -220,17 +212,9 @@
       "resolver_debug": {
         "jcd": "10",
         "name": "三国",
-        "http_status": 503,
-        "ok": false,
-        "playable": false,
-        "source": "",
-        "details": {
-          "streaks": [
-            "HTTPError:404"
-          ],
-          "jlc": [],
-          "sakura": []
-        }
+        "http_status": 502,
+        "parse_error": "JSONDecodeError:Expecting value: line 1 column 1 (char 0)",
+        "body": "<!DOCTYPE html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"utf-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n    <title>502</title>\n    <style>@font-face {\n  font-family: \"Roobert\";\n  font-weight: 500;\n  font-style: normal;\n  font-stretch: normal;\n  src: url(\"data:fo"
       }
     },
     "boat.biwako": {
@@ -253,17 +237,9 @@
       "resolver_debug": {
         "jcd": "11",
         "name": "びわこ",
-        "http_status": 503,
-        "ok": false,
-        "playable": false,
-        "source": "",
-        "details": {
-          "streaks": [
-            "HTTPError:404"
-          ],
-          "jlc": [],
-          "sakura": []
-        }
+        "http_status": 502,
+        "parse_error": "JSONDecodeError:Expecting value: line 1 column 1 (char 0)",
+        "body": "<!DOCTYPE html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"utf-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n    <title>502</title>\n    <style>@font-face {\n  font-family: \"Roobert\";\n  font-weight: 500;\n  font-style: normal;\n  font-stretch: normal;\n  src: url(\"data:fo"
       }
     },
     "boat.amagasaki": {
@@ -286,17 +262,9 @@
       "resolver_debug": {
         "jcd": "13",
         "name": "尼崎",
-        "http_status": 503,
-        "ok": false,
-        "playable": false,
-        "source": "",
-        "details": {
-          "streaks": [
-            "HTTPError:404"
-          ],
-          "jlc": [],
-          "sakura": []
-        }
+        "http_status": 502,
+        "parse_error": "JSONDecodeError:Expecting value: line 1 column 1 (char 0)",
+        "body": "<!DOCTYPE html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"utf-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n    <title>502</title>\n    <style>@font-face {\n  font-family: \"Roobert\";\n  font-weight: 500;\n  font-style: normal;\n  font-stretch: normal;\n  src: url(\"data:fo"
       }
     },
     "boat.naruto": {
@@ -328,7 +296,9 @@
             "HTTPError:404"
           ],
           "jlc": [],
-          "sakura": []
+          "sakura": [
+            "sakura-fast:child-deadline"
+          ]
         }
       }
     },
@@ -396,7 +366,9 @@
             "HTTPError:404"
           ],
           "jlc": [],
-          "sakura": []
+          "sakura": [
+            "sakura-fast:child-deadline"
+          ]
         }
       }
     },
@@ -438,23 +410,6 @@
   "seed_freshness_rule": "JWT start date must equal current JST date",
   "verified_resolver_base": "https://ajiousama-radiko.onrender.com/boat",
   "resolver_diagnostics": {
-    "boat.heiwajima": {
-      "jcd": "04",
-      "name": "平和島",
-      "http_status": 503,
-      "ok": false,
-      "playable": false,
-      "source": "",
-      "details": {
-        "streaks": [
-          "HTTPError:404"
-        ],
-        "jlc": [
-          "jlc-fast:root:HTTPError:404"
-        ],
-        "sakura": []
-      }
-    },
     "boat.gamagori": {
       "jcd": "07",
       "name": "蒲郡",
@@ -472,9 +427,9 @@
         "sakura": []
       }
     },
-    "boat.edogawa": {
-      "jcd": "03",
-      "name": "江戸川",
+    "boat.heiwajima": {
+      "jcd": "04",
+      "name": "平和島",
       "http_status": 503,
       "ok": false,
       "playable": false,
@@ -483,7 +438,9 @@
         "streaks": [
           "HTTPError:404"
         ],
-        "jlc": [],
+        "jlc": [
+          "jlc-fast:root:HTTPError:404"
+        ],
         "sakura": []
       }
     },
@@ -505,9 +462,9 @@
         "sakura": []
       }
     },
-    "boat.tsu": {
-      "jcd": "09",
-      "name": "津",
+    "boat.edogawa": {
+      "jcd": "03",
+      "name": "江戸川",
       "http_status": 503,
       "ok": false,
       "playable": false,
@@ -523,47 +480,30 @@
     "boat.mikuni": {
       "jcd": "10",
       "name": "三国",
-      "http_status": 503,
-      "ok": false,
-      "playable": false,
-      "source": "",
-      "details": {
-        "streaks": [
-          "HTTPError:404"
-        ],
-        "jlc": [],
-        "sakura": []
-      }
-    },
-    "boat.amagasaki": {
-      "jcd": "13",
-      "name": "尼崎",
-      "http_status": 503,
-      "ok": false,
-      "playable": false,
-      "source": "",
-      "details": {
-        "streaks": [
-          "HTTPError:404"
-        ],
-        "jlc": [],
-        "sakura": []
-      }
+      "http_status": 502,
+      "parse_error": "JSONDecodeError:Expecting value: line 1 column 1 (char 0)",
+      "body": "<!DOCTYPE html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"utf-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n    <title>502</title>\n    <style>@font-face {\n  font-family: \"Roobert\";\n  font-weight: 500;\n  font-style: normal;\n  font-stretch: normal;\n  src: url(\"data:fo"
     },
     "boat.biwako": {
       "jcd": "11",
       "name": "びわこ",
-      "http_status": 503,
-      "ok": false,
-      "playable": false,
-      "source": "",
-      "details": {
-        "streaks": [
-          "HTTPError:404"
-        ],
-        "jlc": [],
-        "sakura": []
-      }
+      "http_status": 502,
+      "parse_error": "JSONDecodeError:Expecting value: line 1 column 1 (char 0)",
+      "body": "<!DOCTYPE html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"utf-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n    <title>502</title>\n    <style>@font-face {\n  font-family: \"Roobert\";\n  font-weight: 500;\n  font-style: normal;\n  font-stretch: normal;\n  src: url(\"data:fo"
+    },
+    "boat.amagasaki": {
+      "jcd": "13",
+      "name": "尼崎",
+      "http_status": 502,
+      "parse_error": "JSONDecodeError:Expecting value: line 1 column 1 (char 0)",
+      "body": "<!DOCTYPE html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"utf-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n    <title>502</title>\n    <style>@font-face {\n  font-family: \"Roobert\";\n  font-weight: 500;\n  font-style: normal;\n  font-stretch: normal;\n  src: url(\"data:fo"
+    },
+    "boat.tsu": {
+      "jcd": "09",
+      "name": "津",
+      "http_status": 502,
+      "parse_error": "JSONDecodeError:Expecting value: line 1 column 1 (char 0)",
+      "body": "<!DOCTYPE html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"utf-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n    <title>502</title>\n    <style>@font-face {\n  font-family: \"Roobert\";\n  font-weight: 500;\n  font-style: normal;\n  font-stretch: normal;\n  src: url(\"data:fo"
     },
     "boat.kojima": {
       "jcd": "16",
@@ -582,6 +522,21 @@
         "sakura": []
       }
     },
+    "boat.omura": {
+      "jcd": "24",
+      "name": "大村",
+      "http_status": 503,
+      "ok": false,
+      "playable": false,
+      "source": "",
+      "details": {
+        "streaks": [
+          "HTTPError:404"
+        ],
+        "jlc": [],
+        "sakura": []
+      }
+    },
     "boat.naruto": {
       "jcd": "14",
       "name": "鳴門",
@@ -594,7 +549,9 @@
           "HTTPError:404"
         ],
         "jlc": [],
-        "sakura": []
+        "sakura": [
+          "sakura-fast:child-deadline"
+        ]
       }
     },
     "boat.fukuoka": {
@@ -609,22 +566,9 @@
           "HTTPError:404"
         ],
         "jlc": [],
-        "sakura": []
-      }
-    },
-    "boat.omura": {
-      "jcd": "24",
-      "name": "大村",
-      "http_status": 503,
-      "ok": false,
-      "playable": false,
-      "source": "",
-      "details": {
-        "streaks": [
-          "HTTPError:404"
-        ],
-        "jlc": [],
-        "sakura": []
+        "sakura": [
+          "sakura-fast:child-deadline"
+        ]
       }
     }
   },
