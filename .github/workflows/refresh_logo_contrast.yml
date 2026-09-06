@@ -1,0 +1,102 @@
+name: Refresh FreeWiFi contrast-safe logos
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Daily 07:17 JST (22:17 UTC previous day).
+    - cron: "17 22 * * *"
+  push:
+    branches:
+      - main
+    paths:
+      - "logo_contrast_apply.py"
+      - "radio_tv_nationwide_freewifi.py"
+      - ".github/workflows/refresh_logo_contrast.yml"
+
+permissions:
+  contents: write
+
+# Share the writer mutex with the main FreeWiFi workflow so logo work never
+# races the EPG/public-sports writer.
+concurrency:
+  group: himitsu-freewifi-state-writer
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Sync latest main
+        run: git pull --ff-only origin main
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install image support
+        run: python -m pip install --disable-pip-version-check Pillow>=10.0
+
+      - name: Build contrast-safe radio and TV logos
+        run: |
+          python radio_tv_nationwide_freewifi.py
+          python logo_contrast_apply.py
+
+      - name: Validate logo output
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s freewifi
+          test -s logo_contrast_sources.json
+          test -d logos/contrast
+          ! grep -F 'tvg-logo="tvg-logo=' freewifi
+          test "$(grep -c '/logos/contrast/radiko\.' freewifi || true)" -eq 12
+          grep -F 'tvg-id="サンテレビ_jp"' freewifi | grep -F '/logos/contrast/' >/dev/null
+          grep -F 'tvg-id="KBS京都_jp"' freewifi | grep -F '/logos/contrast/' >/dev/null
+          grep -F 'tvg-id="TOKYO・MX_jp"' freewifi | grep -F '/logos/contrast/' >/dev/null
+
+      - name: Publish logos without overwriting newer FreeWiFi state
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          for attempt in 1 2 3 4 5; do
+            echo "Logo publish attempt $attempt/5"
+            git fetch origin main
+            git reset --hard origin/main
+
+            # Re-apply against the newest FreeWiFi so a newer BOAT/public-sports
+            # update can never be overwritten by an older checkout.
+            python radio_tv_nationwide_freewifi.py
+            python logo_contrast_apply.py
+
+            test "$(grep -c '/logos/contrast/radiko\.' freewifi || true)" -eq 12
+            ! grep -F 'tvg-logo="tvg-logo=' freewifi
+
+            git add freewifi logo_contrast_sources.json logos/contrast
+            if git diff --cached --quiet; then
+              echo "Contrast-safe logos already current"
+              exit 0
+            fi
+
+            git commit -m "Normalize FreeWiFi logos for dark backgrounds [skip ci]"
+            if git push origin HEAD:main; then
+              echo "Contrast-safe logos published"
+              exit 0
+            fi
+
+            echo "::warning::main moved during logo publish; rebuilding on newest main"
+            sleep 1
+          done
+
+          echo "::error::Logo publish failed after 5 attempts"
+          exit 1
