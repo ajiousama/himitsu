@@ -8,20 +8,22 @@ from pathlib import Path
 
 UA = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Version/18.0 Mobile/15E148 Safari/604.1'
 TARGETS = [
-    'https://livebb.jlc.ne.jp/bb_top/sp_bb/today.php',
-    'https://livebb.jlc.ne.jp/bb_top/sp_bb/streamer/data_start_detail.php?jo=02',
     'https://livebb.jlc.ne.jp/bb_top/sp_bb/streamer/streamer26pj.php?jo=02',
+    'https://front.player.boatrace-cdn.jp/player/live?service=jyobb&stadium=02toda&sourceType=br&dvr=1&autoplay=0&volume=50&bitrate=low',
 ]
 OUT = Path('boat_jlc_probe.json')
 
 
 def fetch(url, timeout=10):
-    req = urllib.request.Request(url, headers={
+    headers = {
         'User-Agent': UA,
         'Accept': '*/*',
         'Referer': 'https://livebb.jlc.ne.jp/bb_top/sp_bb/live_02.php',
-        'X-Requested-With': 'XMLHttpRequest',
-    })
+    }
+    if 'boatrace-cdn.jp' in url:
+        headers['Origin'] = 'https://front.player.boatrace-cdn.jp'
+        headers['Referer'] = 'https://front.player.boatrace-cdn.jp/'
+    req = urllib.request.Request(url, headers=headers)
     with urllib.request.urlopen(req, timeout=timeout) as r:
         raw = r.read()
         return raw.decode('utf-8', 'replace'), r.geturl(), r.headers.get('Content-Type', ''), int(getattr(r, 'status', 200))
@@ -31,7 +33,7 @@ def extract(text):
     patterns = [
         r'https?://[^\s"\'<>\\]+',
         r'//[^\s"\'<>\\]+',
-        r'[^\s"\'<>\\]*(?:m3u8|mpd|uliza|playlist|manifest|stream|player)[^\s"\'<>\\]*',
+        r'[^\s"\'<>\\]*(?:m3u8|mpd|api|setting|config|uliza|playlist|manifest|stream|player)[^\s"\'<>\\]*',
     ]
     values = []
     for pat in patterns:
@@ -39,7 +41,7 @@ def extract(text):
             v = m.group(0).replace('\\/', '/').strip()
             if v and v not in values:
                 values.append(v)
-    return values[:160]
+    return values[:240]
 
 
 def main():
@@ -54,13 +56,13 @@ def main():
                 'content_type': ctype,
                 'length': len(body),
                 'interesting': extract(body),
-                'body': body[:40000],
+                'body': body[:70000],
             })
         except Exception as e:
             item['error'] = f'{type(e).__name__}:{getattr(e, "code", "") or e}'
         result['targets'].append(item)
     OUT.write_text(json.dumps(result, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
-    print(json.dumps(result, ensure_ascii=False)[:20000])
+    print(json.dumps(result, ensure_ascii=False)[:30000])
 
 
 if __name__ == '__main__':
