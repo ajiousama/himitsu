@@ -1,11 +1,12 @@
-name: Build FreeWiFi Live-Camera Logos
+name: Build unified YouTube and Ehime CATV logos
 
 on:
   workflow_dispatch:
   push:
     paths:
+      - 'youtube_logo_rebuild.py'
+      - 'generate_ehime_catv_logos.py'
       - 'generate_livecamera_logos.py'
-      - 'apply_livecamera_logos.py'
       - 'general_youtube_sources.json'
       - 'general_youtube_sources_ports.json'
       - 'general_youtube_sources_airports.json'
@@ -17,12 +18,12 @@ permissions:
 
 concurrency:
   group: himitsu-livecamera-logo-writer
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   logos:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -36,60 +37,40 @@ jobs:
 
       - name: Install logo dependencies
         run: |
-          python -m pip install --upgrade pillow yt-dlp
+          python -m pip install --upgrade pillow
           sudo apt-get update -qq
           sudo apt-get install -y -qq fonts-noto-cjk
 
-      - name: Generate canonical yt43 logos
-        run: python generate_livecamera_logos.py
+      - name: Rebuild illustrated unified YouTube logos
+        run: python youtube_logo_rebuild.py
 
-      - name: Apply canonical logos to current playlists
-        run: python apply_livecamera_logos.py
+      - name: Rebuild Ehime CATV Ainan logo
+        run: python generate_ehime_catv_logos.py
 
-      - name: Validate canonical yt43 series
+      - name: Validate unified assets
         shell: bash
         run: |
-          set -e
-          for n in $(seq 44 70); do
-            f=$(find logos/youtube -maxdepth 1 -type f -name "yt43_${n}_*.png" | head -1)
-            test -n "$f"
-            test -s "$f"
-            python - "$f" <<'PY'
-          from PIL import Image
-          import sys
-          with Image.open(sys.argv[1]) as im:
-              assert im.size == (418, 418), (sys.argv[1], im.size)
-          PY
-          done
-          ! grep -Eq 'yt54_(44|45|46)_' general_youtube_sources.json
-          ! grep -Eq 'logos/youtube/airport_[^\"]+\.png' general_youtube_sources_airports.json
-          ! grep -Eq 'logos/youtube/ehime_[^\"]+\.png' general_youtube_sources_ports.json
-          grep -q '## Rakuten-JP' freewifi
+          set -euo pipefail
+          count=$(find logos/youtube/unified -maxdepth 1 -type f -name 'yt_*.png' | wc -l)
+          test "$count" -gt 0
+          test -s logos/ehime_catv/14_ainan_livecam.png
+          test -s logos/ehime_catv/14_ainan_livecam_v2.png
+          grep -F '/logos/youtube/unified/' general_youtube.m3u >/dev/null
+          grep -F '/logos/youtube/unified/' freewifi >/dev/null
+          ! grep -Eq 'tvg-logo="[^"]*/logos/youtube/yt43_' general_youtube.m3u
+          ! grep -Eq 'tvg-logo="[^"]*/logos/youtube/yt43_' freewifi
 
-      - name: Remove superseded add-on logo files
+      - name: Commit unified logos and mappings
         shell: bash
         run: |
-          rm -f logos/youtube/yt54_44_maiko_villa_akashi.png
-          rm -f logos/youtube/yt54_45_tokyo_dome_city.png
-          rm -f logos/youtube/yt54_46_shinhotaka_ropeway.png
-          rm -f logos/youtube/airport_*.png
-          rm -f logos/youtube/ehime_port_*.png
-          rm -f logos/youtube/ehime_kuma_skiland.png
-          rm -f logos/youtube/ehime_saragamine.png
-          rm -f logos/youtube/ehime_omogo_ishizuchi.png
-          rm -f logos/youtube/ehime_ainan_ebc.png
-          rm -f logos/youtube/ehime_dogo_honkan.png
-
-      - name: Commit canonical logos and mappings
-        shell: bash
-        run: |
+          set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -A logos/youtube logos/ehime_catv general_youtube_sources.json general_youtube_sources_ports.json general_youtube_sources_airports.json general_youtube.m3u freewifi
+          git add -A logos/youtube/unified logos/ehime_catv general_youtube_sources.json general_youtube_sources_ports.json general_youtube_sources_airports.json general_youtube.m3u freewifi kana_tube_update.py
           if git diff --cached --quiet; then
-            echo 'No logo changes'
+            echo 'Unified YouTube / Ehime CATV logos already current'
             exit 0
           fi
-          git commit -m 'Unify FreeWiFi YouTube logos as yt43 series'
+          git commit -m 'Keep YouTube illustrated unified logos and Ehime CATV logos'
           git pull --rebase origin main
           git push origin main
