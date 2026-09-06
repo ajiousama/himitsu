@@ -6,6 +6,9 @@ on:
     branches: [main]
     paths:
       - "youtube_logo_rebuild.py"
+      - "general_youtube_sources.json"
+      - "general_youtube_sources_airports.json"
+      - "general_youtube_sources_ports.json"
       - ".github/workflows/rebuild_youtube_logos.yml"
 
 permissions:
@@ -48,12 +51,42 @@ jobs:
           set -euo pipefail
           test -d logos/youtube/unified
           count=$(find logos/youtube/unified -maxdepth 1 -name 'yt_*.png' | wc -l)
-          echo "generated=$count"
-          test "$count" -ge 60
+          expected=$(python - <<'PY'
+          import json
+          from pathlib import Path
+          ids=set()
+          for name in ['general_youtube_sources.json','general_youtube_sources_airports.json','general_youtube_sources_ports.json']:
+              p=Path(name)
+              if not p.exists():
+                  continue
+              for item in json.loads(p.read_text(encoding='utf-8')):
+                  cid=str(item.get('id',''))
+                  if cid.startswith('youtube.'):
+                      ids.add(cid)
+          print(len(ids))
+          PY
+          )
+          echo "generated=$count expected=$expected"
+          test "$expected" -gt 0
+          test "$count" -eq "$expected"
           grep -F '/logos/youtube/unified/' general_youtube.m3u >/dev/null
           grep -F '/logos/youtube/unified/' freewifi >/dev/null
           ! grep -F 'tvg-logo="tvg-logo=' general_youtube.m3u
           ! grep -F 'tvg-logo="tvg-logo=' freewifi
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          files=['general_youtube_sources.json','general_youtube_sources_airports.json','general_youtube_sources_ports.json']
+          found=False
+          for name in files:
+              p=Path(name)
+              if not p.exists(): continue
+              for item in json.loads(p.read_text(encoding='utf-8')):
+                  if item.get('id')=='youtube.ehime_ainan_ebc':
+                      assert '/logos/youtube/unified/' in item.get('logo','')
+                      found=True
+          assert found, 'Ainan source missing'
+          PY
 
       - name: Publish without overwriting newer FreeWiFi state
         shell: bash
@@ -66,7 +99,7 @@ jobs:
             git fetch origin main
             git reset --hard origin/main
             python youtube_logo_rebuild.py
-            git add logos/youtube/unified general_youtube_sources.json general_youtube.m3u freewifi kana_tube_update.py
+            git add logos/youtube/unified general_youtube_sources.json general_youtube_sources_airports.json general_youtube_sources_ports.json general_youtube.m3u freewifi kana_tube_update.py
             if git diff --cached --quiet; then
               echo "YouTube logos already current"
               exit 0
