@@ -3,17 +3,15 @@ name: Update BOAT Today iPhone Seed
 on:
   workflow_dispatch:
   schedule:
-    # 10分おき。UTC/JSTの時間帯境界で止まらないよう24時間単一cronにする。
-    # 毎時ちょうどの混雑を避け、03/13/23/33/43/53分に実行。
+    # Rebuild visibility/status from the latest iPhone seed. This workflow never
+    # acquires Streaks URLs itself.
     - cron: "3,13,23,33,43,53 * * * *"
-    # Backup schedule: if GitHub drops/delays the primary slot, retry 5 minutes later.
     - cron: "8,18,28,38,48,58 * * * *"
   push:
     branches:
       - main
     paths:
       - "boat_stream_seed.m3u"
-      - "boat_streaks_refresh.py"
       - "boat_iphone_seed_build.py"
       - "boat_v2_build.py"
       - ".github/workflows/update_boat_today.yml"
@@ -44,26 +42,23 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Fill only missing BOAT direct Streaks seeds
-        run: python -u boat_streaks_refresh.py
-
-      - name: Verify effective BOAT seed
+      - name: Verify iPhone BOAT seed input
         shell: bash
         run: |
           set -euo pipefail
           test -s boat_stream_seed.m3u
           cp boat_stream_seed.m3u /tmp/boat_stream_seed.m3u.before
           streams="$(grep -Ec '^https?://' boat_stream_seed.m3u || true)"
-          echo "effective BOAT seed streams=$streams"
+          echo "iPhone BOAT seed streams=$streams"
           sha256sum boat_stream_seed.m3u
 
-      - name: Build today's BOAT from direct Streaks seed only
+      - name: Build today's BOAT from iPhone direct Streaks seed only
         run: python -u boat_iphone_seed_build.py
 
       - name: Refresh current event counts after BOAT visibility update
         run: python build_today_event_counts.py
 
-      - name: Confirm builder did not rewrite effective seed
+      - name: Confirm builder did not rewrite iPhone seed
         shell: bash
         run: |
           set -euo pipefail
@@ -71,7 +66,7 @@ jobs:
             echo '::error::boat_stream_seed.m3u was modified by the builder'
             exit 1
           }
-          echo 'effective BOAT seed preserved byte-for-byte during build'
+          echo 'iPhone BOAT seed preserved byte-for-byte during build'
 
       - name: Publish BOAT state safely
         shell: bash
@@ -88,6 +83,8 @@ jobs:
           d = json.loads(Path('today_boat_status.json').read_text(encoding='utf-8'))
           if d.get('system') != 'boat-v2-iphone-seed':
               raise SystemExit(f"unexpected BOAT system: {d.get('system')}")
+          if d.get('resolver_ready'):
+              raise SystemExit('cloud BOAT resolver must stay disabled')
 
           visible = int(d.get('visible_count') or 0)
           text = Path('freewifi').read_text(encoding='utf-8-sig', errors='replace')
@@ -96,22 +93,22 @@ jobs:
           entries = len(re.findall(r'^#EXTINF:.*tvg-id="boat\.', body, re.M))
           if entries != visible:
               raise SystemExit(f'BOAT playlist mismatch: entries={entries} visible={visible}')
-          if 'ajiousama-radiko.onrender.com/boat/' in body:
+          if 'onrender.com/boat/' in body:
               raise SystemExit('cloud resolver URL leaked into TODAY_BOAT block')
 
           seed = Path('boat_stream_seed.m3u').read_text(encoding='utf-8-sig', errors='replace')
           for url in re.findall(r'(?m)^https?://\S+$', body):
               if url not in seed:
-                  raise SystemExit('TODAY_BOAT contains a URL not present in direct seed')
+                  raise SystemExit('TODAY_BOAT contains a URL not present in iPhone direct seed')
 
-          print('BOAT direct-seed validation OK:', 'visible=', visible, 'entries=', entries)
+          print('BOAT iPhone direct-seed validation OK:', 'visible=', visible, 'entries=', entries)
           PY
           }
 
           rebuild_from_latest_seed() {
-            python -u boat_streaks_refresh.py
             cp boat_stream_seed.m3u /tmp/boat_stream_seed.m3u.before
             python -u boat_iphone_seed_build.py
+            python build_today_event_counts.py
             cmp -s /tmp/boat_stream_seed.m3u.before boat_stream_seed.m3u || {
               echo '::error::boat_stream_seed.m3u changed during build'
               return 1
@@ -120,12 +117,12 @@ jobs:
 
           publish() {
             validate_boat || return 1
-            git add boat_stream_seed.m3u freewifi today_boat_status.json boat_v2_state.json today_event_counts.json
+            git add freewifi today_boat_status.json boat_v2_state.json today_event_counts.json
             if git diff --cached --quiet; then
-              echo "BOAT direct-seed state already current"
+              echo "BOAT iPhone-seed state already current"
               return 0
             fi
-            git commit -m "Update BOAT direct Streaks seed and state [skip ci]"
+            git commit -m "Update BOAT state from iPhone direct seed [skip ci]"
             git push origin HEAD:main
           }
 
@@ -134,7 +131,7 @@ jobs:
           fi
 
           for attempt in 2 3 4; do
-            echo "BOAT main moved; rebuild from newest direct seed ($attempt/4)"
+            echo "BOAT main moved; rebuild from newest iPhone direct seed ($attempt/4)"
             git fetch origin main
             git reset --hard origin/main
             rebuild_from_latest_seed
@@ -144,7 +141,7 @@ jobs:
             sleep 1
           done
 
-          echo "::error::BOAT direct-seed publish failed after retries"
+          echo "::error::BOAT iPhone-seed publish failed after retries"
           exit 1
 
       - name: Validate final BOAT state
@@ -157,7 +154,7 @@ jobs:
           held = int(d.get('held_count') or 0)
           visible = int(d.get('visible_count') or 0)
           cards = int(d.get('card_count') or 0)
-          print('BOAT direct seed cards=', cards, 'active=', held, 'visible=', visible)
+          print('BOAT iPhone direct seed cards=', cards, 'active=', held, 'visible=', visible)
 
           text = Path('freewifi').read_text(encoding='utf-8-sig', errors='replace')
           m = re.search(r'# === TODAY_BOAT_START ===(.*?)# === TODAY_BOAT_END ===', text, re.S)
@@ -166,5 +163,5 @@ jobs:
           if entries != visible:
               raise SystemExit(f'BOAT playlist mismatch: entries={entries} visible={visible}')
           if held and not visible:
-              print('::warning::BOAT active venue exists but direct seed has no currently valid URL')
+              print('::warning::BOAT active venue exists but iPhone has not supplied a current-JST-date Streaks session')
           PY
