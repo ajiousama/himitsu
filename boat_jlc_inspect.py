@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# one-shot diagnostic trigger 2026-09-06
 from __future__ import annotations
 
 import html
@@ -33,7 +34,6 @@ def fetch(url, timeout=8):
 def extract_refs(text, base):
     text = html.unescape(text)
     refs = []
-    # HTML src/href plus absolute/protocol-relative URLs embedded in JS/JSON.
     patterns = [
         r'''(?:src|href)\s*=\s*["']([^"']+)["']''',
         r'''(?:https?:)?//[^"'<>\\\s]+''',
