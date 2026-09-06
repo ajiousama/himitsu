@@ -18,16 +18,23 @@ function flattenObjects(value, out = []) {
 }
 
 async function getJson(url) {
-  const r = await fetch(url, {
-    headers: {
-      "accept": "application/json, text/plain, */*",
-      "user-agent": UA,
-      "referer": "https://kick.com/"
-    },
-    cache: "no-store"
-  });
-  if (!r.ok) return null;
-  try { return await r.json(); } catch { return null; }
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const r = await fetch(url, {
+        headers: {
+          "accept": "application/json, text/plain, */*",
+          "user-agent": UA,
+          "referer": "https://kick.com/"
+        },
+        cache: "no-store"
+      });
+      if (r.ok) {
+        try { return await r.json(); } catch {}
+      }
+    } catch {}
+    if (attempt < 2) await new Promise(r => setTimeout(r, 250 * (attempt + 1)));
+  }
+  return null;
 }
 
 function playbackOf(obj) {
@@ -94,6 +101,13 @@ async function resolve(item) {
     ...(Array.isArray(item.slug_aliases) ? item.slug_aliases : [])
   ].filter(Boolean);
 
+  for (const slug of [...new Set(slugs)]) {
+    const hit = await resolveSlug(slug, expectedId);
+    if (hit) return hit;
+  }
+
+  // One extra pass helps when Kick briefly returns a transient 4xx/5xx
+  // while the channel itself remains live.
   for (const slug of [...new Set(slugs)]) {
     const hit = await resolveSlug(slug, expectedId);
     if (hit) return hit;
