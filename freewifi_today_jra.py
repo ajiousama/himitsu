@@ -8,7 +8,7 @@ FREEWIFI = Path('freewifi')
 VERIFIED = Path('verified_daily_status.json')
 STATUS = Path('today_jra_status.json')
 JST = timezone(timedelta(hours=9))
-START = '# === TODAY_JRA_START ==='; END = '# === TODAY_JRA_END ==='; GROUP='グリーンCh'
+START = '# === TODAY_JRA_START ==='; END = '# === TODAY_JRA_END ==='; GROUP='今日の開催場'
 RAW_BASE = 'https://raw.githubusercontent.com/ajiousama/himitsu/main'
 JRA_LOGO_BASE = 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main'
 JRA_LOGOS = {
@@ -48,11 +48,11 @@ def main():
     base=strip(FREEWIFI.read_text(encoding='utf-8-sig', errors='replace'))
     rows=[]
     if active:
-        ids=['jra.gch']+active
+        ids=active
         for cid in ids:
             name,file=ROUTES[cid]
             rows += [f'#EXTINF:-1 tvg-id="{cid}" tvg-name="{name}" tvg-logo="{JRA_LOGOS[cid]}" group-title="{GROUP}",{name}', raw(file), '']
-    managed=START+'\n## グリーンCh（JRA開催日）\n'+'\n'.join(rows).rstrip()+('\n' if rows else '')+END
+    managed=START+'\n## 本日の開催場（JRA）\n'+'\n'.join(rows).rstrip()+('\n' if rows else '')+END
     anchor='# === GENERAL_YOUTUBE_MANAGED_START ==='
     text=base.replace(anchor, managed+'\n\n'+anchor,1) if anchor in base else base.rstrip()+'\n\n'+managed+'\n'
     FREEWIFI.write_text(text.rstrip()+'\n',encoding='utf-8')
