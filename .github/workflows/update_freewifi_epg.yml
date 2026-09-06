@@ -220,6 +220,15 @@ jobs:
       - name: Sync latest main before EPG build
         run: git pull --ff-only origin main
 
+      - name: Self-heal empty guides before full EPG rebuild
+        shell: bash
+        run: |
+          if [ ! -s guides.xml ]; then
+            echo '::warning::guides.xml is empty; restoring current local public-sports EPG as a safe base.'
+            cp public_sports_epg_local.xml guides.xml
+          fi
+          python -c "import xml.etree.ElementTree as ET; ET.parse('guides.xml'); print('GUIDES BASE XML OK')"
+
       - name: Build merged EPG safely without external public-sports source
         run: python epg_build_safe.py
 
