@@ -15,9 +15,12 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Build Akariko-only M3U
-        shell: python
+        shell: bash
         run: |
+          python - <<'PY'
           from pathlib import Path
+          import sys
+          sys.path.insert(0, str(Path.cwd()))
           from restore_akariko_haru import CHANNELS, stream_url
 
           lines = ["#EXTM3U"]
@@ -29,6 +32,7 @@ jobs:
               lines.append(stream_url(slug))
 
           Path("akariko_iphone_test.m3u").write_text("\n".join(lines) + "\n", encoding="utf-8")
+          PY
 
       - name: Commit test playlist
         run: |
