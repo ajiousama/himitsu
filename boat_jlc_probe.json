@@ -1,24 +1,6 @@
 {
   "targets": [
     {
-      "url": "https://livebb.jlc.ne.jp/bb_top/sp_bb/today.php",
-      "status": 200,
-      "final": "https://livebb.jlc.ne.jp/bb_top/sp_bb/today.php",
-      "content_type": "text/html; charset=SJIS",
-      "length": 8,
-      "interesting": [],
-      "body": "20260906"
-    },
-    {
-      "url": "https://livebb.jlc.ne.jp/bb_top/sp_bb/streamer/data_start_detail.php?jo=02",
-      "status": 200,
-      "final": "https://livebb.jlc.ne.jp/bb_top/sp_bb/streamer/data_start_detail.php?jo=02",
-      "content_type": "text/html; charset=utf-8",
-      "length": 18,
-      "interesting": [],
-      "body": "OK\n12\n10:24\n00:00\n"
-    },
-    {
       "url": "https://livebb.jlc.ne.jp/bb_top/sp_bb/streamer/streamer26pj.php?jo=02",
       "status": 200,
       "final": "https://livebb.jlc.ne.jp/bb_top/sp_bb/streamer/streamer26pj.php?jo=02",
@@ -29,6 +11,26 @@
         "//front.player.boatrace-cdn.jp/player/live?service=jyobb&stadium=02toda&sourceType=br&dvr=1&autoplay=0&volume=50&bitrate=low&coverImage=https://livebb.jlc.ne.jp/bb_top/new_bb/streamer/template/bb/images/time.jpg"
       ],
       "body": "<!DOCTYPE html>\r\n<html lang=\"ja\">\r\n<head>\r\n\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\r\n\t<style>\r\n\t\thtml, body{\r\n\t\t\tmargin:0;padding:0;height:100%;\r\n\t\t}\r\n\t\tiframe {\r\n\t\t\twidth:100%;height:100%;\r\n\t\t}\r\n\t</style>\r\n</head>\r\n<body>\r\n<iframe src=\"https://front.player.boatrace-cdn.jp/player/live?service=jyobb&stadium=02toda&sourceType=br&dvr=1&autoplay=0&volume=50&bitrate=low&coverImage=https://livebb.jlc.ne.jp/bb_top/new_bb/streamer/template/bb/images/time.jpg\" scrolling=\"no\" frameborder=\"0\" allowfullscreen=\"true\" webkitallowfullscreen=\"true\" mozallowfullscreen=\"true\" allow=\"autoplay\"></iframe></body>\r\n</html>\r\n"
+    },
+    {
+      "url": "https://front.player.boatrace-cdn.jp/player/live?service=jyobb&stadium=02toda&sourceType=br&dvr=1&autoplay=0&volume=50&bitrate=low",
+      "status": 200,
+      "final": "https://front.player.boatrace-cdn.jp/player/live?service=jyobb&stadium=02toda&sourceType=br&dvr=1&autoplay=0&volume=50&bitrate=low",
+      "content_type": "text/html",
+      "length": 5339,
+      "interesting": [
+        "Player",
+        "/lib/streaks/2.5.8/streaksplayer.min.css?t=20260428000302",
+        "/lib/streaks/2.5.8/streaksplayer.min.js?t=20260428000302",
+        "/js/player.js?t=20260428000302",
+        "/js/config/config.js?t=20260428000302",
+        "/css/player.css?t=20260428000302",
+        "player-wrap",
+        "PlayerModeList",
+        "error-wrap-on-player",
+        "btn-on-player"
+      ],
+      "body": "<!doctype html>\n<html lang=\"ja\">\n  <head>\n    <meta charset=\"utf-8\" />\n    <meta name=\"robots\" content=\"noindex\" />\n    <meta name=\"viewport\" content=\"width=device-width,initial-scale=1\" />\n    <title>Player</title>\n    <link rel=\"stylesheet\" href=\"/lib/swiper/11.1.14/swiper-bundle.min.css?t=20260428000302\" />\n    <script src=\"/lib/swiper/11.1.14/swiper-bundle.min.js?t=20260428000302\"></script>\n    <link\n      href=\"/lib/streaks/2.5.8/streaksplayer.min.css?t=20260428000302\"\n      rel=\"stylesheet\"\n      type=\"text/css\"\n    />\n    <script src=\"/lib/streaks/2.5.8/streaksplayer.min.js?t=20260428000302\"></script>\n    <script src=\"/js/player.js?t=20260428000302\"></script>\n    <script src=\"/js/config/config.js?t=20260428000302\"></script>\n    <link rel=\"stylesheet\" href=\"/css/player.css?t=20260428000302\" type=\"text/css\" />\n    <link rel=\"stylesheet\" href=\"/css/font-style.css?t=20260428000302\" type=\"text/css\" />\n    <link rel=\"preload\" href=\"/images/error_bg.png\" as=\"image\" />\n    <link rel=\"icon\" href=\"/favicon.ico\" type=\"image/x-icon\" />\n    <link rel=\"icon\" href=\"/favicon.svg\" type=\"image/svg+xml\" />\n    <link rel=\"apple-touch-icon\" href=\"/apple-touch-icon.png\" />\n  </head>\n  <body>\n    <div id=\"player-wrap\">\n      <div id=\"video\"></div>\n    </div>\n    <script src=\"/js/live.js?t=20260428000302\"></script>\n\n    <template id=\"temlateSkipForward\">\n      <div class=\"SkipWrap forward\" style=\"display: none\">\n        <i class=\"Icon5secForward\"></i>\n      </div>\n    </template>\n    <template id=\"temlateSkipRewind\">\n      <div class=\"SkipWrap rewind\" style=\"display: none\">\n        <i class=\"Icon5secRewind\"></i>\n      </div>\n    </template>\n\n    <!--プレイヤー右上のボタン-->\n    <template id=\"temlateModeWrap\">\n      <div class=\"ModeWrap\" style=\"display: none\">\n        <div class=\"ModeButton selected\">\n          <span class=\"BtnWrap\"\n            ><i class=\"IconCheckFilled\"></i><span class=\"BtnTxt\">TEST</span\n            ><i class=\"IconArrowBottom\"></i\n          ></span>\n        </div>\n        <ul class=\"vjs-popup PlayerModeList\">\n          <li class=\"dvr\">\n            <span class=\"BtnWrap\"\n              ><i class=\"IconCheckFilled\"></i\n              ><span class=\"BtnTxt\">追っかけ再生</span></span\n            >\n          </li>\n          <li class=\"dvr\">\n            <span class=\"BtnWrap\"\n              ><i class=\"IconCheckFilled\"></i\n              ><span class=\"BtnTxt\">チャプター選択</span></span\n            >\n          </li>\n          <li class=\"live\">\n            <span class=\"BtnWrap\"\n              ><i class=\"IconCheckFilled\"></i\n              ><span class=\"BtnTxt\">Live</span></span\n            >\n          </li>\n          <li class=\"dvr live\">\n            <span class=\"BtnWrap\"\n              ><i class=\"IconCheckFilled\"></i\n              ><span class=\"BtnTxt\">Live（音声のみ）</span></span\n            >\n          </li>\n        </ul>\n      </div>\n    </template>\n    <!--チャプター選択ボタン-->\n    <template id=\"temlateChapterWrap\">\n      <div class=\"ChapterWrap\" style=\"display: none\">\n        <div class=\"ChapterBox01 swiper-container\">\n          <ul class=\"swiper-wrapper\">\n            <li class=\"ripple-li swiper-slide\">1R</li>\n            <li class=\"ripple-li swiper-slide\">2R</li>\n            <li class=\"ripple-li swiper-slide\">3R</li>\n            <li class=\"ripple-li swiper-slide\">4R</li>\n            <li class=\"ripple-li swiper-slide\">5R</li>\n            <li class=\"ripple-li swiper-slide\">6R</li>\n            <li class=\"ripple-li swiper-slide\">7R</li>\n            <li class=\"ripple-li swiper-slide\">8R</li>\n            <li class=\"ripple-li swiper-slide\">9R</li>\n            <li class=\"ripple-li swiper-slide\">10R</li>\n            <li class=\"ripple-li swiper-slide\">11R</li>\n            <li class=\"ripple-li swiper-slide\">12R</li>\n          </ul>\n          <div class=\"swiper-button-next\">\n            <img src=\"/images/swiper-button-next.svg\" />\n          </div>\n          <div class=\"swiper-button-prev\">\n            <img src=\"/images/swiper-button-prev.svg\" />\n          </div>\n        </div>\n        <div class=\"ChapterBox02\">\n          <ul>\n            <li class=\"ripple-li disabled\">\n              展示<br class=\"width-mid\" />ピットアウト\n            </li>\n            <li class=\"ripple-li disabled\">周回展示</li>\n          </ul>\n          <ul>\n            <li class=\"ripple-li disabled\">\n              本番<br class=\"width-mid\" />ピットアウト\n            </li>\n            <li class=\"ripple-li disabled\">スタート直前</li>\n            <li class=\"ripple-li disabled\">1マーク</li>\n          </ul>\n        </div>\n      </div>\n    </template>\n    <template id=\"templateErrorWrap\">\n      <div class=\"error-wrap-on-player\" style=\"display: none\">\n        <div class=\"error-contents\">\n          <p class=\"error-title\">エラーが発生しました</p>\n          <p class=\"error-message\">\n            リロードしていただくか、<br />\n            しばらく時間がたってから再度お試しください。<br />\n          </p>\n          <p class=\"error-code\">\n            <span class=\"error-code-no\">エラーコード：0000</span><br />\n            <span class=\"error-code-message\">\n              The media could not be loaded, either because the server or\n              network failed or because the format is not supported\n            </span>\n          </p>\n          <div class=\"btn-on-player\" onclick=\"location.reload();\">\n            <span class=\"btn-reload\">リロード</span>\n          </div>\n        </div>\n      </div>\n    </template>\n  </body>\n</html>\n"
     }
   ]
 }
