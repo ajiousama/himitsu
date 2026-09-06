@@ -1,6 +1,6 @@
 {
   "system": "boat-v2-iphone-seed",
-  "generated_at": "2026-09-06T13:18:17.329788+09:00",
+  "generated_at": "2026-09-06T13:22:13.549734+09:00",
   "date": "2026-09-06",
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/",
   "resolver_ready": false,
@@ -45,7 +45,7 @@
       },
       "scheduled": true,
       "stream_window": "epg_ready",
-      "source": "iPhone direct Streaks seed pending, expired, or retained from another JST date"
+      "source": "current-day direct seed unavailable and resolver not verified playable"
     },
     "boat.toda": {
       "jcd": "02",
@@ -62,7 +62,7 @@
         "start": "13:45"
       },
       "stream_window": "live_or_vtr",
-      "source": "iPhone direct Streaks seed pending, expired, or retained from another JST date"
+      "source": "current-day direct seed unavailable and resolver not verified playable"
     },
     "boat.edogawa": {
       "jcd": "03",
@@ -79,7 +79,7 @@
         "start": "13:29"
       },
       "stream_window": "live_or_vtr",
-      "source": "iPhone direct Streaks seed pending, expired, or retained from another JST date"
+      "source": "current-day direct seed unavailable and resolver not verified playable"
     },
     "boat.heiwajima": {
       "jcd": "04",
@@ -92,11 +92,11 @@
       "remove_after": "2026-09-06T17:08:00+09:00",
       "mode": "day",
       "next_race": {
-        "race": 6,
-        "start": "13:22"
+        "race": 7,
+        "start": "13:53"
       },
       "stream_window": "live_or_vtr",
-      "source": "iPhone direct Streaks seed pending, expired, or retained from another JST date"
+      "source": "current-day direct seed unavailable and resolver not verified playable"
     },
     "boat.gamagori": {
       "jcd": "07",
@@ -114,7 +114,7 @@
       },
       "scheduled": true,
       "stream_window": "epg_ready",
-      "source": "iPhone direct Streaks seed pending, expired, or retained from another JST date"
+      "source": "current-day direct seed unavailable and resolver not verified playable"
     },
     "boat.tsu": {
       "jcd": "09",
@@ -131,7 +131,7 @@
         "start": "13:46"
       },
       "stream_window": "live_or_vtr",
-      "source": "iPhone direct Streaks seed pending, expired, or retained from another JST date"
+      "source": "current-day direct seed unavailable and resolver not verified playable"
     },
     "boat.mikuni": {
       "jcd": "10",
@@ -166,7 +166,7 @@
         "start": "13:32"
       },
       "stream_window": "live_or_vtr",
-      "source": "iPhone direct Streaks seed pending, expired, or retained from another JST date"
+      "source": "current-day direct seed unavailable and resolver not verified playable"
     },
     "boat.suminoe": {
       "jcd": "12",
@@ -184,7 +184,7 @@
       },
       "scheduled": true,
       "stream_window": "epg_ready",
-      "source": "iPhone direct Streaks seed pending, expired, or retained from another JST date"
+      "source": "current-day direct seed unavailable and resolver not verified playable"
     },
     "boat.naruto": {
       "jcd": "14",
@@ -219,7 +219,7 @@
         "start": "13:28"
       },
       "stream_window": "live_or_vtr",
-      "source": "iPhone direct Streaks seed pending, expired, or retained from another JST date"
+      "source": "current-day direct seed unavailable and resolver not verified playable"
     },
     "boat.fukuoka": {
       "jcd": "22",
@@ -236,9 +236,11 @@
         "start": "13:44"
       },
       "stream_window": "live_or_vtr",
-      "source": "iPhone direct Streaks seed pending, expired, or retained from another JST date"
+      "source": "current-day direct seed unavailable and resolver not verified playable"
     }
   },
-  "stream_source": "boat_stream_seed.m3u from iPhone Scriptable one-click / direct Streaks only",
-  "seed_freshness_rule": "JWT start date must equal current JST date"
+  "stream_source": "current-JST-date iPhone direct Streaks + per-venue Render resolver verified playable=true",
+  "seed_freshness_rule": "JWT start date must equal current JST date",
+  "verified_resolver_base": "https://ajiousama-radiko.onrender.com/boat",
+  "verified_resolver_count": 0
 }
