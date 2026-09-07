@@ -703,7 +703,18 @@ def main() -> int:
         return preserve_on_schedule_error(now, "BOAT EPG/開催表が0場です")
 
     streams = load_current_streams(day)
-    cloud = refresh_cloud_streams(cards, streams, day)
+    # Schedule/EPG and stream acquisition are deliberately separated.  Do not
+    # ask Vercel/SEED for every venue just after midnight.  Cloud acquisition
+    # begins only when a venue reaches its own pre-start alert window.
+    due_cards = {
+        jcd: races for jcd, races in cards.items()
+        if races and now >= races[0]["start"] - timedelta(minutes=ALERT_LEAD_MINUTES)
+        and now < races[-1]["start"] + timedelta(minutes=RACE_SWITCH_MINUTES)
+    }
+    cloud = refresh_cloud_streams(due_cards, streams, day) if due_cards else {
+        "requested": 0, "fetched": 0, "failures": [], "deferred": len(cards),
+        "reason": "stream acquisition waits until each venue pre-start window",
+    }
     held_ids = {VENUES[jcd][1] for jcd in cards}
     streams = {tvg_id: item for tvg_id, item in streams.items() if tvg_id in held_ids}
     venues, rows, phase_counts = build_venue_state(cards, streams, now)
@@ -720,10 +731,14 @@ def main() -> int:
         item for item in (cloud.get("failures") or [])
         if "no current stream" not in str(item.get("error") or "")
     ]
-    if cloud.get("fetched") == 0 and hard_cloud_failures and not any(
-        item.get("visible") and not item.get("token_expired") for item in venues.values()
+    due_ids = {VENUES[jcd][1] for jcd in due_cards}
+    if due_cards and cloud.get("fetched") == 0 and hard_cloud_failures and not any(
+        venues.get(tvg_id, {}).get("visible") and not venues.get(tvg_id, {}).get("token_expired")
+        for tvg_id in due_ids
     ):
-        system_errors.append("Vercel KIXから当日BOAT SEEDを取得できません")
+        # This is meaningful only once at least one venue is actually near start.
+        # Overnight/predawn provider failures are normal and never poison status.
+        system_errors.append("開始時刻が近い開催場でVercel KIXから当日BOAT SEEDを取得できません")
 
     alert = write_alert(now, system_errors, seed_required, cloud)
     state_streams = {
@@ -737,7 +752,8 @@ def main() -> int:
         "generated_at": now.isoformat(),
         "last_update_ok": not system_errors,
         "schedule_source": SCHEDULE_API.format(year=day.strftime("%Y"), ymd=day.strftime("%Y%m%d")),
-        "stream_source": "Vercel KIX automatic acquisition; 公営これ一発 v17 is emergency SEED only",
+        "stream_source": "Vercel KIX automatic acquisition near each venue start; 公営これ一発 v17 is emergency SEED only",
+        "stream_acquisition_policy": "開催表/EPGは0時から独立更新。SEED取得は各場の1R 30分前から開始。",
         "retention_policy": "開催場はJST日付変更まで保持。終了しても削除しない。",
         "epg_finished_title": "本日の開催は終了しました",
         "alert_lead_minutes": ALERT_LEAD_MINUTES,
