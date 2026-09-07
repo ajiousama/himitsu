@@ -12,17 +12,50 @@ START = '# === TODAY_PUBLIC_SPORTS_START ==='
 END = '# === TODAY_PUBLIC_SPORTS_END ==='
 GROUP = '今日の開催場'
 RAW_BASE = 'https://raw.githubusercontent.com/ajiousama/himitsu/main'
+LOGO_PROXY = 'https://images.weserv.nl/?url=raw.githubusercontent.com/ajiousama/himitsu/main'
+
+def venue_png(name):
+    return f'{LOGO_PROXY}/logos/public_sports/venues/{name}&output=png'
+
+# Keep the previously adopted KEIRIN design. Only venues that had an explicit
+# FreeWiFi override before the unintended all-PNG rebuild are overridden here;
+# all other KEIRIN venues keep the logo already present in the public-sports master.
+KEIRIN_LOGOS = {
+    'keirin.tachikawa': venue_png('keirin_tachikawa.svg'),
+    'keirin.aomori': venue_png('keirin_aomori.svg'),
+    'keirin.seibuen': venue_png('keirin_seibuen.svg'),
+    'keirin.hofu': venue_png('keirin_hofu.svg'),
+    'keirin.toyama': venue_png('keirin_toyama.svg'),
+    'keirin.matsusaka': venue_png('keirin_matsusaka.svg'),
+    'keirin.kurume': venue_png('keirin_kurume.svg'),
+    'keirin.toyohashi': venue_png('keirin_toyohashi.svg'),
+    'keirin.takeo': venue_png('keirin_takeo.svg'),
+    'keirin.ito': venue_png('keirin_ito.svg'),
+    'keirin.ogaki': venue_png('keirin_ogaki.svg'),
+    'keirin.iwakitaira': venue_png('keirin_iwakitaira.svg'),
+    'keirin.yahiko': venue_png('keirin_yahiko.svg'),
+    'keirin.tamano': venue_png('keirin_tamano.svg'),
+}
+
+# Restore the adopted AUTO RACE venue logos from earphone1981 instead of the
+# unintended locally regenerated motorcycle-card set.
+AUTO_LOGOS = {
+    'auto.kawaguchi': 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports_logos_github_43/autorace/kawaguchi.png',
+    'auto.isesaki': 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports_logos_github_43/autorace/isesaki.png',
+    'auto.hamamatsu': 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports_logos_github_43/autorace/hamamatsu.png',
+    'auto.sanyo': 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports_logos_github_43/autorace/sanyo.png',
+    'auto.iizuka': 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports_logos_github_43/autorace/iizuka.png',
+}
+
 def local_logo(cid):
     if cid.startswith('chihou.'):
         slug = cid.split('.', 1)[1]
         slug = {'kawasaki_keiba': 'kawasaki', 'nagoya_keiba': 'nagoya', 'kochi_keiba': 'kochi'}.get(slug, slug)
         return f'{RAW_BASE}/logos/public_sports/venues/localrace_{slug}.png'
     if cid.startswith('keirin.'):
-        slug = cid.split('.', 1)[1]
-        return f'{RAW_BASE}/logos/public_sports/venues/keirin_{slug}.png'
+        return KEIRIN_LOGOS.get(cid)
     if cid.startswith('auto.'):
-        slug = cid.split('.', 1)[1]
-        return f'{RAW_BASE}/logos/public_sports/venues/autorace_{slug}.png'
+        return AUTO_LOGOS.get(cid)
     return None
 
 JST = timezone(timedelta(hours=9))
@@ -128,7 +161,6 @@ def entry_name(block):
 
 
 def sanitize_extinf(line):
-    line = re.sub(r'\s+tvg-logo="[^"]*earphone1981[^"]*"', '', line, flags=re.I)
     mid = re.search(r'tvg-id="([^"]+)"', line)
     cid = mid.group(1) if mid else ''
     logo = local_logo(cid)
