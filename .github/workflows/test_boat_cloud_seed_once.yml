@@ -15,32 +15,60 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v5
-      - name: Trace BOAT bundled Streaks default key expression safely
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Test official BOAT player session flow from cloud
         shell: bash
         run: |
           set -euo pipefail
           python - <<'PY'
-          import hashlib, re, urllib.request
-          u='https://front.player.boatrace-cdn.jp/lib/streaks/2.5.8/streaksplayer.min.js'
-          req=urllib.request.Request(u,headers={'User-Agent':'Mozilla/5.0','Referer':'https://front.player.boatrace-cdn.jp/player/live?service=boatcast&stadium=01kiryu'})
-          js=urllib.request.urlopen(req,timeout=15).read().decode('utf-8','replace')
+          import datetime, http.cookiejar, json, urllib.error, urllib.request
+          from zoneinfo import ZoneInfo
+          UA='Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) AppleWebKit/605.1.15 Version/18.0 Mobile/15E148 Safari/604.1'
+          player='https://front.player.boatrace-cdn.jp/player/live?service=boatcast&stadium=01kiryu&sourceType=mix&dvr=1&audioMode=0&autoplay=1&bitrate=low'
+          setting='https://front.player.boatrace-cdn.jp/setting/live/01kiryu/setting.json'
+          ymd=datetime.datetime.now(ZoneInfo('Asia/Tokyo')).strftime('%Y%m%d')
+          playback=f'https://playback.api.streaks.jp/v1/projects/cp-boatrace-prod/medias/ref:lm-br-01kiryu-tokyo-{ymd}?audio_only=false'
 
-          def scrub(s):
-              def q(m):
-                  v=m.group(2)
-                  if len(v)<=10 and not re.search(r'[A-Za-z0-9]{8,}',v):
-                      return m.group(1)+v+m.group(1)
-                  return f'<q:{len(v)}:{hashlib.sha256(v.encode()).hexdigest()[:8]}>'
-              s=re.sub(r'(["\'])(.*?)(?<!\\)\1',q,s)
-              return s.replace('\n',' ')[:1400]
+          jar=http.cookiejar.CookieJar()
+          opener=urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar))
+          base={
+            'User-Agent':UA,
+            'Accept':'*/*',
+            'Accept-Language':'ja-JP,ja;q=0.9,en-US;q=0.8,en;q=0.7',
+            'Origin':'https://front.player.boatrace-cdn.jp',
+            'Referer':player,
+          }
+          def get(url, extra=None):
+              h=dict(base)
+              if extra: h.update(extra)
+              req=urllib.request.Request(url,headers=h)
+              try:
+                  with opener.open(req,timeout=15) as r:
+                      return r.status,r.headers,r.read()
+              except urllib.error.HTTPError as e:
+                  return e.code,e.headers,e.read()
 
-          hits=[m.start() for m in re.finditer(r'\bWa\b',js)]
-          print('WA_OCCURRENCES',len(hits))
-          for i,p in enumerate(hits[:30],1):
-              print('WA_CTX',i,scrub(js[max(0,p-700):p+700]))
-          site=js.find('e.apiKey=e.apiKey||Wa')
-          print('DEFAULT_SITE',site)
-          if site>=0:
-              # Walk backward to the nearest declaration separator and show syntax only.
-              print('DEFAULT_PRECEDING',scrub(js[max(0,site-5000):site+250]))
+          for label,url in [('player',player),('setting',setting),('config','https://front.player.boatrace-cdn.jp/js/config/config.js'),('livejs','https://front.player.boatrace-cdn.jp/js/live.js')]:
+              s,h,b=get(url)
+              print(label,'status',s,'bytes',len(b),'set_cookie',bool(h.get('Set-Cookie')),'cookies',[(c.domain,c.name) for c in jar])
+
+          variants=[
+            {},
+            {'Sec-Fetch-Site':'same-site','Sec-Fetch-Mode':'cors','Sec-Fetch-Dest':'empty'},
+            {'X-Requested-With':'XMLHttpRequest'},
+          ]
+          for i,extra in enumerate(variants,1):
+              s,h,b=get(playback,{'Accept':'application/json',**extra})
+              found=False
+              try:
+                  d=json.loads(b.decode('utf-8','replace'))
+                  found=any(isinstance(x,dict) and str(x.get('src','')).startswith('https://manifest.streaks.jp/') for x in (d.get('sources') or []))
+              except Exception: pass
+              print('PLAYBACK_VARIANT',i,'STATUS',s,'HLS',found,'BYTES',len(b),'cookies',len(list(jar)))
+              if s==200 and found:
+                  print('CLOUD_SESSION_FLOW=YES')
+                  raise SystemExit(0)
+          print('CLOUD_SESSION_FLOW=NO')
           PY
