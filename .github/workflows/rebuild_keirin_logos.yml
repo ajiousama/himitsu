@@ -1,12 +1,9 @@
 name: Rebuild Keirin Venue Logos
 
+# Manual only. KEIRIN logo redesigns must never be triggered by ordinary
+# FreeWiFi/public-sports maintenance.
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - 'generate_keirin_logos.py'
-      - 'freewifi_today_public_sports.py'
-      - '.github/workflows/rebuild_keirin_logos.yml'
 
 permissions:
   contents: write
