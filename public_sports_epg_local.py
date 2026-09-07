@@ -168,7 +168,8 @@ def add_race_grid(root, cid, name, day, races, icon, mode_label, category, switc
     if not dts:
         return
     day_start = datetime.combine(day, time(8, 0), tzinfo=JST)
-    end_limit = datetime.combine(day + timedelta(days=1), time(1, 30), tzinfo=JST)
+    end_time = time(0, 0) if category == 'ボートレース' else time(1, 30)
+    end_limit = datetime.combine(day + timedelta(days=1), end_time, tzinfo=JST)
     for i, (race, dt) in enumerate(dts):
         start = day_start if i == 0 else dts[i - 1][1] + timedelta(minutes=switch_after)
         stop = dt + timedelta(minutes=switch_after)
@@ -181,7 +182,8 @@ def add_race_grid(root, cid, name, day, races, icon, mode_label, category, switc
         add_programme(root, cid, start, min(stop, end_limit), title, desc)
     finish = dts[-1][1] + timedelta(minutes=switch_after)
     if finish < end_limit:
-        add_programme(root, cid, finish, end_limit, f'🏁 本日の開催は終了しました {name}（{category}）', f'{name}の本日の開催は終了しました。')
+        finished = '本日の開催は終了しました' if category == 'ボートレース' else f'🏁 本日の開催は終了しました {name}（{category}）'
+        add_programme(root, cid, finish, end_limit, finished, f'{name}の本日の開催は終了しました。')
 
 
 def mode_from_times(races, category=''):

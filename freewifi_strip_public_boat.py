@@ -19,14 +19,14 @@ def load_boat_status():
         return {}
 
 
-def v2_is_current(status):
-    """Only let BOAT V2 replace general BOAT entries when its state is for today."""
+def auto_is_current(status):
+    """Only let BOAT Auto v3 replace general BOAT entries for the current JST date."""
     today = datetime.now(JST).date().isoformat()
     if status.get('date') != today:
         return False
-    # A same-day resolver state is authoritative even before the first venue
-    # becomes visible.  Old/stale seed state must never erase today's fallback.
-    return status.get('system') in {'boat-v2-resolver', 'boat-v2-iphone-seed'}
+    # A same-day Auto v3 state is authoritative before every phase starts.
+    # A stale state must never erase today's general public-sports fallback.
+    return status.get('system') == 'boat-auto-v3'
 
 
 def strip_boat(body):
@@ -52,9 +52,9 @@ def main():
         raise SystemExit('freewifi not found')
 
     boat_status = load_boat_status()
-    if not v2_is_current(boat_status):
+    if not auto_is_current(boat_status):
         print(
-            'BOAT V2 state is stale/missing; preserve TODAY_PUBLIC_SPORTS BOAT fallback '
+            'BOAT Auto v3 state is stale/missing; preserve TODAY_PUBLIC_SPORTS BOAT fallback '
             f"(status_date={boat_status.get('date')!r}, system={boat_status.get('system')!r})"
         )
         return 0
@@ -62,14 +62,14 @@ def main():
     text = FREEWIFI.read_text(encoding='utf-8-sig', errors='replace')
     m = re.search(re.escape(START) + r'(.*?)' + re.escape(END), text, re.S)
     if not m:
-        print('No TODAY_PUBLIC_SPORTS block; BOAT V2 untouched')
+        print('No TODAY_PUBLIC_SPORTS block; BOAT Auto v3 untouched')
         return 0
     body, removed = strip_boat(m.group(1))
     replacement = START + body + END
     if removed:
         text = text[:m.start()] + replacement + text[m.end():]
         FREEWIFI.write_text(text.rstrip() + '\n', encoding='utf-8')
-    print(f'General FreeWiFi BOAT entries removed={removed}; current BOAT V2 block preserved')
+    print(f'General FreeWiFi BOAT entries removed={removed}; current BOAT Auto v3 block preserved')
     return 0
 
 

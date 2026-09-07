@@ -97,33 +97,40 @@ def _load_today_boat_fallback(today):
         print(f'BOAT fallback JSON unreadable: {e}')
         return {}
     generated = str(data.get('generated_at') or '')
-    if generated[:10] != today.isoformat():
+    if generated[:10] != today.isoformat() or data.get('system') != 'boat-auto-v3':
         return {}
-    channels = data.get('channels') or {}
-    return channels if isinstance(channels, dict) else {}
+    venues = data.get('venues') or {}
+    return venues if isinstance(venues, dict) else {}
 
 
-def _add_boat_status_fallback(root, today, verified, channels):
+def _add_boat_status_fallback(root, today, verified, venues):
     used = 0
     for code, (venue, cid) in b.BOAT.items():
-        item = channels.get(cid) or {}
+        item = venues.get(cid) or {}
         if not item.get('held'):
             continue
         b.ensure_channel(root, cid, f'BOATRACE{venue}')
-        nr = item.get('next_race') or {}
-        first = item.get('first_race') or '10:00'
-        last = item.get('last_race') or '18:00'
-        try:
-            start = b.parse_hhmm(today, first) - timedelta(minutes=20)
-            stop = b.parse_hhmm(today, last) + timedelta(minutes=15)
-        except Exception:
-            start = datetime.combine(today, time(10, 0), tzinfo=b.JST)
-            stop = datetime.combine(today, time(18, 30), tzinfo=b.JST)
-        title = f'BOATRACE{venue} 開催中／公式raceindex再取得待ち'
-        if nr.get('race') and nr.get('start'):
-            title = f'BOATRACE{venue} 次は {nr["race"]}R {nr["start"]}発走'
-        b.add_programme(root, cid, start, stop, title, 'ajiousama内の直前BOATRACE公式取得結果を一時利用。次回更新でraceindexを再取得します。')
+        races = []
+        for race in item.get('races') or []:
+            number = race.get('race')
+            start = str(race.get('start') or '')
+            if number and re.fullmatch(r'[0-2]?[0-9]:[0-5][0-9]', start):
+                races.append({'race': int(number), 'time': start.zfill(5), 'name': race.get('name') or 'ボートレース'})
         mode = item.get('mode') or 'day'
+        label = {'morning': 'モーニング', 'day': 'デイ', 'night': 'ナイター'}.get(mode, 'デイ')
+        if len(races) >= 10:
+            b.add_race_grid(root, cid, f'BOATRACE{venue}', today, races, '🚤', label, 'ボートレース', switch_after=3)
+        else:
+            first = item.get('first_race') or '10:00'
+            last = item.get('last_race') or '18:00'
+            try:
+                start = b.parse_hhmm(today, first) - timedelta(minutes=20)
+                stop = datetime.combine(today + timedelta(days=1), time(0, 0), tzinfo=b.JST)
+            except Exception:
+                start = datetime.combine(today, time(10, 0), tzinfo=b.JST)
+                stop = datetime.combine(today + timedelta(days=1), time(0, 0), tzinfo=b.JST)
+            title = '本日の開催は終了しました' if item.get('ended') else f'BOATRACE{venue} EPG再取得待ち'
+            b.add_programme(root, cid, start, stop, title, 'BOAT Auto v3の当日開催表を一時利用。次回更新で全レース時刻を再取得します。')
         verified['public_sports']['ボートレース'].append(venue)
         verified['public_sports_modes']['ボートレース'][venue] = mode
         used += 1

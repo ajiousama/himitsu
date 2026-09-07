@@ -89,8 +89,8 @@ jobs:
             fi
           }
 
-          # BOAT should normally refresh every 10 minutes.
-          recover "Update BOAT Today" 18
+          # BOAT Auto v3 normally refreshes every 5 minutes.
+          recover "Update BOAT Auto v3" 13
           # Main FreeWiFi/EPG and GCH fallback are hourly jobs.
           recover "Update FreeWiFi ALL" 80
           recover "Update GCH Free EPG" 80

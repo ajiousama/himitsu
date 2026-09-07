@@ -38,14 +38,14 @@ def main():
         key = mapping.get(section)
         if not key:
             continue
-        # BOAT V2 is authoritative for BOAT. Ignore any transient legacy BOAT
+        # BOAT Auto v3 is authoritative for BOAT. Ignore any transient legacy BOAT
         # rows that may still exist in the general status file.
-        if key == 'boat' and boat.get('system') in {'boat-v2-resolver', 'boat-v2-iphone-seed'}:
+        if key == 'boat' and boat.get('system') in {'boat-auto-v3'}:
             continue
         counts[key] += 1
         venues[key].append(info.get('name') or '')
 
-    if boat.get('system') in {'boat-v2-resolver', 'boat-v2-iphone-seed'}:
+    if boat.get('system') in {'boat-auto-v3'}:
         counts['boat'] = int(boat.get('visible_count') or 0)
         venues['boat'] = [
             info.get('name') or ''
