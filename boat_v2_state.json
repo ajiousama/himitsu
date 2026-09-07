@@ -1,6 +1,6 @@
 {
   "system": "boat-v2-iphone-seed",
-  "generated_at": "2026-09-07T10:20:11.268522+09:00",
+  "generated_at": "2026-09-07T10:27:12.503361+09:00",
   "date": "2026-09-07",
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/",
   "resolver_ready": false,
@@ -9,21 +9,21 @@
   "start_tolerance_seconds": 60,
   "grace_minutes": 30,
   "card_count": 12,
-  "held_count": 5,
-  "visible_count": 7,
+  "held_count": 7,
+  "visible_count": 9,
   "active_window": [
+    "平和島",
     "津",
     "三国",
     "びわこ",
     "尼崎",
-    "鳴門"
+    "鳴門",
+    "児島"
   ],
   "scheduled_waiting": [
     "桐生",
     "江戸川",
-    "平和島",
     "蒲郡",
-    "児島",
     "福岡",
     "大村"
   ],
@@ -61,9 +61,7 @@
             "HTTPError:403"
           ],
           "jlc": [],
-          "sakura": [
-            "sakura-fast:child-deadline"
-          ]
+          "sakura": []
         }
       }
     },
@@ -71,7 +69,7 @@
       "jcd": "03",
       "name": "江戸川",
       "held": true,
-      "visible": false,
+      "visible": true,
       "first_race": "11:14",
       "show_from": "2026-09-07T10:44:00+09:00",
       "last_race": "16:25",
@@ -83,24 +81,8 @@
       },
       "scheduled": true,
       "stream_window": "epg_ready",
-      "source": "current-day direct seed unavailable and resolver not verified playable",
-      "resolver_debug": {
-        "jcd": "03",
-        "name": "江戸川",
-        "http_status": 503,
-        "ok": false,
-        "playable": false,
-        "source": "",
-        "details": {
-          "streaks": [
-            "HTTPError:403"
-          ],
-          "jlc": [],
-          "sakura": [
-            "sakura-fast:child-deadline"
-          ]
-        }
-      }
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/3c7d726e37d6423b9f73ccb9103a0f24/30a1996b27934ae9a678fff5baa21610/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4ODkxOTIwMCwic3RhcnQiOjE3ODg3NDUxNDAsImlvcyI6MTgsImNwIjoiMjEwOTQwNzQwXzIxMDk4MzkzOSIsInBwdyI6IjQwayJ9.YMK0258npCIQUauswHRasYjE2OI1nMoZaiABNg0YE1w",
+      "source": "iPhone one-click direct Streaks seed (current JST date)"
     },
     "boat.heiwajima": {
       "jcd": "04",
@@ -116,9 +98,8 @@
         "race": 1,
         "start": "10:55"
       },
-      "scheduled": true,
-      "stream_window": "epg_ready",
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/8b847dd448e043088b5094808345cda0/13e92c2a1db04584b89e2add67fafbdf/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4ODkxNTYwMCwic3RhcnQiOjE3ODg3NDI4MDAsImlvcyI6MTgsImNwIjoiMjEwOTM4NDAwXzIxMDk4MTU5OSIsInBwdyI6IjQwayJ9.FKWGoitQtD9hYdJBXEVqkDUUIm_bsKaEJ5ajm4R3j4A",
+      "stream_window": "live_or_vtr",
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/8b847dd448e043088b5094808345cda0/13e92c2a1db04584b89e2add67fafbdf/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4ODkxOTIwMCwic3RhcnQiOjE3ODg3NDI4MDAsImlvcyI6MTgsImNwIjoiMjEwOTM4NDAwXzIxMDk4MTU5OSIsInBwdyI6IjQwayJ9.BDngKwSdujkHxG5Sj2_Dt90UD4-7pNxWFV1wShE5A3M",
       "source": "iPhone one-click direct Streaks seed (current JST date)"
     },
     "boat.gamagori": {
@@ -171,7 +152,7 @@
         "start": "10:42"
       },
       "stream_window": "live_or_vtr",
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/860dc3c625df4de5a32154e2fce16d9a/54ab95bdef9a4f898745b0ad506d589f/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4ODkxNTYwMCwic3RhcnQiOjE3ODg3NDI4MDAsImlvcyI6MTgsImNwIjoiMjEwOTM4NDAwXzIxMDk4MTU5OSIsInBwdyI6IjQwayJ9.FKWGoitQtD9hYdJBXEVqkDUUIm_bsKaEJ5ajm4R3j4A",
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/860dc3c625df4de5a32154e2fce16d9a/54ab95bdef9a4f898745b0ad506d589f/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4ODkxOTIwMCwic3RhcnQiOjE3ODg3NDI4MDAsImlvcyI6MTgsImNwIjoiMjEwOTM4NDAwXzIxMDk4MTU5OSIsInBwdyI6IjQwayJ9.BDngKwSdujkHxG5Sj2_Dt90UD4-7pNxWFV1wShE5A3M",
       "source": "iPhone one-click direct Streaks seed (current JST date)"
     },
     "boat.mikuni": {
@@ -189,7 +170,7 @@
         "start": "10:48"
       },
       "stream_window": "live_or_vtr",
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/04ca6b5a22c54202ad394bcfd1537065/dcb3bfa548e04daab5250e11a8d69796/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4ODkxNTYwMCwic3RhcnQiOjE3ODg3MzU0MjAsImlvcyI6MTgsImNwIjoiMjEwOTMxMDIwXzIxMDk3NDIxOSIsInBwdyI6IjQwayJ9.xlBlVLG8lSv7r8_vnydgt8NLJOtluyJVKBAfDH_u3wA",
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/04ca6b5a22c54202ad394bcfd1537065/dcb3bfa548e04daab5250e11a8d69796/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4ODkxOTIwMCwic3RhcnQiOjE3ODg3MzU0MjAsImlvcyI6MTgsImNwIjoiMjEwOTMxMDIwXzIxMDk3NDIxOSIsInBwdyI6IjQwayJ9.glI-H45dU5jm08bPelw7Y1FpRh4stIIoKMgJOPdGffM",
       "source": "iPhone one-click direct Streaks seed (current JST date)"
     },
     "boat.biwako": {
@@ -207,7 +188,7 @@
         "start": "10:35"
       },
       "stream_window": "live_or_vtr",
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/095cc800f02a4521a8fcdcf25264b703/8173a9f917b14c69aefb6733a637aa41/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4ODkxNTYwMCwic3RhcnQiOjE3ODg3NDI1MDAsImlvcyI6MTgsImNwIjoiMjEwOTM4MTAwXzIxMDk4MTI5OSIsInBwdyI6IjQwayJ9.Ra1NYEx-doznv0Unc6X36yUD20-TaX_gmCvG9CrLImM",
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/095cc800f02a4521a8fcdcf25264b703/8173a9f917b14c69aefb6733a637aa41/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4ODkxOTIwMCwic3RhcnQiOjE3ODg3NDI1MDAsImlvcyI6MTgsImNwIjoiMjEwOTM4MTAwXzIxMDk4MTI5OSIsInBwdyI6IjQwayJ9.5uIu2BFawoDRmihARszElZCuejIjRY8C3Bnrc6mFfMw",
       "source": "iPhone one-click direct Streaks seed (current JST date)"
     },
     "boat.amagasaki": {
@@ -225,7 +206,7 @@
         "start": "10:38"
       },
       "stream_window": "live_or_vtr",
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/2c3b53fd082649a2977d7a9be20dc09c/490ccc30588b4c95838110b67617914b/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4ODkxNTYwMCwic3RhcnQiOjE3ODg3NDI5MjAsImlvcyI6MTgsImNwIjoiMjEwOTM4NTIwXzIxMDk4MTcxOSIsInBwdyI6IjQwayJ9.tRCD7OvJsu_phhMP1Aq5zBaXRK-uiGsY17qSKPss_js",
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/2c3b53fd082649a2977d7a9be20dc09c/490ccc30588b4c95838110b67617914b/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4ODkxOTIwMCwic3RhcnQiOjE3ODg3NDI5MjAsImlvcyI6MTgsImNwIjoiMjEwOTM4NTIwXzIxMDk4MTcxOSIsInBwdyI6IjQwayJ9._cSkt42ylFLmnoluApizyut7S9op0_u8a8yjbeH3wB0",
       "source": "iPhone one-click direct Streaks seed (current JST date)"
     },
     "boat.naruto": {
@@ -243,7 +224,7 @@
         "start": "10:28"
       },
       "stream_window": "live_or_vtr",
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/19b2a55a5e7b419280e6e1ac2f15312b/f064634c90994053a00566d4017a887f/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4ODkxNTYwMCwic3RhcnQiOjE3ODg3MzYxNDAsImlvcyI6MTgsImNwIjoiMjEwOTMxNzQwXzIxMDk3NDkzOSIsInBwdyI6IjQwayJ9.hwdCJ6Ccie2QvuXYPRNvB31CV3VoJstxC2fCV3Ont8k",
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/19b2a55a5e7b419280e6e1ac2f15312b/f064634c90994053a00566d4017a887f/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4ODkxOTIwMCwic3RhcnQiOjE3ODg3MzYxNDAsImlvcyI6MTgsImNwIjoiMjEwOTMxNzQwXzIxMDk3NDkzOSIsInBwdyI6IjQwayJ9.9UslYmIdmjElpCXtTgPgXANNSbEQHylJfvUlzZbKIDw",
       "source": "iPhone one-click direct Streaks seed (current JST date)"
     },
     "boat.kojima": {
@@ -260,16 +241,15 @@
         "race": 1,
         "start": "10:53"
       },
-      "scheduled": true,
-      "stream_window": "epg_ready",
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/8d6ccf93541e454fa4b5f3b6f9f19679/6b4a841bfff24966801cd8d76b79e2b2/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4ODkxNTYwMCwic3RhcnQiOjE3ODg3NDE2MDAsImlvcyI6MTgsImNwIjoiMjEwOTM3MjAwXzIxMDk4MDM5OSIsInBwdyI6IjQwayJ9.zuOeE21FcKV1fpVQ-2o5U7NeBj3Nd4wyNPuZPmAOChQ",
+      "stream_window": "live_or_vtr",
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/8d6ccf93541e454fa4b5f3b6f9f19679/6b4a841bfff24966801cd8d76b79e2b2/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4ODkxOTIwMCwic3RhcnQiOjE3ODg3NDE2MDAsImlvcyI6MTgsImNwIjoiMjEwOTM3MjAwXzIxMDk4MDM5OSIsInBwdyI6IjQwayJ9.WqrFIsrfgqhIIslJ_HABIjlHhoKANulWmhujW8xjE7A",
       "source": "iPhone one-click direct Streaks seed (current JST date)"
     },
     "boat.fukuoka": {
       "jcd": "22",
       "name": "福岡",
       "held": true,
-      "visible": false,
+      "visible": true,
       "first_race": "11:47",
       "show_from": "2026-09-07T11:17:00+09:00",
       "last_race": "17:25",
@@ -281,22 +261,8 @@
       },
       "scheduled": true,
       "stream_window": "epg_ready",
-      "source": "current-day direct seed unavailable and resolver not verified playable",
-      "resolver_debug": {
-        "jcd": "22",
-        "name": "福岡",
-        "http_status": 503,
-        "ok": false,
-        "playable": false,
-        "source": "",
-        "details": {
-          "streaks": [
-            "HTTPError:403"
-          ],
-          "jlc": [],
-          "sakura": []
-        }
-      }
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/3a4c2592928a4219801c5ff564ee66bc/52e73b1b955140f5ba3c6d14c4d3ca68/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4ODkxOTIwMCwic3RhcnQiOjE3ODg3NDcwMDAsImlvcyI6MTgsImNwIjoiMjEwOTQyNjAwXzIxMDk4NTc5OSIsInBwdyI6IjQwayJ9.jhvjVqAi5FJTK8Q9zzLzZ38YWj8yfTzy_6xzvENzI0g",
+      "source": "iPhone one-click direct Streaks seed (current JST date)"
     },
     "boat.omura": {
       "jcd": "24",
@@ -363,40 +329,6 @@
       "probe": {
         "error": "HTTPError:403"
       },
-      "details": {
-        "streaks": [
-          "HTTPError:403"
-        ],
-        "jlc": [],
-        "sakura": [
-          "sakura-fast:child-deadline"
-        ]
-      }
-    },
-    "boat.edogawa": {
-      "jcd": "03",
-      "name": "江戸川",
-      "http_status": 503,
-      "ok": false,
-      "playable": false,
-      "source": "",
-      "details": {
-        "streaks": [
-          "HTTPError:403"
-        ],
-        "jlc": [],
-        "sakura": [
-          "sakura-fast:child-deadline"
-        ]
-      }
-    },
-    "boat.fukuoka": {
-      "jcd": "22",
-      "name": "福岡",
-      "http_status": 503,
-      "ok": false,
-      "playable": false,
-      "source": "",
       "details": {
         "streaks": [
           "HTTPError:403"
