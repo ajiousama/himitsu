@@ -563,8 +563,8 @@ def overlay_epg_file(path: Path, cards: dict[str, list[dict]], day: date) -> int
             count += 1
             if guidance_at < end_of_day and next_day:
                 if next_day == day + timedelta(days=1):
-                    title = "明日開催予定（仮時間）"
-                    desc = f"BOATRACE{name}は明日{next_day.month}月{next_day.day}日開催予定です。実発走時刻は取得後に自動更新します。"
+                    title = "翌日開催予定（仮時間）"
+                    desc = f"BOATRACE{name}は翌日{next_day.month}月{next_day.day}日開催予定です。実発走時刻は取得後に自動更新します。"
                 else:
                     title = f"次回開催：{next_day.month}月{next_day.day}日"
                     desc = f"BOATRACE{name}の次回開催予定日は{next_day.month}月{next_day.day}日です。"
