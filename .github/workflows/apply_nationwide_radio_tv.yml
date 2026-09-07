@@ -8,19 +8,23 @@ on:
       - 'radiko_cloud_start.py'
       - 'radiko_freewifi.py'
       - 'radio_tv_nationwide_freewifi.py'
+      - 'logo_contrast_apply.py'
       - '.github/workflows/apply_nationwide_radio_tv.yml'
   workflow_dispatch:
 
 permissions:
   contents: write
 
+# Share the same writer mutex as the hourly FreeWiFi/EPG job and contrast-logo
+# refresh so the 16-station radio block can never race a newer FreeWiFi state.
 concurrency:
-  group: himitsu-freewifi-writer
+  group: himitsu-freewifi-state-writer
   cancel-in-progress: false
 
 jobs:
   rollout:
     runs-on: ubuntu-latest
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
         with:
@@ -29,8 +33,19 @@ jobs:
       - name: Sync latest main
         run: git pull --ff-only origin main
 
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Install image support
+        run: python -m pip install --disable-pip-version-check 'Pillow>=10.0'
+
       - name: Restore compact FreeWiFi image and audio radio section
         run: python radio_tv_nationwide_freewifi.py
+
+      - name: Build contrast-safe station images
+        run: python logo_contrast_apply.py
 
       - name: Build standalone nationwide radio.m3u
         run: python radiko_freewifi.py --playlist-only
@@ -60,31 +75,40 @@ jobs:
           echo "Standalone nationwide stable TS count=$nationwide_count"
 
           test "$free_direct_count" -eq 0
-          test "$free_render_count" -eq 12
+          test "$free_render_count" -eq 16
           test "$free_ts_count" -eq 0
           test "$nationwide_count" -ge 100
-          test "$(grep -c '^#EXTINF:' /tmp/freewifi-radio.txt)" -eq 12
-          test "$(grep -c 'group-title="ラジオ"' /tmp/freewifi-radio.txt)" -eq 12
+          test "$(grep -c '^#EXTINF:' /tmp/freewifi-radio.txt)" -eq 16
+          test "$(grep -c 'group-title="ラジオ"' /tmp/freewifi-radio.txt)" -eq 16
+          test "$(grep -c '/logos/contrast/radiko\.' /tmp/freewifi-radio.txt || true)" -eq 16
           ! grep -q 'ajiousama-radiko.onrender.com/radio-tv/' radio.m3u
           ! grep -q 'himitsu-six.vercel.app/api/radio-tv' /tmp/freewifi-radio.txt
           ! grep -Eq 'NHKラジオ|NHK-FM|nhk_(r1|fm)_' /tmp/freewifi-radio.txt
           ! grep -Eq '^## (愛媛|在阪|京都|滋賀|兵庫)（ラジオ）$' /tmp/freewifi-radio.txt
           grep -Fq "${render}RNB" /tmp/freewifi-radio.txt
+          grep -Fq "${render}LFR" /tmp/freewifi-radio.txt
+          grep -Fq "${render}QRR" /tmp/freewifi-radio.txt
+          grep -Fq "${render}TBS" /tmp/freewifi-radio.txt
+          grep -Fq "${render}FMT" /tmp/freewifi-radio.txt
           grep -Fq "${render}OBC" /tmp/freewifi-radio.txt
           grep -Fq "${render}KBS" /tmp/freewifi-radio.txt
+          test -f logos/contrast/radiko.LFR_*.png
+          test -f logos/contrast/radiko.QRR_*.png
+          test -f logos/contrast/radiko.TBS_*.png
+          test -f logos/contrast/radiko.FMT_*.png
           grep -q '^## Rakuten-JP$' freewifi
 
-      - name: Commit separated radio playlists
+      - name: Commit separated radio playlists and station images
         shell: bash
         run: |
           set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add freewifi radio.m3u
+          git add freewifi radio.m3u logo_contrast_sources.json logos/contrast
           if git diff --cached --quiet; then
-            echo 'Radio playlists already current'
+            echo 'Radio playlists and station images already current'
             exit 0
           fi
-          git commit -m 'Serve FreeWiFi radio with image and audio'
+          git commit -m 'Serve 16 FreeWiFi radio stations with image and audio [skip ci]'
           git pull --rebase origin main
           git push origin HEAD:main
