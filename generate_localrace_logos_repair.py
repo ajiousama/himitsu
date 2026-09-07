@@ -20,6 +20,10 @@ def main():
         (SRC / f'part{i}.txt').read_text(encoding='ascii').strip()
         for i in range(1, 5)
     )
+    # Padding belongs only at the end of the complete base64 payload.  Strip
+    # any chunk-boundary padding and restore the correct final padding.
+    encoded = encoded.replace('=', '')
+    encoded += '=' * (-len(encoded) % 4)
     raw = base64.b64decode(encoded, validate=True)
     with Image.open(BytesIO(raw)) as src:
         sheet = src.convert('RGB')
