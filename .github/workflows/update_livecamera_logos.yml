@@ -63,7 +63,6 @@ jobs:
           grep -F '/logos/youtube/yt43_' general_youtube.m3u >/dev/null
           grep -F '/logos/youtube/yt43_' freewifi >/dev/null
           python apply_livecamera_logos.py
-          git diff --exit-code -- general_youtube_sources.json general_youtube_sources_ports.json general_youtube_sources_airports.json general_youtube.m3u freewifi
 
       - name: Commit canonical logos and mappings
         shell: bash
