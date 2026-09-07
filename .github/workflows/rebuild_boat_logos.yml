@@ -63,6 +63,6 @@ jobs:
             echo 'No BOATRACE logo changes'
             exit 0
           fi
-          git commit -m 'Rebuild BOATRACE 24 venue logos'
+          git commit -m 'Rebuild BOATRACE 24 venue logos [skip render]'
           git pull --rebase origin main
           git push origin main
