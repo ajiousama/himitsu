@@ -3,8 +3,8 @@ name: Update BOAT Today Verified Hybrid
 on:
   workflow_dispatch:
   schedule:
-    # Rebuild every 5-10 minutes from current-day iPhone seed plus only
-    # individually verified Render/JLC/Sakura resolver fallbacks.
+    # Rebuild every 5-10 minutes from automatic Vercel KIX seed plus the
+    # existing iPhone seed fallback and verified Render/JLC/Sakura resolver.
     - cron: "3,13,23,33,43,53 * * * *"
     - cron: "8,18,28,38,48,58 * * * *"
   push:
@@ -12,6 +12,7 @@ on:
       - main
     paths:
       - "boat_stream_seed.m3u"
+      - "boat_vercel_seed_refresh.py"
       - "boat_iphone_seed_build.py"
       - "boat_v2_build.py"
       - "boat_cloud_resolver.py"
@@ -45,14 +46,17 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Verify iPhone BOAT seed input
+      - name: Refresh BOAT seed from Vercel KIX when available
+        run: python -u boat_vercel_seed_refresh.py
+
+      - name: Verify BOAT seed input
         shell: bash
         run: |
           set -euo pipefail
           test -s boat_stream_seed.m3u
           cp boat_stream_seed.m3u /tmp/boat_stream_seed.m3u.before
           streams="$(grep -Ec '^https?://' boat_stream_seed.m3u || true)"
-          echo "iPhone BOAT seed streams=$streams"
+          echo "BOAT seed streams=$streams"
           sha256sum boat_stream_seed.m3u
 
       - name: Build today's BOAT from current-day direct seed plus verified resolver fallback
@@ -61,7 +65,7 @@ jobs:
       - name: Refresh current event counts after BOAT visibility update
         run: python build_today_event_counts.py
 
-      - name: Confirm builder did not rewrite iPhone seed
+      - name: Confirm builder did not rewrite BOAT seed
         shell: bash
         run: |
           set -euo pipefail
@@ -69,7 +73,7 @@ jobs:
             echo '::error::boat_stream_seed.m3u was modified by the builder'
             exit 1
           }
-          echo 'iPhone BOAT seed preserved byte-for-byte during build'
+          echo 'BOAT seed preserved byte-for-byte during build'
 
       - name: Publish BOAT state safely
         shell: bash
@@ -118,6 +122,8 @@ jobs:
           }
 
           rebuild_from_latest_seed() {
+            cp boat_stream_seed.m3u /tmp/boat_stream_seed.m3u.before
+            python -u boat_vercel_seed_refresh.py
             cp boat_stream_seed.m3u /tmp/boat_stream_seed.m3u.before
             python -u boat_iphone_seed_build.py
             python build_today_event_counts.py
