@@ -59,7 +59,9 @@ def local_logo(cid):
     return None
 
 JST = timezone(timedelta(hours=9))
-TARGET_SECTIONS = {'競輪', '地方競馬', 'ボートレース', 'オートレース'}
+# BOAT Auto v3 exclusively owns every boat.* entry and the TODAY_BOAT block.
+# This builder must never parse, remove, recreate, reorder, or otherwise mutate BOAT.
+TARGET_SECTIONS = {'競輪', '地方競馬', 'オートレース'}
 NON_EVENT_WORDS = ('本日非開催','非開催','開催していません','開催予定はありません','本日開催なし','開催なし','次回開催','データ取得準備中','休止中','休止','準備中','現在準備中','本日の開催は終了しました')
 
 
@@ -79,7 +81,9 @@ def parse_m3u(text):
             j += 1
         m = re.search(r'tvg-id="([^"]+)"', line)
         if m and section in TARGET_SECTIONS:
-            entries[m.group(1)] = (section, block)
+            cid = m.group(1)
+            if not cid.startswith('boat.'):
+                entries[cid] = (section, block)
         i = j
     return entries
 
@@ -121,7 +125,7 @@ def epg_state():
     for p in root.findall('programme'):
         try:
             cid = p.get('channel') or ''
-            if not cid:
+            if not cid or cid.startswith('boat.'):
                 continue
             start = parse_xmltv_time(p.get('start'))
             if not start:
@@ -179,6 +183,9 @@ def sanitize_extinf(line):
 
 
 def strip_ids(text, ids):
+    # Safety invariant: this non-BOAT builder can never remove a boat.* entry,
+    # even if a future caller accidentally passes one in ids.
+    ids = {cid for cid in ids if not cid.startswith('boat.')}
     lines = text.splitlines(); out=[]; i=0
     while i < len(lines):
         line = lines[i]
@@ -207,10 +214,11 @@ def main():
     real, modes, next_race = epg_state()
     entries = parse_m3u(PUBLIC_M3U.read_text(encoding='utf-8-sig', errors='replace'))
     if not entries:
-        raise SystemExit('ganble has no public-sports master entries')
+        raise SystemExit('ganble has no non-BOAT public-sports master entries')
     rows=[]; status={}
     for cid, (section, block) in entries.items():
-        if cid not in real: continue
+        if cid.startswith('boat.') or cid not in real:
+            continue
         try:
             item_block = block[:]
             item_block[0] = sanitize_extinf(item_block[0])
@@ -224,7 +232,8 @@ def main():
     for r in rows: body += r['block'] + ['']
     managed = START+'\n## 今日の開催場\n'+'\n'.join(body).rstrip()+('\n' if body else '')+END
     base = FREEWIFI.read_text(encoding='utf-8-sig', errors='replace')
-    base = strip_ids(base, set(entries))
+    owned_ids = {cid for cid in entries if not cid.startswith('boat.')}
+    base = strip_ids(base, owned_ids)
     FREEWIFI.write_text(replace_block(base, managed).rstrip()+'\n', encoding='utf-8')
     STATUS_JSON.write_text(json.dumps({'generated_at':datetime.now(JST).isoformat(),'channels':{r['id']:status[r['id']] for r in rows}}, ensure_ascii=False, indent=2)+'\n', encoding='utf-8')
     print('Today public sports local:', len(rows))
