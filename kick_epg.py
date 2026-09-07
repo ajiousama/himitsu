@@ -5,6 +5,8 @@ import xml.etree.ElementTree as ET
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
+import epg_final_guard
+
 EPG = Path("guides.xml")
 CONFIG = Path("kick_channels.json")
 JST = timezone(timedelta(hours=9))
@@ -73,6 +75,10 @@ def main() -> int:
     ET.indent(root, space="  ")
     tree.write(EPG, encoding="utf-8", xml_declaration=True)
     print(f"KICK EPG: {len(channels)} channels / {len(channels) * 12} programmes")
+
+    # This is the final EPG writer in the hourly workflow, so repair any
+    # remaining public-sports 1R overrun and fill all 愛媛CATV schedule gaps here.
+    epg_final_guard.main()
     return 0
 
 
