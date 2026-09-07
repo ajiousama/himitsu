@@ -18,45 +18,70 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
-      - name: Test all official BOAT live media refs from cloud
+      - name: Probe client compatibility of BOAT sources
         shell: bash
         run: |
           set -euo pipefail
           python - <<'PY'
-          import json, urllib.error, urllib.request
-          UA='Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) AppleWebKit/605.1.15 Version/18.0 Mobile/15E148 Safari/604.1'
-          setting='https://front.player.boatrace-cdn.jp/setting/live/01kiryu/setting.json'
-          player='https://front.player.boatrace-cdn.jp/player/live?service=boatcast&stadium=01kiryu&sourceType=mix&dvr=1&audioMode=0&autoplay=1&bitrate=low'
-          headers={'User-Agent':UA,'Origin':'https://front.player.boatrace-cdn.jp','Referer':player,'Accept':'application/json,*/*'}
-          def get(url):
-              req=urllib.request.Request(url,headers=headers)
+          import hashlib
+          import json
+          from pathlib import Path
+          import re
+          import urllib.error
+          import urllib.request
+
+          UA = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) AppleWebKit/605.1.15 Version/18.0 Mobile/15E148 Safari/604.1'
+          PLAYER = 'https://front.player.boatrace-cdn.jp/player/live?service=boatcast&stadium=07gamagori&sourceType=mix&dvr=1&audioMode=0&autoplay=1&bitrate=low'
+          HEADER_SETS = {
+              'plain': {'User-Agent': UA, 'Accept': '*/*'},
+              'player': {
+                  'User-Agent': UA,
+                  'Accept': '*/*',
+                  'Origin': 'https://front.player.boatrace-cdn.jp',
+                  'Referer': PLAYER,
+              },
+          }
+
+          def request(url, headers, timeout=20):
+              req = urllib.request.Request(url, headers=headers)
               try:
-                  with urllib.request.urlopen(req,timeout=15) as r: return r.status,r.read()
-              except urllib.error.HTTPError as e: return e.code,e.read()
-          s,b=get(setting)
-          print('SETTING',s,'BYTES',len(b))
-          data=json.loads(b.decode('utf-8','replace')) if s==200 else {}
-          refs=[]
-          def walk(x,path='root'):
-              if isinstance(x,dict):
-                  for k,v in x.items():
-                      p=f'{path}.{k}'
-                      if k=='ref_id' and isinstance(v,str): refs.append((p,v))
-                      else: walk(v,p)
-              elif isinstance(x,list):
-                  for i,v in enumerate(x): walk(v,f'{path}[{i}]')
-          walk(data)
-          print('REF_COUNT',len(refs))
-          ok=0
-          for path,ref in refs:
-              url='https://playback.api.streaks.jp/v1/projects/cp-boatrace-prod/medias/ref:'+ref+'?audio_only=false'
-              ss,bb=get(url)
-              hls=False
-              try:
-                  d=json.loads(bb.decode('utf-8','replace'))
-                  hls=any(isinstance(x,dict) and '.m3u8' in str(x.get('src','')) for x in (d.get('sources') or []))
-              except Exception: pass
-              print('REF',path,ref,'STATUS',ss,'HLS',hls,'BYTES',len(bb))
-              if ss==200 and hls: ok+=1
-          print('CLOUD_REF_HITS',ok)
+                  with urllib.request.urlopen(req, timeout=timeout) as r:
+                      return int(getattr(r, 'status', 200)), r.read(200000), r.geturl(), dict(r.headers)
+              except urllib.error.HTTPError as e:
+                  return int(e.code), e.read(200000), e.geturl(), dict(e.headers)
+              except Exception as e:
+                  return 0, (type(e).__name__ + ':' + str(e)).encode(), url, {}
+
+          def report(label, url):
+              digest = hashlib.sha256(url.encode()).hexdigest()[:12]
+              for mode, headers in HEADER_SETS.items():
+                  status, body, final_url, response_headers = request(url, headers)
+                  playlist = body.lstrip().startswith(b'#EXTM3U')
+                  ctype = response_headers.get('Content-Type', '')
+                  print('PROBE', label, mode, 'status=', status, 'playlist=', playlist,
+                        'bytes=', len(body), 'ctype=', ctype, 'url_sha=', digest,
+                        'final_host=', urllib.request.urlparse(final_url).hostname if False else '')
+                  if status >= 400:
+                      print('BODY', label, mode, body[:180].decode('utf-8', 'replace').replace('\n', ' '))
+
+          endpoint = 'https://himitsu-six.vercel.app/api/boat-seed?venue=07'
+          status, body, _final, _headers = request(endpoint, HEADER_SETS['plain'])
+          print('VERCEL_ENDPOINT status=', status, 'bytes=', len(body))
+          data = json.loads(body.decode('utf-8', 'replace')) if status == 200 else {}
+          vercel_url = str(data.get('url') or '')
+          print('VERCEL_ENDPOINT ok=', data.get('ok'), 'region=', data.get('region'), 'has_url=', bool(vercel_url))
+          if vercel_url:
+              report('vercel-token', vercel_url)
+
+          seed = Path('boat_stream_seed.m3u').read_text(encoding='utf-8-sig', errors='replace')
+          m = re.search(r'^https://manifest\.streaks\.jp/.*$', seed, re.M)
+          if m:
+              report('iphone-seed-token', m.group(0).strip())
+
+          for suffix in ('07?debug=1', '07'):
+              url = 'https://ajiousama-radiko.onrender.com/boat/' + suffix
+              status, body, _final, response_headers = request(url, HEADER_SETS['plain'], timeout=35)
+              print('RENDER', suffix, 'status=', status, 'playlist=', body.lstrip().startswith(b'#EXTM3U'),
+                    'bytes=', len(body), 'ctype=', response_headers.get('Content-Type', ''))
+              print('RENDER_BODY', suffix, body[:240].decode('utf-8', 'replace').replace('\n', ' '))
           PY
