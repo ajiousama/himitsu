@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+# Final post-merge repair for FreeWiFi XMLTV output.
 import re
 import xml.etree.ElementTree as ET
 from datetime import datetime, timedelta, timezone
