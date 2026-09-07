@@ -5,19 +5,13 @@ on:
   schedule:
     # Daily 07:17 JST (22:17 UTC previous day).
     - cron: "17 22 * * *"
-  push:
-    branches:
-      - main
-    paths:
-      - "logo_contrast_apply.py"
-      - "radio_tv_nationwide_freewifi.py"
-      - ".github/workflows/refresh_logo_contrast.yml"
 
 permissions:
   contents: write
 
 # Share the writer mutex with the main FreeWiFi workflow so logo work never
-# races the EPG/public-sports writer.
+# races the EPG/public-sports writer. Push-time radio rollout is handled only by
+# apply_nationwide_radio_tv.yml; this job is schedule/manual refresh only.
 concurrency:
   group: himitsu-freewifi-state-writer
   cancel-in-progress: false
