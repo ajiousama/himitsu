@@ -10,6 +10,7 @@ LOCAL_EPG = Path('public_sports_epg_local.xml')
 START = '# === TODAY_PUBLIC_SPORTS_START ==='
 END = '# === TODAY_PUBLIC_SPORTS_END ==='
 JST = timezone(timedelta(hours=9))
+END_GRACE_MINUTES = 45
 NON_EVENT_WORDS = (
     '本日非開催', '非開催', '開催していません', '開催予定はありません',
     '本日開催なし', '開催なし', '次回開催', 'データ取得準備中',
@@ -142,10 +143,14 @@ def main():
     for entry in entries:
         cid = entry['id']
         s = state.get(cid)
-        # Local EPGの実レース番組だけを基準にし、最終stopを過ぎたら終了確定。
-        if s and s.get('has_today') and s.get('last_stop') and now >= s['last_stop']:
-            removed.append((cid, entry['name'], s['last_stop'].strftime('%H:%M')))
-            continue
+        # Keep the venue for 45 minutes after the final race transition.  This
+        # avoids dropping a channel immediately at the finish and leaves time
+        # for next-day/next-meeting guidance to become visible in EPG.
+        if s and s.get('has_today') and s.get('last_stop'):
+            remove_after = s['last_stop'] + timedelta(minutes=END_GRACE_MINUTES)
+            if now >= remove_after:
+                removed.append((cid, entry['name'], remove_after.strftime('%H:%M')))
+                continue
 
         nr = None
         if s and s.get('next_race'):
@@ -178,6 +183,7 @@ def main():
     result['generated_at'] = now.isoformat()
     result['end_check_at'] = now.isoformat()
     result['end_check_source'] = 'public_sports_epg_local.xml'
+    result['end_grace_minutes'] = END_GRACE_MINUTES
     result['end_check_removed'] = [cid for cid, _, _ in removed]
     result['channels'] = channels
     STATUS_JSON.write_text(json.dumps(result, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
