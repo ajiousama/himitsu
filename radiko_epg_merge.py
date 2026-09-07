@@ -8,6 +8,8 @@ from radiko_epg import build_xmltv
 
 GUIDES = Path("guides.xml")
 FREEWIFI = Path("freewifi")
+# FreeWiFi-selected Radiko IDs are discovered dynamically, so newly added
+# compact radio stations are included in EPG without maintaining a second list.
 
 
 def wanted_radiko_ids() -> list[str]:
