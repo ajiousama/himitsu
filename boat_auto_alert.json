@@ -1,13 +1,15 @@
 {
   "system": "boat-auto-v3",
-  "date": "2026-09-07",
-  "checked_at": "2026-09-07T19:34:45.421159+09:00",
-  "active": false,
-  "kind": "healthy",
-  "title": "BOAT自動更新 正常",
-  "message": "朝・デイ・ナイターを自動取得中です。",
+  "date": "2026-09-08",
+  "checked_at": "2026-09-08T00:17:32.238364+09:00",
+  "active": true,
+  "kind": "system_error",
+  "title": "BOAT自動更新エラー",
+  "message": "BOAT EPG/開催表取得失敗: RuntimeError: HTTPError: HTTP Error 404: Not Found",
   "seed_required_venues": [],
-  "system_errors": [],
+  "system_errors": [
+    "BOAT EPG/開催表取得失敗: RuntimeError: HTTPError: HTTP Error 404: Not Found"
+  ],
   "cloud_failures": [],
   "manual_recovery": "公営これ一発 v17（緊急SEED用）"
 }
