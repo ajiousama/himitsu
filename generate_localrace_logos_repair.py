@@ -24,16 +24,17 @@ EXPECTED = [
 
 def main():
     chunks = []
+    bad = []
     for i, (exp_len, exp_sha) in enumerate(EXPECTED, 1):
         stored = (SRC / f'part{i}.txt').read_text(encoding='ascii').strip()
-        # The source text files may contain an accidental pasted tail; the
-        # approved payload is defined by the exact length+SHA below.
         chunk = stored[:exp_len]
         got_sha = hashlib.sha256(chunk.encode('ascii')).hexdigest()
         print(f'part{i}: stored={len(stored)} used={len(chunk)} sha256={got_sha}')
         if len(chunk) != exp_len or got_sha != exp_sha:
-            raise SystemExit(f'part{i} mismatch: expected len={exp_len} sha256={exp_sha}')
+            bad.append(i)
         chunks.append(chunk)
+    if bad:
+        raise SystemExit('chunk mismatch: ' + ','.join(map(str, bad)))
     encoded = ''.join(chunks)
     full_sha = hashlib.sha256(encoded.encode('ascii')).hexdigest()
     print(f'full: len={len(encoded)} sha256={full_sha}')
