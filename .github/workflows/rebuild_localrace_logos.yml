@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - 'generate_localrace_logos.py'
+      - 'generate_localrace_logos_repair.py'
       - 'freewifi_today_public_sports.py'
       - '.github/workflows/rebuild_localrace_logos.yml'
 permissions:
@@ -27,18 +28,27 @@ jobs:
           python -m pip install --upgrade pillow
           sudo apt-get update -qq
           sudo apt-get install -y -qq fonts-noto-cjk
-      - name: Generate
-        run: python generate_localrace_logos.py
+      - name: Generate approved local-racing logos
+        run: python generate_localrace_logos_repair.py
       - name: Validate
         run: |
           count=$(find logos/public_sports/venues -maxdepth 1 -type f -name 'localrace_*.png' | wc -l)
           test "$count" -ge 15
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          files = sorted(Path('logos/public_sports/venues').glob('localrace_*.png'))
+          assert len(files) >= 15, len(files)
+          for f in files:
+              with Image.open(f) as im:
+                  assert im.size == (512, 512), (f, im.size)
+          PY
       - name: Commit
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add -A logos/public_sports/venues/localrace_*.png
           if git diff --cached --quiet; then exit 0; fi
-          git commit -m 'Rebuild unified local horse racing logos'
+          git commit -m 'Rebuild approved local horse racing logos'
           git pull --rebase origin main
           git push origin main
