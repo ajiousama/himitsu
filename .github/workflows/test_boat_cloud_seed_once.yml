@@ -18,57 +18,45 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
-      - name: Test official BOAT player session flow from cloud
+      - name: Test all official BOAT live media refs from cloud
         shell: bash
         run: |
           set -euo pipefail
           python - <<'PY'
-          import datetime, http.cookiejar, json, urllib.error, urllib.request
-          from zoneinfo import ZoneInfo
+          import json, urllib.error, urllib.request
           UA='Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) AppleWebKit/605.1.15 Version/18.0 Mobile/15E148 Safari/604.1'
-          player='https://front.player.boatrace-cdn.jp/player/live?service=boatcast&stadium=01kiryu&sourceType=mix&dvr=1&audioMode=0&autoplay=1&bitrate=low'
           setting='https://front.player.boatrace-cdn.jp/setting/live/01kiryu/setting.json'
-          ymd=datetime.datetime.now(ZoneInfo('Asia/Tokyo')).strftime('%Y%m%d')
-          playback=f'https://playback.api.streaks.jp/v1/projects/cp-boatrace-prod/medias/ref:lm-br-01kiryu-tokyo-{ymd}?audio_only=false'
-
-          jar=http.cookiejar.CookieJar()
-          opener=urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar))
-          base={
-            'User-Agent':UA,
-            'Accept':'*/*',
-            'Accept-Language':'ja-JP,ja;q=0.9,en-US;q=0.8,en;q=0.7',
-            'Origin':'https://front.player.boatrace-cdn.jp',
-            'Referer':player,
-          }
-          def get(url, extra=None):
-              h=dict(base)
-              if extra: h.update(extra)
-              req=urllib.request.Request(url,headers=h)
+          player='https://front.player.boatrace-cdn.jp/player/live?service=boatcast&stadium=01kiryu&sourceType=mix&dvr=1&audioMode=0&autoplay=1&bitrate=low'
+          headers={'User-Agent':UA,'Origin':'https://front.player.boatrace-cdn.jp','Referer':player,'Accept':'application/json,*/*'}
+          def get(url):
+              req=urllib.request.Request(url,headers=headers)
               try:
-                  with opener.open(req,timeout=15) as r:
-                      return r.status,r.headers,r.read()
-              except urllib.error.HTTPError as e:
-                  return e.code,e.headers,e.read()
-
-          for label,url in [('player',player),('setting',setting),('config','https://front.player.boatrace-cdn.jp/js/config/config.js'),('livejs','https://front.player.boatrace-cdn.jp/js/live.js')]:
-              s,h,b=get(url)
-              print(label,'status',s,'bytes',len(b),'set_cookie',bool(h.get('Set-Cookie')),'cookies',[(c.domain,c.name) for c in jar])
-
-          variants=[
-            {},
-            {'Sec-Fetch-Site':'same-site','Sec-Fetch-Mode':'cors','Sec-Fetch-Dest':'empty'},
-            {'X-Requested-With':'XMLHttpRequest'},
-          ]
-          for i,extra in enumerate(variants,1):
-              s,h,b=get(playback,{'Accept':'application/json',**extra})
-              found=False
+                  with urllib.request.urlopen(req,timeout=15) as r: return r.status,r.read()
+              except urllib.error.HTTPError as e: return e.code,e.read()
+          s,b=get(setting)
+          print('SETTING',s,'BYTES',len(b))
+          data=json.loads(b.decode('utf-8','replace')) if s==200 else {}
+          refs=[]
+          def walk(x,path='root'):
+              if isinstance(x,dict):
+                  for k,v in x.items():
+                      p=f'{path}.{k}'
+                      if k=='ref_id' and isinstance(v,str): refs.append((p,v))
+                      else: walk(v,p)
+              elif isinstance(x,list):
+                  for i,v in enumerate(x): walk(v,f'{path}[{i}]')
+          walk(data)
+          print('REF_COUNT',len(refs))
+          ok=0
+          for path,ref in refs:
+              url='https://playback.api.streaks.jp/v1/projects/cp-boatrace-prod/medias/ref:'+ref+'?audio_only=false'
+              ss,bb=get(url)
+              hls=False
               try:
-                  d=json.loads(b.decode('utf-8','replace'))
-                  found=any(isinstance(x,dict) and str(x.get('src','')).startswith('https://manifest.streaks.jp/') for x in (d.get('sources') or []))
+                  d=json.loads(bb.decode('utf-8','replace'))
+                  hls=any(isinstance(x,dict) and '.m3u8' in str(x.get('src','')) for x in (d.get('sources') or []))
               except Exception: pass
-              print('PLAYBACK_VARIANT',i,'STATUS',s,'HLS',found,'BYTES',len(b),'cookies',len(list(jar)))
-              if s==200 and found:
-                  print('CLOUD_SESSION_FLOW=YES')
-                  raise SystemExit(0)
-          print('CLOUD_SESSION_FLOW=NO')
+              print('REF',path,ref,'STATUS',ss,'HLS',hls,'BYTES',len(bb))
+              if ss==200 and hls: ok+=1
+          print('CLOUD_REF_HITS',ok)
           PY
