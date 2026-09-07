@@ -39,6 +39,7 @@ GROUP = "今日の開催場"
 JST = timezone(timedelta(hours=9))
 ALERT_LEAD_MINUTES = 30
 RACE_SWITCH_MINUTES = 3
+END_GUIDANCE_MINUTES = 45
 SCHEDULE_API = "https://boatraceopenapi.github.io/api/v1/{year}/{ymd}.json"
 SCHEDULE_TODAY_API = "https://boatraceopenapi.github.io/api/v1/today.json"
 SEED_API = "https://himitsu-six.vercel.app/api/boat-seed?venue={jcd}"
@@ -395,6 +396,7 @@ def build_venue_state(cards: dict[str, list[dict]], streams: dict[str, dict], no
         mode = mode_for(races)
         alert_from = first - timedelta(minutes=ALERT_LEAD_MINUTES)
         finish = last + timedelta(minutes=RACE_SWITCH_MINUTES)
+        guidance_switch = last + timedelta(minutes=END_GUIDANCE_MINUTES)
         ended = now >= finish
         active = alert_from <= now < finish
         stream = streams.get(tvg_id) or {}
@@ -422,6 +424,7 @@ def build_venue_state(cards: dict[str, list[dict]], streams: dict[str, dict], no
             "alert_from": alert_from.isoformat(),
             "next_race": next_race(races, now),
             "stream_window": "ended_kept" if ended else ("live_or_prestart" if active else "scheduled"),
+            "guidance_switch_at": guidance_switch.isoformat(),
             "seed_required": seed_required,
             "races": race_rows,
         }
@@ -534,16 +537,39 @@ def overlay_epg_file(path: Path, cards: dict[str, list[dict]], day: date) -> int
             add_programme(root, cid, start, stop, title, description)
             count += 1
         ended_at = races[-1]["start"] + timedelta(minutes=RACE_SWITCH_MINUTES)
+        guidance_at = races[-1]["start"] + timedelta(minutes=END_GUIDANCE_MINUTES)
+        future_days = []
+        for programme in root.findall("programme"):
+            if programme.get("channel") != cid:
+                continue
+            raw = str(programme.get("start") or "")[:8]
+            if len(raw) != 8 or not raw.isdigit() or raw <= ymd:
+                continue
+            try:
+                future_days.append(datetime.strptime(raw, "%Y%m%d").date())
+            except ValueError:
+                pass
+        next_day = min(future_days) if future_days else None
         if ended_at < end_of_day:
+            finish_stop = min(guidance_at, end_of_day)
             add_programme(
                 root,
                 cid,
                 ended_at,
-                end_of_day,
+                finish_stop,
                 "本日の開催は終了しました",
-                f"BOATRACE{name}の本日の開催は終了しました。チャンネルは本日中そのまま表示します。",
+                f"BOATRACE{name}の本日の開催は終了しました。",
             )
             count += 1
+            if guidance_at < end_of_day and next_day:
+                if next_day == day + timedelta(days=1):
+                    title = "明日開催予定（仮時間）"
+                    desc = f"BOATRACE{name}は明日{next_day.month}月{next_day.day}日}開催予定です。実発走時刻は取得後に自動更新します。"
+                else:
+                    title = f"次回開催：{next_day.month}月{next_day.day}日"
+                    desc = f"BOATRACE{name}の次回開催予定日は{next_day.month}月{next_day.day}日です。"
+                add_programme(root, cid, guidance_at, end_of_day, title, desc)
+                count += 1
 
     channels = [item for item in list(root) if item.tag == "channel"]
     programmes = [item for item in list(root) if item.tag == "programme"]
