@@ -1,0 +1,65 @@
+name: Repair EPG pipeline once
+
+on:
+  push:
+    paths:
+      - '.github/workflows/repair_epg_pipeline_once.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Restore clean public-sports sync and keep current local PNG logos
+        shell: bash
+        run: |
+          git show 98a3b8a899cc47af61685002b0893c0e45bab963:freewifi_today_public_sports.py > freewifi_today_public_sports.py
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          p = Path('freewifi_today_public_sports.py')
+          s = p.read_text(encoding='utf-8')
+
+          block = '''def local_logo(cid):
+    if cid.startswith('chihou.'):
+        slug = cid.split('.', 1)[1]
+        slug = {'kawasaki_keiba':'kawasaki', 'nagoya_keiba':'nagoya', 'kochi_keiba':'kochi'}.get(slug, slug)
+        return f'{RAW_BASE}/logos/public_sports/venues/localrace_{slug}.png'
+    if cid.startswith('keirin.'):
+        slug = cid.split('.', 1)[1]
+        return f'{RAW_BASE}/logos/public_sports/venues/keirin_{slug}.png'
+    if cid.startswith('auto.'):
+        slug = cid.split('.', 1)[1]
+        return f'{RAW_BASE}/logos/public_sports/venues/autorace_{slug}.png'
+    return None
+
+'''
+          s, n = re.subn(r"LOCAL_LOGOS = \{.*?\}\nJST =", block + 'JST =', s, count=1, flags=re.S)
+          if n != 1:
+              raise SystemExit('LOCAL_LOGOS block replacement failed')
+          s = s.replace('logo = LOCAL_LOGOS.get(cid)', 'logo = local_logo(cid)')
+          p.write_text(s, encoding='utf-8')
+          PY
+          python -m py_compile freewifi_today_public_sports.py epg_final_guard.py kick_epg.py
+      - name: Commit repaired pipeline
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add freewifi_today_public_sports.py
+          if git diff --cached --quiet; then
+            echo 'No changes needed'
+          else
+            git commit -m 'Repair public sports sync syntax for EPG build'
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
