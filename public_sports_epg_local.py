@@ -489,6 +489,78 @@ def build_jra(root, target_days, verified):
                 verified['jra_active_ids'].append(cid)
 
 
+
+def _programme_dt(value):
+    m = re.match(r'^(\d{14})', str(value or ''))
+    if not m:
+        return None
+    return datetime.strptime(m.group(1), '%Y%m%d%H%M%S').replace(tzinfo=JST)
+
+
+def add_next_event_notices(root, today):
+    """Add post-race transition notices using already-known future EPG."""
+    channels = sorted({p.get('channel') for p in root.findall('programme') if p.get('channel')})
+    for cid in channels:
+        programmes = [p for p in root.findall('programme') if p.get('channel') == cid]
+        real_today = []
+        future_real = []
+        for p in programmes:
+            title = (p.findtext('title') or '').strip()
+            start = _programme_dt(p.get('start'))
+            if not start or '発走' not in title:
+                continue
+            if start.date() == today:
+                real_today.append((start, p))
+            elif start.date() > today:
+                future_real.append((start, p))
+        if not real_today:
+            continue
+
+        last_start, _ = max(real_today, key=lambda x: x[0])
+        grace_end = last_start + timedelta(minutes=45)
+        next_day = min((x[0].date() for x in future_real), default=None)
+
+        # Replace generic finished blocks after the last race with a 45-minute
+        # finished notice, followed by tomorrow's provisional notice if known.
+        for p in list(programmes):
+            title = (p.findtext('title') or '').strip()
+            start = _programme_dt(p.get('start'))
+            if start and start >= last_start and ('本日の開催は終了しました' in title or '開催は終了しました' in title):
+                root.remove(p)
+
+        end_limit = datetime.combine(today + timedelta(days=1), time(0, 0), tzinfo=JST)
+        if cid.startswith('auto.'):
+            end_limit = datetime.combine(today + timedelta(days=1), time(1, 30), tzinfo=JST)
+
+        if grace_end < end_limit:
+            suffix = ''
+            if next_day and next_day > today + timedelta(days=1):
+                suffix = f'　次回開催：{next_day.month}月{next_day.day}日'
+            add_programme(
+                root, cid,
+                min(last_start + timedelta(minutes=3), grace_end),
+                min(grace_end, end_limit),
+                f'本日の開催は終了しました{suffix}',
+                '最終レース終了後の案内です。'
+            )
+
+        if next_day == today + timedelta(days=1) and grace_end < end_limit:
+            add_programme(
+                root, cid,
+                grace_end,
+                end_limit,
+                '明日開催予定（仮時間）',
+                f'翌日 {next_day.month}月{next_day.day}日の開催を確認済みです。実発走時刻は取得後に自動更新します。'
+            )
+        elif next_day and next_day > today + timedelta(days=1) and grace_end < end_limit:
+            add_programme(
+                root, cid,
+                grace_end,
+                end_limit,
+                f'次回開催：{next_day.month}月{next_day.day}日',
+                '次回開催日を確認済みです。'
+            )
+
 def sort_xml(root):
     channels = [x for x in list(root) if x.tag == 'channel']
     programmes = [x for x in list(root) if x.tag == 'programme']
@@ -522,6 +594,7 @@ def main():
     build_boat(root, days, verified)
     build_auto(root, days, verified)
     build_jra(root, days, verified)
+    add_next_event_notices(root, days[0])
 
     for section in verified['public_sports']:
         verified['public_sports'][section] = list(dict.fromkeys(verified['public_sports'][section]))
