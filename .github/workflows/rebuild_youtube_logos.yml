@@ -104,7 +104,7 @@ jobs:
               echo "YouTube logos already current"
               exit 0
             fi
-            git commit -m "Rebuild all YouTube logos with unified dark-safe design [skip ci]"
+            git commit -m "Rebuild all YouTube logos with unified dark-safe design [skip ci] [skip render]"
             if git push origin HEAD:main; then
               echo "Published unified YouTube logos"
               exit 0
