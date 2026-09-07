@@ -18,6 +18,8 @@ OUT = Path('public_sports_epg_local.xml')
 VERIFIED = Path('verified_daily_status.json')
 JST = timezone(timedelta(hours=9))
 DAYS = 3
+RACE_SWITCH_MINUTES = 3
+END_GUIDANCE_MINUTES = 45
 UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/152.0 Safari/537.36'
 FULLWIDTH = str.maketrans('0123456789', '０１２３４５６７８９')
 
@@ -156,7 +158,7 @@ def add_programme(root, cid, start, stop, title, desc=''):
     root.append(p)
 
 
-def add_race_grid(root, cid, name, day, races, icon, mode_label, category, switch_after=3):
+def add_race_grid(root, cid, name, day, races, icon, mode_label, category, switch_after=RACE_SWITCH_MINUTES):
     if not races:
         return
     dts = []
@@ -517,7 +519,7 @@ def add_next_event_notices(root, today):
             continue
 
         last_start, _ = max(real_today, key=lambda x: x[0])
-        grace_end = last_start + timedelta(minutes=45)
+        grace_end = last_start + timedelta(minutes=END_GUIDANCE_MINUTES)
         next_day = min((x[0].date() for x in future_real), default=None)
 
         # Replace generic finished blocks after the last race with a 45-minute
@@ -549,7 +551,7 @@ def add_next_event_notices(root, today):
                 root, cid,
                 grace_end,
                 end_limit,
-                '明日開催予定（仮時間）',
+                '翌日開催予定（仮時間）',
                 f'翌日 {next_day.month}月{next_day.day}日の開催を確認済みです。実発走時刻は取得後に自動更新します。'
             )
         elif next_day and next_day > today + timedelta(days=1) and grace_end < end_limit:
