@@ -32,8 +32,10 @@ out = Path("guides.xml")
 if not out.is_file() or out.stat().st_size < 100_000:
     raise SystemExit(f"guides.xml suspiciously small: {out.stat().st_size if out.exists() else 0} bytes")
 
-# 愛南ライブカメラ has no programme grid. Keep a 24-hour guide visible so the
-# FreeWiFi EPG row never appears blank. Rebuild four JST days on every EPG run.
+# The online Ainan feed is actually switched to Shop Channel overnight even
+# though the channel introduction describes it as a 24-hour live camera.
+# Direct feed observation and the broadcaster's 06:00 programme-day boundary
+# are reflected here so the FreeWiFi EPG matches the video viewers receive.
 AINAN_ID = "ecatv.ainan_livecam"
 AINAN_NAME = "愛南ライブカメラ"
 JST = timezone(timedelta(hours=9))
@@ -52,22 +54,36 @@ if ch is None:
 
 start_day = datetime.now(JST).replace(hour=0, minute=0, second=0, microsecond=0)
 for offset in range(4):
-    start = start_day + timedelta(days=offset)
-    stop = start + timedelta(days=1)
-    programme = ET.SubElement(
-        root,
-        "programme",
-        {
-            "start": start.strftime("%Y%m%d%H%M%S +0900"),
-            "stop": stop.strftime("%Y%m%d%H%M%S +0900"),
-            "channel": AINAN_ID,
-        },
+    day = start_day + timedelta(days=offset)
+    slots = (
+        (
+            day,
+            day + timedelta(hours=6),
+            "🛍️ ショップチャンネル｜夜間放送",
+            "愛南ライブカメラ回線は夜間、ショップチャンネルへ切り替わります。",
+            "通販",
+        ),
+        (
+            day + timedelta(hours=6),
+            day + timedelta(days=1),
+            "📹 愛南ライブカメラ｜LIVE",
+            "愛媛CATV 愛南ライブカメラ。愛南地域の海や道路の様子をライブ映像でお届けします。",
+            "ライブカメラ",
+        ),
     )
-    ET.SubElement(programme, "title", {"lang": "ja"}).text = "📹 愛南ライブカメラ｜24時間LIVE"
-    ET.SubElement(programme, "desc", {"lang": "ja"}).text = (
-        "愛媛CATV 愛南ライブカメラ。愛南地域のライブ映像を24時間配信しています。"
-    )
-    ET.SubElement(programme, "category", {"lang": "ja"}).text = "ライブカメラ"
+    for start, stop, title, desc, category in slots:
+        programme = ET.SubElement(
+            root,
+            "programme",
+            {
+                "start": start.strftime("%Y%m%d%H%M%S +0900"),
+                "stop": stop.strftime("%Y%m%d%H%M%S +0900"),
+                "channel": AINAN_ID,
+            },
+        )
+        ET.SubElement(programme, "title", {"lang": "ja"}).text = title
+        ET.SubElement(programme, "desc", {"lang": "ja"}).text = desc
+        ET.SubElement(programme, "category", {"lang": "ja"}).text = category
 
 
 def parse_xmltv_time(value: str | None) -> datetime | None:
@@ -165,8 +181,8 @@ if channels < 50 or programmes < 100:
     raise SystemExit(f"guides.xml suspiciously sparse: channels={channels} programmes={programmes}")
 
 ainan_programmes = sum(1 for p in root.findall("programme") if p.get("channel") == AINAN_ID)
-if ainan_programmes != 4:
-    raise SystemExit(f"Ainan live-camera EPG missing: programmes={ainan_programmes}")
+if ainan_programmes != 8:
+    raise SystemExit(f"Ainan live-camera/shop EPG missing: programmes={ainan_programmes}")
 
 rakuten_counts = {
     channel_id: sum(1 for p in root.findall("programme") if p.get("channel") == channel_id)
