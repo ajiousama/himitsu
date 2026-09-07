@@ -58,6 +58,29 @@ class BoatAutoSystemTests(unittest.TestCase):
         self.assertFalse(early_item["seed_required"])
         self.assertTrue(due_item["seed_required"])
 
+    def test_epg_switches_to_tomorrow_guidance_after_45_minutes(self):
+        day = date(2026, 9, 8)
+        races = card(day, 10, 5)
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "epg.xml"
+            root = ET.Element("tv")
+            future = ET.SubElement(root, "programme", {
+                "channel": "boat.heiwajima",
+                "start": "20260909100000 +0900",
+                "stop": "20260909180000 +0900",
+            })
+            ET.SubElement(future, "title", {"lang": "ja"}).text = "BOATRACE平和島 開催予定（仮時間）"
+            ET.ElementTree(root).write(path, encoding="utf-8", xml_declaration=True)
+            boat.overlay_epg_file(path, {"04": races}, day)
+            root = ET.parse(path).getroot()
+            today_titles = [
+                (p.findtext("title") or "")
+                for p in root.findall("programme")
+                if p.get("channel") == "boat.heiwajima" and (p.get("start") or "").startswith("20260908")
+            ]
+            self.assertIn("本日の開催は終了しました", today_titles)
+            self.assertIn("明日開催予定（仮時間）", today_titles)
+
     def test_epg_contains_every_race_and_exact_finished_message(self):
         day = date(2026, 9, 8)
         races = card(day, 10, 5)
