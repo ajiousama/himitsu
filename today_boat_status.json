@@ -1,6 +1,6 @@
 {
   "system": "boat-v2-iphone-seed",
-  "generated_at": "2026-09-07T08:55:16.046972+09:00",
+  "generated_at": "2026-09-07T09:17:14.040029+09:00",
   "date": "2026-09-07",
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/",
   "resolver_ready": false,
@@ -94,7 +94,9 @@
             "HTTPError:403"
           ],
           "jlc": [],
-          "sakura": []
+          "sakura": [
+            "sakura-fast:child-deadline"
+          ]
         }
       }
     },
@@ -212,8 +214,8 @@
       "remove_after": "2026-09-07T14:41:00+09:00",
       "mode": "morning",
       "next_race": {
-        "race": 2,
-        "start": "08:58"
+        "race": 3,
+        "start": "09:24"
       },
       "stream_window": "live_or_vtr",
       "source": "current-day direct seed unavailable and resolver not verified playable",
@@ -310,8 +312,8 @@
       "remove_after": "2026-09-07T14:58:00+09:00",
       "mode": "morning",
       "next_race": {
-        "race": 2,
-        "start": "09:10"
+        "race": 3,
+        "start": "09:36"
       },
       "stream_window": "live_or_vtr",
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/19b2a55a5e7b419280e6e1ac2f15312b/f064634c90994053a00566d4017a887f/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4ODkxMjAwMCwic3RhcnQiOjE3ODg3MzYxNDAsImlvcyI6MTgsImNwIjoiMjEwOTMxNzQwXzIxMDk3NDkzOSIsInBwdyI6IjQwayJ9.rOlZRW6Q5jj3itMCM3Iz7jCrr7Qc0wFVMd44zILgueI",
@@ -407,9 +409,9 @@
   "seed_freshness_rule": "JWT start date must equal current JST date",
   "verified_resolver_base": "https://ajiousama-radiko.onrender.com/boat",
   "resolver_diagnostics": {
-    "boat.heiwajima": {
-      "jcd": "04",
-      "name": "平和島",
+    "boat.gamagori": {
+      "jcd": "07",
+      "name": "蒲郡",
       "http_status": 503,
       "ok": false,
       "playable": false,
@@ -424,9 +426,9 @@
         "sakura": []
       }
     },
-    "boat.gamagori": {
-      "jcd": "07",
-      "name": "蒲郡",
+    "boat.heiwajima": {
+      "jcd": "04",
+      "name": "平和島",
       "http_status": 503,
       "ok": false,
       "playable": false,
@@ -453,7 +455,9 @@
           "HTTPError:403"
         ],
         "jlc": [],
-        "sakura": []
+        "sakura": [
+          "sakura-fast:child-deadline"
+        ]
       }
     },
     "boat.kiryu": {
