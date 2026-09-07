@@ -65,10 +65,17 @@ for offset in range(4):
         ),
         (
             day + timedelta(hours=6),
-            day + timedelta(days=1),
+            day + timedelta(hours=18),
             "📹 愛南ライブカメラ｜LIVE",
             "愛媛CATV 愛南ライブカメラ。愛南地域の海や道路の様子をライブ映像でお届けします。",
             "ライブカメラ",
+        ),
+        (
+            day + timedelta(hours=18),
+            day + timedelta(days=1),
+            "🔄 夜間切替時刻を確認中｜愛南LIVE／ショップチャンネル",
+            "ショップチャンネルへの夜の切替開始時刻を実配信で確認中です。0時開始とは確定していません。",
+            "放送案内",
         ),
     )
     for start, stop, title, desc, category in slots:
@@ -181,8 +188,8 @@ if channels < 50 or programmes < 100:
     raise SystemExit(f"guides.xml suspiciously sparse: channels={channels} programmes={programmes}")
 
 ainan_programmes = sum(1 for p in root.findall("programme") if p.get("channel") == AINAN_ID)
-if ainan_programmes != 8:
-    raise SystemExit(f"Ainan live-camera/shop EPG missing: programmes={ainan_programmes}")
+if ainan_programmes != 12:
+    raise SystemExit(f"Ainan provisional night-switch EPG missing: programmes={ainan_programmes}")
 
 rakuten_counts = {
     channel_id: sum(1 for p in root.findall("programme") if p.get("channel") == channel_id)
