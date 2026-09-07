@@ -42,6 +42,9 @@ export default async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store, max-age=0');
 
   const jcd = normalizeVenue(req.query?.venue || req.query?.jcd);
+  const streamMode = ['1', 'true', 'hls'].includes(
+    String(req.query?.stream || req.query?.format || '').toLowerCase()
+  );
   const code = VENUES[jcd];
   if (!code) {
     res.status(400).json({ ok: false, error: 'venue must be 01-24' });
@@ -78,6 +81,26 @@ export default async function handler(req, res) {
 
     if (!hit) {
       res.status(404).json({ ok: false, venue: jcd, date: ymd, region: process.env.VERCEL_REGION || null, attempts, error: 'no Streaks HLS source' });
+      return;
+    }
+
+    if (streamMode) {
+      const playlistResponse = await timedFetch(hit, {
+        headers: {
+          ...BASE_HEADERS,
+          'Accept': 'application/vnd.apple.mpegurl,application/x-mpegURL,*/*',
+        },
+      }, 6500);
+      const playlist = await playlistResponse.text();
+      attempts.push({ stage: 'manifest', status: playlistResponse.status });
+
+      res.setHeader('Content-Type', 'application/vnd.apple.mpegurl; charset=utf-8');
+      res.setHeader('X-BOAT-Venue', jcd);
+      if (!playlistResponse.ok || !playlist.trimStart().startsWith('#EXTM3U')) {
+        res.status(502).send('#EXTM3U\n# BOAT stream unavailable\n');
+        return;
+      }
+      res.status(200).send(playlist);
       return;
     }
 
