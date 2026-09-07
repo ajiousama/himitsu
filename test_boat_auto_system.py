@@ -27,6 +27,10 @@ def card(day: date, first_hour: int, first_minute: int = 0):
 
 
 class BoatAutoSystemTests(unittest.TestCase):
+    def test_midnight_provider_404_is_schedule_pending(self):
+        self.assertTrue(boat.schedule_not_published_error(RuntimeError("HTTPError: HTTP Error 404: Not Found")))
+        self.assertFalse(boat.schedule_not_published_error(RuntimeError("HTTP Error 500: Server Error")))
+
     def test_finished_venue_is_kept_until_date_change(self):
         day = date(2026, 9, 8)
         races = card(day, 8, 30)
