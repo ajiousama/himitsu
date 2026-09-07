@@ -22,15 +22,6 @@ except Exception as e:
     RADIO_TV_IMPORT_ERROR = f"{type(e).__name__}: {e}"
     print(f"[radio-tv] disabled at startup: {RADIO_TV_IMPORT_ERROR}", flush=True)
 
-BOAT_IMPORT_ERROR = None
-try:
-    import boat_cloud_resolver_fast as boat_cloud
-except Exception as e:
-    boat_cloud = None
-    BOAT_IMPORT_ERROR = f"{type(e).__name__}: {e}"
-    print(f"[boat] disabled at startup: {BOAT_IMPORT_ERROR}", flush=True)
-
-
 def cloud_auth(force: bool = False):
     now = time.time()
     with core.LOCK:
@@ -92,15 +83,12 @@ def tun_capability_report() -> str:
 
 
 core.auth = cloud_auth
-core.BUILD = "20260906-boat-fast-jlc-v1"
+core.BUILD = "20260907-radio-tv-v1"
 _original_do_get = core.Handler.do_GET
 
 
 def _cloud_do_get(self):
     path = urllib.parse.urlsplit(self.path).path
-    if boat_cloud is not None and boat_cloud.handle_request(self): return
-    if boat_cloud is None and (path == "/boat" or path.startswith("/boat/")):
-        self.send_bytes(503, f"boat resolver unavailable: {BOAT_IMPORT_ERROR or 'dependency import failed'}\n".encode(), "text/plain; charset=utf-8"); return
     if radio_tv is not None and radio_tv.handle_request(self): return
     if radio_tv is None and (path.startswith("/radio-tv/") or path.startswith("/radio-art/") or path.startswith("/radio-debug/") or path.startswith("/radio-file-debug/")):
         self.send_bytes(503, f"radio-tv unavailable: {RADIO_TV_IMPORT_ERROR or 'dependency import failed'}\n".encode(), "text/plain; charset=utf-8"); return

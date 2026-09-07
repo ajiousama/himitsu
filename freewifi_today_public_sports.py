@@ -4,8 +4,6 @@ import json
 import re
 import xml.etree.ElementTree as ET
 
-import repair_boat_local_epg_openapi
-
 FREEWIFI = Path('freewifi')
 STATUS_JSON = Path('today_public_sports_status.json')
 PUBLIC_M3U = Path('ganble')
@@ -172,11 +170,8 @@ def replace_block(text, payload):
 def main():
     if not FREEWIFI.exists() or not PUBLIC_M3U.exists():
         raise SystemExit('freewifi/ganble missing')
-    # Official BOAT RACE pages are intermittently unreachable from Actions.
-    # Repair today's BOAT grid with the current OpenAPI snapshot before
-    # deriving "next race" / "ended" state, while preserving official data
-    # whenever a complete grid is already present.
-    repair_boat_local_epg_openapi.main()
+    # BOAT Auto v3 owns the complete OpenAPI race grid. This general builder
+    # consumes the already-generated local EPG and never mutates BOAT state.
     real, modes, next_race = epg_state()
     entries = parse_m3u(PUBLIC_M3U.read_text(encoding='utf-8-sig', errors='replace'))
     if not entries:
