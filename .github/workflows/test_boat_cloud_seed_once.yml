@@ -1,0 +1,31 @@
+name: Test BOAT cloud seed once
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/test_boat_cloud_seed_once.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Test cloud-only BOAT seed acquisition
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp boat_stream_seed.m3u /tmp/boat_stream_seed.original
+          printf '#EXTM3U\n' > boat_stream_seed.m3u
+          python -u boat_streaks_refresh.py
+          count="$(grep -Ec '^https://manifest\.streaks\.jp/.*\.m3u8' boat_stream_seed.m3u || true)"
+          echo "CLOUD_ONLY_CURRENT_DAY_SEEDS=$count"
+          cat boat_stream_seed.m3u
+          test "$count" -gt 0
