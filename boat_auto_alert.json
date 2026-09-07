@@ -1,15 +1,71 @@
 {
   "system": "boat-auto-v3",
   "date": "2026-09-08",
-  "checked_at": "2026-09-08T00:17:32.238364+09:00",
+  "checked_at": "2026-09-08T00:30:48.836184+09:00",
   "active": true,
   "kind": "system_error",
   "title": "BOAT自動更新エラー",
-  "message": "BOAT EPG/開催表取得失敗: RuntimeError: HTTPError: HTTP Error 404: Not Found",
+  "message": "Vercel KIXから当日BOAT SEEDを取得できません",
   "seed_required_venues": [],
   "system_errors": [
-    "BOAT EPG/開催表取得失敗: RuntimeError: HTTPError: HTTP Error 404: Not Found"
+    "Vercel KIXから当日BOAT SEEDを取得できません"
   ],
-  "cloud_failures": [],
+  "cloud_failures": [
+    {
+      "jcd": "04",
+      "name": "平和島",
+      "error": "HTTPError: HTTP Error 502: Bad Gateway"
+    },
+    {
+      "jcd": "09",
+      "name": "津",
+      "error": "HTTPError: HTTP Error 502: Bad Gateway"
+    },
+    {
+      "jcd": "03",
+      "name": "江戸川",
+      "error": "HTTPError: HTTP Error 502: Bad Gateway"
+    },
+    {
+      "jcd": "13",
+      "name": "尼崎",
+      "error": "HTTPError: HTTP Error 502: Bad Gateway"
+    },
+    {
+      "jcd": "07",
+      "name": "蒲郡",
+      "error": "HTTPError: HTTP Error 502: Bad Gateway"
+    },
+    {
+      "jcd": "10",
+      "name": "三国",
+      "error": "HTTPError: HTTP Error 502: Bad Gateway"
+    },
+    {
+      "jcd": "01",
+      "name": "桐生",
+      "error": "HTTPError: HTTP Error 502: Bad Gateway"
+    },
+    {
+      "jcd": "11",
+      "name": "びわこ",
+      "error": "HTTPError: HTTP Error 502: Bad Gateway"
+    },
+    {
+      "jcd": "14",
+      "name": "鳴門",
+      "error": "HTTPError: HTTP Error 502: Bad Gateway"
+    },
+    {
+      "jcd": "16",
+      "name": "児島",
+      "error": "HTTPError: HTTP Error 502: Bad Gateway"
+    },
+    {
+      "jcd": "24",
+      "name": "大村",
+      "error": "HTTPError: HTTP Error 502: Bad Gateway"
+    }
+  ],
   "manual_recovery": "公営これ一発 v17（緊急SEED用）"
 }
