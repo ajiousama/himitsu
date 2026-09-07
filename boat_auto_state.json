@@ -1,10 +1,11 @@
 {
   "system": "boat-auto-v3",
   "date": "2026-09-08",
-  "generated_at": "2026-09-08T00:59:39.997968+09:00",
-  "last_update_ok": false,
+  "generated_at": "2026-09-08T01:15:07.403819+09:00",
+  "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260908.json",
-  "stream_source": "Vercel KIX automatic acquisition; 公営これ一発 v17 is emergency SEED only",
+  "stream_source": "Vercel KIX automatic acquisition near each venue start; 公営これ一発 v17 is emergency SEED only",
+  "stream_acquisition_policy": "開催表/EPGは0時から独立更新。SEED取得は各場の1R 30分前から開始。",
   "retention_policy": "開催場はJST日付変更まで保持。終了しても削除しない。",
   "epg_finished_title": "本日の開催は終了しました",
   "alert_lead_minutes": 30,
@@ -15,9 +16,7 @@
   "ended_kept": [],
   "seed_required": false,
   "seed_required_venues": [],
-  "system_errors": [
-    "Vercel KIXから当日BOAT SEEDを取得できません"
-  ],
+  "system_errors": [],
   "phase_counts": {
     "morning": {
       "held": 2,
@@ -42,73 +41,19 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 11,
+    "requested": 0,
     "fetched": 0,
-    "failures": [
-      {
-        "jcd": "11",
-        "name": "びわこ",
-        "error": "HTTPError: HTTP Error 502: Bad Gateway"
-      },
-      {
-        "jcd": "07",
-        "name": "蒲郡",
-        "error": "HTTPError: HTTP Error 502: Bad Gateway"
-      },
-      {
-        "jcd": "10",
-        "name": "三国",
-        "error": "HTTPError: HTTP Error 502: Bad Gateway"
-      },
-      {
-        "jcd": "03",
-        "name": "江戸川",
-        "error": "HTTPError: HTTP Error 502: Bad Gateway"
-      },
-      {
-        "jcd": "04",
-        "name": "平和島",
-        "error": "HTTPError: HTTP Error 502: Bad Gateway"
-      },
-      {
-        "jcd": "01",
-        "name": "桐生",
-        "error": "HTTPError: HTTP Error 502: Bad Gateway"
-      },
-      {
-        "jcd": "13",
-        "name": "尼崎",
-        "error": "HTTPError: HTTP Error 502: Bad Gateway"
-      },
-      {
-        "jcd": "09",
-        "name": "津",
-        "error": "HTTPError: HTTP Error 502: Bad Gateway"
-      },
-      {
-        "jcd": "16",
-        "name": "児島",
-        "error": "HTTPError: HTTP Error 502: Bad Gateway"
-      },
-      {
-        "jcd": "14",
-        "name": "鳴門",
-        "error": "HTTPError: HTTP Error 502: Bad Gateway"
-      },
-      {
-        "jcd": "24",
-        "name": "大村",
-        "error": "HTTPError: HTTP Error 502: Bad Gateway"
-      }
-    ]
+    "failures": [],
+    "deferred": 11,
+    "reason": "stream acquisition waits until each venue pre-start window"
   },
   "epg_programmes_written": {
     "public_sports_epg_local.xml": 143,
     "guides.xml": 143
   },
   "alert": {
-    "active": true,
-    "kind": "system_error"
+    "active": false,
+    "kind": "healthy"
   },
   "streams": {},
   "venues": {
