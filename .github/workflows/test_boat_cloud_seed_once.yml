@@ -18,48 +18,82 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
-      - name: Extract BOATCAST live API endpoint candidates
+      - name: Inspect official BOAT player live app for cloud HLS path
         shell: bash
         run: |
           set -euo pipefail
           python - <<'PY'
-          import re, urllib.request, urllib.parse
+          import datetime, json, re, urllib.error, urllib.parse, urllib.request
+          from zoneinfo import ZoneInfo
           UA='Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) AppleWebKit/605.1.15 Version/18.0 Mobile/15E148 Safari/604.1'
-          base='https://race.boatcast.jp/'
-          url=base+'assets/js/main.js'
-          req=urllib.request.Request(url,headers={'User-Agent':UA,'Referer':base+'?jo=01','Accept':'*/*'})
-          with urllib.request.urlopen(req,timeout=15) as r:
-              js=r.read().decode('utf-8','replace')
-          print('MAIN_JS_BYTES',len(js))
+          player='https://front.player.boatrace-cdn.jp/player/live?service=boatcast&stadium=01kiryu&sourceType=mix&dvr=1&audioMode=0&autoplay=1&bitrate=low'
+          ymd=datetime.datetime.now(ZoneInfo('Asia/Tokyo')).strftime('%Y%m%d')
+          playback=f'https://playback.api.streaks.jp/v1/projects/cp-boatrace-prod/medias/ref:lm-br-01kiryu-tokyo-{ymd}?audio_only=false'
 
-          # Print URL/path literals and nearby call sites, while redacting long token-like material.
-          def safe(s):
-              s=re.sub(r'(?i)(token|secret|api[_-]?key)(.{0,15})[A-Za-z0-9_-]{16,}',r'\1\2<redacted>',s)
+          def get(url, extra=None, timeout=12):
+              h={'User-Agent':UA,'Accept':'*/*','Referer':'https://race.boatcast.jp/?jo=01'}
+              if extra: h.update(extra)
+              req=urllib.request.Request(url,headers=h)
+              try:
+                  with urllib.request.urlopen(req,timeout=timeout) as r:
+                      return r.status,r.headers.get('content-type',''),r.read(),r.geturl()
+              except urllib.error.HTTPError as e:
+                  return e.code,e.headers.get('content-type',''),e.read(),url
+
+          def red(s):
+              s=re.sub(r'(?i)(token|secret|api[_-]?key)(.{0,20})[A-Za-z0-9_-]{16,}',r'\1\2<redacted>',s)
               s=re.sub(r'(?<![A-Za-z0-9])[A-Fa-f0-9]{32,}(?![A-Za-z0-9])','<hex-redacted>',s)
               return s.replace('\n',' ')[:500]
 
-          hosts=set()
-          for m in re.finditer(r'https?://[^"\'`\\\s]+',js):
-              u=m.group(0)
-              try: hosts.add(urllib.parse.urlsplit(u).hostname or '')
-              except: pass
-          print('HOSTS',sorted(x for x in hosts if x))
+          s,ct,b,final=get(player)
+          print('PLAYER_PAGE',s,ct,'BYTES',len(b),'FINAL',final)
+          html=b.decode('utf-8','replace') if s==200 else ''
+          blobs=[(final,html)] if html else []
+          assets=[]
+          for pat in (r'<script[^>]+src=["\']([^"\']+)',r'<link[^>]+href=["\']([^"\']+)'):
+              for m in re.finditer(pat,html,re.I):
+                  u=urllib.parse.urljoin(final,m.group(1))
+                  if u not in assets: assets.append(u)
+          print('ASSET_COUNT',len(assets))
+          for u in assets[:30]:
+              ss,cct,bb,_=get(u,{'Referer':final},15)
+              print('ASSET',urllib.parse.urlsplit(u).path[-110:],'STATUS',ss,'TYPE',cct,'BYTES',len(bb))
+              if ss==200 and ('javascript' in cct or u.endswith('.js')) and len(bb)<8_000_000:
+                  blobs.append((u,bb.decode('utf-8','replace')))
 
-          strings=[]
-          for m in re.finditer(r'(["\'`])(.{1,240}?)\1',js):
-              s=m.group(2)
-              low=s.lower()
-              if any(k in low for k in ('/api','api/','live','stream','movie','video','player','manifest','m3u8','race','jo=')):
-                  if s not in strings: strings.append(s)
-          print('INTERESTING_STRING_COUNT',len(strings))
-          for s in strings[:160]:
-              print('STR',safe(s))
+          candidates=[]
+          for url,src in blobs:
+              low=src.lower()
+              if 'streaks' in low or 'playback.api' in low or 'manifest.streaks' in low:
+                  print('STREAKS_REF',urllib.parse.urlsplit(url).path)
+              for m in re.finditer(r'https?://[^"\'`\\\s]+',src):
+                  u=m.group(0)
+                  if any(k in u.lower() for k in ('streaks','m3u8','manifest','playback')):
+                      print('URL',red(u))
+              for m in re.finditer(r'(?i)(?:api[_-]?key|x-streaks-api-key)[^A-Za-z0-9]{0,30}["\']?([A-Za-z0-9_-]{16,128})',src):
+                  candidates.append(m.group(1))
+              if 'streaks' in low:
+                  for v in re.findall(r'(?<![0-9a-fA-F])[0-9a-fA-F]{24,64}(?![0-9a-fA-F])',src): candidates.append(v)
+              for term in ('playback.api','streaks','X-Streaks','apiKey','m3u8','manifest'):
+                  i=low.find(term.lower())
+                  if i>=0: print('CTX',term,red(src[max(0,i-220):i+420]))
+          candidates=list(dict.fromkeys(candidates))
+          print('KEY_CANDIDATES',len(candidates))
 
-          for term in ('fetch(', 'axios', 'XMLHttpRequest', '.ajax', '/api/', 'live', 'stream', 'movie', 'player'):
-              pos=0; n=0
-              while n<20:
-                  i=js.lower().find(term.lower(),pos)
-                  if i<0: break
-                  print('CTX',term,safe(js[max(0,i-180):i+320]))
-                  pos=i+len(term); n+=1
+          base={'User-Agent':UA,'Origin':'https://front.player.boatrace-cdn.jp','Referer':final,'Accept':'application/json'}
+          ss,cct,bb,_=get(playback,base)
+          print('PLAYBACK_NO_KEY',ss,'BYTES',len(bb))
+          for i,key in enumerate(candidates[:100],1):
+              ss,cct,bb,_=get(playback,{**base,'X-Streaks-Api-Key':key},8)
+              if ss!=403:
+                  found=False
+                  try:
+                      d=json.loads(bb.decode('utf-8','replace'))
+                      found=any(isinstance(x,dict) and str(x.get('src','')).startswith('https://manifest.streaks.jp/') for x in (d.get('sources') or []))
+                  except Exception: pass
+                  print('KEY_TEST',i,'STATUS',ss,'HLS',found,'BYTES',len(bb))
+                  if found:
+                      print('CLOUD_SEED_PLAYER_KEY=YES')
+                      raise SystemExit(0)
+          print('CLOUD_SEED_PLAYER_KEY=NO')
           PY
