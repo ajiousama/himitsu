@@ -88,6 +88,10 @@ jobs:
             test "$(grep -c '^ *url-tvg=' freewifi || true)" -eq 0
             test "$(grep -c 'tvg-id=\"youtube.kana_tube\"' freewifi || true)" -le 1
             test "$(grep -c 'tvg-id=\"youtube.kana_tube\"' general_youtube.m3u || true)" -le 1
+            ! grep -F '/logos/youtube/unified/' kana_tube.m3u
+            ! grep -F '/logos/youtube/unified/' general_youtube.m3u
+            ! grep -F '/logos/youtube/unified/' freewifi
+            grep -F 'https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/youtube/yt43_01_kana_tube.png' kana_tube.m3u >/dev/null
             git add kana_tube.m3u kana_tube_status.json general_youtube.m3u freewifi
             if git diff --cached --quiet; then
               echo 'Kana tube already current'

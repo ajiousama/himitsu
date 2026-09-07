@@ -149,6 +149,13 @@ jobs:
           ! grep -Eq 'yt54_(44|45|46)_' general_youtube_sources.json
           ! grep -Eq 'logos/youtube/airport_[^\"]+\.png' general_youtube_sources_airports.json
           ! grep -Eq 'logos/youtube/ehime_[^\"]+\.png' general_youtube_sources_ports.json
+          ! grep -F '/logos/youtube/unified/' general_youtube.m3u
+          ! grep -F '/logos/youtube/unified/' freewifi
+          ! grep -F '/logos/youtube/unified/' kana_tube.m3u
+          for playlist in general_youtube.m3u freewifi kana_tube.m3u; do
+            bad="$(grep 'tvg-id=\"youtube\.' "$playlist" | grep -v 'tvg-logo=\"https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/youtube/yt43_' || true)"
+            test -z "$bad"
+          done
 
       - name: Commit updated YouTube LIVE URLs and canonical logos
         shell: bash
