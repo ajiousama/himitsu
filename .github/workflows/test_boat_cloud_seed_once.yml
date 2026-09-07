@@ -15,67 +15,32 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-python@v6
-        with:
-          python-version: "3.12"
-      - name: Verify official BOAT player bundled Streaks client can resolve cloud HLS
+      - name: Trace BOAT bundled Streaks default key expression safely
         shell: bash
         run: |
           set -euo pipefail
           python - <<'PY'
-          import datetime, hashlib, json, re, urllib.error, urllib.request
-          from zoneinfo import ZoneInfo
-          UA='Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) AppleWebKit/605.1.15 Version/18.0 Mobile/15E148 Safari/604.1'
-          lib='https://front.player.boatrace-cdn.jp/lib/streaks/2.5.8/streaksplayer.min.js'
-          referer='https://front.player.boatrace-cdn.jp/player/live?service=boatcast&stadium=01kiryu&sourceType=mix&dvr=1&audioMode=0&autoplay=1&bitrate=low'
-          ymd=datetime.datetime.now(ZoneInfo('Asia/Tokyo')).strftime('%Y%m%d')
-          playback=f'https://playback.api.streaks.jp/v1/projects/cp-boatrace-prod/medias/ref:lm-br-01kiryu-tokyo-{ymd}?audio_only=false'
+          import hashlib, re, urllib.request
+          u='https://front.player.boatrace-cdn.jp/lib/streaks/2.5.8/streaksplayer.min.js'
+          req=urllib.request.Request(u,headers={'User-Agent':'Mozilla/5.0','Referer':'https://front.player.boatrace-cdn.jp/player/live?service=boatcast&stadium=01kiryu'})
+          js=urllib.request.urlopen(req,timeout=15).read().decode('utf-8','replace')
 
-          def get(url, extra=None, timeout=12):
-              h={'User-Agent':UA,'Accept':'*/*','Referer':referer,'Origin':'https://front.player.boatrace-cdn.jp'}
-              if extra: h.update(extra)
-              req=urllib.request.Request(url,headers=h)
-              try:
-                  with urllib.request.urlopen(req,timeout=timeout) as r:
-                      return r.status,r.read()
-              except urllib.error.HTTPError as e:
-                  return e.code,e.read()
+          def scrub(s):
+              def q(m):
+                  v=m.group(2)
+                  if len(v)<=10 and not re.search(r'[A-Za-z0-9]{8,}',v):
+                      return m.group(1)+v+m.group(1)
+                  return f'<q:{len(v)}:{hashlib.sha256(v.encode()).hexdigest()[:8]}>'
+              s=re.sub(r'(["\'])(.*?)(?<!\\)\1',q,s)
+              return s.replace('\n',' ')[:1400]
 
-          s,b=get(lib)
-          print('LIB_STATUS',s,'BYTES',len(b))
-          js=b.decode('utf-8','replace') if s==200 else ''
-          # The official bundled client uses e.apiKey||Wa. Find Wa's literal assignment,
-          # but never print the key itself.
-          candidates=[]
-          for pat in (r'Wa=["\']([A-Za-z0-9_-]{12,128})["\']', r'(?:var|const|let)\s+Wa\s*=\s*["\']([A-Za-z0-9_-]{12,128})["\']'):
-              for m in re.finditer(pat,js): candidates.append(m.group(1))
-          candidates=list(dict.fromkeys(candidates))
-          print('WA_CANDIDATES',len(candidates),[(len(x),hashlib.sha256(x.encode()).hexdigest()[:10]) for x in candidates])
-
-          # If minification changed the variable assignment, inspect a small window around e.apiKey||Wa
-          # and collect quoted literals assigned to nearby 1-2 letter variables without logging them.
-          pos=js.find('e.apiKey=e.apiKey||Wa')
-          print('DEFAULT_KEY_SITE_FOUND',pos>=0)
-          if pos>=0:
-              window=js[max(0,pos-12000):pos]
-              for m in re.finditer(r'(?:^|[,;])\s*Wa\s*=\s*["\']([A-Za-z0-9_-]{12,128})["\']',window):
-                  candidates.append(m.group(1))
-          candidates=list(dict.fromkeys(candidates))
-          print('TOTAL_CANDIDATES',len(candidates))
-
-          s,b=get(playback,{'Accept':'application/json'})
-          print('PLAYBACK_NO_KEY',s,'BYTES',len(b))
-          for i,key in enumerate(candidates,1):
-              s,b=get(playback,{'Accept':'application/json','X-Streaks-Api-Key':key})
-              found=False
-              try:
-                  d=json.loads(b.decode('utf-8','replace'))
-                  found=any(isinstance(x,dict) and str(x.get('src','')).startswith('https://manifest.streaks.jp/') and '.m3u8' in str(x.get('src','')) for x in (d.get('sources') or []))
-              except Exception: pass
-              print('CANDIDATE',i,'STATUS',s,'HLS',found,'BYTES',len(b))
-              if s==200 and found:
-                  print('CLOUD_SEED_OFFICIAL_BUNDLED_KEY=YES')
-                  raise SystemExit(0)
-          print('CLOUD_SEED_OFFICIAL_BUNDLED_KEY=NO')
-          raise SystemExit(1)
+          hits=[m.start() for m in re.finditer(r'\bWa\b',js)]
+          print('WA_OCCURRENCES',len(hits))
+          for i,p in enumerate(hits[:30],1):
+              print('WA_CTX',i,scrub(js[max(0,p-700):p+700]))
+          site=js.find('e.apiKey=e.apiKey||Wa')
+          print('DEFAULT_SITE',site)
+          if site>=0:
+              # Walk backward to the nearest declaration separator and show syntax only.
+              print('DEFAULT_PRECEDING',scrub(js[max(0,site-5000):site+250]))
           PY
