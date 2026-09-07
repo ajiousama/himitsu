@@ -165,6 +165,12 @@ def cards_from_snapshot(data: dict, day: date) -> dict[str, list[dict]]:
     return cards
 
 
+def schedule_not_published_error(exc: Exception) -> bool:
+    """Return True only for the provider's normal 'not published yet' 404."""
+    text = str(exc)
+    return "HTTP Error 404" in text or "404: Not Found" in text
+
+
 def fetch_cards(day: date) -> dict[str, list[dict]]:
     # Right after JST midnight the dated GitHub Pages snapshot can briefly be 404
     # even though the API's rolling today.json is already available. Prefer the
@@ -659,6 +665,11 @@ def main() -> int:
     try:
         cards = fetch_cards(day)
     except Exception as exc:
+        # The upstream API explicitly returns 404 until the new JST day's data is
+        # published. Treat that as a normal pre-dawn waiting state, not a system
+        # failure. From 05:00 onward the same 404 is abnormal and must alert.
+        if now.hour < 5 and schedule_not_published_error(exc):
+            return write_schedule_pending(now)
         return preserve_on_schedule_error(now, f"BOAT EPG/開催表取得失敗: {type(exc).__name__}: {exc}")
     if not cards:
         if now.hour < 5:
