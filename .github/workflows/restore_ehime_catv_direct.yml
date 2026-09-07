@@ -1,0 +1,64 @@
+name: One-shot restore Ehime CATV direct
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/restore_ehime_catv_direct.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Restore direct e-CATV MPD URLs and remove gateway code
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path("freewifi")
+          text = path.read_text(encoding="utf-8")
+          replacements = {
+              "https://ajiousama-ehime-catv-hls.onrender.com/ehime-catv.m3u8?ch=town_news24": "https://cdn.e-catv.ne.jp/mpeg-dash/hc_town_news_24/dash.mpd",
+              "https://ajiousama-ehime-catv-hls.onrender.com/ehime-catv.m3u8?ch=machicam24": "https://cdn.e-catv.ne.jp/mpeg-dash/hc_machi_cam_24/dash.mpd",
+              "https://ajiousama-ehime-catv-hls.onrender.com/ehime-catv.m3u8?ch=ainan": "https://cdn.e-catv.ne.jp/mpeg-dash/hc_ainan_live_cam/dash.mpd",
+              "https://ajiousama-ehime-catv-hls.onrender.com/ehime-catv.m3u8?ch=event_selection": "https://cdn.e-catv.ne.jp/mpeg-dash/hc_eventsel_channel/dash.mpd",
+              "https://ajiousama-ehime-catv-hls.onrender.com/ehime-catv.m3u8?ch=ehime_channel": "https://cdn.e-catv.ne.jp/mpeg-dash/hc_ehime_channel/dash.mpd",
+              "https://ajiousama-ehime-catv-hls.onrender.com/ehime-catv.m3u8?ch=bousai": "https://cdn.e-catv.ne.jp/mpeg-dash/hc_bousai_channel/dash.mpd",
+              "https://ajiousama-ehime-catv-hls.onrender.com/ehime-catv.m3u8?ch=igo_shogi": "https://cdn.e-catv.ne.jp/mpeg-dash/hc_gosho_channel/dash.mpd",
+          }
+
+          for old, new in replacements.items():
+              if old in text:
+                  text = text.replace(old, new)
+              elif new not in text:
+                  raise SystemExit(f"Neither gateway nor direct URL found for: {old}")
+
+          if "ajiousama-ehime-catv-hls.onrender.com" in text:
+              raise SystemExit("Ehime CATV Render gateway reference remains in freewifi")
+
+          path.write_text(text, encoding="utf-8")
+          PY
+
+          rm -f ehime_catv_hls.py radiko_cloud_start_ehime.py
+
+          git diff --check
+          git status --short
+
+      - name: Commit restore
+        shell: bash
+        run: |
+          if git diff --quiet; then
+            echo "No changes needed"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add freewifi ehime_catv_hls.py radiko_cloud_start_ehime.py
+          git commit -m "Restore Ehime CATV direct MPD and remove HLS gateway"
+          git push
