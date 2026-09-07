@@ -106,11 +106,14 @@ jobs:
                   item = reverse.get(url) or {}
                   if item.get('verified_resolver') is True:
                       continue
-                  raise SystemExit(f'unverified BOAT resolver URL in TODAY_BOAT: {url}')
+                  if item.get('resolver_retry') is True and item.get('mode') == 'night':
+                      continue
+                  raise SystemExit(f'unapproved BOAT resolver URL in TODAY_BOAT: {url}')
               raise SystemExit(f'TODAY_BOAT contains unsupported URL: {url}')
 
           print('BOAT verified-hybrid validation OK:', 'visible=', visible, 'entries=', entries,
-                'verified_resolver_count=', int(d.get('verified_resolver_count') or 0))
+                'verified_resolver_count=', int(d.get('verified_resolver_count') or 0),
+                'resolver_retry_count=', int(d.get('resolver_retry_count') or 0))
           PY
           }
 
@@ -164,7 +167,9 @@ jobs:
           visible = int(d.get('visible_count') or 0)
           cards = int(d.get('card_count') or 0)
           verified = int(d.get('verified_resolver_count') or 0)
-          print('BOAT cards=', cards, 'active=', held, 'visible=', visible, 'verified-resolver=', verified)
+          retry = int(d.get('resolver_retry_count') or 0)
+          print('BOAT cards=', cards, 'active=', held, 'visible=', visible,
+                'verified-resolver=', verified, 'night-retry=', retry)
 
           text = Path('freewifi').read_text(encoding='utf-8-sig', errors='replace')
           m = re.search(r'# === TODAY_BOAT_START ===(.*?)# === TODAY_BOAT_END ===', text, re.S)
@@ -173,5 +178,5 @@ jobs:
           if entries != visible:
               raise SystemExit(f'BOAT playlist mismatch: entries={entries} visible={visible}')
           if held and not visible:
-              print('::warning::BOAT active venue exists but neither a current-day direct seed nor a verified resolver is playable')
+              print('::warning::BOAT active venue exists but neither a current-day direct seed nor an approved resolver route is available')
           PY
