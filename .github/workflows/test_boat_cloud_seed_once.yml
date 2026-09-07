@@ -15,26 +15,72 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v5
-      - name: Test Vercel BOAT resolver as cloud seed source
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Inspect official BOAT player metadata without exposing keys
         shell: bash
         run: |
           set -euo pipefail
           python - <<'PY'
-          import json, urllib.request
-          base='https://himitsu-six.vercel.app/api/boat?debug=1&venue='
-          hits=0
-          for jcd in ('01','03','04','07','09','11','13','16','22','24'):
+          import json, urllib.request, urllib.error, datetime
+          from zoneinfo import ZoneInfo
+
+          UA='Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) AppleWebKit/605.1.15 Version/18.0 Mobile/15E148 Safari/604.1'
+          headers={'User-Agent':UA,'Origin':'https://front.player.boatrace-cdn.jp','Referer':'https://front.player.boatrace-cdn.jp/','Accept':'application/json,*/*'}
+          code='01kiryu'
+          setting=f'https://front.player.boatrace-cdn.jp/setting/live/{code}/setting.json'
+          ymd=datetime.datetime.now(ZoneInfo('Asia/Tokyo')).strftime('%Y%m%d')
+          playback=f'https://playback.api.streaks.jp/v1/projects/cp-boatrace-prod/medias/ref:lm-br-{code}-tokyo-{ymd}?audio_only=false'
+
+          def get(url, extra=None):
+              h=dict(headers)
+              if extra: h.update(extra)
+              req=urllib.request.Request(url,headers=h)
               try:
-                  req=urllib.request.Request(base+jcd, headers={'User-Agent':'Mozilla/5.0','Cache-Control':'no-cache'})
-                  with urllib.request.urlopen(req, timeout=20) as r:
-                      data=json.loads(r.read().decode('utf-8','replace'))
-                  hit=data.get('hit') or {}
-                  print(jcd, 'ok=', data.get('ok'), 'source=', hit.get('source'), 'date=', hit.get('date'), 'url=', str(hit.get('url') or '')[:160])
-                  if data.get('ok') and hit.get('url'):
-                      hits += 1
-              except Exception as e:
-                  print(jcd, type(e).__name__, e)
-          print('VERCEL_BOAT_HITS=', hits)
-          if hits == 0:
-              raise SystemExit(1)
+                  with urllib.request.urlopen(req,timeout=12) as r:
+                      return r.status, r.headers.get('content-type',''), r.read()
+              except urllib.error.HTTPError as e:
+                  return e.code, e.headers.get('content-type',''), e.read()
+
+          status,ctype,raw=get(setting)
+          print('SETTING_STATUS',status,'TYPE',ctype,'BYTES',len(raw))
+          candidates=[]
+          try: data=json.loads(raw.decode('utf-8','replace'))
+          except Exception as e:
+              print('SETTING_JSON_ERROR',type(e).__name__)
+              data={}
+
+          def walk(x,path='root'):
+              if isinstance(x,dict):
+                  for k,v in x.items():
+                      p=f'{path}.{k}'
+                      if isinstance(v,(dict,list)):
+                          print('PATH',p,type(v).__name__)
+                          walk(v,p)
+                      elif isinstance(v,str):
+                          kl=k.lower()
+                          if 'key' in kl or 'token' in kl or 'secret' in kl:
+                              print('PATH',p,'str','<redacted>',len(v))
+                              if 'key' in kl and len(v)>=8: candidates.append(v)
+                          elif v.startswith(('http://','https://')):
+                              print('PATH',p,'url',v[:220])
+                          else:
+                              print('PATH',p,'str',v[:120])
+                      else:
+                          print('PATH',p,type(v).__name__,v)
+              elif isinstance(x,list):
+                  for i,v in enumerate(x[:20]): walk(v,f'{path}[{i}]')
+          walk(data)
+
+          s,ct,b=get(playback)
+          print('PLAYBACK_NO_KEY',s,ct,'BYTES',len(b))
+          for i,key in enumerate(candidates[:5],1):
+              s,ct,b=get(playback,{'X-Streaks-Api-Key':key})
+              found=False
+              try:
+                  d=json.loads(b.decode('utf-8','replace'))
+                  found=any(isinstance(x,dict) and str(x.get('src','')).startswith('https://manifest.streaks.jp/') for x in (d.get('sources') or []))
+              except Exception: pass
+              print('PLAYBACK_WITH_DISCOVERED_KEY',i,'STATUS',s,'HLS',found,'BYTES',len(b))
           PY
