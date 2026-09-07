@@ -88,7 +88,7 @@ jobs:
               exit 0
             fi
 
-            git commit -m "Normalize FreeWiFi logos for dark backgrounds [skip ci]"
+            git commit -m "Normalize FreeWiFi logos for dark backgrounds [skip ci] [skip render]"
             if git push origin HEAD:main; then
               echo "Contrast-safe logos published"
               exit 0
