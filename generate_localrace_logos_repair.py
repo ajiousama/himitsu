@@ -4,7 +4,7 @@ import base64
 from PIL import Image
 
 OUT = Path('logos/public_sports/venues')
-SRC = Path('assets/localrace_source')
+SRC = Path('assets/localrace_sheet_b64')
 OUT.mkdir(parents=True, exist_ok=True)
 CELL = 128
 SIZE = (512, 512)
@@ -17,8 +17,8 @@ ORDER = [
 
 def main():
     encoded = ''.join(
-        (SRC / f'part{i:02d}.b64').read_text(encoding='ascii').strip()
-        for i in range(1, 9)
+        (SRC / f'part{i}.txt').read_text(encoding='ascii').strip()
+        for i in range(1, 5)
     )
     raw = base64.b64decode(encoded, validate=True)
     with Image.open(BytesIO(raw)) as src:
