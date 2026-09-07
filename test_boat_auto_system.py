@@ -79,7 +79,7 @@ class BoatAutoSystemTests(unittest.TestCase):
                 if p.get("channel") == "boat.heiwajima" and (p.get("start") or "").startswith("20260908")
             ]
             self.assertIn("本日の開催は終了しました", today_titles)
-            self.assertIn("明日開催予定（仮時間）", today_titles)
+            self.assertIn("翌日開催予定（仮時間）", today_titles)
 
     def test_epg_contains_every_race_and_exact_finished_message(self):
         day = date(2026, 9, 8)
