@@ -18,7 +18,7 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
-      - name: Discover BOAT player API-key path without logging credentials
+      - name: Inspect official BOATCAST live app for Streaks access path
         shell: bash
         run: |
           set -euo pipefail
@@ -27,60 +27,60 @@ jobs:
           from zoneinfo import ZoneInfo
 
           UA='Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) AppleWebKit/605.1.15 Version/18.0 Mobile/15E148 Safari/604.1'
-          BASE='https://front.player.boatrace-cdn.jp/'
+          PAGE='https://race.boatcast.jp/?jo=01'
           code='01kiryu'
           ymd=datetime.datetime.now(ZoneInfo('Asia/Tokyo')).strftime('%Y%m%d')
           playback=f'https://playback.api.streaks.jp/v1/projects/cp-boatrace-prod/medias/ref:lm-br-{code}-tokyo-{ymd}?audio_only=false'
-          base_headers={'User-Agent':UA,'Origin':BASE.rstrip('/'),'Referer':BASE,'Accept':'*/*'}
 
-          def get(url, extra=None, timeout=10):
-              h=dict(base_headers)
+          def get(url, extra=None, timeout=12):
+              h={'User-Agent':UA,'Accept':'*/*','Referer':PAGE}
               if extra: h.update(extra)
               req=urllib.request.Request(url,headers=h)
               try:
                   with urllib.request.urlopen(req,timeout=timeout) as r:
-                      return r.status, r.headers.get('content-type',''), r.read()
+                      return r.status, r.headers.get('content-type',''), r.read(), r.geturl()
               except urllib.error.HTTPError as e:
-                  return e.code, e.headers.get('content-type',''), e.read()
+                  return e.code, e.headers.get('content-type',''), e.read(), url
 
+          s,ct,b,final=get(PAGE)
+          print('BOATCAST_PAGE',s,ct,'BYTES',len(b),'HOST',urllib.parse.urlsplit(final).hostname)
+          text=b.decode('utf-8','replace') if s==200 else ''
+          blobs=[(final,text)] if text else []
           assets=[]
-          blobs=[]
-          for path in ('','index.html'):
-              url=urllib.parse.urljoin(BASE,path)
-              s,ct,b=get(url)
-              print('FRONT',url,'STATUS',s,'TYPE',ct,'BYTES',len(b))
-              if s==200:
-                  text=b.decode('utf-8','replace')
-                  blobs.append((url,text))
-                  for m in re.finditer(r'<script[^>]+src=["\']([^"\']+)',text,re.I):
-                      u=urllib.parse.urljoin(url,m.group(1))
-                      if urllib.parse.urlsplit(u).hostname=='front.player.boatrace-cdn.jp' and u not in assets:
-                          assets.append(u)
+          for m in re.finditer(r'<script[^>]+src=["\']([^"\']+)',text,re.I):
+              u=urllib.parse.urljoin(final,m.group(1))
+              if u not in assets: assets.append(u)
+          for m in re.finditer(r'<iframe[^>]+src=["\']([^"\']+)',text,re.I):
+              print('IFRAME_HOST',urllib.parse.urlsplit(urllib.parse.urljoin(final,m.group(1))).hostname)
           print('SCRIPT_ASSETS',len(assets))
-          for u in assets[:15]:
-              s,ct,b=get(u,timeout=12)
-              print('ASSET',urllib.parse.urlsplit(u).path,'STATUS',s,'BYTES',len(b))
-              if s==200 and len(b)<5_000_000:
+          for u in assets[:30]:
+              s,ct,b,_=get(u,timeout=15)
+              print('ASSET',urllib.parse.urlsplit(u).hostname,urllib.parse.urlsplit(u).path[-90:],'STATUS',s,'BYTES',len(b))
+              if s==200 and len(b)<8_000_000:
                   blobs.append((u,b.decode('utf-8','replace')))
 
-          # Search public player code for credential-looking literals, but never print them.
           candidates=[]
-          for url,text in blobs:
-              if 'streaks' in text.lower() or 'api-key' in text.lower() or 'apikey' in text.lower():
+          project_hits=set()
+          for url,src in blobs:
+              low=src.lower()
+              if 'streaks' in low or 'cp-boatrace-prod' in low:
                   print('STREAKS_REFERENCE_IN',urllib.parse.urlsplit(url).path or '/')
-              for m in re.finditer(r'(?i)(?:api[_-]?key|x-streaks-api-key)[^A-Za-z0-9]{0,20}["\']?([A-Za-z0-9_-]{16,128})',text):
-                  v=m.group(1)
-                  if v not in candidates: candidates.append(v)
-              # Also consider long hex literals only if the surrounding file mentions streaks.
-              if 'streaks' in text.lower():
-                  for v in re.findall(r'(?<![0-9a-fA-F])[0-9a-fA-F]{24,64}(?![0-9a-fA-F])',text):
-                      if v not in candidates: candidates.append(v)
+              for m in re.finditer(r'https://players\.streaks\.jp/([\w-]+)/([A-Za-z0-9_-]{16,128})/index\.html',src,re.I):
+                  project_hits.add(m.group(1)); candidates.append(m.group(2))
+              for m in re.finditer(r'(?i)(?:api[_-]?key|x-streaks-api-key)[^A-Za-z0-9]{0,30}["\']?([A-Za-z0-9_-]{16,128})',src):
+                  candidates.append(m.group(1))
+              if 'streaks' in low:
+                  for v in re.findall(r'(?<![0-9a-fA-F])[0-9a-fA-F]{24,64}(?![0-9a-fA-F])',src):
+                      candidates.append(v)
+          candidates=list(dict.fromkeys(candidates))
+          print('PROJECT_HINTS',sorted(project_hits))
           print('KEY_CANDIDATES',len(candidates))
 
-          s,ct,b=get(playback)
+          base_headers={'User-Agent':UA,'Origin':'https://front.player.boatrace-cdn.jp','Referer':'https://front.player.boatrace-cdn.jp/','Accept':'application/json'}
+          s,ct,b,_=get(playback,base_headers)
           print('PLAYBACK_NO_KEY',s,'BYTES',len(b))
-          for i,key in enumerate(candidates[:80],1):
-              s,ct,b=get(playback,{'X-Streaks-Api-Key':key},timeout=8)
+          for i,key in enumerate(candidates[:100],1):
+              s,ct,b,_=get(playback,{**base_headers,'X-Streaks-Api-Key':key},timeout=8)
               if s!=403:
                   found=False
                   try:
@@ -89,7 +89,7 @@ jobs:
                   except Exception: pass
                   print('KEY_TEST_NON403',i,'STATUS',s,'HLS',found,'BYTES',len(b))
                   if found:
-                      print('CLOUD_SEED_WITH_PUBLIC_PLAYER_KEY=YES')
+                      print('CLOUD_SEED_WITH_BOATCAST_KEY=YES')
                       raise SystemExit(0)
-          print('CLOUD_SEED_WITH_PUBLIC_PLAYER_KEY=NO')
+          print('CLOUD_SEED_WITH_BOATCAST_KEY=NO')
           PY
