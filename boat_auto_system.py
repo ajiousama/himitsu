@@ -40,6 +40,7 @@ JST = timezone(timedelta(hours=9))
 ALERT_LEAD_MINUTES = 30
 RACE_SWITCH_MINUTES = 3
 SCHEDULE_API = "https://boatraceopenapi.github.io/api/v1/{year}/{ymd}.json"
+SCHEDULE_TODAY_API = "https://boatraceopenapi.github.io/api/v1/today.json"
 SEED_API = "https://himitsu-six.vercel.app/api/boat-seed?venue={jcd}"
 UA = "Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) AppleWebKit/605.1.15 Version/18.0 Mobile/15E148 Safari/604.1"
 RAW_BASE = "https://raw.githubusercontent.com/ajiousama/himitsu/main"
@@ -165,8 +166,23 @@ def cards_from_snapshot(data: dict, day: date) -> dict[str, list[dict]]:
 
 
 def fetch_cards(day: date) -> dict[str, list[dict]]:
+    # Right after JST midnight the dated GitHub Pages snapshot can briefly be 404
+    # even though the API's rolling today.json is already available. Prefer the
+    # dated immutable snapshot, then fall back to today.json for the actual JST day.
     url = SCHEDULE_API.format(year=day.strftime("%Y"), ymd=day.strftime("%Y%m%d"))
-    return cards_from_snapshot(request_json(url), day)
+    try:
+        return cards_from_snapshot(request_json(url), day)
+    except RuntimeError as dated_error:
+        if day != now_jst().date():
+            raise
+        try:
+            cards = cards_from_snapshot(request_json(SCHEDULE_TODAY_API), day)
+            if cards:
+                print(f"BOAT AUTO schedule fallback: today.json ({len(cards)} venues)")
+                return cards
+        except RuntimeError as today_error:
+            raise RuntimeError(f"dated={dated_error}; today={today_error}") from today_error
+        raise dated_error
 
 
 def jwt_payload(url: str) -> dict:
