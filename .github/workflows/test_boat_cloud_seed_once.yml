@@ -14,74 +14,93 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v5
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
-      - name: Probe client compatibility of BOAT sources
+      - name: Probe BOAT HLS through media segments
         shell: bash
         run: |
           set -euo pipefail
           python - <<'PY'
-          import hashlib
           import json
-          from pathlib import Path
           import re
           import urllib.error
+          import urllib.parse
           import urllib.request
 
           UA = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) AppleWebKit/605.1.15 Version/18.0 Mobile/15E148 Safari/604.1'
           PLAYER = 'https://front.player.boatrace-cdn.jp/player/live?service=boatcast&stadium=07gamagori&sourceType=mix&dvr=1&audioMode=0&autoplay=1&bitrate=low'
-          HEADER_SETS = {
-              'plain': {'User-Agent': UA, 'Accept': '*/*'},
-              'player': {
-                  'User-Agent': UA,
-                  'Accept': '*/*',
-                  'Origin': 'https://front.player.boatrace-cdn.jp',
-                  'Referer': PLAYER,
-              },
-          }
+          HEADERS = {'User-Agent': UA, 'Accept': '*/*', 'Origin': 'https://front.player.boatrace-cdn.jp', 'Referer': PLAYER}
 
-          def request(url, headers, timeout=20):
+          def get(url, limit=400000, extra=None):
+              headers = dict(HEADERS)
+              if extra:
+                  headers.update(extra)
               req = urllib.request.Request(url, headers=headers)
               try:
-                  with urllib.request.urlopen(req, timeout=timeout) as r:
-                      return int(getattr(r, 'status', 200)), r.read(200000), r.geturl(), dict(r.headers)
+                  with urllib.request.urlopen(req, timeout=25) as r:
+                      return int(getattr(r, 'status', 200)), r.read(limit), r.geturl(), dict(r.headers)
               except urllib.error.HTTPError as e:
-                  return int(e.code), e.read(200000), e.geturl(), dict(e.headers)
+                  return int(e.code), e.read(limit), e.geturl(), dict(e.headers)
               except Exception as e:
                   return 0, (type(e).__name__ + ':' + str(e)).encode(), url, {}
 
-          def report(label, url):
-              digest = hashlib.sha256(url.encode()).hexdigest()[:12]
-              for mode, headers in HEADER_SETS.items():
-                  status, body, final_url, response_headers = request(url, headers)
-                  playlist = body.lstrip().startswith(b'#EXTM3U')
-                  ctype = response_headers.get('Content-Type', '')
-                  print('PROBE', label, mode, 'status=', status, 'playlist=', playlist,
-                        'bytes=', len(body), 'ctype=', ctype, 'url_sha=', digest,
-                        'final_host=', urllib.request.urlparse(final_url).hostname if False else '')
-                  if status >= 400:
-                      print('BODY', label, mode, body[:180].decode('utf-8', 'replace').replace('\n', ' '))
+          def safe(url):
+              p = urllib.parse.urlsplit(url)
+              return p.scheme + '://' + (p.hostname or '') + p.path
 
-          endpoint = 'https://himitsu-six.vercel.app/api/boat-seed?venue=07'
-          status, body, _final, _headers = request(endpoint, HEADER_SETS['plain'])
-          print('VERCEL_ENDPOINT status=', status, 'bytes=', len(body))
+          status, body, _final, _headers = get('https://himitsu-six.vercel.app/api/boat-seed?venue=07')
           data = json.loads(body.decode('utf-8', 'replace')) if status == 200 else {}
-          vercel_url = str(data.get('url') or '')
-          print('VERCEL_ENDPOINT ok=', data.get('ok'), 'region=', data.get('region'), 'has_url=', bool(vercel_url))
-          if vercel_url:
-              report('vercel-token', vercel_url)
+          master_url = str(data.get('url') or '')
+          print('SEED status=', status, 'ok=', data.get('ok'), 'region=', data.get('region'), 'has_url=', bool(master_url))
+          if not master_url:
+              raise SystemExit(1)
 
-          seed = Path('boat_stream_seed.m3u').read_text(encoding='utf-8-sig', errors='replace')
-          m = re.search(r'^https://manifest\.streaks\.jp/.*$', seed, re.M)
-          if m:
-              report('iphone-seed-token', m.group(0).strip())
+          status, body, final, headers = get(master_url)
+          master = body.decode('utf-8', 'replace')
+          print('MASTER status=', status, 'playlist=', master.startswith('#EXTM3U'), 'bytes=', len(body),
+                'ctype=', headers.get('Content-Type', ''), 'final=', safe(final))
+          print('MASTER_TAGS', ' | '.join(line for line in master.splitlines() if line.startswith('#EXT-X-'))[:1800])
 
-          for suffix in ('07?debug=1', '07'):
-              url = 'https://ajiousama-radiko.onrender.com/boat/' + suffix
-              status, body, _final, response_headers = request(url, HEADER_SETS['plain'], timeout=35)
-              print('RENDER', suffix, 'status=', status, 'playlist=', body.lstrip().startswith(b'#EXTM3U'),
-                    'bytes=', len(body), 'ctype=', response_headers.get('Content-Type', ''))
-              print('RENDER_BODY', suffix, body[:240].decode('utf-8', 'replace').replace('\n', ' '))
+          uris = []
+          for line in master.splitlines():
+              line = line.strip()
+              if line and not line.startswith('#'):
+                  uris.append(urllib.parse.urljoin(final, line))
+              for value in re.findall(r'URI="([^"]+)"', line):
+                  uris.append(urllib.parse.urljoin(final, value))
+          unique = []
+          for url in uris:
+              if url not in unique:
+                  unique.append(url)
+          print('MASTER_CHILDREN', len(unique))
+
+          segment_ok = 0
+          for idx, child in enumerate(unique[:10], 1):
+              cs, cb, cf, ch = get(child)
+              is_playlist = cb.lstrip().startswith(b'#EXTM3U')
+              print('CHILD', idx, 'status=', cs, 'playlist=', is_playlist, 'bytes=', len(cb),
+                    'ctype=', ch.get('Content-Type', ''), 'url=', safe(child))
+              if not is_playlist:
+                  if cs in (200, 206) and len(cb):
+                      segment_ok += 1
+                  continue
+              playlist = cb.decode('utf-8', 'replace')
+              nested = []
+              for line in playlist.splitlines():
+                  line = line.strip()
+                  if line and not line.startswith('#'):
+                      nested.append(urllib.parse.urljoin(cf, line))
+                  for value in re.findall(r'URI="([^"]+)"', line):
+                      nested.append(urllib.parse.urljoin(cf, value))
+              print('CHILD_TAGS', idx, ' | '.join(line for line in playlist.splitlines() if line.startswith('#EXT-X-'))[:1200])
+              for nested_url in nested[:3]:
+                  ns, nb, _nf, nh = get(nested_url, limit=120000, extra={'Range': 'bytes=0-119999'})
+                  print('MEDIA', idx, 'status=', ns, 'bytes=', len(nb), 'ctype=', nh.get('Content-Type', ''),
+                        'url=', safe(nested_url))
+                  if ns in (200, 206) and len(nb):
+                      segment_ok += 1
+          print('SEGMENT_OK', segment_ok)
+          if status != 200 or not master.startswith('#EXTM3U') or segment_ok == 0:
+              raise SystemExit(1)
           PY
