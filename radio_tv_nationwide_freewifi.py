@@ -10,8 +10,9 @@ from urllib.parse import quote
 FREEWIFI = Path("freewifi")
 RADIO_AUDIO_BASE = "https://himitsu-six.vercel.app/api/radiko"
 RADIO_RENDER_BASE = "https://ajiousama-radiko.onrender.com/radio-tv"
-RADIO_BUILD = "20260903c"
+RADIO_BUILD = "20260907a"
 LOGO_RAW_BASE = "https://raw.githubusercontent.com/ajiousama/himitsu/main"
+EXPECTED_RADIO_COUNT = 16
 
 
 def radio_url(sid: str) -> str:
@@ -52,6 +53,10 @@ def compact_block() -> str:
     stations = [
         ("radiko.JOEU-FM", "JOEU-FM", "FM愛媛（ラジオ）"),
         ("radiko.RNB", "RNB", "RNB南海放送（ラジオ）"),
+        ("radiko.LFR", "LFR", "ニッポン放送（ラジオ）"),
+        ("radiko.QRR", "QRR", "文化放送（ラジオ）"),
+        ("radiko.TBS", "TBS", "TBSラジオ（ラジオ）"),
+        ("radiko.FMT", "FMT", "TOKYO FM（ラジオ）"),
         ("radiko.ABC", "ABC", "ABCラジオ（ラジオ）"),
         ("radiko.CCL", "CCL", "FM COCOLO（ラジオ）"),
         ("radiko.802", "802", "FM802（ラジオ）"),
@@ -82,21 +87,26 @@ def main() -> int:
 
     radio_section = updated[start:updated.find("## 愛媛CATV", start)]
     render_count = radio_section.count(RADIO_RENDER_BASE + "/")
-    if render_count != 12:
+    if render_count != EXPECTED_RADIO_COUNT:
         raise RuntimeError(f"compact FreeWiFi image+audio radio count unexpected: {render_count}")
     if RADIO_AUDIO_BASE + "?station=" in radio_section:
         raise RuntimeError("audio-only route leaked into FreeWiFi radio section")
     if "NHKラジオ" in radio_section or "NHK-FM" in radio_section or "nhk_r1_" in radio_section or "nhk_fm_" in radio_section:
         raise RuntimeError("NHK radio leaked into FreeWiFi radio section")
     extinf_lines = [line for line in radio_section.splitlines() if line.startswith("#EXTINF:")]
-    if len(extinf_lines) != 12 or any('group-title="ラジオ"' not in line for line in extinf_lines):
+    if len(extinf_lines) != EXPECTED_RADIO_COUNT or any('group-title="ラジオ"' not in line for line in extinf_lines):
         raise RuntimeError("FreeWiFi radio groups are not uniformly ラジオ")
-    if "### 北海道" in radio_section or "station=TBS" in radio_section:
+    if "### 北海道" in radio_section:
         raise RuntimeError("nationwide catalog leaked into FreeWiFi radio section")
     if "raw.githubusercontent.com/ajiousama/himitsu/radio-ts-assets/" in radio_section:
         raise RuntimeError("TS visual master leaked into compact FreeWiFi radio section")
-    if radio_section.count("/logos/contrast/radiko.") != 12:
+    if radio_section.count("/logos/contrast/radiko.") != EXPECTED_RADIO_COUNT:
         raise RuntimeError("contrast-safe compact radio logos are not complete")
+
+    required_sids = ("LFR", "QRR", "TBS", "FMT")
+    for sid in required_sids:
+        if f'{RADIO_RENDER_BASE}/{sid}' not in radio_section:
+            raise RuntimeError(f"required Tokyo radio station missing: {sid}")
 
     FREEWIFI.write_text(updated, encoding="utf-8")
     print(f"FreeWiFi compact radio restored: {render_count} image+audio stations with contrast-safe logos")
