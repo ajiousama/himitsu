@@ -15,17 +15,26 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-python@v6
-        with:
-          python-version: "3.12"
-      - name: Test cloud-only BOAT seed acquisition
+      - name: Test Vercel BOAT resolver as cloud seed source
         shell: bash
         run: |
           set -euo pipefail
-          cp boat_stream_seed.m3u /tmp/boat_stream_seed.original
-          printf '#EXTM3U\n' > boat_stream_seed.m3u
-          python -u boat_streaks_refresh.py
-          count="$(grep -Ec '^https://manifest\.streaks\.jp/.*\.m3u8' boat_stream_seed.m3u || true)"
-          echo "CLOUD_ONLY_CURRENT_DAY_SEEDS=$count"
-          cat boat_stream_seed.m3u
-          test "$count" -gt 0
+          python - <<'PY'
+          import json, urllib.request
+          base='https://himitsu-six.vercel.app/api/boat?debug=1&venue='
+          hits=0
+          for jcd in ('01','03','04','07','09','11','13','16','22','24'):
+              try:
+                  req=urllib.request.Request(base+jcd, headers={'User-Agent':'Mozilla/5.0','Cache-Control':'no-cache'})
+                  with urllib.request.urlopen(req, timeout=20) as r:
+                      data=json.loads(r.read().decode('utf-8','replace'))
+                  hit=data.get('hit') or {}
+                  print(jcd, 'ok=', data.get('ok'), 'source=', hit.get('source'), 'date=', hit.get('date'), 'url=', str(hit.get('url') or '')[:160])
+                  if data.get('ok') and hit.get('url'):
+                      hits += 1
+              except Exception as e:
+                  print(jcd, type(e).__name__, e)
+          print('VERCEL_BOAT_HITS=', hits)
+          if hits == 0:
+              raise SystemExit(1)
+          PY
