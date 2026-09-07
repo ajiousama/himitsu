@@ -34,9 +34,11 @@ TARGET_HOSTS = {
 }
 
 RADIO_SIDS = [
-    "JOEU-FM", "RNB", "ABC", "CCL", "802", "FMO",
-    "MBS", "OBC", "KBS", "ALPHA-STATION", "E-RADIO", "CRK",
+    "JOEU-FM", "RNB", "LFR", "QRR", "TBS", "FMT",
+    "ABC", "CCL", "802", "FMO", "MBS", "OBC", "KBS",
+    "ALPHA-STATION", "E-RADIO", "CRK",
 ]
+EXPECTED_RADIO_COUNT = len(RADIO_SIDS)
 
 LOGO_RE = re.compile(r'tvg-logo="([^"]+)"')
 ID_RE = re.compile(r'tvg-id="([^"]+)"')
@@ -181,7 +183,9 @@ def main() -> int:
 
     radio_local = sum(text.count(raw_url(db[source_radio_logo(sid)]["path"])) for sid in RADIO_SIDS)
     print(f"contrast logos known={len(db)} generated={sum(Path(v['path']).exists() for v in db.values())}")
-    print(f"FreeWiFi logo refs replaced={replaced} external-kept={kept_external} compact-radio-local={radio_local}/12")
+    print(f"FreeWiFi logo refs replaced={replaced} external-kept={kept_external} compact-radio-local={radio_local}/{EXPECTED_RADIO_COUNT}")
+    if radio_local != EXPECTED_RADIO_COUNT:
+        raise SystemExit(f"compact radio contrast logos incomplete: {radio_local}/{EXPECTED_RADIO_COUNT}")
     if errors:
         print(f"logo fetch warnings={len(errors)}")
         for src, err in list(errors.items())[:12]:

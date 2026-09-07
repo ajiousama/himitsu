@@ -42,7 +42,7 @@ jobs:
           python-version: "3.12"
 
       - name: Install image support
-        run: python -m pip install --disable-pip-version-check Pillow>=10.0
+        run: python -m pip install --disable-pip-version-check 'Pillow>=10.0'
 
       - name: Build contrast-safe radio and TV logos
         run: |
@@ -57,7 +57,11 @@ jobs:
           test -s logo_contrast_sources.json
           test -d logos/contrast
           ! grep -F 'tvg-logo="tvg-logo=' freewifi
-          test "$(grep -c '/logos/contrast/radiko\.' freewifi || true)" -eq 12
+          test "$(grep -c '/logos/contrast/radiko\.' freewifi || true)" -eq 16
+          grep -F 'tvg-id="radiko.LFR"' freewifi | grep -F '/logos/contrast/' >/dev/null
+          grep -F 'tvg-id="radiko.QRR"' freewifi | grep -F '/logos/contrast/' >/dev/null
+          grep -F 'tvg-id="radiko.TBS"' freewifi | grep -F '/logos/contrast/' >/dev/null
+          grep -F 'tvg-id="radiko.FMT"' freewifi | grep -F '/logos/contrast/' >/dev/null
           grep -F 'tvg-id="サンテレビ_jp"' freewifi | grep -F '/logos/contrast/' >/dev/null
           grep -F 'tvg-id="KBS京都_jp"' freewifi | grep -F '/logos/contrast/' >/dev/null
           grep -F 'tvg-id="TOKYO・MX_jp"' freewifi | grep -F '/logos/contrast/' >/dev/null
@@ -79,7 +83,11 @@ jobs:
             python radio_tv_nationwide_freewifi.py
             python logo_contrast_apply.py
 
-            test "$(grep -c '/logos/contrast/radiko\.' freewifi || true)" -eq 12
+            test "$(grep -c '/logos/contrast/radiko\.' freewifi || true)" -eq 16
+            grep -F 'tvg-id="radiko.LFR"' freewifi >/dev/null
+            grep -F 'tvg-id="radiko.QRR"' freewifi >/dev/null
+            grep -F 'tvg-id="radiko.TBS"' freewifi >/dev/null
+            grep -F 'tvg-id="radiko.FMT"' freewifi >/dev/null
             ! grep -F 'tvg-logo="tvg-logo=' freewifi
 
             git add freewifi logo_contrast_sources.json logos/contrast
