@@ -14,102 +14,19 @@ START = '# === TODAY_PUBLIC_SPORTS_START ==='
 END = '# === TODAY_PUBLIC_SPORTS_END ==='
 GROUP = '今日の開催場'
 RAW_BASE = 'https://raw.githubusercontent.com/ajiousama/himitsu/main'
-LOGO_PROXY = 'https://images.weserv.nl/?url=raw.githubusercontent.com/ajiousama/himitsu/main'
+def local_logo(cid):
+    if cid.startswith('chihou.'):
+        slug = cid.split('.', 1)[1]
+        slug = {'kawasaki_keiba': 'kawasaki', 'nagoya_keiba': 'nagoya', 'kochi_keiba': 'kochi'}.get(slug, slug)
+        return f'{RAW_BASE}/logos/public_sports/venues/localrace_{slug}.png'
+    if cid.startswith('keirin.'):
+        slug = cid.split('.', 1)[1]
+        return f'{RAW_BASE}/logos/public_sports/venues/keirin_{slug}.png'
+    if cid.startswith('auto.'):
+        slug = cid.split('.', 1)[1]
+        return f'{RAW_BASE}/logos/public_sports/venues/autorace_{slug}.png'
+    return None
 
-def venue_png(name):
-    return f'{LOGO_PROXY}/logos/public_sports/venues/{name}&output=png'
-
-    'auto.kawaguchi': f'{RAW_BASE}/logos/public_sports/venues/autorace_kawaguchi.png',
-    'auto.isesaki': f'{RAW_BASE}/logos/public_sports/venues/autorace_isesaki.png',
-    'auto.hamamatsu': f'{RAW_BASE}/logos/public_sports/venues/autorace_hamamatsu.png',
-    'auto.sanyo': f'{RAW_BASE}/logos/public_sports/venues/autorace_sanyo.png',
-    'auto.iizuka': f'{RAW_BASE}/logos/public_sports/venues/autorace_iizuka.png',
-rom pathlib import Path
-from datetime import datetime, timezone, timedelta, time
-import json
-import re
-import xml.etree.ElementTree as ET
-
-import repair_boat_local_epg_openapi
-
-FREEWIFI = Path('freewifi')
-STATUS_JSON = Path('today_public_sports_status.json')
-PUBLIC_M3U = Path('ganble')
-PUBLIC_EPG = Path('public_sports_epg_local.xml')
-START = '# === TODAY_PUBLIC_SPORTS_START ==='
-END = '# === TODAY_PUBLIC_SPORTS_END ==='
-GROUP = '今日の開催場'
-RAW_BASE = 'https://raw.githubusercontent.com/ajiousama/himitsu/main'
-LOGO_PROXY = 'https://images.weserv.nl/?url=raw.githubusercontent.com/ajiousama/himitsu/main'
-
-def venue_png(name):
-    return f'{LOGO_PROXY}/logos/public_sports/venues/{name}&output=png'
-
-LOCAL_LOGOS = {
-    'chihou.obihiro': f'{RAW_BASE}/logos/public_sports/venues/localrace_obihiro.png',
-    'chihou.mombetsu': f'{RAW_BASE}/logos/public_sports/venues/localrace_mombetsu.png',
-    'chihou.morioka': f'{RAW_BASE}/logos/public_sports/venues/localrace_morioka.png',
-    'chihou.mizusawa': f'{RAW_BASE}/logos/public_sports/venues/localrace_mizusawa.png',
-    'chihou.urawa': f'{RAW_BASE}/logos/public_sports/venues/localrace_urawa.png',
-    'chihou.funabashi': f'{RAW_BASE}/logos/public_sports/venues/localrace_funabashi.png',
-    'chihou.oi': f'{RAW_BASE}/logos/public_sports/venues/localrace_oi.png',
-    'chihou.kawasaki_keiba': f'{RAW_BASE}/logos/public_sports/venues/localrace_kawasaki.png',
-    'chihou.kanazawa': f'{RAW_BASE}/logos/public_sports/venues/localrace_kanazawa.png',
-    'chihou.kasamatsu': f'{RAW_BASE}/logos/public_sports/venues/localrace_kasamatsu.png',
-    'chihou.nagoya_keiba': f'{RAW_BASE}/logos/public_sports/venues/localrace_nagoya.png',
-    'chihou.sonoda': f'{RAW_BASE}/logos/public_sports/venues/localrace_sonoda.png',
-    'chihou.himeji': f'{RAW_BASE}/logos/public_sports/venues/localrace_himeji.png',
-    'chihou.kochi_keiba': f'{RAW_BASE}/logos/public_sports/venues/localrace_kochi.png',
-    'chihou.saga': f'{RAW_BASE}/logos/public_sports/venues/localrace_saga.png',
-    'auto.kawaguchi': 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports_logos_github_43/autorace/kawaguchi.png',
-    'auto.isesaki': 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports_logos_github_43/autorace/isesaki.png',
-    'auto.hamamatsu': 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports_logos_github_43/autorace/hamamatsu.png',
-    'auto.sanyo': 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports_logos_github_43/autorace/sanyo.png',
-    'auto.iizuka': 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports_logos_github_43/autorace/iizuka.png',
-}
-    'keirin.hakodate': f'{RAW_BASE}/logos/public_sports/venues/keirin_hakodate.png',
-    'keirin.aomori': f'{RAW_BASE}/logos/public_sports/venues/keirin_aomori.png',
-    'keirin.iwakitaira': f'{RAW_BASE}/logos/public_sports/venues/keirin_iwakitaira.png',
-    'keirin.yahiko': f'{RAW_BASE}/logos/public_sports/venues/keirin_yahiko.png',
-    'keirin.maebashi': f'{RAW_BASE}/logos/public_sports/venues/keirin_maebashi.png',
-    'keirin.toride': f'{RAW_BASE}/logos/public_sports/venues/keirin_toride.png',
-    'keirin.utsunomiya': f'{RAW_BASE}/logos/public_sports/venues/keirin_utsunomiya.png',
-    'keirin.omiya': f'{RAW_BASE}/logos/public_sports/venues/keirin_omiya.png',
-    'keirin.seibuen': f'{RAW_BASE}/logos/public_sports/venues/keirin_seibuen.png',
-    'keirin.keiogatsu': f'{RAW_BASE}/logos/public_sports/venues/keirin_keiogatsu.png',
-    'keirin.tachikawa': f'{RAW_BASE}/logos/public_sports/venues/keirin_tachikawa.png',
-    'keirin.matsudo': f'{RAW_BASE}/logos/public_sports/venues/keirin_matsudo.png',
-    'keirin.kawasaki': f'{RAW_BASE}/logos/public_sports/venues/keirin_kawasaki.png',
-    'keirin.hiratsuka': f'{RAW_BASE}/logos/public_sports/venues/keirin_hiratsuka.png',
-    'keirin.odawara': f'{RAW_BASE}/logos/public_sports/venues/keirin_odawara.png',
-    'keirin.ito': f'{RAW_BASE}/logos/public_sports/venues/keirin_ito.png',
-    'keirin.shizuoka': f'{RAW_BASE}/logos/public_sports/venues/keirin_shizuoka.png',
-    'keirin.nagoya': f'{RAW_BASE}/logos/public_sports/venues/keirin_nagoya.png',
-    'keirin.gifu': f'{RAW_BASE}/logos/public_sports/venues/keirin_gifu.png',
-    'keirin.ogaki': f'{RAW_BASE}/logos/public_sports/venues/keirin_ogaki.png',
-    'keirin.toyohashi': f'{RAW_BASE}/logos/public_sports/venues/keirin_toyohashi.png',
-    'keirin.toyama': f'{RAW_BASE}/logos/public_sports/venues/keirin_toyama.png',
-    'keirin.matsusaka': f'{RAW_BASE}/logos/public_sports/venues/keirin_matsusaka.png',
-    'keirin.yokkaichi': f'{RAW_BASE}/logos/public_sports/venues/keirin_yokkaichi.png',
-    'keirin.fukui': f'{RAW_BASE}/logos/public_sports/venues/keirin_fukui.png',
-    'keirin.nara': f'{RAW_BASE}/logos/public_sports/venues/keirin_nara.png',
-    'keirin.mukomachi': f'{RAW_BASE}/logos/public_sports/venues/keirin_mukomachi.png',
-    'keirin.wakayama': f'{RAW_BASE}/logos/public_sports/venues/keirin_wakayama.png',
-    'keirin.kishiwada': f'{RAW_BASE}/logos/public_sports/venues/keirin_kishiwada.png',
-    'keirin.tamano': f'{RAW_BASE}/logos/public_sports/venues/keirin_tamano.png',
-    'keirin.hiroshima': f'{RAW_BASE}/logos/public_sports/venues/keirin_hiroshima.png',
-    'keirin.hofu': f'{RAW_BASE}/logos/public_sports/venues/keirin_hofu.png',
-    'keirin.takamatsu': f'{RAW_BASE}/logos/public_sports/venues/keirin_takamatsu.png',
-    'keirin.komatsushima': f'{RAW_BASE}/logos/public_sports/venues/keirin_komatsushima.png',
-    'keirin.kochi': f'{RAW_BASE}/logos/public_sports/venues/keirin_kochi.png',
-    'keirin.matsuyama': f'{RAW_BASE}/logos/public_sports/venues/keirin_matsuyama.png',
-    'keirin.kokura': f'{RAW_BASE}/logos/public_sports/venues/keirin_kokura.png',
-    'keirin.kurume': f'{RAW_BASE}/logos/public_sports/venues/keirin_kurume.png',
-    'keirin.takeo': f'{RAW_BASE}/logos/public_sports/venues/keirin_takeo.png',
-    'keirin.sasebo': f'{RAW_BASE}/logos/public_sports/venues/keirin_sasebo.png',
-    'keirin.beppu': f'{RAW_BASE}/logos/public_sports/venues/keirin_beppu.png',
-    'keirin.kumamoto': f'{RAW_BASE}/logos/public_sports/venues/keirin_kumamoto.png',
-    'keirin.pist6': f'{RAW_BASE}/logos/public_sports/venues/keirin_pist6.png',
 JST = timezone(timedelta(hours=9))
 TARGET_SECTIONS = {'競輪', '地方競馬', 'ボートレース', 'オートレース'}
 NON_EVENT_WORDS = ('本日非開催','非開催','開催していません','開催予定はありません','本日開催なし','開催なし','次回開催','データ取得準備中','休止中','休止','準備中','現在準備中','本日の開催は終了しました')
@@ -216,7 +133,7 @@ def sanitize_extinf(line):
     line = re.sub(r'\s+tvg-logo="[^"]*earphone1981[^"]*"', '', line, flags=re.I)
     mid = re.search(r'tvg-id="([^"]+)"', line)
     cid = mid.group(1) if mid else ''
-    logo = LOCAL_LOGOS.get(cid)
+    logo = local_logo(cid)
     if logo:
         if 'tvg-logo=' in line:
             line = re.sub(r'tvg-logo="[^"]*"', f'tvg-logo="{logo}"', line, count=1)
