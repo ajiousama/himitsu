@@ -1,10 +1,10 @@
 from pathlib import Path
 from io import BytesIO
 import base64
-import re
-from PIL import Image, ImageFile
+from PIL import Image
 
 OUT = Path('logos/public_sports/venues')
+SRC = Path('assets/localrace_source')
 OUT.mkdir(parents=True, exist_ok=True)
 CELL = 128
 SIZE = (512, 512)
@@ -15,25 +15,12 @@ ORDER = [
 ]
 
 
-def extract_sheet_b64():
-    text = Path('generate_localrace_logos.py').read_text(encoding='utf-8')
-    m = re.search(r'SHEET_B64\s*=\s*"""(.*?)"""', text, re.S)
-    if not m:
-        raise SystemExit('SHEET_B64 not found')
-    s = re.sub(r'[^A-Za-z0-9+/=]', '', m.group(1))
-    # The current approved sheet was committed with one stray trailing base64
-    # data character. Remove only the impossible modulo-4 tail and restore
-    # padding; the JPEG payload itself is otherwise intact.
-    while len(s) % 4 == 1:
-        s = s[:-1]
-    s = s.rstrip('=')
-    s += '=' * (-len(s) % 4)
-    return s
-
-
 def main():
-    ImageFile.LOAD_TRUNCATED_IMAGES = True
-    raw = base64.b64decode(extract_sheet_b64(), validate=False)
+    encoded = ''.join(
+        (SRC / f'part{i:02d}.b64').read_text(encoding='ascii').strip()
+        for i in range(1, 9)
+    )
+    raw = base64.b64decode(encoded, validate=True)
     with Image.open(BytesIO(raw)) as src:
         sheet = src.convert('RGB')
     expected = (CELL * 5, CELL * 3)
