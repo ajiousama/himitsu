@@ -1,13 +1,11 @@
-name: Refresh all radio TS visuals
+name: Refresh all radio TS visuals (PAUSED)
 
+# Nationwide TS generation is intentionally paused because it consumes too many
+# resources. Keep this workflow manual-only so it cannot spend quota by schedule
+# or by ordinary pushes. Do not re-enable automatic triggers without an explicit
+# decision to resume the nationwide TS system.
 on:
-  push:
-    paths:
-      - 'build_all_radio_ts.py'
-      - '.github/workflows/refresh_radio_ts_180p.yml'
   workflow_dispatch:
-  schedule:
-    - cron: '17,47 * * * *'
 
 permissions:
   contents: write
