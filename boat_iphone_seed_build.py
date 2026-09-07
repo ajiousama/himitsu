@@ -19,13 +19,14 @@ NEW_HEADER = '## 今日の開催場 / BOAT current-day verified hybrid'
 JST = timezone(timedelta(hours=9))
 RENDER_PREFIX = b.RESOLVER_BASE.rstrip('/') + '/'
 PROBE_DIAGNOSTICS = {}
+RETRY_RESOLVER_IDS = set()
 
 
 def disable_global_cloud_resolver():
     # Never let boat_v2_build blindly publish the same resolver pattern for all
-    # venues. We inject only per-venue resolver URLs that passed ?debug=1 with
-    # playable=true.
-    print('BOAT global resolver disabled; per-venue verified fallback only')
+    # venues. We inject verified routes per venue, plus a tightly scoped night
+    # retry route only after that venue's display window has opened.
+    print('BOAT global resolver disabled; verified fallback + night-window retry only')
     return False, 0
 
 
@@ -139,11 +140,22 @@ def probe_verified_resolver(jcd):
     return '', '', f'HTTP {status} playable={data.get("playable")} detail={detail}', diag
 
 
+def night_retry_window_open(races):
+    if not races or b.mode(races) != 'night':
+        return False
+    now = datetime.now(JST)
+    show_from = races[0][1] - timedelta(minutes=b.PRESTART_MINUTES)
+    remove_after = races[-1][1] + timedelta(minutes=b.GRACE_MINUTES)
+    activation_now = now + timedelta(seconds=b.START_TOLERANCE_SECONDS)
+    return show_from <= activation_now and now < remove_after
+
+
 def verified_effective_urls():
     direct = iphone_streaks_seed_urls()
     out = dict(direct)
     day = datetime.now(JST).date()
     PROBE_DIAGNOSTICS.clear()
+    RETRY_RESOLVER_IDS.clear()
 
     try:
         cards = b.cards_from_snapshot(b.fetch_snapshot(day), day)
@@ -164,6 +176,7 @@ def verified_effective_urls():
 
     print('BOAT verified resolver probing:', ', '.join(targets))
     verified = 0
+    retry = 0
     with ThreadPoolExecutor(max_workers=min(4, len(targets))) as pool:
         futures = {pool.submit(probe_verified_resolver, jcd): jcd for jcd in targets}
         for future in as_completed(futures):
@@ -178,10 +191,20 @@ def verified_effective_urls():
                 out[tvg_id] = endpoint
                 verified += 1
                 print(f'BOAT {name}: verified resolver playable source={source}')
+            elif night_retry_window_open(cards.get(jcd) or []):
+                # Night venues must appear automatically when their display
+                # window opens. Publish the stable per-venue Render endpoint so
+                # an actual player request can retry upstream discovery even if
+                # the scheduled preflight happened during a temporary 403/503.
+                out[tvg_id] = f'{RENDER_PREFIX}{jcd}'
+                RETRY_RESOLVER_IDS.add(tvg_id)
+                PROBE_DIAGNOSTICS[tvg_id]['retry_enabled'] = True
+                retry += 1
+                print(f'BOAT {name}: night on-demand resolver retry enabled after preflight miss: {error}')
             else:
                 print(f'BOAT {name}: resolver not playable: {error}')
 
-    print(f'BOAT verified resolver fallback: {verified}/{len(targets)} missing held venue(s) playable')
+    print(f'BOAT verified resolver fallback: {verified}/{len(targets)} missing held venue(s) playable; night retry={retry}')
     return out
 
 
@@ -191,7 +214,7 @@ def normalize_status():
             continue
         data = json.loads(path.read_text(encoding='utf-8'))
         data['system'] = 'boat-v2-iphone-seed'
-        data['stream_source'] = 'current-JST-date iPhone direct Streaks + per-venue Render resolver verified playable=true'
+        data['stream_source'] = 'current-JST-date iPhone direct Streaks + verified per-venue Render resolver + night-window on-demand retry'
         data['seed_freshness_rule'] = 'JWT start date must equal current JST date'
         data['resolver_ready'] = False
         data['resolver_probe_status'] = 0
@@ -199,23 +222,34 @@ def normalize_status():
         data['resolver_diagnostics'] = PROBE_DIAGNOSTICS
         data.pop('resolver_base', None)
         verified_count = 0
+        retry_count = 0
         for tvg_id, item in (data.get('venues') or {}).items():
             url = item.get('url') or ''
             if url.startswith('https://manifest.streaks.jp/'):
                 item['source'] = 'iPhone one-click direct Streaks seed (current JST date)'
                 item.pop('verified_resolver', None)
+                item.pop('resolver_retry', None)
             elif url.startswith(RENDER_PREFIX):
-                item['source'] = 'verified Render BOAT resolver (debug playable=true)'
-                item['verified_resolver'] = True
-                verified_count += 1
+                if tvg_id in RETRY_RESOLVER_IDS:
+                    item['source'] = 'Render BOAT resolver (night on-demand retry)'
+                    item['resolver_retry'] = True
+                    item.pop('verified_resolver', None)
+                    retry_count += 1
+                else:
+                    item['source'] = 'verified Render BOAT resolver (debug playable=true)'
+                    item['verified_resolver'] = True
+                    item.pop('resolver_retry', None)
+                    verified_count += 1
             elif item.get('stream_window') in {'live_or_vtr', 'epg_ready'}:
                 item['visible'] = False
                 item.pop('url', None)
                 item.pop('verified_resolver', None)
+                item.pop('resolver_retry', None)
                 item['source'] = 'current-day direct seed unavailable and resolver not verified playable'
             if tvg_id in PROBE_DIAGNOSTICS:
                 item['resolver_debug'] = PROBE_DIAGNOSTICS[tvg_id]
         data['verified_resolver_count'] = verified_count
+        data['resolver_retry_count'] = retry_count
         path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
 
     if FREEWIFI.exists():
@@ -227,9 +261,9 @@ def normalize_status():
 
 
 def main():
-    # Keep the global resolver path disabled. b.main receives a synthetic seed
-    # mapping made of current-day iPhone Streaks URLs plus only resolver routes
-    # that were individually checked with ?debug=1 and playable=true.
+    # Keep blanket resolver publishing disabled. b.main receives a synthetic
+    # mapping of current-day direct Streaks URLs, verified resolver routes, and
+    # night-only retry routes after the venue's display window opens.
     b.resolver_ready = disable_global_cloud_resolver
     b.seed_urls = verified_effective_urls
     rc = b.main()
