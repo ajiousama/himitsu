@@ -1,6 +1,6 @@
 {
   "system": "boat-v2-iphone-seed",
-  "generated_at": "2026-09-07T09:34:49.447725+09:00",
+  "generated_at": "2026-09-07T09:55:32.846021+09:00",
   "date": "2026-09-07",
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/",
   "resolver_ready": false,
@@ -182,8 +182,8 @@
       "remove_after": "2026-09-07T14:41:00+09:00",
       "mode": "morning",
       "next_race": {
-        "race": 4,
-        "start": "09:50"
+        "race": 5,
+        "start": "10:18"
       },
       "stream_window": "live_or_vtr",
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/04ca6b5a22c54202ad394bcfd1537065/dcb3bfa548e04daab5250e11a8d69796/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4ODkxNTYwMCwic3RhcnQiOjE3ODg3MzU0MjAsImlvcyI6MTgsImNwIjoiMjEwOTMxMDIwXzIxMDk3NDIxOSIsInBwdyI6IjQwayJ9.xlBlVLG8lSv7r8_vnydgt8NLJOtluyJVKBAfDH_u3wA",
@@ -238,8 +238,8 @@
       "remove_after": "2026-09-07T14:58:00+09:00",
       "mode": "morning",
       "next_race": {
-        "race": 3,
-        "start": "09:36"
+        "race": 4,
+        "start": "10:02"
       },
       "stream_window": "live_or_vtr",
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/19b2a55a5e7b419280e6e1ac2f15312b/f064634c90994053a00566d4017a887f/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4ODkxNTYwMCwic3RhcnQiOjE3ODg3MzYxNDAsImlvcyI6MTgsImNwIjoiMjEwOTMxNzQwXzIxMDk3NDkzOSIsInBwdyI6IjQwayJ9.hwdCJ6Ccie2QvuXYPRNvB31CV3VoJstxC2fCV3Ont8k",
@@ -293,9 +293,7 @@
             "HTTPError:403"
           ],
           "jlc": [],
-          "sakura": [
-            "sakura-fast:child-deadline"
-          ]
+          "sakura": []
         }
       }
     },
@@ -354,13 +352,16 @@
         "sakura": []
       }
     },
-    "boat.edogawa": {
-      "jcd": "03",
-      "name": "江戸川",
+    "boat.kiryu": {
+      "jcd": "01",
+      "name": "桐生",
       "http_status": 503,
-      "ok": false,
+      "ok": true,
       "playable": false,
-      "source": "",
+      "source": "public_sports_youtube_fallback.m3u",
+      "probe": {
+        "error": "HTTPError:403"
+      },
       "details": {
         "streaks": [
           "HTTPError:403"
@@ -381,21 +382,16 @@
           "HTTPError:403"
         ],
         "jlc": [],
-        "sakura": [
-          "sakura-fast:child-deadline"
-        ]
+        "sakura": []
       }
     },
-    "boat.kiryu": {
-      "jcd": "01",
-      "name": "桐生",
+    "boat.edogawa": {
+      "jcd": "03",
+      "name": "江戸川",
       "http_status": 503,
-      "ok": true,
+      "ok": false,
       "playable": false,
-      "source": "public_sports_youtube_fallback.m3u",
-      "probe": {
-        "error": "HTTPError:403"
-      },
+      "source": "",
       "details": {
         "streaks": [
           "HTTPError:403"
