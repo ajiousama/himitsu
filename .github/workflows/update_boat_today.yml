@@ -3,8 +3,9 @@ name: Update BOAT Today Verified Hybrid
 on:
   workflow_dispatch:
   schedule:
-    # Rebuild every 5-10 minutes from automatic Vercel KIX seed plus the
-    # existing iPhone seed fallback and verified Render/JLC/Sakura resolver.
+    # Rebuild every 5-10 minutes from the iPhone seed plus the
+    # verified Render/JLC/Sakura relay fallback. Cloud-minted direct tokens
+    # must not replace the client-acquired seed.
     - cron: "3,13,23,33,43,53 * * * *"
     - cron: "8,18,28,38,48,58 * * * *"
   push:
@@ -45,9 +46,6 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: "3.12"
-
-      - name: Refresh BOAT seed from Vercel KIX when available
-        run: python -u boat_vercel_seed_refresh.py
 
       - name: Verify BOAT seed input
         shell: bash
@@ -122,8 +120,6 @@ jobs:
           }
 
           rebuild_from_latest_seed() {
-            cp boat_stream_seed.m3u /tmp/boat_stream_seed.m3u.before
-            python -u boat_vercel_seed_refresh.py
             cp boat_stream_seed.m3u /tmp/boat_stream_seed.m3u.before
             python -u boat_iphone_seed_build.py
             python build_today_event_counts.py
