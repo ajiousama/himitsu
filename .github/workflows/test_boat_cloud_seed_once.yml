@@ -18,82 +18,64 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
-      - name: Inspect official BOAT player live app for cloud HLS path
+      - name: Verify official BOAT player bundled Streaks client can resolve cloud HLS
         shell: bash
         run: |
           set -euo pipefail
           python - <<'PY'
-          import datetime, json, re, urllib.error, urllib.parse, urllib.request
+          import datetime, hashlib, json, re, urllib.error, urllib.request
           from zoneinfo import ZoneInfo
           UA='Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) AppleWebKit/605.1.15 Version/18.0 Mobile/15E148 Safari/604.1'
-          player='https://front.player.boatrace-cdn.jp/player/live?service=boatcast&stadium=01kiryu&sourceType=mix&dvr=1&audioMode=0&autoplay=1&bitrate=low'
+          lib='https://front.player.boatrace-cdn.jp/lib/streaks/2.5.8/streaksplayer.min.js'
+          referer='https://front.player.boatrace-cdn.jp/player/live?service=boatcast&stadium=01kiryu&sourceType=mix&dvr=1&audioMode=0&autoplay=1&bitrate=low'
           ymd=datetime.datetime.now(ZoneInfo('Asia/Tokyo')).strftime('%Y%m%d')
           playback=f'https://playback.api.streaks.jp/v1/projects/cp-boatrace-prod/medias/ref:lm-br-01kiryu-tokyo-{ymd}?audio_only=false'
 
           def get(url, extra=None, timeout=12):
-              h={'User-Agent':UA,'Accept':'*/*','Referer':'https://race.boatcast.jp/?jo=01'}
+              h={'User-Agent':UA,'Accept':'*/*','Referer':referer,'Origin':'https://front.player.boatrace-cdn.jp'}
               if extra: h.update(extra)
               req=urllib.request.Request(url,headers=h)
               try:
                   with urllib.request.urlopen(req,timeout=timeout) as r:
-                      return r.status,r.headers.get('content-type',''),r.read(),r.geturl()
+                      return r.status,r.read()
               except urllib.error.HTTPError as e:
-                  return e.code,e.headers.get('content-type',''),e.read(),url
+                  return e.code,e.read()
 
-          def red(s):
-              s=re.sub(r'(?i)(token|secret|api[_-]?key)(.{0,20})[A-Za-z0-9_-]{16,}',r'\1\2<redacted>',s)
-              s=re.sub(r'(?<![A-Za-z0-9])[A-Fa-f0-9]{32,}(?![A-Za-z0-9])','<hex-redacted>',s)
-              return s.replace('\n',' ')[:500]
-
-          s,ct,b,final=get(player)
-          print('PLAYER_PAGE',s,ct,'BYTES',len(b),'FINAL',final)
-          html=b.decode('utf-8','replace') if s==200 else ''
-          blobs=[(final,html)] if html else []
-          assets=[]
-          for pat in (r'<script[^>]+src=["\']([^"\']+)',r'<link[^>]+href=["\']([^"\']+)'):
-              for m in re.finditer(pat,html,re.I):
-                  u=urllib.parse.urljoin(final,m.group(1))
-                  if u not in assets: assets.append(u)
-          print('ASSET_COUNT',len(assets))
-          for u in assets[:30]:
-              ss,cct,bb,_=get(u,{'Referer':final},15)
-              print('ASSET',urllib.parse.urlsplit(u).path[-110:],'STATUS',ss,'TYPE',cct,'BYTES',len(bb))
-              if ss==200 and ('javascript' in cct or u.endswith('.js')) and len(bb)<8_000_000:
-                  blobs.append((u,bb.decode('utf-8','replace')))
-
+          s,b=get(lib)
+          print('LIB_STATUS',s,'BYTES',len(b))
+          js=b.decode('utf-8','replace') if s==200 else ''
+          # The official bundled client uses e.apiKey||Wa. Find Wa's literal assignment,
+          # but never print the key itself.
           candidates=[]
-          for url,src in blobs:
-              low=src.lower()
-              if 'streaks' in low or 'playback.api' in low or 'manifest.streaks' in low:
-                  print('STREAKS_REF',urllib.parse.urlsplit(url).path)
-              for m in re.finditer(r'https?://[^"\'`\\\s]+',src):
-                  u=m.group(0)
-                  if any(k in u.lower() for k in ('streaks','m3u8','manifest','playback')):
-                      print('URL',red(u))
-              for m in re.finditer(r'(?i)(?:api[_-]?key|x-streaks-api-key)[^A-Za-z0-9]{0,30}["\']?([A-Za-z0-9_-]{16,128})',src):
-                  candidates.append(m.group(1))
-              if 'streaks' in low:
-                  for v in re.findall(r'(?<![0-9a-fA-F])[0-9a-fA-F]{24,64}(?![0-9a-fA-F])',src): candidates.append(v)
-              for term in ('playback.api','streaks','X-Streaks','apiKey','m3u8','manifest'):
-                  i=low.find(term.lower())
-                  if i>=0: print('CTX',term,red(src[max(0,i-220):i+420]))
+          for pat in (r'Wa=["\']([A-Za-z0-9_-]{12,128})["\']', r'(?:var|const|let)\s+Wa\s*=\s*["\']([A-Za-z0-9_-]{12,128})["\']'):
+              for m in re.finditer(pat,js): candidates.append(m.group(1))
           candidates=list(dict.fromkeys(candidates))
-          print('KEY_CANDIDATES',len(candidates))
+          print('WA_CANDIDATES',len(candidates),[(len(x),hashlib.sha256(x.encode()).hexdigest()[:10]) for x in candidates])
 
-          base={'User-Agent':UA,'Origin':'https://front.player.boatrace-cdn.jp','Referer':final,'Accept':'application/json'}
-          ss,cct,bb,_=get(playback,base)
-          print('PLAYBACK_NO_KEY',ss,'BYTES',len(bb))
-          for i,key in enumerate(candidates[:100],1):
-              ss,cct,bb,_=get(playback,{**base,'X-Streaks-Api-Key':key},8)
-              if ss!=403:
-                  found=False
-                  try:
-                      d=json.loads(bb.decode('utf-8','replace'))
-                      found=any(isinstance(x,dict) and str(x.get('src','')).startswith('https://manifest.streaks.jp/') for x in (d.get('sources') or []))
-                  except Exception: pass
-                  print('KEY_TEST',i,'STATUS',ss,'HLS',found,'BYTES',len(bb))
-                  if found:
-                      print('CLOUD_SEED_PLAYER_KEY=YES')
-                      raise SystemExit(0)
-          print('CLOUD_SEED_PLAYER_KEY=NO')
+          # If minification changed the variable assignment, inspect a small window around e.apiKey||Wa
+          # and collect quoted literals assigned to nearby 1-2 letter variables without logging them.
+          pos=js.find('e.apiKey=e.apiKey||Wa')
+          print('DEFAULT_KEY_SITE_FOUND',pos>=0)
+          if pos>=0:
+              window=js[max(0,pos-12000):pos]
+              for m in re.finditer(r'(?:^|[,;])\s*Wa\s*=\s*["\']([A-Za-z0-9_-]{12,128})["\']',window):
+                  candidates.append(m.group(1))
+          candidates=list(dict.fromkeys(candidates))
+          print('TOTAL_CANDIDATES',len(candidates))
+
+          s,b=get(playback,{'Accept':'application/json'})
+          print('PLAYBACK_NO_KEY',s,'BYTES',len(b))
+          for i,key in enumerate(candidates,1):
+              s,b=get(playback,{'Accept':'application/json','X-Streaks-Api-Key':key})
+              found=False
+              try:
+                  d=json.loads(b.decode('utf-8','replace'))
+                  found=any(isinstance(x,dict) and str(x.get('src','')).startswith('https://manifest.streaks.jp/') and '.m3u8' in str(x.get('src','')) for x in (d.get('sources') or []))
+              except Exception: pass
+              print('CANDIDATE',i,'STATUS',s,'HLS',found,'BYTES',len(b))
+              if s==200 and found:
+                  print('CLOUD_SEED_OFFICIAL_BUNDLED_KEY=YES')
+                  raise SystemExit(0)
+          print('CLOUD_SEED_OFFICIAL_BUNDLED_KEY=NO')
+          raise SystemExit(1)
           PY
