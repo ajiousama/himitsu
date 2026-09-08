@@ -1,8 +1,9 @@
 name: Update BOAT Auto v3
-# recovery-touch: 2026-09-08 JST
+# recovery-touch: 2026-09-08 11:36 JST - force BOAT recovery after stale status
 
 on:
   workflow_dispatch:
+  # Push touch is also an immediate recovery path when the scheduled queue stalls.
   schedule:
     # 24時間、5分間隔。JST日付変更・モーニング・デイ・ナイターを同じ系統で処理する。
     # GitHub scheduled runs can be delayed. Two staggered schedules plus the
