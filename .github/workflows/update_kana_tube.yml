@@ -1,5 +1,5 @@
 name: Update Kana Tube LIVE and Schedule
-# recovery-touch: 2026-09-08 21:00 JST
+# recovery-touch: 2026-09-08 21:02 JST
 
 on:
   workflow_dispatch:
@@ -14,8 +14,8 @@ permissions:
   contents: write
 
 concurrency:
-  group: himitsu-freewifi-writer
-  cancel-in-progress: false
+  group: himitsu-kana-tube
+  cancel-in-progress: true
 
 jobs:
   update:
