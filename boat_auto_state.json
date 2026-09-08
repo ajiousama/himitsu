@@ -1,28 +1,36 @@
 {
   "system": "boat-auto-v3",
+  "architecture_version": 4,
   "date": "2026-09-08",
-  "generated_at": "2026-09-08T20:28:41.367554+09:00",
+  "generated_at": "2026-09-08T21:22:16.723553+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260908.json",
-  "stream_source": "Vercel KIX automatic acquisition near each venue start; 公営これ一発 v17 is emergency SEED only",
-  "stream_acquisition_policy": "開催表/EPGは0時から独立更新。自動SEED取得は各場の1R 90分前から開始し、30分前までに未取得なら警告。",
+  "schedule_checked_at": "2026-09-08T21:22:16.723553+09:00",
+  "schedule_warnings": [
+    "official_cards: TimeoutError"
+  ],
+  "stream_source": "cloud + official Playback API; audio/video decoded before acceptance",
+  "stream_acquisition_policy": "1R150分前から毎分取得。再生確認済みURLは保持し5分ごとに異常のみ確認。失敗場だけ自動復旧。",
   "retention_policy": "開催場はJST日付変更まで保持。終了しても削除しない。",
   "epg_finished_title": "本日の開催は終了しました",
-  "acquire_lead_minutes": 90,
+  "acquire_lead_minutes": 150,
   "alert_lead_minutes": 30,
   "card_count": 11,
   "held_count": 11,
   "visible_count": 11,
-  "active_count": 3,
+  "active_count": 0,
   "ended_kept": [
+    "桐生",
     "江戸川",
     "平和島",
+    "蒲郡",
     "津",
     "三国",
     "びわこ",
     "尼崎",
     "鳴門",
-    "児島"
+    "児島",
+    "大村"
   ],
   "seed_required": false,
   "seed_required_venues": [],
@@ -45,15 +53,17 @@
     "night": {
       "held": 3,
       "acquired": 3,
-      "active": 3,
-      "ended": 0,
+      "active": 0,
+      "ended": 3,
       "seed_required": 0
     }
   },
   "cloud_acquisition": {
-    "requested": 3,
-    "fetched": 3,
-    "failures": []
+    "requested": 0,
+    "fetched": 0,
+    "failures": [],
+    "deferred": 11,
+    "reason": "stream acquisition waits until each venue 1R prefetch window"
   },
   "epg_programmes_written": {
     "public_sports_epg_local.xml": 143,
@@ -126,20 +136,21 @@
       "name": "桐生",
       "held": true,
       "visible": true,
-      "ended": false,
-      "active": true,
+      "ended": true,
+      "active": false,
       "mode": "night",
       "mode_label": "ナイター",
       "first_race": "15:18",
       "last_race": "20:30",
       "alert_from": "2026-09-08T14:48:00+09:00",
-      "next_race": {
-        "race": 12,
-        "start": "20:30"
-      },
-      "stream_window": "live_or_prestart",
+      "next_race": null,
+      "stream_window": "ended_kept",
       "guidance_switch_at": "2026-09-08T21:15:00+09:00",
       "seed_required": false,
+      "playback_verified": false,
+      "first_verified_at": null,
+      "ready_before_first_race": false,
+      "acquire_from": "2026-09-08T12:48:00+09:00",
       "races": [
         {
           "race": 1,
@@ -222,6 +233,10 @@
       "stream_window": "ended_kept",
       "guidance_switch_at": "2026-09-08T17:10:00+09:00",
       "seed_required": false,
+      "playback_verified": false,
+      "first_verified_at": null,
+      "ready_before_first_race": false,
+      "acquire_from": "2026-09-08T08:44:00+09:00",
       "races": [
         {
           "race": 1,
@@ -304,6 +319,10 @@
       "stream_window": "ended_kept",
       "guidance_switch_at": "2026-09-08T17:23:00+09:00",
       "seed_required": false,
+      "playback_verified": false,
+      "first_verified_at": null,
+      "ready_before_first_race": false,
+      "acquire_from": "2026-09-08T08:25:00+09:00",
       "races": [
         {
           "race": 1,
@@ -375,20 +394,21 @@
       "name": "蒲郡",
       "held": true,
       "visible": true,
-      "ended": false,
-      "active": true,
+      "ended": true,
+      "active": false,
       "mode": "night",
       "mode_label": "ナイター",
       "first_race": "15:24",
       "last_race": "20:38",
       "alert_from": "2026-09-08T14:54:00+09:00",
-      "next_race": {
-        "race": 12,
-        "start": "20:38"
-      },
-      "stream_window": "live_or_prestart",
+      "next_race": null,
+      "stream_window": "ended_kept",
       "guidance_switch_at": "2026-09-08T21:23:00+09:00",
       "seed_required": false,
+      "playback_verified": false,
+      "first_verified_at": null,
+      "ready_before_first_race": false,
+      "acquire_from": "2026-09-08T12:54:00+09:00",
       "races": [
         {
           "race": 1,
@@ -471,6 +491,10 @@
       "stream_window": "ended_kept",
       "guidance_switch_at": "2026-09-08T17:20:00+09:00",
       "seed_required": false,
+      "playback_verified": false,
+      "first_verified_at": null,
+      "ready_before_first_race": false,
+      "acquire_from": "2026-09-08T08:12:00+09:00",
       "races": [
         {
           "race": 1,
@@ -553,6 +577,10 @@
       "stream_window": "ended_kept",
       "guidance_switch_at": "2026-09-08T14:58:00+09:00",
       "seed_required": false,
+      "playback_verified": false,
+      "first_verified_at": null,
+      "ready_before_first_race": false,
+      "acquire_from": "2026-09-08T06:02:00+09:00",
       "races": [
         {
           "race": 1,
@@ -635,6 +663,10 @@
       "stream_window": "ended_kept",
       "guidance_switch_at": "2026-09-08T17:13:00+09:00",
       "seed_required": false,
+      "playback_verified": false,
+      "first_verified_at": null,
+      "ready_before_first_race": false,
+      "acquire_from": "2026-09-08T08:06:00+09:00",
       "races": [
         {
           "race": 1,
@@ -717,6 +749,10 @@
       "stream_window": "ended_kept",
       "guidance_switch_at": "2026-09-08T17:08:00+09:00",
       "seed_required": false,
+      "playback_verified": false,
+      "first_verified_at": null,
+      "ready_before_first_race": false,
+      "acquire_from": "2026-09-08T08:03:00+09:00",
       "races": [
         {
           "race": 1,
@@ -799,6 +835,10 @@
       "stream_window": "ended_kept",
       "guidance_switch_at": "2026-09-08T15:13:00+09:00",
       "seed_required": false,
+      "playback_verified": false,
+      "first_verified_at": null,
+      "ready_before_first_race": false,
+      "acquire_from": "2026-09-08T06:14:00+09:00",
       "races": [
         {
           "race": 1,
@@ -881,6 +921,10 @@
       "stream_window": "ended_kept",
       "guidance_switch_at": "2026-09-08T17:33:00+09:00",
       "seed_required": false,
+      "playback_verified": false,
+      "first_verified_at": null,
+      "ready_before_first_race": false,
+      "acquire_from": "2026-09-08T08:23:00+09:00",
       "races": [
         {
           "race": 1,
@@ -952,20 +996,21 @@
       "name": "大村",
       "held": true,
       "visible": true,
-      "ended": false,
-      "active": true,
+      "ended": true,
+      "active": false,
       "mode": "night",
       "mode_label": "ナイター",
       "first_race": "15:15",
       "last_race": "20:45",
       "alert_from": "2026-09-08T14:45:00+09:00",
-      "next_race": {
-        "race": 12,
-        "start": "20:45"
-      },
-      "stream_window": "live_or_prestart",
+      "next_race": null,
+      "stream_window": "ended_kept",
       "guidance_switch_at": "2026-09-08T21:30:00+09:00",
       "seed_required": false,
+      "playback_verified": false,
+      "first_verified_at": null,
+      "ready_before_first_race": false,
+      "acquire_from": "2026-09-08T12:45:00+09:00",
       "races": [
         {
           "race": 1,
