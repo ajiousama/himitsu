@@ -11,8 +11,13 @@ permissions:
 jobs:
   probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 10
     steps:
+      - name: Install FFmpeg
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+
       - name: Verify Render health
         run: |
           set -euxo pipefail
@@ -36,7 +41,7 @@ jobs:
           set -euxo pipefail
           for station in FMOTOKUNI FM845 BARIBARI; do
             echo "===== PLAYBACK ${station} ====="
-            url="https://ajiousama-radiko.onrender.com/radio-tv/${station}?probe=20260909a"
+            url="https://ajiousama-radiko.onrender.com/radio-tv/${station}?probe=20260909b"
             timeout 35s ffmpeg -nostdin -hide_banner -loglevel warning \
               -i "$url" -t 8 -map 0:v:0 -map 0:a:0 -f null -
             echo "PLAYBACK_PASS ${station}"
