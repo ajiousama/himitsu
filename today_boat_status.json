@@ -1,7 +1,7 @@
 {
   "system": "boat-auto-v3",
   "date": "2026-09-08",
-  "generated_at": "2026-09-08T09:59:07.032335+09:00",
+  "generated_at": "2026-09-08T11:37:22.289894+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260908.json",
   "stream_source": "Vercel KIX automatic acquisition near each venue start; 公営これ一発 v17 is emergency SEED only",
@@ -11,8 +11,8 @@
   "alert_lead_minutes": 30,
   "card_count": 11,
   "held_count": 11,
-  "visible_count": 2,
-  "active_count": 2,
+  "visible_count": 8,
+  "active_count": 8,
   "ended_kept": [],
   "seed_required": false,
   "seed_required_venues": [],
@@ -27,8 +27,8 @@
     },
     "day": {
       "held": 6,
-      "acquired": 0,
-      "active": 0,
+      "acquired": 6,
+      "active": 6,
       "ended": 0,
       "seed_required": 0
     },
@@ -41,8 +41,8 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 2,
-    "fetched": 2,
+    "requested": 8,
+    "fetched": 8,
     "failures": []
   },
   "epg_programmes_written": {
@@ -54,15 +54,45 @@
     "kind": "healthy"
   },
   "streams": {
-    "boat.mikuni": {
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/f4ef3c276a964558b69a0f32ea9ef6a9/865dca732a1c4036ac798250054c0e53/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTAwMjAwMCwic3RhcnQiOjE3ODg4MjE4MjAsImlvcyI6MTgsImNwIjoiMjExMDE3NDIwXzIxMTA2MDYxOSIsInBwdyI6IjQwayJ9.2aCoTPxBzSzTflNY8YLghlUwpFz40NuRMrltQYxNj64",
+    "boat.edogawa": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/7be6162028004c6cb545e7a9050113e9/74648261ba6347d19c26dfaf5ad5d1cb/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTAwOTIwMCwic3RhcnQiOjE3ODg4MzE1NDAsImlvcyI6MTgsImNwIjoiMjExMDI3MTQwXzIxMTA3MDMzOSIsInBwdyI6IjQwayJ9.qUAXJMsxRLI2j6nL_ileFxYal9IyMBWSDnNADfjXtJg",
       "source": "Vercel KIX automatic acquisition",
-      "acquired_at": "2026-09-08T09:59:07.193876+09:00"
+      "acquired_at": "2026-09-08T11:37:22.734895+09:00"
+    },
+    "boat.heiwajima": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/0f5457be236945fda9d6e1b18fbeaae5/66296390d98a44a0b8619872c3aefe02/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTAwOTIwMCwic3RhcnQiOjE3ODg4MjkyMDAsImlvcyI6MTgsImNwIjoiMjExMDI0ODAwXzIxMTA2Nzk5OSIsInBwdyI6IjQwayJ9.tTR9BsL1orYUq1O_262uEwYjctNvzho8-bqIlepAedg",
+      "source": "Vercel KIX automatic acquisition",
+      "acquired_at": "2026-09-08T11:37:22.734895+09:00"
+    },
+    "boat.tsu": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/bb984b86514a4856a90dcdc9de6da7a1/1fd9d9a965a34e989e7ef5bf3f8fa0ea/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTAwOTIwMCwic3RhcnQiOjE3ODg4MjkyMDAsImlvcyI6MTgsImNwIjoiMjExMDI0ODAwXzIxMTA2Nzk5OSIsInBwdyI6IjQwayJ9.tTR9BsL1orYUq1O_262uEwYjctNvzho8-bqIlepAedg",
+      "source": "Vercel KIX automatic acquisition",
+      "acquired_at": "2026-09-08T11:37:22.734895+09:00"
+    },
+    "boat.mikuni": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/f4ef3c276a964558b69a0f32ea9ef6a9/865dca732a1c4036ac798250054c0e53/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTAwOTIwMCwic3RhcnQiOjE3ODg4MjE4MjAsImlvcyI6MTgsImNwIjoiMjExMDE3NDIwXzIxMTA2MDYxOSIsInBwdyI6IjQwayJ9.NedFGukfcg-_03VxWJ-hV8Q5FTXPQ3IqY9vPcXOOMQc",
+      "source": "Vercel KIX automatic acquisition",
+      "acquired_at": "2026-09-08T11:37:22.734895+09:00"
+    },
+    "boat.biwako": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/9301b1b3f87e4a49a3c493118cdb2e68/8b938ad63543446e8b30bcb77baa2581/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTAwOTIwMCwic3RhcnQiOjE3ODg4Mjg5MDAsImlvcyI6MTgsImNwIjoiMjExMDI0NTAwXzIxMTA2NzY5OSIsInBwdyI6IjQwayJ9.U6DBzx7w0M5fI8OSQ0LGQOvFlmJB1csU___0Owz1fq8",
+      "source": "Vercel KIX automatic acquisition",
+      "acquired_at": "2026-09-08T11:37:22.734895+09:00"
+    },
+    "boat.amagasaki": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/cebef2bb0c844b88ba751ce317ba7b22/1d60dbe46ce7470eb4d316a77ece22c8/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTAwOTIwMCwic3RhcnQiOjE3ODg4MjkzMjAsImlvcyI6MTgsImNwIjoiMjExMDI0OTIwXzIxMTA2ODExOSIsInBwdyI6IjQwayJ9.Ymx9LOr7p2iUD5hqJz2Mmofj3wfCQpn2Pc364QpZTp0",
+      "source": "Vercel KIX automatic acquisition",
+      "acquired_at": "2026-09-08T11:37:22.734895+09:00"
     },
     "boat.naruto": {
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/726d47aa27fd40a1b9d649f828376d12/8aed163ab5b44427949631dbcfa1348a/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTAwMjAwMCwic3RhcnQiOjE3ODg4MjI1NDAsImlvcyI6MTgsImNwIjoiMjExMDE4MTQwXzIxMTA2MTMzOSIsInBwdyI6IjQwayJ9.ALfajoEs_uSP9_gh_wm3Id2sTN6MRkiynEsEO06OPak",
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/726d47aa27fd40a1b9d649f828376d12/8aed163ab5b44427949631dbcfa1348a/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTAwOTIwMCwic3RhcnQiOjE3ODg4MjI1NDAsImlvcyI6MTgsImNwIjoiMjExMDE4MTQwXzIxMTA2MTMzOSIsInBwdyI6IjQwayJ9.7uI3jnRB0axw47LXbATb-vsjYThLf-dJJJTldGpl7Eo",
       "source": "Vercel KIX automatic acquisition",
-      "acquired_at": "2026-09-08T09:59:07.193876+09:00"
+      "acquired_at": "2026-09-08T11:37:22.734895+09:00"
+    },
+    "boat.kojima": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/98f12f47757b4bf48172c63e2ef76336/f01c5eeca72f493f918e741390a10f69/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTAwOTIwMCwic3RhcnQiOjE3ODg4MjgwMDAsImlvcyI6MTgsImNwIjoiMjExMDIzNjAwXzIxMTA2Njc5OSIsInBwdyI6IjQwayJ9.fPm_JFeNGHDR-2eH8Fa5PxYhJ3G9IkrlqUhvrjubM2c",
+      "source": "Vercel KIX automatic acquisition",
+      "acquired_at": "2026-09-08T11:37:22.734895+09:00"
     }
   },
   "venues": {
@@ -153,19 +183,19 @@
       "jcd": "03",
       "name": "江戸川",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
-      "active": false,
+      "active": true,
       "mode": "day",
       "mode_label": "デイ",
       "first_race": "11:14",
       "last_race": "16:25",
       "alert_from": "2026-09-08T10:44:00+09:00",
       "next_race": {
-        "race": 1,
-        "start": "11:14"
+        "race": 2,
+        "start": "11:41"
       },
-      "stream_window": "scheduled",
+      "stream_window": "live_or_prestart",
       "guidance_switch_at": "2026-09-08T17:10:00+09:00",
       "seed_required": false,
       "races": [
@@ -230,25 +260,27 @@
           "name": "記者選抜戦"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/7be6162028004c6cb545e7a9050113e9/74648261ba6347d19c26dfaf5ad5d1cb/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTAwOTIwMCwic3RhcnQiOjE3ODg4MzE1NDAsImlvcyI6MTgsImNwIjoiMjExMDI3MTQwXzIxMTA3MDMzOSIsInBwdyI6IjQwayJ9.qUAXJMsxRLI2j6nL_ileFxYal9IyMBWSDnNADfjXtJg",
+      "source": "Vercel KIX automatic acquisition",
+      "token_expired": false
     },
     "boat.heiwajima": {
       "jcd": "04",
       "name": "平和島",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
-      "active": false,
+      "active": true,
       "mode": "day",
       "mode_label": "デイ",
       "first_race": "10:55",
       "last_race": "16:38",
       "alert_from": "2026-09-08T10:25:00+09:00",
       "next_race": {
-        "race": 1,
-        "start": "10:55"
+        "race": 3,
+        "start": "11:53"
       },
-      "stream_window": "scheduled",
+      "stream_window": "live_or_prestart",
       "guidance_switch_at": "2026-09-08T17:23:00+09:00",
       "seed_required": false,
       "races": [
@@ -313,7 +345,9 @@
           "name": "記者選抜"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/0f5457be236945fda9d6e1b18fbeaae5/66296390d98a44a0b8619872c3aefe02/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTAwOTIwMCwic3RhcnQiOjE3ODg4MjkyMDAsImlvcyI6MTgsImNwIjoiMjExMDI0ODAwXzIxMTA2Nzk5OSIsInBwdyI6IjQwayJ9.tTR9BsL1orYUq1O_262uEwYjctNvzho8-bqIlepAedg",
+      "source": "Vercel KIX automatic acquisition",
+      "token_expired": false
     },
     "boat.gamagori": {
       "jcd": "07",
@@ -402,19 +436,19 @@
       "jcd": "09",
       "name": "津",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
-      "active": false,
+      "active": true,
       "mode": "day",
       "mode_label": "デイ",
       "first_race": "10:42",
       "last_race": "16:35",
       "alert_from": "2026-09-08T10:12:00+09:00",
       "next_race": {
-        "race": 1,
-        "start": "10:42"
+        "race": 3,
+        "start": "11:42"
       },
-      "stream_window": "scheduled",
+      "stream_window": "live_or_prestart",
       "guidance_switch_at": "2026-09-08T17:20:00+09:00",
       "seed_required": false,
       "races": [
@@ -479,7 +513,9 @@
           "name": "優勝戦"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/bb984b86514a4856a90dcdc9de6da7a1/1fd9d9a965a34e989e7ef5bf3f8fa0ea/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTAwOTIwMCwic3RhcnQiOjE3ODg4MjkyMDAsImlvcyI6MTgsImNwIjoiMjExMDI0ODAwXzIxMTA2Nzk5OSIsInBwdyI6IjQwayJ9.tTR9BsL1orYUq1O_262uEwYjctNvzho8-bqIlepAedg",
+      "source": "Vercel KIX automatic acquisition",
+      "token_expired": false
     },
     "boat.mikuni": {
       "jcd": "10",
@@ -494,8 +530,8 @@
       "last_race": "14:13",
       "alert_from": "2026-09-08T08:02:00+09:00",
       "next_race": {
-        "race": 5,
-        "start": "10:18"
+        "race": 8,
+        "start": "11:51"
       },
       "stream_window": "live_or_prestart",
       "guidance_switch_at": "2026-09-08T14:58:00+09:00",
@@ -562,7 +598,7 @@
           "name": "優勝戦"
         }
       ],
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/f4ef3c276a964558b69a0f32ea9ef6a9/865dca732a1c4036ac798250054c0e53/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTAwMjAwMCwic3RhcnQiOjE3ODg4MjE4MjAsImlvcyI6MTgsImNwIjoiMjExMDE3NDIwXzIxMTA2MDYxOSIsInBwdyI6IjQwayJ9.2aCoTPxBzSzTflNY8YLghlUwpFz40NuRMrltQYxNj64",
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/f4ef3c276a964558b69a0f32ea9ef6a9/865dca732a1c4036ac798250054c0e53/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTAwOTIwMCwic3RhcnQiOjE3ODg4MjE4MjAsImlvcyI6MTgsImNwIjoiMjExMDE3NDIwXzIxMTA2MDYxOSIsInBwdyI6IjQwayJ9.NedFGukfcg-_03VxWJ-hV8Q5FTXPQ3IqY9vPcXOOMQc",
       "source": "Vercel KIX automatic acquisition",
       "token_expired": false
     },
@@ -570,19 +606,19 @@
       "jcd": "11",
       "name": "びわこ",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
-      "active": false,
+      "active": true,
       "mode": "day",
       "mode_label": "デイ",
       "first_race": "10:36",
       "last_race": "16:28",
       "alert_from": "2026-09-08T10:06:00+09:00",
       "next_race": {
-        "race": 1,
-        "start": "10:36"
+        "race": 4,
+        "start": "12:03"
       },
-      "stream_window": "scheduled",
+      "stream_window": "live_or_prestart",
       "guidance_switch_at": "2026-09-08T17:13:00+09:00",
       "seed_required": false,
       "races": [
@@ -647,25 +683,27 @@
           "name": "準優勝戦"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/9301b1b3f87e4a49a3c493118cdb2e68/8b938ad63543446e8b30bcb77baa2581/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTAwOTIwMCwic3RhcnQiOjE3ODg4Mjg5MDAsImlvcyI6MTgsImNwIjoiMjExMDI0NTAwXzIxMTA2NzY5OSIsInBwdyI6IjQwayJ9.U6DBzx7w0M5fI8OSQ0LGQOvFlmJB1csU___0Owz1fq8",
+      "source": "Vercel KIX automatic acquisition",
+      "token_expired": false
     },
     "boat.amagasaki": {
       "jcd": "13",
       "name": "尼崎",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
-      "active": false,
+      "active": true,
       "mode": "day",
       "mode_label": "デイ",
       "first_race": "10:33",
       "last_race": "16:23",
       "alert_from": "2026-09-08T10:03:00+09:00",
       "next_race": {
-        "race": 1,
-        "start": "10:33"
+        "race": 4,
+        "start": "11:59"
       },
-      "stream_window": "scheduled",
+      "stream_window": "live_or_prestart",
       "guidance_switch_at": "2026-09-08T17:08:00+09:00",
       "seed_required": false,
       "races": [
@@ -730,7 +768,9 @@
           "name": "予選特選"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/cebef2bb0c844b88ba751ce317ba7b22/1d60dbe46ce7470eb4d316a77ece22c8/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTAwOTIwMCwic3RhcnQiOjE3ODg4MjkzMjAsImlvcyI6MTgsImNwIjoiMjExMDI0OTIwXzIxMTA2ODExOSIsInBwdyI6IjQwayJ9.Ymx9LOr7p2iUD5hqJz2Mmofj3wfCQpn2Pc364QpZTp0",
+      "source": "Vercel KIX automatic acquisition",
+      "token_expired": false
     },
     "boat.naruto": {
       "jcd": "14",
@@ -745,8 +785,8 @@
       "last_race": "14:28",
       "alert_from": "2026-09-08T08:14:00+09:00",
       "next_race": {
-        "race": 4,
-        "start": "10:02"
+        "race": 8,
+        "start": "12:05"
       },
       "stream_window": "live_or_prestart",
       "guidance_switch_at": "2026-09-08T15:13:00+09:00",
@@ -813,7 +853,7 @@
           "name": "特選"
         }
       ],
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/726d47aa27fd40a1b9d649f828376d12/8aed163ab5b44427949631dbcfa1348a/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTAwMjAwMCwic3RhcnQiOjE3ODg4MjI1NDAsImlvcyI6MTgsImNwIjoiMjExMDE4MTQwXzIxMTA2MTMzOSIsInBwdyI6IjQwayJ9.ALfajoEs_uSP9_gh_wm3Id2sTN6MRkiynEsEO06OPak",
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/726d47aa27fd40a1b9d649f828376d12/8aed163ab5b44427949631dbcfa1348a/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTAwOTIwMCwic3RhcnQiOjE3ODg4MjI1NDAsImlvcyI6MTgsImNwIjoiMjExMDE4MTQwXzIxMTA2MTMzOSIsInBwdyI6IjQwayJ9.7uI3jnRB0axw47LXbATb-vsjYThLf-dJJJTldGpl7Eo",
       "source": "Vercel KIX automatic acquisition",
       "token_expired": false
     },
@@ -821,19 +861,19 @@
       "jcd": "16",
       "name": "児島",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
-      "active": false,
+      "active": true,
       "mode": "day",
       "mode_label": "デイ",
       "first_race": "10:53",
       "last_race": "16:48",
       "alert_from": "2026-09-08T10:23:00+09:00",
       "next_race": {
-        "race": 1,
-        "start": "10:53"
+        "race": 3,
+        "start": "11:49"
       },
-      "stream_window": "scheduled",
+      "stream_window": "live_or_prestart",
       "guidance_switch_at": "2026-09-08T17:33:00+09:00",
       "seed_required": false,
       "races": [
@@ -898,7 +938,9 @@
           "name": "記者選抜戦"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/98f12f47757b4bf48172c63e2ef76336/f01c5eeca72f493f918e741390a10f69/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTAwOTIwMCwic3RhcnQiOjE3ODg4MjgwMDAsImlvcyI6MTgsImNwIjoiMjExMDIzNjAwXzIxMTA2Njc5OSIsInBwdyI6IjQwayJ9.fPm_JFeNGHDR-2eH8Fa5PxYhJ3G9IkrlqUhvrjubM2c",
+      "source": "Vercel KIX automatic acquisition",
+      "token_expired": false
     },
     "boat.omura": {
       "jcd": "24",
