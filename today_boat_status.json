@@ -1,13 +1,14 @@
 {
   "system": "boat-auto-v3",
   "date": "2026-09-08",
-  "generated_at": "2026-09-08T19:07:41.487819+09:00",
+  "generated_at": "2026-09-08T20:28:41.367554+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260908.json",
   "stream_source": "Vercel KIX automatic acquisition near each venue start; 公営これ一発 v17 is emergency SEED only",
-  "stream_acquisition_policy": "開催表/EPGは0時から独立更新。SEED取得は各場の1R 30分前から開始。",
+  "stream_acquisition_policy": "開催表/EPGは0時から独立更新。自動SEED取得は各場の1R 90分前から開始し、30分前までに未取得なら警告。",
   "retention_policy": "開催場はJST日付変更まで保持。終了しても削除しない。",
   "epg_finished_title": "本日の開催は終了しました",
+  "acquire_lead_minutes": 90,
   "alert_lead_minutes": 30,
   "card_count": 11,
   "held_count": 11,
@@ -64,9 +65,9 @@
   },
   "streams": {
     "boat.kiryu": {
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/c883b11ef1824a0d8690a8528c778be1/c104e429dbd24edb9c7af8c693c745f2/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTAzODAwMCwic3RhcnQiOjE3ODg4NDYzMDAsImlvcyI6MTgsImNwIjoiMjExMDQxOTAwXzIxMTA4MjM5OSIsInBwdyI6IjQwayJ9.8f_4bLVnXDeBCIBz2O9hLgv1u_IhgoSUWu1WL4AyM0Y",
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/c883b11ef1824a0d8690a8528c778be1/c104e429dbd24edb9c7af8c693c745f2/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTA0MTYwMCwic3RhcnQiOjE3ODg4NDYzMDAsImlvcyI6MTgsImNwIjoiMjExMDQxOTAwXzIxMTA4MjM5OSIsInBwdyI6IjQwayJ9.3PUMdh2Hah9Z1aQCTvcufj9-En_jVJnytiBtCtYDZQc",
       "source": "Vercel KIX automatic acquisition",
-      "acquired_at": "2026-09-08T19:07:41.832353+09:00"
+      "acquired_at": "2026-09-08T20:28:41.471339+09:00"
     },
     "boat.edogawa": {
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/7be6162028004c6cb545e7a9050113e9/74648261ba6347d19c26dfaf5ad5d1cb/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTAyMDAwMCwic3RhcnQiOjE3ODg4MzE1NDAsImlvcyI6MTgsImNwIjoiMjExMDI3MTQwXzIxMTA3MDMzOSIsInBwdyI6IjQwayJ9.5NTZwqR0ZALJnvHc9bDhY0whyHL25OG3D6aTyDPiR04",
@@ -79,9 +80,9 @@
       "acquired_at": "2026-09-08T14:51:33.631775+09:00"
     },
     "boat.gamagori": {
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/59eebf3841a64d8eb2c5b96cbef39a38/9b8cdc9194ec45e8b63e62721073f4d9/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTAzODAwMCwic3RhcnQiOjE3ODg4NDQyMDAsImlvcyI6MTgsImNwIjoiMjExMDM5ODAwXzIxMTA4MjM5OSIsInBwdyI6IjQwayJ9.g_rtJJBwO4fBSHQwGmpXAE3RhW3GbBw4IssN9RLjix4",
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/59eebf3841a64d8eb2c5b96cbef39a38/9b8cdc9194ec45e8b63e62721073f4d9/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTA0MTYwMCwic3RhcnQiOjE3ODg4NDQyMDAsImlvcyI6MTgsImNwIjoiMjExMDM5ODAwXzIxMTA4MjM5OSIsInBwdyI6IjQwayJ9.2i45d9kZxI-7M5eUZjwwIGzavQncYc4q_8zAbY1g8TQ",
       "source": "Vercel KIX automatic acquisition",
-      "acquired_at": "2026-09-08T19:07:41.832353+09:00"
+      "acquired_at": "2026-09-08T20:28:41.471339+09:00"
     },
     "boat.tsu": {
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/bb984b86514a4856a90dcdc9de6da7a1/1fd9d9a965a34e989e7ef5bf3f8fa0ea/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTAyMDAwMCwic3RhcnQiOjE3ODg4MjkyMDAsImlvcyI6MTgsImNwIjoiMjExMDI0ODAwXzIxMTA2Nzk5OSIsInBwdyI6IjQwayJ9.1wyFLknkMVU6ejdBsA5teCv9NVIIhsh308T0Eers8pg",
@@ -114,9 +115,9 @@
       "acquired_at": "2026-09-08T14:51:33.631775+09:00"
     },
     "boat.omura": {
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/b5523a6e93114f3fa8429a2e5116d554/e35b868e6b0f4fd3b4d5cbec330ff459/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTAzODAwMCwic3RhcnQiOjE3ODg4NDYwMDAsImlvcyI6MTgsImNwIjoiMjExMDQxNjAwXzIxMTA4MjM5OSIsInBwdyI6IjQwayJ9.usoXkaKUgX1nNTYa346jsm_WfJg-wF_pKCJp1K-ffXw",
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/b5523a6e93114f3fa8429a2e5116d554/e35b868e6b0f4fd3b4d5cbec330ff459/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTA0MTYwMCwic3RhcnQiOjE3ODg4NDYwMDAsImlvcyI6MTgsImNwIjoiMjExMDQxNjAwXzIxMTA4MjM5OSIsInBwdyI6IjQwayJ9.FvFXJvl0gK1P63Mdfxnhk3yx-IZlLGXM9FdxD8hewuo",
       "source": "Vercel KIX automatic acquisition",
-      "acquired_at": "2026-09-08T19:07:41.832353+09:00"
+      "acquired_at": "2026-09-08T20:28:41.471339+09:00"
     }
   },
   "venues": {
@@ -133,8 +134,8 @@
       "last_race": "20:30",
       "alert_from": "2026-09-08T14:48:00+09:00",
       "next_race": {
-        "race": 10,
-        "start": "19:25"
+        "race": 12,
+        "start": "20:30"
       },
       "stream_window": "live_or_prestart",
       "guidance_switch_at": "2026-09-08T21:15:00+09:00",
@@ -201,7 +202,7 @@
           "name": "一般桐生特選"
         }
       ],
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/c883b11ef1824a0d8690a8528c778be1/c104e429dbd24edb9c7af8c693c745f2/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTAzODAwMCwic3RhcnQiOjE3ODg4NDYzMDAsImlvcyI6MTgsImNwIjoiMjExMDQxOTAwXzIxMTA4MjM5OSIsInBwdyI6IjQwayJ9.8f_4bLVnXDeBCIBz2O9hLgv1u_IhgoSUWu1WL4AyM0Y",
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/c883b11ef1824a0d8690a8528c778be1/c104e429dbd24edb9c7af8c693c745f2/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTA0MTYwMCwic3RhcnQiOjE3ODg4NDYzMDAsImlvcyI6MTgsImNwIjoiMjExMDQxOTAwXzIxMTA4MjM5OSIsInBwdyI6IjQwayJ9.3PUMdh2Hah9Z1aQCTvcufj9-En_jVJnytiBtCtYDZQc",
       "source": "Vercel KIX automatic acquisition",
       "token_expired": false
     },
@@ -382,8 +383,8 @@
       "last_race": "20:38",
       "alert_from": "2026-09-08T14:54:00+09:00",
       "next_race": {
-        "race": 10,
-        "start": "19:36"
+        "race": 12,
+        "start": "20:38"
       },
       "stream_window": "live_or_prestart",
       "guidance_switch_at": "2026-09-08T21:23:00+09:00",
@@ -450,7 +451,7 @@
           "name": "優勝戦"
         }
       ],
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/59eebf3841a64d8eb2c5b96cbef39a38/9b8cdc9194ec45e8b63e62721073f4d9/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTAzODAwMCwic3RhcnQiOjE3ODg4NDQyMDAsImlvcyI6MTgsImNwIjoiMjExMDM5ODAwXzIxMTA4MjM5OSIsInBwdyI6IjQwayJ9.g_rtJJBwO4fBSHQwGmpXAE3RhW3GbBw4IssN9RLjix4",
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/59eebf3841a64d8eb2c5b96cbef39a38/9b8cdc9194ec45e8b63e62721073f4d9/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTA0MTYwMCwic3RhcnQiOjE3ODg4NDQyMDAsImlvcyI6MTgsImNwIjoiMjExMDM5ODAwXzIxMTA4MjM5OSIsInBwdyI6IjQwayJ9.2i45d9kZxI-7M5eUZjwwIGzavQncYc4q_8zAbY1g8TQ",
       "source": "Vercel KIX automatic acquisition",
       "token_expired": false
     },
@@ -959,8 +960,8 @@
       "last_race": "20:45",
       "alert_from": "2026-09-08T14:45:00+09:00",
       "next_race": {
-        "race": 9,
-        "start": "19:14"
+        "race": 12,
+        "start": "20:45"
       },
       "stream_window": "live_or_prestart",
       "guidance_switch_at": "2026-09-08T21:30:00+09:00",
@@ -1027,7 +1028,7 @@
           "name": "龍神DR"
         }
       ],
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/b5523a6e93114f3fa8429a2e5116d554/e35b868e6b0f4fd3b4d5cbec330ff459/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTAzODAwMCwic3RhcnQiOjE3ODg4NDYwMDAsImlvcyI6MTgsImNwIjoiMjExMDQxNjAwXzIxMTA4MjM5OSIsInBwdyI6IjQwayJ9.usoXkaKUgX1nNTYa346jsm_WfJg-wF_pKCJp1K-ffXw",
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/b5523a6e93114f3fa8429a2e5116d554/e35b868e6b0f4fd3b4d5cbec330ff459/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTA0MTYwMCwic3RhcnQiOjE3ODg4NDYwMDAsImlvcyI6MTgsImNwIjoiMjExMDQxNjAwXzIxMTA4MjM5OSIsInBwdyI6IjQwayJ9.FvFXJvl0gK1P63Mdfxnhk3yx-IZlLGXM9FdxD8hewuo",
       "source": "Vercel KIX automatic acquisition",
       "token_expired": false
     }
