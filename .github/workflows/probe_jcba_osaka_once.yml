@@ -1,0 +1,64 @@
+name: Probe JCBA Osaka Relay Once
+
+on:
+  push:
+    paths:
+      - ".github/workflows/probe_jcba_osaka_once.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Install websocket client
+        run: python -m pip install -q websocket-client
+      - name: Verify Osaka token relay and remote audio
+        shell: python
+        run: |
+          import json, time, urllib.request
+          import websocket
+
+          UA='Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Version/18.0 Mobile/15E148 Safari/604.1'
+          failed=[]
+          for station in ('FM845','BARIBARI'):
+              print('=====',station,'=====')
+              req=urllib.request.Request(
+                  f'https://himitsu-six.vercel.app/api/jcba-select?station={station}',
+                  headers={'User-Agent':UA,'Accept':'application/json'}
+              )
+              try:
+                  with urllib.request.urlopen(req,timeout=20) as r:
+                      data=json.loads(r.read().decode('utf-8','replace'))
+                  print('RELAY', data.get('ok'), data.get('via'), 'TOKEN_LEN', len(str(data.get('token') or '')))
+                  if not data.get('ok') or data.get('via')!='vercel-kix1':
+                      failed.append(station+':relay')
+                      continue
+                  location=str(data.get('location') or '')
+                  token=str(data.get('token') or '')
+                  ws=websocket.create_connection(
+                      location,
+                      subprotocols=['listener.fmplapla.com'],
+                      origin='https://www.jcbasimul.com',
+                      header=['User-Agent: '+UA],
+                      timeout=15,
+                  )
+                  ws.send(token)
+                  total=0; frames=0; head=b''; deadline=time.time()+12
+                  while time.time()<deadline and total<180000:
+                      msg=ws.recv()
+                      if isinstance(msg,bytes) and msg:
+                          if not head: head=msg[:8]
+                          total += len(msg); frames += 1
+                  ws.close()
+                  print('REMOTE_AUDIO_BYTES',total,'FRAMES',frames,'HEAD',head.hex())
+                  if total < 100000:
+                      failed.append(station+':audio')
+              except Exception as exc:
+                  print('ERROR',type(exc).__name__,repr(exc))
+                  failed.append(station+':exception')
+          if failed:
+              raise SystemExit('FAILED: '+', '.join(failed))
+          print('OSAKA_RELAY_REMOTE_AUDIO_PASS')
