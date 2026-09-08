@@ -21,14 +21,132 @@ STATIONS = {
 
 DAY_SLUGS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
 
+# FM845's official weekday pages can be slow or unreachable from a GitHub
+# runner.  Keep a snapshot of the current official weekly timetable as a
+# fallback.  The live HTML is always preferred; this table is used only when
+# the official host cannot be fetched/parsed.  Times before 05:00 belong to the
+# following calendar day, matching FM845's 05:00 programme-day boundary.
+FM845_SNAPSHOT: dict[int, list[tuple[str, str]]] = {
+    0: [
+        ("05:00", "令和ニューリリース"),
+        ("07:00", "845名曲アルバム"),
+        ("08:00", "845今月の新曲"),
+        ("10:00", "ピッカピカラジオ（葛山知佳子）"),
+        ("12:00", "山下忠彦LIVE！太陽のあたる場所"),
+        ("13:00", "ワカバンneo"),
+        ("15:00", "845歌謡ベストテン"),
+        ("18:00", "木下晃一☆キラキラ"),
+        ("18:30", "橘あきらとMAYUMI愛のお帰りなさい！"),
+        ("19:00", "845名曲アルバム"),
+        ("20:00", "845今月の新曲"),
+        ("22:00", "ピッカピカラジオ（再）"),
+        ("24:00", "ノンストップ演歌"),
+        ("04:00", "令和ニューリリース"),
+    ],
+    1: [
+        ("05:00", "令和ニューリリース"),
+        ("07:00", "845名曲アルバム"),
+        ("08:00", "845今月の新曲"),
+        ("10:00", "ピッカピカラジオ（羽川英樹）"),
+        ("12:00", "北岡ひろしのひとひら重ねて"),
+        ("12:30", "フォークの時代"),
+        ("13:00", "ワカバンneo"),
+        ("15:00", "せいちゃんの昭和歌謡とグルメ探訪"),
+        ("16:00", "フォークの時代"),
+        ("18:00", "マグナム石井のKeep on Running Again"),
+        ("18:30", "伏見で一献！"),
+        ("19:00", "845名曲アルバム"),
+        ("20:00", "845今月の新曲"),
+        ("22:00", "ピッカピカラジオ（再）"),
+        ("24:00", "ノンストップ演歌"),
+        ("04:00", "令和ニューリリース"),
+    ],
+    2: [
+        ("05:00", "令和ニューリリース"),
+        ("07:00", "845名曲アルバム"),
+        ("08:00", "845今月の新曲"),
+        ("10:00", "ピッカピカラジオ（秀円タッチ）"),
+        ("12:00", "山崎ていじのラジオオンステージ"),
+        ("12:30", "フォークの時代"),
+        ("13:00", "ワカバンneo"),
+        ("15:00", "Dr.ヒロLab（ドクターヒロラボ）"),
+        ("15:30", "フォークの時代"),
+        ("16:00", "佐藤ゆかりの 今日は何色？"),
+        ("16:30", "フォークの時代"),
+        ("18:00", "えんか興味新々"),
+        ("19:00", "FM845"),
+        ("20:00", "845今月の新曲"),
+        ("22:00", "ピッカピカラジオ（再）"),
+        ("24:00", "ノンストップ演歌"),
+        ("04:00", "令和ニューリリース"),
+    ],
+    3: [
+        ("05:00", "令和ニューリリース"),
+        ("07:00", "845名曲アルバム"),
+        ("08:00", "845今月の新曲"),
+        ("10:00", "ピッカピカラジオ（西田ゆい）"),
+        ("12:00", "ただいまHAPPY〜ブレイクちゅ〜"),
+        ("12:30", "フォークの時代"),
+        ("15:00", "響竜也の歌手やっちゅうねん"),
+        ("16:00", "赤坂マリアまかしとき"),
+        ("17:00", "新垣健の『人生春秋』"),
+        ("17:15", "Fabulous Radio"),
+        ("17:25", "フォークの時代"),
+        ("18:00", "えんか興味新々"),
+        ("19:00", "845名曲アルバム"),
+        ("20:00", "845今月の新曲"),
+        ("22:00", "ピッカピカラジオ（再）"),
+        ("24:00", "ノンストップ演歌"),
+        ("04:00", "令和ニューリリース"),
+    ],
+    4: [
+        ("05:00", "令和ニューリリース"),
+        ("07:00", "845名曲アルバム"),
+        ("08:00", "845今月の新曲"),
+        ("10:00", "ピッカピカラジオ（若林奈緒子）"),
+        ("12:00", "ノンストップ演歌"),
+        ("13:00", "845演歌ジョッキー"),
+        ("15:00", "フォークの時代"),
+        ("16:00", "フォークの時代"),
+        ("18:00", "えんか興味新々"),
+        ("19:00", "845名曲アルバム"),
+        ("20:00", "845今月の新曲"),
+        ("22:00", "ピッカピカラジオ（再）"),
+        ("24:00", "ノンストップ演歌"),
+        ("04:00", "令和ニューリリース"),
+    ],
+    5: [
+        ("05:00", "令和ニューリリース"),
+        ("07:00", "845名曲アルバム"),
+        ("08:00", "845今月の新曲"),
+        ("10:00", "ノンストップ演歌"),
+        ("13:00", "845演歌ジョッキー（再）"),
+        ("15:00", "845歌謡ベストテン（再）"),
+        ("18:00", "ノンストップ演歌"),
+        ("19:00", "845名曲アルバム"),
+        ("20:00", "845今月の新曲"),
+        ("22:00", "人生はなさくメロディー"),
+        ("22:30", "ノンストップ演歌"),
+        ("04:00", "令和ニューリリース"),
+    ],
+    6: [
+        ("05:00", "令和ニューリリース"),
+        ("07:00", "845名曲アルバム"),
+        ("08:00", "845今月の新曲"),
+        ("10:00", "ノンストップ演歌"),
+        ("13:00", "845演歌ジョッキー（再）"),
+        ("15:00", "845歌謡ベストテン（再）"),
+        ("18:00", "ノンストップ演歌"),
+        ("19:00", "845名曲アルバム"),
+        ("20:00", "845今月の新曲"),
+        ("22:00", "ノンストップ演歌"),
+        ("04:00", "令和ニューリリース"),
+    ],
+}
+
 
 class _Rows(HTMLParser):
-    """Tiny dependency-free HTML table reader.
-
-    Both community-station sites publish ordinary HTML timetable tables.  We
-    only need the visible text of each row/cell, so this deliberately avoids a
-    heavyweight scraper dependency in the hourly GitHub Actions job.
-    """
+    """Tiny dependency-free HTML table reader."""
 
     def __init__(self) -> None:
         super().__init__(convert_charrefs=True)
@@ -52,8 +170,7 @@ class _Rows(HTMLParser):
     def handle_endtag(self, tag):
         tag = tag.lower()
         if tag in {"td", "th"} and self._cell is not None and self._row is not None:
-            text = _clean("".join(self._cell))
-            self._row.append(text)
+            self._row.append(_clean("".join(self._cell)))
             self._cell = None
         elif tag == "tr" and self._row is not None:
             if any(self._row):
@@ -66,20 +183,18 @@ def _clean(s: str) -> str:
     return re.sub(r"\s+", " ", (s or "").replace("\u3000", " ")).strip()
 
 
-def _fetch(url: str, timeout: int = 20) -> str:
+def _fetch(url: str, timeout: int = 12) -> str:
     last = None
-    for attempt in range(3):
+    for attempt in range(2):
         try:
             req = urllib.request.Request(url, headers=UA)
             with urllib.request.urlopen(req, timeout=timeout) as r:
                 raw = r.read(2 * 1024 * 1024)
-            # Both sites are currently UTF-8.  replace keeps one bad glyph from
-            # throwing away an otherwise usable daily timetable.
             return raw.decode("utf-8", "replace")
         except Exception as exc:
             last = exc
-            if attempt < 2:
-                time.sleep(0.8 * (attempt + 1))
+            if attempt < 1:
+                time.sleep(0.8)
     raise last  # type: ignore[misc]
 
 
@@ -105,15 +220,13 @@ def _week_of_month(day: dt.date) -> int:
 
 
 def _week_rule_allows(text: str, day: dt.date) -> bool:
-    # FMおとくに publishes alternate rows such as 第1・第3火曜 / 第2・4・5火曜.
     if "第" not in text or "曜" not in text:
         return True
-    nums = {int(x) for x in re.findall(r"第\s*([1-5１-５])", text.translate(str.maketrans("１２３４５", "12345")))}
-    # Some rows write 第2・４・5.  Once a 第 marker is present, also accept the
-    # separated following week numbers up to the weekday marker.
-    m = re.search(r"第(.{0,18}?)曜", text)
+    normalized = text.translate(str.maketrans("１２３４５", "12345"))
+    nums = {int(x) for x in re.findall(r"第\s*([1-5])", normalized)}
+    m = re.search(r"第(.{0,18}?)曜", normalized)
     if m:
-        nums.update(int(x) for x in re.findall(r"[1-5]", m.group(1).translate(str.maketrans("１２３４５", "12345"))))
+        nums.update(int(x) for x in re.findall(r"[1-5]", m.group(1)))
     return not nums or _week_of_month(day) in nums
 
 
@@ -146,10 +259,7 @@ def _otokuni(day: dt.date) -> list[tuple[dt.datetime, dt.datetime, str]]:
         if stop <= start:
             stop += dt.timedelta(days=1)
         out.append((start, stop, title))
-    # Remove exact duplicate alternatives after week-rule selection.
-    uniq = {}
-    for item in out:
-        uniq[(item[0], item[1], item[2])] = item
+    uniq = {(item[0], item[1], item[2]): item for item in out}
     return sorted(uniq.values(), key=lambda x: (x[0], x[1], x[2]))
 
 
@@ -170,23 +280,18 @@ def _fm845(day: dt.date) -> list[tuple[dt.datetime, dt.datetime, str]]:
         hour: int | None = None
         minute: int | None = None
         title_cells: list[str] = []
-
         if len(cells) >= 2 and _is_num(cells[0], 0, 24) and _is_num(cells[1], 0, 59):
             hour, minute = int(cells[0]), int(cells[1])
             current_hour = hour
             title_cells = cells[2:]
         elif current_hour is not None and _is_num(cells[0], 0, 59):
-            # Rows like "30 | 番組名" inherit the hour from the row above.
             hour, minute = current_hour, int(cells[0])
             title_cells = cells[1:]
         else:
             continue
-
-        title = _strip_personality(" ".join(title_cells))
-        if not title_cells or not title:
+        if not title_cells:
             continue
-
-        # FM845's daily page runs from 05:00 through the following 04:59.
+        title = _strip_personality(" ".join(title_cells))
         if hour == 24:
             start = dt.datetime.combine(day + dt.timedelta(days=1), dt.time(0, minute), JST)
         elif hour < 5:
@@ -195,7 +300,6 @@ def _fm845(day: dt.date) -> list[tuple[dt.datetime, dt.datetime, str]]:
             start = dt.datetime.combine(day, dt.time(hour, minute), JST)
         starts.append((start, title))
 
-    # De-duplicate starts while preferring the row that actually has a title.
     by_start: dict[dt.datetime, str] = {}
     for start, title in starts:
         by_start[start] = title
@@ -208,21 +312,46 @@ def _fm845(day: dt.date) -> list[tuple[dt.datetime, dt.datetime, str]]:
     return out
 
 
-def _baribari(day: dt.date) -> list[tuple[dt.datetime, dt.datetime, str]]:
-    """Conservative current Baribari guide.
+def _fm845_snapshot(day: dt.date) -> list[tuple[dt.datetime, dt.datetime, str]]:
+    starts: list[tuple[dt.datetime, str]] = []
+    week = _week_of_month(day)
+    for hhmm, base_title in FM845_SNAPSHOT[day.weekday()]:
+        h, m = (int(x) for x in hhmm.split(":"))
+        title = base_title
+        # Current official timetable's week-specific programmes.
+        if day.weekday() == 2 and hhmm == "19:00" and week == 1:
+            title = "りゅうまっぷる〜あなたの街の龍大生ガイド"
+        elif day.weekday() == 4 and hhmm == "12:00" and week == 2:
+            title = "なやまっちラヂオ"
+        elif day.weekday() == 4 and hhmm == "15:00" and week == 1:
+            title = "中森万美子の洋盤グラフィティ"
 
-    The station's own timetable site is currently unreliable.  Do not invent
-    a full schedule.  Use the current recurring municipal slots published by
-    Imabari City and label every unknown gap with the station name.  As soon as
-    the official timetable becomes machine-readable this function can replace
-    the generic gaps without changing tvg-id or FreeWiFi URLs.
-    """
+        if h == 24:
+            start = dt.datetime.combine(day + dt.timedelta(days=1), dt.time(0, m), JST)
+        elif h < 5:
+            start = dt.datetime.combine(day + dt.timedelta(days=1), dt.time(h, m), JST)
+        else:
+            start = dt.datetime.combine(day, dt.time(h, m), JST)
+        starts.append((start, title))
+
+    ordered = sorted(starts)
+    out: list[tuple[dt.datetime, dt.datetime, str]] = []
+    end = dt.datetime.combine(day + dt.timedelta(days=1), dt.time(5, 0), JST)
+    for i, (start, title) in enumerate(ordered):
+        stop = ordered[i + 1][0] if i + 1 < len(ordered) else end
+        if stop > start:
+            out.append((start, stop, title))
+    return out
+
+
+def _baribari(day: dt.date) -> list[tuple[dt.datetime, dt.datetime, str]]:
+    """Conservative Baribari guide: verified municipal slots + named gaps."""
     known: list[tuple[str, str, str]] = [
         ("07:00", "07:15", "今治市民の広場"),
         ("12:30", "12:45", "今治市民の広場（再）"),
         ("19:30", "19:45", "今治市民の広場（再）"),
     ]
-    wd = day.weekday()  # Mon=0
+    wd = day.weekday()
     if wd == 0:
         known.append(("07:45", "08:00", "こんにちは市役所です"))
     if wd == 2:
@@ -231,7 +360,6 @@ def _baribari(day: dt.date) -> list[tuple[dt.datetime, dt.datetime, str]]:
         known.append(("17:00", "17:15", "守るぞ☆IMABARI☆"))
     if wd == 5:
         known.append(("11:00", "11:15", "守るぞ☆IMABARI☆（再）"))
-
     items = [(_at(day, a), _at(day, b), t) for a, b, t in known]
     return _fill_day_gaps(day, items, "FMラヂオバリバリ")
 
@@ -297,38 +425,50 @@ def main() -> int:
             old_programmes[cid].append(n)
 
     built: dict[str, list[tuple[dt.datetime, dt.datetime, str]]] = {cid: [] for cid in wanted}
-    failures = []
+    failures: list[str] = []
 
-    # FMおとくに and FM845: official weekday timetable pages, three days.
-    for cid, builder, label in [
-        ("community.FMOTOKUNI", _otokuni, "FMおとくに"),
-        ("community.FM845", _fm845, "FM845"),
-    ]:
+    # FMおとくに: official daily HTML for three days.
+    try:
         rows = []
-        try:
-            for i in range(3):
-                day = today + dt.timedelta(days=i)
-                daily = builder(day)
-                if len(daily) < 3:
-                    raise RuntimeError(f"{day}: timetable parsed only {len(daily)} rows")
-                rows.extend(daily)
-            built[cid] = rows
-        except Exception as exc:
-            failures.append(f"{label}: {type(exc).__name__}: {exc}")
+        for i in range(3):
+            day = today + dt.timedelta(days=i)
+            daily = _otokuni(day)
+            if len(daily) < 3:
+                raise RuntimeError(f"{day}: timetable parsed only {len(daily)} rows")
+            rows.extend(daily)
+        built["community.FMOTOKUNI"] = rows
+    except Exception as exc:
+        failures.append(f"FMおとくに: {type(exc).__name__}: {exc}")
 
-    # Baribari: conservative official municipal slots + transparent generic gaps.
-    built["community.BARIBARI"] = []
+    # FM845: prefer live official HTML day-by-day, but never lose detailed EPG
+    # merely because www.fm-845.com times out from a GitHub runner.
+    fm845_rows = []
+    for i in range(3):
+        day = today + dt.timedelta(days=i)
+        try:
+            daily = _fm845(day)
+            if len(daily) < 8:
+                raise RuntimeError(f"timetable parsed only {len(daily)} rows")
+        except Exception as exc:
+            daily = _fm845_snapshot(day)
+            failures.append(
+                f"FM845 {day}: official HTML unavailable ({type(exc).__name__}: {exc}); "
+                "using official timetable snapshot"
+            )
+        fm845_rows.extend(daily)
+    built["community.FM845"] = fm845_rows
+
+    # Baribari: conservative verified municipal slots + transparent generic gaps.
     for i in range(3):
         built["community.BARIBARI"].extend(_baribari(today + dt.timedelta(days=i)))
 
-    # Never let a transient source failure erase an already-good community EPG.
-    for cid in ("community.FMOTOKUNI", "community.FM845"):
-        if built[cid]:
-            continue
-        if old_programmes.get(cid):
-            # Keep existing XML rows untouched by not removing this station.
-            continue
-        built[cid] = _generic_days(today, STATIONS[cid].replace("（ラジオ）", ""))
+    # A transient FMおとくに failure preserves the last good EPG; on the first
+    # ever failure, show a transparent acquisition-waiting guide rather than a
+    # fabricated programme title.
+    cid = "community.FMOTOKUNI"
+    if not built[cid]:
+        if not old_programmes.get(cid):
+            built[cid] = _generic_days(today, "FMおとくに")
 
     replacing = {cid for cid, rows in built.items() if rows}
     for n in list(root.findall("channel")):
@@ -354,6 +494,8 @@ def main() -> int:
     missing = [cid for cid, count in counts.items() if count < 1]
     if missing:
         raise RuntimeError(f"community EPG missing: {missing}")
+    if counts.get("community.FM845", 0) < 24:
+        raise RuntimeError(f"FM845 EPG unexpectedly sparse: {counts.get('community.FM845', 0)}")
     return 0
 
 
