@@ -1,0 +1,35 @@
+name: Probe Community Radio Audio Once
+
+on:
+  push:
+    paths:
+      - ".github/workflows/probe_community_radio_audio_once.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Probe Render community radio audio
+        shell: bash
+        run: |
+          set -euo pipefail
+          for s in FMOTOKUNI FM845 BARIBARI; do
+            echo "===== $s ====="
+            url="https://ajiousama-radiko.onrender.com/radio-tv/${s}?v=20260908a"
+            log="${s}.log"
+            if ! timeout 55 ffmpeg -hide_banner -loglevel info -i "$url" -map 0:a:0 -t 8 -af volumedetect -f null - >"$log" 2>&1; then
+              cat "$log"
+              echo "::error::$s playback/decode failed"
+              exit 1
+            fi
+            cat "$log"
+            grep -q "Stream #0:.*Audio:" "$log" || { echo "::error::$s has no audio stream"; exit 1; }
+            maxv="$(grep -oE 'max_volume: -?[0-9]+(\.[0-9]+)? dB' "$log" | tail -1 || true)"
+            meanv="$(grep -oE 'mean_volume: -?[0-9]+(\.[0-9]+)? dB' "$log" | tail -1 || true)"
+            test -n "$maxv" || { echo "::error::$s audio level missing"; exit 1; }
+            echo "PASS $s $meanv / $maxv"
+          done
