@@ -44,6 +44,12 @@ JCBA = {
     "BARIBARI": "fmradiobaribari",
 }
 
+# JCBA's select_stream is the geo-sensitive step. Resolve that short-lived
+# location/token pair from the existing Osaka Vercel function first, then keep
+# the WebSocket/audio path on Render. Direct JCBA resolution remains a fallback
+# so a Vercel outage never makes the stations worse than before.
+JCBA_OSAKA_SELECT = "https://himitsu-six.vercel.app/api/jcba-select"
+
 _CACHE_LOCK = threading.Lock()
 _LISTEN_CACHE: dict[str, tuple[float, list[str]]] = {}
 
@@ -120,7 +126,15 @@ def ffmpeg_input_options(station: str, source: str) -> list[str]:
     return []
 
 
-def _select_jcba(station: str) -> tuple[str, str]:
+def _validate_jcba_selection(payload: dict) -> tuple[str, str]:
+    location = str(payload.get("location") or "").strip()
+    token = str(payload.get("token") or "").strip()
+    if not location.startswith("wss://") or not token:
+        raise RuntimeError("JCBA select_stream response is missing location/token")
+    return location, token
+
+
+def _select_jcba_direct(station: str) -> tuple[str, str]:
     slug = JCBA[station]
     referer = f"https://www.jcbasimul.com/{slug}/rawplayer"
     query = urllib.parse.urlencode(
@@ -133,11 +147,33 @@ def _select_jcba(station: str) -> tuple[str, str]:
     )
     if int(payload.get("code") or 0) != 200:
         raise RuntimeError(f"JCBA select_stream returned code={payload.get('code')}")
-    location = str(payload.get("location") or "").strip()
-    token = str(payload.get("token") or "").strip()
-    if not location.startswith("wss://") or not token:
-        raise RuntimeError("JCBA select_stream response is missing location/token")
-    return location, token
+    return _validate_jcba_selection(payload)
+
+
+def _select_jcba(station: str) -> tuple[str, str]:
+    # First choice: acquire the short-lived JCBA session from Osaka. We verified
+    # that a token acquired in kix1 can then feed the official WebSocket from an
+    # overseas runner, so only this small control request needs Japanese egress.
+    try:
+        url = JCBA_OSAKA_SELECT + "?" + urllib.parse.urlencode({"station": station})
+        payload = _json_get(url, timeout=12.0)
+        if not payload.get("ok") or payload.get("via") != "vercel-kix1":
+            raise RuntimeError(
+                f"Osaka relay returned ok={payload.get('ok')} via={payload.get('via')}"
+            )
+        selection = _validate_jcba_selection(payload)
+        print(f"[community-radio] JCBA select station={station} via=vercel-kix1", flush=True)
+        return selection
+    except Exception as exc:
+        print(
+            f"[community-radio] JCBA Osaka select failed station={station} "
+            f"error={type(exc).__name__}:{exc}; fallback=direct",
+            flush=True,
+        )
+
+    selection = _select_jcba_direct(station)
+    print(f"[community-radio] JCBA select station={station} via=direct-fallback", flush=True)
+    return selection
 
 
 def feed_jcba_audio(station: str, sink, stop: threading.Event) -> None:
