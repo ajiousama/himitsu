@@ -8,6 +8,7 @@ on:
     paths:
       - ".github/workflows/public_sports_watchdog.yml"
       - ".github/workflows/update_boat_auto.yml"
+      - ".github/workflows/update_public_sports_fast.yml"
   schedule:
     # Independent recovery path. Runs every 5 minutes and only dispatches stale/failed targets.
     - cron: "*/5 * * * *"
@@ -135,6 +136,45 @@ jobs:
           # BOAT health is judged from the actual published status timestamp,
           # not merely from whether a workflow run happens to be queued.
           recover_boat_status
+          recover_public_sports_status() {
+            local id status_json generated now epoch age runs latest run_status
+            id="$(find_id "Update Public Sports Fast")"
+            if [ -z "$id" ]; then
+              echo "::warning::No active public-sports fast workflow found"
+              return 0
+            fi
+
+            status_json="$(gh api "repos/$REPO/contents/today_public_sports_status.json?ref=main" --jq '.content' | tr -d '\n' | base64 -d 2>/dev/null || true)"
+            generated="$(printf '%s' "$status_json" | jq -r '.generated_at // empty' 2>/dev/null || true)"
+            if [ -z "$generated" ]; then
+              echo "::warning::Public sports status timestamp unavailable; dispatching recovery"
+              gh api -X POST "repos/$REPO/actions/workflows/$id/dispatches" -f ref=main
+              return 0
+            fi
+
+            now="$(date -u +%s)"
+            epoch="$(date -u -d "$generated" +%s 2>/dev/null || echo 0)"
+            age=$(( (now - epoch) / 60 ))
+            echo "Public sports status age=${age}m generated_at=$generated"
+            if [ "$age" -lt 20 ]; then
+              echo "Public sports status healthy/recent"
+              return 0
+            fi
+
+            runs="$(gh api "repos/$REPO/actions/workflows/$id/runs?per_page=3")"
+            latest="$(printf '%s' "$runs" | jq -c '.workflow_runs[0] // empty')"
+            run_status="$(printf '%s' "$latest" | jq -r '.status // ""')"
+            if [ "$run_status" = "in_progress" ]; then
+              echo "::warning::Public sports status stale but fast updater is running"
+              return 0
+            fi
+
+            echo "::warning::Public sports status stale (${age}m); dispatching fast recovery"
+            gh api -X POST "repos/$REPO/actions/workflows/$id/dispatches" -f ref=main
+          }
+
+          recover_public_sports_status
+
           # Main FreeWiFi/EPG and GCH fallback are hourly jobs.
           recover "Update FreeWiFi ALL" 80
           recover "Update GCH Free EPG" 80
