@@ -19,7 +19,8 @@ jobs:
       - name: Build and decode all three image plus audio muxes
         shell: python
         run: |
-          import pathlib, subprocess, time
+          import os, pathlib, subprocess, sys, time
+          sys.path.insert(0, os.getcwd())
           import radio_tv_filemux as mux
 
           failed=[]
