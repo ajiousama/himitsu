@@ -26,11 +26,15 @@ jobs:
       - name: Try Japanese VPN Gate exits and JCBA
         shell: python
         run: |
-          import base64, csv, io, json, os, socket, subprocess, time, urllib.parse, urllib.request
+          import base64, csv, io, json, os, re, socket, subprocess, time, urllib.parse, urllib.request
           import websocket
 
           UA='Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Version/18.0 Mobile/15E148 Safari/604.1'
           BIN='/tmp/openvpn2socks'
+
+          def as_int(value, default):
+              m=re.search(r'-?\d+', str(value or ''))
+              return int(m.group(0)) if m else default
 
           req=urllib.request.Request('https://www.vpngate.net/api/iphone/',headers={'User-Agent':UA})
           raw=urllib.request.urlopen(req,timeout=30).read().decode('utf-8','replace')
@@ -55,8 +59,8 @@ jobs:
                   if s.startswith('block-outside-dns'): continue
                   clean.append(line)
               cfg='\n'.join(clean)+'\n'
-              score=int(r.get('Score') or 0)
-              ping=int(r.get('Ping') or 9999)
+              score=as_int(r.get('Score'),0)
+              ping=as_int(r.get('Ping'),9999)
               jp.append((score,-ping,r,cfg))
           jp.sort(reverse=True,key=lambda x:(x[0],x[1]))
           print('JP_CANDIDATES',len(jp))
