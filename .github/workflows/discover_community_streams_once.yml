@@ -14,38 +14,62 @@ jobs:
     timeout-minutes: 8
     steps:
       - name: Discover current player sources
-        shell: bash
+        shell: python
         run: |
-          set -u
-          ua='Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Version/18.0 Mobile/15E148 Safari/604.1'
-          dump() {
-            name="$1"; url="$2"; referer="${3:-}"
-            echo "===== $name ====="
-            if [ -n "$referer" ]; then
-              curl -L --max-time 20 -A "$ua" -e "$referer" -sS "$url" -o "$name.html" || true
-            else
-              curl -L --max-time 20 -A "$ua" -sS "$url" -o "$name.html" || true
-            fi
-            wc -c "$name.html" 2>/dev/null || true
-            grep -Eo 'https?://[^"'"'"' <>]+' "$name.html" 2>/dev/null | grep -Ei 'm3u8|stream|audio|player|api|listen' | head -80 || true
-            grep -Eoi '<script[^>]+src=["'"'][^"'"']+' "$name.html" 2>/dev/null | head -40 || true
-            grep -Ein 'm3u8|stream|audio|source|player|hls|icy|shout|listen' "$name.html" 2>/dev/null | head -80 || true
-          }
+          import re, urllib.request, urllib.parse
 
-          dump fm845_raw https://www.jcbasimul.com/kyotoribingufm/rawplayer https://www.jcbasimul.com/kyotoribingufm
-          dump baribari_raw https://www.jcbasimul.com/fmradiobaribari/rawplayer https://www.jcbasimul.com/fmradiobaribari
-          dump fm845_page https://www.jcbasimul.com/kyotoribingufm
-          dump baribari_page https://www.jcbasimul.com/fmradiobaribari
-          dump listenradio https://listenradio.jp/
+          UA = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Version/18.0 Mobile/15E148 Safari/604.1'
 
-          echo '===== ListenRadio JS candidates ====='
-          grep -Eoi '<script[^>]+src=["'"'][^"'"']+' listenradio.html 2>/dev/null | sed -E 's/^.*src=["'"']//' | while read -r src; do
-            case "$src" in
-              http*) js="$src" ;;
-              //*) js="https:$src" ;;
-              /*) js="https://listenradio.jp$src" ;;
-              *) js="https://listenradio.jp/$src" ;;
-            esac
-            echo "--- $js"
-            curl -L --max-time 15 -A "$ua" -sS "$js" 2>/dev/null | grep -Eo 'https?://[^"'"'"' <>)]+' | grep -Ei 'm3u8|stream|api|channel|audio' | head -30 || true
-          done
+          def get(url, referer=None):
+              headers = {'User-Agent': UA, 'Accept': '*/*'}
+              if referer:
+                  headers['Referer'] = referer
+              req = urllib.request.Request(url, headers=headers)
+              with urllib.request.urlopen(req, timeout=20) as r:
+                  return r.geturl(), r.read(2_000_000).decode('utf-8', 'replace')
+
+          def dump(name, url, referer=None):
+              print(f'===== {name} =====')
+              try:
+                  final, text = get(url, referer)
+              except Exception as e:
+                  print('FETCH_ERROR', type(e).__name__, repr(e))
+                  return ''
+              print('FINAL', final, 'BYTES', len(text.encode()))
+              urls = re.findall(r'https?://[^\s"\'<>]+', text)
+              for u in urls:
+                  if re.search(r'm3u8|stream|audio|player|api|listen|hls|radimo|musicbird', u, re.I):
+                      print('URL', u[:500])
+              for m in re.findall(r'<script[^>]+src=["\']([^"\']+)', text, re.I):
+                  print('SCRIPT', urllib.parse.urljoin(final, m))
+              for i, line in enumerate(text.splitlines(), 1):
+                  if re.search(r'm3u8|stream|audio|source|player|hls|listen|channel', line, re.I):
+                      print(f'LINE{i}', line[:1200])
+              return text
+
+          dump('fm845_raw', 'https://www.jcbasimul.com/kyotoribingufm/rawplayer', 'https://www.jcbasimul.com/kyotoribingufm')
+          dump('baribari_raw', 'https://www.jcbasimul.com/fmradiobaribari/rawplayer', 'https://www.jcbasimul.com/fmradiobaribari')
+          dump('fm845_page', 'https://www.jcbasimul.com/kyotoribingufm')
+          dump('baribari_page', 'https://www.jcbasimul.com/fmradiobaribari')
+          lr = dump('listenradio', 'https://listenradio.jp/')
+
+          print('===== LISTENRADIO JS =====')
+          for src in re.findall(r'<script[^>]+src=["\']([^"\']+)', lr, re.I):
+              js = urllib.parse.urljoin('https://listenradio.jp/', src)
+              try:
+                  final, text = get(js, 'https://listenradio.jp/')
+              except Exception as e:
+                  print('JS_ERROR', js, type(e).__name__, repr(e))
+                  continue
+              hits = []
+              for u in re.findall(r'https?://[^\s"\'<>)}]+', text):
+                  if re.search(r'm3u8|stream|api|channel|audio|listen', u, re.I):
+                      hits.append(u)
+              if hits or re.search(r'FM.?おとくに|otokuni|30063|m3u8|stream', text, re.I):
+                  print('JS', final, 'BYTES', len(text.encode()))
+                  for u in hits[:80]:
+                      print('JSURL', u[:500])
+                  for pat in ('FMおとくに','otokuni','30063','m3u8','stream'):
+                      p = text.lower().find(pat.lower())
+                      if p >= 0:
+                          print('CONTEXT', pat, text[max(0,p-500):p+1000].replace('\n',' ')[:1500])
