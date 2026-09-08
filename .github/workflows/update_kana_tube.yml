@@ -15,7 +15,7 @@ permissions:
 
 concurrency:
   group: himitsu-kana-tube
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   update:
@@ -39,6 +39,8 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install --upgrade --pre 'yt-dlp[default]'
           python -m pip install --upgrade curl_cffi
+      - name: Reliability regression tests
+        run: python -m unittest -v test_sports_kana_reliability
       - name: Restore YouTube cookies
         shell: bash
         env:
@@ -89,10 +91,7 @@ jobs:
             test "$(grep -c '^ *url-tvg=' freewifi || true)" -eq 0
             test "$(grep -c 'tvg-id=\"youtube.kana_tube\"' freewifi || true)" -le 1
             test "$(grep -c 'tvg-id=\"youtube.kana_tube\"' general_youtube.m3u || true)" -le 1
-            ! grep -F '/logos/youtube/unified/' kana_tube.m3u
-            ! grep -F '/logos/youtube/unified/' general_youtube.m3u
-            ! grep -F '/logos/youtube/unified/' freewifi
-            grep -F 'https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/youtube/yt43_01_kana_tube.png' kana_tube.m3u >/dev/null
+            python -c 'import kana_tube_update as k; k.validate_outputs()'
             git add kana_tube.m3u kana_tube_status.json general_youtube.m3u freewifi
             if git diff --cached --quiet; then
               echo 'Kana tube already current'
@@ -101,6 +100,7 @@ jobs:
             git commit -m 'Refresh Kana tube schedule/LIVE'
             if git push origin HEAD:main; then
               echo 'Kana tube published successfully'
+              python -c 'import kana_tube_update as k; import sys; sys.exit(k.read_status().get("state") == "error")'
               exit 0
             fi
             sleep 2

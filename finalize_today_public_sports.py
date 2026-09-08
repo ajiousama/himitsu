@@ -3,6 +3,7 @@ from datetime import datetime, timezone, timedelta
 import json
 import re
 import xml.etree.ElementTree as ET
+from sports_race_time import race_time
 
 FREEWIFI = Path('freewifi')
 STATUS_JSON = Path('today_public_sports_status.json')
@@ -14,7 +15,7 @@ END_GRACE_MINUTES = 45
 NON_EVENT_WORDS = (
     '本日非開催', '非開催', '開催していません', '開催予定はありません',
     '本日開催なし', '開催なし', '次回開催', 'データ取得準備中',
-    '休止中', '休止', '準備中', '現在準備中',
+    '翌日開催予定', '仮時間', '休止中', '休止', '準備中', '現在準備中',
     '本日の開催は終了しました', '開催は終了しました', '開催終了', '終了しました',
 )
 
@@ -34,17 +35,6 @@ def parse_xmltv_time(value):
     return base.replace(tzinfo=JST)
 
 
-def actual_race_dt(title, today, fallback):
-    m = re.search(r'(?<!\d)(\d{1,2})[：:](\d{2})\s*発走', title)
-    if not m:
-        return fallback
-    hour = int(m.group(1))
-    minute = int(m.group(2))
-    if not (0 <= hour <= 23 and 0 <= minute <= 59):
-        return fallback
-    return datetime(today.year, today.month, today.day, hour, minute, tzinfo=JST)
-
-
 def epg_state(text, now):
     root = ET.fromstring(text)
     today = now.date()
@@ -53,29 +43,18 @@ def epg_state(text, now):
         cid = p.get('channel') or ''
         start = parse_xmltv_time(p.get('start'))
         stop = parse_xmltv_time(p.get('stop'))
-        if not cid or not start or start.astimezone(JST).date() != today:
+        race = race_time(p)
+        if not cid or not race or race['day'] != today:
             continue
         title = (p.findtext('title') or '').strip()
-        compact = ''.join(title.split())
-        if not compact or any(word in compact for word in NON_EVENT_WORDS):
-            continue
-        sj = start.astimezone(JST)
-        ej = stop.astimezone(JST) if stop else None
-        s = state.setdefault(cid, {'last_stop': None, 'next_race': None, 'has_today': False})
-        s['has_today'] = True
-        if ej and (s['last_stop'] is None or ej > s['last_stop']):
+        s = state.setdefault(cid, {'last_stop': None, 'next_race': None, 'has_today': True})
+        ej = race['stop']
+        if s['last_stop'] is None or ej > s['last_stop']:
             s['last_stop'] = ej
-
-        race_m = re.search(r'(?<!\d)(\d{1,2})[RＲ](?!\w)', title, re.I)
-        race_dt = actual_race_dt(title, today, sj)
-        if race_m and race_dt >= now:
-            if s['next_race'] is None or race_dt < s['next_race']['_dt']:
-                s['next_race'] = {
-                    'race': int(race_m.group(1)),
-                    'start': race_dt.strftime('%H:%M'),
-                    'title': title,
-                    '_dt': race_dt,
-                }
+        if race['dt'] >= now:
+            if s['next_race'] is None or race['dt'] < s['next_race']['_dt']:
+                s['next_race'] = {'race': race['race'], 'start': race['start'],
+                                  'title': title, '_dt': race['dt']}
     return state
 
 
@@ -165,7 +144,7 @@ def main():
         if nr:
             meta['next_race_text'] = f"次は {nr['race']}R {nr['start']}発走"
         elif s and s.get('has_today'):
-            meta['next_race_text'] = '本日開催中／次レース時刻確認待ち'
+            meta['next_race_text'] = '本日の開催は終了しました' if now >= s['last_stop'] else '最終レース進行中'
         channels[cid] = meta
 
     kept.sort(key=sort_key)

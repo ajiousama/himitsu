@@ -178,3 +178,7 @@ jobs:
           # Main FreeWiFi/EPG and GCH fallback are hourly jobs.
           recover "Update FreeWiFi ALL" 80
           recover "Update GCH Free EPG" 80
+
+          # Recover Kana metadata failures and missed radio schedule runs.
+          recover "Update Kana Tube" 20
+          recover "^Update Radio$" 380

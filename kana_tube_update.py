@@ -4,6 +4,7 @@ from zoneinfo import ZoneInfo
 import json
 import re
 import subprocess
+from urllib.parse import urlsplit
 
 FREEWIFI = Path("freewifi")
 GENERAL = Path("general_youtube.m3u")
@@ -55,15 +56,14 @@ def run_json(args, timeout=45):
 
 
 def official(info):
-    cid = (info.get("channel_id") or info.get("uploader_id") or "").strip()
-    handle = (info.get("channel_url") or info.get("uploader_url") or "").lower()
-    name = (info.get("channel") or info.get("uploader") or "").lower()
-    return (
-        cid == CHANNEL_ID
-        or HANDLE.lower() in handle
-        or "華奈tube" in name
-        or "かなtube" in name
-    )
+    cid = (info.get("channel_id") or "").strip()
+    if cid:
+        return cid == CHANNEL_ID
+    for key in ("channel_url", "uploader_url"):
+        parsed = urlsplit(info.get(key) or "")
+        if parsed.hostname in ("www.youtube.com", "youtube.com") and parsed.path.rstrip('/').lower() == '/' + HANDLE.lower():
+            return True
+    return False
 
 
 def inspect_watch(video_id):
@@ -107,7 +107,7 @@ def listing_ids(url, limit=30):
             upcoming.append(vid)
         elif st != "was_live":
             other.append(vid)
-    return live + upcoming + other[:8], None
+    return live + upcoming + other[:8], ("partial-listing" if p.returncode else None)
 
 
 def search_ids():
@@ -133,16 +133,22 @@ def start_timestamp(info):
     return None
 
 
-def choose_current():
+def choose_current(previous=None):
     candidates = []
     diagnostics = []
     reachable = False
+    streams_confirmed = False
+    inspections_failed = False
+    if previous and previous.get("video_id"):
+        candidates.append(previous["video_id"])
 
     # Reservation/upcoming frames normally appear in /streams before LIVE.
     for url in (CHANNEL + "/streams", CHANNEL + "/live", CHANNEL + "/videos"):
         ids, err = listing_ids(url, 35)
         if not err:
             reachable = True
+            if url.endswith("/streams"):
+                streams_confirmed = True
         else:
             diagnostics.append(f"{url}: {err}")
         candidates.extend(ids)
@@ -160,6 +166,7 @@ def choose_current():
         seen.add(vid)
         info, err = inspect_watch(vid)
         if err or not info:
+            inspections_failed = True
             if err:
                 diagnostics.append(f"{vid}: {err}")
             continue
@@ -172,7 +179,7 @@ def choose_current():
         items.append(info)
 
     if not items:
-        return None, reachable, diagnostics
+        return None, streams_confirmed and not inspections_failed, diagnostics
 
     live = [x for x in items if (x.get("live_status") or "").lower() == "is_live"]
     if live:
@@ -227,7 +234,7 @@ def entry(url, state, ts=None):
     if state == "is_live":
         suffix = "【LIVE】"
     else:
-        when = datetime.fromtimestamp(ts, JST).strftime("%H:%M") if ts else ""
+        when = datetime.fromtimestamp(ts, JST).strftime("%m/%d %H:%M") if ts else ""
         suffix = f"【配信予定 {when}】" if when else "【配信予定】"
     label = NAME + suffix
     return "\n".join([
@@ -294,12 +301,36 @@ def write_status(data):
     )
 
 
+def read_status():
+    try:
+        return json.loads(STATUS.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+
+
+def validate_outputs():
+    state = read_status().get("state")
+    for path in (OUT, GENERAL, FREEWIFI):
+        text = path.read_text(encoding="utf-8-sig")
+        entries = [line for line in text.splitlines() if line.startswith("#EXTINF:") and f'tvg-id="{TVG_ID}"' in line]
+        if len(entries) > 1:
+            raise ValueError(f"duplicate Kana entry: {path}")
+        if state == 'none' and entries:
+            raise ValueError(f"offline Kana entry remains: {path}")
+        if state in ('is_live', 'is_upcoming') and len(entries) != 1:
+            raise ValueError(f"Kana entry missing: {path}")
+        if any(f'tvg-logo="{LOGO}"' not in line for line in entries):
+            raise ValueError(f"Kana logo mismatch: {path}")
+
+
 def main():
-    selected, reachable, diagnostics = choose_current()
+    previous = read_status()
+    selected, reachable, diagnostics = choose_current(previous)
 
     if selected is None and not reachable:
         # Never erase a working entry because YouTube/yt-dlp temporarily failed.
         write_status({
+            **previous,
             "state": "error",
             "channel": HANDLE,
             "channel_id": CHANNEL_ID,
@@ -327,6 +358,13 @@ def main():
     vid = selected.get("id")
     watch = f"https://www.youtube.com/watch?v={vid}"
     direct = direct_live_url(selected) if state == "is_live" else None
+    if state == "is_live" and not direct:
+        write_status({**previous, "state": "error", "channel": HANDLE,
+                      "channel_id": CHANNEL_ID, "video_id": vid, "watch_url": watch,
+                      "message": "LIVE確認済み・HLS取得失敗。既存エントリを保持",
+                      "diagnostics": diagnostics[-8:]})
+        print("KANA: LIVE確認済み・HLS取得失敗。再試行が必要")
+        return
     play = direct or watch
     ts = start_timestamp(selected)
     payload = entry(play, state, ts)
@@ -349,7 +387,7 @@ def main():
         "diagnostics": diagnostics[-8:],
     })
     print(f"KANA: {state} {vid} {selected.get('title') or NAME}")
-    print(f"KANA: play_url={play}")
+    print(f"KANA: direct_hls={bool(direct)}")
 
 
 if __name__ == "__main__":

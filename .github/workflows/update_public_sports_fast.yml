@@ -10,6 +10,8 @@ on:
       - main
     paths:
       - "public_sports_epg_local.py"
+      - "sports_race_time.py"
+      - "test_sports_kana_reliability.py"
       - "public_sports_epg_local_fast.py"
       - "freewifi_today_public_sports.py"
       - "finalize_today_public_sports.py"
@@ -40,6 +42,8 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Sports and Kana reliability regression tests
+        run: python -m unittest -v test_sports_kana_reliability
       - name: Build fresh direct public-sports EPG
         run: python -u public_sports_epg_local_fast.py
 

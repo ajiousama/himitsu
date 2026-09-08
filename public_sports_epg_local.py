@@ -13,6 +13,7 @@ import xml.etree.ElementTree as ET
 
 import keirin_epg_direct as keirin_direct
 import autorace_epg_direct as auto_direct
+from sports_race_time import race_time
 
 OUT = Path('public_sports_epg_local.xml')
 VERIFIED = Path('verified_daily_status.json')
@@ -508,17 +509,18 @@ def add_next_event_notices(root, today):
         future_real = []
         for p in programmes:
             title = (p.findtext('title') or '').strip()
-            start = _programme_dt(p.get('start'))
-            if not start or '発走' not in title:
+            race = race_time(p)
+            if not race:
                 continue
-            if start.date() == today:
-                real_today.append((start, p))
-            elif start.date() > today:
-                future_real.append((start, p))
+            if race['day'] == today:
+                real_today.append((race['dt'], p))
+            elif race['day'] > today:
+                future_real.append((race['dt'], p))
         if not real_today:
             continue
 
-        last_start, _ = max(real_today, key=lambda x: x[0])
+        last_start, last_programme = max(real_today, key=lambda x: x[0])
+        last_stop = race_time(last_programme)["stop"]
         grace_end = last_start + timedelta(minutes=END_GUIDANCE_MINUTES)
         next_day = min((x[0].date() for x in future_real), default=None)
 
@@ -527,20 +529,20 @@ def add_next_event_notices(root, today):
         for p in list(programmes):
             title = (p.findtext('title') or '').strip()
             start = _programme_dt(p.get('start'))
-            if start and start >= last_start and ('本日の開催は終了しました' in title or '開催は終了しました' in title):
+            if start and start.date() >= today and start < datetime.combine(today + timedelta(days=1), time(1, 30) if cid.startswith('auto.') else time(0, 0), tzinfo=JST) and ('開催は終了しました' in title or '翌日開催予定' in title or '次回開催：' in title):
                 root.remove(p)
 
         end_limit = datetime.combine(today + timedelta(days=1), time(0, 0), tzinfo=JST)
         if cid.startswith('auto.'):
             end_limit = datetime.combine(today + timedelta(days=1), time(1, 30), tzinfo=JST)
 
-        if grace_end < end_limit:
+        if last_stop < min(grace_end, end_limit):
             suffix = ''
             if next_day and next_day > today + timedelta(days=1):
                 suffix = f'　次回開催：{next_day.month}月{next_day.day}日'
             add_programme(
                 root, cid,
-                min(last_start + timedelta(minutes=3), grace_end),
+                last_stop,
                 min(grace_end, end_limit),
                 f'本日の開催は終了しました{suffix}',
                 '最終レース終了後の案内です。'

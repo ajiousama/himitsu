@@ -3,6 +3,7 @@ from datetime import datetime, timezone, timedelta, time
 import json
 import re
 import xml.etree.ElementTree as ET
+from sports_race_time import race_time
 
 FREEWIFI = Path('freewifi')
 STATUS_JSON = Path('today_public_sports_status.json')
@@ -62,7 +63,7 @@ JST = timezone(timedelta(hours=9))
 # BOAT Auto v3 exclusively owns every boat.* entry and the TODAY_BOAT block.
 # This builder must never parse, remove, recreate, reorder, or otherwise mutate BOAT.
 TARGET_SECTIONS = {'競輪', '地方競馬', 'オートレース'}
-NON_EVENT_WORDS = ('本日非開催','非開催','開催していません','開催予定はありません','本日開催なし','開催なし','次回開催','データ取得準備中','休止中','休止','準備中','現在準備中','本日の開催は終了しました')
+NON_EVENT_WORDS = ('本日非開催','非開催','開催していません','開催予定はありません','本日開催なし','開催なし','次回開催','データ取得準備中','休止中','休止','準備中','現在準備中','本日の開催は終了しました','翌日開催予定','仮時間')
 
 
 def parse_m3u(text):
@@ -132,9 +133,8 @@ def epg_state():
                 bad += 1; continue
             title = (p.findtext('title') or '').strip()
             desc = (p.findtext('desc') or '').strip()
-            tm = re.search(r'([0-9]{1,2}:[0-5]\d)\s*発走', title)
-            is_after_midnight_tail = bool(tm and int(tm.group(1).split(':')[0]) >= 24 and start.date() == today + timedelta(days=1))
-            if start.date() != today and not is_after_midnight_tail:
+            race = race_time(p)
+            if (race['day'] != today if race else start.date() != today):
                 continue
             compact = ''.join(title.split())
             if not compact or any(x in compact for x in NON_EVENT_WORDS):
@@ -142,14 +142,10 @@ def epg_state():
             real.add(cid)
             joined = title + ' ' + desc
             modes[cid] = ('overnight' if 'オーバーミッドナイト' in joined else 'midnight' if 'ミッドナイト' in joined else 'night' if 'ナイター' in joined else 'morning' if 'モーニング' in joined else 'twilight' if '薄暮' in joined else 'day')
-            m = re.search(r'(?:【\s*)?([０-９0-9]{1,2})\s*[ＲR](?:\s*】)?', title)
-            if m and tm:
-                trans = str.maketrans('０１２３４５６７８９','0123456789')
-                dt = race_datetime(today, tm.group(1))
-                if dt and dt >= now:
-                    item = {'race': int(m.group(1).translate(trans)), 'start': tm.group(1), 'title': title, '_dt': dt}
-                    if cid not in next_race or dt < next_race[cid]['_dt']:
-                        next_race[cid] = item
+            if race and race['dt'] >= now:
+                item = {'race': race['race'], 'start': race['start'], 'title': title, '_dt': race['dt']}
+                if cid not in next_race or race['dt'] < next_race[cid]['_dt']:
+                    next_race[cid] = item
         except Exception as e:
             bad += 1
             print(f'EPG row skipped: {e}')
