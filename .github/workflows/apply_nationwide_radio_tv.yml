@@ -1,11 +1,13 @@
 name: Apply Nationwide RADIO TS
-# rollout revision: compact FreeWiFi radio = 16 stations (2026-09-07)
+# rollout revision: compact FreeWiFi radio = 19 stations (2026-09-08)
 
 on:
   push:
     branches: [main]
     paths:
       - 'radio_tv_nationwide.py'
+      - 'radio_tv_community.py'
+      - 'radio_tv_filemux.py'
       - 'radiko_cloud_start.py'
       - 'radiko_freewifi.py'
       - 'radio_tv_nationwide_freewifi.py'
@@ -17,7 +19,7 @@ permissions:
   contents: write
 
 # Share the same writer mutex as the hourly FreeWiFi/EPG job and contrast-logo
-# refresh so the 16-station radio block can never race a newer FreeWiFi state.
+# refresh so the radio block can never race a newer FreeWiFi state.
 concurrency:
   group: himitsu-freewifi-state-writer
   cancel-in-progress: false
@@ -76,11 +78,12 @@ jobs:
           echo "Standalone nationwide stable TS count=$nationwide_count"
 
           test "$free_direct_count" -eq 0
-          test "$free_render_count" -eq 16
+          test "$free_render_count" -eq 19
           test "$free_ts_count" -eq 0
           test "$nationwide_count" -ge 100
-          test "$(grep -c '^#EXTINF:' /tmp/freewifi-radio.txt)" -eq 16
-          test "$(grep -c 'group-title="ラジオ"' /tmp/freewifi-radio.txt)" -eq 16
+          test "$(grep -c '^#EXTINF:' /tmp/freewifi-radio.txt)" -eq 19
+          test "$(grep -c 'group-title="ラジオ"' /tmp/freewifi-radio.txt)" -eq 19
+          # The original 16 Radiko stations retain their contrast-safe local logos.
           test "$(grep -c '/logos/contrast/radiko\.' /tmp/freewifi-radio.txt || true)" -eq 16
           ! grep -q 'ajiousama-radiko.onrender.com/radio-tv/' radio.m3u
           ! grep -q 'himitsu-six.vercel.app/api/radio-tv' /tmp/freewifi-radio.txt
@@ -93,6 +96,9 @@ jobs:
           grep -Fq "${render}FMT" /tmp/freewifi-radio.txt
           grep -Fq "${render}OBC" /tmp/freewifi-radio.txt
           grep -Fq "${render}KBS" /tmp/freewifi-radio.txt
+          grep -Fq "${render}FMOTOKUNI" /tmp/freewifi-radio.txt
+          grep -Fq "${render}FM845" /tmp/freewifi-radio.txt
+          grep -Fq "${render}BARIBARI" /tmp/freewifi-radio.txt
           test -f logos/contrast/radiko.LFR_*.png
           test -f logos/contrast/radiko.QRR_*.png
           test -f logos/contrast/radiko.TBS_*.png
@@ -110,6 +116,6 @@ jobs:
             echo 'Radio playlists and station images already current'
             exit 0
           fi
-          git commit -m 'Serve 16 FreeWiFi radio stations with image and audio [skip ci]'
+          git commit -m 'Serve 19 FreeWiFi radio stations with image and audio [skip ci]'
           git pull --rebase origin main
           git push origin HEAD:main
