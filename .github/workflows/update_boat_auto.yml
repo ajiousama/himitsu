@@ -1,245 +1,48 @@
-name: Update BOAT Auto v3
-# recovery-touch: 2026-09-08 11:36 JST - force BOAT recovery after stale status
+name: Update BOAT Auto v4
 
 on:
   workflow_dispatch:
-  # Push touch is also an immediate recovery path when the scheduled queue stalls.
   schedule:
-    # 24時間、5分間隔。JST日付変更・モーニング・デイ・ナイターを同じ系統で処理する。
-    # GitHub scheduled runs can be delayed. Two staggered schedules plus the
-    # independent watchdog keep the published status fresh without relying on
-    # a single cron edge.
-    - cron: "1,11,21,31,41,51 * * * *"
-    - cron: "6,16,26,36,46,56 * * * *"
+    # Recovery only. The active worker itself polls every minute and queues its successor.
+    - cron: "17 * * * *"
   push:
-    branches:
-      - main
+    branches: [main]
     paths:
       - "boat_auto_system.py"
+      - "boat_playback.py"
+      - "boat_publish.py"
+      - "boat_worker.py"
       - "test_boat_auto_system.py"
-      - "boat_stream_seed.m3u"
+      - "test_boat_reliability.py"
       - ".github/workflows/update_boat_auto.yml"
 
 permissions:
   contents: write
-  issues: write
-  actions: read
+  actions: write
 
-# BOAT must not be blocked for tens of minutes by the hourly FreeWiFi/EPG job.
-# Both publishers already rebuild/retry against newest main, so BOAT gets its
-# own execution lane while preserving safe git conflict handling.
+# Never kill the active acquisition loop when cron/watchdog/dispatch overlap.
 concurrency:
   group: himitsu-boat-auto-v3
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   update:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 360
     steps:
-      - name: Checkout
-        uses: actions/checkout@v5
+      - uses: actions/checkout@v5
         with:
-          fetch-depth: 0
-
-      - name: Sync latest main
-        run: git pull --ff-only origin main
-
-      - name: Set up Python
-        uses: actions/setup-python@v6
+          fetch-depth: 1
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
-
-      - name: Test BOAT Auto retention and EPG rules
-        run: python -m unittest -v test_boat_auto_system.py
-
-      - name: Acquire schedule, streams and EPG
-        id: auto
-        run: python -u boat_auto_system.py
-
-      - name: Refresh current event counts
-        run: python build_today_event_counts.py
-
-      - name: Validate BOAT Auto output
-        shell: bash
+      - name: Ensure playback decoder is installed
         run: |
-          set -euo pipefail
-          python - <<'PY'
-          from datetime import datetime, timedelta, timezone
-          import json
-          from pathlib import Path
-          import re
-          import xml.etree.ElementTree as ET
-
-          JST = timezone(timedelta(hours=9))
-          today = datetime.now(JST).strftime('%Y%m%d')
-          status = json.loads(Path('today_boat_status.json').read_text(encoding='utf-8'))
-          if status.get('system') != 'boat-auto-v3':
-              raise SystemExit(f"unexpected BOAT system: {status.get('system')}")
-          if status.get('date', '').replace('-', '') != today:
-              raise SystemExit(f"stale BOAT status: {status.get('date')} != {today}")
-
-          venues = status.get('venues') or {}
-          held = int(status.get('held_count') or 0)
-          visible = int(status.get('visible_count') or 0)
-          if held != len(venues) or held != int(status.get('card_count') or 0):
-              raise SystemExit(f'held/card mismatch: held={held} venues={len(venues)}')
-
-          playlist = Path('freewifi').read_text(encoding='utf-8-sig', errors='replace')
-          match = re.search(r'# === TODAY_BOAT_START ===(.*?)# === TODAY_BOAT_END ===', playlist, re.S)
-          body = match.group(1) if match else ''
-          entries = len(re.findall(r'^#EXTINF:.*tvg-id="boat\.', body, re.M))
-          if entries != visible:
-              raise SystemExit(f'BOAT playlist mismatch: entries={entries} visible={visible}')
-          if 'ajiousama-radiko.onrender.com/boat/' in body:
-              raise SystemExit('old Render BOAT resolver survived in playlist')
-          for tvg_id, item in venues.items():
-              if item.get('ended') and item.get('url') and not item.get('visible'):
-                  raise SystemExit(f'ended venue disappeared: {tvg_id}')
-
-          for epg_name in ('public_sports_epg_local.xml', 'guides.xml'):
-              epg_path = Path(epg_name)
-              if not epg_path.exists() or not epg_path.stat().st_size:
-                  if epg_name == 'guides.xml':
-                      continue
-                  raise SystemExit(f'{epg_name} missing')
-              root = ET.parse(epg_path).getroot()
-              for tvg_id, item in venues.items():
-                  programmes = [
-                      p for p in root.findall('programme')
-                      if p.get('channel') == tvg_id and (p.get('start') or '').startswith(today)
-                  ]
-                  titles = [(p.findtext('title') or '').strip() for p in programmes]
-                  expected_races = len(item.get('races') or [])
-                  if sum(1 for title in titles if '発走' in title) < expected_races:
-                      raise SystemExit(f'{epg_name}: race times missing for {tvg_id}')
-                  if '本日の開催は終了しました' not in titles:
-                      raise SystemExit(f'{epg_name}: finished EPG missing for {tvg_id}')
-
-          print(
-              'BOAT AUTO validation OK:',
-              f'held={held}', f'visible={visible}',
-              f'ended-kept={len(status.get("ended_kept") or [])}',
-              f'seed-required={len(status.get("seed_required_venues") or [])}',
-          )
-          PY
-
-      - name: Publish BOAT Auto state safely
-        shell: bash
-        run: |
-          set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-          publish() {
-            git add \
-              freewifi \
-              guides.xml \
-              public_sports_epg_local.xml \
-              today_boat_status.json \
-              boat_auto_state.json \
-              boat_auto_alert.json \
-              today_event_counts.json
-            if git diff --cached --quiet; then
-              echo "BOAT Auto state already current"
-              return 0
-            fi
-            git commit -m "Update BOAT Auto v3 state [skip ci]"
-            git push origin HEAD:main
-          }
-
-          if publish; then
-            exit 0
-          fi
-
-          for attempt in 2 3 4; do
-            echo "BOAT main moved; rebuild on newest main ($attempt/4)"
-            git fetch origin main
-            git reset --hard origin/main
-            python -m unittest -q test_boat_auto_system.py
-            python -u boat_auto_system.py
-            python build_today_event_counts.py
-            if publish; then
-              exit 0
-            fi
-            sleep 1
-          done
-
-          echo "::error::BOAT Auto publish failed after retries"
-          exit 1
-
-      - name: Notify and maintain BOAT alert issue
-        if: always()
-        uses: actions/github-script@v7
+          command -v ffmpeg || (sudo apt-get update && sudo apt-get install -y ffmpeg)
+      - name: Test acquisition, retention, race EPG and recovery
+        run: python -m unittest -v test_boat_auto_system test_boat_reliability
+      - name: Run BOAT acquisition continuously and hand over automatically
         env:
-          AUTO_OUTCOME: ${{ steps.auto.outcome }}
-          JOB_STATUS: ${{ job.status }}
-          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-        with:
-          script: |
-            const fs = require('fs');
-            const marker = '<!-- boat-auto-v3-alert -->';
-            let alert = {};
-            try {
-              alert = JSON.parse(fs.readFileSync('boat_auto_alert.json', 'utf8'));
-            } catch (error) {
-              alert = {
-                active: true,
-                kind: 'workflow_error',
-                title: 'BOAT自動更新ワークフローエラー',
-                message: `alert state unavailable: ${error.message}`,
-              };
-            }
-            if (process.env.AUTO_OUTCOME !== 'success' || process.env.JOB_STATUS === 'failure') {
-              alert.active = true;
-              alert.kind = 'workflow_error';
-              alert.title = 'BOAT自動更新ワークフローエラー';
-              alert.message = `BOAT Auto v3 stopped (auto=${process.env.AUTO_OUTCOME || 'unknown'}, job=${process.env.JOB_STATUS || 'unknown'}).`;
-            }
-
-            const {owner, repo} = context.repo;
-            const issues = await github.paginate(github.rest.issues.listForRepo, {
-              owner, repo, state: 'open', per_page: 100,
-            });
-            const current = issues.find(issue => !issue.pull_request && String(issue.body || '').includes(marker));
-
-            if (alert.active) {
-              const venues = Array.isArray(alert.seed_required_venues)
-                ? alert.seed_required_venues.join('、') : '';
-              const errors = Array.isArray(alert.system_errors)
-                ? alert.system_errors.join('\n- ') : '';
-              const body = [
-                marker,
-                `## ${alert.title || 'BOAT自動更新 要確認'}`,
-                '',
-                alert.message || 'BOAT Auto v3の確認が必要です。',
-                venues ? `\n**対象場:** ${venues}` : '',
-                errors ? `\n**エラー:**\n- ${errors}` : '',
-                '',
-                `確認時刻: ${alert.checked_at || new Date().toISOString()}`,
-                `実行ログ: ${process.env.RUN_URL}`,
-                '',
-                'SEED不足の場合だけ「公営これ一発 v17」を実行してください。',
-              ].filter(Boolean).join('\n');
-              const title = `🚨 ${alert.title || 'BOAT自動更新 要確認'}`;
-              if (current) {
-                await github.rest.issues.update({owner, repo, issue_number: current.number, title, body});
-                core.warning(`BOAT alert issue updated: #${current.number}`);
-              } else {
-                try {
-                  const created = await github.rest.issues.create({owner, repo, title, body, assignees: [owner]});
-                  core.warning(`BOAT alert issue created: #${created.data.number}`);
-                } catch (error) {
-                  core.warning(`Issue assignment failed; creating without assignee: ${error.message}`);
-                  const created = await github.rest.issues.create({owner, repo, title, body});
-                  core.warning(`BOAT alert issue created: #${created.data.number}`);
-                }
-              }
-            } else if (current) {
-              await github.rest.issues.update({
-                owner, repo, issue_number: current.number, state: 'closed', state_reason: 'completed',
-              });
-              core.info(`BOAT recovered; alert issue closed: #${current.number}`);
-            } else {
-              core.info('BOAT Auto v3 healthy; no alert issue');
-            }
+          GH_TOKEN: ${{ github.token }}
+          PYTHONUNBUFFERED: "1"
+        run: python -u boat_worker.py

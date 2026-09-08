@@ -172,6 +172,7 @@ jobs:
             python freewifi_today_jra.py
             python finalize_today_public_sports.py
 
+            python boat_publish.py --epg-only
             python build_today_event_counts.py
 
             python - <<'PY'
@@ -322,6 +323,7 @@ jobs:
             cp "$snapshot/epg_coverage.txt" epg_coverage.txt
             cp "$snapshot/public_sports_epg_local.xml" public_sports_epg_local.xml
             cp "$snapshot/verified_daily_status.json" verified_daily_status.json
+            python boat_publish.py --epg-only
 
             python - <<'PY'
           import xml.etree.ElementTree as ET

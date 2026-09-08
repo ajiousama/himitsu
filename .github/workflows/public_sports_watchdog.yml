@@ -98,7 +98,7 @@ jobs:
 
           recover_boat_status() {
             local id status_json generated now epoch age runs latest run_status
-            id="$(find_id "Update BOAT Auto v3")"
+            id="$(find_id "Update BOAT Auto")"
             if [ -z "$id" ]; then
               echo "::warning::No active BOAT workflow found"
               return 0
@@ -124,7 +124,7 @@ jobs:
             runs="$(gh api "repos/$REPO/actions/workflows/$id/runs?per_page=3")"
             latest="$(printf '%s' "$runs" | jq -c '.workflow_runs[0] // empty')"
             run_status="$(printf '%s' "$latest" | jq -r '.status // ""')"
-            if [ "$run_status" = "in_progress" ]; then
+            if [ "$run_status" = "in_progress" ] || [ "$run_status" = "queued" ]; then
               echo "::warning::BOAT status stale but updater is currently running"
               return 0
             fi
@@ -164,7 +164,7 @@ jobs:
             runs="$(gh api "repos/$REPO/actions/workflows/$id/runs?per_page=3")"
             latest="$(printf '%s' "$runs" | jq -c '.workflow_runs[0] // empty')"
             run_status="$(printf '%s' "$latest" | jq -r '.status // ""')"
-            if [ "$run_status" = "in_progress" ]; then
+            if [ "$run_status" = "in_progress" ] || [ "$run_status" = "queued" ]; then
               echo "::warning::Public sports status stale but fast updater is running"
               return 0
             fi

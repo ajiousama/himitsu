@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
-"""BOAT Auto v3.
+"""BOAT Auto v4 (v3 status schema retained for existing consumers).
 
 One self-contained updater owns today's BOAT schedule, current-day stream cache,
 FreeWiFi playlist block, BOAT EPG overlay and alert state.  A venue that has
@@ -13,6 +13,7 @@ import base64
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import date, datetime, time, timedelta, timezone
 import json
+import html
 from pathlib import Path
 import re
 import time as time_module
@@ -20,13 +21,13 @@ import urllib.error
 import urllib.parse
 import urllib.request
 import xml.etree.ElementTree as ET
+import boat_playback
 
 
 FREEWIFI = Path("freewifi")
 STATUS = Path("today_boat_status.json")
 STATE = Path("boat_auto_state.json")
 ALERT = Path("boat_auto_alert.json")
-SEED = Path("boat_stream_seed.m3u")
 LOCAL_EPG = Path("public_sports_epg_local.xml")
 GUIDES = Path("guides.xml")
 
@@ -37,7 +38,7 @@ PUBLIC_END = "# === TODAY_PUBLIC_SPORTS_END ==="
 GROUP = "今日の開催場"
 
 JST = timezone(timedelta(hours=9))
-ACQUIRE_LEAD_MINUTES = 90
+ACQUIRE_LEAD_MINUTES = 150
 ALERT_LEAD_MINUTES = 30
 RACE_SWITCH_MINUTES = 3
 END_GUIDANCE_MINUTES = 45
@@ -162,7 +163,7 @@ def cards_from_snapshot(data: dict, day: date) -> dict[str, list[dict]]:
             subtitle = str(race.get("subtitle") or race.get("title") or "ボートレース").strip()
             races.append({"race": number, "start": start, "name": subtitle})
         races.sort(key=lambda item: item["race"])
-        if len(races) >= 10:
+        if [r['race'] for r in races] == list(range(1, 13)) and all(a['start'] < b['start'] for a, b in zip(races, races[1:])):
             cards[jcd] = races
     return cards
 
@@ -191,6 +192,68 @@ def fetch_cards(day: date) -> dict[str, list[dict]]:
         except RuntimeError as today_error:
             raise RuntimeError(f"dated={dated_error}; today={today_error}") from today_error
         raise dated_error
+
+
+def cached_cards(state: dict, day: date) -> dict:
+    if state.get('date') != day.isoformat():
+        return {}
+    cards = {}
+    for item in (state.get('venues') or {}).values():
+        try:
+            races = [{'race': int(r['race']),
+                      'start': datetime.combine(day, time.fromisoformat(r['start']), tzinfo=JST),
+                      'name': r.get('name') or 'ボートレース'} for r in item['races']]
+            if races and item['jcd'] in VENUES:
+                cards[item['jcd']] = races
+        except (ValueError, KeyError, TypeError):
+            continue
+    return cards
+
+
+def official_cards(day: date) -> dict:
+    base = 'https://www.boatrace.jp/owpc/pc/race/'
+    source = boat_playback.read_url(f'{base}index?hd={day:%Y%m%d}').decode('utf-8')
+    codes = sorted(set(re.findall(r'(?:[?&]|&amp;)jcd=(\d{2})', source)) & set(VENUES))
+    if not codes:
+        raise ValueError('official venue index empty')
+    def get(code):
+        source = boat_playback.read_url(f'{base}raceindex?hd={day:%Y%m%d}&jcd={code}').decode('utf-8')
+        text = re.sub(r'\s+', ' ', html.unescape(re.sub(r'<[^>]+>', ' ', source)))
+        times = dict(re.findall(r'(?<!\d)(1[0-2]|[1-9])R\s+([0-2][0-9]:[0-5][0-9])', text))
+        races = [{'race': int(n), 'start': datetime.combine(day, time.fromisoformat(t), tzinfo=JST),
+                  'name': 'ボートレース（公式締切予定時刻）'} for n, t in times.items()]
+        races.sort(key=lambda r: r['race'])
+        if len(races) != 12:
+            raise ValueError(f'official incomplete race card: {code}')
+        return code, races
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        return dict(pool.map(get, codes))
+
+
+def load_schedule(now: datetime, state: dict) -> tuple[dict, str, list]:
+    cached = cached_cards(state, now.date())
+    checked = str(state.get('schedule_checked_at') or '')
+    try:
+        recent = (now - datetime.fromisoformat(checked)).total_seconds() < 900
+    except ValueError:
+        recent = False
+    if cached and recent:
+        return cached, checked, state.get('schedule_warnings') or []
+    errors = []
+    # Official race cards are authoritative; the JSON mirror provides redundancy.
+    for provider_name, provider in (('official_cards', official_cards), ('fetch_cards', fetch_cards)):
+        try:
+            cards = provider(now.date())
+            if not cards:
+                raise ValueError('empty schedule')
+            if cached.keys() - cards.keys():
+                errors.append('開催表から場が消失したため当日確認済みの開催表を保持')
+            return {**cached, **cards}, now.isoformat(), errors
+        except Exception as exc:
+            errors.append(f'{provider_name}: {type(exc).__name__}')
+    if cached:
+        return cached, checked, errors
+    raise RuntimeError(' / '.join(errors))
 
 
 def jwt_payload(url: str) -> dict:
@@ -269,18 +332,15 @@ def load_current_streams(day: date) -> dict[str, dict]:
 
     sources = [
         ("previous FreeWiFi entry", managed_playlist_urls()),
-        ("manual iPhone SEED", parse_m3u_urls(SEED.read_text(encoding="utf-8-sig", errors="replace")) if SEED.exists() else {}),
     ]
     acquired = now_jst().isoformat()
     for origin, urls in sources:
         for tvg_id, url in urls.items():
             if current_day_stream(url, day):
                 previous_url = str((streams.get(tvg_id) or {}).get("url") or "")
-                previous_exp = int(jwt_payload(previous_url).get("exp") or 0)
-                candidate_exp = int(jwt_payload(url).get("exp") or 0)
-                # Keep the newest current-day token. A stale manual fallback
-                # must never replace a fresher URL already acquired by cloud.
-                if not previous_url or candidate_exp > previous_exp:
+                # The verified state owns the URL. An external playlist writer
+                # must not silently replace it, even with a longer-lived token.
+                if not previous_url:
                     streams[tvg_id] = {"url": url, "source": origin, "acquired_at": acquired}
     return streams
 
@@ -288,38 +348,81 @@ def load_current_streams(day: date) -> dict[str, dict]:
 def fetch_seed(jcd: str, day: date) -> tuple[str, str, str]:
     try:
         data = request_json(SEED_API.format(jcd=jcd), timeout=12, attempts=2)
-    except Exception as exc:
-        return jcd, "", str(exc)
-    url = str(data.get("url") or "") if data.get("ok") is True else ""
+        url = str(data.get('url') or '') if data.get('ok') is True else ''
+        if data.get('venue') != jcd or str(data.get('date', '')).replace('-', '') != day.strftime('%Y%m%d'):
+            url = ''
+    except Exception:
+        url = ''
+    if not current_day_stream(url, day):
+        try:
+            url = boat_playback.direct_source(jcd, day, VENUES[jcd][1].split('.')[1])
+        except Exception as exc:
+            return jcd, '', f'cloud and official acquisition unavailable: {type(exc).__name__}'
     if not url:
-        return jcd, "", f"no current stream (region={data.get('region')})"
+        return jcd, "", 'no current stream'
     if not current_day_stream(url, day):
         return jcd, "", f"rejected stream start={token_start_day(url)}"
     return jcd, url, ""
 
 
+def maintain_stream(jcd, stream, day, now):
+    stream = dict(stream or {})
+    url = stream.get('url', '')
+    if current_day_stream(url, day) and not token_expired(url):
+        try:
+            age = (now - datetime.fromisoformat(stream.get('checked_at', ''))).total_seconds()
+        except ValueError:
+            age = 9999
+        interval = 60 if stream.get('consecutive_failures') else 300
+        if stream.get('playback_verified') and age < interval:
+            return stream, ''
+        result = boat_playback.probe(url, stream.get('probe'))
+        stream['checked_at'] = now.isoformat()
+        if result['ok']:
+            stream.update(playback_verified=True, probe=result, consecutive_failures=0,
+                          first_verified_at=stream.get('first_verified_at') or now.isoformat())
+            return stream, ''
+        stream['consecutive_failures'] = stream.get('consecutive_failures', 0) + 1
+        # A transient probe failure does not replace a previously decoded stream.
+        if stream.get('playback_verified') and stream['consecutive_failures'] < 2:
+            return stream, ''
+        stream['playback_verified'] = False
+    _code, candidate, error = fetch_seed(jcd, day)
+    if not candidate:
+        return stream, error
+    if url and int(jwt_payload(candidate).get('exp') or 0) < int(jwt_payload(url).get('exp') or 0):
+        return stream, 'candidate token rollback rejected'
+    result = boat_playback.probe(candidate, stream.get('probe') if candidate == url else None)
+    if not result['ok']:
+        return stream, result['error']
+    stream.update(url=candidate, source='automatic acquisition + audio/video decode',
+                  acquired_at=now.isoformat(), checked_at=now.isoformat(),
+                  first_verified_at=stream.get('first_verified_at') or now.isoformat(),
+                  playback_verified=True, probe=result, consecutive_failures=0)
+    return stream, ''
+
+
 def refresh_cloud_streams(cards: dict[str, list[dict]], streams: dict[str, dict], day: date) -> dict:
     failures = []
     fetched = 0
-    acquired = now_jst().isoformat()
     workers = min(8, max(1, len(cards)))
     with ThreadPoolExecutor(max_workers=workers) as pool:
-        futures = {pool.submit(fetch_seed, jcd, day): jcd for jcd in cards}
+        futures = {pool.submit(maintain_stream, jcd, streams.get(VENUES[jcd][1]), day, now_jst()): jcd for jcd in cards}
         for future in as_completed(futures):
             jcd = futures[future]
             try:
-                _jcd, url, error = future.result()
+                candidate, error = future.result()
             except Exception as exc:
-                url, error = "", f"{type(exc).__name__}: {exc}"
+                candidate, error = {}, f"{type(exc).__name__}: acquisition failed"
             name, tvg_id, _logo = VENUES[jcd]
-            if url:
-                streams[tvg_id] = {
-                    "url": url,
-                    "source": "Vercel KIX automatic acquisition",
-                    "acquired_at": acquired,
-                }
+            url = candidate.get('url')
+            if url and any(other != tvg_id and value.get('url') == url for other, value in streams.items()):
+                error = 'duplicate venue URL rejected'
+            elif candidate:
+                streams[tvg_id] = candidate
+            if not error and candidate.get('playback_verified'):
                 fetched += 1
-                print(f"BOAT AUTO {name}: cloud SEED OK")
+                print(f"BOAT AUTO {name}: audio/video verified; retained")
             else:
                 failures.append({"jcd": jcd, "name": name, "error": error})
                 print(f"BOAT AUTO {name}: cloud SEED pending: {error}")
@@ -405,7 +508,7 @@ def build_venue_state(cards: dict[str, list[dict]], streams: dict[str, dict], no
         current_url = current_day_stream(url, now.date())
         expired = token_expired(url) if current_url else False
         visible = bool(current_url)
-        source_ready = bool(current_url and not expired)
+        source_ready = bool(current_url and not expired and stream.get('playback_verified'))
         seed_required = bool(active and not source_ready)
         race_rows = [
             {"race": race["race"], "start": race["start"].strftime("%H:%M"), "name": race["name"]}
@@ -427,6 +530,10 @@ def build_venue_state(cards: dict[str, list[dict]], streams: dict[str, dict], no
             "stream_window": "ended_kept" if ended else ("live_or_prestart" if active else "scheduled"),
             "guidance_switch_at": guidance_switch.isoformat(),
             "seed_required": seed_required,
+            "playback_verified": source_ready,
+            "first_verified_at": stream.get('first_verified_at'),
+            "ready_before_first_race": bool(stream.get('first_verified_at') and datetime.fromisoformat(stream['first_verified_at']) <= first),
+            "acquire_from": (first - timedelta(minutes=ACQUIRE_LEAD_MINUTES)).isoformat(),
             "races": race_rows,
         }
         if visible:
@@ -465,7 +572,7 @@ def update_playlist(rows: list[dict]) -> None:
     payload = "\n".join(body).rstrip()
     managed = (
         START
-        + "\n## 今日の開催場 / BOAT AUTO v3（終了場も当日中保持）\n"
+        + "\n## 今日の開催場 / BOAT AUTO v4（終了場も当日中保持）\n"
         + payload
         + ("\n" if payload else "")
         + END
@@ -525,7 +632,7 @@ def overlay_epg_file(path: Path, cards: dict[str, list[dict]], day: date) -> int
         mode = mode_for(races)
         ensure_channel(root, cid, f"BOATRACE{name}")
         for index, race in enumerate(races):
-            start = races[0]["start"] - timedelta(minutes=20) if index == 0 else races[index - 1]["start"] + timedelta(minutes=RACE_SWITCH_MINUTES)
+            start = races[0]["start"] - timedelta(minutes=ACQUIRE_LEAD_MINUTES) if index == 0 else races[index - 1]["start"] + timedelta(minutes=RACE_SWITCH_MINUTES)
             stop = race["start"] + timedelta(minutes=RACE_SWITCH_MINUTES)
             number = str(race["race"]).translate(FULLWIDTH)
             title = f"【{number}Ｒ】 {race['start'].strftime('%H:%M')}発走  🚤【BOATRACE{name} 🚤】"
@@ -552,7 +659,7 @@ def overlay_epg_file(path: Path, cards: dict[str, list[dict]], day: date) -> int
                 pass
         next_day = min(future_days) if future_days else None
         if ended_at < end_of_day:
-            finish_stop = min(guidance_at, end_of_day)
+            finish_stop = min(guidance_at, end_of_day) if next_day else end_of_day
             add_programme(
                 root,
                 cid,
@@ -590,8 +697,8 @@ def write_alert(now: datetime, system_errors: list[str], seed_required: list[str
         message = " / ".join(system_errors)
     elif seed_required:
         kind = "seed_required"
-        title = "BOAT 手動SEEDが必要です"
-        message = "公営これ一発 v17を実行してください: " + "、".join(seed_required)
+        title = "BOAT 中継開始未確認・自動復旧中"
+        message = "音声・映像の再生が未確認です。自動再取得を継続: " + "、".join(seed_required)
     else:
         kind = "healthy"
         title = "BOAT自動更新 正常"
@@ -607,7 +714,7 @@ def write_alert(now: datetime, system_errors: list[str], seed_required: list[str
         "seed_required_venues": seed_required,
         "system_errors": system_errors,
         "cloud_failures": cloud.get("failures") or [],
-        "manual_recovery": "公営これ一発 v17（緊急SEED用）",
+        "recovery": "automatic retry; no manual SEED dependency",
     }
     json_write(ALERT, value)
     return value
@@ -690,7 +797,7 @@ def main() -> int:
     now = now_jst()
     day = now.date()
     try:
-        cards = fetch_cards(day)
+        cards, schedule_checked_at, schedule_warnings = load_schedule(now, json_read(STATE))
     except Exception as exc:
         # The upstream API explicitly returns 404 until the new JST day's data is
         # published. Treat that as a normal pre-dawn waiting state, not a system
@@ -704,11 +811,8 @@ def main() -> int:
         return preserve_on_schedule_error(now, "BOAT EPG/開催表が0場です")
 
     streams = load_current_streams(day)
-    # Schedule/EPG and stream acquisition are deliberately separated.  Start
-    # cloud acquisition well before 1R so a normal provider delay cannot make
-    # the first race disappear.  Alerting remains later than prefetch: repeated
-    # 5-minute runs get ample time to acquire automatically before manual SEED
-    # is requested.
+    # Schedule and playback acquisition are independent. The continuous worker
+    # retries unready venues each minute; verified streams are only monitored.
     due_cards = {
         jcd: races for jcd, races in cards.items()
         if races and now >= races[0]["start"] - timedelta(minutes=ACQUIRE_LEAD_MINUTES)
@@ -729,7 +833,9 @@ def main() -> int:
 
     seed_required = [item["name"] for item in venues.values() if item.get("seed_required")]
     ended_kept = [item["name"] for item in venues.values() if item.get("ended") and item.get("visible")]
-    system_errors = []
+    system_errors = [warning for warning in schedule_warnings if '場が消失' in warning]
+    if len(schedule_warnings) >= 2:
+        system_errors = list(schedule_warnings)
     hard_cloud_failures = [
         item for item in (cloud.get("failures") or [])
         if "no current stream" not in str(item.get("error") or "")
@@ -751,12 +857,15 @@ def main() -> int:
     }
     state = {
         "system": "boat-auto-v3",
+        "architecture_version": 4,
         "date": day.isoformat(),
         "generated_at": now.isoformat(),
         "last_update_ok": not system_errors,
         "schedule_source": SCHEDULE_API.format(year=day.strftime("%Y"), ymd=day.strftime("%Y%m%d")),
-        "stream_source": "Vercel KIX automatic acquisition near each venue start; 公営これ一発 v17 is emergency SEED only",
-        "stream_acquisition_policy": "開催表/EPGは0時から独立更新。自動SEED取得は各場の1R 90分前から開始し、30分前までに未取得なら警告。",
+        "schedule_checked_at": schedule_checked_at,
+        "schedule_warnings": schedule_warnings,
+        "stream_source": "cloud + official Playback API; audio/video decoded before acceptance",
+        "stream_acquisition_policy": "1R150分前から毎分取得。再生確認済みURLは保持し5分ごとに異常のみ確認。失敗場だけ自動復旧。",
         "retention_policy": "開催場はJST日付変更まで保持。終了しても削除しない。",
         "epg_finished_title": "本日の開催は終了しました",
         "acquire_lead_minutes": ACQUIRE_LEAD_MINUTES,
@@ -791,7 +900,7 @@ def main() -> int:
             f"active={values['active']} ended={values['ended']}"
         )
     if seed_required:
-        print("::warning::公営これ一発 v17 SEED required: " + "、".join(seed_required))
+        print("::warning::BOAT automatic recovery pending: " + "、".join(seed_required))
     return 0
 
 
