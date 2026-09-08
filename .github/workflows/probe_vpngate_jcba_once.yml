@@ -1,0 +1,124 @@
+name: Probe VPN Gate JCBA Once
+
+on:
+  push:
+    paths:
+      - ".github/workflows/probe_vpngate_jcba_once.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.25.x'
+      - name: Build userspace OpenVPN SOCKS client
+        run: go install github.com/n0madic/go-openvpn/cmd/openvpn2socks@latest
+      - name: Install Python test dependencies
+        run: python -m pip install -q websocket-client
+      - name: Try Japanese VPN Gate exits and JCBA
+        shell: python
+        run: |
+          import base64, csv, io, json, os, re, socket, subprocess, time, urllib.parse, urllib.request
+          import websocket
+
+          UA='Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Version/18.0 Mobile/15E148 Safari/604.1'
+          BIN=os.path.expanduser('~/go/bin/openvpn2socks')
+
+          req=urllib.request.Request('https://www.vpngate.net/api/iphone/',headers={'User-Agent':UA})
+          raw=urllib.request.urlopen(req,timeout=30).read().decode('utf-8','replace')
+          lines=[x for x in raw.splitlines() if x and not x.startswith('*')]
+          rows=list(csv.DictReader(io.StringIO('\n'.join(lines))))
+          jp=[]
+          for r in rows:
+              if r.get('CountryShort')!='JP': continue
+              b64=(r.get('OpenVPN_ConfigData_Base64') or '').strip()
+              if not b64: continue
+              try:
+                  cfg=base64.b64decode(b64).decode('utf-8','replace')
+              except Exception:
+                  continue
+              # openvpn2socks negotiates modern AEAD; remove legacy data-channel/compression hints.
+              clean=[]
+              for line in cfg.splitlines():
+                  s=line.strip().lower()
+                  if s.startswith('cipher '): continue
+                  if s.startswith('data-ciphers-fallback '): continue
+                  if s.startswith('comp-lzo') or s.startswith('compress '): continue
+                  if s.startswith('redirect-gateway'): continue
+                  if s.startswith('block-outside-dns'): continue
+                  clean.append(line)
+              cfg='\n'.join(clean)+'\n'
+              score=int(r.get('Score') or 0)
+              ping=int(r.get('Ping') or 9999)
+              jp.append((score,-ping,r,cfg))
+          jp.sort(reverse=True,key=lambda x:(x[0],x[1]))
+          print('JP_CANDIDATES',len(jp))
+
+          def wait_socks(port,limit=50):
+              end=time.time()+limit
+              while time.time()<end:
+                  try:
+                      with socket.create_connection(('127.0.0.1',port),timeout=1): return True
+                  except OSError: time.sleep(1)
+              return False
+
+          passed=False
+          for idx,(_,_,r,cfg) in enumerate(jp[:8]):
+              port=1080+idx
+              fn=f'/tmp/vpngate-{idx}.ovpn'
+              open(fn,'w').write(cfg)
+              print('TRY',idx,r.get('HostName'),r.get('IP'),'PING',r.get('Ping'),'SCORE',r.get('Score'))
+              p=subprocess.Popen([BIN,'-config',fn,'-user','vpn','-pass','vpn','-listen',f'127.0.0.1:{port}','-timeout','35s'],stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True)
+              try:
+                  if not wait_socks(port,42):
+                      p.terminate()
+                      out=''
+                      try: out=p.communicate(timeout=3)[0]
+                      except Exception: p.kill()
+                      print('SOCKS_FAIL',out[-5000:])
+                      continue
+
+                  station='kyotoribingufm'
+                  qs=urllib.parse.urlencode({'station':station,'channel':'0','quality':'high','burst':'5'})
+                  url='https://www.jcbasimul.com/api/select_stream?'+qs
+                  curl=subprocess.run([
+                      'curl','-fsS','--max-time','20','--socks5-hostname',f'127.0.0.1:{port}',
+                      '-A',UA,'-H','Accept: application/json,*/*','-e',f'https://www.jcbasimul.com/{station}/rawplayer',url
+                  ],stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True,timeout=25)
+                  print('CURL_RC',curl.returncode,'BODY_LEN',len(curl.stdout))
+                  if curl.returncode!=0: continue
+                  try: data=json.loads(curl.stdout)
+                  except Exception: continue
+                  location=str(data.get('location') or '')
+                  token=str(data.get('token') or '')
+                  print('SELECT',data.get('code'),'TOKEN_LEN',len(token),'LOCATION_WSS',location.startswith('wss://'))
+                  if int(data.get('code') or 0)!=200 or not location.startswith('wss://') or not token: continue
+
+                  # Prove the Japan-acquired token can drive audio from an overseas runner.
+                  ws=websocket.create_connection(location,subprotocols=['listener.fmplapla.com'],origin='https://www.jcbasimul.com',header=['User-Agent: '+UA],timeout=15)
+                  ws.send(token)
+                  total=0; frames=0; deadline=time.time()+12
+                  while time.time()<deadline and total<180000:
+                      msg=ws.recv()
+                      if isinstance(msg,bytes) and msg:
+                          total+=len(msg); frames+=1
+                  ws.close()
+                  print('AUDIO_BYTES',total,'FRAMES',frames)
+                  if total>=100000:
+                      print('VPNGATE_JP_JCBA_PASS',r.get('HostName'),r.get('IP'))
+                      passed=True
+                      break
+              except Exception as exc:
+                  print('TRY_ERROR',type(exc).__name__,repr(exc))
+              finally:
+                  if p.poll() is None:
+                      p.terminate()
+                      try: p.wait(timeout=3)
+                      except Exception: p.kill()
+          if not passed:
+              raise SystemExit('NO_JAPAN_VPNGATE_PATH_PASSED')
