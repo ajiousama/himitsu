@@ -95,8 +95,46 @@ jobs:
             fi
           }
 
-          # BOAT Auto v3 normally refreshes every 5 minutes.
-          recover "Update BOAT Auto v3" 13
+          recover_boat_status() {
+            local id status_json generated now epoch age runs latest run_status
+            id="$(find_id "Update BOAT Auto v3")"
+            if [ -z "$id" ]; then
+              echo "::warning::No active BOAT workflow found"
+              return 0
+            fi
+
+            status_json="$(gh api "repos/$REPO/contents/today_boat_status.json?ref=main" --jq '.content' | tr -d '\n' | base64 -d 2>/dev/null || true)"
+            generated="$(printf '%s' "$status_json" | jq -r '.generated_at // empty' 2>/dev/null || true)"
+            if [ -z "$generated" ]; then
+              echo "::warning::BOAT status timestamp unavailable; dispatching recovery"
+              gh api -X POST "repos/$REPO/actions/workflows/$id/dispatches" -f ref=main
+              return 0
+            fi
+
+            now="$(date -u +%s)"
+            epoch="$(date -u -d "$generated" +%s 2>/dev/null || echo 0)"
+            age=$(( (now - epoch) / 60 ))
+            echo "BOAT status age=${age}m generated_at=$generated"
+            if [ "$age" -lt 13 ]; then
+              echo "BOAT status healthy/recent"
+              return 0
+            fi
+
+            runs="$(gh api "repos/$REPO/actions/workflows/$id/runs?per_page=3")"
+            latest="$(printf '%s' "$runs" | jq -c '.workflow_runs[0] // empty')"
+            run_status="$(printf '%s' "$latest" | jq -r '.status // ""')"
+            if [ "$run_status" = "in_progress" ]; then
+              echo "::warning::BOAT status stale but updater is currently running"
+              return 0
+            fi
+
+            echo "::warning::BOAT status stale (${age}m); dispatching recovery"
+            gh api -X POST "repos/$REPO/actions/workflows/$id/dispatches" -f ref=main
+          }
+
+          # BOAT health is judged from the actual published status timestamp,
+          # not merely from whether a workflow run happens to be queued.
+          recover_boat_status
           # Main FreeWiFi/EPG and GCH fallback are hourly jobs.
           recover "Update FreeWiFi ALL" 80
           recover "Update GCH Free EPG" 80
