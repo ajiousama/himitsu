@@ -1,33 +1,1111 @@
 {
   "system": "boat-auto-v3",
+  "architecture_version": 4,
   "date": "2026-09-09",
-  "generated_at": "2026-09-09T00:18:16.646660+09:00",
+  "generated_at": "2026-09-09T00:19:16.696161+09:00",
   "last_update_ok": true,
-  "schedule_pending": true,
+  "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260909.json",
+  "schedule_checked_at": "2026-09-09T00:19:16.696161+09:00",
+  "schedule_warnings": [
+    "official_cards: TimeoutError"
+  ],
+  "stream_source": "cloud + official Playback API; audio/video decoded before acceptance",
+  "stream_acquisition_policy": "1R150分前から毎分取得。再生確認済みURLは保持し5分ごとに異常のみ確認。失敗場だけ自動復旧。",
   "retention_policy": "開催場はJST日付変更まで保持。終了しても削除しない。",
   "epg_finished_title": "本日の開催は終了しました",
-  "card_count": 0,
-  "held_count": 0,
+  "acquire_lead_minutes": 150,
+  "alert_lead_minutes": 30,
+  "card_count": 12,
+  "held_count": 12,
   "visible_count": 0,
   "active_count": 0,
   "ended_kept": [],
   "seed_required": false,
   "seed_required_venues": [],
   "system_errors": [],
-  "phase_counts": {},
+  "phase_counts": {
+    "morning": {
+      "held": 2,
+      "acquired": 0,
+      "active": 0,
+      "ended": 0,
+      "seed_required": 0
+    },
+    "day": {
+      "held": 7,
+      "acquired": 0,
+      "active": 0,
+      "ended": 0,
+      "seed_required": 0
+    },
+    "night": {
+      "held": 3,
+      "acquired": 0,
+      "active": 0,
+      "ended": 0,
+      "seed_required": 0
+    }
+  },
   "cloud_acquisition": {
     "requested": 0,
     "fetched": 0,
-    "failures": []
+    "failures": [],
+    "deferred": 12,
+    "reason": "stream acquisition waits until each venue 1R prefetch window"
   },
   "epg_programmes_written": {
-    "public_sports_epg_local.xml": 0,
-    "guides.xml": 0
+    "public_sports_epg_local.xml": 156,
+    "guides.xml": 156
   },
   "alert": {
     "active": false,
     "kind": "healthy"
   },
   "streams": {},
-  "venues": {}
+  "venues": {
+    "boat.kiryu": {
+      "jcd": "01",
+      "name": "桐生",
+      "held": true,
+      "visible": false,
+      "ended": false,
+      "active": false,
+      "mode": "night",
+      "mode_label": "ナイター",
+      "first_race": "15:18",
+      "last_race": "20:30",
+      "alert_from": "2026-09-09T14:48:00+09:00",
+      "next_race": {
+        "race": 1,
+        "start": "15:18"
+      },
+      "stream_window": "scheduled",
+      "guidance_switch_at": "2026-09-09T21:15:00+09:00",
+      "seed_required": false,
+      "playback_verified": false,
+      "first_verified_at": null,
+      "ready_before_first_race": false,
+      "acquire_from": "2026-09-09T12:48:00+09:00",
+      "races": [
+        {
+          "race": 1,
+          "start": "15:18",
+          "name": "一般"
+        },
+        {
+          "race": 2,
+          "start": "15:43",
+          "name": "一般"
+        },
+        {
+          "race": 3,
+          "start": "16:09",
+          "name": "一般"
+        },
+        {
+          "race": 4,
+          "start": "16:35",
+          "name": "一般"
+        },
+        {
+          "race": 5,
+          "start": "17:01",
+          "name": "一般"
+        },
+        {
+          "race": 6,
+          "start": "17:28",
+          "name": "ドラドキ目玉"
+        },
+        {
+          "race": 7,
+          "start": "17:55",
+          "name": "ドラドキ3"
+        },
+        {
+          "race": 8,
+          "start": "18:23",
+          "name": "ドラドキ5"
+        },
+        {
+          "race": 9,
+          "start": "18:54",
+          "name": "準優勝戦"
+        },
+        {
+          "race": 10,
+          "start": "19:25",
+          "name": "準優勝戦"
+        },
+        {
+          "race": 11,
+          "start": "19:58",
+          "name": "準優勝戦"
+        },
+        {
+          "race": 12,
+          "start": "20:30",
+          "name": "一般特賞"
+        }
+      ],
+      "source": "automatic cloud SEED pending"
+    },
+    "boat.edogawa": {
+      "jcd": "03",
+      "name": "江戸川",
+      "held": true,
+      "visible": false,
+      "ended": false,
+      "active": false,
+      "mode": "day",
+      "mode_label": "デイ",
+      "first_race": "11:14",
+      "last_race": "16:25",
+      "alert_from": "2026-09-09T10:44:00+09:00",
+      "next_race": {
+        "race": 1,
+        "start": "11:14"
+      },
+      "stream_window": "scheduled",
+      "guidance_switch_at": "2026-09-09T17:10:00+09:00",
+      "seed_required": false,
+      "playback_verified": false,
+      "first_verified_at": null,
+      "ready_before_first_race": false,
+      "acquire_from": "2026-09-09T08:44:00+09:00",
+      "races": [
+        {
+          "race": 1,
+          "start": "11:14",
+          "name": "一般"
+        },
+        {
+          "race": 2,
+          "start": "11:41",
+          "name": "一般"
+        },
+        {
+          "race": 3,
+          "start": "12:08",
+          "name": "一般"
+        },
+        {
+          "race": 4,
+          "start": "12:35",
+          "name": "一般"
+        },
+        {
+          "race": 5,
+          "start": "13:02",
+          "name": "一般"
+        },
+        {
+          "race": 6,
+          "start": "13:29",
+          "name": "一般"
+        },
+        {
+          "race": 7,
+          "start": "13:56",
+          "name": "一般"
+        },
+        {
+          "race": 8,
+          "start": "14:24",
+          "name": "一般"
+        },
+        {
+          "race": 9,
+          "start": "14:52",
+          "name": "一般特賞"
+        },
+        {
+          "race": 10,
+          "start": "15:22",
+          "name": "一般特賞"
+        },
+        {
+          "race": 11,
+          "start": "15:53",
+          "name": "準優勝戦"
+        },
+        {
+          "race": 12,
+          "start": "16:25",
+          "name": "準優勝戦"
+        }
+      ],
+      "source": "automatic cloud SEED pending"
+    },
+    "boat.heiwajima": {
+      "jcd": "04",
+      "name": "平和島",
+      "held": true,
+      "visible": false,
+      "ended": false,
+      "active": false,
+      "mode": "day",
+      "mode_label": "デイ",
+      "first_race": "10:55",
+      "last_race": "16:38",
+      "alert_from": "2026-09-09T10:25:00+09:00",
+      "next_race": {
+        "race": 1,
+        "start": "10:55"
+      },
+      "stream_window": "scheduled",
+      "guidance_switch_at": "2026-09-09T17:23:00+09:00",
+      "seed_required": false,
+      "playback_verified": false,
+      "first_verified_at": null,
+      "ready_before_first_race": false,
+      "acquire_from": "2026-09-09T08:25:00+09:00",
+      "races": [
+        {
+          "race": 1,
+          "start": "10:55",
+          "name": "一般"
+        },
+        {
+          "race": 2,
+          "start": "11:24",
+          "name": "一般"
+        },
+        {
+          "race": 3,
+          "start": "11:53",
+          "name": "一般"
+        },
+        {
+          "race": 4,
+          "start": "12:22",
+          "name": "一般"
+        },
+        {
+          "race": 5,
+          "start": "12:52",
+          "name": "一般"
+        },
+        {
+          "race": 6,
+          "start": "13:22",
+          "name": "一般"
+        },
+        {
+          "race": 7,
+          "start": "13:53",
+          "name": "一般"
+        },
+        {
+          "race": 8,
+          "start": "14:24",
+          "name": "一般"
+        },
+        {
+          "race": 9,
+          "start": "14:56",
+          "name": "一般特賞"
+        },
+        {
+          "race": 10,
+          "start": "15:29",
+          "name": "準優勝戦"
+        },
+        {
+          "race": 11,
+          "start": "16:03",
+          "name": "準優勝戦"
+        },
+        {
+          "race": 12,
+          "start": "16:38",
+          "name": "準優勝戦"
+        }
+      ],
+      "source": "automatic cloud SEED pending"
+    },
+    "boat.tamagawa": {
+      "jcd": "05",
+      "name": "多摩川",
+      "held": true,
+      "visible": false,
+      "ended": false,
+      "active": false,
+      "mode": "day",
+      "mode_label": "デイ",
+      "first_race": "11:03",
+      "last_race": "16:46",
+      "alert_from": "2026-09-09T10:33:00+09:00",
+      "next_race": {
+        "race": 1,
+        "start": "11:03"
+      },
+      "stream_window": "scheduled",
+      "guidance_switch_at": "2026-09-09T17:31:00+09:00",
+      "seed_required": false,
+      "playback_verified": false,
+      "first_verified_at": null,
+      "ready_before_first_race": false,
+      "acquire_from": "2026-09-09T08:33:00+09:00",
+      "races": [
+        {
+          "race": 1,
+          "start": "11:03",
+          "name": "予選"
+        },
+        {
+          "race": 2,
+          "start": "11:32",
+          "name": "予選"
+        },
+        {
+          "race": 3,
+          "start": "12:01",
+          "name": "予選"
+        },
+        {
+          "race": 4,
+          "start": "12:31",
+          "name": "予選"
+        },
+        {
+          "race": 5,
+          "start": "13:01",
+          "name": "予選"
+        },
+        {
+          "race": 6,
+          "start": "13:31",
+          "name": "予選"
+        },
+        {
+          "race": 7,
+          "start": "14:01",
+          "name": "予選"
+        },
+        {
+          "race": 8,
+          "start": "14:32",
+          "name": "予選"
+        },
+        {
+          "race": 9,
+          "start": "15:04",
+          "name": "予選特賞"
+        },
+        {
+          "race": 10,
+          "start": "15:37",
+          "name": "予選特賞"
+        },
+        {
+          "race": 11,
+          "start": "16:11",
+          "name": "予選特選"
+        },
+        {
+          "race": 12,
+          "start": "16:46",
+          "name": "ドリーム戦"
+        }
+      ],
+      "source": "automatic cloud SEED pending"
+    },
+    "boat.biwako": {
+      "jcd": "11",
+      "name": "びわこ",
+      "held": true,
+      "visible": false,
+      "ended": false,
+      "active": false,
+      "mode": "day",
+      "mode_label": "デイ",
+      "first_race": "10:38",
+      "last_race": "16:29",
+      "alert_from": "2026-09-09T10:08:00+09:00",
+      "next_race": {
+        "race": 1,
+        "start": "10:38"
+      },
+      "stream_window": "scheduled",
+      "guidance_switch_at": "2026-09-09T17:14:00+09:00",
+      "seed_required": false,
+      "playback_verified": false,
+      "first_verified_at": null,
+      "ready_before_first_race": false,
+      "acquire_from": "2026-09-09T08:08:00+09:00",
+      "races": [
+        {
+          "race": 1,
+          "start": "10:38",
+          "name": "一般"
+        },
+        {
+          "race": 2,
+          "start": "11:06",
+          "name": "一般"
+        },
+        {
+          "race": 3,
+          "start": "11:45",
+          "name": "一般"
+        },
+        {
+          "race": 4,
+          "start": "12:14",
+          "name": "一般"
+        },
+        {
+          "race": 5,
+          "start": "12:44",
+          "name": "一般"
+        },
+        {
+          "race": 6,
+          "start": "13:15",
+          "name": "一般"
+        },
+        {
+          "race": 7,
+          "start": "13:43",
+          "name": "一般"
+        },
+        {
+          "race": 8,
+          "start": "14:16",
+          "name": "一般"
+        },
+        {
+          "race": 9,
+          "start": "14:45",
+          "name": "ビナちゃん特選"
+        },
+        {
+          "race": 10,
+          "start": "15:25",
+          "name": "選抜戦"
+        },
+        {
+          "race": 11,
+          "start": "15:58",
+          "name": "選抜戦"
+        },
+        {
+          "race": 12,
+          "start": "16:29",
+          "name": "優勝戦"
+        }
+      ],
+      "source": "automatic cloud SEED pending"
+    },
+    "boat.amagasaki": {
+      "jcd": "13",
+      "name": "尼崎",
+      "held": true,
+      "visible": false,
+      "ended": false,
+      "active": false,
+      "mode": "day",
+      "mode_label": "デイ",
+      "first_race": "10:41",
+      "last_race": "16:23",
+      "alert_from": "2026-09-09T10:11:00+09:00",
+      "next_race": {
+        "race": 1,
+        "start": "10:41"
+      },
+      "stream_window": "scheduled",
+      "guidance_switch_at": "2026-09-09T17:08:00+09:00",
+      "seed_required": false,
+      "playback_verified": false,
+      "first_verified_at": null,
+      "ready_before_first_race": false,
+      "acquire_from": "2026-09-09T08:11:00+09:00",
+      "races": [
+        {
+          "race": 1,
+          "start": "10:41",
+          "name": "朝からセンプル"
+        },
+        {
+          "race": 2,
+          "start": "11:09",
+          "name": "予選"
+        },
+        {
+          "race": 3,
+          "start": "11:35",
+          "name": "予選"
+        },
+        {
+          "race": 4,
+          "start": "11:59",
+          "name": "予選"
+        },
+        {
+          "race": 5,
+          "start": "12:29",
+          "name": "予選"
+        },
+        {
+          "race": 6,
+          "start": "12:56",
+          "name": "昼どきピンクル"
+        },
+        {
+          "race": 7,
+          "start": "13:27",
+          "name": "予選"
+        },
+        {
+          "race": 8,
+          "start": "14:06",
+          "name": "予選"
+        },
+        {
+          "race": 9,
+          "start": "14:37",
+          "name": "予選特賞"
+        },
+        {
+          "race": 10,
+          "start": "15:09",
+          "name": "予選特賞"
+        },
+        {
+          "race": 11,
+          "start": "15:41",
+          "name": "予選特選"
+        },
+        {
+          "race": 12,
+          "start": "16:23",
+          "name": "予選特選"
+        }
+      ],
+      "source": "automatic cloud SEED pending"
+    },
+    "boat.naruto": {
+      "jcd": "14",
+      "name": "鳴門",
+      "held": true,
+      "visible": false,
+      "ended": false,
+      "active": false,
+      "mode": "morning",
+      "mode_label": "モーニング",
+      "first_race": "08:44",
+      "last_race": "14:28",
+      "alert_from": "2026-09-09T08:14:00+09:00",
+      "next_race": {
+        "race": 1,
+        "start": "08:44"
+      },
+      "stream_window": "scheduled",
+      "guidance_switch_at": "2026-09-09T15:13:00+09:00",
+      "seed_required": false,
+      "playback_verified": false,
+      "first_verified_at": null,
+      "ready_before_first_race": false,
+      "acquire_from": "2026-09-09T06:14:00+09:00",
+      "races": [
+        {
+          "race": 1,
+          "start": "08:44",
+          "name": "とるならなると"
+        },
+        {
+          "race": 2,
+          "start": "09:10",
+          "name": "どーなるなると"
+        },
+        {
+          "race": 3,
+          "start": "09:36",
+          "name": "どきどきなると"
+        },
+        {
+          "race": 4,
+          "start": "10:02",
+          "name": "とにかくなると"
+        },
+        {
+          "race": 5,
+          "start": "10:28",
+          "name": "予選"
+        },
+        {
+          "race": 6,
+          "start": "10:58",
+          "name": "予選"
+        },
+        {
+          "race": 7,
+          "start": "11:28",
+          "name": "予選"
+        },
+        {
+          "race": 8,
+          "start": "12:05",
+          "name": "予選"
+        },
+        {
+          "race": 9,
+          "start": "12:38",
+          "name": "特賞"
+        },
+        {
+          "race": 10,
+          "start": "13:09",
+          "name": "特賞"
+        },
+        {
+          "race": 11,
+          "start": "13:49",
+          "name": "特選"
+        },
+        {
+          "race": 12,
+          "start": "14:28",
+          "name": "特選"
+        }
+      ],
+      "source": "automatic cloud SEED pending"
+    },
+    "boat.kojima": {
+      "jcd": "16",
+      "name": "児島",
+      "held": true,
+      "visible": false,
+      "ended": false,
+      "active": false,
+      "mode": "day",
+      "mode_label": "デイ",
+      "first_race": "10:53",
+      "last_race": "16:44",
+      "alert_from": "2026-09-09T10:23:00+09:00",
+      "next_race": {
+        "race": 1,
+        "start": "10:53"
+      },
+      "stream_window": "scheduled",
+      "guidance_switch_at": "2026-09-09T17:29:00+09:00",
+      "seed_required": false,
+      "playback_verified": false,
+      "first_verified_at": null,
+      "ready_before_first_race": false,
+      "acquire_from": "2026-09-09T08:23:00+09:00",
+      "races": [
+        {
+          "race": 1,
+          "start": "10:53",
+          "name": "朝得ガァ〜コ戦"
+        },
+        {
+          "race": 2,
+          "start": "11:22",
+          "name": "予選"
+        },
+        {
+          "race": 3,
+          "start": "11:48",
+          "name": "予選"
+        },
+        {
+          "race": 4,
+          "start": "12:20",
+          "name": "コジマだ4っ!"
+        },
+        {
+          "race": 5,
+          "start": "12:50",
+          "name": "日替艇食戦"
+        },
+        {
+          "race": 6,
+          "start": "13:20",
+          "name": "予選"
+        },
+        {
+          "race": 7,
+          "start": "13:47",
+          "name": "予選"
+        },
+        {
+          "race": 8,
+          "start": "14:22",
+          "name": "予選"
+        },
+        {
+          "race": 9,
+          "start": "14:50",
+          "name": "これしか9じゃ"
+        },
+        {
+          "race": 10,
+          "start": "15:27",
+          "name": "予選特賞"
+        },
+        {
+          "race": 11,
+          "start": "16:01",
+          "name": "予選特選"
+        },
+        {
+          "race": 12,
+          "start": "16:44",
+          "name": "記者選抜戦"
+        }
+      ],
+      "source": "automatic cloud SEED pending"
+    },
+    "boat.miyajima": {
+      "jcd": "17",
+      "name": "宮島",
+      "held": true,
+      "visible": false,
+      "ended": false,
+      "active": false,
+      "mode": "day",
+      "mode_label": "デイ",
+      "first_race": "10:46",
+      "last_race": "16:34",
+      "alert_from": "2026-09-09T10:16:00+09:00",
+      "next_race": {
+        "race": 1,
+        "start": "10:46"
+      },
+      "stream_window": "scheduled",
+      "guidance_switch_at": "2026-09-09T17:19:00+09:00",
+      "seed_required": false,
+      "playback_verified": false,
+      "first_verified_at": null,
+      "ready_before_first_race": false,
+      "acquire_from": "2026-09-09T08:16:00+09:00",
+      "races": [
+        {
+          "race": 1,
+          "start": "10:46",
+          "name": "ファーストB"
+        },
+        {
+          "race": 2,
+          "start": "11:11",
+          "name": "予選"
+        },
+        {
+          "race": 3,
+          "start": "11:40",
+          "name": "予選"
+        },
+        {
+          "race": 4,
+          "start": "12:10",
+          "name": "予選"
+        },
+        {
+          "race": 5,
+          "start": "12:42",
+          "name": "ランチ特賞"
+        },
+        {
+          "race": 6,
+          "start": "13:08",
+          "name": "予選"
+        },
+        {
+          "race": 7,
+          "start": "13:39",
+          "name": "予選"
+        },
+        {
+          "race": 8,
+          "start": "14:10",
+          "name": "予選"
+        },
+        {
+          "race": 9,
+          "start": "14:40",
+          "name": "予選"
+        },
+        {
+          "race": 10,
+          "start": "15:14",
+          "name": "予選特賞"
+        },
+        {
+          "race": 11,
+          "start": "15:52",
+          "name": "予選特選"
+        },
+        {
+          "race": 12,
+          "start": "16:34",
+          "name": "モンタドリーム"
+        }
+      ],
+      "source": "automatic cloud SEED pending"
+    },
+    "boat.wakamatsu": {
+      "jcd": "20",
+      "name": "若松",
+      "held": true,
+      "visible": false,
+      "ended": false,
+      "active": false,
+      "mode": "night",
+      "mode_label": "ナイター",
+      "first_race": "15:20",
+      "last_race": "20:38",
+      "alert_from": "2026-09-09T14:50:00+09:00",
+      "next_race": {
+        "race": 1,
+        "start": "15:20"
+      },
+      "stream_window": "scheduled",
+      "guidance_switch_at": "2026-09-09T21:23:00+09:00",
+      "seed_required": false,
+      "playback_verified": false,
+      "first_verified_at": null,
+      "ready_before_first_race": false,
+      "acquire_from": "2026-09-09T12:50:00+09:00",
+      "races": [
+        {
+          "race": 1,
+          "start": "15:20",
+          "name": "予選"
+        },
+        {
+          "race": 2,
+          "start": "15:48",
+          "name": "予選"
+        },
+        {
+          "race": 3,
+          "start": "16:13",
+          "name": "予選"
+        },
+        {
+          "race": 4,
+          "start": "16:41",
+          "name": "予選"
+        },
+        {
+          "race": 5,
+          "start": "17:10",
+          "name": "進入固定戦隊"
+        },
+        {
+          "race": 6,
+          "start": "17:37",
+          "name": "予選"
+        },
+        {
+          "race": 7,
+          "start": "18:04",
+          "name": "予選特賞"
+        },
+        {
+          "race": 8,
+          "start": "18:33",
+          "name": "エイトビート"
+        },
+        {
+          "race": 9,
+          "start": "19:04",
+          "name": "予選"
+        },
+        {
+          "race": 10,
+          "start": "19:36",
+          "name": "予選特賞"
+        },
+        {
+          "race": 11,
+          "start": "20:07",
+          "name": "予選特選"
+        },
+        {
+          "race": 12,
+          "start": "20:38",
+          "name": "ドリーム戦"
+        }
+      ],
+      "source": "automatic cloud SEED pending"
+    },
+    "boat.ashiya": {
+      "jcd": "21",
+      "name": "芦屋",
+      "held": true,
+      "visible": false,
+      "ended": false,
+      "active": false,
+      "mode": "morning",
+      "mode_label": "モーニング",
+      "first_race": "08:32",
+      "last_race": "14:13",
+      "alert_from": "2026-09-09T08:02:00+09:00",
+      "next_race": {
+        "race": 1,
+        "start": "08:32"
+      },
+      "stream_window": "scheduled",
+      "guidance_switch_at": "2026-09-09T14:58:00+09:00",
+      "seed_required": false,
+      "playback_verified": false,
+      "first_verified_at": null,
+      "ready_before_first_race": false,
+      "acquire_from": "2026-09-09T06:02:00+09:00",
+      "races": [
+        {
+          "race": 1,
+          "start": "08:32",
+          "name": "サンライズV戦"
+        },
+        {
+          "race": 2,
+          "start": "08:58",
+          "name": "サンライズW戦"
+        },
+        {
+          "race": 3,
+          "start": "09:24",
+          "name": "サンライズX戦"
+        },
+        {
+          "race": 4,
+          "start": "09:50",
+          "name": "サンライズY戦"
+        },
+        {
+          "race": 5,
+          "start": "10:18",
+          "name": "サンライズZ戦"
+        },
+        {
+          "race": 6,
+          "start": "10:48",
+          "name": "予選"
+        },
+        {
+          "race": 7,
+          "start": "11:18",
+          "name": "予選"
+        },
+        {
+          "race": 8,
+          "start": "11:50",
+          "name": "予選"
+        },
+        {
+          "race": 9,
+          "start": "12:24",
+          "name": "予選特賞"
+        },
+        {
+          "race": 10,
+          "start": "12:58",
+          "name": "予選特賞"
+        },
+        {
+          "race": 11,
+          "start": "13:34",
+          "name": "予選特選"
+        },
+        {
+          "race": 12,
+          "start": "14:13",
+          "name": "ドリームレース"
+        }
+      ],
+      "source": "automatic cloud SEED pending"
+    },
+    "boat.omura": {
+      "jcd": "24",
+      "name": "大村",
+      "held": true,
+      "visible": false,
+      "ended": false,
+      "active": false,
+      "mode": "night",
+      "mode_label": "ナイター",
+      "first_race": "15:15",
+      "last_race": "20:45",
+      "alert_from": "2026-09-09T14:45:00+09:00",
+      "next_race": {
+        "race": 1,
+        "start": "15:15"
+      },
+      "stream_window": "scheduled",
+      "guidance_switch_at": "2026-09-09T21:30:00+09:00",
+      "seed_required": false,
+      "playback_verified": false,
+      "first_verified_at": null,
+      "ready_before_first_race": false,
+      "acquire_from": "2026-09-09T12:45:00+09:00",
+      "races": [
+        {
+          "race": 1,
+          "start": "15:15",
+          "name": "予選"
+        },
+        {
+          "race": 2,
+          "start": "15:45",
+          "name": "予選"
+        },
+        {
+          "race": 3,
+          "start": "16:15",
+          "name": "予選"
+        },
+        {
+          "race": 4,
+          "start": "16:50",
+          "name": "予選"
+        },
+        {
+          "race": 5,
+          "start": "17:19",
+          "name": "予選"
+        },
+        {
+          "race": 6,
+          "start": "17:46",
+          "name": "予選"
+        },
+        {
+          "race": 7,
+          "start": "18:13",
+          "name": "予選"
+        },
+        {
+          "race": 8,
+          "start": "18:43",
+          "name": "予選"
+        },
+        {
+          "race": 9,
+          "start": "19:14",
+          "name": "予選"
+        },
+        {
+          "race": 10,
+          "start": "19:47",
+          "name": "予選"
+        },
+        {
+          "race": 11,
+          "start": "20:16",
+          "name": "予選"
+        },
+        {
+          "race": 12,
+          "start": "20:45",
+          "name": "予選"
+        }
+      ],
+      "source": "automatic cloud SEED pending"
+    }
+  }
 }
