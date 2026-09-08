@@ -37,6 +37,7 @@ PUBLIC_END = "# === TODAY_PUBLIC_SPORTS_END ==="
 GROUP = "今日の開催場"
 
 JST = timezone(timedelta(hours=9))
+ACQUIRE_LEAD_MINUTES = 90
 ALERT_LEAD_MINUTES = 30
 RACE_SWITCH_MINUTES = 3
 END_GUIDANCE_MINUTES = 45
@@ -703,17 +704,19 @@ def main() -> int:
         return preserve_on_schedule_error(now, "BOAT EPG/開催表が0場です")
 
     streams = load_current_streams(day)
-    # Schedule/EPG and stream acquisition are deliberately separated.  Do not
-    # ask Vercel/SEED for every venue just after midnight.  Cloud acquisition
-    # begins only when a venue reaches its own pre-start alert window.
+    # Schedule/EPG and stream acquisition are deliberately separated.  Start
+    # cloud acquisition well before 1R so a normal provider delay cannot make
+    # the first race disappear.  Alerting remains later than prefetch: repeated
+    # 5-minute runs get ample time to acquire automatically before manual SEED
+    # is requested.
     due_cards = {
         jcd: races for jcd, races in cards.items()
-        if races and now >= races[0]["start"] - timedelta(minutes=ALERT_LEAD_MINUTES)
+        if races and now >= races[0]["start"] - timedelta(minutes=ACQUIRE_LEAD_MINUTES)
         and now < races[-1]["start"] + timedelta(minutes=RACE_SWITCH_MINUTES)
     }
     cloud = refresh_cloud_streams(due_cards, streams, day) if due_cards else {
         "requested": 0, "fetched": 0, "failures": [], "deferred": len(cards),
-        "reason": "stream acquisition waits until each venue pre-start window",
+        "reason": "stream acquisition waits until each venue 1R prefetch window",
     }
     held_ids = {VENUES[jcd][1] for jcd in cards}
     streams = {tvg_id: item for tvg_id, item in streams.items() if tvg_id in held_ids}
@@ -753,9 +756,10 @@ def main() -> int:
         "last_update_ok": not system_errors,
         "schedule_source": SCHEDULE_API.format(year=day.strftime("%Y"), ymd=day.strftime("%Y%m%d")),
         "stream_source": "Vercel KIX automatic acquisition near each venue start; 公営これ一発 v17 is emergency SEED only",
-        "stream_acquisition_policy": "開催表/EPGは0時から独立更新。SEED取得は各場の1R 30分前から開始。",
+        "stream_acquisition_policy": "開催表/EPGは0時から独立更新。自動SEED取得は各場の1R 90分前から開始し、30分前までに未取得なら警告。",
         "retention_policy": "開催場はJST日付変更まで保持。終了しても削除しない。",
         "epg_finished_title": "本日の開催は終了しました",
+        "acquire_lead_minutes": ACQUIRE_LEAD_MINUTES,
         "alert_lead_minutes": ALERT_LEAD_MINUTES,
         "card_count": len(cards),
         "held_count": len(cards),
