@@ -5,6 +5,7 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 from radiko_epg import build_xmltv
+import community_radio_epg_merge
 
 GUIDES = Path("guides.xml")
 FREEWIFI = Path("freewifi")
@@ -112,6 +113,11 @@ def main() -> int:
         print("Radiko EPG preserved stations: " + ", ".join(fallback))
     if truly_missing:
         print("Radiko EPG unavailable stations: " + ", ".join(truly_missing))
+
+    # Community FM uses community.* IDs and therefore cannot be discovered by
+    # the Radiko XML API.  Merge those official/community timetables immediately
+    # after the Radiko guide so APTV sees all radio stations in the same guides.xml.
+    community_radio_epg_merge.main()
     return 0
 
 
