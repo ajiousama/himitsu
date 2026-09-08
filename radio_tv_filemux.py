@@ -11,6 +11,9 @@ import time
 import urllib.parse
 
 import radio_tv_nationwide as impl
+import radio_tv_community as community
+
+community.install(impl)
 
 VIDEO_DIR = pathlib.Path("/tmp/radio-tv-video")
 VIDEO_DIR.mkdir(parents=True, exist_ok=True)
@@ -199,7 +202,17 @@ def _debug_file_mux(handler, station: str) -> None:
     except Exception as e:
         lines.append(f"video_error={type(e).__name__}: {e}")
         video = None
-    source = impl._audio_sources(station)[0]
+    sources = impl._audio_sources(station)
+    if not sources:
+        body = ("\n".join(lines + ["source_error=no audio sources"]) + "\n").encode("utf-8")
+        handler.send_response(200)
+        handler.send_header("Content-Type", "text/plain; charset=utf-8")
+        handler.send_header("Content-Length", str(len(body)))
+        handler.send_header("Cache-Control", "no-store")
+        handler.end_headers()
+        handler.wfile.write(body)
+        return
+    source = sources[0]
     lines.append(f"source={source}")
     started = time.monotonic()
     proc = None
