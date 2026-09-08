@@ -250,7 +250,8 @@ def load_schedule(now: datetime, state: dict) -> tuple[dict, str, list]:
                 errors.append('開催表から場が消失したため当日確認済みの開催表を保持')
             return {**cached, **cards}, now.isoformat(), errors
         except Exception as exc:
-            errors.append(f'{provider_name}: {type(exc).__name__}')
+            suffix = ' HTTP Error 404' if schedule_not_published_error(exc) else ''
+            errors.append(f'{provider_name}: {type(exc).__name__}{suffix}')
     if cached:
         return cached, checked, errors
     raise RuntimeError(' / '.join(errors))

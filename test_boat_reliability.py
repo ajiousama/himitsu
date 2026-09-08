@@ -1,5 +1,6 @@
 from datetime import date, datetime, timedelta
 import json
+import os
 from pathlib import Path
 import tempfile
 import unittest
@@ -86,6 +87,24 @@ class ReliabilityTests(unittest.TestCase):
     def test_midnight_cannot_reuse_schedule(self):
         state = {'date': '2026-09-07', 'venues': {'boat.mikuni': {'jcd': '10', 'races': []}}}
         self.assertEqual(boat.cached_cards(state, self.day), {})
+
+    def test_midnight_unpublished_schedule_clears_yesterday_without_false_alarm(self):
+        midnight = self.now.replace(hour=0, minute=1) + timedelta(days=1)
+        old_cwd = Path.cwd()
+        with tempfile.TemporaryDirectory() as directory:
+            try:
+                os.chdir(directory)
+                boat.FREEWIFI.write_text('#EXTM3U\n#EXTINF:-1 tvg-id="radio.test",Radio\nhttps://radio.example/live\n' + boat.START + '\n#EXTINF:-1 tvg-id="boat.mikuni",三国\n' + self.url + '\n' + boat.END + '\n')
+                boat.STATE.write_text(json.dumps({'date': self.day.isoformat(), 'venues': {}}))
+                boat.GUIDES.write_text('<tv/>')
+                with patch('sys.argv', ['boat_auto_system.py']), patch.object(boat, 'now_jst', return_value=midnight), patch.object(boat, 'official_cards', side_effect=RuntimeError('HTTP Error 404')), patch.object(boat, 'fetch_cards', side_effect=RuntimeError('HTTP Error 404')):
+                    self.assertEqual(boat.main(), 0)
+                self.assertTrue(boat.json_read(boat.STATE)['schedule_pending'])
+                self.assertFalse(boat.json_read(boat.ALERT)['active'])
+                self.assertNotIn(self.url, boat.FREEWIFI.read_text())
+                self.assertIn('https://radio.example/live', boat.FREEWIFI.read_text())
+            finally:
+                os.chdir(old_cwd)
 
     def test_schedule_drop_cannot_remove_held_venue(self):
         state = {'date': self.day.isoformat(), 'venues': {'boat.mikuni': {
