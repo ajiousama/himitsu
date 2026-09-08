@@ -115,8 +115,8 @@ def main() -> int:
         print("Radiko EPG unavailable stations: " + ", ".join(truly_missing))
 
     # Community FM uses community.* IDs and therefore cannot be discovered by
-    # the Radiko XML API.  Merge those official/community timetables immediately
-    # after the Radiko guide so APTV sees all radio stations in the same guides.xml.
+    # the Radiko XML API. Merge those timetables immediately after Radiko; this
+    # also exercises FM845's official-page -> snapshot fallback on every rebuild.
     community_radio_epg_merge.main()
     return 0
 
