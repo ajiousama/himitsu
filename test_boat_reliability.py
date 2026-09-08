@@ -88,6 +88,22 @@ class ReliabilityTests(unittest.TestCase):
         state = {'date': '2026-09-07', 'venues': {'boat.mikuni': {'jcd': '10', 'races': []}}}
         self.assertEqual(boat.cached_cards(state, self.day), {})
 
+    def test_prefetch_failure_is_pending_until_readiness_deadline(self):
+        for hour, minute, should_alert in [(6, 10, False), (7, 40, True)]:
+            now = self.now.replace(hour=hour, minute=minute)
+            old_cwd = Path.cwd()
+            with tempfile.TemporaryDirectory() as directory:
+                try:
+                    os.chdir(directory)
+                    boat.FREEWIFI.write_text('#EXTM3U\n')
+                    boat.GUIDES.write_text('<tv/>')
+                    with patch('sys.argv', ['boat_auto_system.py']), patch.object(boat, 'now_jst', return_value=now), patch.object(boat, 'load_schedule', return_value=({'10': card(self.day, 8)}, now.isoformat(), [])), patch.object(boat, 'refresh_cloud_streams', return_value={'requested': 1, 'fetched': 0, 'failures': [{'jcd':'10','error':'HTTPError: playback check failed'}]}):
+                        boat.main()
+                    status = json.loads(boat.STATUS.read_text())
+                    self.assertEqual(status['alert']['active'], should_alert)
+                finally:
+                    os.chdir(old_cwd)
+
     def test_midnight_unpublished_schedule_clears_yesterday_without_false_alarm(self):
         midnight = self.now.replace(hour=0, minute=1) + timedelta(days=1)
         old_cwd = Path.cwd()

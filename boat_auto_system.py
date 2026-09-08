@@ -841,14 +841,11 @@ def main() -> int:
         item for item in (cloud.get("failures") or [])
         if "no current stream" not in str(item.get("error") or "")
     ]
-    due_ids = {VENUES[jcd][1] for jcd in due_cards}
-    if due_cards and cloud.get("fetched") == 0 and hard_cloud_failures and not any(
-        venues.get(tvg_id, {}).get("visible") and not venues.get(tvg_id, {}).get("token_expired")
-        for tvg_id in due_ids
-    ):
-        # This is meaningful only once at least one venue is actually near start.
-        # Overnight/predawn provider failures are normal and never poison status.
-        system_errors.append("開始時刻が近い開催場でVercel KIXから当日BOAT SEEDを取得できません")
+    # Prefetch starts 150 minutes before 1R, when the broadcaster may still
+    # legitimately be offline. Only the existing 30-minute readiness deadline
+    # makes an unacquired stream an alert; acquisition keeps retrying throughout.
+    if seed_required and hard_cloud_failures:
+        system_errors.append("開始時刻が近い開催場の当日中継を取得・再生確認できません")
 
     alert = write_alert(now, system_errors, seed_required, cloud)
     state_streams = {
