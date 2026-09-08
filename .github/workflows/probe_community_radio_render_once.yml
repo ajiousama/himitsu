@@ -1,0 +1,43 @@
+name: Probe Community Radio Render Once
+
+on:
+  push:
+    paths:
+      - ".github/workflows/probe_community_radio_render_once.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Verify Render health
+        run: |
+          set -euxo pipefail
+          curl -fsS --max-time 20 https://ajiousama-radiko.onrender.com/health
+
+      - name: Verify community radio debug muxers
+        run: |
+          set -euxo pipefail
+          for station in FMOTOKUNI FM845 BARIBARI; do
+            echo "===== DEBUG ${station} ====="
+            body="$(curl -fsS --max-time 35 "https://ajiousama-radiko.onrender.com/radio-file-debug/${station}")"
+            printf '%s\n' "$body"
+            grep -q '^started=True$' <<<"$body"
+            bytes="$(sed -n 's/^bytes=//p' <<<"$body" | tail -1)"
+            test -n "$bytes"
+            test "$bytes" -gt 1316
+          done
+
+      - name: Decode 8 seconds from all three production streams
+        run: |
+          set -euxo pipefail
+          for station in FMOTOKUNI FM845 BARIBARI; do
+            echo "===== PLAYBACK ${station} ====="
+            url="https://ajiousama-radiko.onrender.com/radio-tv/${station}?probe=20260909a"
+            timeout 35s ffmpeg -nostdin -hide_banner -loglevel warning \
+              -i "$url" -t 8 -map 0:v:0 -map 0:a:0 -f null -
+            echo "PLAYBACK_PASS ${station}"
+          done
