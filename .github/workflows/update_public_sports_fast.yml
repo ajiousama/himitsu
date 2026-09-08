@@ -1,0 +1,142 @@
+name: Update Public Sports Fast
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Lightweight KEIRIN / AutoRace / NAR refresh every 10 minutes.
+    - cron: "2,12,22,32,42,52 * * * *"
+  push:
+    branches:
+      - main
+    paths:
+      - "public_sports_epg_local.py"
+      - "public_sports_epg_local_fast.py"
+      - "freewifi_today_public_sports.py"
+      - "finalize_today_public_sports.py"
+      - ".github/workflows/update_public_sports_fast.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: himitsu-public-sports-fast
+  cancel-in-progress: true
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Sync latest main
+        run: git pull --ff-only origin main
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Build fresh direct public-sports EPG
+        run: python -u public_sports_epg_local_fast.py
+
+      - name: Snapshot non-BOAT fast result
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/public-sports-fast
+          cp public_sports_epg_local.xml /tmp/public-sports-fast/generated.xml
+          cp verified_daily_status.json /tmp/public-sports-fast/verified.json
+
+      - name: Publish non-BOAT state without overwriting BOAT
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          for attempt in 1 2 3 4; do
+            git fetch origin main
+            git reset --hard origin/main
+
+            cp /tmp/public-sports-fast/verified.json verified_daily_status.json
+
+            python - <<'PY'
+          import xml.etree.ElementTree as ET
+          from pathlib import Path
+
+          target = Path("public_sports_epg_local.xml")
+          fresh = Path("/tmp/public-sports-fast/generated.xml")
+          prefixes = ("keirin.", "auto.", "chihou.")
+
+          if target.exists() and target.stat().st_size:
+              tree = ET.parse(target)
+              root = tree.getroot()
+          else:
+              root = ET.Element("tv", {"generator-info-name": "ajiousama/himitsu local public sports EPG"})
+              tree = ET.ElementTree(root)
+
+          fresh_root = ET.parse(fresh).getroot()
+
+          for node in list(root):
+              cid = node.get("id") if node.tag == "channel" else node.get("channel") if node.tag == "programme" else ""
+              if cid and cid.startswith(prefixes):
+                  root.remove(node)
+
+          existing_channels = {x.get("id") for x in root.findall("channel")}
+          for node in fresh_root:
+              cid = node.get("id") if node.tag == "channel" else node.get("channel") if node.tag == "programme" else ""
+              if not cid or not cid.startswith(prefixes):
+                  continue
+              if node.tag == "channel" and cid in existing_channels:
+                  continue
+              root.append(node)
+              if node.tag == "channel":
+                  existing_channels.add(cid)
+
+          channels = [x for x in list(root) if x.tag == "channel"]
+          others = [x for x in list(root) if x.tag not in {"channel", "programme"}]
+          programmes = [x for x in list(root) if x.tag == "programme"]
+          programmes.sort(key=lambda p: (p.get("start", ""), p.get("channel", "")))
+          root[:] = channels + others + programmes
+          ET.indent(tree, space="  ")
+          tree.write(target, encoding="utf-8", xml_declaration=True)
+          PY
+
+            python freewifi_today_public_sports.py
+            python finalize_today_public_sports.py
+            python build_today_event_counts.py
+
+            python - <<'PY'
+          import json
+          from pathlib import Path
+          d = json.loads(Path("today_public_sports_status.json").read_text(encoding="utf-8-sig"))
+          if not d.get("generated_at"):
+              raise SystemExit("today_public_sports_status.json missing generated_at")
+          channels = d.get("channels") or {}
+          counts = {
+              "keirin": sum(k.startswith("keirin.") for k in channels),
+              "auto": sum(k.startswith("auto.") for k in channels),
+              "chihou": sum(k.startswith("chihou.") for k in channels),
+          }
+          print("PUBLIC SPORTS FAST:", counts, "generated_at=", d["generated_at"])
+          PY
+
+            git add public_sports_epg_local.xml verified_daily_status.json freewifi today_public_sports_status.json today_event_counts.json
+            if git diff --cached --quiet; then
+              echo "Public sports fast state already current"
+              exit 0
+            fi
+            git commit -m "Refresh public sports fast state [skip ci]"
+            if git push origin HEAD:main; then
+              exit 0
+            fi
+            echo "::warning::main moved; retrying public sports fast publish"
+            sleep 1
+          done
+
+          echo "::error::Public sports fast publish failed after retries"
+          exit 1
