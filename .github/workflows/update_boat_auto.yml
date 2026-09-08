@@ -21,9 +21,12 @@ permissions:
   issues: write
   actions: read
 
+# BOAT must not be blocked for tens of minutes by the hourly FreeWiFi/EPG job.
+# Both publishers already rebuild/retry against newest main, so BOAT gets its
+# own execution lane while preserving safe git conflict handling.
 concurrency:
-  group: himitsu-freewifi-state-writer
-  cancel-in-progress: false
+  group: himitsu-boat-auto-v3
+  cancel-in-progress: true
 
 jobs:
   update:
