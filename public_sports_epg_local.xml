@@ -1,5 +1,41 @@
 <?xml version='1.0' encoding='utf-8'?>
 <tv generator-info-name="ajiousama/himitsu local public sports EPG">
+  <channel id="boat.kiryu">
+    <display-name>BOATRACE桐生</display-name>
+  </channel>
+  <channel id="boat.edogawa">
+    <display-name>BOATRACE江戸川</display-name>
+  </channel>
+  <channel id="boat.heiwajima">
+    <display-name>BOATRACE平和島</display-name>
+  </channel>
+  <channel id="boat.tamagawa">
+    <display-name>BOATRACE多摩川</display-name>
+  </channel>
+  <channel id="boat.biwako">
+    <display-name>BOATRACEびわこ</display-name>
+  </channel>
+  <channel id="boat.amagasaki">
+    <display-name>BOATRACE尼崎</display-name>
+  </channel>
+  <channel id="boat.naruto">
+    <display-name>BOATRACE鳴門</display-name>
+  </channel>
+  <channel id="boat.kojima">
+    <display-name>BOATRACE児島</display-name>
+  </channel>
+  <channel id="boat.miyajima">
+    <display-name>BOATRACE宮島</display-name>
+  </channel>
+  <channel id="boat.wakamatsu">
+    <display-name>BOATRACE若松</display-name>
+  </channel>
+  <channel id="boat.ashiya">
+    <display-name>BOATRACE芦屋</display-name>
+  </channel>
+  <channel id="boat.omura">
+    <display-name>BOATRACE大村</display-name>
+  </channel>
   <channel id="keirin.iwakitaira">
     <display-name>いわき平</display-name>
   </channel>
@@ -53,42 +89,6 @@
   </channel>
   <channel id="chihou.sonoda">
     <display-name>園田</display-name>
-  </channel>
-  <channel id="boat.kiryu">
-    <display-name>BOATRACE桐生</display-name>
-  </channel>
-  <channel id="boat.edogawa">
-    <display-name>BOATRACE江戸川</display-name>
-  </channel>
-  <channel id="boat.heiwajima">
-    <display-name>BOATRACE平和島</display-name>
-  </channel>
-  <channel id="boat.tamagawa">
-    <display-name>BOATRACE多摩川</display-name>
-  </channel>
-  <channel id="boat.biwako">
-    <display-name>BOATRACEびわこ</display-name>
-  </channel>
-  <channel id="boat.amagasaki">
-    <display-name>BOATRACE尼崎</display-name>
-  </channel>
-  <channel id="boat.naruto">
-    <display-name>BOATRACE鳴門</display-name>
-  </channel>
-  <channel id="boat.kojima">
-    <display-name>BOATRACE児島</display-name>
-  </channel>
-  <channel id="boat.miyajima">
-    <display-name>BOATRACE宮島</display-name>
-  </channel>
-  <channel id="boat.wakamatsu">
-    <display-name>BOATRACE若松</display-name>
-  </channel>
-  <channel id="boat.ashiya">
-    <display-name>BOATRACE芦屋</display-name>
-  </channel>
-  <channel id="boat.omura">
-    <display-name>BOATRACE大村</display-name>
   </channel>
   <channel id="auto.kawaguchi">
     <display-name>川口オート</display-name>
@@ -397,10 +397,6 @@
 発走予定: 10:30
 チャレンジ予選</desc>
   </programme>
-  <programme channel="keirin.takeo" start="20260909101600 +0900" stop="20260909105800 +0900">
-    <title lang="ja">本日の開催は終了しました</title>
-    <desc lang="ja">最終レース終了後の案内です。</desc>
-  </programme>
   <programme channel="boat.ashiya" start="20260909102100 +0900" stop="20260909105100 +0900">
     <title lang="ja">【６Ｒ】 10:48発走  🚤【BOATRACE芦屋 🚤】</title>
     <desc lang="ja">ボートレース BOATRACE芦屋
@@ -415,10 +411,6 @@
 発走予定: 10:40
 決 勝</desc>
   </programme>
-  <programme channel="keirin.ito" start="20260909102600 +0900" stop="20260909110800 +0900">
-    <title lang="ja">本日の開催は終了しました</title>
-    <desc lang="ja">最終レース終了後の案内です。</desc>
-  </programme>
   <programme channel="boat.naruto" start="20260909103100 +0900" stop="20260909110100 +0900">
     <title lang="ja">【６Ｒ】 10:58発走  🚤【BOATRACE鳴門 🚤】</title>
     <desc lang="ja">ボートレース BOATRACE鳴門
@@ -426,12 +418,20 @@
 発走予定: 10:58
 予選</desc>
   </programme>
+  <programme channel="keirin.takeo" start="20260909103300 +0900" stop="20260909111500 +0900">
+    <title lang="ja">本日の開催は終了しました</title>
+    <desc lang="ja">最終レース終了後の案内です。</desc>
+  </programme>
   <programme channel="boat.biwako" start="20260909104100 +0900" stop="20260909110900 +0900">
     <title lang="ja">【２Ｒ】 11:06発走  🚤【BOATRACEびわこ 🚤】</title>
     <desc lang="ja">ボートレース BOATRACEびわこ
 開催区分: デイ
 発走予定: 11:06
 一般</desc>
+  </programme>
+  <programme channel="keirin.ito" start="20260909104300 +0900" stop="20260909112500 +0900">
+    <title lang="ja">本日の開催は終了しました</title>
+    <desc lang="ja">最終レース終了後の案内です。</desc>
   </programme>
   <programme channel="boat.amagasaki" start="20260909104400 +0900" stop="20260909111200 +0900">
     <title lang="ja">【２Ｒ】 11:09発走  🚤【BOATRACE尼崎 🚤】</title>
@@ -1393,10 +1393,6 @@
 発走予定: 15:45
 激雷賞Ｃ２選定馬</desc>
   </programme>
-  <programme channel="keirin.yahiko" start="20260909151900 +0900" stop="20260909160100 +0900">
-    <title lang="ja">本日の開催は終了しました</title>
-    <desc lang="ja">最終レース終了後の案内です。</desc>
-  </programme>
   <programme channel="auto.kawaguchi" start="20260909152100 +0900" stop="20260909155900 +0900">
     <title lang="ja">【１１Ｒ】 15:56発走  🏍️【特別選抜戦 2026年09月09日 電投締切15 : 54 発走予定15 : 5 🏍️】</title>
     <desc lang="ja">オートレース 川口オート
@@ -1460,10 +1456,6 @@
 発走予定: 16:01
 予選特選</desc>
   </programme>
-  <programme channel="keirin.kochi" start="20260909153100 +0900" stop="20260909161300 +0900">
-    <title lang="ja">本日の開催は終了しました</title>
-    <desc lang="ja">最終レース終了後の案内です。</desc>
-  </programme>
   <programme channel="boat.heiwajima" start="20260909153200 +0900" stop="20260909160600 +0900">
     <title lang="ja">【１１Ｒ】 16:03発走  🚤【BOATRACE平和島 🚤】</title>
     <desc lang="ja">ボートレース BOATRACE平和島
@@ -1492,10 +1484,6 @@
 発走予定: 16:11
 予選特選</desc>
   </programme>
-  <programme channel="keirin.ogaki" start="20260909154200 +0900" stop="20260909162400 +0900">
-    <title lang="ja">本日の開催は終了しました</title>
-    <desc lang="ja">最終レース終了後の案内です。</desc>
-  </programme>
   <programme channel="boat.amagasaki" start="20260909154400 +0900" stop="20260909162600 +0900">
     <title lang="ja">【１２Ｒ】 16:23発走  🚤【BOATRACE尼崎 🚤】</title>
     <desc lang="ja">ボートレース BOATRACE尼崎
@@ -1509,6 +1497,10 @@
 開催区分: ナイター
 発走予定: 16:09
 一般</desc>
+  </programme>
+  <programme channel="keirin.yahiko" start="20260909154600 +0900" stop="20260909162800 +0900">
+    <title lang="ja">本日の開催は終了しました</title>
+    <desc lang="ja">最終レース終了後の案内です。</desc>
   </programme>
   <programme channel="boat.omura" start="20260909154800 +0900" stop="20260909161800 +0900">
     <title lang="ja">【３Ｒ】 16:15発走  🚤【BOATRACE大村 🚤】</title>
@@ -1573,16 +1565,16 @@
 発走予定: 16:35
 優勝戦 2026年09月09日 電投締切16 : 33 発走予定16 : 35</desc>
   </programme>
+  <programme channel="keirin.kochi" start="20260909160000 +0900" stop="20260909164200 +0900">
+    <title lang="ja">本日の開催は終了しました</title>
+    <desc lang="ja">最終レース終了後の案内です。</desc>
+  </programme>
   <programme channel="boat.biwako" start="20260909160100 +0900" stop="20260909163200 +0900">
     <title lang="ja">【１２Ｒ】 16:29発走  🚤【BOATRACEびわこ 🚤】</title>
     <desc lang="ja">ボートレース BOATRACEびわこ
 開催区分: デイ
 発走予定: 16:29
 優勝戦</desc>
-  </programme>
-  <programme channel="auto.kawaguchi" start="20260909160200 +0900" stop="20260909164400 +0900">
-    <title lang="ja">本日の開催は終了しました</title>
-    <desc lang="ja">最終レース終了後の案内です。</desc>
   </programme>
   <programme channel="boat.kojima" start="20260909160400 +0900" stop="20260909164700 +0900">
     <title lang="ja">【１２Ｒ】 16:44発走  🚤【BOATRACE児島 🚤】</title>
@@ -1611,10 +1603,6 @@
 開催区分: デイ
 発走予定: 16:40
 特別 Ｃ１ ３歳以上特別</desc>
-  </programme>
-  <programme channel="chihou.sonoda" start="20260909161100 +0900" stop="20260909165300 +0900">
-    <title lang="ja">本日の開催は終了しました</title>
-    <desc lang="ja">最終レース終了後の案内です。</desc>
   </programme>
   <programme channel="boat.kiryu" start="20260909161200 +0900" stop="20260909163800 +0900">
     <title lang="ja">【４Ｒ】 16:35発走  🚤【BOATRACE桐生 🚤】</title>
@@ -1658,6 +1646,10 @@
 発走予定: 16:45
 裂空賞Ｃ１選定馬</desc>
   </programme>
+  <programme channel="keirin.ogaki" start="20260909162200 +0900" stop="20260909170400 +0900">
+    <title lang="ja">本日の開催は終了しました</title>
+    <desc lang="ja">最終レース終了後の案内です。</desc>
+  </programme>
   <programme channel="boat.amagasaki" start="20260909162600 +0900" stop="20260910000000 +0900">
     <title lang="ja">本日の開催は終了しました</title>
     <desc lang="ja">BOATRACE尼崎の本日の開催は終了しました。</desc>
@@ -1680,10 +1672,6 @@
 発走予定: 16:48
 特 選</desc>
   </programme>
-  <programme channel="chihou.kasamatsu" start="20260909163100 +0900" stop="20260909171300 +0900">
-    <title lang="ja">本日の開催は終了しました</title>
-    <desc lang="ja">最終レース終了後の案内です。</desc>
-  </programme>
   <programme channel="boat.biwako" start="20260909163200 +0900" stop="20260910000000 +0900">
     <title lang="ja">本日の開催は終了しました</title>
     <desc lang="ja">BOATRACEびわこの本日の開催は終了しました。</desc>
@@ -1698,6 +1686,10 @@
   <programme channel="boat.miyajima" start="20260909163700 +0900" stop="20260910000000 +0900">
     <title lang="ja">本日の開催は終了しました</title>
     <desc lang="ja">BOATRACE宮島の本日の開催は終了しました。</desc>
+  </programme>
+  <programme channel="auto.kawaguchi" start="20260909163800 +0900" stop="20260909172000 +0900">
+    <title lang="ja">本日の開催は終了しました</title>
+    <desc lang="ja">最終レース終了後の案内です。</desc>
   </programme>
   <programme channel="boat.kiryu" start="20260909163800 +0900" stop="20260909170400 +0900">
     <title lang="ja">【５Ｒ】 17:01発走  🚤【BOATRACE桐生 🚤】</title>
@@ -1716,6 +1708,10 @@
   <programme channel="boat.heiwajima" start="20260909164100 +0900" stop="20260910000000 +0900">
     <title lang="ja">本日の開催は終了しました</title>
     <desc lang="ja">BOATRACE平和島の本日の開催は終了しました。</desc>
+  </programme>
+  <programme channel="chihou.sonoda" start="20260909164300 +0900" stop="20260909172500 +0900">
+    <title lang="ja">本日の開催は終了しました</title>
+    <desc lang="ja">最終レース終了後の案内です。</desc>
   </programme>
   <programme channel="boat.wakamatsu" start="20260909164400 +0900" stop="20260909171300 +0900">
     <title lang="ja">【５Ｒ】 17:10発走  🚤【BOATRACE若松 🚤】</title>
@@ -1753,9 +1749,9 @@
 発走予定: 17:19
 予選</desc>
   </programme>
-  <programme channel="chihou.sonoda" start="20260909165300 +0900" stop="20260910000000 +0900">
-    <title lang="ja">翌日開催予定（仮時間）</title>
-    <desc lang="ja">翌日 9月10日の開催を確認済みです。実発走時刻は取得後に自動更新します。</desc>
+  <programme channel="chihou.kasamatsu" start="20260909165800 +0900" stop="20260909174000 +0900">
+    <title lang="ja">本日の開催は終了しました</title>
+    <desc lang="ja">最終レース終了後の案内です。</desc>
   </programme>
   <programme channel="chihou.mombetsu" start="20260909170300 +0900" stop="20260909173300 +0900">
     <title lang="ja">【７Ｒ】 17:30発走  🏇【特別 Ｊ交 プレセペ特別Ｃ１ 🏇】</title>
@@ -1785,10 +1781,6 @@
 発走予定: 17:37
 予選</desc>
   </programme>
-  <programme channel="chihou.kasamatsu" start="20260909171300 +0900" stop="20260910000000 +0900">
-    <title lang="ja">翌日開催予定（仮時間）</title>
-    <desc lang="ja">翌日 9月10日の開催を確認済みです。実発走時刻は取得後に自動更新します。</desc>
-  </programme>
   <programme channel="keirin.iwakitaira" start="20260909171500 +0900" stop="20260909173900 +0900">
     <title lang="ja">【５Ｒ】 17:36発走  🚲【一 般 🚲】</title>
     <desc lang="ja">競輪 いわき平
@@ -1809,6 +1801,10 @@
 開催区分: ナイター
 発走予定: 17:46
 予選</desc>
+  </programme>
+  <programme channel="chihou.sonoda" start="20260909172500 +0900" stop="20260910000000 +0900">
+    <title lang="ja">翌日開催予定（仮時間）</title>
+    <desc lang="ja">翌日 9月10日の開催を確認済みです。実発走時刻は取得後に自動更新します。</desc>
   </programme>
   <programme channel="keirin.yokkaichi" start="20260909172700 +0900" stop="20260909175100 +0900">
     <title lang="ja">【６Ｒ】 17:48発走  🚲【ガールズ予選１ 🚲】</title>
@@ -1844,6 +1840,10 @@
 開催区分: ナイター
 発走予定: 18:04
 予選特賞</desc>
+  </programme>
+  <programme channel="chihou.kasamatsu" start="20260909174000 +0900" stop="20260910000000 +0900">
+    <title lang="ja">翌日開催予定（仮時間）</title>
+    <desc lang="ja">翌日 9月10日の開催を確認済みです。実発走時刻は取得後に自動更新します。</desc>
   </programme>
   <programme channel="chihou.kawasaki_keiba" start="20260909174800 +0900" stop="20260909182300 +0900">
     <title lang="ja">【８Ｒ】 18:20発走  🏇【特別 軍配賞Ｃ１選定馬 🏇】</title>
@@ -2097,10 +2097,6 @@
 発走予定: 20:17
 初日特別選抜</desc>
   </programme>
-  <programme channel="keirin.yokkaichi" start="20260909195700 +0900" stop="20260909203900 +0900">
-    <title lang="ja">本日の開催は終了しました</title>
-    <desc lang="ja">最終レース終了後の案内です。</desc>
-  </programme>
   <programme channel="chihou.mombetsu" start="20260909195800 +0900" stop="20260909203800 +0900">
     <title lang="ja">【１２Ｒ】 20:35発走  🏇【特別 ヤングジェネレーションカップＡ１～Ａ４ 🏇】</title>
     <desc lang="ja">地方競馬 門別
@@ -2114,10 +2110,6 @@
 開催区分: ナイター
 発走予定: 20:30
 一般特賞</desc>
-  </programme>
-  <programme channel="chihou.mombetsu" start="20260909200100 +0900" stop="20260909204300 +0900">
-    <title lang="ja">本日の開催は終了しました</title>
-    <desc lang="ja">最終レース終了後の案内です。</desc>
   </programme>
   <programme channel="keirin.iwakitaira" start="20260909200700 +0900" stop="20260909203300 +0900">
     <title lang="ja">【１２Ｒ】 20:30発走  🚲【決 勝 🚲】</title>
@@ -2140,10 +2132,6 @@
 発走予定: 20:38
 ドリーム戦</desc>
   </programme>
-  <programme channel="keirin.iwakitaira" start="20260909201000 +0900" stop="20260909205200 +0900">
-    <title lang="ja">本日の開催は終了しました</title>
-    <desc lang="ja">最終レース終了後の案内です。</desc>
-  </programme>
   <programme channel="chihou.kawasaki_keiba" start="20260909201300 +0900" stop="20260909205300 +0900">
     <title lang="ja">【１２Ｒ】 20:50発走  🏇【２０２６川崎ジョッキーズカップ第４戦Ｃ２ 🏇】</title>
     <desc lang="ja">地方競馬 川崎
@@ -2151,16 +2139,16 @@
 発走予定: 20:50
 ２０２６川崎ジョッキーズカップ第４戦Ｃ２</desc>
   </programme>
-  <programme channel="chihou.kawasaki_keiba" start="20260909201600 +0900" stop="20260909205800 +0900">
-    <title lang="ja">本日の開催は終了しました</title>
-    <desc lang="ja">最終レース終了後の案内です。</desc>
-  </programme>
   <programme channel="boat.omura" start="20260909201900 +0900" stop="20260909204800 +0900">
     <title lang="ja">【１２Ｒ】 20:45発走  🚤【BOATRACE大村 🚤】</title>
     <desc lang="ja">ボートレース BOATRACE大村
 開催区分: ナイター
 発走予定: 20:45
 予選</desc>
+  </programme>
+  <programme channel="keirin.yokkaichi" start="20260909202000 +0900" stop="20260909210200 +0900">
+    <title lang="ja">本日の開催は終了しました</title>
+    <desc lang="ja">最終レース終了後の案内です。</desc>
   </programme>
   <programme channel="auto.isesaki" start="20260909203300 +0900" stop="20260909205800 +0900">
     <title lang="ja">【８Ｒ】 20:55発走  🏍️【優勝戦 2026年09月09日 電投締切20 : 53 発走予定20 : 55 🏍️】</title>
@@ -2173,17 +2161,17 @@
     <title lang="ja">本日の開催は終了しました</title>
     <desc lang="ja">BOATRACE桐生の本日の開催は終了しました。</desc>
   </programme>
-  <programme channel="auto.isesaki" start="20260909203600 +0900" stop="20260909211800 +0900">
+  <programme channel="keirin.iwakitaira" start="20260909203300 +0900" stop="20260909211500 +0900">
+    <title lang="ja">本日の開催は終了しました</title>
+    <desc lang="ja">最終レース終了後の案内です。</desc>
+  </programme>
+  <programme channel="chihou.mombetsu" start="20260909203800 +0900" stop="20260909212000 +0900">
     <title lang="ja">本日の開催は終了しました</title>
     <desc lang="ja">最終レース終了後の案内です。</desc>
   </programme>
   <programme channel="boat.wakamatsu" start="20260909204100 +0900" stop="20260910000000 +0900">
     <title lang="ja">本日の開催は終了しました</title>
     <desc lang="ja">BOATRACE若松の本日の開催は終了しました。</desc>
-  </programme>
-  <programme channel="chihou.mombetsu" start="20260909204300 +0900" stop="20260910000000 +0900">
-    <title lang="ja">翌日開催予定（仮時間）</title>
-    <desc lang="ja">翌日 9月10日の開催を確認済みです。実発走時刻は取得後に自動更新します。</desc>
   </programme>
   <programme channel="keirin.keiogatsu" start="20260909204300 +0900" stop="20260909210300 +0900">
     <title lang="ja">【２Ｒ】 21:00発走  🚲【チャレンジ一般 🚲】</title>
@@ -2196,6 +2184,10 @@
     <title lang="ja">本日の開催は終了しました</title>
     <desc lang="ja">BOATRACE大村の本日の開催は終了しました。</desc>
   </programme>
+  <programme channel="chihou.kawasaki_keiba" start="20260909205300 +0900" stop="20260909213500 +0900">
+    <title lang="ja">本日の開催は終了しました</title>
+    <desc lang="ja">最終レース終了後の案内です。</desc>
+  </programme>
   <programme channel="keirin.tamano" start="20260909205300 +0900" stop="20260909211300 +0900">
     <title lang="ja">【２Ｒ】 21:10発走  🚲【ガールズ予選２ 🚲】</title>
     <desc lang="ja">競輪 玉野
@@ -2203,9 +2195,9 @@
 発走予定: 21:10
 ガールズ予選２</desc>
   </programme>
-  <programme channel="chihou.kawasaki_keiba" start="20260909205800 +0900" stop="20260910000000 +0900">
-    <title lang="ja">翌日開催予定（仮時間）</title>
-    <desc lang="ja">翌日 9月10日の開催を確認済みです。実発走時刻は取得後に自動更新します。</desc>
+  <programme channel="auto.isesaki" start="20260909205800 +0900" stop="20260909214000 +0900">
+    <title lang="ja">本日の開催は終了しました</title>
+    <desc lang="ja">最終レース終了後の案内です。</desc>
   </programme>
   <programme channel="keirin.keiogatsu" start="20260909210300 +0900" stop="20260909212300 +0900">
     <title lang="ja">【３Ｒ】 21:20発走  🚲【チャレンジ準決勝 🚲】</title>
@@ -2221,6 +2213,10 @@
 発走予定: 21:30
 一 般</desc>
   </programme>
+  <programme channel="chihou.mombetsu" start="20260909212000 +0900" stop="20260910000000 +0900">
+    <title lang="ja">翌日開催予定（仮時間）</title>
+    <desc lang="ja">翌日 9月10日の開催を確認済みです。実発走時刻は取得後に自動更新します。</desc>
+  </programme>
   <programme channel="keirin.keiogatsu" start="20260909212300 +0900" stop="20260909214300 +0900">
     <title lang="ja">【４Ｒ】 21:40発走  🚲【チャレンジ準決勝 🚲】</title>
     <desc lang="ja">競輪 京王閣
@@ -2234,6 +2230,10 @@
 開催区分: ミッドナイト
 発走予定: 21:50
 一 般</desc>
+  </programme>
+  <programme channel="chihou.kawasaki_keiba" start="20260909213500 +0900" stop="20260910000000 +0900">
+    <title lang="ja">翌日開催予定（仮時間）</title>
+    <desc lang="ja">翌日 9月10日の開催を確認済みです。実発走時刻は取得後に自動更新します。</desc>
   </programme>
   <programme channel="keirin.keiogatsu" start="20260909214300 +0900" stop="20260909220300 +0900">
     <title lang="ja">【５Ｒ】 22:00発走  🚲【特一般 🚲】</title>
@@ -2298,10 +2298,6 @@
 発走予定: 23:20
 準決勝</desc>
   </programme>
-  <programme channel="keirin.keiogatsu" start="20260909230600 +0900" stop="20260909234800 +0900">
-    <title lang="ja">本日の開催は終了しました</title>
-    <desc lang="ja">最終レース終了後の案内です。</desc>
-  </programme>
   <programme channel="keirin.tamano" start="20260909231300 +0900" stop="20260909233300 +0900">
     <title lang="ja">【９Ｒ】 23:30発走  🚲【準決勝 🚲】</title>
     <desc lang="ja">競輪 玉野
@@ -2309,7 +2305,11 @@
 発走予定: 23:30
 準決勝</desc>
   </programme>
-  <programme channel="keirin.tamano" start="20260909231600 +0900" stop="20260909235800 +0900">
+  <programme channel="keirin.keiogatsu" start="20260909232300 +0900" stop="20260910000000 +0900">
+    <title lang="ja">本日の開催は終了しました</title>
+    <desc lang="ja">最終レース終了後の案内です。</desc>
+  </programme>
+  <programme channel="keirin.tamano" start="20260909233300 +0900" stop="20260910000000 +0900">
     <title lang="ja">本日の開催は終了しました</title>
     <desc lang="ja">最終レース終了後の案内です。</desc>
   </programme>
@@ -2575,12 +2575,20 @@
 発走予定: 17:00
 ３歳以上 Ｃ４－２</desc>
   </programme>
+  <programme channel="chihou.sonoda" start="20260910164300 +0900" stop="20260911013000 +0900">
+    <title lang="ja">🏁 本日の開催は終了しました 園田（地方競馬）</title>
+    <desc lang="ja">園田の本日の開催は終了しました。</desc>
+  </programme>
   <programme channel="chihou.kawasaki_keiba" start="20260910164800 +0900" stop="20260910171800 +0900">
     <title lang="ja">【６Ｒ】 17:15発走  🏇【雷閃賞Ｃ２選定馬 🏇】</title>
     <desc lang="ja">地方競馬 川崎
 開催区分: ナイター
 発走予定: 17:15
 雷閃賞Ｃ２選定馬</desc>
+  </programme>
+  <programme channel="chihou.kasamatsu" start="20260910165800 +0900" stop="20260911013000 +0900">
+    <title lang="ja">🏁 本日の開催は終了しました 笠松（地方競馬）</title>
+    <desc lang="ja">笠松の本日の開催は終了しました。</desc>
   </programme>
   <programme channel="chihou.mombetsu" start="20260910170300 +0900" stop="20260910173300 +0900">
     <title lang="ja">【７Ｒ】 17:30発走  🏇【日本軽種馬青年部連絡協議会賞Ｃ４－２ 🏇】</title>
@@ -2673,6 +2681,14 @@
   <programme channel="keirin.tamano" start="20260910203000 +0900" stop="20260910233000 +0900">
     <title lang="ja">玉野 【F2】 ミッドナイト 開催予定（仮時間）</title>
     <desc lang="ja">KEIRIN.JP公式開催表を基にした仮時間EPGです。</desc>
+  </programme>
+  <programme channel="chihou.mombetsu" start="20260910203800 +0900" stop="20260911013000 +0900">
+    <title lang="ja">🏁 本日の開催は終了しました 門別（地方競馬）</title>
+    <desc lang="ja">門別の本日の開催は終了しました。</desc>
+  </programme>
+  <programme channel="chihou.kawasaki_keiba" start="20260910205300 +0900" stop="20260911013000 +0900">
+    <title lang="ja">🏁 本日の開催は終了しました 川崎（地方競馬）</title>
+    <desc lang="ja">川崎の本日の開催は終了しました。</desc>
   </programme>
   <programme channel="chihou.kasamatsu" start="20260911080000 +0900" stop="20260911112300 +0900">
     <title lang="ja">【１Ｒ】 11:20発走  🏇【祝！！平林生誕３０周年記念杯☆３歳１２ 🏇】</title>
@@ -2852,6 +2868,10 @@
 発走予定: 17:00
 スパーキングデビュー新馬２歳７イ</desc>
   </programme>
+  <programme channel="chihou.kasamatsu" start="20260911165300 +0900" stop="20260912013000 +0900">
+    <title lang="ja">🏁 本日の開催は終了しました 笠松（地方競馬）</title>
+    <desc lang="ja">笠松の本日の開催は終了しました。</desc>
+  </programme>
   <programme channel="chihou.kawasaki_keiba" start="20260911170300 +0900" stop="20260911173300 +0900">
     <title lang="ja">【６Ｒ】 17:30発走  🏇【３歳５ 🏇】</title>
     <desc lang="ja">地方競馬 川崎
@@ -2950,5 +2970,13 @@
   <programme channel="keirin.toyohashi" start="20260911203000 +0900" stop="20260911233000 +0900">
     <title lang="ja">豊橋 【F2】 ミッドナイト 開催予定（仮時間）</title>
     <desc lang="ja">KEIRIN.JP公式開催表を基にした仮時間EPGです。</desc>
+  </programme>
+  <programme channel="chihou.sonoda" start="20260911203300 +0900" stop="20260912013000 +0900">
+    <title lang="ja">🏁 本日の開催は終了しました 園田（地方競馬）</title>
+    <desc lang="ja">園田の本日の開催は終了しました。</desc>
+  </programme>
+  <programme channel="chihou.kawasaki_keiba" start="20260911205300 +0900" stop="20260912013000 +0900">
+    <title lang="ja">🏁 本日の開催は終了しました 川崎（地方競馬）</title>
+    <desc lang="ja">川崎の本日の開催は終了しました。</desc>
   </programme>
 </tv>
