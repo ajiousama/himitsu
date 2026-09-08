@@ -30,16 +30,14 @@ JCBA_RAWPLAYERS = {
 }
 
 # Public fallbacks.  The resolver always prefers the current JCBA raw player
-# when it exposes a live URL, but these known endpoints keep playback alive if
-# the JCBA page markup changes.
+# when it exposes a live URL.  Keep only station-verified fallbacks here: a
+# wrong fallback is worse than a clean playback failure.
 STATIC_AUDIO = {
     "FMOTOKUNI": [
         "https://mtist.as.smartstream.ne.jp/30063/livestream/playlist.m3u8",
         "http://mtist.as.smartstream.ne.jp/30063/livestream/playlist.m3u8",
     ],
     "FM845": [
-        "https://musicbird-hls.leanstream.co/musicbird/JCB007.stream/playlist.m3u8?args=web_03",
-        "http://musicbird-hls.leanstream.co/musicbird/JCB007.stream/playlist.m3u8?args=web_03",
         "mmsh://simuledge.shibapon.net/KyotoLivingFM?MSWMExt=.asf",
     ],
     "BARIBARI": [
