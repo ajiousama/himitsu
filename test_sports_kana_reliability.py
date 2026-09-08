@@ -87,6 +87,21 @@ class KanaReliability(unittest.TestCase):
             selected, confirmed, _ = kana.choose_current({'video_id':'known'})
         self.assertEqual(selected,info); watch.assert_called_once_with('known')
 
+    def test_publication_keeps_concurrent_boat_update(self):
+        with tempfile.TemporaryDirectory() as d:
+            paths = {k:Path(d)/k for k in ('OUT','GENERAL','FREEWIFI','STATUS')}
+            snapshot = Path(d)/'snapshot'; snapshot.mkdir()
+            other = '#EXTM3U\n#EXTINF:-1 tvg-id="boat.new",Updated boat\nhttps://boat.example/new\n'
+            for key in ('FREEWIFI', 'GENERAL'): paths[key].write_text(other)
+            paths['STATUS'].write_text('{}')
+            with patch.multiple(kana, **paths):
+                (snapshot/paths['OUT'].name).write_text('#EXTM3U\n'+kana.entry('https://youtube.com/watch?v=new','is_upcoming')+'\n')
+                (snapshot/paths['STATUS'].name).write_text(json.dumps({'state':'is_upcoming'}))
+                kana.publish_snapshot(snapshot)
+                kana.validate_outputs()
+            self.assertIn('https://boat.example/new', paths['FREEWIFI'].read_text())
+            self.assertIn('watch?v=new', paths['FREEWIFI'].read_text())
+
     def test_none_is_valid_without_logo(self):
         with tempfile.TemporaryDirectory() as d:
             paths = {k:Path(d)/k for k in ('OUT','GENERAL','FREEWIFI','STATUS')}

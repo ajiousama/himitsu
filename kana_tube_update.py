@@ -301,6 +301,24 @@ def write_status(data):
     )
 
 
+def publish_snapshot(directory):
+    """Overlay only Kana's owned entry onto the latest shared playlists."""
+    directory = Path(directory)
+    status = json.loads((directory / STATUS.name).read_text(encoding='utf-8'))
+    if status.get('state') == 'error':
+        # A failed check cannot restore an older playlist over a newer update.
+        latest = read_status()
+        latest.update({key: status[key] for key in ('state', 'checked_at', 'message', 'diagnostics') if key in status})
+        STATUS.write_text(json.dumps(latest, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+        return
+    output = (directory / OUT.name).read_text(encoding='utf-8')
+    payload = '\n'.join(line for line in output.splitlines() if not line.startswith('#EXTM3U')).strip() or None
+    OUT.write_text(output, encoding='utf-8')
+    STATUS.write_text(json.dumps(status, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+    sync_general(payload)
+    sync_freewifi(payload)
+
+
 def read_status():
     try:
         return json.loads(STATUS.read_text(encoding="utf-8"))
