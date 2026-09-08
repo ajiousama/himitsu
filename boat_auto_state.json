@@ -2,8 +2,8 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-09",
-  "generated_at": "2026-09-09T06:01:45.364339+09:00",
-  "last_update_ok": true,
+  "generated_at": "2026-09-09T06:02:45.258338+09:00",
+  "last_update_ok": false,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260909.json",
   "schedule_checked_at": "2026-09-09T06:00:45.364109+09:00",
   "schedule_warnings": [
@@ -22,7 +22,9 @@
   "ended_kept": [],
   "seed_required": false,
   "seed_required_venues": [],
-  "system_errors": [],
+  "system_errors": [
+    "開始時刻が近い開催場でVercel KIXから当日BOAT SEEDを取得できません"
+  ],
   "phase_counts": {
     "morning": {
       "held": 2,
@@ -47,19 +49,23 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 0,
+    "requested": 1,
     "fetched": 0,
-    "failures": [],
-    "deferred": 12,
-    "reason": "stream acquisition waits until each venue 1R prefetch window"
+    "failures": [
+      {
+        "jcd": "21",
+        "name": "芦屋",
+        "error": "cloud and official acquisition unavailable: HTTPError"
+      }
+    ]
   },
   "epg_programmes_written": {
     "public_sports_epg_local.xml": 156,
     "guides.xml": 156
   },
   "alert": {
-    "active": false,
-    "kind": "healthy"
+    "active": true,
+    "kind": "system_error"
   },
   "streams": {},
   "venues": {
