@@ -1,7 +1,7 @@
 {
   "system": "boat-auto-v3",
   "date": "2026-09-08",
-  "generated_at": "2026-09-08T07:26:49.260837+09:00",
+  "generated_at": "2026-09-08T09:25:00.803338+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260908.json",
   "stream_source": "Vercel KIX automatic acquisition near each venue start; 公営これ一発 v17 is emergency SEED only",
@@ -11,8 +11,8 @@
   "alert_lead_minutes": 30,
   "card_count": 11,
   "held_count": 11,
-  "visible_count": 0,
-  "active_count": 0,
+  "visible_count": 2,
+  "active_count": 2,
   "ended_kept": [],
   "seed_required": false,
   "seed_required_venues": [],
@@ -20,8 +20,8 @@
   "phase_counts": {
     "morning": {
       "held": 2,
-      "acquired": 0,
-      "active": 0,
+      "acquired": 2,
+      "active": 2,
       "ended": 0,
       "seed_required": 0
     },
@@ -41,11 +41,9 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 0,
-    "fetched": 0,
-    "failures": [],
-    "deferred": 11,
-    "reason": "stream acquisition waits until each venue pre-start window"
+    "requested": 2,
+    "fetched": 2,
+    "failures": []
   },
   "epg_programmes_written": {
     "public_sports_epg_local.xml": 143,
@@ -55,7 +53,18 @@
     "active": false,
     "kind": "healthy"
   },
-  "streams": {},
+  "streams": {
+    "boat.mikuni": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/f4ef3c276a964558b69a0f32ea9ef6a9/865dca732a1c4036ac798250054c0e53/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTAwMjAwMCwic3RhcnQiOjE3ODg4MjE4MjAsImlvcyI6MTgsImNwIjoiMjExMDE3NDIwXzIxMTA2MDYxOSIsInBwdyI6IjQwayJ9.2aCoTPxBzSzTflNY8YLghlUwpFz40NuRMrltQYxNj64",
+      "source": "Vercel KIX automatic acquisition",
+      "acquired_at": "2026-09-08T09:25:01.183132+09:00"
+    },
+    "boat.naruto": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/726d47aa27fd40a1b9d649f828376d12/8aed163ab5b44427949631dbcfa1348a/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTAwMjAwMCwic3RhcnQiOjE3ODg4MjI1NDAsImlvcyI6MTgsImNwIjoiMjExMDE4MTQwXzIxMTA2MTMzOSIsInBwdyI6IjQwayJ9.ALfajoEs_uSP9_gh_wm3Id2sTN6MRkiynEsEO06OPak",
+      "source": "Vercel KIX automatic acquisition",
+      "acquired_at": "2026-09-08T09:25:01.183132+09:00"
+    }
+  },
   "venues": {
     "boat.kiryu": {
       "jcd": "01",
@@ -476,19 +485,19 @@
       "jcd": "10",
       "name": "三国",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
-      "active": false,
+      "active": true,
       "mode": "morning",
       "mode_label": "モーニング",
       "first_race": "08:32",
       "last_race": "14:13",
       "alert_from": "2026-09-08T08:02:00+09:00",
       "next_race": {
-        "race": 1,
-        "start": "08:32"
+        "race": 4,
+        "start": "09:50"
       },
-      "stream_window": "scheduled",
+      "stream_window": "live_or_prestart",
       "guidance_switch_at": "2026-09-08T14:58:00+09:00",
       "seed_required": false,
       "races": [
@@ -553,7 +562,9 @@
           "name": "優勝戦"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/f4ef3c276a964558b69a0f32ea9ef6a9/865dca732a1c4036ac798250054c0e53/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTAwMjAwMCwic3RhcnQiOjE3ODg4MjE4MjAsImlvcyI6MTgsImNwIjoiMjExMDE3NDIwXzIxMTA2MDYxOSIsInBwdyI6IjQwayJ9.2aCoTPxBzSzTflNY8YLghlUwpFz40NuRMrltQYxNj64",
+      "source": "Vercel KIX automatic acquisition",
+      "token_expired": false
     },
     "boat.biwako": {
       "jcd": "11",
@@ -725,19 +736,19 @@
       "jcd": "14",
       "name": "鳴門",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
-      "active": false,
+      "active": true,
       "mode": "morning",
       "mode_label": "モーニング",
       "first_race": "08:44",
       "last_race": "14:28",
       "alert_from": "2026-09-08T08:14:00+09:00",
       "next_race": {
-        "race": 1,
-        "start": "08:44"
+        "race": 3,
+        "start": "09:36"
       },
-      "stream_window": "scheduled",
+      "stream_window": "live_or_prestart",
       "guidance_switch_at": "2026-09-08T15:13:00+09:00",
       "seed_required": false,
       "races": [
@@ -802,7 +813,9 @@
           "name": "特選"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/726d47aa27fd40a1b9d649f828376d12/8aed163ab5b44427949631dbcfa1348a/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTAwMjAwMCwic3RhcnQiOjE3ODg4MjI1NDAsImlvcyI6MTgsImNwIjoiMjExMDE4MTQwXzIxMTA2MTMzOSIsInBwdyI6IjQwayJ9.ALfajoEs_uSP9_gh_wm3Id2sTN6MRkiynEsEO06OPak",
+      "source": "Vercel KIX automatic acquisition",
+      "token_expired": false
     },
     "boat.kojima": {
       "jcd": "16",
