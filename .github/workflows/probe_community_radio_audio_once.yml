@@ -18,7 +18,7 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y -qq ffmpeg
 
-      - name: Probe Render community radio audio
+      - name: Probe production FreeWiFi community radio endpoints
         shell: bash
         run: |
           set -u
@@ -27,19 +27,23 @@ jobs:
             echo "===== $s ====="
             url="https://ajiousama-radiko.onrender.com/radio-tv/${s}?v=20260908a"
             log="${s}.log"
-            if timeout 55 ffmpeg -hide_banner -loglevel info -i "$url" -map 0:a:0 -t 8 -af volumedetect -f null - >"$log" 2>&1; then
+            if timeout 55 ffmpeg -hide_banner -loglevel info -i "$url" \
+              -map 0:v:0 -map 0:a:0 -t 8 -af volumedetect -f null - >"$log" 2>&1; then
               cat "$log"
               maxv="$(grep -oE 'max_volume: -?[0-9]+(\.[0-9]+)? dB' "$log" | tail -1 || true)"
               meanv="$(grep -oE 'mean_volume: -?[0-9]+(\.[0-9]+)? dB' "$log" | tail -1 || true)"
-              if grep -q "Stream #0:.*Audio:" "$log" && [ -n "$maxv" ]; then
-                echo "PASS $s $meanv / $maxv"
+              if grep -q "Video: h264" "$log" \
+                && grep -q "Audio: aac" "$log" \
+                && grep -qE 'time=00:00:0[7-8]\.' "$log" \
+                && [ -n "$maxv" ] && [ -n "$meanv" ]; then
+                echo "PASS $s H264+Aac 8s $meanv / $maxv"
               else
-                echo "FAIL $s no decodable audio level"
+                echo "FAIL $s missing video/audio/8s/audio-level proof"
                 failed=1
               fi
             else
               cat "$log"
-              echo "FAIL $s playback/decode failed"
+              echo "FAIL $s production playback/decode failed"
               failed=1
             fi
           done
