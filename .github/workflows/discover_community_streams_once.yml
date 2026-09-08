@@ -1,0 +1,51 @@
+name: Discover Community Radio Streams Once
+
+on:
+  push:
+    paths:
+      - ".github/workflows/discover_community_streams_once.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Discover current player sources
+        shell: bash
+        run: |
+          set -u
+          ua='Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Version/18.0 Mobile/15E148 Safari/604.1'
+          dump() {
+            name="$1"; url="$2"; referer="${3:-}"
+            echo "===== $name ====="
+            if [ -n "$referer" ]; then
+              curl -L --max-time 20 -A "$ua" -e "$referer" -sS "$url" -o "$name.html" || true
+            else
+              curl -L --max-time 20 -A "$ua" -sS "$url" -o "$name.html" || true
+            fi
+            wc -c "$name.html" 2>/dev/null || true
+            grep -Eo 'https?://[^"'"'"' <>]+' "$name.html" 2>/dev/null | grep -Ei 'm3u8|stream|audio|player|api|listen' | head -80 || true
+            grep -Eoi '<script[^>]+src=["'"'][^"'"']+' "$name.html" 2>/dev/null | head -40 || true
+            grep -Ein 'm3u8|stream|audio|source|player|hls|icy|shout|listen' "$name.html" 2>/dev/null | head -80 || true
+          }
+
+          dump fm845_raw https://www.jcbasimul.com/kyotoribingufm/rawplayer https://www.jcbasimul.com/kyotoribingufm
+          dump baribari_raw https://www.jcbasimul.com/fmradiobaribari/rawplayer https://www.jcbasimul.com/fmradiobaribari
+          dump fm845_page https://www.jcbasimul.com/kyotoribingufm
+          dump baribari_page https://www.jcbasimul.com/fmradiobaribari
+          dump listenradio https://listenradio.jp/
+
+          echo '===== ListenRadio JS candidates ====='
+          grep -Eoi '<script[^>]+src=["'"'][^"'"']+' listenradio.html 2>/dev/null | sed -E 's/^.*src=["'"']//' | while read -r src; do
+            case "$src" in
+              http*) js="$src" ;;
+              //*) js="https:$src" ;;
+              /*) js="https://listenradio.jp$src" ;;
+              *) js="https://listenradio.jp/$src" ;;
+            esac
+            echo "--- $js"
+            curl -L --max-time 15 -A "$ua" -sS "$js" 2>/dev/null | grep -Eo 'https?://[^"'"'"' <>)]+' | grep -Ei 'm3u8|stream|api|channel|audio' | head -30 || true
+          done
