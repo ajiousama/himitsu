@@ -1,5 +1,5 @@
 name: Update Kana Tube LIVE and Schedule
-# recovery-touch: 2026-09-08 21:02 JST
+# recovery-touch: 2026-09-09 night reliability v2
 
 on:
   workflow_dispatch:
@@ -8,7 +8,7 @@ on:
       - 'kana_tube_update.py'
       - '.github/workflows/update_kana_tube.yml'
   schedule:
-    - cron: '*/15 * * * *'
+    - cron: '*/5 * * * *'
 
 permissions:
   contents: write
@@ -20,7 +20,7 @@ concurrency:
 jobs:
   update:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - name: Checkout
         uses: actions/checkout@v5
