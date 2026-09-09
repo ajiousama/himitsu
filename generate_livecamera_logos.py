@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 import subprocess
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -11,11 +12,9 @@ from PIL import Image, ImageDraw, ImageEnhance, ImageFont, PngImagePlugin
 
 ROOT = Path('logos/youtube')
 ROOT.mkdir(parents=True, exist_ok=True)
-SIZE = 418  # Match the existing yt43_01..43 series exactly.
+SIZE = 418
 RAW = 'https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/youtube/'
 
-# Keep 01..43 untouched. Every later/add-on YouTube asset continues the same
-# yt43 series so FreeWiFi never mixes a second logo family again.
 SPECS = [
     ('youtube.maiko_villa_akashi', 'yt43_44_maiko_villa_akashi.png', '舞子ビラ・明石海峡', '交通', 'yt54_44_maiko_villa_akashi.png'),
     ('youtube.tokyo_dome_city', 'yt43_45_tokyo_dome_city.png', '東京ドームシティ', 'その他LIVE', 'yt54_45_tokyo_dome_city.png'),
@@ -51,6 +50,7 @@ SOURCE_FILES = [
     Path('general_youtube_sources_airports.json'),
     Path('general_youtube_sources_ports.json'),
 ]
+PLAYLIST_FILES = [Path('freewifi'), Path('general_youtube.m3u')]
 
 FONT_CANDIDATES = [
     '/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc',
@@ -60,11 +60,8 @@ FONT_CANDIDATES = [
     '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf',
 ]
 
-# PNGs 47+ created by the old generic-card generator can be large, so file
-# size alone is not a valid "already fixed" test. Stamp the intended photo-led
-# yt43 style into new PNG metadata and rebuild any 47+ asset missing the stamp.
 STYLE_KEY = 'freewifi_logo_style'
-STYLE_VALUE = 'yt43-photo-v2'
+STYLE_VALUE = 'yt43-classic-card-v3'
 STYLE_ENFORCE_FROM = 47
 
 
@@ -82,7 +79,7 @@ def choose_font() -> str:
 FONT = choose_font()
 
 
-def fit_font(draw: ImageDraw.ImageDraw, text: str, max_width: int, start: int, minimum: int = 22):
+def fit_font(draw: ImageDraw.ImageDraw, text: str, max_width: int, start: int, minimum: int = 20):
     for size in range(start, minimum - 1, -2):
         try:
             font = ImageFont.truetype(FONT, size)
@@ -108,6 +105,51 @@ def load_sources() -> dict[str, dict]:
             if tvg:
                 found[tvg] = item
     return found
+
+
+def playlist_video_ids() -> dict[str, str]:
+    ids: dict[str, str] = {}
+    for path in PLAYLIST_FILES:
+        if not path.exists():
+            continue
+        current = None
+        text = path.read_text(encoding='utf-8-sig', errors='replace')
+        for line in text.splitlines():
+            if line.startswith('#EXTINF:'):
+                m = re.search(r'tvg-id="([^"]+)"', line)
+                current = m.group(1) if m else None
+                continue
+            if current and line and not line.startswith('#'):
+                m = re.search(r'/id/([A-Za-z0-9_-]{11})(?:[./])', line)
+                if m:
+                    ids.setdefault(current, m.group(1))
+                current = None
+    return ids
+
+
+def fetch_url_bytes(url: str, limit: int = 4_000_000) -> bytes | None:
+    try:
+        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req, timeout=12) as r:
+            data = r.read(limit)
+        if not data:
+            return None
+        with Image.open(BytesIO(data)) as test:
+            if test.width < 200 or test.height < 120:
+                return None
+        return data
+    except Exception:
+        return None
+
+
+def direct_youtube_thumbnail(video_id: str | None) -> bytes | None:
+    if not video_id:
+        return None
+    for name in ('maxresdefault.jpg', 'sddefault.jpg', 'hqdefault.jpg'):
+        data = fetch_url_bytes(f'https://i.ytimg.com/vi/{video_id}/{name}')
+        if data:
+            return data
+    return None
 
 
 def yt_dlp_thumbnail(item: dict) -> bytes | None:
@@ -140,44 +182,48 @@ def yt_dlp_thumbnail(item: dict) -> bytes | None:
             thumbs = info.get('thumbnails') or []
             if thumbs:
                 thumb = str(thumbs[-1].get('url') or '').strip()
-        if not thumb:
-            continue
-
-        try:
-            req = urllib.request.Request(thumb, headers={'User-Agent': 'Mozilla/5.0'})
-            with urllib.request.urlopen(req, timeout=12) as r:
-                data = r.read(4_000_000)
+        if thumb:
+            data = fetch_url_bytes(thumb)
             if data:
                 return data
-        except Exception:
-            continue
     return None
 
 
-def crop_square(img: Image.Image) -> Image.Image:
+def thumbnail_for(tvg: str, item: dict, live_ids: dict[str, str]) -> bytes | None:
+    data = direct_youtube_thumbnail(live_ids.get(tvg))
+    if data:
+        return data
+    return yt_dlp_thumbnail(item)
+
+
+def crop_to_size(img: Image.Image, width: int, height: int) -> Image.Image:
     img = img.convert('RGB')
-    w, h = img.size
-    side = min(w, h)
-    left = (w - side) // 2
-    top = (h - side) // 2
-    img = img.crop((left, top, left + side, top + side))
-    return img.resize((SIZE, SIZE), Image.Resampling.LANCZOS)
+    src_ratio = img.width / img.height
+    dst_ratio = width / height
+    if src_ratio > dst_ratio:
+        new_h = height
+        new_w = round(new_h * src_ratio)
+    else:
+        new_w = width
+        new_h = round(new_w / src_ratio)
+    img = img.resize((new_w, new_h), Image.Resampling.LANCZOS)
+    left = max(0, (new_w - width) // 2)
+    top = max(0, (new_h - height) // 2)
+    return img.crop((left, top, left + width, top + height))
 
 
 def fallback_image(legacy: str) -> Image.Image:
     p = ROOT / legacy
     if p.exists():
         try:
-            return crop_square(Image.open(p))
+            return Image.open(p).convert('RGB')
         except Exception:
             pass
-
-    # Neutral fallback, still using the same square/photo-card structure.
-    img = Image.new('RGB', (SIZE, SIZE), '#243447')
+    img = Image.new('RGB', (SIZE, SIZE), (42, 57, 72))
     d = ImageDraw.Draw(img)
     for y in range(SIZE):
-        shade = int(36 + 52 * y / SIZE)
-        d.line((0, y, SIZE, y), fill=(shade // 2, shade, min(140, shade + 38)))
+        shade = int(42 + 45 * y / SIZE)
+        d.line((0, y, SIZE, y), fill=(shade // 2, shade, min(145, shade + 38)))
     return img
 
 
@@ -199,51 +245,50 @@ def has_current_style(path: Path) -> bool:
 def should_keep_existing(path: Path, filename: str) -> bool:
     if not path.exists() or path.stat().st_size <= 12_000:
         return False
-
-    number = spec_number(filename)
-    if number < STYLE_ENFORCE_FROM:
+    if spec_number(filename) < STYLE_ENFORCE_FROM:
         return True
-
     return has_current_style(path)
 
 
 def render_logo(filename: str, title: str, group: str, legacy: str, data: bytes | None):
+    header_h = 94
+    photo_h = SIZE - header_h
+
     if data:
         try:
-            base = crop_square(Image.open(BytesIO(data)))
+            photo_src = Image.open(BytesIO(data)).convert('RGB')
         except Exception:
-            base = fallback_image(legacy)
+            photo_src = fallback_image(legacy)
     else:
-        base = fallback_image(legacy)
+        photo_src = fallback_image(legacy)
 
-    # The original 01..43 set is compact, image-led and square. Keep the same
-    # proportions: full-bleed source image, small YouTube badge, readable name.
-    base = ImageEnhance.Contrast(base).enhance(1.05)
-    base = ImageEnhance.Color(base).enhance(1.04)
-    img = base.convert('RGBA')
-    overlay = Image.new('RGBA', img.size, (0, 0, 0, 0))
-    draw = ImageDraw.Draw(overlay)
+    photo = crop_to_size(photo_src, SIZE, photo_h)
+    photo = ImageEnhance.Contrast(photo).enhance(1.03)
+    photo = ImageEnhance.Color(photo).enhance(1.02)
 
-    # Top badge.
-    draw.rounded_rectangle((16, 15, 160, 61), radius=12, fill=(255, 0, 0, 238))
-    draw.polygon([(31, 27), (31, 49), (52, 38)], fill='white')
-    badge_font = fit_font(draw, 'YouTube', 92, 24, 18)
-    draw.text((61, 22), 'YouTube', font=badge_font, fill='white')
+    out = Image.new('RGB', (SIZE, SIZE), 'white')
+    out.paste(photo, (0, header_h))
+    draw = ImageDraw.Draw(out)
 
-    # Bottom readable title area, without turning the logo into a generic white tile.
-    draw.rounded_rectangle((12, 292, SIZE - 12, SIZE - 12), radius=18, fill=(0, 0, 0, 184))
-    title_font = fit_font(draw, title, SIZE - 48, 42, 24)
+    draw.rectangle((1, 1, SIZE - 2, SIZE - 2), outline=(214, 214, 214), width=3)
+
+    title_font = fit_font(draw, title, SIZE - 28, 46, 24)
     box = draw.textbbox((0, 0), title, font=title_font)
     tx = (SIZE - (box[2] - box[0])) / 2 - box[0]
-    draw.text((tx, 315 - box[1]), title, font=title_font, fill='white')
+    ty = (header_h - (box[3] - box[1])) / 2 - box[1] - 1
+    draw.text((tx, ty), title, font=title_font, fill=(211, 40, 34))
 
-    group_label = 'LIVE CAMERA' if group not in {'空港'} else 'AIRPORT LIVE'
-    sub_font = fit_font(draw, group_label, 240, 21, 17)
-    box = draw.textbbox((0, 0), group_label, font=sub_font)
-    sx = (SIZE - (box[2] - box[0])) / 2 - box[0]
-    draw.text((sx, 371 - box[1]), group_label, font=sub_font, fill=(235, 235, 235, 255))
+    badge_w, badge_h = 112, 46
+    x1, y1 = SIZE - badge_w - 10, SIZE - badge_h - 10
+    x2, y2 = SIZE - 10, SIZE - 10
+    draw.rounded_rectangle((x1, y1, x2, y2), radius=7, fill=(229, 25, 25))
+    draw.rounded_rectangle((x1 + 7, y1 + 8, x1 + 39, y1 + 38), radius=6, fill='white')
+    draw.polygon([(x1 + 18, y1 + 14), (x1 + 18, y1 + 32), (x1 + 31, y1 + 23)], fill=(229, 25, 25))
+    live_font = fit_font(draw, 'LIVE', 60, 25, 18)
+    live_box = draw.textbbox((0, 0), 'LIVE', font=live_font)
+    draw.text((x1 + 45, y1 + (badge_h - (live_box[3] - live_box[1])) / 2 - live_box[1] - 1),
+              'LIVE', font=live_font, fill='white')
 
-    out = Image.alpha_composite(img, overlay).convert('RGB')
     pnginfo = PngImagePlugin.PngInfo()
     pnginfo.add_text(STYLE_KEY, STYLE_VALUE)
     out.save(ROOT / filename, 'PNG', optimize=True, pnginfo=pnginfo)
@@ -279,8 +324,6 @@ def render_ehime_catv_ainan():
     d = ImageDraw.Draw(img)
     blue = (31, 104, 190)
 
-    # Match the common Ehime CATV card family: top band, bold channel name,
-    # broadcaster wordmark, and bottom rule. Ainan must not use a one-off badge.
     d.rectangle((0, 0, size, 29), fill=blue)
 
     def centered(text, top, font, fill):
@@ -300,6 +343,8 @@ def render_ehime_catv_ainan():
 
 def main():
     sources = load_sources()
+    live_ids = playlist_video_ids()
+    print('live thumbnail video IDs:', len(live_ids))
     pending = []
 
     for tvg, filename, title, group, legacy in SPECS:
@@ -313,7 +358,7 @@ def main():
     if pending:
         with ThreadPoolExecutor(max_workers=4) as pool:
             jobs = {
-                pool.submit(yt_dlp_thumbnail, sources.get(tvg, {})): tvg
+                pool.submit(thumbnail_for, tvg, sources.get(tvg, {}), live_ids): tvg
                 for tvg, *_ in pending
             }
             for future in as_completed(jobs):
