@@ -1,7 +1,7 @@
 import json
 import tempfile
 import unittest
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from pathlib import Path
 from unittest.mock import patch
 import xml.etree.ElementTree as ET
@@ -70,7 +70,7 @@ class KanaReliability(unittest.TestCase):
         self.assertTrue(kana.official({'channel_id':kana.CHANNEL_ID}))
 
     def test_partial_inspection_cannot_confirm_none(self):
-        with patch.object(kana,'listing_ids', return_value=(['abc'],None)), patch.object(kana,'inspect_watch',return_value=(None,'timeout')):
+        with patch.object(kana,'listing_ids', return_value=(['abc'],None)), patch.object(kana,'search_ids', return_value=[]), patch.object(kana,'inspect_watch',return_value=(None,'timeout')):
             selected, confirmed, _ = kana.choose_current()
         self.assertIsNone(selected); self.assertFalse(confirmed)
 
@@ -83,9 +83,35 @@ class KanaReliability(unittest.TestCase):
 
     def test_known_video_rechecked_when_listing_empty(self):
         info = {'id':'known','channel_id':kana.CHANNEL_ID,'live_status':'is_live'}
-        with patch.object(kana,'listing_ids',return_value=([],None)), patch.object(kana,'inspect_watch',return_value=(info,None)) as watch:
+        with patch.object(kana,'listing_ids',return_value=([],None)), patch.object(kana,'search_ids',return_value=[]), patch.object(kana,'inspect_watch',return_value=(info,None)) as watch:
             selected, confirmed, _ = kana.choose_current({'video_id':'known'})
         self.assertEqual(selected,info); watch.assert_called_once_with('known')
+
+    def test_search_fallback_runs_even_when_listing_has_old_entries(self):
+        old = {'id':'old','channel_id':kana.CHANNEL_ID,'live_status':'was_live'}
+        new = {'id':'new','channel_id':kana.CHANNEL_ID,'live_status':'is_upcoming','release_timestamp':int(datetime.now(timezone.utc).timestamp())+3600}
+        def inspect(vid):
+            return (new if vid == 'new' else old, None)
+        with patch.object(kana,'listing_ids',return_value=(['old'],None)), patch.object(kana,'search_ids',return_value=['new']), patch.object(kana,'inspect_watch',side_effect=inspect):
+            selected, confirmed, _ = kana.choose_current()
+        self.assertTrue(confirmed)
+        self.assertEqual(selected['id'], 'new')
+
+    def test_next_night_reservation_beats_stale_day_reservation(self):
+        now = int(datetime.now(timezone.utc).timestamp())
+        stale_day = {'id':'day','channel_id':kana.CHANNEL_ID,'live_status':'is_upcoming','release_timestamp':now-3*3600}
+        night = {'id':'night','channel_id':kana.CHANNEL_ID,'live_status':'is_upcoming','release_timestamp':now+3600}
+        def inspect(vid):
+            return ({'day':stale_day,'night':night}[vid], None)
+        with patch.object(kana,'listing_ids',return_value=(['day','night'],None)), patch.object(kana,'search_ids',return_value=[]), patch.object(kana,'inspect_watch',side_effect=inspect):
+            selected, _, _ = kana.choose_current()
+        self.assertEqual(selected['id'], 'night')
+
+    def test_slot_classification_covers_day_and_night(self):
+        day = datetime(2026, 9, 10, 13, 30, tzinfo=JST).timestamp()
+        night = datetime(2026, 9, 10, 20, 35, tzinfo=JST).timestamp()
+        self.assertEqual(kana.classify_slot(day), 'day')
+        self.assertEqual(kana.classify_slot(night), 'night')
 
     def test_publication_keeps_concurrent_boat_update(self):
         with tempfile.TemporaryDirectory() as d:
@@ -108,14 +134,42 @@ class KanaReliability(unittest.TestCase):
             for k,p in paths.items(): p.write_text(json.dumps({'state':'none'}) if k=='STATUS' else '#EXTM3U\n')
             with patch.multiple(kana, **paths): kana.validate_outputs()
 
-    def test_hls_failure_preserves_existing_playlist(self):
+    def test_hls_failure_publishes_live_fallback_in_all_playlists(self):
         with tempfile.TemporaryDirectory() as d:
             paths = {k:Path(d)/k for k in ('OUT','GENERAL','FREEWIFI','STATUS')}
-            for k,p in paths.items(): p.write_text(json.dumps({'state':'is_live','video_id':'old'}) if k=='STATUS' else 'previous content')
-            with patch.multiple(kana, **paths), patch.object(kana,'choose_current',return_value=({'id':'new','live_status':'is_live'},True,[])), patch.object(kana,'direct_live_url',return_value=None):
+            other = '#EXTM3U\n#EXTINF:-1 tvg-id="boat.keep",Boat\nhttps://boat.example/live\n'
+            paths['OUT'].write_text('#EXTM3U\n')
+            paths['GENERAL'].write_text(other)
+            paths['FREEWIFI'].write_text(other)
+            paths['STATUS'].write_text(json.dumps({'state':'is_upcoming','video_id':'old'}))
+            info = {'id':'new','channel_id':kana.CHANNEL_ID,'live_status':'is_live','title':'Night live'}
+            with patch.multiple(kana, **paths), patch.object(kana,'choose_current',return_value=(info,True,[])), patch.object(kana,'direct_live_url',return_value=None):
                 kana.main()
-                self.assertEqual(kana.read_status()['state'],'error')
-            for k in ('OUT','GENERAL','FREEWIFI'): self.assertEqual(paths[k].read_text(),'previous content')
+                status = kana.read_status()
+                self.assertEqual(status['state'],'is_live')
+                self.assertFalse(status['direct_hls'])
+                self.assertTrue(status['hls_retry_required'])
+                kana.validate_outputs()
+            for k in ('OUT','GENERAL','FREEWIFI'):
+                self.assertIn('watch?v=new', paths[k].read_text())
+            self.assertIn('https://boat.example/live', paths['FREEWIFI'].read_text())
+
+    def test_unreachable_check_reapplies_last_owned_entry_after_rebuild(self):
+        with tempfile.TemporaryDirectory() as d:
+            paths = {k:Path(d)/k for k in ('OUT','GENERAL','FREEWIFI','STATUS')}
+            payload = kana.entry('https://youtube.com/watch?v=known','is_upcoming')
+            paths['OUT'].write_text('#EXTM3U\n'+payload+'\n')
+            paths['GENERAL'].write_text('#EXTM3U\n')
+            paths['FREEWIFI'].write_text('#EXTM3U\n')
+            paths['STATUS'].write_text(json.dumps({'state':'is_upcoming','video_id':'known'}))
+            with patch.multiple(kana, **paths), patch.object(kana,'choose_current',return_value=(None,False,['timeout'])):
+                kana.main()
+                status = kana.read_status()
+                self.assertEqual(status['state'],'is_upcoming')
+                self.assertTrue(status['check_error'])
+                kana.validate_outputs()
+            self.assertIn('watch?v=known', paths['GENERAL'].read_text())
+            self.assertIn('watch?v=known', paths['FREEWIFI'].read_text())
 
 
 if __name__ == '__main__':
