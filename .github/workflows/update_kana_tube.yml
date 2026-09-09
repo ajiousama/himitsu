@@ -1,11 +1,12 @@
 name: Update Kana Tube LIVE and Schedule
-# recovery-touch: 2026-09-09 night reliability v2
+# recovery-touch: 2026-09-09 day-night reliability v3
 
 on:
   workflow_dispatch:
   push:
     paths:
       - 'kana_tube_update.py'
+      - 'test_sports_kana_reliability.py'
       - '.github/workflows/update_kana_tube.yml'
   schedule:
     - cron: '*/5 * * * *'
@@ -13,8 +14,10 @@ on:
 permissions:
   contents: write
 
+# Serialize with the general YouTube writer. Both workflows touch
+# general_youtube.m3u and freewifi, so they must never publish concurrently.
 concurrency:
-  group: himitsu-kana-tube
+  group: himitsu-freewifi-writer
   cancel-in-progress: false
 
 jobs:
@@ -59,9 +62,49 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git fetch origin main
           git reset --hard origin/main
+
+          # First pass always discovers the newest official reservation/LIVE.
           python kana_tube_update.py
+
+          # When a daytime or nighttime reservation is close to its scheduled
+          # start, stay on it and re-check every 30 seconds. This closes the
+          # gap between "is_upcoming" and the first usable LIVE HLS manifest.
+          for transition_attempt in $(seq 1 16); do
+            action="$(python - <<'PY'
+          import json, time
+          from pathlib import Path
+          try:
+              s = json.loads(Path('kana_tube_status.json').read_text(encoding='utf-8'))
+          except Exception:
+              print('stop')
+              raise SystemExit
+          state = s.get('state')
+          direct = bool(s.get('direct_hls'))
+          try:
+              start = int(s.get('start_timestamp') or 0)
+          except Exception:
+              start = 0
+          delta = start - int(time.time()) if start else None
+          if state == 'is_live' and not direct:
+              print('retry')
+          elif state == 'is_upcoming' and delta is not None and -600 <= delta <= 360:
+              print('retry')
+          else:
+              print('stop')
+          PY
+          )"
+            if [ "$action" != "retry" ]; then
+              break
+            fi
+            sleep 30
+            python kana_tube_update.py
+          done
+
           snapshot="$(mktemp -d)"
           cp kana_tube.m3u kana_tube_status.json "$snapshot/"
+
+          # Rebase-and-overlay loop protects unrelated FreeWiFi updates that may
+          # have landed while YouTube was being checked.
           for attempt in 1 2 3 4 5 6; do
             git fetch origin main
             git reset --hard origin/main
@@ -100,12 +143,28 @@ jobs:
             git add kana_tube.m3u kana_tube_status.json general_youtube.m3u freewifi
             if git diff --cached --quiet; then
               echo 'Kana tube already current'
+              python - <<'PY'
+          import json, sys
+          from pathlib import Path
+          s=json.loads(Path('kana_tube_status.json').read_text(encoding='utf-8'))
+          sys.exit(1 if s.get('state') == 'error' or (s.get('state') == 'is_live' and not s.get('direct_hls')) else 0)
+          PY
               exit 0
             fi
             git commit -m 'Refresh Kana tube schedule/LIVE'
             if git push origin HEAD:main; then
               echo 'Kana tube published successfully'
-              python -c 'import kana_tube_update as k; import sys; sys.exit(k.read_status().get("state") == "error")'
+              python - <<'PY'
+          import json, sys
+          from pathlib import Path
+          s=json.loads(Path('kana_tube_status.json').read_text(encoding='utf-8'))
+          if s.get('state') == 'error':
+              print('::error::Kana YouTube check failed; preserved previous entry')
+              sys.exit(1)
+          if s.get('state') == 'is_live' and not s.get('direct_hls'):
+              print('::error::Kana is LIVE but direct HLS is still unavailable; fallback published and next schedule will retry')
+              sys.exit(1)
+          PY
               exit 0
             fi
             sleep 2
