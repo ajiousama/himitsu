@@ -40,8 +40,6 @@ def run_json(args, timeout=45):
     except subprocess.TimeoutExpired:
         return None, "timeout"
 
-    # Upcoming live reservations can still emit useful JSON even when no
-    # playable formats exist yet. Always parse stdout before checking rc.
     if p.stdout.strip():
         try:
             return json.loads(p.stdout), None
@@ -140,16 +138,12 @@ def classify_slot(ts):
 def choose_current(previous=None):
     candidates = []
     diagnostics = []
-    reachable = False
     streams_confirmed = False
     inspections_failed = False
 
     if previous and previous.get("video_id"):
         candidates.append(previous["video_id"])
 
-    # Scan deep enough to see both daytime and nighttime reservations. Search
-    # fallback is always added too, because /streams can intermittently omit a
-    # valid scheduled frame while still returning other old entries.
     for url, limit in (
         (CHANNEL + "/streams", 80),
         (CHANNEL + "/live", 40),
@@ -157,7 +151,6 @@ def choose_current(previous=None):
     ):
         ids, err = listing_ids(url, limit)
         if not err:
-            reachable = True
             if url.endswith("/streams"):
                 streams_confirmed = True
         else:
@@ -178,7 +171,6 @@ def choose_current(previous=None):
             if err:
                 diagnostics.append(f"{vid}: {err}")
             continue
-        reachable = True
         if not official(info):
             continue
         status = (info.get("live_status") or "").lower()
@@ -194,8 +186,6 @@ def choose_current(previous=None):
         live.sort(key=lambda x: start_timestamp(x) or 0, reverse=True)
         return live[0], True, diagnostics
 
-    # Prefer the next reservation. A stale daytime reservation that is still
-    # labelled upcoming must not block an already-published night reservation.
     now = int(datetime.now(timezone.utc).timestamp())
     future = [x for x in items if (start_timestamp(x) or now) >= now - 30 * 60]
     if future:
@@ -211,8 +201,6 @@ def direct_live_url(info):
     if manifest.startswith(("http://", "https://")):
         return manifest
 
-    # yt-dlp's JSON often already contains usable HLS variants even when a
-    # second -g extraction races the moment a reservation turns LIVE.
     hls = []
     for fmt in info.get("formats") or []:
         url = (fmt.get("url") or "").strip()
@@ -303,7 +291,9 @@ def payload_from_text(text):
     ).strip() or None
 
 
-def payload_from_out(path=OUT):
+def payload_from_out(path=None):
+    if path is None:
+        path = OUT
     try:
         return payload_from_text(path.read_text(encoding="utf-8-sig", errors="replace"))
     except OSError:
@@ -352,7 +342,6 @@ def write_status(data):
 
 
 def publish_snapshot(directory):
-    """Overlay only Kana's owned entry onto the latest shared playlists."""
     directory = Path(directory)
     status = json.loads((directory / STATUS.name).read_text(encoding='utf-8'))
     if status.get('state') == 'error':
@@ -400,8 +389,6 @@ def main():
     selected, reachable, diagnostics = choose_current(previous)
 
     if selected is None and not reachable:
-        # A temporary YouTube/yt-dlp outage must never let another playlist
-        # rebuild erase Kana. Re-apply the last known owned entry first.
         restored = restore_owned_entry()
         prev_state = previous.get("state")
         write_status({
@@ -439,10 +426,6 @@ def main():
     ts = start_timestamp(selected)
     payload = entry(play, state, ts)
 
-    # Even if HLS is not ready at the exact LIVE transition, publish the new
-    # LIVE identity with its watch URL instead of leaving a stale reservation or
-    # allowing a general playlist rebuild to delete the channel. The workflow
-    # transition loop keeps retrying until the direct HLS becomes available.
     OUT.write_text("#EXTM3U\n" + payload + "\n", encoding="utf-8")
     sync_general(payload)
     sync_freewifi(payload)
