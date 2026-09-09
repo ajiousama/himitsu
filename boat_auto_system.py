@@ -295,6 +295,23 @@ def current_day_stream(url: object, day: date) -> bool:
     )
 
 
+def detect_cancelled_venues(day: date, cards: dict[str, list[dict]]) -> set[str]:
+    """Detect official same-day whole-venue cancellation/postponement."""
+    url = f'https://www.boatrace.jp/owpc/pc/race/index?hd={day:%Y%m%d}'
+    source = boat_playback.read_url(url).decode('utf-8', 'replace')
+    text = re.sub(r'\s+', ' ', html.unescape(re.sub(r'<[^>]+>', ' ', source)))
+    cancelled = set()
+    for jcd in cards:
+        name = VENUES[jcd][0]
+        # On the official daily race table the progress column is immediately
+        # after the venue name. Require the cancellation wording close to that
+        # name so a generic navigation link cannot cancel every venue.
+        pattern = re.escape(name) + r'.{0,180}?(?:中止順延|開催中止|中止・順延|全レース中止|全競走中止)'
+        if re.search(pattern, text):
+            cancelled.add(jcd)
+    return cancelled
+
+
 def parse_m3u_urls(text: str) -> dict[str, str]:
     lines = text.splitlines()
     output: dict[str, str] = {}
@@ -487,11 +504,12 @@ def replace_boat_block(text: str, payload: str) -> str:
     return text.rstrip() + "\n\n" + payload + "\n"
 
 
-def build_venue_state(cards: dict[str, list[dict]], streams: dict[str, dict], now: datetime) -> tuple[dict, list[dict], dict]:
+def build_venue_state(cards: dict[str, list[dict]], streams: dict[str, dict], now: datetime, cancelled: set[str] | None = None) -> tuple[dict, list[dict], dict]:
+    cancelled = set(cancelled or ())
     venues = {}
     rows = []
     phase_counts = {
-        mode: {"held": 0, "acquired": 0, "active": 0, "ended": 0, "seed_required": 0}
+        mode: {"held": 0, "acquired": 0, "active": 0, "ended": 0, "seed_required": 0, "cancelled": 0}
         for mode in MODE_ORDER
     }
     for jcd, races in sorted(cards.items()):
@@ -502,11 +520,12 @@ def build_venue_state(cards: dict[str, list[dict]], streams: dict[str, dict], no
         alert_from = first - timedelta(minutes=ALERT_LEAD_MINUTES)
         finish = last + timedelta(minutes=RACE_SWITCH_MINUTES)
         guidance_switch = last + timedelta(minutes=END_GUIDANCE_MINUTES)
-        ended = now >= finish
-        active = alert_from <= now < finish
-        stream = streams.get(tvg_id) or {}
+        is_cancelled = jcd in cancelled
+        ended = now >= finish and not is_cancelled
+        active = alert_from <= now < finish and not is_cancelled
+        stream = {} if is_cancelled else (streams.get(tvg_id) or {})
         url = str(stream.get("url") or "")
-        current_url = current_day_stream(url, now.date())
+        current_url = current_day_stream(url, now.date()) if not is_cancelled else False
         expired = token_expired(url) if current_url else False
         visible = bool(current_url)
         source_ready = bool(current_url and not expired and stream.get('playback_verified'))
@@ -522,6 +541,7 @@ def build_venue_state(cards: dict[str, list[dict]], streams: dict[str, dict], no
             "visible": visible,
             "ended": ended,
             "active": active,
+            "cancelled": is_cancelled,
             "mode": mode,
             "mode_label": MODE_LABEL[mode],
             "first_race": first.strftime("%H:%M"),
@@ -546,13 +566,14 @@ def build_venue_state(cards: dict[str, list[dict]], streams: dict[str, dict], no
                 "block": make_entry(name, tvg_id, logo_url(logo), url),
             })
         else:
-            item["source"] = "automatic cloud SEED pending"
+            item["source"] = "official cancellation/postponement" if is_cancelled else "automatic cloud SEED pending"
         venues[tvg_id] = item
         phase_counts[mode]["held"] += 1
         phase_counts[mode]["acquired"] += int(visible)
         phase_counts[mode]["active"] += int(active)
         phase_counts[mode]["ended"] += int(ended)
         phase_counts[mode]["seed_required"] += int(seed_required)
+        phase_counts[mode]["cancelled"] += int(is_cancelled)
 
     rows.sort(key=lambda row: (MODE_ORDER[row["mode"]], row["first"], row["name"]))
     return venues, rows, phase_counts
@@ -609,7 +630,7 @@ def programme_day(programme: ET.Element) -> str:
     return str(programme.get("start") or "")[:8]
 
 
-def overlay_epg_file(path: Path, cards: dict[str, list[dict]], day: date) -> int:
+def overlay_epg_file(path: Path, cards: dict[str, list[dict]], day: date, cancelled: set[str] | None = None) -> int:
     if path.exists() and path.stat().st_size:
         try:
             tree = ET.parse(path)
@@ -620,6 +641,7 @@ def overlay_epg_file(path: Path, cards: dict[str, list[dict]], day: date) -> int
         root = ET.Element("tv", {"generator-info-name": "ajiousama/himitsu BOAT Auto v3"})
         tree = ET.ElementTree(root)
 
+    cancelled = set(cancelled or ())
     ymd = day.strftime("%Y%m%d")
     boat_ids = {item[1] for item in VENUES.values()}
     for programme in list(root.findall("programme")):
@@ -632,6 +654,15 @@ def overlay_epg_file(path: Path, cards: dict[str, list[dict]], day: date) -> int
         name, cid, _logo = VENUES[jcd]
         mode = mode_for(races)
         ensure_channel(root, cid, f"BOATRACE{name}")
+        if jcd in cancelled:
+            start = datetime.combine(day, time(0, 0), tzinfo=JST)
+            add_programme(
+                root, cid, start, end_of_day,
+                "本日の開催は中止になりました",
+                f"BOATRACE{name}は本日の開催中止・順延が公式発表されています。",
+            )
+            count += 1
+            continue
         for index, race in enumerate(races):
             start = races[0]["start"] - timedelta(minutes=ACQUIRE_LEAD_MINUTES) if index == 0 else races[index - 1]["start"] + timedelta(minutes=RACE_SWITCH_MINUTES)
             stop = race["start"] + timedelta(minutes=RACE_SWITCH_MINUTES)
@@ -797,8 +828,9 @@ def main() -> int:
 
     now = now_jst()
     day = now.date()
+    previous_state = json_read(STATE)
     try:
-        cards, schedule_checked_at, schedule_warnings = load_schedule(now, json_read(STATE))
+        cards, schedule_checked_at, schedule_warnings = load_schedule(now, previous_state)
     except Exception as exc:
         # The upstream API explicitly returns 404 until the new JST day's data is
         # published. Treat that as a normal pre-dawn waiting state, not a system
@@ -811,12 +843,28 @@ def main() -> int:
             return write_schedule_pending(now)
         return preserve_on_schedule_error(now, "BOAT EPG/開催表が0場です")
 
+    previous_cancelled = {
+        str(jcd).zfill(2) for jcd in (previous_state.get("cancelled_jcd") or [])
+        if str(jcd).zfill(2) in cards
+    }
+    cancellation_warnings = []
+    try:
+        cancelled_jcd = previous_cancelled | detect_cancelled_venues(day, cards)
+    except Exception as exc:
+        cancelled_jcd = previous_cancelled
+        cancellation_warnings.append(f"中止情報確認失敗: {type(exc).__name__}")
+    if cancelled_jcd:
+        names = "、".join(VENUES[jcd][0] for jcd in sorted(cancelled_jcd))
+        print(f"BOAT AUTO official cancellation/postponement: {names}")
+
     streams = load_current_streams(day)
+    for jcd in cancelled_jcd:
+        streams.pop(VENUES[jcd][1], None)
     # Schedule and playback acquisition are independent. The continuous worker
     # retries unready venues each minute; verified streams are only monitored.
     due_cards = {
         jcd: races for jcd, races in cards.items()
-        if races and now >= races[0]["start"] - timedelta(minutes=ACQUIRE_LEAD_MINUTES)
+        if jcd not in cancelled_jcd and races and now >= races[0]["start"] - timedelta(minutes=ACQUIRE_LEAD_MINUTES)
         and now < races[-1]["start"] + timedelta(minutes=RACE_SWITCH_MINUTES)
     }
     cloud = refresh_cloud_streams(due_cards, streams, day) if due_cards else {
@@ -825,12 +873,12 @@ def main() -> int:
     }
     held_ids = {VENUES[jcd][1] for jcd in cards}
     streams = {tvg_id: item for tvg_id, item in streams.items() if tvg_id in held_ids}
-    venues, rows, phase_counts = build_venue_state(cards, streams, now)
+    venues, rows, phase_counts = build_venue_state(cards, streams, now, cancelled_jcd)
     update_playlist(rows)
 
-    epg_counts = {"public_sports_epg_local.xml": overlay_epg_file(LOCAL_EPG, cards, day)}
+    epg_counts = {"public_sports_epg_local.xml": overlay_epg_file(LOCAL_EPG, cards, day, cancelled_jcd)}
     if not args.skip_guides and GUIDES.exists() and GUIDES.stat().st_size:
-        epg_counts["guides.xml"] = overlay_epg_file(GUIDES, cards, day)
+        epg_counts["guides.xml"] = overlay_epg_file(GUIDES, cards, day, cancelled_jcd)
 
     seed_required = [item["name"] for item in venues.values() if item.get("seed_required")]
     ended_kept = [item["name"] for item in venues.values() if item.get("ended") and item.get("visible")]
@@ -861,7 +909,9 @@ def main() -> int:
         "last_update_ok": not system_errors,
         "schedule_source": SCHEDULE_API.format(year=day.strftime("%Y"), ymd=day.strftime("%Y%m%d")),
         "schedule_checked_at": schedule_checked_at,
-        "schedule_warnings": schedule_warnings,
+        "schedule_warnings": schedule_warnings + cancellation_warnings,
+        "cancelled_jcd": sorted(cancelled_jcd),
+        "cancelled_venues": [VENUES[jcd][0] for jcd in sorted(cancelled_jcd)],
         "stream_source": "cloud + official Playback API; audio/video decoded before acceptance",
         "stream_acquisition_policy": "1R150分前から毎分取得。再生確認済みURLは保持し5分ごとに異常のみ確認。失敗場だけ自動復旧。",
         "retention_policy": "開催場はJST日付変更まで保持。終了しても削除しない。",
