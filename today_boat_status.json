@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-09",
-  "generated_at": "2026-09-09T14:30:44.616860+09:00",
+  "generated_at": "2026-09-09T14:31:44.570291+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260909.json",
   "schedule_checked_at": "2026-09-09T14:29:44.616830+09:00",
@@ -24,8 +24,9 @@
   "card_count": 12,
   "held_count": 12,
   "visible_count": 8,
-  "active_count": 7,
+  "active_count": 6,
   "ended_kept": [
+    "鳴門",
     "芦屋"
   ],
   "seed_required": false,
@@ -35,8 +36,8 @@
     "morning": {
       "held": 2,
       "acquired": 2,
-      "active": 1,
-      "ended": 1,
+      "active": 0,
+      "ended": 2,
       "seed_required": 0,
       "cancelled": 0
     },
@@ -58,9 +59,14 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 10,
-    "fetched": 7,
+    "requested": 9,
+    "fetched": 6,
     "failures": [
+      {
+        "jcd": "20",
+        "name": "若松",
+        "error": "HTTPError: playback check failed"
+      },
       {
         "jcd": "01",
         "name": "桐生",
@@ -69,11 +75,6 @@
       {
         "jcd": "24",
         "name": "大村",
-        "error": "HTTPError: playback check failed"
-      },
-      {
-        "jcd": "20",
-        "name": "若松",
         "error": "HTTPError: playback check failed"
       }
     ]
@@ -758,8 +759,8 @@
       "name": "鳴門",
       "held": true,
       "visible": true,
-      "ended": false,
-      "active": true,
+      "ended": true,
+      "active": false,
       "cancelled": false,
       "mode": "morning",
       "mode_label": "モーニング",
@@ -767,7 +768,7 @@
       "last_race": "14:28",
       "alert_from": "2026-09-09T08:14:00+09:00",
       "next_race": null,
-      "stream_window": "live_or_prestart",
+      "stream_window": "ended_kept",
       "guidance_switch_at": "2026-09-09T15:13:00+09:00",
       "seed_required": false,
       "playback_verified": true,
