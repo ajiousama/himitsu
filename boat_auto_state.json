@@ -2,12 +2,13 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-09",
-  "generated_at": "2026-09-09T12:28:24.333447+09:00",
+  "generated_at": "2026-09-09T12:29:24.289566+09:00",
   "last_update_ok": false,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260909.json",
   "schedule_checked_at": "2026-09-09T12:27:24.182315+09:00",
   "schedule_warnings": [
     "official_cards: TimeoutError",
+    "中止情報確認失敗: TimeoutError",
     "中止情報確認失敗: TimeoutError"
   ],
   "cancelled_jcd": [],
@@ -28,6 +29,8 @@
     "江戸川"
   ],
   "system_errors": [
+    "official_cards: TimeoutError",
+    "中止情報確認失敗: TimeoutError",
     "開始時刻が近い開催場の当日中継を取得・再生確認できません"
   ],
   "phase_counts": {
@@ -666,8 +669,8 @@
       "last_race": "16:23",
       "alert_from": "2026-09-09T10:11:00+09:00",
       "next_race": {
-        "race": 5,
-        "start": "12:29"
+        "race": 6,
+        "start": "12:56"
       },
       "stream_window": "live_or_prestart",
       "guidance_switch_at": "2026-09-09T17:08:00+09:00",
