@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-09",
-  "generated_at": "2026-09-09T12:29:24.289566+09:00",
+  "generated_at": "2026-09-09T12:30:24.334593+09:00",
   "last_update_ok": false,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260909.json",
   "schedule_checked_at": "2026-09-09T12:27:24.182315+09:00",
@@ -11,8 +11,12 @@
     "中止情報確認失敗: TimeoutError",
     "中止情報確認失敗: TimeoutError"
   ],
-  "cancelled_jcd": [],
-  "cancelled_venues": [],
+  "cancelled_jcd": [
+    "03"
+  ],
+  "cancelled_venues": [
+    "江戸川"
+  ],
   "stream_source": "cloud + official Playback API; audio/video decoded before acceptance",
   "stream_acquisition_policy": "1R150分前から毎分取得。再生確認済みURLは保持し5分ごとに異常のみ確認。失敗場だけ自動復旧。",
   "retention_policy": "開催場はJST日付変更まで保持。終了しても削除しない。",
@@ -22,16 +26,14 @@
   "card_count": 12,
   "held_count": 12,
   "visible_count": 8,
-  "active_count": 9,
+  "active_count": 8,
   "ended_kept": [],
-  "seed_required": true,
-  "seed_required_venues": [
-    "江戸川"
-  ],
+  "seed_required": false,
+  "seed_required_venues": [],
   "system_errors": [
     "official_cards: TimeoutError",
     "中止情報確認失敗: TimeoutError",
-    "開始時刻が近い開催場の当日中継を取得・再生確認できません"
+    "中止情報確認失敗: TimeoutError"
   ],
   "phase_counts": {
     "morning": {
@@ -45,10 +47,10 @@
     "day": {
       "held": 7,
       "acquired": 6,
-      "active": 7,
+      "active": 6,
       "ended": 0,
-      "seed_required": 1,
-      "cancelled": 0
+      "seed_required": 0,
+      "cancelled": 1
     },
     "night": {
       "held": 3,
@@ -60,19 +62,13 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 9,
+    "requested": 8,
     "fetched": 8,
-    "failures": [
-      {
-        "jcd": "03",
-        "name": "江戸川",
-        "error": "ValueError: ended VOD playlist is not a live stream"
-      }
-    ]
+    "failures": []
   },
   "epg_programmes_written": {
-    "public_sports_epg_local.xml": 156,
-    "guides.xml": 156
+    "public_sports_epg_local.xml": 144,
+    "guides.xml": 144
   },
   "alert": {
     "active": true,
@@ -303,8 +299,8 @@
       "held": true,
       "visible": false,
       "ended": false,
-      "active": true,
-      "cancelled": false,
+      "active": false,
+      "cancelled": true,
       "mode": "day",
       "mode_label": "デイ",
       "first_race": "10:30",
@@ -314,9 +310,9 @@
         "race": 5,
         "start": "13:02"
       },
-      "stream_window": "live_or_prestart",
+      "stream_window": "scheduled",
       "guidance_switch_at": "2026-09-09T17:10:00+09:00",
-      "seed_required": true,
+      "seed_required": false,
       "playback_verified": false,
       "first_verified_at": null,
       "ready_before_first_race": false,
@@ -383,7 +379,7 @@
           "name": "準優勝戦"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "source": "official cancellation/postponement"
     },
     "boat.heiwajima": {
       "jcd": "04",
