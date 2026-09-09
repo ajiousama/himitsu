@@ -143,8 +143,13 @@ def choose_current(previous=None):
         candidates.append(previous["video_id"])
 
     # Reservation/upcoming frames normally appear in /streams before LIVE.
+    # Scan deeper around the night window because the channel can expose both
+    # daytime and nighttime reservations on the same day.
+    now_jst = datetime.now(JST)
+    night_focus = (19 <= now_jst.hour <= 23) or (0 <= now_jst.hour < 1)
+    scan_limit = 60 if night_focus else 40
     for url in (CHANNEL + "/streams", CHANNEL + "/live", CHANNEL + "/videos"):
-        ids, err = listing_ids(url, 35)
+        ids, err = listing_ids(url, scan_limit)
         if not err:
             reachable = True
             if url.endswith("/streams"):
