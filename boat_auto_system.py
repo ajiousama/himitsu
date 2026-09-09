@@ -301,7 +301,20 @@ def detect_cancelled_venues(day: date, cards: dict[str, list[dict]]) -> set[str]
     day_label = f'{day.month}月{day.day}日'
     for jcd in cards:
         url = f'https://www.boatrace.jp/owpc/pc/race/raceindex?hd={day:%Y%m%d}&jcd={jcd}'
-        source = boat_playback.read_url(url).decode('utf-8', 'replace')
+        source = None
+        last_error = None
+        for attempt in range(3):
+            req = urllib.request.Request(url, headers={'User-Agent': UA, 'Cache-Control': 'no-cache'})
+            try:
+                with urllib.request.urlopen(req, timeout=20) as response:
+                    source = response.read(1048576).decode('utf-8', 'replace')
+                break
+            except Exception as exc:
+                last_error = exc
+                if attempt < 2:
+                    time_module.sleep(1 + attempt)
+        if source is None:
+            raise RuntimeError(f'cancellation page unavailable: {type(last_error).__name__}')
         text = re.sub(r'\s+', ' ', html.unescape(re.sub(r'<[^>]+>', ' ', source)))
         # Venue pages label the selected date itself as "9月9日順延" or
         # equivalent. Bind the status to today's date, not to generic nav text.
