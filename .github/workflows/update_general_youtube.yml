@@ -9,7 +9,6 @@ on:
       - 'general_youtube_sources_ports.json'
       - 'general_youtube_sources_airports.json'
       - 'general_youtube_update.py'
-      - 'kana_tube_update.py'
       - 'generate_livecamera_logos.py'
       - 'general_youtube_guard.py'
       - 'freewifi_youtube_cleanup.py'
@@ -17,7 +16,9 @@ on:
       - 'jra_freewifi_finalize.py'
       - '.github/workflows/update_general_youtube.yml'
   schedule:
-    - cron: '*/15 * * * *'
+    # Deliberately offset from Kana's */5 schedule so the slower general
+    # rebuild does not normally collide with a daytime/nighttime transition.
+    - cron: '2,17,32,47 * * * *'
 
 permissions:
   contents: write
@@ -146,6 +147,7 @@ jobs:
           test "$(grep -c 'tvg-id="jra.gch.free"' freewifi || true)" -le 1
           test "$(grep -c 'tvg-id="youtube.kana_tube"' freewifi || true)" -le 1
           test "$(grep -c 'tvg-id="youtube.kana_tube"' general_youtube.m3u || true)" -le 1
+          python -c 'import kana_tube_update as k; k.validate_outputs()'
           ! grep -Eq 'yt54_(44|45|46)_' general_youtube_sources.json
           ! grep -Eq 'logos/youtube/airport_[^\"]+\.png' general_youtube_sources_airports.json
           ! grep -Eq 'logos/youtube/ehime_[^\"]+\.png' general_youtube_sources_ports.json
