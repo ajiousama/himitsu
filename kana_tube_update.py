@@ -40,9 +40,8 @@ def run_json(args, timeout=45):
     except subprocess.TimeoutExpired:
         return None, "timeout"
 
-    # yt-dlp can emit useful metadata for an upcoming live reservation while
-    # still returning non-zero because no playable formats exist yet. Parse
-    # stdout first so a reservation frame is not thrown away as an error.
+    # Upcoming live reservations can still emit useful JSON even when no
+    # playable formats exist yet. Always parse stdout before checking rc.
     if p.stdout.strip():
         try:
             return json.loads(p.stdout), None
@@ -67,7 +66,6 @@ def official(info):
 
 
 def inspect_watch(video_id):
-    # --ignore-no-formats-error is important for future live reservations.
     return run_json([
         "--dump-single-json", "--no-playlist", "--ignore-no-formats-error",
         f"https://www.youtube.com/watch?v={video_id}",
@@ -122,7 +120,6 @@ def search_ids():
 
 
 def start_timestamp(info):
-    # release_timestamp is normally the scheduled start for an upcoming live.
     for key in ("release_timestamp", "timestamp"):
         try:
             value = int(info.get(key) or 0)
@@ -133,23 +130,32 @@ def start_timestamp(info):
     return None
 
 
+def classify_slot(ts):
+    if not ts:
+        return "unknown"
+    hour = datetime.fromtimestamp(ts, JST).hour
+    return "day" if 8 <= hour < 18 else "night"
+
+
 def choose_current(previous=None):
     candidates = []
     diagnostics = []
     reachable = False
     streams_confirmed = False
     inspections_failed = False
+
     if previous and previous.get("video_id"):
         candidates.append(previous["video_id"])
 
-    # Reservation/upcoming frames normally appear in /streams before LIVE.
-    # Scan deeper around the night window because the channel can expose both
-    # daytime and nighttime reservations on the same day.
-    now_jst = datetime.now(JST)
-    night_focus = (19 <= now_jst.hour <= 23) or (0 <= now_jst.hour < 1)
-    scan_limit = 60 if night_focus else 40
-    for url in (CHANNEL + "/streams", CHANNEL + "/live", CHANNEL + "/videos"):
-        ids, err = listing_ids(url, scan_limit)
+    # Scan deep enough to see both daytime and nighttime reservations. Search
+    # fallback is always added too, because /streams can intermittently omit a
+    # valid scheduled frame while still returning other old entries.
+    for url, limit in (
+        (CHANNEL + "/streams", 80),
+        (CHANNEL + "/live", 40),
+        (CHANNEL + "/videos", 40),
+    ):
+        ids, err = listing_ids(url, limit)
         if not err:
             reachable = True
             if url.endswith("/streams"):
@@ -158,10 +164,7 @@ def choose_current(previous=None):
             diagnostics.append(f"{url}: {err}")
         candidates.extend(ids)
 
-    # Search is fallback only. Every result is still verified as the official
-    # channel before it can be published.
-    if not candidates:
-        candidates.extend(search_ids())
+    candidates.extend(search_ids())
 
     seen = set()
     items = []
@@ -191,21 +194,41 @@ def choose_current(previous=None):
         live.sort(key=lambda x: start_timestamp(x) or 0, reverse=True)
         return live[0], True, diagnostics
 
+    # Prefer the next reservation. A stale daytime reservation that is still
+    # labelled upcoming must not block an already-published night reservation.
     now = int(datetime.now(timezone.utc).timestamp())
-    future = sorted(
-        items,
-        key=lambda x: (
-            0 if (start_timestamp(x) or now) >= now - 6 * 3600 else 1,
-            abs((start_timestamp(x) or now) - now),
-        ),
-    )
-    return future[0], True, diagnostics
+    future = [x for x in items if (start_timestamp(x) or now) >= now - 30 * 60]
+    if future:
+        future.sort(key=lambda x: start_timestamp(x) or now)
+        return future[0], True, diagnostics
+
+    items.sort(key=lambda x: start_timestamp(x) or 0, reverse=True)
+    return items[0], True, diagnostics
 
 
 def direct_live_url(info):
     manifest = (info.get("manifest_url") or "").strip()
     if manifest.startswith(("http://", "https://")):
         return manifest
+
+    # yt-dlp's JSON often already contains usable HLS variants even when a
+    # second -g extraction races the moment a reservation turns LIVE.
+    hls = []
+    for fmt in info.get("formats") or []:
+        url = (fmt.get("url") or "").strip()
+        protocol = (fmt.get("protocol") or "").lower()
+        if not url.startswith(("http://", "https://")) or "m3u8" not in protocol:
+            continue
+        has_video = (fmt.get("vcodec") or "none") != "none"
+        has_audio = (fmt.get("acodec") or "none") != "none"
+        both = int(has_video and has_audio)
+        height = int(fmt.get("height") or 0)
+        tbr = float(fmt.get("tbr") or 0)
+        hls.append(((both, height, tbr), url))
+    if hls:
+        hls.sort(key=lambda x: x[0], reverse=True)
+        return hls[0][1]
+
     vid = info.get("id")
     if not vid:
         return None
@@ -213,7 +236,7 @@ def direct_live_url(info):
         p = subprocess.run(
             base_cmd() + [
                 "--no-playlist", "--match-filter", "is_live",
-                "-f", "best[protocol^=m3u8]", "-g",
+                "-f", "best[protocol^=m3u8]/best[protocol*=m3u8]", "-g",
                 f"https://www.youtube.com/watch?v={vid}",
             ],
             capture_output=True,
@@ -273,6 +296,20 @@ def strip_entry(text):
     return "\n".join(out).rstrip() + "\n"
 
 
+def payload_from_text(text):
+    return "\n".join(
+        line for line in text.splitlines()
+        if not line.startswith("#EXTM3U")
+    ).strip() or None
+
+
+def payload_from_out(path=OUT):
+    try:
+        return payload_from_text(path.read_text(encoding="utf-8-sig", errors="replace"))
+    except OSError:
+        return None
+
+
 def sync_general(payload):
     base = GENERAL.read_text(encoding="utf-8-sig", errors="replace") if GENERAL.exists() else "#EXTM3U\n"
     base = strip_entry(base)
@@ -298,6 +335,14 @@ def sync_freewifi(payload):
     FREEWIFI.write_text(base, encoding="utf-8")
 
 
+def restore_owned_entry():
+    payload = payload_from_out()
+    if payload:
+        sync_general(payload)
+        sync_freewifi(payload)
+    return bool(payload)
+
+
 def write_status(data):
     data["checked_at"] = datetime.now(JST).isoformat(timespec="seconds")
     STATUS.write_text(
@@ -311,13 +356,13 @@ def publish_snapshot(directory):
     directory = Path(directory)
     status = json.loads((directory / STATUS.name).read_text(encoding='utf-8'))
     if status.get('state') == 'error':
-        # A failed check cannot restore an older playlist over a newer update.
         latest = read_status()
         latest.update({key: status[key] for key in ('state', 'checked_at', 'message', 'diagnostics') if key in status})
         STATUS.write_text(json.dumps(latest, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+        restore_owned_entry()
         return
     output = (directory / OUT.name).read_text(encoding='utf-8')
-    payload = '\n'.join(line for line in output.splitlines() if not line.startswith('#EXTM3U')).strip() or None
+    payload = payload_from_text(output)
     OUT.write_text(output, encoding='utf-8')
     STATUS.write_text(json.dumps(status, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
     sync_general(payload)
@@ -332,7 +377,8 @@ def read_status():
 
 
 def validate_outputs():
-    state = read_status().get("state")
+    status = read_status()
+    state = status.get("state")
     for path in (OUT, GENERAL, FREEWIFI):
         text = path.read_text(encoding="utf-8-sig")
         entries = [line for line in text.splitlines() if line.startswith("#EXTINF:") and f'tvg-id="{TVG_ID}"' in line]
@@ -344,6 +390,9 @@ def validate_outputs():
             raise ValueError(f"Kana entry missing: {path}")
         if any(f'tvg-logo="{LOGO}"' not in line for line in entries):
             raise ValueError(f"Kana logo mismatch: {path}")
+    if state == 'is_live' and status.get('direct_hls'):
+        if not (status.get('play_url') or '').startswith(("http://", "https://")):
+            raise ValueError("Kana LIVE HLS URL missing")
 
 
 def main():
@@ -351,16 +400,20 @@ def main():
     selected, reachable, diagnostics = choose_current(previous)
 
     if selected is None and not reachable:
-        # Never erase a working entry because YouTube/yt-dlp temporarily failed.
+        # A temporary YouTube/yt-dlp outage must never let another playlist
+        # rebuild erase Kana. Re-apply the last known owned entry first.
+        restored = restore_owned_entry()
+        prev_state = previous.get("state")
         write_status({
             **previous,
-            "state": "error",
+            "state": prev_state if prev_state in ("is_live", "is_upcoming") and restored else "error",
             "channel": HANDLE,
             "channel_id": CHANNEL_ID,
-            "message": "YouTube確認失敗。既存エントリを保持",
+            "check_error": True,
+            "message": "YouTube確認失敗。既存エントリを保持・再反映",
             "diagnostics": diagnostics[-8:],
         })
-        print("KANA: YouTube確認失敗。既存エントリを保持")
+        print("KANA: YouTube確認失敗。既存エントリを保持・再反映")
         return
 
     if selected is None:
@@ -371,6 +424,7 @@ def main():
             "state": "none",
             "channel": HANDLE,
             "channel_id": CHANNEL_ID,
+            "check_error": False,
             "message": "現在LIVE/配信予定なし",
             "diagnostics": diagnostics[-8:],
         })
@@ -381,22 +435,19 @@ def main():
     vid = selected.get("id")
     watch = f"https://www.youtube.com/watch?v={vid}"
     direct = direct_live_url(selected) if state == "is_live" else None
-    if state == "is_live" and not direct:
-        write_status({**previous, "state": "error", "channel": HANDLE,
-                      "channel_id": CHANNEL_ID, "video_id": vid, "watch_url": watch,
-                      "message": "LIVE確認済み・HLS取得失敗。既存エントリを保持",
-                      "diagnostics": diagnostics[-8:]})
-        print("KANA: LIVE確認済み・HLS取得失敗。再試行が必要")
-        return
     play = direct or watch
     ts = start_timestamp(selected)
     payload = entry(play, state, ts)
 
+    # Even if HLS is not ready at the exact LIVE transition, publish the new
+    # LIVE identity with its watch URL instead of leaving a stale reservation or
+    # allowing a general playlist rebuild to delete the channel. The workflow
+    # transition loop keeps retrying until the direct HLS becomes available.
     OUT.write_text("#EXTM3U\n" + payload + "\n", encoding="utf-8")
     sync_general(payload)
     sync_freewifi(payload)
 
-    write_status({
+    status = {
         "state": state,
         "channel": HANDLE,
         "channel_id": CHANNEL_ID,
@@ -404,13 +455,19 @@ def main():
         "watch_url": watch,
         "play_url": play,
         "direct_hls": bool(direct),
+        "hls_retry_required": bool(state == "is_live" and not direct),
+        "slot": classify_slot(ts),
         "title": selected.get("title") or NAME,
         "start_timestamp": ts,
         "start_jst": jst_text(ts),
+        "check_error": False,
         "diagnostics": diagnostics[-8:],
-    })
+    }
+    if state == "is_live" and not direct:
+        status["message"] = "LIVE確認済み・HLS準備中。次の再試行で直URLへ更新"
+    write_status(status)
     print(f"KANA: {state} {vid} {selected.get('title') or NAME}")
-    print(f"KANA: direct_hls={bool(direct)}")
+    print(f"KANA: slot={status['slot']} direct_hls={bool(direct)}")
 
 
 if __name__ == "__main__":
