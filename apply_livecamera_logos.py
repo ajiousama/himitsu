@@ -10,12 +10,10 @@ SOURCES = [
 ]
 TARGETS = [Path('general_youtube.m3u'), Path('freewifi')]
 
-# APTV caches logo URLs aggressively. 47..70 were rebuilt in-place, so keep
-# their canonical filenames but add a revision query to force one clean refresh.
-CACHE_REV = '20260909-classic-v3'
+# New filenames are used from 44 onward because some APTV clients kept the
+# old generic YouTube-card image even after a query-string cache revision.
+CACHE_REV = '20260909-photo-v4'
 
-# Canonical FreeWiFi YouTube logo family approved before the accidental
-# unified-card rebuild. Keep these IDs pinned to the existing yt43 assets.
 CANONICAL = {
     'youtube.kana_tube': 'yt43_01_kana_tube.png',
     'youtube.natsu_shiba': 'yt43_02_natsu_shiba.png',
@@ -60,40 +58,40 @@ CANONICAL = {
     'youtube.kobe_waterfront2': 'yt43_41_kobe_waterfront2.png',
     'youtube.osaka_loop': 'yt43_42_osaka_loop.png',
     'youtube.nomura_dam': 'yt43_43_nomura_dam.png',
-    'youtube.maiko_villa_akashi': 'yt43_44_maiko_villa_akashi.png',
-    'youtube.tokyo_dome_city': 'yt43_45_tokyo_dome_city.png',
-    'youtube.shinhotaka_ropeway': 'yt43_46_shinhotaka_ropeway.png',
-    'youtube.airport_okayama': 'yt43_47_airport_okayama.png',
-    'youtube.airport_hiroshima': 'yt43_48_airport_hiroshima.png',
-    'youtube.airport_nagasaki': 'yt43_49_airport_nagasaki.png',
-    'youtube.airport_goto': 'yt43_50_airport_goto.png',
-    'youtube.airport_kumamoto': 'yt43_51_airport_kumamoto.png',
-    'youtube.airport_oita': 'yt43_52_airport_oita.png',
-    'youtube.airport_miyazaki': 'yt43_53_airport_miyazaki.png',
-    'youtube.airport_amami': 'yt43_54_airport_amami.png',
-    'youtube.airport_naha': 'yt43_55_airport_naha.png',
-    'youtube.airport_sendai': 'yt43_56_airport_sendai.png',
-    'youtube.airport_hanamaki': 'yt43_57_airport_hanamaki.png',
-    'youtube.airport_yamagata': 'yt43_58_airport_yamagata.png',
-    'youtube.airport_fukushima': 'yt43_59_airport_fukushima.png',
-    'youtube.airport_obihiro': 'yt43_60_airport_obihiro.png',
-    'youtube.ehime_mishima_kawanoe_port': 'yt43_61_ehime_port_mishima_kawanoe.png',
-    'youtube.ehime_toyo_port': 'yt43_62_ehime_port_toyo.png',
-    'youtube.ehime_hashihama_port': 'yt43_63_ehime_port_hashihama.png',
-    'youtube.ehime_misaki_port': 'yt43_64_ehime_port_misaki.png',
-    'youtube.ehime_misho_port': 'yt43_65_ehime_port_misho.png',
-    'youtube.ehime_kuma_skiland': 'yt43_66_ehime_kuma_skiland.png',
-    'youtube.ehime_saragamine': 'yt43_67_ehime_saragamine.png',
-    'youtube.ehime_omogo_ishizuchi': 'yt43_68_ehime_omogo_ishizuchi.png',
-    'youtube.ehime_ainan_ebc': 'yt43_69_ehime_ainan_ebc.png',
-    'youtube.ehime_dogo_honkan': 'yt43_70_ehime_dogo_honkan.png',
+    'youtube.maiko_villa_akashi': 'yt43_44_maiko_villa_akashi_v4.png',
+    'youtube.tokyo_dome_city': 'yt43_45_tokyo_dome_city_v4.png',
+    'youtube.shinhotaka_ropeway': 'yt43_46_shinhotaka_ropeway_v4.png',
+    'youtube.airport_okayama': 'yt43_47_airport_okayama_v4.png',
+    'youtube.airport_hiroshima': 'yt43_48_airport_hiroshima_v4.png',
+    'youtube.airport_nagasaki': 'yt43_49_airport_nagasaki_v4.png',
+    'youtube.airport_goto': 'yt43_50_airport_goto_v4.png',
+    'youtube.airport_kumamoto': 'yt43_51_airport_kumamoto_v4.png',
+    'youtube.airport_oita': 'yt43_52_airport_oita_v4.png',
+    'youtube.airport_miyazaki': 'yt43_53_airport_miyazaki_v4.png',
+    'youtube.airport_amami': 'yt43_54_airport_amami_v4.png',
+    'youtube.airport_naha': 'yt43_55_airport_naha_v4.png',
+    'youtube.airport_sendai': 'yt43_56_airport_sendai_v4.png',
+    'youtube.airport_hanamaki': 'yt43_57_airport_hanamaki_v4.png',
+    'youtube.airport_yamagata': 'yt43_58_airport_yamagata_v4.png',
+    'youtube.airport_fukushima': 'yt43_59_airport_fukushima_v4.png',
+    'youtube.airport_obihiro': 'yt43_60_airport_obihiro_v4.png',
+    'youtube.ehime_mishima_kawanoe_port': 'yt43_61_ehime_port_mishima_kawanoe_v4.png',
+    'youtube.ehime_toyo_port': 'yt43_62_ehime_port_toyo_v4.png',
+    'youtube.ehime_hashihama_port': 'yt43_63_ehime_port_hashihama_v4.png',
+    'youtube.ehime_misaki_port': 'yt43_64_ehime_port_misaki_v4.png',
+    'youtube.ehime_misho_port': 'yt43_65_ehime_port_misho_v4.png',
+    'youtube.ehime_kuma_skiland': 'yt43_66_ehime_kuma_skiland_v4.png',
+    'youtube.ehime_saragamine': 'yt43_67_ehime_saragamine_v4.png',
+    'youtube.ehime_omogo_ishizuchi': 'yt43_68_ehime_omogo_ishizuchi_v4.png',
+    'youtube.ehime_ainan_ebc': 'yt43_69_ehime_ainan_ebc_v4.png',
+    'youtube.ehime_dogo_honkan': 'yt43_70_ehime_dogo_honkan_v4.png',
 }
 
 
 def logo_url(filename):
     url = RAW + filename
     m = re.match(r'yt43_(\d+)_', filename)
-    if m and int(m.group(1)) >= 47:
+    if m and int(m.group(1)) >= 44:
         url += '?v=' + CACHE_REV
     return url
 
