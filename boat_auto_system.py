@@ -297,17 +297,15 @@ def current_day_stream(url: object, day: date) -> bool:
 
 def detect_cancelled_venues(day: date, cards: dict[str, list[dict]]) -> set[str]:
     """Detect official same-day whole-venue cancellation/postponement."""
-    url = f'https://www.boatrace.jp/owpc/pc/race/index?hd={day:%Y%m%d}'
-    source = boat_playback.read_url(url).decode('utf-8', 'replace')
-    text = re.sub(r'\s+', ' ', html.unescape(re.sub(r'<[^>]+>', ' ', source)))
     cancelled = set()
+    day_label = f'{day.month}月{day.day}日'
     for jcd in cards:
-        name = VENUES[jcd][0]
-        # On the official daily race table the progress column is immediately
-        # after the venue name. Require the cancellation wording close to that
-        # name so a generic navigation link cannot cancel every venue.
-        pattern = re.escape(name) + r'.{0,180}?(?:中止順延|開催中止|中止・順延|全レース中止|全競走中止)'
-        if re.search(pattern, text):
+        url = f'https://www.boatrace.jp/owpc/pc/race/raceindex?hd={day:%Y%m%d}&jcd={jcd}'
+        source = boat_playback.read_url(url).decode('utf-8', 'replace')
+        text = re.sub(r'\s+', ' ', html.unescape(re.sub(r'<[^>]+>', ' ', source)))
+        # Venue pages label the selected date itself as "9月9日順延" or
+        # equivalent. Bind the status to today's date, not to generic nav text.
+        if re.search(re.escape(day_label) + r'\s*(?:中止|順延|中止順延|中止・順延)', text):
             cancelled.add(jcd)
     return cancelled
 
@@ -848,16 +846,25 @@ def main() -> int:
         if str(jcd).zfill(2) in cards
     }
     cancellation_warnings = []
+    streams = load_current_streams(day)
+    # Only probe official cancellation status for venues that are at/inside the
+    # 30-minute readiness window and still have no verified playback. Once an
+    # official cancellation is confirmed it is retained for the rest of the day.
+    cancellation_candidates = {
+        jcd: races for jcd, races in cards.items()
+        if jcd not in previous_cancelled
+        and races
+        and now >= races[0]["start"] - timedelta(minutes=ALERT_LEAD_MINUTES)
+        and not (streams.get(VENUES[jcd][1]) or {}).get("playback_verified")
+    }
     try:
-        cancelled_jcd = previous_cancelled | detect_cancelled_venues(day, cards)
+        cancelled_jcd = previous_cancelled | detect_cancelled_venues(day, cancellation_candidates)
     except Exception as exc:
         cancelled_jcd = previous_cancelled
         cancellation_warnings.append(f"中止情報確認失敗: {type(exc).__name__}")
     if cancelled_jcd:
         names = "、".join(VENUES[jcd][0] for jcd in sorted(cancelled_jcd))
         print(f"BOAT AUTO official cancellation/postponement: {names}")
-
-    streams = load_current_streams(day)
     for jcd in cancelled_jcd:
         streams.pop(VENUES[jcd][1], None)
     # Schedule and playback acquisition are independent. The continuous worker
