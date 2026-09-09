@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-10",
-  "generated_at": "2026-09-10T08:24:23.703173+09:00",
+  "generated_at": "2026-09-10T08:25:23.703267+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260910.json",
   "schedule_checked_at": "2026-09-10T08:18:23.700419+09:00",
@@ -52,17 +52,22 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 5,
+    "requested": 6,
     "fetched": 2,
     "failures": [
       {
-        "jcd": "16",
-        "name": "児島",
+        "jcd": "17",
+        "name": "宮島",
         "error": "cloud and official acquisition unavailable: HTTPError"
       },
       {
-        "jcd": "17",
-        "name": "宮島",
+        "jcd": "04",
+        "name": "平和島",
+        "error": "cloud and official acquisition unavailable: HTTPError"
+      },
+      {
+        "jcd": "16",
+        "name": "児島",
         "error": "cloud and official acquisition unavailable: HTTPError"
       },
       {
@@ -101,13 +106,13 @@
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/f97bae6844e8438ea942530a213d424c/f67ccf1f9ce247b19da0becdc1a03710/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTE2NzYwMCwic3RhcnQiOjE3ODg5OTQ2MjAsImlvcyI6MTgsImNwIjoiMjExMTkwMjIwXzIxMTIzMzQxOSIsInBwdyI6IjQwayJ9.w4wy-MhnxyOpltNhzroZjXlg2FC8kaD92eNjmZNb75Q",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-09-10T07:57:23.710256+09:00",
-      "checked_at": "2026-09-10T08:19:23.752629+09:00",
+      "checked_at": "2026-09-10T08:25:23.708613+09:00",
       "first_verified_at": "2026-09-10T07:57:23.710256+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
         "sequence": 8032172,
-        "last_segment": "/f97bae6844e8438ea942530a213d424c/f67ccf1f9ce247b19da0becdc1a03710/manifest_1_8032395.ts",
+        "last_segment": "/f97bae6844e8438ea942530a213d424c/f67ccf1f9ce247b19da0becdc1a03710/manifest_1_8032455.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
