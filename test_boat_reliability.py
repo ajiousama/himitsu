@@ -157,5 +157,26 @@ class ReliabilityTests(unittest.TestCase):
         self.assertEqual(boat.cards_from_snapshot({'programs': {'stadiums': {'10': {'races': races}}}}, self.day), {})
 
 
+    def test_cancelled_venue_is_not_alerted_or_published(self):
+        races = card(self.day, 10, 30)
+        venues, rows, phases = boat.build_venue_state({'03': races}, {}, self.now.replace(hour=11), {'03'})
+        item = venues['boat.edogawa']
+        self.assertTrue(item['cancelled'])
+        self.assertFalse(item['visible'])
+        self.assertFalse(item['seed_required'])
+        self.assertFalse(rows)
+        self.assertEqual(phases['day']['cancelled'], 1)
+
+    def test_cancelled_venue_epg_replaces_races(self):
+        races = card(self.day, 10, 30)
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / 'guides.xml'
+            boat.overlay_epg_file(path, {'03': races}, self.day, {'03'})
+            root = ET.parse(path).getroot()
+            titles = [p.findtext('title', '') for p in root.findall('programme')
+                      if p.get('channel') == 'boat.edogawa']
+            self.assertEqual(titles, ['本日の開催は中止になりました'])
+
+
 if __name__ == '__main__':
     unittest.main()
