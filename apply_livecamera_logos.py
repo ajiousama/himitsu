@@ -12,7 +12,7 @@ TARGETS = [Path('general_youtube.m3u'), Path('freewifi')]
 
 # APTV caches logo URLs aggressively. 47..70 were rebuilt in-place, so keep
 # their canonical filenames but add a revision query to force one clean refresh.
-CACHE_REV = '20260909-photo-v2'
+CACHE_REV = '20260909-classic-v3'
 
 # Canonical FreeWiFi YouTube logo family approved before the accidental
 # unified-card rebuild. Keep these IDs pinned to the existing yt43 assets.
