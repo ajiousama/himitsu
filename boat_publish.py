@@ -11,12 +11,13 @@ def overlay_state(epg_only=False):
     if state.get('date') != now.date().isoformat():
         raise RuntimeError('refuse previous-day BOAT state')
     cards = boat.cached_cards(state, now.date())
-    venues, rows, _ = boat.build_venue_state(cards, state.get('streams') or {}, now)
+    cancelled = {str(jcd).zfill(2) for jcd in (state.get('cancelled_jcd') or [])}
+    venues, rows, _ = boat.build_venue_state(cards, state.get('streams') or {}, now, cancelled)
     if not epg_only:
         boat.update_playlist(rows)
     for path in (boat.LOCAL_EPG, boat.GUIDES):
         if path.exists():
-            boat.overlay_epg_file(path, cards, now.date())
+            boat.overlay_epg_file(path, cards, now.date(), cancelled)
     validate(state, cards)
 
 
@@ -39,12 +40,17 @@ def validate(state=None, cards=None):
         raise RuntimeError('previous-day or non-BOAT stream rejected')
     for path in (boat.LOCAL_EPG, boat.GUIDES):
         root = ET.parse(path).getroot()
+        cancelled = {str(jcd).zfill(2) for jcd in (state.get('cancelled_jcd') or [])}
         for jcd, races in cards.items():
             cid = boat.VENUES[jcd][1]
             programmes = sorted((p for p in root.findall('programme')
                                  if p.get('channel') == cid and p.get('start', '').startswith(day.strftime('%Y%m%d'))),
                                 key=lambda p: p.get('start'))
             titles = [p.findtext('title', '') for p in programmes]
+            if jcd in cancelled:
+                if titles != ['本日の開催は中止になりました']:
+                    raise RuntimeError(f'{path}: cancellation EPG missing: {cid}')
+                continue
             if sum('発走' in title for title in titles) != len(races):
                 raise RuntimeError(f'{path}: missing/duplicate races: {cid}')
             if any(a.get('stop') > b.get('start') for a, b in zip(programmes, programmes[1:])):
