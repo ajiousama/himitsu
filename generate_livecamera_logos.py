@@ -7,7 +7,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from io import BytesIO
 from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageEnhance, ImageFont
+from PIL import Image, ImageDraw, ImageEnhance, ImageFont, PngImagePlugin
 
 ROOT = Path('logos/youtube')
 ROOT.mkdir(parents=True, exist_ok=True)
@@ -60,6 +60,13 @@ FONT_CANDIDATES = [
     '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf',
 ]
 
+# PNGs 47+ created by the old generic-card generator can be large, so file
+# size alone is not a valid "already fixed" test. Stamp the intended photo-led
+# yt43 style into new PNG metadata and rebuild any 47+ asset missing the stamp.
+STYLE_KEY = 'freewifi_logo_style'
+STYLE_VALUE = 'yt43-photo-v2'
+STYLE_ENFORCE_FROM = 47
+
 
 def choose_font() -> str:
     for path in FONT_CANDIDATES:
@@ -111,6 +118,7 @@ def yt_dlp_thumbnail(item: dict) -> bytes | None:
         targets.append(page)
     if query:
         targets.append('ytsearch1:' + query)
+
     for target in targets:
         cmd = [
             'yt-dlp', '--skip-download', '--dump-single-json', '--no-warnings',
@@ -126,6 +134,7 @@ def yt_dlp_thumbnail(item: dict) -> bytes | None:
             info = json.loads(p.stdout.splitlines()[-1])
         except Exception:
             continue
+
         thumb = str(info.get('thumbnail') or '').strip()
         if not thumb:
             thumbs = info.get('thumbnails') or []
@@ -133,6 +142,7 @@ def yt_dlp_thumbnail(item: dict) -> bytes | None:
                 thumb = str(thumbs[-1].get('url') or '').strip()
         if not thumb:
             continue
+
         try:
             req = urllib.request.Request(thumb, headers={'User-Agent': 'Mozilla/5.0'})
             with urllib.request.urlopen(req, timeout=12) as r:
@@ -161,6 +171,7 @@ def fallback_image(legacy: str) -> Image.Image:
             return crop_square(Image.open(p))
         except Exception:
             pass
+
     # Neutral fallback, still using the same square/photo-card structure.
     img = Image.new('RGB', (SIZE, SIZE), '#243447')
     d = ImageDraw.Draw(img)
@@ -168,6 +179,32 @@ def fallback_image(legacy: str) -> Image.Image:
         shade = int(36 + 52 * y / SIZE)
         d.line((0, y, SIZE, y), fill=(shade // 2, shade, min(140, shade + 38)))
     return img
+
+
+def spec_number(filename: str) -> int:
+    try:
+        return int(filename.split('_', 2)[1])
+    except Exception:
+        return 999
+
+
+def has_current_style(path: Path) -> bool:
+    try:
+        with Image.open(path) as img:
+            return img.info.get(STYLE_KEY) == STYLE_VALUE
+    except Exception:
+        return False
+
+
+def should_keep_existing(path: Path, filename: str) -> bool:
+    if not path.exists() or path.stat().st_size <= 12_000:
+        return False
+
+    number = spec_number(filename)
+    if number < STYLE_ENFORCE_FROM:
+        return True
+
+    return has_current_style(path)
 
 
 def render_logo(filename: str, title: str, group: str, legacy: str, data: bytes | None):
@@ -207,7 +244,9 @@ def render_logo(filename: str, title: str, group: str, legacy: str, data: bytes 
     draw.text((sx, 371 - box[1]), group_label, font=sub_font, fill=(235, 235, 235, 255))
 
     out = Image.alpha_composite(img, overlay).convert('RGB')
-    out.save(ROOT / filename, 'PNG', optimize=True)
+    pnginfo = PngImagePlugin.PngInfo()
+    pnginfo.add_text(STYLE_KEY, STYLE_VALUE)
+    out.save(ROOT / filename, 'PNG', optimize=True, pnginfo=pnginfo)
     print('generated', ROOT / filename, 'thumbnail=' + ('yes' if data else 'fallback'))
 
 
@@ -225,9 +264,11 @@ def patch_source_files():
                 item['logo'] = wanted
                 changed += 1
         if changed:
-            path.write_text(json.dumps(items, ensure_ascii=False, separators=(',', ':')), encoding='utf-8')
+            path.write_text(
+                json.dumps(items, ensure_ascii=False, separators=(',', ':')),
+                encoding='utf-8',
+            )
         print(path, 'canonical yt43 logo mappings:', changed)
-
 
 
 def render_ehime_catv_ainan():
@@ -260,9 +301,10 @@ def render_ehime_catv_ainan():
 def main():
     sources = load_sources()
     pending = []
+
     for tvg, filename, title, group, legacy in SPECS:
         out = ROOT / filename
-        if out.exists() and out.stat().st_size > 12_000:
+        if should_keep_existing(out, filename):
             print('keep existing', out)
             continue
         pending.append((tvg, filename, title, group, legacy))
@@ -270,7 +312,10 @@ def main():
     thumbs: dict[str, bytes | None] = {}
     if pending:
         with ThreadPoolExecutor(max_workers=4) as pool:
-            jobs = {pool.submit(yt_dlp_thumbnail, sources.get(tvg, {})): tvg for tvg, *_ in pending}
+            jobs = {
+                pool.submit(yt_dlp_thumbnail, sources.get(tvg, {})): tvg
+                for tvg, *_ in pending
+            }
             for future in as_completed(jobs):
                 tvg = jobs[future]
                 try:
