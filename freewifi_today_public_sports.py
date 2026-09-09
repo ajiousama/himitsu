@@ -18,23 +18,52 @@ LOGO_PROXY = 'https://images.weserv.nl/?url=raw.githubusercontent.com/ajiousama/
 def venue_png(name):
     return f'{LOGO_PROXY}/logos/public_sports/venues/{name}&output=png'
 
-# Keep the previously adopted KEIRIN design. Only venues that had an explicit
-# FreeWiFi override before the unintended all-PNG rebuild are overridden here;
-# all other KEIRIN venues keep the logo already present in the public-sports master.
+# Every KEIRIN venue is mapped explicitly. The public-sports master can omit
+# tvg-logo, and today's active set changes daily, so non-hosting/paused venues
+# must already have a valid logo before their next event becomes active.
 KEIRIN_LOGOS = {
-    'keirin.tachikawa': venue_png('keirin_tachikawa.svg'),
+    'keirin.hakodate': venue_png('keirin_hakodate.svg'),
     'keirin.aomori': venue_png('keirin_aomori.svg'),
-    'keirin.seibuen': venue_png('keirin_seibuen.svg'),
-    'keirin.hofu': venue_png('keirin_hofu.svg'),
-    'keirin.toyama': venue_png('keirin_toyama.svg'),
-    'keirin.matsusaka': venue_png('keirin_matsusaka.svg'),
-    'keirin.kurume': venue_png('keirin_kurume.svg'),
-    'keirin.toyohashi': venue_png('keirin_toyohashi.svg'),
-    'keirin.takeo': venue_png('keirin_takeo.svg'),
-    'keirin.ito': venue_png('keirin_ito.svg'),
-    'keirin.ogaki': venue_png('keirin_ogaki.svg'),
     'keirin.iwakitaira': venue_png('keirin_iwakitaira.svg'),
     'keirin.yahiko': venue_png('keirin_yahiko.svg'),
+    'keirin.maebashi': venue_png('keirin_maebashi.svg'),
+    'keirin.toride': venue_png('keirin_toride.svg'),
+    'keirin.utsunomiya': venue_png('keirin_utsunomiya.svg'),
+    'keirin.omiya': venue_png('keirin_omiya.svg'),
+    'keirin.seibuen': venue_png('keirin_seibuen.svg'),
+    'keirin.keiogatsu': venue_png('keirin_keiogatsu.svg'),
+    'keirin.tachikawa': venue_png('keirin_tachikawa.svg'),
+    'keirin.matsudo': venue_png('keirin_matsudo.svg'),
+    'keirin.kawasaki': venue_png('keirin_kawasaki.svg'),
+    'keirin.hiratsuka': venue_png('keirin_hiratsuka.svg'),
+    'keirin.odawara': venue_png('keirin_odawara.svg'),
+    'keirin.ito': venue_png('keirin_ito.svg'),
+    'keirin.shizuoka': venue_png('keirin_shizuoka.svg'),
+    'keirin.nagoya': venue_png('keirin_nagoya.svg'),
+    'keirin.gifu': venue_png('keirin_gifu.svg'),
+    'keirin.ogaki': venue_png('keirin_ogaki.svg'),
+    'keirin.toyohashi': venue_png('keirin_toyohashi.svg'),
+    'keirin.toyama': venue_png('keirin_toyama.svg'),
+    'keirin.matsusaka': venue_png('keirin_matsusaka.svg'),
+    'keirin.yokkaichi': venue_png('keirin_yokkaichi.svg'),
+    'keirin.fukui': venue_png('keirin_fukui.svg'),
+    'keirin.nara': venue_png('keirin_nara.svg'),
+    'keirin.mukomachi': venue_png('keirin_mukomachi.png'),
+    'keirin.wakayama': venue_png('keirin_wakayama.svg'),
+    'keirin.kishiwada': venue_png('keirin_kishiwada.svg'),
+    'keirin.hiroshima': venue_png('keirin_hiroshima.svg'),
+    'keirin.hofu': venue_png('keirin_hofu.svg'),
+    'keirin.takamatsu': venue_png('keirin_takamatsu.svg'),
+    'keirin.komatsushima': venue_png('keirin_komatsushima.svg'),
+    'keirin.kochi': venue_png('keirin_kochi.svg'),
+    'keirin.matsuyama': venue_png('keirin_matsuyama.svg'),
+    'keirin.kokura': venue_png('keirin_kokura.svg'),
+    'keirin.kurume': venue_png('keirin_kurume.svg'),
+    'keirin.takeo': venue_png('keirin_takeo.svg'),
+    'keirin.sasebo': venue_png('keirin_sasebo.svg'),
+    'keirin.beppu': venue_png('keirin_beppu.svg'),
+    'keirin.kumamoto': venue_png('keirin_kumamoto.png'),
+    'keirin.pist6': venue_png('keirin_pist6.png'),
     'keirin.tamano': venue_png('keirin_tamano.svg'),
 }
 
@@ -211,6 +240,9 @@ def main():
     entries = parse_m3u(PUBLIC_M3U.read_text(encoding='utf-8-sig', errors='replace'))
     if not entries:
         raise SystemExit('ganble has no non-BOAT public-sports master entries')
+    missing_keirin_logos = sorted(cid for cid in entries if cid.startswith('keirin.') and cid not in KEIRIN_LOGOS)
+    if missing_keirin_logos:
+        raise SystemExit('missing KEIRIN logo mappings: ' + ', '.join(missing_keirin_logos))
     rows=[]; status={}
     for cid, (section, block) in entries.items():
         if cid.startswith('boat.') or cid not in real:
