@@ -64,17 +64,49 @@ jobs:
           grep -F '/logos/youtube/yt43_' freewifi >/dev/null
           python apply_livecamera_logos.py
 
-      - name: Commit canonical logos and mappings
+      - name: Publish canonical logos without losing concurrent updates
         shell: bash
         run: |
           set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -A logos/youtube/yt43_*.png logos/ehime_catv general_youtube_sources.json general_youtube_sources_ports.json general_youtube_sources_airports.json general_youtube.m3u freewifi
-          if git diff --cached --quiet; then
-            echo 'Canonical yt43 YouTube / Ehime CATV logos already current'
-            exit 0
-          fi
-          git commit -m 'Restore canonical yt43 YouTube logo mappings [skip render]'
-          git pull --rebase origin main
-          git push origin main
+
+          for attempt in 1 2 3 4; do
+            echo "Publish attempt ${attempt}"
+            git fetch origin main
+            git reset --hard origin/main
+
+            # Rebuild from the newest main every attempt. This repo has several
+            # frequent playlist writers, so rebasing a generated freewifi file
+            # is intentionally avoided; regenerate it against the latest state.
+            python generate_livecamera_logos.py
+            python apply_livecamera_logos.py
+            python generate_ehime_catv_logos.py
+            python apply_livecamera_logos.py
+
+            test -s logos/ehime_catv/14_ainan_livecam.png
+            test -s logos/ehime_catv/14_ainan_livecam_v2.png
+            ! grep -F '/logos/youtube/unified/' general_youtube.m3u
+            ! grep -F '/logos/youtube/unified/' freewifi
+            grep -F 'yt43_47_airport_okayama_v4.png?v=20260909-photo-v4' freewifi >/dev/null
+            grep -F 'yt43_55_airport_naha_v4.png?v=20260909-photo-v4' freewifi >/dev/null
+            grep -F 'yt43_61_ehime_port_mishima_kawanoe_v4.png?v=20260909-photo-v4' freewifi >/dev/null
+            grep -F 'yt43_69_ehime_ainan_ebc_v4.png?v=20260909-photo-v4' freewifi >/dev/null
+
+            git add -A logos/youtube/yt43_*.png logos/ehime_catv general_youtube_sources.json general_youtube_sources_ports.json general_youtube_sources_airports.json general_youtube.m3u freewifi
+            if git diff --cached --quiet; then
+              echo 'Canonical yt43 YouTube / Ehime CATV logos already current'
+              exit 0
+            fi
+
+            git commit -m 'Restore canonical yt43 YouTube logo mappings [skip render]'
+            if git push origin HEAD:main; then
+              exit 0
+            fi
+
+            echo '::warning::main moved while publishing live-camera logos; regenerating on newest main'
+            sleep 2
+          done
+
+          echo '::error::Live-camera logo publish failed after retries'
+          exit 1
