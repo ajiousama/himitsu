@@ -157,6 +157,13 @@ class ReliabilityTests(unittest.TestCase):
         self.assertEqual(boat.cards_from_snapshot({'programs': {'stadiums': {'10': {'races': races}}}}, self.day), {})
 
 
+
+    def test_official_postponement_label_is_detected(self):
+        html_text = '<html><body><div>9月8日４日目</div><div>9月9日順延</div><div>9月10日５日目</div></body></html>'
+        with patch.object(playback, 'read_url', return_value=html_text.encode()):
+            result = boat.detect_cancelled_venues(self.day.replace(day=9), {'03': card(self.day.replace(day=9), 10, 30)})
+        self.assertEqual(result, {'03'})
+
     def test_cancelled_venue_is_not_alerted_or_published(self):
         races = card(self.day, 10, 30)
         venues, rows, phases = boat.build_venue_state({'03': races}, {}, self.now.replace(hour=11), {'03'})
