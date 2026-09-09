@@ -55,20 +55,44 @@ def probe(url, previous=None):
             raise ValueError('live media has stopped advancing')
         if sequence is not None and previous.get('sequence') is not None and sequence < previous['sequence']:
             raise ValueError('live media sequence moved backwards')
-        result = subprocess.run(
-            ['ffmpeg', '-nostdin', '-v', 'error', '-rw_timeout', '8000000',
-             '-headers', 'Origin: https://front.player.boatrace-cdn.jp\r\nReferer: https://front.player.boatrace-cdn.jp/\r\n',
-             '-i', url, '-t', '1', '-map', '0:v:0', '-map', '0:a:0',
-             '-f', 'null', '-'],
-            capture_output=True, timeout=35,
-        )
-        if result.returncode:
-            # ffmpeg stderr contains signed URLs; keep it out of public status/logs.
-            raise ValueError('audio/video decode failed')
-        return {'ok': True, 'sequence': sequence, 'last_segment': segment_key,
-                'video_decoded': True, 'audio_decoded': True}
+        # Some venues take longer than one second before both elementary streams
+        # are available. Retry a short bounded decode twice and include the same
+        # headers/User-Agent used by the HTTP preflight.
+        last_kind = 'decode'
+        for attempt in range(2):
+            try:
+                result = subprocess.run(
+                    ['ffmpeg', '-nostdin', '-v', 'error',
+                     '-rw_timeout', '10000000',
+                     '-user_agent', HEADERS['User-Agent'],
+                     '-headers', 'Origin: https://front.player.boatrace-cdn.jp\r\nReferer: https://front.player.boatrace-cdn.jp/\r\n',
+                     '-reconnect', '1', '-reconnect_streamed', '1',
+                     '-reconnect_delay_max', '2',
+                     '-i', url, '-t', '3',
+                     '-map', '0:v:0', '-map', '0:a:0',
+                     '-f', 'null', '-'],
+                    capture_output=True, timeout=45,
+                )
+            except subprocess.TimeoutExpired:
+                last_kind = 'decode_timeout'
+                continue
+            if result.returncode == 0:
+                return {'ok': True, 'sequence': sequence, 'last_segment': segment_key,
+                        'video_decoded': True, 'audio_decoded': True}
+            last_kind = 'audio_video_decode_failed'
+        raise ValueError(last_kind)
     except Exception as exc:
-        return {'ok': False, 'error': f'{type(exc).__name__}: playback check failed'}
+        # Never expose stderr or signed URLs; retain a useful category only.
+        detail = str(exc)
+        safe = detail if detail in {
+            'invalid HLS playlist', 'HLS has no media segments yet',
+            'ended VOD playlist is not a live stream',
+            'live media has stopped advancing',
+            'live media sequence moved backwards',
+            'empty media segment', 'too many HLS playlist levels',
+            'decode_timeout', 'audio_video_decode_failed'
+        } else 'playback check failed'
+        return {'ok': False, 'error': f'{type(exc).__name__}: {safe}'}
 
 
 def direct_source(jcd, day, slug):
