@@ -10,6 +10,10 @@ SOURCES = [
 ]
 TARGETS = [Path('general_youtube.m3u'), Path('freewifi')]
 
+# APTV caches logo URLs aggressively. 47..70 were rebuilt in-place, so keep
+# their canonical filenames but add a revision query to force one clean refresh.
+CACHE_REV = '20260909-photo-v2'
+
 # Canonical FreeWiFi YouTube logo family approved before the accidental
 # unified-card rebuild. Keep these IDs pinned to the existing yt43 assets.
 CANONICAL = {
@@ -86,8 +90,16 @@ CANONICAL = {
 }
 
 
+def logo_url(filename):
+    url = RAW + filename
+    m = re.match(r'yt43_(\d+)_', filename)
+    if m and int(m.group(1)) >= 47:
+        url += '?v=' + CACHE_REV
+    return url
+
+
 def logo_map():
-    return {cid: RAW + filename for cid, filename in CANONICAL.items()}
+    return {cid: logo_url(filename) for cid, filename in CANONICAL.items()}
 
 
 def patch_sources(wanted):
