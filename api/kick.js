@@ -65,7 +65,7 @@ async function resolveSlug(slug, expectedId) {
   const data = await getJson("https://kick.com/api/v2/channels/" + encodeURIComponent(slug));
   if (!data) return null;
   const playback = playbackOf(data);
-  if (!sameIvsChannel(playback, expectedId)) return null;
+  if (expectedId && !sameIvsChannel(playback, expectedId)) return null;
   if (!isLive(data)) return null;
   return { slug: data.slug || slug, playback };
 }
@@ -128,6 +128,7 @@ module.exports = async function handler(req, res) {
   const key = String(req.query?.ch || "").toLowerCase();
   const aliases = {
     gccx: "kick.gccx",
+    gccx2: "kick.gccx2",
     nogizaka: "kick.nogizaka",
     nogi: "kick.nogizaka"
   };
