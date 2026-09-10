@@ -2,13 +2,6 @@ name: Build Jun IPTV TS401 APK
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - jun-iptv-build
-    paths:
-      - 'jun-iptv/**'
-      - '!jun-iptv/releases/**'
-      - '.github/workflows/jun-iptv-build.yml'
 
 permissions:
   contents: write
@@ -60,20 +53,3 @@ jobs:
             git commit -m "Publish Jun IPTV TS401 APK [skip ci]"
             git push origin HEAD:jun-iptv-build
           fi
-
-      - name: Publish short j.apk to main
-        shell: bash
-        run: |
-          git fetch origin main
-          git worktree add /tmp/himitsu-main origin/main
-          cp jun-iptv/app/build/outputs/apk/debug/app-debug.apk /tmp/himitsu-main/j.apk
-          cd /tmp/himitsu-main
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add j.apk
-          if git diff --cached --quiet; then
-            echo "j.apk unchanged"
-            exit 0
-          fi
-          git commit -m "Publish Jun IPTV j.apk [skip ci]"
-          git push origin HEAD:main
