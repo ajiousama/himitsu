@@ -1,0 +1,24 @@
+name: Force GCCX2 Vercel deploy
+
+on:
+  push:
+    paths:
+      - '.github/workflows/force_gccx2_vercel_deploy.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  force-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create bot-authored deploy trigger
+        run: |
+          printf 'gccx2 deploy trigger %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > .vercel-gccx2-bot-trigger.txt
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .vercel-gccx2-bot-trigger.txt
+          git commit -m "Force Vercel deploy for GameCenter CX2" || exit 0
+          git push
