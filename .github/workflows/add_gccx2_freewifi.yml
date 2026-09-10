@@ -1,4 +1,4 @@
-name: Add GameCenter CX2 to Free Wi-Fi
+name: Finalize GameCenter CX2 Free Wi-Fi
 
 on:
   push:
@@ -10,92 +10,29 @@ permissions:
   contents: write
 
 jobs:
-  add-gccx2:
+  finalize-gccx2:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Add KICK GameCenter CX2 config and Free Wi-Fi entry
+      - name: Point CX2 to dedicated resolver
         shell: python
         run: |
-          import json
           from pathlib import Path
-
-          cfg_path = Path('kick_channels.json')
-          channels = json.loads(cfg_path.read_text(encoding='utf-8'))
-
-          item = {
-              'name': 'ゲームセンターＣＸ2(KICK)',
-              'tvg_id': 'kick.gccx2',
-              'slug': 'joshua-hkd',
-              'channel_id': None,
-              'search': 'ゲームセンターCX',
-              'match_terms': [
-                  'ゲームセンター', 'CX', 'gccx', 'GameCenter CX', 'joshua-hkd'
-              ],
-              'sticky_while_live': True,
-              'logo': 'https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/kick_gccx2.svg',
-              'slug_aliases': ['joshua-hkd']
-          }
-
-          channels = [x for x in channels if x.get('tvg_id') != 'kick.gccx2']
-          insert_at = next((i + 1 for i, x in enumerate(channels) if x.get('tvg_id') == 'kick.gccx'), 0)
-          channels.insert(insert_at, item)
-          cfg_path.write_text(json.dumps(channels, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
-
-          api = Path('api/kick.js')
-          text = api.read_text(encoding='utf-8')
-          text = text.replace(
-              'if (!sameIvsChannel(playback, expectedId)) return null;',
-              'if (expectedId && !sameIvsChannel(playback, expectedId)) return null;'
-          )
-          text = text.replace(
-              'gccx: "kick.gccx",',
-              'gccx: "kick.gccx",\n    gccx2: "kick.gccx2",'
-          )
-          api.write_text(text, encoding='utf-8')
-
-          logos = Path('logos')
-          logos.mkdir(exist_ok=True)
-          svg = '''<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400">
-          <rect width="400" height="400" rx="72" fill="#111"/>
-          <rect x="20" y="20" width="360" height="360" rx="56" fill="none" stroke="#fff" stroke-width="10"/>
-          <text x="200" y="128" text-anchor="middle" fill="#fff" font-family="Arial, Helvetica, sans-serif" font-size="44" font-weight="700">GAME CENTER</text>
-          <text x="178" y="245" text-anchor="middle" fill="#fff" font-family="Arial, Helvetica, sans-serif" font-size="118" font-weight="900">CX</text>
-          <circle cx="310" cy="290" r="63" fill="#fff"/>
-          <text x="310" y="316" text-anchor="middle" fill="#111" font-family="Arial, Helvetica, sans-serif" font-size="80" font-weight="900">2</text>
-          </svg>'''
-          Path('logos/kick_gccx2.svg').write_text(svg, encoding='utf-8')
-
-          fw = Path('freewifi')
-          f = fw.read_text(encoding='utf-8')
-          block = '#EXTINF:-1 group-title="その他" tvg-id="kick.gccx2" tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/kick_gccx2.svg",ゲームセンターＣＸ2(KICK)\nhttps://himitsu-six.vercel.app/api/kick?ch=gccx2\n'
-          lines = f.splitlines(keepends=True)
-          out = []
-          i = 0
-          while i < len(lines):
-              if 'tvg-id="kick.gccx2"' in lines[i]:
-                  i += 1
-                  if i < len(lines) and not lines[i].lstrip().startswith('#'):
-                      i += 1
-                  continue
-              out.append(lines[i])
-              if 'tvg-id="kick.gccx"' in lines[i]:
-                  if i + 1 < len(lines):
-                      i += 1
-                      out.append(lines[i])
-                  out.append(block)
-              i += 1
-          fw.write_text(''.join(out), encoding='utf-8')
-
-      - name: Commit changes
+          p = Path('freewifi')
+          s = p.read_text(encoding='utf-8')
+          old = 'https://himitsu-six.vercel.app/api/kick?ch=gccx2'
+          new = 'https://himitsu-six.vercel.app/api/kick2'
+          if old not in s and new not in s:
+              raise SystemExit('CX2 Free Wi-Fi entry not found')
+          p.write_text(s.replace(old, new), encoding='utf-8')
+      - name: Commit Free Wi-Fi update
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add kick_channels.json api/kick.js freewifi logos/kick_gccx2.svg
+          git add freewifi
           if git diff --cached --quiet; then
             echo "No changes"
             exit 0
           fi
-          git commit -m "Add GameCenter CX2 KICK channel to Free Wi-Fi"
+          git commit -m "Route GameCenter CX2 through dedicated KICK resolver"
           git push
