@@ -6,7 +6,7 @@
 
     <TextView android:id="@+id/title" android:layout_width="wrap_content" android:layout_height="wrap_content"
         android:text="Jun IPTV" android:textColor="@color/text" android:textSize="34sp" android:textStyle="bold"
-        android:layout_marginBottom="34dp" />
+        android:layout_marginBottom="24dp" />
 
     <LinearLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"
         android:orientation="horizontal" android:gravity="center" android:weightSum="3">
@@ -17,6 +17,10 @@
         <Button android:id="@+id/gambleMode" android:layout_width="0dp" android:layout_height="220dp" android:layout_weight="1"
             android:layout_margin="12dp" android:background="@drawable/mode_button" android:text="🎯\nギャンブル" android:textColor="@color/text" android:textSize="28sp" android:focusable="true" />
     </LinearLayout>
+
+    <Button android:id="@+id/settingsMode" android:layout_width="260dp" android:layout_height="64dp"
+        android:layout_marginTop="10dp" android:layout_marginBottom="12dp" android:background="@drawable/mode_button"
+        android:text="⚙ 設定" android:textColor="@color/text" android:textSize="20sp" android:focusable="true" />
 
     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
         android:text="十字キー + 決定だけで操作" android:textColor="@color/muted" android:textSize="16sp" />
