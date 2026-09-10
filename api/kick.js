@@ -1,6 +1,7 @@
 const channels = require("../kick_channels.json");
 
 const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/140 Safari/537.36";
+const RESOLVER_VERSION = "2026-09-10-gccx2-v2";
 
 function norm(s) {
   return String(s || "").toLowerCase().replace(/[^a-z0-9\u3040-\u30ff\u3400-\u9fff]+/g, "");
@@ -39,21 +40,14 @@ async function getJson(url) {
 
 function playbackOf(obj) {
   return obj?.playback_url ||
+         obj?.playbackUrl ||
          obj?.stream?.playback_url ||
+         obj?.stream?.playbackUrl ||
          obj?.livestream?.playback_url ||
+         obj?.livestream?.playbackUrl ||
          obj?.data?.playback_url ||
+         obj?.data?.playbackUrl ||
          null;
-}
-
-function isLive(obj) {
-  const live = obj?.livestream;
-  if (live && typeof live === "object") {
-    if (live.is_live === false) return false;
-    return true;
-  }
-  if (obj?.is_live === true) return true;
-  if (obj?.stream?.is_live === true) return true;
-  return false;
 }
 
 function sameIvsChannel(url, expected) {
@@ -65,8 +59,12 @@ async function resolveSlug(slug, expectedId) {
   const data = await getJson("https://kick.com/api/v2/channels/" + encodeURIComponent(slug));
   if (!data) return null;
   const playback = playbackOf(data);
+
+  // Playback URL is the strongest signal. KICK has changed live-state fields
+  // across API revisions, so do not reject a usable live HLS just because
+  // is_live/livestream metadata is missing or shaped differently.
+  if (!playback) return null;
   if (expectedId && !sameIvsChannel(playback, expectedId)) return null;
-  if (!isLive(data)) return null;
   return { slug: data.slug || slug, playback };
 }
 
@@ -106,8 +104,7 @@ async function resolve(item) {
     if (hit) return hit;
   }
 
-  // One extra pass helps when Kick briefly returns a transient 4xx/5xx
-  // while the channel itself remains live.
+  // One extra pass helps when KICK briefly returns a transient 4xx/5xx.
   for (const slug of [...new Set(slugs)]) {
     const hit = await resolveSlug(slug, expectedId);
     if (hit) return hit;
@@ -124,6 +121,7 @@ async function resolve(item) {
 module.exports = async function handler(req, res) {
   res.setHeader("Cache-Control", "no-store, max-age=0");
   res.setHeader("Pragma", "no-cache");
+  res.setHeader("X-Kick-Resolver-Version", RESOLVER_VERSION);
 
   const key = String(req.query?.ch || "").toLowerCase();
   const aliases = {
@@ -134,19 +132,21 @@ module.exports = async function handler(req, res) {
   };
   const tvgId = aliases[key] || key;
   const item = channels.find(x => String(x.tvg_id || "").toLowerCase() === tvgId);
-  if (!item) return res.status(404).json({ error: "unknown KICK channel" });
+  if (!item) return res.status(404).json({ error: "unknown KICK channel", resolver: RESOLVER_VERSION });
 
   try {
     const hit = await resolve(item);
     if (!hit) return res.status(503).json({
       error: "KICK live playback unavailable",
       tvg_id: item.tvg_id,
-      expected_channel_id: item.channel_id
+      slug: item.slug,
+      expected_channel_id: item.channel_id,
+      resolver: RESOLVER_VERSION
     });
     res.setHeader("X-Kick-Resolved-Slug", hit.slug);
     res.setHeader("X-Kick-Channel-Id", String(item.channel_id || ""));
     return res.redirect(302, hit.playback);
   } catch (e) {
-    return res.status(502).json({ error: "KICK resolver failed", detail: String(e?.message || e) });
+    return res.status(502).json({ error: "KICK resolver failed", detail: String(e?.message || e), resolver: RESOLVER_VERSION });
   }
 };
