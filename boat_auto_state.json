@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-11",
-  "generated_at": "2026-09-11T06:01:21.648871+09:00",
+  "generated_at": "2026-09-11T06:02:21.498495+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260911.json",
   "schedule_checked_at": "2026-09-11T06:00:21.497096+09:00",
@@ -52,11 +52,15 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 0,
+    "requested": 1,
     "fetched": 0,
-    "failures": [],
-    "deferred": 12,
-    "reason": "stream acquisition waits until each venue 1R prefetch window"
+    "failures": [
+      {
+        "jcd": "21",
+        "name": "芦屋",
+        "error": "cloud and official acquisition unavailable: HTTPError"
+      }
+    ]
   },
   "epg_programmes_written": {
     "public_sports_epg_local.xml": 156,
