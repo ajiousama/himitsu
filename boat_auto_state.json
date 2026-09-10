@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-10",
-  "generated_at": "2026-09-10T12:49:23.924767+09:00",
+  "generated_at": "2026-09-10T12:50:23.925169+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260910.json",
   "schedule_checked_at": "2026-09-10T12:41:24.034339+09:00",
@@ -52,17 +52,22 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 10,
+    "requested": 11,
     "fetched": 8,
     "failures": [
+      {
+        "jcd": "01",
+        "name": "桐生",
+        "error": "cloud and official acquisition unavailable: HTTPError"
+      },
       {
         "jcd": "24",
         "name": "大村",
         "error": "cloud and official acquisition unavailable: HTTPError"
       },
       {
-        "jcd": "01",
-        "name": "桐生",
+        "jcd": "20",
+        "name": "若松",
         "error": "cloud and official acquisition unavailable: HTTPError"
       }
     ]
@@ -758,8 +763,8 @@
       "last_race": "16:44",
       "alert_from": "2026-09-10T10:23:00+09:00",
       "next_race": {
-        "race": 5,
-        "start": "12:50"
+        "race": 6,
+        "start": "13:18"
       },
       "stream_window": "live_or_prestart",
       "guidance_switch_at": "2026-09-10T17:29:00+09:00",
