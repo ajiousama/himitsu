@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-10",
-  "generated_at": "2026-09-10T10:04:23.713422+09:00",
+  "generated_at": "2026-09-10T10:05:23.714575+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260910.json",
   "schedule_checked_at": "2026-09-10T09:50:23.819385+09:00",
@@ -19,7 +19,7 @@
   "alert_lead_minutes": 30,
   "card_count": 11,
   "held_count": 11,
-  "visible_count": 5,
+  "visible_count": 6,
   "active_count": 2,
   "ended_kept": [],
   "seed_required": false,
@@ -36,7 +36,7 @@
     },
     "day": {
       "held": 6,
-      "acquired": 3,
+      "acquired": 4,
       "active": 0,
       "ended": 0,
       "seed_required": 0,
@@ -53,21 +53,16 @@
   },
   "cloud_acquisition": {
     "requested": 8,
-    "fetched": 5,
+    "fetched": 6,
     "failures": [
-      {
-        "jcd": "05",
-        "name": "多摩川",
-        "error": "HTTPError: playback check failed"
-      },
       {
         "jcd": "03",
         "name": "江戸川",
         "error": "HTTPError: playback check failed"
       },
       {
-        "jcd": "17",
-        "name": "宮島",
+        "jcd": "05",
+        "name": "多摩川",
         "error": "HTTPError: playback check failed"
       }
     ]
@@ -140,6 +135,22 @@
         "ok": true,
         "sequence": 8019327,
         "last_segment": "/53a24c10d3f744a0867dbf5e26843795/eda4f003318a4b73af9a9cd63323a14d/manifest_4_8019550.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
+    },
+    "boat.miyajima": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/5522f415f1194029a318da6e512a8feb/ce17866376c2496da73221077be00c3a/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTE3ODQwMCwic3RhcnQiOjE3ODkwMDIzMDAsImlvcyI6MTgsImNwIjoiMjExMTk3OTAwXzIxMTI0MTA5OSIsInBwdyI6IjQwayJ9.LsB0FYMds2d6nYiNKdGY8KK_QqDOHiDTb6q3oaJ0GQg",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-09-10T10:05:23.718847+09:00",
+      "checked_at": "2026-09-10T10:05:23.718847+09:00",
+      "first_verified_at": "2026-09-10T10:05:23.718847+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 8004683,
+        "last_segment": "/5522f415f1194029a318da6e512a8feb/ce17866376c2496da73221077be00c3a/manifest_1_8004686.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -791,7 +802,7 @@
       "jcd": "17",
       "name": "宮島",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
       "active": false,
       "cancelled": false,
@@ -807,9 +818,9 @@
       "stream_window": "scheduled",
       "guidance_switch_at": "2026-09-10T17:17:00+09:00",
       "seed_required": false,
-      "playback_verified": false,
-      "first_verified_at": null,
-      "ready_before_first_race": false,
+      "playback_verified": true,
+      "first_verified_at": "2026-09-10T10:05:23.718847+09:00",
+      "ready_before_first_race": true,
       "acquire_from": "2026-09-10T08:15:00+09:00",
       "races": [
         {
@@ -873,7 +884,9 @@
           "name": "モンタ特選"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/5522f415f1194029a318da6e512a8feb/ce17866376c2496da73221077be00c3a/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTE3ODQwMCwic3RhcnQiOjE3ODkwMDIzMDAsImlvcyI6MTgsImNwIjoiMjExMTk3OTAwXzIxMTI0MTA5OSIsInBwdyI6IjQwayJ9.LsB0FYMds2d6nYiNKdGY8KK_QqDOHiDTb6q3oaJ0GQg",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     },
     "boat.wakamatsu": {
       "jcd": "20",
