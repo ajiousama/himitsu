@@ -1,0 +1,43 @@
+name: Probe TIPSTAR AutoRace
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'probe_tipstar_autorace.py'
+      - '.github/workflows/probe_tipstar_autorace.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: tipstar-autorace-probe
+  cancel-in-progress: true
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Probe TIPSTAR pages and assets
+        run: python -u probe_tipstar_autorace.py
+      - name: Commit probe report
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add tipstar_autorace_probe.json
+          if git diff --cached --quiet; then
+            echo 'No probe report change'
+            exit 0
+          fi
+          git commit -m 'Update TIPSTAR autorace probe [skip ci]'
+          git push origin HEAD:main
