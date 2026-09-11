@@ -5,41 +5,63 @@
     android:layout_height="match_parent"
     android:background="@android:color/black">
 
-    <androidx.media3.ui.PlayerView
-        android:id="@+id/player"
+    <FrameLayout
+        android:id="@+id/playerHost"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:focusable="true"
-        android:clickable="true"
-        app:use_controller="false" />
+        android:focusableInTouchMode="true">
+
+        <androidx.media3.ui.PlayerView
+            android:id="@+id/player"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:use_controller="false" />
+
+        <WebView
+            android:id="@+id/youtubeView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@android:color/black"
+            android:visibility="gone" />
+    </FrameLayout>
 
     <LinearLayout
         android:id="@+id/channelPanel"
-        android:layout_width="360dp"
+        android:layout_width="410dp"
         android:layout_height="match_parent"
         android:layout_gravity="start"
         android:orientation="vertical"
-        android:background="#E6191D24"
+        android:background="#F0191D24"
+        android:elevation="12dp"
         android:visibility="gone">
 
         <TextView
             android:id="@+id/modeTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="16dp"
+            android:paddingLeft="20dp"
+            android:paddingTop="18dp"
+            android:paddingRight="16dp"
+            android:paddingBottom="4dp"
             android:textColor="@color/text"
-            android:textSize="24sp"
+            android:textSize="25sp"
             android:textStyle="bold" />
 
         <TextView
             android:id="@+id/status"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingLeft="16dp"
+            android:paddingLeft="20dp"
             android:paddingRight="16dp"
-            android:paddingBottom="10dp"
+            android:paddingBottom="12dp"
             android:textColor="@color/muted"
             android:textSize="14sp" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#39404B" />
 
         <ListView
             android:id="@+id/channelList"
@@ -47,10 +69,18 @@
             android:layout_height="0dp"
             android:layout_weight="1"
             android:choiceMode="singleChoice"
-            android:listSelector="#34445A"
-            android:divider="#2C323D"
+            android:listSelector="#4A5668"
+            android:divider="#303743"
             android:dividerHeight="1dp"
             android:focusable="true" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="12dp"
+            android:text="← 一覧　→ 番組情報　↑↓ 選局　MENU 設定"
+            android:textColor="@color/muted"
+            android:textSize="12sp" />
     </LinearLayout>
 
     <LinearLayout
@@ -59,8 +89,11 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
         android:orientation="vertical"
-        android:background="#C0000000"
-        android:padding="20dp"
+        android:background="#D0000000"
+        android:paddingLeft="28dp"
+        android:paddingTop="18dp"
+        android:paddingRight="28dp"
+        android:paddingBottom="20dp"
         android:visibility="gone">
 
         <TextView
@@ -68,7 +101,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textColor="@color/text"
-            android:textSize="24sp"
+            android:textSize="25sp"
             android:textStyle="bold" />
 
         <TextView
@@ -77,15 +110,14 @@
             android:layout_height="wrap_content"
             android:textColor="@color/text"
             android:textSize="18sp"
-            android:layout_marginTop="6dp" />
+            android:layout_marginTop="5dp" />
 
         <TextView
             android:id="@+id/nextProgram"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textColor="@color/muted"
-            android:textSize="16sp"
+            android:textSize="15sp"
             android:layout_marginTop="4dp" />
     </LinearLayout>
-
 </FrameLayout>
