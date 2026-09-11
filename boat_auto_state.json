@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-11",
-  "generated_at": "2026-09-11T17:10:04.632676+09:00",
+  "generated_at": "2026-09-11T17:11:04.583584+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260911.json",
   "schedule_checked_at": "2026-09-11T17:05:04.583306+09:00",
@@ -20,11 +20,12 @@
   "card_count": 12,
   "held_count": 12,
   "visible_count": 12,
-  "active_count": 4,
+  "active_count": 3,
   "ended_kept": [
     "戸田",
     "江戸川",
     "多摩川",
+    "浜名湖",
     "尼崎",
     "鳴門",
     "児島",
@@ -46,8 +47,8 @@
     "day": {
       "held": 7,
       "acquired": 7,
-      "active": 1,
-      "ended": 6,
+      "active": 0,
+      "ended": 7,
       "seed_required": 0,
       "cancelled": 0
     },
@@ -61,8 +62,8 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 4,
-    "fetched": 4,
+    "requested": 3,
+    "fetched": 3,
     "failures": []
   },
   "epg_programmes_written": {
@@ -534,8 +535,8 @@
       "name": "浜名湖",
       "held": true,
       "visible": true,
-      "ended": false,
-      "active": true,
+      "ended": true,
+      "active": false,
       "cancelled": false,
       "mode": "day",
       "mode_label": "デイ",
@@ -543,7 +544,7 @@
       "last_race": "17:08",
       "alert_from": "2026-09-11T11:03:00+09:00",
       "next_race": null,
-      "stream_window": "live_or_prestart",
+      "stream_window": "ended_kept",
       "guidance_switch_at": "2026-09-11T17:53:00+09:00",
       "seed_required": false,
       "playback_verified": true,
