@@ -3,7 +3,6 @@ package jp.jun.iptv;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.text.InputType;
 import android.view.ViewGroup;
@@ -66,11 +65,12 @@ public class SettingsActivity extends Activity {
         int current = AppPrefs.multiCount(this);
         int selected = current == 6 ? 1 : (current == 8 ? 2 : 0);
         new AlertDialog.Builder(this)
-            .setTitle("多チャンネル画面数")
+            .setTitle("多チャンネル")
             .setSingleChoiceItems(labels, selected, (d, which) -> {
                 AppPrefs.setMultiCount(this, values[which]);
                 d.dismiss();
                 refreshLabels();
+                Toast.makeText(this, values[which] + "画面に設定しました", Toast.LENGTH_SHORT).show();
             })
             .setNegativeButton("閉じる", null).show();
     }
@@ -155,16 +155,16 @@ public class SettingsActivity extends Activity {
     }
 
     private void openTver() {
-        try {
-            Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse("https://tver.jp/mypage/favorites"));
-            startActivity(i);
-        } catch (Exception e) {
-            try {
-                Intent launch = getPackageManager().getLaunchIntentForPackage("jp.co.tver.tvapp");
-                if (launch != null) startActivity(launch);
-                else Toast.makeText(this, "TVerアプリが見つかりません", Toast.LENGTH_LONG).show();
-            } catch (Exception ignored) {}
+        String[] packages = {"jp.co.tver.tvapp", "jp.co.tver"};
+        for (String pkg : packages) {
+            Intent launch = getPackageManager().getLaunchIntentForPackage(pkg);
+            if (launch != null) {
+                launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
+                startActivity(launch);
+                return;
+            }
         }
+        Toast.makeText(this, "TVerアプリがインストールされていません", Toast.LENGTH_LONG).show();
     }
 
     private void refreshLabels() {
@@ -173,10 +173,10 @@ public class SettingsActivity extends Activity {
             AppPrefs.DISPLAY_GUIDE.equals(display) ? "番組表" :
             AppPrefs.DISPLAY_MULTI.equals(display) ? "多チャンネル" : "アプリ";
         displayButton.setText("再生画面：" + displayLabel + "モード");
-        multiButton.setText("多チャンネル：" + AppPrefs.multiCount(this) + "画面");
+        multiButton.setText("多チャンネル：" + AppPrefs.multiCount(this) + "画面  （4 / 6 / 8）");
         volumeButton.setText("アプリ音量：" + AppPrefs.volume(this) + "　(決定:+10 / 長押し:-10)");
         manageSourceButton.setText("追加M3U管理：" + SourceManager.all(this).size() + "件");
-        help.setText("共通プレイヤー：← チャンネル一覧 / → 番組情報 / ↑↓ 選局 / MENU 設定\nM3UとEPGはセットで追加できます。YouTube系は専用再生へ自動切替します。");
+        help.setText("共通リモコン操作：← チャンネル一覧 / → 番組情報 / ↑↓ 選局 / OK 決定 / 戻る 閉じる\nチャンネル送りは先頭と最後がループします。ロゴと接続状態を選局時に表示します。\nTVerはブラウザを使わず公式アプリだけを起動します。");
     }
 
     private int dp(int v) { return (int) (v * getResources().getDisplayMetrics().density + 0.5f); }
