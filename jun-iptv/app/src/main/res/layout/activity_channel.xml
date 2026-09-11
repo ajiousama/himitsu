@@ -17,18 +17,58 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             app:use_controller="false" />
-
-        <WebView
-            android:id="@+id/youtubeView"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="@android:color/black"
-            android:visibility="gone" />
     </FrameLayout>
 
     <LinearLayout
+        android:id="@+id/switchOsd"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="start|bottom"
+        android:layout_marginLeft="34dp"
+        android:layout_marginBottom="34dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingLeft="16dp"
+        android:paddingTop="12dp"
+        android:paddingRight="20dp"
+        android:paddingBottom="12dp"
+        android:background="#E014171C"
+        android:visibility="gone">
+
+        <ImageView
+            android:id="@+id/switchLogo"
+            android:layout_width="70dp"
+            android:layout_height="54dp"
+            android:scaleType="fitCenter"
+            android:layout_marginRight="14dp" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/switchName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/text"
+                android:textSize="23sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/switchState"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="3dp"
+                android:text="接続中…"
+                android:textColor="@color/muted"
+                android:textSize="15sp" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
         android:id="@+id/channelPanel"
-        android:layout_width="410dp"
+        android:layout_width="430dp"
         android:layout_height="match_parent"
         android:layout_gravity="start"
         android:orientation="vertical"
@@ -78,7 +118,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="12dp"
-            android:text="← 一覧　→ 番組情報　↑↓ 選局　MENU 設定"
+            android:text="← 一覧　→ 番組情報　↑↓ 選局　戻る ホームへ"
             android:textColor="@color/muted"
             android:textSize="12sp" />
     </LinearLayout>
