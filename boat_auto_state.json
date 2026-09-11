@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-12",
-  "generated_at": "2026-09-12T06:13:48.798305+09:00",
+  "generated_at": "2026-09-12T06:14:48.751806+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260912.json",
   "schedule_checked_at": "2026-09-12T06:10:48.749230+09:00",
@@ -52,9 +52,14 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 1,
+    "requested": 2,
     "fetched": 0,
     "failures": [
+      {
+        "jcd": "21",
+        "name": "芦屋",
+        "error": "cloud and official acquisition unavailable: HTTPError"
+      },
       {
         "jcd": "10",
         "name": "三国",
