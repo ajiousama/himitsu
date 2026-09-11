@@ -2,10 +2,10 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-11",
-  "generated_at": "2026-09-11T14:44:48.603731+09:00",
+  "generated_at": "2026-09-11T14:45:48.710156+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260911.json",
-  "schedule_checked_at": "2026-09-11T14:30:48.707302+09:00",
+  "schedule_checked_at": "2026-09-11T14:45:48.710156+09:00",
   "schedule_warnings": [
     "official_cards: TimeoutError"
   ],
@@ -19,8 +19,8 @@
   "alert_lead_minutes": 30,
   "card_count": 12,
   "held_count": 12,
-  "visible_count": 11,
-  "active_count": 7,
+  "visible_count": 12,
+  "active_count": 8,
   "ended_kept": [
     "鳴門",
     "芦屋"
@@ -47,8 +47,8 @@
     },
     "night": {
       "held": 3,
-      "acquired": 2,
-      "active": 0,
+      "acquired": 3,
+      "active": 1,
       "ended": 0,
       "seed_required": 0,
       "cancelled": 0
@@ -56,14 +56,8 @@
   },
   "cloud_acquisition": {
     "requested": 10,
-    "fetched": 9,
-    "failures": [
-      {
-        "jcd": "20",
-        "name": "若松",
-        "error": "HTTPError: playback check failed"
-      }
-    ]
+    "fetched": 10,
+    "failures": []
   },
   "epg_programmes_written": {
     "public_sports_epg_local.xml": 156,
@@ -218,6 +212,22 @@
       },
       "consecutive_failures": 0
     },
+    "boat.wakamatsu": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/ca188902f24f49a2b9356bc6a7a21961/c341b9404d4149709d52f56fb156f101/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTI3OTIwMCwic3RhcnQiOjE3ODkxMDU1MDAsImlvcyI6MTgsImNwIjoiMjExMzAxMTAwXzIxMTM0MTU5OSIsInBwdyI6IjQwayJ9.ySo_kgdrNA0PEo26N88hjE0Gu2AQIsvsFin61EuX0oY",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-09-11T14:45:57.241912+09:00",
+      "checked_at": "2026-09-11T14:45:57.241912+09:00",
+      "first_verified_at": "2026-09-11T14:45:57.241912+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 8036973,
+        "last_segment": "/ca188902f24f49a2b9356bc6a7a21961/c341b9404d4149709d52f56fb156f101/manifest_4_8036982.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
+    },
     "boat.ashiya": {
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/7defe963623a4a54b9506db28a2efa6e/8f47141998824afc94fbff669ee3b023/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTI1NDAwMCwic3RhcnQiOjE3ODkwODEwMjAsImlvcyI6MTgsImNwIjoiMjExMjc2NjIwXzIxMTMxOTgxOSIsInBwdyI6IjQwayJ9.ummISKtvclqAKB2ScyhTLq5-Es9lWVPbqtNcTmsmtuo",
       "source": "automatic acquisition + audio/video decode",
@@ -238,13 +248,13 @@
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/8a014164305f45afa9cd07d9bbddc070/4a03abb508cd49ae89c77fcc962131db/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTI3OTIwMCwic3RhcnQiOjE3ODkxMDUyMDAsImlvcyI6MTgsImNwIjoiMjExMzAwODAwXzIxMTM0MTU5OSIsInBwdyI6IjQwayJ9.FO7VFb_GGGe_4c47HFo36EnnY3iOYTuUZMK8pQIjsa4",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-09-11T14:40:48.715916+09:00",
-      "checked_at": "2026-09-11T14:40:48.715916+09:00",
+      "checked_at": "2026-09-11T14:45:57.242241+09:00",
       "first_verified_at": "2026-09-11T14:40:48.715916+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
         "sequence": 8036678,
-        "last_segment": "/8a014164305f45afa9cd07d9bbddc070/4a03abb508cd49ae89c77fcc962131db/manifest_1_8036685.ts",
+        "last_segment": "/8a014164305f45afa9cd07d9bbddc070/4a03abb508cd49ae89c77fcc962131db/manifest_1_8036736.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -1063,7 +1073,7 @@
       "jcd": "20",
       "name": "若松",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
       "active": false,
       "cancelled": false,
@@ -1079,9 +1089,9 @@
       "stream_window": "scheduled",
       "guidance_switch_at": "2026-09-11T21:23:00+09:00",
       "seed_required": false,
-      "playback_verified": false,
-      "first_verified_at": null,
-      "ready_before_first_race": false,
+      "playback_verified": true,
+      "first_verified_at": "2026-09-11T14:45:57.241912+09:00",
+      "ready_before_first_race": true,
       "acquire_from": "2026-09-11T12:53:00+09:00",
       "races": [
         {
@@ -1145,7 +1155,9 @@
           "name": "予選特選"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/ca188902f24f49a2b9356bc6a7a21961/c341b9404d4149709d52f56fb156f101/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTI3OTIwMCwic3RhcnQiOjE3ODkxMDU1MDAsImlvcyI6MTgsImNwIjoiMjExMzAxMTAwXzIxMTM0MTU5OSIsInBwdyI6IjQwayJ9.ySo_kgdrNA0PEo26N88hjE0Gu2AQIsvsFin61EuX0oY",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     },
     "boat.ashiya": {
       "jcd": "21",
@@ -1240,7 +1252,7 @@
       "held": true,
       "visible": true,
       "ended": false,
-      "active": false,
+      "active": true,
       "cancelled": false,
       "mode": "night",
       "mode_label": "ナイター",
@@ -1251,7 +1263,7 @@
         "race": 1,
         "start": "15:15"
       },
-      "stream_window": "scheduled",
+      "stream_window": "live_or_prestart",
       "guidance_switch_at": "2026-09-11T21:30:00+09:00",
       "seed_required": false,
       "playback_verified": true,
