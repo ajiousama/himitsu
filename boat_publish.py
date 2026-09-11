@@ -1,8 +1,22 @@
-"""Reapply the BOAT-owned blocks to the latest shared files, without network I/O."""
+"""Reapply the BOAT-owned blocks to the latest shared files.
+
+When run as a command by the continuous worker, also refresh the short-lived
+GameCenter CX2 KICK playback URL before publishing the BOAT-owned blocks.
+"""
 import json
 import re
+import subprocess
 import xml.etree.ElementTree as ET
 import boat_auto_system as boat
+
+
+def refresh_cx2():
+    try:
+        result = subprocess.run(['python', 'kick_gccx2_sync.py'], timeout=60)
+        if result.returncode != 0:
+            print(f'::warning::CX2 KICK refresh exited {result.returncode}; keeping current entry')
+    except Exception as exc:
+        print(f'::warning::CX2 KICK refresh failed: {type(exc).__name__}; keeping current entry')
 
 
 def overlay_state(epg_only=False):
@@ -60,4 +74,5 @@ def validate(state=None, cards=None):
 
 if __name__ == '__main__':
     import sys
+    refresh_cx2()
     overlay_state(epg_only='--epg-only' in sys.argv)
