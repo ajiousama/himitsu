@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-11",
-  "generated_at": "2026-09-11T16:46:04.579445+09:00",
+  "generated_at": "2026-09-11T16:47:04.580934+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260911.json",
   "schedule_checked_at": "2026-09-11T16:34:04.578219+09:00",
@@ -20,12 +20,13 @@
   "card_count": 12,
   "held_count": 12,
   "visible_count": 12,
-  "active_count": 6,
+  "active_count": 5,
   "ended_kept": [
     "戸田",
     "江戸川",
     "尼崎",
     "鳴門",
+    "児島",
     "宮島",
     "芦屋"
   ],
@@ -44,8 +45,8 @@
     "day": {
       "held": 7,
       "acquired": 7,
-      "active": 3,
-      "ended": 4,
+      "active": 2,
+      "ended": 5,
       "seed_required": 0,
       "cancelled": 0
     },
@@ -59,8 +60,8 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 6,
-    "fetched": 6,
+    "requested": 5,
+    "fetched": 5,
     "failures": []
   },
   "epg_programmes_written": {
@@ -252,13 +253,13 @@
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/8a014164305f45afa9cd07d9bbddc070/4a03abb508cd49ae89c77fcc962131db/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTI3OTIwMCwic3RhcnQiOjE3ODkxMDUyMDAsImlvcyI6MTgsImNwIjoiMjExMzAwODAwXzIxMTM0MTU5OSIsInBwdyI6IjQwayJ9.FO7VFb_GGGe_4c47HFo36EnnY3iOYTuUZMK8pQIjsa4",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-09-11T14:40:48.715916+09:00",
-      "checked_at": "2026-09-11T16:41:04.632457+09:00",
+      "checked_at": "2026-09-11T16:47:04.584054+09:00",
       "first_verified_at": "2026-09-11T14:40:48.715916+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
         "sequence": 8036678,
-        "last_segment": "/8a014164305f45afa9cd07d9bbddc070/4a03abb508cd49ae89c77fcc962131db/manifest_1_8037887.ts",
+        "last_segment": "/8a014164305f45afa9cd07d9bbddc070/4a03abb508cd49ae89c77fcc962131db/manifest_1_8037947.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -886,8 +887,8 @@
       "name": "児島",
       "held": true,
       "visible": true,
-      "ended": false,
-      "active": true,
+      "ended": true,
+      "active": false,
       "cancelled": false,
       "mode": "day",
       "mode_label": "デイ",
@@ -895,7 +896,7 @@
       "last_race": "16:44",
       "alert_from": "2026-09-11T10:19:00+09:00",
       "next_race": null,
-      "stream_window": "live_or_prestart",
+      "stream_window": "ended_kept",
       "guidance_switch_at": "2026-09-11T17:29:00+09:00",
       "seed_required": false,
       "playback_verified": true,
