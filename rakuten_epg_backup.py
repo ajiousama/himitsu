@@ -17,11 +17,11 @@ JST = timezone(timedelta(hours=9))
 
 RAKUTEN_CHANNELS = {
     "rch_30": "鉄道・旅",
-    "rch_98": "セクシーエンタメチャンネル",
-    "rch_59": "おとなの歓楽街 by MEN'S NECO",
+    "rch_125": "セクシーエンタメチャンネル",
+    "rch_124": "おとなの歓楽街 by MEN'S NECO",
     "rch_41": "アイドル・グラビア",
-    "rch_40": "刺激ストロング",
-    "rch_42": "映画（年齢制限あり）",
+    "rch_123": "刺激ストロング",
+    "rch_122": "映画（年齢制限あり）",
 }
 
 TITLE_KEYS = {

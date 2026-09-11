@@ -14,15 +14,15 @@ epg_build.SOURCES = [(name, url) for name, url in epg_build.SOURCES if name != "
 epg_build.SOURCE_PRIORITY = {name: i for i, (name, _) in enumerate(epg_build.SOURCES)}
 
 # Rakuten R Channel IDs must never be matched by a similar display name. In
-# particular rch_42 had been incorrectly borrowing karenda/rch_122. Use only the
+# Rakuten adult-category IDs were renumbered in the current karenda guide. Use only the
 # exact Rakuten source ID; when it is missing, the normal fallback is safer.
 RAKUTEN_CHANNELS = {
     "rch_30": "鉄道・旅",
-    "rch_98": "セクシーエンタメチャンネル",
-    "rch_59": "おとなの歓楽街 by MEN'S NECO",
+    "rch_125": "セクシーエンタメチャンネル",
+    "rch_124": "おとなの歓楽街 by MEN'S NECO",
     "rch_41": "アイドル・グラビア",
-    "rch_40": "刺激ストロング",
-    "rch_42": "映画",
+    "rch_123": "刺激ストロング",
+    "rch_122": "映画（年齢制限あり）",
 }
 epg_build.SOURCE_PIN.update({channel_id: ("karenda", channel_id) for channel_id in RAKUTEN_CHANNELS})
 
