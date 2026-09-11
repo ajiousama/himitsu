@@ -2,6 +2,11 @@ name: Build Jun IPTV Rebuild APK
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - jun-iptv-rebuild
+    paths:
+      - '.jun-rebuild-build'
 
 permissions:
   contents: read
