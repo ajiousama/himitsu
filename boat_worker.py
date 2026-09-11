@@ -22,13 +22,8 @@ def publish(snapshot):
         run('git', 'reset', '--hard', 'origin/main')
         for name, content in snapshot.items():
             Path(name).write_bytes(content)
-        # Refresh the short-lived CX2 KICK playback URL on the same continuous
-        # worker that already owns safe freewifi publication. The sync script
-        # keeps the current URL while its token has enough lifetime remaining.
-        cx2 = subprocess.run(['python', 'kick_gccx2_sync.py'], timeout=60)
-        if cx2.returncode != 0:
-            print(f'::warning::CX2 KICK refresh exited {cx2.returncode}; keeping current playlist entry', flush=True)
         # Do not overwrite current freewifi/guides with the old checkout's copies.
+        # boat_publish.py also refreshes the short-lived CX2 KICK URL.
         run('python', 'boat_publish.py')
         run('python', 'build_today_event_counts.py')
         run('git', 'add', *OUTPUTS)
