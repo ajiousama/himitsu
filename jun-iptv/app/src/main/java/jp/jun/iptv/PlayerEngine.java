@@ -11,10 +11,13 @@ import androidx.media3.ui.PlayerView;
 public class PlayerEngine {
     public interface ErrorListener { void onError(String message); }
 
+    private final Context context;
     private final ExoPlayer player;
     private Channel channel;
+    private boolean audible = true;
 
     public PlayerEngine(Context context, PlayerView view, ErrorListener listener) {
+        this.context = context.getApplicationContext();
         player = new ExoPlayer.Builder(context).build();
         view.setPlayer(player);
         player.addListener(new Player.Listener() {
@@ -22,6 +25,7 @@ public class PlayerEngine {
                 if (listener != null) listener.onError(error.getErrorCodeName());
             }
         });
+        applyVolume();
     }
 
     public void play(Channel c) {
@@ -29,9 +33,20 @@ public class PlayerEngine {
         player.setMediaItem(MediaItem.fromUri(c.url));
         player.prepare();
         player.play();
+        applyVolume();
     }
 
-    public void setAudible(boolean audible) { player.setVolume(audible ? 1f : 0f); }
+    public void setAudible(boolean audible) {
+        this.audible = audible;
+        applyVolume();
+    }
+
+    public void refreshVolume() { applyVolume(); }
+
+    private void applyVolume() {
+        player.setVolume(audible ? AppPrefs.volumeFloat(context) : 0f);
+    }
+
     public Channel getChannel() { return channel; }
     public ExoPlayer getPlayer() { return player; }
     public void release() { player.release(); }
