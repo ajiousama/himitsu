@@ -111,18 +111,30 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
-          set -euxo pipefail
-          CURRENT_SHA=$(gh api "repos/${GITHUB_REPOSITORY}/contents/j.apk?ref=main" --jq .sha || true)
+          set -u
           CONTENT=$(base64 -w0 JunIPTV_M3U_alpha1.apk)
-          if [ -n "$CURRENT_SHA" ]; then
-            gh api --method PUT "repos/${GITHUB_REPOSITORY}/contents/j.apk" \
-              -f message='Publish Jun IPTV M3U alpha1 [skip ci]' \
-              -f branch='main' \
-              -f sha="$CURRENT_SHA" \
-              -f content="$CONTENT"
-          else
-            gh api --method PUT "repos/${GITHUB_REPOSITORY}/contents/j.apk" \
-              -f message='Publish Jun IPTV M3U alpha1 [skip ci]' \
-              -f branch='main' \
-              -f content="$CONTENT"
-          fi
+          for attempt in 1 2 3 4 5 6 7 8; do
+            echo "j.apk publish attempt ${attempt}/8"
+            CURRENT_SHA=$(gh api "repos/${GITHUB_REPOSITORY}/contents/j.apk?ref=main" --jq .sha 2>/dev/null || true)
+            if [ -n "$CURRENT_SHA" ]; then
+              if gh api --method PUT "repos/${GITHUB_REPOSITORY}/contents/j.apk" \
+                -f message='Publish Jun IPTV M3U alpha1 [skip ci]' \
+                -f branch='main' \
+                -f sha="$CURRENT_SHA" \
+                -f content="$CONTENT"; then
+                echo "j.apk published"
+                exit 0
+              fi
+            else
+              if gh api --method PUT "repos/${GITHUB_REPOSITORY}/contents/j.apk" \
+                -f message='Publish Jun IPTV M3U alpha1 [skip ci]' \
+                -f branch='main' \
+                -f content="$CONTENT"; then
+                echo "j.apk published"
+                exit 0
+              fi
+            fi
+            sleep 5
+          done
+          echo "Could not publish j.apk after retries" >&2
+          exit 1
