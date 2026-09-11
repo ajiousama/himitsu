@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-11",
-  "generated_at": "2026-09-11T10:18:48.615605+09:00",
+  "generated_at": "2026-09-11T10:19:48.620629+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260911.json",
   "schedule_checked_at": "2026-09-11T10:05:48.616454+09:00",
@@ -20,7 +20,7 @@
   "card_count": 12,
   "held_count": 12,
   "visible_count": 6,
-  "active_count": 5,
+  "active_count": 6,
   "ended_kept": [],
   "seed_required": false,
   "seed_required_venues": [],
@@ -37,7 +37,7 @@
     "day": {
       "held": 7,
       "acquired": 4,
-      "active": 3,
+      "active": 4,
       "ended": 0,
       "seed_required": 0,
       "cancelled": 0
@@ -61,13 +61,13 @@
         "error": "HTTPError: playback check failed"
       },
       {
-        "jcd": "03",
-        "name": "江戸川",
+        "jcd": "05",
+        "name": "多摩川",
         "error": "HTTPError: playback check failed"
       },
       {
-        "jcd": "05",
-        "name": "多摩川",
+        "jcd": "03",
+        "name": "江戸川",
         "error": "HTTPError: playback check failed"
       }
     ]
@@ -807,7 +807,7 @@
       "held": true,
       "visible": true,
       "ended": false,
-      "active": false,
+      "active": true,
       "cancelled": false,
       "mode": "day",
       "mode_label": "デイ",
@@ -818,7 +818,7 @@
         "race": 1,
         "start": "10:49"
       },
-      "stream_window": "scheduled",
+      "stream_window": "live_or_prestart",
       "guidance_switch_at": "2026-09-11T17:29:00+09:00",
       "seed_required": false,
       "playback_verified": true,
