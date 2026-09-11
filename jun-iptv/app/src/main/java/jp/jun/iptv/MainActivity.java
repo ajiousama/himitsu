@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
-import android.widget.Toast;
 
 public class MainActivity extends Activity {
     @Override
@@ -15,24 +14,25 @@ public class MainActivity extends Activity {
         Button tv = findViewById(R.id.tvMode);
         Button radio = findViewById(R.id.radioMode);
         Button gamble = findViewById(R.id.gambleMode);
+        Button youtube = findViewById(R.id.youtubeMode);
         Button settings = findViewById(R.id.settingsMode);
 
-        tv.setOnClickListener(v -> openChannels(PlaylistCatalog.MODE_TV));
-        radio.setOnClickListener(v -> openChannels(PlaylistCatalog.MODE_RADIO));
-        gamble.setOnClickListener(v -> startActivity(new Intent(this, MultiViewActivity.class)));
+        tv.setOnClickListener(v -> open(PlaylistCatalog.MODE_TV));
+        radio.setOnClickListener(v -> open(PlaylistCatalog.MODE_RADIO));
+        gamble.setOnClickListener(v -> open(PlaylistCatalog.MODE_GAMBLE));
+        youtube.setOnClickListener(v -> open(PlaylistCatalog.MODE_YOUTUBE));
         settings.setOnClickListener(v -> startActivity(new Intent(this, SettingsActivity.class)));
-
-        tv.setOnLongClickListener(v -> {
-            Toast.makeText(this, "高校野球モード", Toast.LENGTH_SHORT).show();
-            openChannels(PlaylistCatalog.MODE_HIGH_SCHOOL);
-            return true;
-        });
 
         tv.requestFocus();
     }
 
-    private void openChannels(String mode) {
-        Intent i = new Intent(this, ChannelActivity.class);
+    private void open(String mode) {
+        Intent i;
+        if (AppPrefs.DISPLAY_MULTI.equals(AppPrefs.displayMode(this))) {
+            i = new Intent(this, MultiViewActivity.class);
+        } else {
+            i = new Intent(this, ChannelActivity.class);
+        }
         i.putExtra("mode", mode);
         startActivity(i);
     }
