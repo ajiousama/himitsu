@@ -21,29 +21,48 @@ import java.util.Set;
 
 public class MultiViewActivity extends Activity {
     private final List<Channel> channels = new ArrayList<>();
-    private final PlayerEngine[] engines = new PlayerEngine[4];
-    private final FrameLayout[] tiles = new FrameLayout[4];
-    private final TextView[] labels = new TextView[4];
-    private final int[] slotChannelIndex = {-1, -1, -1, -1};
+    private PlayerEngine[] engines;
+    private FrameLayout[] tiles;
+    private TextView[] labels;
+    private int[] slotChannelIndex;
     private PlaylistLoader loader;
     private GridLayout grid;
+    private String mode;
     private int focusedSlot = 0;
+    private int count;
+    private int cols;
 
     @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_multiview);
+        mode = getIntent().getStringExtra("mode");
+        if (mode == null) mode = PlaylistCatalog.MODE_GAMBLE;
+        count = AppPrefs.multiCount(this);
+        cols = count == 4 ? 2 : (count == 6 ? 3 : 4);
+        int rows = (count + cols - 1) / cols;
+
+        engines = new PlayerEngine[count];
+        tiles = new FrameLayout[count];
+        labels = new TextView[count];
+        slotChannelIndex = new int[count];
+        for (int i = 0; i < count; i++) slotChannelIndex[i] = -1;
+
         grid = findViewById(R.id.grid);
-        buildTiles();
+        grid.setColumnCount(cols);
+        grid.setRowCount(rows);
+        ((TextView) findViewById(R.id.multiTitle)).setText(PlaylistCatalog.title(mode) + "  " + count + "画面");
+        buildTiles(rows);
+
         loader = new PlaylistLoader();
-        loader.load(PlaylistCatalog.MODE_GAMBLE, new PlaylistLoader.Callback() {
+        loader.load(this, mode, new PlaylistLoader.Callback() {
             @Override public void onLoaded(List<Channel> loaded) {
                 channels.clear(); channels.addAll(loaded);
                 if (channels.isEmpty()) {
-                    Toast.makeText(MultiViewActivity.this, "公営競技M3Uが空です", Toast.LENGTH_LONG).show();
+                    Toast.makeText(MultiViewActivity.this, "M3Uが空です", Toast.LENGTH_LONG).show();
                     return;
                 }
                 chooseInitialChannels();
-                for (int i = 0; i < 4; i++) playSlot(i);
+                for (int i = 0; i < count; i++) playSlot(i);
                 tiles[0].requestFocus();
             }
             @Override public void onError(String message) {
@@ -52,8 +71,8 @@ public class MultiViewActivity extends Activity {
         });
     }
 
-    private void buildTiles() {
-        for (int i = 0; i < 4; i++) {
+    private void buildTiles(int rows) {
+        for (int i = 0; i < count; i++) {
             final int slot = i;
             FrameLayout tile = new FrameLayout(this);
             tile.setFocusable(true);
@@ -67,18 +86,18 @@ public class MultiViewActivity extends Activity {
 
             TextView label = new TextView(this);
             label.setTextColor(android.graphics.Color.WHITE);
-            label.setTextSize(17);
+            label.setTextSize(count >= 8 ? 13 : 16);
             label.setGravity(Gravity.CENTER_VERTICAL);
-            label.setPadding(dp(12), dp(8), dp(12), dp(8));
-            label.setBackgroundColor(0xA0000000);
-            FrameLayout.LayoutParams lpLabel = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT, Gravity.BOTTOM);
-            tile.addView(label, lpLabel);
+            label.setSingleLine(true);
+            label.setPadding(dp(10), dp(6), dp(10), dp(6));
+            label.setBackgroundColor(0xB0000000);
+            tile.addView(label, new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT, Gravity.BOTTOM));
 
             GridLayout.LayoutParams lp = new GridLayout.LayoutParams();
             lp.width = 0;
             lp.height = 0;
-            lp.rowSpec = GridLayout.spec(i / 2, 1f);
-            lp.columnSpec = GridLayout.spec(i % 2, 1f);
+            lp.rowSpec = GridLayout.spec(i / cols, 1f);
+            lp.columnSpec = GridLayout.spec(i % cols, 1f);
             lp.setMargins(dp(2), dp(2), dp(2), dp(2));
             grid.addView(tile, lp);
 
@@ -89,19 +108,13 @@ public class MultiViewActivity extends Activity {
             tiles[i] = tile;
             labels[i] = label;
 
-            tile.setOnFocusChangeListener((v, hasFocus) -> {
-                if (hasFocus) selectAudio(slot);
-            });
+            tile.setOnFocusChangeListener((v, hasFocus) -> { if (hasFocus) selectAudio(slot); });
             tile.setOnClickListener(v -> openFullscreen(slot));
-            tile.setOnLongClickListener(v -> {
-                openPicker(slot);
-                return true;
-            });
+            tile.setOnLongClickListener(v -> { openPicker(slot); return true; });
             tile.setOnKeyListener((v, keyCode, event) -> {
                 if (event.getAction() != KeyEvent.ACTION_DOWN) return false;
                 if (keyCode == KeyEvent.KEYCODE_MENU || keyCode == KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE) {
-                    openPicker(slot);
-                    return true;
+                    openPicker(slot); return true;
                 }
                 return false;
             });
@@ -110,11 +123,13 @@ public class MultiViewActivity extends Activity {
 
     private void chooseInitialChannels() {
         Set<Integer> used = new HashSet<>();
-        slotChannelIndex[0] = findKind("keirin", used);
-        slotChannelIndex[1] = findKind("boat", used);
-        slotChannelIndex[2] = findKind("keiba", used);
-        slotChannelIndex[3] = findKind("auto", used);
-        for (int s = 0; s < 4; s++) {
+        if (PlaylistCatalog.MODE_GAMBLE.equals(mode) && count >= 4) {
+            slotChannelIndex[0] = findKind("keirin", used);
+            slotChannelIndex[1] = findKind("boat", used);
+            slotChannelIndex[2] = findKind("keiba", used);
+            slotChannelIndex[3] = findKind("auto", used);
+        }
+        for (int s = 0; s < count; s++) {
             if (slotChannelIndex[s] < 0) {
                 for (int i = 0; i < channels.size(); i++) {
                     if (!used.contains(i)) { slotChannelIndex[s] = i; used.add(i); break; }
@@ -126,8 +141,7 @@ public class MultiViewActivity extends Activity {
     private int findKind(String kind, Set<Integer> used) {
         for (int i = 0; i < channels.size(); i++) {
             if (used.contains(i)) continue;
-            Channel c = channels.get(i);
-            String s = (c.group + " " + c.name).toLowerCase(Locale.ROOT);
+            String s = (channels.get(i).group + " " + channels.get(i).name).toLowerCase(Locale.ROOT);
             boolean ok;
             switch (kind) {
                 case "keirin": ok = s.contains("競輪") || s.contains("keirin"); break;
@@ -142,10 +156,7 @@ public class MultiViewActivity extends Activity {
 
     private void playSlot(int slot) {
         int idx = slotChannelIndex[slot];
-        if (idx < 0 || idx >= channels.size()) {
-            labels[slot].setText("未設定");
-            return;
-        }
+        if (idx < 0 || idx >= channels.size()) { labels[slot].setText("未設定"); return; }
         Channel c = channels.get(idx);
         labels[slot].setText(c.name);
         engines[slot].play(c);
@@ -154,7 +165,7 @@ public class MultiViewActivity extends Activity {
 
     private void selectAudio(int slot) {
         focusedSlot = slot;
-        for (int i = 0; i < 4; i++) engines[i].setAudible(i == slot);
+        for (int i = 0; i < count; i++) engines[i].setAudible(i == slot);
     }
 
     private void openPicker(int slot) {
@@ -179,10 +190,24 @@ public class MultiViewActivity extends Activity {
     private void openFullscreen(int slot) {
         int idx = slotChannelIndex[slot];
         if (idx < 0) return;
-        Intent i = new Intent(this, PlayerActivity.class);
-        i.putExtra("mode", PlaylistCatalog.MODE_GAMBLE);
+        Intent i = new Intent(this, ChannelActivity.class);
+        i.putExtra("mode", mode);
         i.putExtra("index", idx);
+        i.putExtra("forceFullscreen", true);
         startActivity(i);
+    }
+
+    private void changeVolume(int delta) {
+        int v = Math.max(0, Math.min(100, AppPrefs.volume(this) + delta));
+        AppPrefs.setVolume(this, v);
+        for (PlayerEngine e : engines) if (e != null) e.refreshVolume();
+        Toast.makeText(this, "音量 " + v, Toast.LENGTH_SHORT).show();
+    }
+
+    @Override public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_VOLUME_UP) { changeVolume(5); return true; }
+        if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) { changeVolume(-5); return true; }
+        return super.onKeyDown(keyCode, event);
     }
 
     private int dp(int v) { return (int) (v * getResources().getDisplayMetrics().density + 0.5f); }
@@ -190,6 +215,6 @@ public class MultiViewActivity extends Activity {
     @Override protected void onDestroy() {
         super.onDestroy();
         if (loader != null) loader.shutdown();
-        for (PlayerEngine e : engines) if (e != null) e.release();
+        if (engines != null) for (PlayerEngine e : engines) if (e != null) e.release();
     }
 }
