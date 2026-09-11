@@ -1,0 +1,128 @@
+name: Build Jun IPTV from M3U IPTV
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - jun-m3u-mod
+    paths:
+      - '.jun-m3u-mod-build'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout mod branch
+        uses: actions/checkout@v4
+        with:
+          ref: jun-m3u-mod
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android build tools
+        run: sdkmanager "build-tools;36.0.0"
+
+      - name: Download M3U IPTV 3.0.19 XAPK and apktool
+        shell: bash
+        run: |
+          set -euxo pipefail
+          curl -fL --retry 4 --retry-delay 3 \
+            'https://d.apkpure.net/b/XAPK/de.herber_edevelopment.m3uiptv?version=latest' \
+            -o /tmp/m3u.xapk
+          curl -fL --retry 4 --retry-delay 3 \
+            'https://github.com/iBotPeaches/Apktool/releases/download/v3.0.3/apktool_3.0.3.jar' \
+            -o /tmp/apktool.jar
+          rm -rf /tmp/m3u-xapk /tmp/m3u-decoded
+          mkdir -p /tmp/m3u-xapk
+          unzip -q /tmp/m3u.xapk -d /tmp/m3u-xapk
+          cat /tmp/m3u-xapk/manifest.json
+          test -f /tmp/m3u-xapk/de.herber_edevelopment.m3uiptv.apk
+          test -f /tmp/m3u-xapk/config.armeabi_v7a.apk
+
+      - name: Decode original base APK
+        run: |
+          set -euxo pipefail
+          java -jar /tmp/apktool.jar d -f \
+            /tmp/m3u-xapk/de.herber_edevelopment.m3uiptv.apk \
+            -o /tmp/m3u-decoded
+
+      - name: Patch as separate Jun IPTV package
+        run: |
+          set -euxo pipefail
+          python3 jun-m3u-mod/patch.py /tmp/m3u-decoded
+          grep -n 'package="jp.jun.iptv"' /tmp/m3u-decoded/AndroidManifest.xml
+          grep -n 'Jun IPTV' /tmp/m3u-decoded/AndroidManifest.xml
+
+      - name: Rebuild modified base APK
+        run: |
+          set -euxo pipefail
+          java -jar /tmp/apktool.jar b --use-aapt2 /tmp/m3u-decoded -o /tmp/jun-base-unsigned.apk
+
+      - name: Merge required armeabi-v7a native libraries
+        shell: bash
+        run: |
+          set -euxo pipefail
+          rm -rf /tmp/native-split
+          mkdir -p /tmp/native-split
+          unzip -q /tmp/m3u-xapk/config.armeabi_v7a.apk 'lib/*' -d /tmp/native-split
+          cp /tmp/jun-base-unsigned.apk /tmp/jun-with-libs-unsigned.apk
+          cd /tmp/native-split
+          zip -q -r -0 /tmp/jun-with-libs-unsigned.apk lib
+          unzip -l /tmp/jun-with-libs-unsigned.apk | grep 'lib/armeabi-v7a/'
+
+      - name: Align and sign Jun IPTV
+        shell: bash
+        run: |
+          set -euxo pipefail
+          BT="$ANDROID_HOME/build-tools/36.0.0"
+          keytool -genkeypair -v \
+            -keystore /tmp/jun-debug.keystore \
+            -storepass android -keypass android \
+            -alias juniptv -keyalg RSA -keysize 2048 -validity 10000 \
+            -dname 'CN=Jun IPTV,O=Personal,C=JP'
+          "$BT/zipalign" -f -p 4 /tmp/jun-with-libs-unsigned.apk /tmp/jun-aligned.apk
+          "$BT/apksigner" sign \
+            --ks /tmp/jun-debug.keystore \
+            --ks-pass pass:android --key-pass pass:android \
+            --out JunIPTV_M3U_alpha1.apk /tmp/jun-aligned.apk
+          "$BT/apksigner" verify --verbose --print-certs JunIPTV_M3U_alpha1.apk
+          "$BT/aapt" dump badging JunIPTV_M3U_alpha1.apk | head -30
+          "$BT/aapt" dump badging JunIPTV_M3U_alpha1.apk | grep "package: name='jp.jun.iptv'"
+
+      - name: Upload test APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: JunIPTV-M3U-alpha1
+          path: JunIPTV_M3U_alpha1.apk
+          if-no-files-found: error
+
+      - name: Publish test APK to short j.apk URL
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euxo pipefail
+          CURRENT_SHA=$(gh api "repos/${GITHUB_REPOSITORY}/contents/j.apk?ref=main" --jq .sha || true)
+          CONTENT=$(base64 -w0 JunIPTV_M3U_alpha1.apk)
+          if [ -n "$CURRENT_SHA" ]; then
+            gh api --method PUT "repos/${GITHUB_REPOSITORY}/contents/j.apk" \
+              -f message='Publish Jun IPTV M3U alpha1 [skip ci]' \
+              -f branch='main' \
+              -f sha="$CURRENT_SHA" \
+              -f content="$CONTENT"
+          else
+            gh api --method PUT "repos/${GITHUB_REPOSITORY}/contents/j.apk" \
+              -f message='Publish Jun IPTV M3U alpha1 [skip ci]' \
+              -f branch='main' \
+              -f content="$CONTENT"
+          fi
