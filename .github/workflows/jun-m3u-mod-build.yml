@@ -107,32 +107,26 @@ jobs:
           if-no-files-found: error
 
       - name: Publish test APK to short j.apk URL
-        env:
-          GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
-          set -u
-          CONTENT=$(base64 -w0 JunIPTV_M3U_alpha1.apk)
+          set -euxo pipefail
+          cp JunIPTV_M3U_alpha1.apk /tmp/j.apk
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           for attempt in 1 2 3 4 5 6 7 8; do
             echo "j.apk publish attempt ${attempt}/8"
-            CURRENT_SHA=$(gh api "repos/${GITHUB_REPOSITORY}/contents/j.apk?ref=main" --jq .sha 2>/dev/null || true)
-            if [ -n "$CURRENT_SHA" ]; then
-              if gh api --method PUT "repos/${GITHUB_REPOSITORY}/contents/j.apk" \
-                -f message='Publish Jun IPTV M3U alpha1 [skip ci]' \
-                -f branch='main' \
-                -f sha="$CURRENT_SHA" \
-                -f content="$CONTENT"; then
-                echo "j.apk published"
-                exit 0
-              fi
-            else
-              if gh api --method PUT "repos/${GITHUB_REPOSITORY}/contents/j.apk" \
-                -f message='Publish Jun IPTV M3U alpha1 [skip ci]' \
-                -f branch='main' \
-                -f content="$CONTENT"; then
-                echo "j.apk published"
-                exit 0
-              fi
+            git fetch origin main
+            git checkout -B jun-apk-publish origin/main
+            cp /tmp/j.apk j.apk
+            git add j.apk
+            if git diff --cached --quiet; then
+              echo "j.apk already current"
+              exit 0
+            fi
+            git commit -m "Publish Jun IPTV M3U alpha1 [skip ci]"
+            if git push origin HEAD:main; then
+              echo "j.apk published"
+              exit 0
             fi
             sleep 5
           done
