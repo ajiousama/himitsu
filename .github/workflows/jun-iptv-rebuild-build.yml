@@ -9,7 +9,7 @@ on:
       - '.jun-rebuild-build'
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -47,3 +47,18 @@ jobs:
           name: JunIPTV-rebuild-alpha1
           path: jun-iptv-rebuild/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
+
+      - name: Publish latest APK as j.apk on main
+        shell: bash
+        run: |
+          cp jun-iptv-rebuild/app/build/outputs/apk/debug/app-debug.apk /tmp/j.apk
+          git fetch origin main
+          git checkout main
+          cp /tmp/j.apk j.apk
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add j.apk
+          if ! git diff --cached --quiet; then
+            git commit -m "Publish Jun IPTV rebuild alpha1 [skip ci]"
+            git push origin HEAD:main
+          fi
