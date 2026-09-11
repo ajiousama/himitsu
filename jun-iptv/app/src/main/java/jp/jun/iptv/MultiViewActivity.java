@@ -50,13 +50,14 @@ public class MultiViewActivity extends Activity {
         grid = findViewById(R.id.grid);
         grid.setColumnCount(cols);
         grid.setRowCount(rows);
-        ((TextView) findViewById(R.id.multiTitle)).setText(PlaylistCatalog.title(mode) + "  " + count + "画面");
+        ((TextView) findViewById(R.id.multiTitle)).setText(PlaylistCatalog.title(mode) + "  " + count + "画面　　OK：操作");
         buildTiles(rows);
 
         loader = new PlaylistLoader();
         loader.load(this, mode, new PlaylistLoader.Callback() {
             @Override public void onLoaded(List<Channel> loaded) {
-                channels.clear(); channels.addAll(loaded);
+                channels.clear();
+                channels.addAll(loaded);
                 if (channels.isEmpty()) {
                     Toast.makeText(MultiViewActivity.this, "M3Uが空です", Toast.LENGTH_LONG).show();
                     return;
@@ -109,15 +110,7 @@ public class MultiViewActivity extends Activity {
             labels[i] = label;
 
             tile.setOnFocusChangeListener((v, hasFocus) -> { if (hasFocus) selectAudio(slot); });
-            tile.setOnClickListener(v -> openFullscreen(slot));
-            tile.setOnLongClickListener(v -> { openPicker(slot); return true; });
-            tile.setOnKeyListener((v, keyCode, event) -> {
-                if (event.getAction() != KeyEvent.ACTION_DOWN) return false;
-                if (keyCode == KeyEvent.KEYCODE_MENU || keyCode == KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE) {
-                    openPicker(slot); return true;
-                }
-                return false;
-            });
+            tile.setOnClickListener(v -> openSlotMenu(slot));
         }
     }
 
@@ -132,7 +125,11 @@ public class MultiViewActivity extends Activity {
         for (int s = 0; s < count; s++) {
             if (slotChannelIndex[s] < 0) {
                 for (int i = 0; i < channels.size(); i++) {
-                    if (!used.contains(i)) { slotChannelIndex[s] = i; used.add(i); break; }
+                    if (!used.contains(i)) {
+                        slotChannelIndex[s] = i;
+                        used.add(i);
+                        break;
+                    }
                 }
             }
         }
@@ -149,16 +146,22 @@ public class MultiViewActivity extends Activity {
                 case "keiba": ok = s.contains("競馬") || s.contains("jra") || s.contains("gch") || s.contains("green"); break;
                 default: ok = s.contains("オート") || s.contains("autorace"); break;
             }
-            if (ok) { used.add(i); return i; }
+            if (ok) {
+                used.add(i);
+                return i;
+            }
         }
         return -1;
     }
 
     private void playSlot(int slot) {
         int idx = slotChannelIndex[slot];
-        if (idx < 0 || idx >= channels.size()) { labels[slot].setText("未設定"); return; }
+        if (idx < 0 || idx >= channels.size()) {
+            labels[slot].setText("未設定");
+            return;
+        }
         Channel c = channels.get(idx);
-        labels[slot].setText(c.name);
+        labels[slot].setText((slot + 1) + "  " + c.name);
         engines[slot].play(c);
         engines[slot].setAudible(slot == focusedSlot);
     }
@@ -168,8 +171,21 @@ public class MultiViewActivity extends Activity {
         for (int i = 0; i < count; i++) engines[i].setAudible(i == slot);
     }
 
-    private void openPicker(int slot) {
+    private void openSlotMenu(int slot) {
         if (channels.isEmpty()) return;
+        String channelName = slotChannelIndex[slot] >= 0 && slotChannelIndex[slot] < channels.size()
+            ? channels.get(slotChannelIndex[slot]).name : "未設定";
+        new AlertDialog.Builder(this)
+            .setTitle("画面" + (slot + 1) + "：" + channelName)
+            .setItems(new String[]{"全画面で見る", "チャンネルを変更"}, (d, which) -> {
+                if (which == 0) openFullscreen(slot);
+                else openPicker(slot);
+            })
+            .setNegativeButton("閉じる", null)
+            .show();
+    }
+
+    private void openPicker(int slot) {
         String[] names = new String[channels.size()];
         for (int i = 0; i < channels.size(); i++) {
             Channel c = channels.get(i);
