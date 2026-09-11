@@ -118,7 +118,17 @@ public class ChannelActivity extends Activity {
 
     private void applyDisplayMode() {
         infoPanel.setVisibility(View.GONE);
-        channelPanel.setVisibility(AppPrefs.DISPLAY_GUIDE.equals(displayMode) ? View.VISIBLE : View.GONE);
+        boolean guide = AppPrefs.DISPLAY_GUIDE.equals(displayMode);
+        channelPanel.setVisibility(guide ? View.VISIBLE : View.GONE);
+
+        // 番組表モードでは一覧を映像の上に重ねず、M3U IPTVのように
+        // 左の一覧ぶんだけ映像領域そのものを縮めて右側へ配置する。
+        FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams) playerHost.getLayoutParams();
+        lp.width = FrameLayout.LayoutParams.MATCH_PARENT;
+        lp.height = FrameLayout.LayoutParams.MATCH_PARENT;
+        lp.leftMargin = guide ? dp(430) : 0;
+        lp.rightMargin = 0;
+        playerHost.setLayoutParams(lp);
     }
 
     private void showChannels() {
@@ -250,6 +260,10 @@ public class ChannelActivity extends Activity {
             }
         }
         return super.onKeyDown(keyCode, event);
+    }
+
+    private int dp(int value) {
+        return (int) (value * getResources().getDisplayMetrics().density + 0.5f);
     }
 
     @Override protected void onDestroy() {
