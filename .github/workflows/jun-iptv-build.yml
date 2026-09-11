@@ -2,6 +2,11 @@ name: Build Jun IPTV TS401 APK
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - jun-iptv-build
+    paths:
+      - '.jun-v020-build'
 
 permissions:
   contents: write
@@ -37,7 +42,7 @@ jobs:
       - name: Upload TS-401 APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: JunIPTV-TS401-debug-apk
+          name: JunIPTV-v0.2-TS401-debug-apk
           path: jun-iptv/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
 
@@ -50,6 +55,6 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add jun-iptv/releases/JunIPTV_TS401_latest.apk
           if ! git diff --cached --quiet; then
-            git commit -m "Publish Jun IPTV TS401 APK [skip ci]"
+            git commit -m "Publish Jun IPTV v0.2 APK [skip ci]"
             git push origin HEAD:jun-iptv-build
           fi
