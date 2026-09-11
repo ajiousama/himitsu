@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
+import base64
 import json
 import time
+import urllib.parse
 import urllib.request
 from pathlib import Path
 
@@ -8,6 +10,7 @@ SLUG = "joshua-hkd"
 API = f"https://kick.com/api/v2/channels/{SLUG}"
 FREEWIFI = Path("freewifi")
 LOGO = "https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/kick_gccx2.svg"
+MIN_VALID_SECONDS = 240
 
 
 def get_json(url):
@@ -53,6 +56,39 @@ def find_playback(value):
     return None
 
 
+def current_cx2_url(text):
+    lines = text.splitlines()
+    for i, line in enumerate(lines):
+        if 'tvg-id="kick.gccx2"' in line and i + 1 < len(lines):
+            candidate = lines[i + 1].strip()
+            if candidate.startswith(("http://", "https://")):
+                return candidate
+    return None
+
+
+def token_exp(url):
+    if not url:
+        return None
+    try:
+        token = urllib.parse.parse_qs(urllib.parse.urlsplit(url).query).get("token", [None])[0]
+        if not token:
+            return None
+        parts = token.split(".")
+        if len(parts) < 2:
+            return None
+        payload = parts[1] + "=" * (-len(parts[1]) % 4)
+        data = json.loads(base64.urlsafe_b64decode(payload.encode("ascii")).decode("utf-8"))
+        exp = data.get("exp")
+        return int(exp) if exp is not None else None
+    except Exception:
+        return None
+
+
+def still_fresh(url):
+    exp = token_exp(url)
+    return bool(exp and exp - int(time.time()) > MIN_VALID_SECONDS)
+
+
 def remove_cx2(text):
     lines = text.splitlines(keepends=True)
     out = []
@@ -85,23 +121,36 @@ def add_cx2(text, playback_url):
 
 
 def main():
+    text = FREEWIFI.read_text(encoding="utf-8")
+    old_url = current_cx2_url(text)
+
     data = get_json(API)
     if data is None:
-        raise SystemExit("KICK lookup failed; keeping current Free Wi-Fi state unchanged")
+        print("KICK lookup failed; keeping current Free Wi-Fi state unchanged")
+        return 0
 
     playback = find_playback(data)
     live = bool(playback)
-    text = FREEWIFI.read_text(encoding="utf-8")
+    final_url = None
     new_text = remove_cx2(text)
+
     if live:
-        new_text = add_cx2(new_text, playback)
+        if still_fresh(old_url):
+            final_url = old_url
+        else:
+            final_url = playback
+        new_text = add_cx2(new_text, final_url)
 
     if new_text != text:
         FREEWIFI.write_text(new_text, encoding="utf-8")
-        print("CX2 Free Wi-Fi state changed:", "LIVE -> refreshed direct KICK HLS" if live else "OFFLINE -> removed")
+        if live:
+            print("CX2 Free Wi-Fi state changed: LIVE -> refreshed direct KICK HLS")
+        else:
+            print("CX2 Free Wi-Fi state changed: OFFLINE -> removed")
     else:
-        print("CX2 Free Wi-Fi state unchanged:", "LIVE" if live else "OFFLINE")
+        print("CX2 Free Wi-Fi state unchanged:", "LIVE (token still fresh)" if live else "OFFLINE")
 
+    exp = token_exp(final_url)
     Path("gccx2_live_state.json").write_text(
         json.dumps(
             {
@@ -109,13 +158,15 @@ def main():
                 "live": live,
                 "playback_detected": bool(playback),
                 "mode": "direct-kick-playback",
+                "token_expires_at": exp,
             },
             ensure_ascii=False,
             indent=2,
         ) + "\n",
         encoding="utf-8",
     )
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())
