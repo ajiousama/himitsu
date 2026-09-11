@@ -1,4 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
-<GridLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/grid" android:layout_width="match_parent" android:layout_height="match_parent"
-    android:rowCount="2" android:columnCount="2" android:background="@color/bg" android:padding="4dp" />
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg">
+
+    <GridLayout
+        android:id="@+id/grid"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingTop="42dp"
+        android:paddingLeft="4dp"
+        android:paddingRight="4dp"
+        android:paddingBottom="4dp" />
+
+    <TextView
+        android:id="@+id/multiTitle"
+        android:layout_width="match_parent"
+        android:layout_height="42dp"
+        android:layout_gravity="top"
+        android:gravity="center_vertical"
+        android:paddingLeft="14dp"
+        android:background="#D0191D24"
+        android:textColor="@color/text"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+</FrameLayout>
