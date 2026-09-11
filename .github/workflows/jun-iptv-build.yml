@@ -51,9 +51,10 @@ jobs:
         run: |
           mkdir -p jun-iptv/releases
           cp jun-iptv/app/build/outputs/apk/debug/app-debug.apk jun-iptv/releases/JunIPTV_TS401_latest.apk
+          cp jun-iptv/app/build/outputs/apk/debug/app-debug.apk j.apk
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add jun-iptv/releases/JunIPTV_TS401_latest.apk
+          git add jun-iptv/releases/JunIPTV_TS401_latest.apk j.apk
           if ! git diff --cached --quiet; then
             git commit -m "Publish Jun IPTV v0.2 APK [skip ci]"
             git push origin HEAD:jun-iptv-build
