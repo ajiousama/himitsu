@@ -9,7 +9,7 @@ import time
 
 STATE_FILES = ('boat_auto_state.json', 'today_boat_status.json', 'boat_auto_alert.json')
 OUTPUTS = (*STATE_FILES, 'freewifi', 'guides.xml', 'public_sports_epg_local.xml',
-           'today_event_counts.json', 'boat_worker_status.json')
+           'today_event_counts.json', 'boat_worker_status.json', 'gccx2_live_state.json')
 
 
 def run(*args, timeout=180):
@@ -22,6 +22,12 @@ def publish(snapshot):
         run('git', 'reset', '--hard', 'origin/main')
         for name, content in snapshot.items():
             Path(name).write_bytes(content)
+        # Refresh the short-lived CX2 KICK playback URL on the same continuous
+        # worker that already owns safe freewifi publication. The sync script
+        # keeps the current URL while its token has enough lifetime remaining.
+        cx2 = subprocess.run(['python', 'kick_gccx2_sync.py'], timeout=60)
+        if cx2.returncode != 0:
+            print(f'::warning::CX2 KICK refresh exited {cx2.returncode}; keeping current playlist entry', flush=True)
         # Do not overwrite current freewifi/guides with the old checkout's copies.
         run('python', 'boat_publish.py')
         run('python', 'build_today_event_counts.py')
@@ -61,7 +67,7 @@ def main():
             status = {'checked_at': datetime.now(timezone.utc).isoformat(),
                       'run_id': os.environ.get('GITHUB_RUN_ID'),
                       'cycles': cycles + 1, 'successor_queued': successor,
-                      'strategy': 'continuous worker, 60-second retry; 5-minute verified-stream probes'}
+                      'strategy': 'continuous worker, 60-second retry; 5-minute verified-stream probes; CX2 token refresh'}
             snapshot = {name: Path(name).read_bytes() for name in STATE_FILES}
             snapshot['boat_worker_status.json'] = (json.dumps(status, indent=2) + '\n').encode()
             publish(snapshot)
