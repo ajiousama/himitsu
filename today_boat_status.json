@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-11",
-  "generated_at": "2026-09-11T10:11:48.612055+09:00",
+  "generated_at": "2026-09-11T10:12:48.611451+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260911.json",
   "schedule_checked_at": "2026-09-11T10:05:48.616454+09:00",
@@ -20,7 +20,7 @@
   "card_count": 12,
   "held_count": 12,
   "visible_count": 6,
-  "active_count": 3,
+  "active_count": 4,
   "ended_kept": [],
   "seed_required": false,
   "seed_required_venues": [],
@@ -37,7 +37,7 @@
     "day": {
       "held": 7,
       "acquired": 4,
-      "active": 1,
+      "active": 2,
       "ended": 0,
       "seed_required": 0,
       "cancelled": 0
@@ -56,13 +56,13 @@
     "fetched": 6,
     "failures": [
       {
-        "jcd": "06",
-        "name": "浜名湖",
+        "jcd": "05",
+        "name": "多摩川",
         "error": "HTTPError: playback check failed"
       },
       {
-        "jcd": "05",
-        "name": "多摩川",
+        "jcd": "06",
+        "name": "浜名湖",
         "error": "HTTPError: playback check failed"
       },
       {
@@ -133,13 +133,13 @@
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/9ab04fd6d02d4f7eac04b2c1f554fd55/96b89f0159c84d51977329db7e2f1b69/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTI2MTIwMCwic3RhcnQiOjE3ODkwODcyMDAsImlvcyI6MTgsImNwIjoiMjExMjgyODAwXzIxMTMyNTk5OSIsInBwdyI6IjQwayJ9.wjEvjCqI9Inz72Lc6RLtjZ_HVE8v9GpCLszuu43Ivj0",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-09-11T09:40:21.640475+09:00",
-      "checked_at": "2026-09-11T10:06:48.617030+09:00",
+      "checked_at": "2026-09-11T10:12:48.615004+09:00",
       "first_verified_at": "2026-09-11T09:40:21.640475+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
         "sequence": 8033727,
-        "last_segment": "/9ab04fd6d02d4f7eac04b2c1f554fd55/96b89f0159c84d51977329db7e2f1b69/manifest_4_8033994.ts",
+        "last_segment": "/9ab04fd6d02d4f7eac04b2c1f554fd55/96b89f0159c84d51977329db7e2f1b69/manifest_4_8034054.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -897,7 +897,7 @@
       "held": true,
       "visible": true,
       "ended": false,
-      "active": false,
+      "active": true,
       "cancelled": false,
       "mode": "day",
       "mode_label": "デイ",
@@ -908,7 +908,7 @@
         "race": 1,
         "start": "10:42"
       },
-      "stream_window": "scheduled",
+      "stream_window": "live_or_prestart",
       "guidance_switch_at": "2026-09-11T17:22:00+09:00",
       "seed_required": false,
       "playback_verified": true,
