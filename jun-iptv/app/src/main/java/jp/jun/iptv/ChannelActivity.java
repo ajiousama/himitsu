@@ -1,15 +1,13 @@
 package jp.jun.iptv;
 
 import android.app.Activity;
-import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.KeyEvent;
 import android.view.View;
-import android.webkit.WebChromeClient;
-import android.webkit.WebSettings;
-import android.webkit.WebView;
-import android.webkit.WebViewClient;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -19,24 +17,25 @@ import androidx.media3.ui.PlayerView;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class ChannelActivity extends Activity {
     private final List<Channel> channels = new ArrayList<>();
+    private final Handler ui = new Handler(Looper.getMainLooper());
     private PlaylistLoader loader;
     private EpgLoader epg;
     private ChannelAdapter adapter;
     private ListView list;
-    private LinearLayout channelPanel, infoPanel;
+    private LinearLayout channelPanel, infoPanel, switchOsd;
     private FrameLayout playerHost;
     private PlayerView playerView;
-    private WebView youtubeView;
     private PlayerEngine engine;
-    private TextView status, nowTitle, nowProgram, nextProgram;
+    private TextView status, nowTitle, nowProgram, nextProgram, switchName, switchState;
+    private ImageView switchLogo;
     private String mode;
     private String displayMode;
     private int current = -1;
+    private int youtubeRetryAttempted = -1;
+    private final Runnable hideOsd = () -> switchOsd.setVisibility(View.GONE);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,32 +49,43 @@ public class ChannelActivity extends Activity {
         list = findViewById(R.id.channelList);
         channelPanel = findViewById(R.id.channelPanel);
         infoPanel = findViewById(R.id.infoPanel);
+        switchOsd = findViewById(R.id.switchOsd);
+        switchLogo = findViewById(R.id.switchLogo);
+        switchName = findViewById(R.id.switchName);
+        switchState = findViewById(R.id.switchState);
         playerHost = findViewById(R.id.playerHost);
         playerView = findViewById(R.id.player);
-        youtubeView = findViewById(R.id.youtubeView);
         status = findViewById(R.id.status);
         nowTitle = findViewById(R.id.nowTitle);
         nowProgram = findViewById(R.id.nowProgram);
         nextProgram = findViewById(R.id.nextProgram);
         ((TextView) findViewById(R.id.modeTitle)).setText(PlaylistCatalog.title(mode));
 
-        setupYoutube();
         adapter = new ChannelAdapter(this, channels);
         list.setAdapter(adapter);
         list.setOnItemClickListener((parent, view, position, id) -> {
-            play(position);
+            play(position, true);
             if (AppPrefs.DISPLAY_APP.equals(displayMode)) hideChannels();
         });
         list.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
             @Override public void onItemSelected(android.widget.AdapterView<?> p, View v, int pos, long id) { updateInfo(pos); }
             @Override public void onNothingSelected(android.widget.AdapterView<?> p) {}
         });
-
-        engine = new PlayerEngine(this, playerView, msg -> {
-            Channel c = current >= 0 && current < channels.size() ? channels.get(current) : null;
-            if (c != null && tryYoutube(c)) return;
-            Toast.makeText(this, "再生エラー: " + msg, Toast.LENGTH_SHORT).show();
+        list.setOnKeyListener((v, keyCode, event) -> {
+            if (event.getAction() != KeyEvent.ACTION_DOWN || channels.isEmpty()) return false;
+            int selected = list.getSelectedItemPosition();
+            if (keyCode == KeyEvent.KEYCODE_DPAD_UP && selected <= 0) {
+                list.setSelection(channels.size() - 1);
+                return true;
+            }
+            if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN && selected >= channels.size() - 1) {
+                list.setSelection(0);
+                return true;
+            }
+            return false;
         });
+
+        engine = new PlayerEngine(this, playerView, msg -> onPlaybackError(msg));
 
         applyDisplayMode();
         loader = new PlaylistLoader();
@@ -90,7 +100,7 @@ public class ChannelActivity extends Activity {
                 if (!channels.isEmpty()) {
                     int start = Math.max(0, Math.min(channels.size() - 1, getIntent().getIntExtra("index", 0)));
                     list.setSelection(start);
-                    play(start);
+                    play(start, true);
                     if (AppPrefs.DISPLAY_GUIDE.equals(displayMode)) list.requestFocus();
                     else playerHost.requestFocus();
                     epg.load(ChannelActivity.this, mode, channels, () -> {
@@ -106,23 +116,9 @@ public class ChannelActivity extends Activity {
         });
     }
 
-    private void setupYoutube() {
-        WebSettings s = youtubeView.getSettings();
-        s.setJavaScriptEnabled(true);
-        s.setDomStorageEnabled(true);
-        s.setMediaPlaybackRequiresUserGesture(false);
-        youtubeView.setWebChromeClient(new WebChromeClient());
-        youtubeView.setWebViewClient(new WebViewClient());
-        youtubeView.setFocusable(false);
-    }
-
     private void applyDisplayMode() {
         infoPanel.setVisibility(View.GONE);
-        if (AppPrefs.DISPLAY_GUIDE.equals(displayMode)) {
-            channelPanel.setVisibility(View.VISIBLE);
-        } else {
-            channelPanel.setVisibility(View.GONE);
-        }
+        channelPanel.setVisibility(AppPrefs.DISPLAY_GUIDE.equals(displayMode) ? View.VISIBLE : View.GONE);
     }
 
     private void showChannels() {
@@ -138,49 +134,69 @@ public class ChannelActivity extends Activity {
         playerHost.requestFocus();
     }
 
-    private void play(int position) {
+    private void play(int position, boolean resetRetry) {
         if (position < 0 || position >= channels.size()) return;
         current = position;
+        if (resetRetry) youtubeRetryAttempted = -1;
         list.setItemChecked(position, true);
-        youtubeView.setVisibility(View.GONE);
-        playerView.setVisibility(View.VISIBLE);
         Channel c = channels.get(position);
-        if (PlaylistCatalog.MODE_YOUTUBE.equals(mode) && tryYoutube(c)) {
-            updateInfo(position);
-            return;
-        }
+        showSwitchOsd(c, "接続中…", 4200);
         engine.play(c);
         updateInfo(position);
     }
 
-    private boolean tryYoutube(Channel c) {
-        String id = youtubeId(c.url);
-        if (id == null) return false;
-        engine.getPlayer().stop();
-        playerView.setVisibility(View.GONE);
-        youtubeView.setVisibility(View.VISIBLE);
-        String html = "<html><body style='margin:0;background:#000;overflow:hidden'>" +
-            "<iframe width='100%' height='100%' src='https://www.youtube.com/embed/" + id +
-            "?autoplay=1&controls=1&playsinline=1' frameborder='0' allow='autoplay; encrypted-media; picture-in-picture' allowfullscreen></iframe>" +
-            "</body></html>";
-        youtubeView.loadDataWithBaseURL("https://www.youtube.com", html, "text/html", "UTF-8", null);
-        playerHost.requestFocus();
-        return true;
+    private void onPlaybackError(String message) {
+        Channel c = current >= 0 && current < channels.size() ? channels.get(current) : null;
+        if (c == null) return;
+        if (PlaylistCatalog.MODE_YOUTUBE.equals(mode) && youtubeRetryAttempted != current) {
+            youtubeRetryAttempted = current;
+            showSwitchOsd(c, "YouTube LIVE URLを更新中…", 7000);
+            refreshYoutubeChannel(c);
+            return;
+        }
+        showSwitchOsd(c, "再生できません  (" + message + ")", 6500);
     }
 
-    private String youtubeId(String url) {
-        if (url == null) return null;
-        String[] regex = {
-            "[?&]v=([A-Za-z0-9_-]{11})",
-            "youtu\\.be/([A-Za-z0-9_-]{11})",
-            "youtube\\.com/(?:live|embed)/([A-Za-z0-9_-]{11})",
-            "/id/([A-Za-z0-9_-]{11})(?:[./])"
-        };
-        for (String r : regex) {
-            Matcher m = Pattern.compile(r).matcher(url);
-            if (m.find()) return m.group(1);
+    private void refreshYoutubeChannel(Channel old) {
+        PlaylistLoader refresh = new PlaylistLoader();
+        refresh.load(this, mode, new PlaylistLoader.Callback() {
+            @Override public void onLoaded(List<Channel> fresh) {
+                int match = findMatching(fresh, old);
+                if (match >= 0 && current >= 0 && current < channels.size()) {
+                    Channel updated = fresh.get(match);
+                    channels.set(current, updated);
+                    adapter.notifyDataSetChanged();
+                    showSwitchOsd(updated, "再接続中…", 5000);
+                    play(current, false);
+                } else {
+                    showSwitchOsd(old, "最新のYouTube LIVE URLを取得できません", 6500);
+                }
+                refresh.shutdown();
+            }
+            @Override public void onError(String message) {
+                showSwitchOsd(old, "YouTube更新失敗", 6500);
+                refresh.shutdown();
+            }
+        });
+    }
+
+    private int findMatching(List<Channel> list, Channel target) {
+        for (int i = 0; i < list.size(); i++) {
+            Channel c = list.get(i);
+            if (!target.tvgId.isEmpty() && target.tvgId.equals(c.tvgId)) return i;
+            if (target.name.equals(c.name) && target.source.equals(c.source)) return i;
         }
-        return null;
+        return -1;
+    }
+
+    private void showSwitchOsd(Channel c, String state, long durationMs) {
+        if (c == null) return;
+        ui.removeCallbacks(hideOsd);
+        switchName.setText((current >= 0 ? (current + 1) + "  " : "") + c.name);
+        switchState.setText(state);
+        LogoLoader.load(switchLogo, c.logo);
+        switchOsd.setVisibility(View.VISIBLE);
+        if (durationMs > 0) ui.postDelayed(hideOsd, durationMs);
     }
 
     private void updateInfo(int position) {
@@ -194,7 +210,7 @@ public class ChannelActivity extends Activity {
     private void switchBy(int delta) {
         if (channels.isEmpty()) return;
         int n = current < 0 ? 0 : (current + delta + channels.size()) % channels.size();
-        play(n);
+        play(n, true);
         list.setSelection(n);
     }
 
@@ -209,21 +225,18 @@ public class ChannelActivity extends Activity {
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_VOLUME_UP) { changeVolume(5); return true; }
         if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) { changeVolume(-5); return true; }
-        if (keyCode == KeyEvent.KEYCODE_MENU) {
-            startActivity(new Intent(this, SettingsActivity.class));
-            return true;
-        }
         if (keyCode == KeyEvent.KEYCODE_BACK) {
             if (infoPanel.getVisibility() == View.VISIBLE) { infoPanel.setVisibility(View.GONE); return true; }
             if (channelPanel.getVisibility() == View.VISIBLE && !AppPrefs.DISPLAY_GUIDE.equals(displayMode)) { hideChannels(); return true; }
-            finish(); return true;
+            finish();
+            return true;
         }
 
         if (list.hasFocus()) {
             if (keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) { hideChannels(); return true; }
             if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER || keyCode == KeyEvent.KEYCODE_ENTER) {
                 int p = list.getSelectedItemPosition();
-                if (p >= 0) play(p);
+                if (p >= 0) play(p, true);
                 if (AppPrefs.DISPLAY_APP.equals(displayMode)) hideChannels();
                 return true;
             }
@@ -241,7 +254,7 @@ public class ChannelActivity extends Activity {
 
     @Override protected void onDestroy() {
         super.onDestroy();
-        if (youtubeView != null) youtubeView.destroy();
+        ui.removeCallbacksAndMessages(null);
         if (engine != null) engine.release();
         if (loader != null) loader.shutdown();
         if (epg != null) epg.shutdown();
