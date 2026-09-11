@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-11",
-  "generated_at": "2026-09-11T13:14:48.643675+09:00",
+  "generated_at": "2026-09-11T13:15:48.648365+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260911.json",
   "schedule_checked_at": "2026-09-11T13:12:48.588219+09:00",
@@ -56,6 +56,11 @@
     "fetched": 9,
     "failures": [
       {
+        "jcd": "24",
+        "name": "大村",
+        "error": "cloud and official acquisition unavailable: HTTPError"
+      },
+      {
         "jcd": "20",
         "name": "若松",
         "error": "cloud and official acquisition unavailable: HTTPError"
@@ -63,11 +68,6 @@
       {
         "jcd": "12",
         "name": "住之江",
-        "error": "cloud and official acquisition unavailable: HTTPError"
-      },
-      {
-        "jcd": "24",
-        "name": "大村",
         "error": "cloud and official acquisition unavailable: HTTPError"
       }
     ]
@@ -165,13 +165,13 @@
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/2306aad34259484db8f9875e7480a2d6/357d676749cb4dd3a653677561dfeabf/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTI1NzYwMCwic3RhcnQiOjE3ODkwODE3NDAsImlvcyI6MTgsImNwIjoiMjExMjc3MzQwXzIxMTMyMDUzOSIsInBwdyI6IjQwayJ9.jxZKII1i07tYGov6VI-VDYaw5qOk0ENCkHdepd1VMJk",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-09-11T08:09:21.974797+09:00",
-      "checked_at": "2026-09-11T13:09:48.654344+09:00",
+      "checked_at": "2026-09-11T13:15:48.652279+09:00",
       "first_verified_at": "2026-09-11T08:09:21.974797+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
         "sequence": 8054004,
-        "last_segment": "/2306aad34259484db8f9875e7480a2d6/357d676749cb4dd3a653677561dfeabf/manifest_1_8057011.ts",
+        "last_segment": "/2306aad34259484db8f9875e7480a2d6/357d676749cb4dd3a653677561dfeabf/manifest_1_8057071.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -181,13 +181,13 @@
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/9ab04fd6d02d4f7eac04b2c1f554fd55/96b89f0159c84d51977329db7e2f1b69/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTI2MTIwMCwic3RhcnQiOjE3ODkwODcyMDAsImlvcyI6MTgsImNwIjoiMjExMjgyODAwXzIxMTMyNTk5OSIsInBwdyI6IjQwayJ9.wjEvjCqI9Inz72Lc6RLtjZ_HVE8v9GpCLszuu43Ivj0",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-09-11T09:40:21.640475+09:00",
-      "checked_at": "2026-09-11T13:09:48.654913+09:00",
+      "checked_at": "2026-09-11T13:15:48.652791+09:00",
       "first_verified_at": "2026-09-11T09:40:21.640475+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
         "sequence": 8033727,
-        "last_segment": "/9ab04fd6d02d4f7eac04b2c1f554fd55/96b89f0159c84d51977329db7e2f1b69/manifest_4_8035824.ts",
+        "last_segment": "/9ab04fd6d02d4f7eac04b2c1f554fd55/96b89f0159c84d51977329db7e2f1b69/manifest_4_8035884.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -197,13 +197,13 @@
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/31d8733735af4a299516dc5b8361baf3/78e9dc518a954e30a3ab95ce766c3f27/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTI2NDgwMCwic3RhcnQiOjE3ODkwODg3MDAsImlvcyI6MTgsImNwIjoiMjExMjg0MzAwXzIxMTMyNzQ5OSIsInBwdyI6IjQwayJ9.xzUDYtpjOKJYsQ6qwx-1Bq5NZz1WSy98nvHY-JNQJAk",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-09-11T10:05:57.083862+09:00",
-      "checked_at": "2026-09-11T13:09:48.656317+09:00",
+      "checked_at": "2026-09-11T13:15:48.652807+09:00",
       "first_verified_at": "2026-09-11T10:05:57.083862+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
         "sequence": 8019083,
-        "last_segment": "/31d8733735af4a299516dc5b8361baf3/78e9dc518a954e30a3ab95ce766c3f27/manifest_1_8020930.ts",
+        "last_segment": "/31d8733735af4a299516dc5b8361baf3/78e9dc518a954e30a3ab95ce766c3f27/manifest_1_8020990.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -213,13 +213,13 @@
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/7defe963623a4a54b9506db28a2efa6e/8f47141998824afc94fbff669ee3b023/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTI1NDAwMCwic3RhcnQiOjE3ODkwODEwMjAsImlvcyI6MTgsImNwIjoiMjExMjc2NjIwXzIxMTMxOTgxOSIsInBwdyI6IjQwayJ9.ummISKtvclqAKB2ScyhTLq5-Es9lWVPbqtNcTmsmtuo",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-09-11T07:57:21.465388+09:00",
-      "checked_at": "2026-09-11T13:09:48.656342+09:00",
+      "checked_at": "2026-09-11T13:15:48.654350+09:00",
       "first_verified_at": "2026-09-11T07:57:21.465388+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
         "sequence": 8046572,
-        "last_segment": "/7defe963623a4a54b9506db28a2efa6e/8f47141998824afc94fbff669ee3b023/manifest_1_8049700.ts",
+        "last_segment": "/7defe963623a4a54b9506db28a2efa6e/8f47141998824afc94fbff669ee3b023/manifest_1_8049759.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
