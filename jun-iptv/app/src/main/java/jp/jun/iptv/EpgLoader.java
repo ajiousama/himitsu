@@ -1,5 +1,6 @@
 package jp.jun.iptv;
 
+import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Xml;
@@ -27,16 +28,28 @@ public class EpgLoader {
     private final Handler main = new Handler(Looper.getMainLooper());
 
     public void load(String mode, List<Channel> channels, Callback cb) {
+        loadInternal(PlaylistCatalog.sources(mode), channels, cb);
+    }
+
+    public void load(Context context, String mode, List<Channel> channels, Callback cb) {
+        loadInternal(PlaylistCatalog.sources(context, mode), channels, cb);
+    }
+
+    private void loadInternal(List<PlaylistSource> sources, List<Channel> channels, Callback cb) {
         executor.execute(() -> {
             try {
                 Set<String> wanted = new HashSet<>();
                 for (Channel c : channels) if (!c.tvgId.isEmpty()) wanted.add(c.tvgId);
-                if (wanted.isEmpty()) return;
+                if (wanted.isEmpty()) { main.post(cb::onUpdated); return; }
 
                 Set<String> urls = new HashSet<>();
-                for (PlaylistSource s : PlaylistCatalog.sources(mode)) if (s.epgUrl != null && !s.epgUrl.isEmpty()) urls.add(s.epgUrl);
+                for (PlaylistSource s : sources) {
+                    if (s.epgUrl != null && !s.epgUrl.isEmpty()) urls.add(s.epgUrl);
+                }
                 Map<String, List<Programme>> map = new HashMap<>();
-                for (String url : urls) parse(url, wanted, map);
+                for (String url : urls) {
+                    try { parse(url, wanted, map); } catch (Exception ignored) {}
+                }
 
                 long now = System.currentTimeMillis();
                 for (Channel c : channels) {
@@ -52,7 +65,7 @@ public class EpgLoader {
                 }
                 main.post(cb::onUpdated);
             } catch (Exception ignored) {
-                // Playback remains usable even if EPG is temporarily unavailable.
+                main.post(cb::onUpdated);
             }
         });
     }
