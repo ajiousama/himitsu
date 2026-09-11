@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-11",
-  "generated_at": "2026-09-11T14:24:48.705283+09:00",
+  "generated_at": "2026-09-11T14:25:48.705514+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260911.json",
   "schedule_checked_at": "2026-09-11T14:15:48.704579+09:00",
@@ -19,7 +19,7 @@
   "alert_lead_minutes": 30,
   "card_count": 12,
   "held_count": 12,
-  "visible_count": 9,
+  "visible_count": 10,
   "active_count": 8,
   "ended_kept": [
     "芦屋"
@@ -46,7 +46,7 @@
     },
     "night": {
       "held": 3,
-      "acquired": 0,
+      "acquired": 1,
       "active": 0,
       "ended": 0,
       "seed_required": 0,
@@ -55,16 +55,11 @@
   },
   "cloud_acquisition": {
     "requested": 11,
-    "fetched": 8,
+    "fetched": 9,
     "failures": [
       {
         "jcd": "20",
         "name": "若松",
-        "error": "HTTPError: playback check failed"
-      },
-      {
-        "jcd": "12",
-        "name": "住之江",
         "error": "HTTPError: playback check failed"
       },
       {
@@ -142,6 +137,22 @@
         "ok": true,
         "sequence": 8056158,
         "last_segment": "/d22dd7ee37e94fe48125611ac7102950/3732150521d44d42814f54de136b66b2/manifest_1_8058175.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
+    },
+    "boat.suminoe": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/6edad9adc1fa4ca49c0835970947102e/3aa3472007244c669b990df8e1f9ac99/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTI3OTIwMCwic3RhcnQiOjE3ODkxMDQzMDAsImlvcyI6MTgsImNwIjoiMjExMjk5OTAwXzIxMTM0MTU5OSIsInBwdyI6IjQwayJ9.kL25RFwMy1nDmJt8CefaPJjpyPLTF1lRuTF4MO0axaY",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-09-11T14:25:48.708656+09:00",
+      "checked_at": "2026-09-11T14:25:48.708656+09:00",
+      "first_verified_at": "2026-09-11T14:25:48.708656+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 8033676,
+        "last_segment": "/6edad9adc1fa4ca49c0835970947102e/3aa3472007244c669b990df8e1f9ac99/manifest_4_8033683.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -593,7 +604,7 @@
       "jcd": "12",
       "name": "住之江",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
       "active": false,
       "cancelled": false,
@@ -609,9 +620,9 @@
       "stream_window": "scheduled",
       "guidance_switch_at": "2026-09-11T21:15:00+09:00",
       "seed_required": false,
-      "playback_verified": false,
-      "first_verified_at": null,
-      "ready_before_first_race": false,
+      "playback_verified": true,
+      "first_verified_at": "2026-09-11T14:25:48.708656+09:00",
+      "ready_before_first_race": true,
       "acquire_from": "2026-09-11T12:48:00+09:00",
       "races": [
         {
@@ -675,7 +686,9 @@
           "name": "報知ドリーム"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/6edad9adc1fa4ca49c0835970947102e/3aa3472007244c669b990df8e1f9ac99/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTI3OTIwMCwic3RhcnQiOjE3ODkxMDQzMDAsImlvcyI6MTgsImNwIjoiMjExMjk5OTAwXzIxMTM0MTU5OSIsInBwdyI6IjQwayJ9.kL25RFwMy1nDmJt8CefaPJjpyPLTF1lRuTF4MO0axaY",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     },
     "boat.amagasaki": {
       "jcd": "13",
