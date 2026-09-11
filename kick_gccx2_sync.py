@@ -8,14 +8,15 @@ SLUG = "joshua-hkd"
 API = f"https://kick.com/api/v2/channels/{SLUG}"
 FREEWIFI = Path("freewifi")
 LOGO = "https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/kick_gccx2.svg"
-PLAY_URL = "https://himitsu-six.vercel.app/api/kick2"
 
 
 def get_json(url):
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/140 Safari/537.36",
         "Accept": "application/json, text/plain, */*",
-        "Referer": "https://kick.com/",
+        "Referer": f"https://kick.com/{SLUG}",
+        "Cache-Control": "no-cache",
+        "Pragma": "no-cache",
     }
     for attempt in range(3):
         try:
@@ -67,10 +68,10 @@ def remove_cx2(text):
     return "".join(out)
 
 
-def add_cx2(text):
+def add_cx2(text, playback_url):
     block = (
         f'#EXTINF:-1 group-title="その他" tvg-id="kick.gccx2" tvg-logo="{LOGO}",ゲームセンターＣＸ2(KICK)\n'
-        f"{PLAY_URL}\n"
+        f"{playback_url}\n"
     )
     nogi = '#EXTINF:-1 group-title="その他" tvg-id="kick.nogizaka"'
     pos = text.find(nogi)
@@ -93,16 +94,25 @@ def main():
     text = FREEWIFI.read_text(encoding="utf-8")
     new_text = remove_cx2(text)
     if live:
-        new_text = add_cx2(new_text)
+        new_text = add_cx2(new_text, playback)
 
     if new_text != text:
         FREEWIFI.write_text(new_text, encoding="utf-8")
-        print("CX2 Free Wi-Fi state changed:", "LIVE -> added" if live else "OFFLINE -> removed")
+        print("CX2 Free Wi-Fi state changed:", "LIVE -> refreshed direct KICK HLS" if live else "OFFLINE -> removed")
     else:
         print("CX2 Free Wi-Fi state unchanged:", "LIVE" if live else "OFFLINE")
 
     Path("gccx2_live_state.json").write_text(
-        json.dumps({"slug": SLUG, "live": live, "playback_detected": bool(playback)}, ensure_ascii=False, indent=2) + "\n",
+        json.dumps(
+            {
+                "slug": SLUG,
+                "live": live,
+                "playback_detected": bool(playback),
+                "mode": "direct-kick-playback",
+            },
+            ensure_ascii=False,
+            indent=2,
+        ) + "\n",
         encoding="utf-8",
     )
 
