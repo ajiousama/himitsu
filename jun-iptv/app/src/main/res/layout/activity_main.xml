@@ -1,27 +1,108 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent" android:layout_height="match_parent"
-    android:orientation="vertical" android:gravity="center" android:background="@color/bg"
-    android:padding="48dp">
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal"
+    android:background="@color/bg">
 
-    <TextView android:id="@+id/title" android:layout_width="wrap_content" android:layout_height="wrap_content"
-        android:text="Jun IPTV" android:textColor="@color/text" android:textSize="34sp" android:textStyle="bold"
-        android:layout_marginBottom="24dp" />
+    <LinearLayout
+        android:layout_width="470dp"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center_vertical"
+        android:paddingLeft="42dp"
+        android:paddingRight="28dp"
+        android:background="#151920">
 
-    <LinearLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"
-        android:orientation="horizontal" android:gravity="center" android:weightSum="3">
-        <Button android:id="@+id/tvMode" android:layout_width="0dp" android:layout_height="220dp" android:layout_weight="1"
-            android:layout_margin="12dp" android:background="@drawable/mode_button" android:text="📺\nテレビ" android:textColor="@color/text" android:textSize="28sp" android:focusable="true" />
-        <Button android:id="@+id/radioMode" android:layout_width="0dp" android:layout_height="220dp" android:layout_weight="1"
-            android:layout_margin="12dp" android:background="@drawable/mode_button" android:text="📻\nラジオ" android:textColor="@color/text" android:textSize="28sp" android:focusable="true" />
-        <Button android:id="@+id/gambleMode" android:layout_width="0dp" android:layout_height="220dp" android:layout_weight="1"
-            android:layout_margin="12dp" android:background="@drawable/mode_button" android:text="🎯\nギャンブル" android:textColor="@color/text" android:textSize="28sp" android:focusable="true" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Jun IPTV"
+            android:textColor="@color/text"
+            android:textSize="34sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="26dp" />
+
+        <Button
+            android:id="@+id/tvMode"
+            android:layout_width="match_parent"
+            android:layout_height="76dp"
+            android:layout_marginBottom="10dp"
+            android:background="@drawable/mode_button"
+            android:gravity="center_vertical|start"
+            android:text="📺  テレビ"
+            android:textColor="@color/text"
+            android:textSize="24sp" />
+
+        <Button
+            android:id="@+id/radioMode"
+            android:layout_width="match_parent"
+            android:layout_height="76dp"
+            android:layout_marginBottom="10dp"
+            android:background="@drawable/mode_button"
+            android:gravity="center_vertical|start"
+            android:text="📻  ラジオ"
+            android:textColor="@color/text"
+            android:textSize="24sp" />
+
+        <Button
+            android:id="@+id/gambleMode"
+            android:layout_width="match_parent"
+            android:layout_height="76dp"
+            android:layout_marginBottom="10dp"
+            android:background="@drawable/mode_button"
+            android:gravity="center_vertical|start"
+            android:text="🎯  ギャンブル"
+            android:textColor="@color/text"
+            android:textSize="24sp" />
+
+        <Button
+            android:id="@+id/youtubeMode"
+            android:layout_width="match_parent"
+            android:layout_height="76dp"
+            android:layout_marginBottom="10dp"
+            android:background="@drawable/mode_button"
+            android:gravity="center_vertical|start"
+            android:text="📷  ライブカメラ (YouTube)"
+            android:textColor="@color/text"
+            android:textSize="21sp" />
+
+        <Button
+            android:id="@+id/settingsMode"
+            android:layout_width="match_parent"
+            android:layout_height="68dp"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/mode_button"
+            android:gravity="center_vertical|start"
+            android:text="⚙  設定"
+            android:textColor="@color/text"
+            android:textSize="21sp" />
     </LinearLayout>
 
-    <Button android:id="@+id/settingsMode" android:layout_width="260dp" android:layout_height="64dp"
-        android:layout_marginTop="10dp" android:layout_marginBottom="12dp" android:background="@drawable/mode_button"
-        android:text="⚙ 設定" android:textColor="@color/text" android:textSize="20sp" android:focusable="true" />
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="40dp">
 
-    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-        android:text="十字キー + 決定だけで操作" android:textColor="@color/muted" android:textSize="16sp" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="M3U IPTV style + Jun Premium"
+            android:textColor="@color/text"
+            android:textSize="28sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="650dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="22dp"
+            android:gravity="center"
+            android:text="全画面 / 番組表 / アプリ / 4・6・8画面\n複数M3U・EPG / YouTube専用再生 / アプリ音量"
+            android:textColor="@color/muted"
+            android:textSize="19sp"
+            android:lineSpacingExtra="6dp" />
+    </LinearLayout>
 </LinearLayout>
