@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-12",
-  "generated_at": "2026-09-12T16:32:56.663912+09:00",
+  "generated_at": "2026-09-12T16:33:56.665907+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260912.json",
   "schedule_checked_at": "2026-09-12T16:26:56.663637+09:00",
@@ -20,8 +20,9 @@
   "card_count": 13,
   "held_count": 13,
   "visible_count": 13,
-  "active_count": 9,
+  "active_count": 8,
   "ended_kept": [
+    "戸田",
     "常滑",
     "津",
     "三国",
@@ -42,8 +43,8 @@
     "day": {
       "held": 8,
       "acquired": 8,
-      "active": 6,
-      "ended": 2,
+      "active": 5,
+      "ended": 3,
       "seed_required": 0,
       "cancelled": 0
     },
@@ -57,8 +58,8 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 9,
-    "fetched": 9,
+    "requested": 8,
+    "fetched": 8,
     "failures": []
   },
   "epg_programmes_written": {
@@ -170,13 +171,13 @@
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/8ab855d45bd04106ba180bc719ec8198/e918a5dd667c46b2be30b967139e7637/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTM2NTYwMCwic3RhcnQiOjE3ODkxOTA3MDAsImlvcyI6MTgsImNwIjoiMjExMzg2MzAwXzIxMTQyNzk5OSIsInBwdyI6IjQwayJ9.Pp9-zQ6f00NdBhmfHwM8GsrH5wVs8NkCrW5ZgxWpkP4",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-09-12T14:25:56.612856+09:00",
-      "checked_at": "2026-09-12T16:27:56.674132+09:00",
+      "checked_at": "2026-09-12T16:33:56.669415+09:00",
       "first_verified_at": "2026-09-12T14:25:56.612856+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
         "sequence": 8048076,
-        "last_segment": "/8ab855d45bd04106ba180bc719ec8198/e918a5dd667c46b2be30b967139e7637/manifest_4_8049304.ts",
+        "last_segment": "/8ab855d45bd04106ba180bc719ec8198/e918a5dd667c46b2be30b967139e7637/manifest_4_8049364.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -285,8 +286,8 @@
       "name": "戸田",
       "held": true,
       "visible": true,
-      "ended": false,
-      "active": true,
+      "ended": true,
+      "active": false,
       "cancelled": false,
       "mode": "day",
       "mode_label": "デイ",
@@ -294,7 +295,7 @@
       "last_race": "16:30",
       "alert_from": "2026-09-12T10:17:00+09:00",
       "next_race": null,
-      "stream_window": "live_or_prestart",
+      "stream_window": "ended_kept",
       "guidance_switch_at": "2026-09-12T17:15:00+09:00",
       "seed_required": false,
       "playback_verified": true,
