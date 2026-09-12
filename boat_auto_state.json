@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-12",
-  "generated_at": "2026-09-12T10:08:37.440978+09:00",
+  "generated_at": "2026-09-12T10:09:37.339042+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260912.json",
   "schedule_checked_at": "2026-09-12T09:59:37.438797+09:00",
@@ -19,8 +19,8 @@
   "alert_lead_minutes": 30,
   "card_count": 13,
   "held_count": 13,
-  "visible_count": 7,
-  "active_count": 4,
+  "visible_count": 8,
+  "active_count": 5,
   "ended_kept": [],
   "seed_required": false,
   "seed_required_venues": [],
@@ -36,8 +36,8 @@
     },
     "day": {
       "held": 8,
-      "acquired": 5,
-      "active": 2,
+      "acquired": 6,
+      "active": 3,
       "ended": 0,
       "seed_required": 0,
       "cancelled": 0
@@ -53,21 +53,16 @@
   },
   "cloud_acquisition": {
     "requested": 10,
-    "fetched": 7,
+    "fetched": 8,
     "failures": [
       {
-        "jcd": "02",
-        "name": "戸田",
+        "jcd": "06",
+        "name": "浜名湖",
         "error": "HTTPError: playback check failed"
       },
       {
         "jcd": "05",
         "name": "多摩川",
-        "error": "HTTPError: playback check failed"
-      },
-      {
-        "jcd": "06",
-        "name": "浜名湖",
         "error": "HTTPError: playback check failed"
       }
     ]
@@ -81,6 +76,22 @@
     "kind": "healthy"
   },
   "streams": {
+    "boat.toda": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/d8584f0733f9494ba8648b7c69157bdc/5acf32a4388d498888fd4ccaa7b58969/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTM1MTIwMCwic3RhcnQiOjE3ODkxNzUzNDAsImlvcyI6MTgsImNwIjoiMjExMzcwOTQwXzIxMTQxNDEzOSIsInBwdyI6IjQwayJ9.W1i6HrI836PO1ODsFVR9rEuDWIcQr9p_acHUFao0lOA",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-09-12T10:09:37.341764+09:00",
+      "checked_at": "2026-09-12T10:09:37.341764+09:00",
+      "first_verified_at": "2026-09-12T10:09:37.341764+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 8047503,
+        "last_segment": "/d8584f0733f9494ba8648b7c69157bdc/5acf32a4388d498888fd4ccaa7b58969/manifest_4_8047508.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
+    },
     "boat.tokoname": {
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/c02cd92e519a4bd58cba7c3a1b35f921/e014492cd31d4880b7093c71fddfffc6/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTM1MTIwMCwic3RhcnQiOjE3ODkxNzUxMDAsImlvcyI6MTgsImNwIjoiMjExMzcwNzAwXzIxMTQxMzg5OSIsInBwdyI6IjQwayJ9.pw8peMpGdoPzi4oqKwdrqIY3TZ3hbnpjRg0BAJXR-Is",
       "source": "automatic acquisition + audio/video decode",
@@ -199,7 +210,7 @@
       "jcd": "02",
       "name": "戸田",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
       "active": false,
       "cancelled": false,
@@ -215,9 +226,9 @@
       "stream_window": "scheduled",
       "guidance_switch_at": "2026-09-12T17:15:00+09:00",
       "seed_required": false,
-      "playback_verified": false,
-      "first_verified_at": null,
-      "ready_before_first_race": false,
+      "playback_verified": true,
+      "first_verified_at": "2026-09-12T10:09:37.341764+09:00",
+      "ready_before_first_race": true,
       "acquire_from": "2026-09-12T08:17:00+09:00",
       "races": [
         {
@@ -281,7 +292,9 @@
           "name": "記者選抜戦"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/d8584f0733f9494ba8648b7c69157bdc/5acf32a4388d498888fd4ccaa7b58969/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTM1MTIwMCwic3RhcnQiOjE3ODkxNzUzNDAsImlvcyI6MTgsImNwIjoiMjExMzcwOTQwXzIxMTQxNDEzOSIsInBwdyI6IjQwayJ9.W1i6HrI836PO1ODsFVR9rEuDWIcQr9p_acHUFao0lOA",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     },
     "boat.tamagawa": {
       "jcd": "05",
@@ -465,7 +478,7 @@
       "held": true,
       "visible": true,
       "ended": false,
-      "active": false,
+      "active": true,
       "cancelled": false,
       "mode": "day",
       "mode_label": "デイ",
@@ -476,7 +489,7 @@
         "race": 1,
         "start": "10:39"
       },
-      "stream_window": "scheduled",
+      "stream_window": "live_or_prestart",
       "guidance_switch_at": "2026-09-12T17:10:00+09:00",
       "seed_required": false,
       "playback_verified": true,
