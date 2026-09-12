@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-12",
-  "generated_at": "2026-09-12T14:25:56.609227+09:00",
+  "generated_at": "2026-09-12T14:26:56.598975+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260912.json",
   "schedule_checked_at": "2026-09-12T14:22:56.705269+09:00",
@@ -20,9 +20,10 @@
   "card_count": 13,
   "held_count": 13,
   "visible_count": 11,
-  "active_count": 9,
+  "active_count": 8,
   "ended_kept": [
-    "三国"
+    "三国",
+    "芦屋"
   ],
   "seed_required": false,
   "seed_required_venues": [],
@@ -31,8 +32,8 @@
     "morning": {
       "held": 2,
       "acquired": 2,
-      "active": 1,
-      "ended": 1,
+      "active": 0,
+      "ended": 2,
       "seed_required": 0,
       "cancelled": 0
     },
@@ -54,8 +55,8 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 12,
-    "fetched": 10,
+    "requested": 11,
+    "fetched": 9,
     "failures": [
       {
         "jcd": "20",
@@ -450,8 +451,8 @@
       "last_race": "17:08",
       "alert_from": "2026-09-12T11:09:00+09:00",
       "next_race": {
-        "race": 7,
-        "start": "14:26"
+        "race": 8,
+        "start": "14:56"
       },
       "stream_window": "live_or_prestart",
       "guidance_switch_at": "2026-09-12T17:53:00+09:00",
@@ -1246,8 +1247,8 @@
       "name": "芦屋",
       "held": true,
       "visible": true,
-      "ended": false,
-      "active": true,
+      "ended": true,
+      "active": false,
       "cancelled": false,
       "mode": "morning",
       "mode_label": "モーニング",
@@ -1255,7 +1256,7 @@
       "last_race": "14:23",
       "alert_from": "2026-09-12T08:14:00+09:00",
       "next_race": null,
-      "stream_window": "live_or_prestart",
+      "stream_window": "ended_kept",
       "guidance_switch_at": "2026-09-12T15:08:00+09:00",
       "seed_required": false,
       "playback_verified": true,
