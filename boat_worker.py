@@ -29,7 +29,7 @@ def publish(snapshot):
         run('git', 'add', *OUTPUTS)
         if subprocess.run(['git', 'diff', '--cached', '--quiet']).returncode == 0:
             return
-        run('git', 'commit', '-m', 'Update BOAT verified streams and race EPG [skip ci]')
+        run('git', 'commit', '-m', 'Update BOAT verified streams and race EPG [skip ci] [skip render]')
         if subprocess.run(['git', 'push', 'origin', 'HEAD:main'], timeout=90).returncode == 0:
             return
     raise RuntimeError('BOAT publication failed after 5 concurrent-update retries')
