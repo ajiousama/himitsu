@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-12",
-  "generated_at": "2026-09-12T10:07:37.391403+09:00",
+  "generated_at": "2026-09-12T10:08:37.440978+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260912.json",
   "schedule_checked_at": "2026-09-12T09:59:37.438797+09:00",
@@ -20,7 +20,7 @@
   "card_count": 13,
   "held_count": 13,
   "visible_count": 7,
-  "active_count": 3,
+  "active_count": 4,
   "ended_kept": [],
   "seed_required": false,
   "seed_required_venues": [],
@@ -37,7 +37,7 @@
     "day": {
       "held": 8,
       "acquired": 5,
-      "active": 1,
+      "active": 2,
       "ended": 0,
       "seed_required": 0,
       "cancelled": 0
@@ -56,8 +56,8 @@
     "fetched": 7,
     "failures": [
       {
-        "jcd": "06",
-        "name": "浜名湖",
+        "jcd": "02",
+        "name": "戸田",
         "error": "HTTPError: playback check failed"
       },
       {
@@ -66,8 +66,8 @@
         "error": "HTTPError: playback check failed"
       },
       {
-        "jcd": "02",
-        "name": "戸田",
+        "jcd": "06",
+        "name": "浜名湖",
         "error": "HTTPError: playback check failed"
       }
     ]
@@ -913,7 +913,7 @@
       "held": true,
       "visible": true,
       "ended": false,
-      "active": false,
+      "active": true,
       "cancelled": false,
       "mode": "day",
       "mode_label": "デイ",
@@ -924,7 +924,7 @@
         "race": 1,
         "start": "10:38"
       },
-      "stream_window": "scheduled",
+      "stream_window": "live_or_prestart",
       "guidance_switch_at": "2026-09-12T17:20:00+09:00",
       "seed_required": false,
       "playback_verified": true,
