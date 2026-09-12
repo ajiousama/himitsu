@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-12",
-  "generated_at": "2026-09-12T09:59:37.438797+09:00",
+  "generated_at": "2026-09-12T10:00:37.389307+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260912.json",
   "schedule_checked_at": "2026-09-12T09:59:37.438797+09:00",
@@ -19,7 +19,7 @@
   "alert_lead_minutes": 30,
   "card_count": 13,
   "held_count": 13,
-  "visible_count": 4,
+  "visible_count": 5,
   "active_count": 2,
   "ended_kept": [],
   "seed_required": false,
@@ -36,7 +36,7 @@
     },
     "day": {
       "held": 8,
-      "acquired": 2,
+      "acquired": 3,
       "active": 0,
       "ended": 0,
       "seed_required": 0,
@@ -53,28 +53,8 @@
   },
   "cloud_acquisition": {
     "requested": 10,
-    "fetched": 4,
+    "fetched": 5,
     "failures": [
-      {
-        "jcd": "17",
-        "name": "宮島",
-        "error": "HTTPError: playback check failed"
-      },
-      {
-        "jcd": "08",
-        "name": "常滑",
-        "error": "HTTPError: playback check failed"
-      },
-      {
-        "jcd": "09",
-        "name": "津",
-        "error": "HTTPError: playback check failed"
-      },
-      {
-        "jcd": "02",
-        "name": "戸田",
-        "error": "HTTPError: playback check failed"
-      },
       {
         "jcd": "05",
         "name": "多摩川",
@@ -83,7 +63,22 @@
       {
         "jcd": "06",
         "name": "浜名湖",
-        "error": "cloud and official acquisition unavailable: HTTPError"
+        "error": "HTTPError: playback check failed"
+      },
+      {
+        "jcd": "02",
+        "name": "戸田",
+        "error": "HTTPError: playback check failed"
+      },
+      {
+        "jcd": "08",
+        "name": "常滑",
+        "error": "HTTPError: playback check failed"
+      },
+      {
+        "jcd": "17",
+        "name": "宮島",
+        "error": "HTTPError: playback check failed"
       }
     ]
   },
@@ -96,6 +91,22 @@
     "kind": "healthy"
   },
   "streams": {
+    "boat.tsu": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/24435b7ec5c144368ebcb4783ff70cfc/9b7e0e7a898e4217aaea0e12729a4050/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTM1MTIwMCwic3RhcnQiOjE3ODkxNzQ4MDAsImlvcyI6MTgsImNwIjoiMjExMzcwNDAwXzIxMTQxMzU5OSIsInBwdyI6IjQwayJ9.ldG_kgbLsegt6-DRvSk8zYLXXmTe79vMiB3jQRw953s",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-09-12T10:00:37.394344+09:00",
+      "checked_at": "2026-09-12T10:00:37.394344+09:00",
+      "first_verified_at": "2026-09-12T10:00:37.394344+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 8069662,
+        "last_segment": "/24435b7ec5c144368ebcb4783ff70cfc/9b7e0e7a898e4217aaea0e12729a4050/manifest_4_8069668.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
+    },
     "boat.mikuni": {
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/5c304636250b4dfebfba995fddc3854b/b9388f7bbe0a46de8605cb551cb149a7/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTM0MDQwMCwic3RhcnQiOjE3ODkxNjc0MjAsImlvcyI6MTgsImNwIjoiMjExMzYzMDIwXzIxMTQwNjIxOSIsInBwdyI6IjQwayJ9.DTdlIOLgUUM8-dIU_BNL6k9Z3Wx41Z4HkXZYz2oLSlQ",
       "source": "automatic acquisition + audio/video decode",
@@ -518,7 +529,7 @@
       "jcd": "09",
       "name": "津",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
       "active": false,
       "cancelled": false,
@@ -534,9 +545,9 @@
       "stream_window": "scheduled",
       "guidance_switch_at": "2026-09-12T17:05:00+09:00",
       "seed_required": false,
-      "playback_verified": false,
-      "first_verified_at": null,
-      "ready_before_first_race": false,
+      "playback_verified": true,
+      "first_verified_at": "2026-09-12T10:00:37.394344+09:00",
+      "ready_before_first_race": true,
       "acquire_from": "2026-09-12T08:03:00+09:00",
       "races": [
         {
@@ -600,7 +611,9 @@
           "name": "ドリーム戦"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/24435b7ec5c144368ebcb4783ff70cfc/9b7e0e7a898e4217aaea0e12729a4050/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTM1MTIwMCwic3RhcnQiOjE3ODkxNzQ4MDAsImlvcyI6MTgsImNwIjoiMjExMzcwNDAwXzIxMTQxMzU5OSIsInBwdyI6IjQwayJ9.ldG_kgbLsegt6-DRvSk8zYLXXmTe79vMiB3jQRw953s",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     },
     "boat.mikuni": {
       "jcd": "10",
