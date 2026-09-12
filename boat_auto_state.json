@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-12",
-  "generated_at": "2026-09-12T20:40:21.941302+09:00",
+  "generated_at": "2026-09-12T20:41:21.990525+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260912.json",
   "schedule_checked_at": "2026-09-12T20:34:21.990482+09:00",
@@ -20,7 +20,7 @@
   "card_count": 13,
   "held_count": 13,
   "visible_count": 13,
-  "active_count": 2,
+  "active_count": 1,
   "ended_kept": [
     "戸田",
     "多摩川",
@@ -32,6 +32,7 @@
     "児島",
     "宮島",
     "徳山",
+    "若松",
     "芦屋"
   ],
   "seed_required": false,
@@ -57,15 +58,15 @@
     "night": {
       "held": 3,
       "acquired": 3,
-      "active": 2,
-      "ended": 1,
+      "active": 1,
+      "ended": 2,
       "seed_required": 0,
       "cancelled": 0
     }
   },
   "cloud_acquisition": {
-    "requested": 2,
-    "fetched": 2,
+    "requested": 1,
+    "fetched": 1,
     "failures": []
   },
   "epg_programmes_written": {
@@ -1162,8 +1163,8 @@
       "name": "若松",
       "held": true,
       "visible": true,
-      "ended": false,
-      "active": true,
+      "ended": true,
+      "active": false,
       "cancelled": false,
       "mode": "night",
       "mode_label": "ナイター",
@@ -1171,7 +1172,7 @@
       "last_race": "20:38",
       "alert_from": "2026-09-12T14:50:00+09:00",
       "next_race": null,
-      "stream_window": "live_or_prestart",
+      "stream_window": "ended_kept",
       "guidance_switch_at": "2026-09-12T21:23:00+09:00",
       "seed_required": false,
       "playback_verified": true,
