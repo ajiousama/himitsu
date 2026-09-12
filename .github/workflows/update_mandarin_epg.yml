@@ -1,0 +1,52 @@
+name: Update Ehime Mandarin Pirates EPG
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Run shortly after the general YouTube refresh (:2/:17/:32/:47).
+    - cron: '7,22,37,52 * * * *'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: himitsu-freewifi-writer
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Sync latest main
+        run: git pull --ff-only origin main
+
+      - name: Refresh Mandarin EPG
+        run: python mandarin_epg.py
+
+      - name: Validate XML
+        run: python -c "import xml.etree.ElementTree as ET; ET.parse('public_sports_epg_local.xml'); print('XML OK')"
+
+      - name: Commit EPG change
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add public_sports_epg_local.xml
+          if git diff --cached --quiet; then
+            echo 'No EPG changes'
+            exit 0
+          fi
+          git commit -m 'Update Ehime Mandarin Pirates EPG'
+          git pull --rebase origin main
+          git push origin main
