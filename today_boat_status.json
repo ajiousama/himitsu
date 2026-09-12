@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-13",
-  "generated_at": "2026-09-13T07:58:28.047700+09:00",
+  "generated_at": "2026-09-13T07:59:28.146515+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260913.json",
   "schedule_checked_at": "2026-09-13T07:50:28.047039+09:00",
@@ -52,13 +52,18 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 2,
+    "requested": 3,
     "fetched": 1,
     "failures": [
       {
         "jcd": "21",
         "name": "芦屋",
         "error": "HTTPError: playback check failed"
+      },
+      {
+        "jcd": "11",
+        "name": "びわこ",
+        "error": "cloud and official acquisition unavailable: HTTPError"
       }
     ]
   },
