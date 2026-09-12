@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-12",
-  "generated_at": "2026-09-12T16:37:56.615994+09:00",
+  "generated_at": "2026-09-12T16:38:56.615653+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260912.json",
   "schedule_checked_at": "2026-09-12T16:26:56.663637+09:00",
@@ -20,12 +20,13 @@
   "card_count": 13,
   "held_count": 13,
   "visible_count": 13,
-  "active_count": 8,
+  "active_count": 7,
   "ended_kept": [
     "戸田",
     "常滑",
     "津",
     "三国",
+    "宮島",
     "芦屋"
   ],
   "seed_required": false,
@@ -43,8 +44,8 @@
     "day": {
       "held": 8,
       "acquired": 8,
-      "active": 5,
-      "ended": 3,
+      "active": 4,
+      "ended": 4,
       "seed_required": 0,
       "cancelled": 0
     },
@@ -58,8 +59,8 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 8,
-    "fetched": 8,
+    "requested": 7,
+    "fetched": 7,
     "failures": []
   },
   "epg_programmes_written": {
@@ -994,8 +995,8 @@
       "name": "宮島",
       "held": true,
       "visible": true,
-      "ended": false,
-      "active": true,
+      "ended": true,
+      "active": false,
       "cancelled": false,
       "mode": "day",
       "mode_label": "デイ",
@@ -1003,7 +1004,7 @@
       "last_race": "16:35",
       "alert_from": "2026-09-12T10:08:00+09:00",
       "next_race": null,
-      "stream_window": "live_or_prestart",
+      "stream_window": "ended_kept",
       "guidance_switch_at": "2026-09-12T17:20:00+09:00",
       "seed_required": false,
       "playback_verified": true,
@@ -1089,10 +1090,7 @@
       "first_race": "10:42",
       "last_race": "16:38",
       "alert_from": "2026-09-12T10:12:00+09:00",
-      "next_race": {
-        "race": 12,
-        "start": "16:38"
-      },
+      "next_race": null,
       "stream_window": "live_or_prestart",
       "guidance_switch_at": "2026-09-12T17:23:00+09:00",
       "seed_required": false,
