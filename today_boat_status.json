@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-12",
-  "generated_at": "2026-09-12T14:39:56.751304+09:00",
+  "generated_at": "2026-09-12T14:40:56.708152+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260912.json",
   "schedule_checked_at": "2026-09-12T14:38:56.651443+09:00",
@@ -19,7 +19,7 @@
   "alert_lead_minutes": 30,
   "card_count": 13,
   "held_count": 13,
-  "visible_count": 11,
+  "visible_count": 12,
   "active_count": 8,
   "ended_kept": [
     "三国",
@@ -47,7 +47,7 @@
     },
     "night": {
       "held": 3,
-      "acquired": 1,
+      "acquired": 2,
       "active": 0,
       "ended": 0,
       "seed_required": 0,
@@ -56,16 +56,11 @@
   },
   "cloud_acquisition": {
     "requested": 11,
-    "fetched": 9,
+    "fetched": 10,
     "failures": [
       {
         "jcd": "20",
         "name": "若松",
-        "error": "HTTPError: playback check failed"
-      },
-      {
-        "jcd": "24",
-        "name": "大村",
         "error": "HTTPError: playback check failed"
       }
     ]
@@ -250,6 +245,22 @@
         "ok": true,
         "sequence": 8061092,
         "last_segment": "/e70cad47de3946ebacb0653d8ce2f2fe/14cdec69fc284c55837480f97989d441/manifest_1_8064832.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
+    },
+    "boat.omura": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/a3343a2b1bb84b13addd8bf18123e35e/e4cbc6aeaba84a39ba8cf40ce66bcaaf/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTM2NTYwMCwic3RhcnQiOjE3ODkxOTE2MDAsImlvcyI6MTgsImNwIjoiMjExMzg3MjAwXzIxMTQyNzk5OSIsInBwdyI6IjQwayJ9.XF0HygbdHAUHmlF2jQl79XBXu4P3aGiDBVlMkwEp_Gc",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-09-12T14:40:56.712155+09:00",
+      "checked_at": "2026-09-12T14:40:56.712155+09:00",
+      "first_verified_at": "2026-09-12T14:40:56.712155+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 8051078,
+        "last_segment": "/a3343a2b1bb84b13addd8bf18123e35e/e4cbc6aeaba84a39ba8cf40ce66bcaaf/manifest_1_8051086.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -541,8 +552,8 @@
       "last_race": "16:25",
       "alert_from": "2026-09-12T10:09:00+09:00",
       "next_race": {
-        "race": 9,
-        "start": "14:40"
+        "race": 10,
+        "start": "15:11"
       },
       "stream_window": "live_or_prestart",
       "guidance_switch_at": "2026-09-12T17:10:00+09:00",
@@ -1333,7 +1344,7 @@
       "jcd": "24",
       "name": "大村",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
       "active": false,
       "cancelled": false,
@@ -1349,9 +1360,9 @@
       "stream_window": "scheduled",
       "guidance_switch_at": "2026-09-12T21:30:00+09:00",
       "seed_required": false,
-      "playback_verified": false,
-      "first_verified_at": null,
-      "ready_before_first_race": false,
+      "playback_verified": true,
+      "first_verified_at": "2026-09-12T14:40:56.712155+09:00",
+      "ready_before_first_race": true,
       "acquire_from": "2026-09-12T12:45:00+09:00",
       "races": [
         {
@@ -1415,7 +1426,9 @@
           "name": "優勝戦"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/a3343a2b1bb84b13addd8bf18123e35e/e4cbc6aeaba84a39ba8cf40ce66bcaaf/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTM2NTYwMCwic3RhcnQiOjE3ODkxOTE2MDAsImlvcyI6MTgsImNwIjoiMjExMzg3MjAwXzIxMTQyNzk5OSIsInBwdyI6IjQwayJ9.XF0HygbdHAUHmlF2jQl79XBXu4P3aGiDBVlMkwEp_Gc",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     }
   }
 }
