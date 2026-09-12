@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-13",
-  "generated_at": "2026-09-13T08:08:27.942817+09:00",
+  "generated_at": "2026-09-13T08:09:27.942218+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260913.json",
   "schedule_checked_at": "2026-09-13T08:06:27.942734+09:00",
@@ -19,7 +19,7 @@
   "alert_lead_minutes": 30,
   "card_count": 15,
   "held_count": 15,
-  "visible_count": 1,
+  "visible_count": 2,
   "active_count": 1,
   "ended_kept": [],
   "seed_required": false,
@@ -28,7 +28,7 @@
   "phase_counts": {
     "morning": {
       "held": 2,
-      "acquired": 1,
+      "acquired": 2,
       "active": 1,
       "ended": 0,
       "seed_required": 0,
@@ -53,16 +53,11 @@
   },
   "cloud_acquisition": {
     "requested": 5,
-    "fetched": 1,
+    "fetched": 2,
     "failures": [
       {
-        "jcd": "21",
-        "name": "芦屋",
-        "error": "HTTPError: playback check failed"
-      },
-      {
-        "jcd": "18",
-        "name": "徳山",
+        "jcd": "11",
+        "name": "びわこ",
         "error": "cloud and official acquisition unavailable: HTTPError"
       },
       {
@@ -71,8 +66,8 @@
         "error": "cloud and official acquisition unavailable: HTTPError"
       },
       {
-        "jcd": "11",
-        "name": "びわこ",
+        "jcd": "18",
+        "name": "徳山",
         "error": "cloud and official acquisition unavailable: HTTPError"
       }
     ]
@@ -97,6 +92,22 @@
         "ok": true,
         "sequence": 8055095,
         "last_segment": "/6c4f942eca984e5f8b2ceeef07251537/9b3a51138ae248cf89c0d7d37d31bea2/manifest_4_8055209.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
+    },
+    "boat.ashiya": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/665acd6415ff4965957ee22079e8df07/8bd87d09810e4356a857bbfd0309dbef/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTQzMDQwMCwic3RhcnQiOjE3ODkyNTQ1NDAsImlvcyI6MTgsImNwIjoiMjExNDUwMTQwXzIxMTQ5MzMzOSIsInBwdyI6IjQwayJ9.b52qUtoC-Ce4D9rCT0x1-JTF3gyDu-xxYfg7SReMwXQ",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-09-13T08:09:27.946721+09:00",
+      "checked_at": "2026-09-13T08:09:27.946721+09:00",
+      "first_verified_at": "2026-09-13T08:09:27.946721+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 8075492,
+        "last_segment": "/665acd6415ff4965957ee22079e8df07/8bd87d09810e4356a857bbfd0309dbef/manifest_1_8075496.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -1254,7 +1265,7 @@
       "jcd": "21",
       "name": "芦屋",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
       "active": false,
       "cancelled": false,
@@ -1270,9 +1281,9 @@
       "stream_window": "scheduled",
       "guidance_switch_at": "2026-09-13T15:11:00+09:00",
       "seed_required": false,
-      "playback_verified": false,
-      "first_verified_at": null,
-      "ready_before_first_race": false,
+      "playback_verified": true,
+      "first_verified_at": "2026-09-13T08:09:27.946721+09:00",
+      "ready_before_first_race": true,
       "acquire_from": "2026-09-13T06:14:00+09:00",
       "races": [
         {
@@ -1336,7 +1347,9 @@
           "name": "準優勝戦"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/665acd6415ff4965957ee22079e8df07/8bd87d09810e4356a857bbfd0309dbef/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTQzMDQwMCwic3RhcnQiOjE3ODkyNTQ1NDAsImlvcyI6MTgsImNwIjoiMjExNDUwMTQwXzIxMTQ5MzMzOSIsInBwdyI6IjQwayJ9.b52qUtoC-Ce4D9rCT0x1-JTF3gyDu-xxYfg7SReMwXQ",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     },
     "boat.fukuoka": {
       "jcd": "22",
