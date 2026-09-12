@@ -2,6 +2,11 @@ name: Update Ehime Mandarin Pirates EPG
 
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - 'mandarin_epg.py'
+      - '.github/workflows/update_mandarin_epg.yml'
+      - 'general_youtube.m3u'
   schedule:
     # Run shortly after the general YouTube refresh (:2/:17/:32/:47).
     - cron: '7,22,37,52 * * * *'
