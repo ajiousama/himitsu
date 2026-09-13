@@ -1,0 +1,46 @@
+name: Update IPTVM3U merged EPG
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'build_iptvm3u_epg.py'
+      - '.github/workflows/update_iptvm3u_epg.yml'
+      - 'guides.xml'
+  schedule:
+    - cron: '7,22,37,52 * * * *'
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Build merged EPG
+        run: python3 build_iptvm3u_epg.py
+
+      - name: Commit merged EPG
+        shell: bash
+        run: |
+          set -e
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add iptvm3u_epg.xml
+          if git diff --cached --quiet; then
+            echo "No EPG change"
+            exit 0
+          fi
+          git commit -m "Update IPTVM3U merged EPG [skip ci] [skip render]"
+          for n in 1 2 3 4 5; do
+            git pull --rebase origin main
+            if git push origin HEAD:main; then
+              exit 0
+            fi
+            sleep 2
+          done
+          exit 1
