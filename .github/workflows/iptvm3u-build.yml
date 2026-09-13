@@ -52,14 +52,16 @@ jobs:
 
       - name: Publish iptvm3u.apk to main root
         shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git fetch origin main
-          git checkout -B main origin/main
-          cp /tmp/iptvm3u.apk iptvm3u.apk
-          git add iptvm3u.apk
-          if ! git diff --cached --quiet; then
-            git commit -m "Publish IPTVM3U APK [skip ci]"
-            git push origin main
+          base64 -w0 /tmp/iptvm3u.apk > /tmp/iptvm3u.b64
+          CURRENT_SHA="$(gh api repos/${{ github.repository }}/contents/iptvm3u.apk?ref=main --jq '.sha' 2>/dev/null || true)"
+          if [ -n "$CURRENT_SHA" ]; then
+            jq -n --rawfile content /tmp/iptvm3u.b64 --arg sha "$CURRENT_SHA" \
+              '{message:"Publish IPTVM3U APK [skip ci]",content:$content,branch:"main",sha:$sha}' > /tmp/payload.json
+          else
+            jq -n --rawfile content /tmp/iptvm3u.b64 \
+              '{message:"Publish IPTVM3U APK [skip ci]",content:$content,branch:"main"}' > /tmp/payload.json
           fi
+          gh api --method PUT repos/${{ github.repository }}/contents/iptvm3u.apk --input /tmp/payload.json
