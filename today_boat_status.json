@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-13",
-  "generated_at": "2026-09-13T14:24:29.580354+09:00",
+  "generated_at": "2026-09-13T14:25:29.579740+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260913.json",
   "schedule_checked_at": "2026-09-13T14:16:29.623120+09:00",
@@ -19,7 +19,7 @@
   "alert_lead_minutes": 30,
   "card_count": 15,
   "held_count": 15,
-  "visible_count": 12,
+  "visible_count": 13,
   "active_count": 10,
   "ended_kept": [
     "三国"
@@ -46,7 +46,7 @@
     },
     "night": {
       "held": 4,
-      "acquired": 1,
+      "acquired": 2,
       "active": 0,
       "ended": 0,
       "seed_required": 0,
@@ -55,21 +55,16 @@
   },
   "cloud_acquisition": {
     "requested": 14,
-    "fetched": 11,
+    "fetched": 12,
     "failures": [
-      {
-        "jcd": "19",
-        "name": "下関",
-        "error": "HTTPError: playback check failed"
-      },
       {
         "jcd": "20",
         "name": "若松",
         "error": "HTTPError: playback check failed"
       },
       {
-        "jcd": "12",
-        "name": "住之江",
+        "jcd": "19",
+        "name": "下関",
         "error": "HTTPError: playback check failed"
       }
     ]
@@ -206,6 +201,22 @@
         "ok": true,
         "sequence": 8071484,
         "last_segment": "/57955daf5e014166ac83a7e0beebff7d/05120494ed3f481da68c9e5dea76d180/manifest_4_8074168.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
+    },
+    "boat.suminoe": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/ebb11b95fc934c70bc9cb66d09c99683/277c8c21fe1c4c43806eab852c2c7d09/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTQ1MjAwMCwic3RhcnQiOjE3ODkyNzcxMDAsImlvcyI6MTgsImNwIjoiMjExNDcyNzAwXzIxMTUxNDM5OSIsInBwdyI6IjQwayJ9.qgo2kN1plIhK4I2dbqzkLoKkzDxoaadWDJrJU3Qzb_s",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-09-13T14:25:29.584001+09:00",
+      "checked_at": "2026-09-13T14:25:29.584001+09:00",
+      "first_verified_at": "2026-09-13T14:25:29.584001+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 8062476,
+        "last_segment": "/ebb11b95fc934c70bc9cb66d09c99683/277c8c21fe1c4c43806eab852c2c7d09/manifest_4_8062480.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -998,7 +1009,7 @@
       "jcd": "12",
       "name": "住之江",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
       "active": false,
       "cancelled": false,
@@ -1014,9 +1025,9 @@
       "stream_window": "scheduled",
       "guidance_switch_at": "2026-09-13T21:15:00+09:00",
       "seed_required": false,
-      "playback_verified": false,
-      "first_verified_at": null,
-      "ready_before_first_race": false,
+      "playback_verified": true,
+      "first_verified_at": "2026-09-13T14:25:29.584001+09:00",
+      "ready_before_first_race": true,
       "acquire_from": "2026-09-13T12:47:00+09:00",
       "races": [
         {
@@ -1080,7 +1091,9 @@
           "name": "予選特別A戦"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/ebb11b95fc934c70bc9cb66d09c99683/277c8c21fe1c4c43806eab852c2c7d09/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTQ1MjAwMCwic3RhcnQiOjE3ODkyNzcxMDAsImlvcyI6MTgsImNwIjoiMjExNDcyNzAwXzIxMTUxNDM5OSIsInBwdyI6IjQwayJ9.qgo2kN1plIhK4I2dbqzkLoKkzDxoaadWDJrJU3Qzb_s",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     },
     "boat.miyajima": {
       "jcd": "17",
