@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-14",
-  "generated_at": "2026-09-14T08:13:36.168770+09:00",
+  "generated_at": "2026-09-14T08:14:36.273863+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260914.json",
   "schedule_checked_at": "2026-09-14T08:04:36.165997+09:00",
@@ -20,7 +20,7 @@
   "card_count": 14,
   "held_count": 14,
   "visible_count": 2,
-  "active_count": 1,
+  "active_count": 2,
   "ended_kept": [],
   "seed_required": false,
   "seed_required_venues": [],
@@ -29,7 +29,7 @@
     "morning": {
       "held": 2,
       "acquired": 2,
-      "active": 1,
+      "active": 2,
       "ended": 0,
       "seed_required": 0,
       "cancelled": 0
@@ -66,13 +66,13 @@
         "error": "cloud and official acquisition unavailable: HTTPError"
       },
       {
-        "jcd": "11",
-        "name": "びわこ",
+        "jcd": "08",
+        "name": "常滑",
         "error": "cloud and official acquisition unavailable: HTTPError"
       },
       {
-        "jcd": "08",
-        "name": "常滑",
+        "jcd": "11",
+        "name": "びわこ",
         "error": "cloud and official acquisition unavailable: HTTPError"
       }
     ]
@@ -106,13 +106,13 @@
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/361e3b653f8f4de493fd99c23e66bd35/61bd3e9eaf6b4bfe8b985686d9e1c16f/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTUxNjgwMCwic3RhcnQiOjE3ODkzNDA5NDAsImlvcyI6MTgsImNwIjoiMjExNTM2NTQwXzIxMTU3OTczOSIsInBwdyI6IjQwayJ9.UgFojQQjNWE50ro9exTLw9LfBFGoeeoBmsseXQl7uH0",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-09-14T08:09:36.172169+09:00",
-      "checked_at": "2026-09-14T08:09:36.172169+09:00",
+      "checked_at": "2026-09-14T08:14:36.279593+09:00",
       "first_verified_at": "2026-09-14T08:09:36.172169+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
         "sequence": 8089892,
-        "last_segment": "/361e3b653f8f4de493fd99c23e66bd35/61bd3e9eaf6b4bfe8b985686d9e1c16f/manifest_1_8089897.ts",
+        "last_segment": "/361e3b653f8f4de493fd99c23e66bd35/61bd3e9eaf6b4bfe8b985686d9e1c16f/manifest_1_8089947.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -1184,7 +1184,7 @@
       "held": true,
       "visible": true,
       "ended": false,
-      "active": false,
+      "active": true,
       "cancelled": false,
       "mode": "morning",
       "mode_label": "モーニング",
@@ -1195,7 +1195,7 @@
         "race": 1,
         "start": "08:44"
       },
-      "stream_window": "scheduled",
+      "stream_window": "live_or_prestart",
       "guidance_switch_at": "2026-09-14T15:12:00+09:00",
       "seed_required": false,
       "playback_verified": true,
