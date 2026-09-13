@@ -48,21 +48,19 @@ jobs:
         shell: bash
         run: |
           set -euxo pipefail
-          rm -rf /tmp/xapk /tmp/base /tmp/merge-input
-          mkdir -p /tmp/xapk /tmp/base /tmp/merge-input
+          rm -rf /tmp/xapk /tmp/base
+          mkdir -p /tmp/xapk /tmp/base
           unzip -q /tmp/m3uiptv.xapk -d /tmp/xapk
           BASE="/tmp/xapk/de.herber_edevelopment.m3uiptv.apk"
-          ABI="/tmp/xapk/config.armeabi_v7a.apk"
           test -f "$BASE"
-          test -f "$ABI"
+          test -f /tmp/xapk/config.armeabi_v7a.apk
           unzip -q "$BASE" -d /tmp/base
           python3 iptvm3u-build/patch_iptvm3u_assets.py /tmp/base
           rm -rf /tmp/base/META-INF
           rm -f /tmp/base/stamp-cert-sha256
           rm -f "$BASE"
           (cd /tmp/base && zip -qr "$BASE" .)
-          cp "$BASE" /tmp/merge-input/base.apk
-          cp "$ABI" /tmp/merge-input/config.armeabi_v7a.apk
+          ls -1 /tmp/xapk/*.apk
 
       - name: Download APKEditor
         shell: bash
@@ -73,14 +71,19 @@ jobs:
             -o /tmp/APKEditor.jar
           test -s /tmp/APKEditor.jar
 
-      - name: Merge only base and native ABI split
+      - name: Merge all splits as real standalone APK
         shell: bash
         run: |
           set -euxo pipefail
-          java -jar /tmp/APKEditor.jar m -i /tmp/merge-input -o /tmp/iptvm3u-unsigned.apk
+          java -jar /tmp/APKEditor.jar m \
+            -i /tmp/xapk \
+            -o /tmp/iptvm3u-unsigned.apk \
+            -extractNativeLibs true \
+            -clean-meta
           test -s /tmp/iptvm3u-unsigned.apk
           unzip -l /tmp/iptvm3u-unsigned.apk | grep 'lib/armeabi-v7a/libffmpegJNI.so'
           unzip -l /tmp/iptvm3u-unsigned.apk | grep 'assets/player/'
+          java -jar /tmp/APKEditor.jar info -package -min-sdk-version -target-sdk-version -activities -i /tmp/iptvm3u-unsigned.apk
 
       - name: Align and sign APK with fixed key
         shell: bash
@@ -89,7 +92,7 @@ jobs:
           BT="$ANDROID_HOME/build-tools/36.0.0"
           base64 -d iptvm3u-build/iptvm3u-fixed.jks.b64 > /tmp/iptvm3u.jks
           keytool -list -keystore /tmp/iptvm3u.jks -storepass iptvm3u -alias iptvm3u >/dev/null
-          "$BT/zipalign" -f 4 /tmp/iptvm3u-unsigned.apk /tmp/iptvm3u-aligned.apk
+          "$BT/zipalign" -p -f 4 /tmp/iptvm3u-unsigned.apk /tmp/iptvm3u-aligned.apk
           "$BT/apksigner" sign \
             --ks /tmp/iptvm3u.jks \
             --ks-pass pass:iptvm3u \
@@ -100,6 +103,7 @@ jobs:
           "$BT/aapt2" dump badging iptvm3u.apk | tee /tmp/badging.txt
           grep -q "package: name='de.herber_edevelopment.m3uiptv'" /tmp/badging.txt
           grep -q 'launchable-activity:' /tmp/badging.txt
+          "$BT/zipalign" -c -p 4 iptvm3u.apk
           sha256sum iptvm3u.apk
           cp iptvm3u.apk a.apk
 
@@ -121,7 +125,7 @@ jobs:
             echo 'APK unchanged'
             exit 0
           fi
-          git commit -m 'Publish fixed standalone IPTVM3U APK [skip ci] [skip render]'
+          git commit -m 'Publish universal standalone IPTVM3U APK [skip ci] [skip render]'
           for n in 1 2 3 4 5; do
             git pull --rebase origin main || true
             if git push origin HEAD:main; then
