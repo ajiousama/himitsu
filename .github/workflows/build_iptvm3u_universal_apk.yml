@@ -1,0 +1,137 @@
+name: Build IPTVM3U standalone APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - iptvm3u-universal-build-temp
+    paths:
+      - '.iptvm3u-apk-build'
+      - 'patch_iptvm3u_assets.py.gz.b64'
+      - '.github/workflows/build_iptvm3u_universal_apk.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout build branch
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android build tools
+        run: sdkmanager "build-tools;36.0.0"
+
+      - name: Download original M3U IPTV 3.0.19 XAPK
+        shell: bash
+        run: |
+          set -euxo pipefail
+          curl -fL --retry 5 --retry-delay 2 \
+            -A 'Mozilla/5.0' \
+            'https://d.apkpure.com/b/XAPK/de.herber_edevelopment.m3uiptv?version=latest' \
+            -o original.xapk
+          echo '51a64f3e2001d3865d12dda0741f7d35a5917436  original.xapk' | sha1sum -c -
+
+      - name: Download APKEditor merger
+        shell: bash
+        run: |
+          set -euxo pipefail
+          curl -fL --retry 5 --retry-delay 2 \
+            'https://github.com/REAndroid/APKEditor/releases/download/V1.4.9/APKEditor-1.4.9.jar' \
+            -o APKEditor.jar
+          echo 'a9cd40df818845456be6d696de6110c89edf4b0a0580cb83438ed6b25a366e67  APKEditor.jar' | sha256sum -c -
+
+      - name: Merge XAPK splits into one APK
+        shell: bash
+        run: |
+          set -euxo pipefail
+          java -jar APKEditor.jar m -i original.xapk -o merged.apk
+          test -s merged.apk
+
+      - name: Apply IPTVM3U modifications
+        shell: bash
+        run: |
+          set -euxo pipefail
+          base64 -d patch_iptvm3u_assets.py.gz.b64 | gzip -d > patch_iptvm3u_assets.py
+          rm -rf merged
+          mkdir merged
+          unzip -q merged.apk -d merged
+          python3 patch_iptvm3u_assets.py merged
+
+          cp merged.apk unsigned.apk
+          zip -d unsigned.apk 'META-INF/*' || true
+          for f in \
+            assets/index-tv.html \
+            assets/index.html \
+            assets/js/playlist-worker.js \
+            assets/player/js/playlist.js \
+            assets/settings/js/settings.js \
+            assets/settings/js/playlist.js; do
+            (cd merged && zip -q ../unsigned.apk "$f")
+          done
+
+          unzip -p unsigned.apk assets/js/playlist-worker.js | grep -q 'grabIptvM3uDefault'
+          unzip -p unsigned.apk assets/settings/js/playlist.js | grep -q 'ensureIptvM3uPreset'
+
+      - name: Align and sign standalone APK
+        shell: bash
+        run: |
+          set -euxo pipefail
+          BT="$ANDROID_HOME/build-tools/36.0.0"
+          "$BT/zipalign" -f -p 4 unsigned.apk aligned.apk
+
+          # Stable AOSP test key: appropriate for this personal sideload/test build.
+          curl -fL --retry 5 \
+            'https://raw.githubusercontent.com/aosp-mirror/platform_build/master/target/product/security/testkey.pk8' \
+            -o testkey.pk8
+          curl -fL --retry 5 \
+            'https://raw.githubusercontent.com/aosp-mirror/platform_build/master/target/product/security/testkey.x509.pem' \
+            -o testkey.x509.pem
+
+          "$BT/apksigner" sign \
+            --key testkey.pk8 \
+            --cert testkey.x509.pem \
+            --out iptvm3u.apk \
+            aligned.apk
+
+          "$BT/apksigner" verify --verbose --print-certs iptvm3u.apk
+          "$BT/aapt" dump badging iptvm3u.apk | head -20
+          sha256sum iptvm3u.apk | tee iptvm3u.apk.sha256
+
+      - name: Upload standalone APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: iptvm3u-standalone-apk
+          path: |
+            iptvm3u.apk
+            iptvm3u.apk.sha256
+          if-no-files-found: error
+
+      - name: Publish iptvm3u.apk to main root
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euxo pipefail
+          base64 -w0 iptvm3u.apk > /tmp/iptvm3u.b64
+          CURRENT_SHA="$(gh api repos/${{ github.repository }}/contents/iptvm3u.apk?ref=main --jq '.sha' 2>/dev/null || true)"
+          if [ -n "$CURRENT_SHA" ]; then
+            jq -n --rawfile content /tmp/iptvm3u.b64 --arg sha "$CURRENT_SHA" \
+              '{message:"Publish standalone IPTVM3U APK [skip ci]",content:$content,branch:"main",sha:$sha}' \
+              > /tmp/payload.json
+          else
+            jq -n --rawfile content /tmp/iptvm3u.b64 \
+              '{message:"Publish standalone IPTVM3U APK [skip ci]",content:$content,branch:"main"}' \
+              > /tmp/payload.json
+          fi
+          gh api --method PUT repos/${{ github.repository }}/contents/iptvm3u.apk --input /tmp/payload.json
