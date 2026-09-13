@@ -32,15 +32,91 @@ jobs:
       - name: Install Android build tools
         run: sdkmanager "build-tools;36.0.0"
 
-      - name: Download original M3U IPTV 3.0.19 XAPK
+      - name: Download original M3U IPTV 3.0.19 bundle
         shell: bash
         run: |
           set -euxo pipefail
-          curl -fL --retry 5 --retry-delay 2 \
-            -A 'Mozilla/5.0' \
-            'https://d.apkpure.com/b/XAPK/de.herber_edevelopment.m3uiptv?version=latest' \
-            -o original.xapk
-          echo '51a64f3e2001d3865d12dda0741f7d35a5917436  original.xapk' | sha1sum -c -
+          python3 - <<'PY'
+          import html, re, sys, time
+          from urllib.parse import urljoin
+          import requests
+
+          START = 'https://www.apkmirror.com/apk/herber-entertainment/m3u-iptv/m3u-iptv-3-0-19-release/m3u-iptv-3-0-19-3-android-apk-download/'
+          UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0 Safari/537.36'
+          sess = requests.Session()
+          headers = {
+              'User-Agent': UA,
+              'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+              'Accept-Language': 'en-US,en;q=0.9',
+          }
+
+          def links(text, base):
+              vals = []
+              for raw in re.findall(r'href=["\']([^"\']+)["\']', text, flags=re.I):
+                  raw = html.unescape(raw)
+                  if raw.startswith('#') or raw.startswith('javascript:'):
+                      continue
+                  vals.append(urljoin(base, raw))
+              return vals
+
+          r = sess.get(START, headers=headers, timeout=30)
+          print('variant', r.status_code, len(r.content), r.url)
+          r.raise_for_status()
+
+          stage1 = []
+          for u in links(r.text, r.url):
+              lu = u.lower()
+              if 'download' in lu and ('apkmirror.com' in lu):
+                  if u not in stage1:
+                      stage1.append(u)
+          print('stage1 candidates:', *stage1[:30], sep='\n  ')
+          if not stage1:
+              raise SystemExit('No APKMirror download-stage link found')
+
+          html_pages = [(r.url, r.text)]
+          for u in stage1[:12]:
+              try:
+                  rr = sess.get(u, headers={**headers, 'Referer': r.url}, timeout=30)
+                  print('stage1 fetch', rr.status_code, len(rr.content), rr.url)
+                  ctype = rr.headers.get('content-type','').lower()
+                  if rr.status_code == 200 and ('text/html' in ctype or rr.text.lstrip().startswith('<')):
+                      html_pages.append((rr.url, rr.text))
+              except Exception as e:
+                  print('stage1 error', u, e)
+
+          final = []
+          for base, text in html_pages:
+              for u in links(text, base):
+                  lu = u.lower()
+                  if ('download.apkmirror.com' in lu or 'download.php' in lu or '/wp-content/' in lu or 'key=' in lu):
+                      if u not in final:
+                          final.append(u)
+          print('final candidates:', *final[:50], sep='\n  ')
+
+          # Some APKMirror pages delay the final link. Retry the most promising stage page once.
+          if not final:
+              time.sleep(16)
+              for u in stage1[:5]:
+                  rr = sess.get(u, headers={**headers, 'Referer': START}, timeout=30)
+                  for v in links(rr.text, rr.url):
+                      lv = v.lower()
+                      if ('download.apkmirror.com' in lv or 'download.php' in lv or 'key=' in lv):
+                          if v not in final:
+                              final.append(v)
+
+          for u in final:
+              try:
+                  rr = sess.get(u, headers={**headers, 'Referer': START}, timeout=60, allow_redirects=True)
+                  print('try', rr.status_code, len(rr.content), rr.url, rr.headers.get('content-type'))
+                  if rr.status_code == 200 and len(rr.content) > 5_000_000 and rr.content[:2] == b'PK':
+                      open('original.apkm','wb').write(rr.content)
+                      print('downloaded bundle', len(rr.content), rr.url)
+                      sys.exit(0)
+              except Exception as e:
+                  print('final error', u, e)
+          raise SystemExit('Could not download APKMirror bundle')
+          PY
+          test -s original.apkm
 
       - name: Download APKEditor merger
         shell: bash
@@ -51,12 +127,14 @@ jobs:
             -o APKEditor.jar
           echo 'a9cd40df818845456be6d696de6110c89edf4b0a0580cb83438ed6b25a366e67  APKEditor.jar' | sha256sum -c -
 
-      - name: Merge XAPK splits into one APK
+      - name: Merge bundle splits into one APK
         shell: bash
         run: |
           set -euxo pipefail
-          java -jar APKEditor.jar m -i original.xapk -o merged.apk
+          java -jar APKEditor.jar m -i original.apkm -o merged.apk
           test -s merged.apk
+          "$ANDROID_HOME/build-tools/36.0.0/aapt" dump badging merged.apk | head -25
+          "$ANDROID_HOME/build-tools/36.0.0/aapt" dump badging merged.apk | grep -q "package: name='de.herber_edevelopment.m3uiptv' versionCode='147' versionName='3.0.19'"
 
       - name: Apply IPTVM3U modifications
         shell: bash
@@ -90,7 +168,6 @@ jobs:
           BT="$ANDROID_HOME/build-tools/36.0.0"
           "$BT/zipalign" -f -p 4 unsigned.apk aligned.apk
 
-          # Stable AOSP test key: appropriate for this personal sideload/test build.
           curl -fL --retry 5 \
             'https://raw.githubusercontent.com/aosp-mirror/platform_build/master/target/product/security/testkey.pk8' \
             -o testkey.pk8
@@ -105,7 +182,8 @@ jobs:
             aligned.apk
 
           "$BT/apksigner" verify --verbose --print-certs iptvm3u.apk
-          "$BT/aapt" dump badging iptvm3u.apk | head -20
+          "$BT/aapt" dump badging iptvm3u.apk | head -25
+          "$BT/aapt" dump badging iptvm3u.apk | grep -q "package: name='de.herber_edevelopment.m3uiptv' versionCode='147' versionName='3.0.19'"
           sha256sum iptvm3u.apk | tee iptvm3u.apk.sha256
 
       - name: Upload standalone APK artifact
