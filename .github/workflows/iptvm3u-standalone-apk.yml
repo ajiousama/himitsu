@@ -1,0 +1,125 @@
+name: Build IPTVM3U standalone APK
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/iptvm3u-standalone-apk.yml'
+      - 'iptvm3u-build/patch_iptvm3u_assets.py'
+      - '.iptvm3u-apk-trigger'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install build tools
+        run: sdkmanager "build-tools;36.0.0"
+
+      - name: Download M3U IPTV 3.0.19 XAPK
+        shell: bash
+        run: |
+          set -euxo pipefail
+          curl -fL --retry 5 --retry-delay 2 \
+            -A 'Mozilla/5.0' \
+            'https://d.apkpure.com/b/XAPK/de.herber_edevelopment.m3uiptv?version=latest' \
+            -o /tmp/m3uiptv.xapk
+          test -s /tmp/m3uiptv.xapk
+          unzip -t /tmp/m3uiptv.xapk >/dev/null
+
+      - name: Extract and patch base APK
+        shell: bash
+        run: |
+          set -euxo pipefail
+          rm -rf /tmp/xapk /tmp/base
+          mkdir -p /tmp/xapk /tmp/base
+          unzip -q /tmp/m3uiptv.xapk -d /tmp/xapk
+          BASE="/tmp/xapk/de.herber_edevelopment.m3uiptv.apk"
+          test -f "$BASE"
+          unzip -q "$BASE" -d /tmp/base
+          python3 iptvm3u-build/patch_iptvm3u_assets.py /tmp/base
+          rm -rf /tmp/base/META-INF
+          rm -f /tmp/base/stamp-cert-sha256
+          rm -f "$BASE"
+          (cd /tmp/base && zip -qr "$BASE" .)
+          test -s "$BASE"
+
+      - name: Download APKEditor
+        shell: bash
+        run: |
+          set -euxo pipefail
+          curl -fL --retry 5 --retry-delay 2 \
+            'https://github.com/REAndroid/APKEditor/releases/download/V1.4.9/APKEditor-1.4.9.jar' \
+            -o /tmp/APKEditor.jar
+          test -s /tmp/APKEditor.jar
+
+      - name: Merge split APKs to one APK
+        shell: bash
+        run: |
+          set -euxo pipefail
+          java -jar /tmp/APKEditor.jar m -i /tmp/xapk -o /tmp/iptvm3u-unsigned.apk
+          test -s /tmp/iptvm3u-unsigned.apk
+
+      - name: Align and sign APK
+        shell: bash
+        run: |
+          set -euxo pipefail
+          BT="$ANDROID_HOME/build-tools/36.0.0"
+          keytool -genkeypair -v \
+            -keystore /tmp/iptvm3u.jks \
+            -storepass android -keypass android \
+            -alias iptvm3u -keyalg RSA -keysize 2048 -validity 10000 \
+            -dname 'CN=IPTVM3U, OU=Personal, O=IPTVM3U, L=Matsuyama, ST=Ehime, C=JP'
+          "$BT/zipalign" -f 4 /tmp/iptvm3u-unsigned.apk /tmp/iptvm3u-aligned.apk
+          "$BT/apksigner" sign \
+            --ks /tmp/iptvm3u.jks \
+            --ks-pass pass:android \
+            --key-pass pass:android \
+            --out iptvm3u.apk \
+            /tmp/iptvm3u-aligned.apk
+          "$BT/apksigner" verify --verbose --print-certs iptvm3u.apk
+          sha256sum iptvm3u.apk
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: iptvm3u-standalone-apk
+          path: iptvm3u.apk
+          if-no-files-found: error
+
+      - name: Publish APK to main root
+        shell: bash
+        run: |
+          set -euxo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -f iptvm3u.apk
+          if git diff --cached --quiet; then
+            echo 'APK unchanged'
+            exit 0
+          fi
+          git commit -m 'Publish IPTVM3U standalone APK [skip ci] [skip render]'
+          for n in 1 2 3 4 5; do
+            git pull --rebase origin main || true
+            if git push origin HEAD:main; then
+              exit 0
+            fi
+            sleep 3
+          done
+          exit 1
