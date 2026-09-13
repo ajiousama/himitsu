@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-13",
-  "generated_at": "2026-09-13T10:59:29.450902+09:00",
+  "generated_at": "2026-09-13T11:00:29.451827+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260913.json",
   "schedule_checked_at": "2026-09-13T10:57:29.451485+09:00",
@@ -19,7 +19,7 @@
   "alert_lead_minutes": 30,
   "card_count": 15,
   "held_count": 15,
-  "visible_count": 9,
+  "visible_count": 10,
   "active_count": 9,
   "ended_kept": [],
   "seed_required": false,
@@ -36,7 +36,7 @@
     },
     "day": {
       "held": 9,
-      "acquired": 7,
+      "acquired": 8,
       "active": 7,
       "ended": 0,
       "seed_required": 0,
@@ -53,13 +53,8 @@
   },
   "cloud_acquisition": {
     "requested": 11,
-    "fetched": 9,
+    "fetched": 10,
     "failures": [
-      {
-        "jcd": "06",
-        "name": "浜名湖",
-        "error": "HTTPError: playback check failed"
-      },
       {
         "jcd": "22",
         "name": "福岡",
@@ -103,6 +98,22 @@
         "ok": true,
         "sequence": 8084691,
         "last_segment": "/eb6bcc39cfad43ec87d30a7c7b553eac/b0e6a602d7244f86b86a4f1d4daed75a/manifest_1_8084955.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
+    },
+    "boat.hamanako": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/b5098acc05a54f7b879f21dba3ab1977/408bafb2d6e04e96a82e51cfb1d51296/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTQ0MTIwMCwic3RhcnQiOjE3ODkyNjQ4MDAsImlvcyI6MTgsImNwIjoiMjExNDYwNDAwXzIxMTUwMzU5OSIsInBwdyI6IjQwayJ9.56OsKA2dSBp_TC_Fz-VSNzZE6WXML5-_PxOgT4pukRg",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-09-13T11:00:29.454937+09:00",
+      "checked_at": "2026-09-13T11:00:29.454937+09:00",
+      "first_verified_at": "2026-09-13T11:00:29.454937+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 8084958,
+        "last_segment": "/b5098acc05a54f7b879f21dba3ab1977/408bafb2d6e04e96a82e51cfb1d51296/manifest_1_8084962.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -406,7 +417,7 @@
       "jcd": "06",
       "name": "浜名湖",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
       "active": false,
       "cancelled": false,
@@ -422,9 +433,9 @@
       "stream_window": "scheduled",
       "guidance_switch_at": "2026-09-13T17:51:00+09:00",
       "seed_required": false,
-      "playback_verified": false,
-      "first_verified_at": null,
-      "ready_before_first_race": false,
+      "playback_verified": true,
+      "first_verified_at": "2026-09-13T11:00:29.454937+09:00",
+      "ready_before_first_race": true,
       "acquire_from": "2026-09-13T09:04:00+09:00",
       "races": [
         {
@@ -488,7 +499,9 @@
           "name": "予選特選"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/b5098acc05a54f7b879f21dba3ab1977/408bafb2d6e04e96a82e51cfb1d51296/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTQ0MTIwMCwic3RhcnQiOjE3ODkyNjQ4MDAsImlvcyI6MTgsImNwIjoiMjExNDYwNDAwXzIxMTUwMzU5OSIsInBwdyI6IjQwayJ9.56OsKA2dSBp_TC_Fz-VSNzZE6WXML5-_PxOgT4pukRg",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     },
     "boat.gamagori": {
       "jcd": "07",
@@ -682,8 +695,8 @@
       "last_race": "16:20",
       "alert_from": "2026-09-13T10:03:00+09:00",
       "next_race": {
-        "race": 2,
-        "start": "11:00"
+        "race": 3,
+        "start": "11:27"
       },
       "stream_window": "live_or_prestart",
       "guidance_switch_at": "2026-09-13T17:05:00+09:00",
