@@ -38,7 +38,7 @@ jobs:
           set -euxo pipefail
           curl -fL --retry 5 --retry-delay 2 \
             -A 'Mozilla/5.0' \
-            'https://d.apkpure.com/b/XAPK/de.herber_edevelopment.m3uiptv?version=latest' \
+            'https://d.apkpure.net/b/XAPK/de.herber_edevelopment.m3uiptv?version=latest' \
             -o /tmp/m3uiptv.xapk
           test -s /tmp/m3uiptv.xapk
           unzip -t /tmp/m3uiptv.xapk >/dev/null
