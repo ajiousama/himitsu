@@ -1,0 +1,65 @@
+name: Build IPTVM3U APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - iptvm3u-build
+    paths:
+      - '.iptvm3u-build'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout build branch
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK 36
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
+
+      - name: Set up Gradle 9.6
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.6.0'
+
+      - name: Build debug APK
+        working-directory: jun-iptv
+        run: gradle :app:assembleDebug --stacktrace
+
+      - name: Stage APK
+        shell: bash
+        run: cp jun-iptv/app/build/outputs/apk/debug/app-debug.apk /tmp/iptvm3u.apk
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: IPTVM3U-v0.1.0-debug-apk
+          path: /tmp/iptvm3u.apk
+          if-no-files-found: error
+
+      - name: Publish iptvm3u.apk to main root
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin main
+          git checkout -B main origin/main
+          cp /tmp/iptvm3u.apk iptvm3u.apk
+          git add iptvm3u.apk
+          if ! git diff --cached --quiet; then
+            git commit -m "Publish IPTVM3U APK [skip ci]"
+            git push origin main
+          fi
