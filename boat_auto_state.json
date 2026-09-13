@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-13",
-  "generated_at": "2026-09-13T16:16:27.465807+09:00",
+  "generated_at": "2026-09-13T16:17:27.415416+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260913.json",
   "schedule_checked_at": "2026-09-13T16:05:27.463096+09:00",
@@ -20,9 +20,10 @@
   "card_count": 15,
   "held_count": 15,
   "visible_count": 15,
-  "active_count": 13,
+  "active_count": 12,
   "ended_kept": [
     "三国",
+    "びわこ",
     "芦屋"
   ],
   "seed_required": false,
@@ -40,8 +41,8 @@
     "day": {
       "held": 9,
       "acquired": 9,
-      "active": 9,
-      "ended": 0,
+      "active": 8,
+      "ended": 1,
       "seed_required": 0,
       "cancelled": 0
     },
@@ -55,8 +56,8 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 13,
-    "fetched": 13,
+    "requested": 12,
+    "fetched": 12,
     "failures": []
   },
   "epg_programmes_written": {
@@ -120,13 +121,13 @@
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/17dd41ca2c9f4c318622701333abf2be/e217639717ec4170831cc1e36f09d3b2/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTQ1MjAwMCwic3RhcnQiOjE3ODkyNzYyMDAsImlvcyI6MTgsImNwIjoiMjExNDcxODAwXzIxMTUxNDM5OSIsInBwdyI6IjQwayJ9.S-U6YWWHoUVaO_UhOmrPMZlFlRvxFZcQI2fhZjmPuaI",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-09-13T14:10:29.628144+09:00",
-      "checked_at": "2026-09-13T16:12:27.361711+09:00",
+      "checked_at": "2026-09-13T16:17:27.419869+09:00",
       "first_verified_at": "2026-09-13T14:10:29.628144+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
         "sequence": 8062706,
-        "last_segment": "/17dd41ca2c9f4c318622701333abf2be/e217639717ec4170831cc1e36f09d3b2/manifest_4_8063929.ts",
+        "last_segment": "/17dd41ca2c9f4c318622701333abf2be/e217639717ec4170831cc1e36f09d3b2/manifest_4_8063979.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -942,8 +943,8 @@
       "name": "びわこ",
       "held": true,
       "visible": true,
-      "ended": false,
-      "active": true,
+      "ended": true,
+      "active": false,
       "cancelled": false,
       "mode": "day",
       "mode_label": "デイ",
@@ -951,7 +952,7 @@
       "last_race": "16:14",
       "alert_from": "2026-09-13T09:59:00+09:00",
       "next_race": null,
-      "stream_window": "live_or_prestart",
+      "stream_window": "ended_kept",
       "guidance_switch_at": "2026-09-13T16:59:00+09:00",
       "seed_required": false,
       "playback_verified": true,
