@@ -7,11 +7,11 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "jp.jun.iptv"
+        applicationId = "jp.iptvm3u.android"
         minSdk = 23
         targetSdk = 36
-        versionCode = 4
-        versionName = "0.2.1"
+        versionCode = 1
+        versionName = "0.1.0"
     }
 
     compileOptions {
