@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-14",
-  "generated_at": "2026-09-14T20:47:37.999807+09:00",
+  "generated_at": "2026-09-14T20:48:38.000459+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260914.json",
   "schedule_checked_at": "2026-09-14T20:44:38.000650+09:00",
@@ -20,7 +20,7 @@
   "card_count": 14,
   "held_count": 14,
   "visible_count": 14,
-  "active_count": 1,
+  "active_count": 0,
   "ended_kept": [
     "戸田",
     "平和島",
@@ -32,6 +32,7 @@
     "びわこ",
     "住之江",
     "徳山",
+    "下関",
     "若松",
     "芦屋",
     "福岡"
@@ -59,16 +60,18 @@
     "night": {
       "held": 4,
       "acquired": 4,
-      "active": 1,
-      "ended": 3,
+      "active": 0,
+      "ended": 4,
       "seed_required": 0,
       "cancelled": 0
     }
   },
   "cloud_acquisition": {
-    "requested": 1,
-    "fetched": 1,
-    "failures": []
+    "requested": 0,
+    "fetched": 0,
+    "failures": [],
+    "deferred": 14,
+    "reason": "stream acquisition waits until each venue 1R prefetch window"
   },
   "epg_programmes_written": {
     "public_sports_epg_local.xml": 182,
@@ -1180,8 +1183,8 @@
       "name": "下関",
       "held": true,
       "visible": true,
-      "ended": false,
-      "active": true,
+      "ended": true,
+      "active": false,
       "cancelled": false,
       "mode": "night",
       "mode_label": "ナイター",
@@ -1189,7 +1192,7 @@
       "last_race": "20:45",
       "alert_from": "2026-09-14T14:57:00+09:00",
       "next_race": null,
-      "stream_window": "live_or_prestart",
+      "stream_window": "ended_kept",
       "guidance_switch_at": "2026-09-14T21:30:00+09:00",
       "seed_required": false,
       "playback_verified": true,
