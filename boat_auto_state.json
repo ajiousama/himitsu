@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-14",
-  "generated_at": "2026-09-14T09:17:34.807744+09:00",
+  "generated_at": "2026-09-14T09:18:34.752113+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260914.json",
   "schedule_checked_at": "2026-09-14T09:07:34.702870+09:00",
@@ -52,12 +52,22 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 9,
+    "requested": 10,
     "fetched": 2,
     "failures": [
       {
+        "jcd": "04",
+        "name": "平和島",
+        "error": "HTTPError: playback check failed"
+      },
+      {
         "jcd": "08",
         "name": "常滑",
+        "error": "HTTPError: playback check failed"
+      },
+      {
+        "jcd": "11",
+        "name": "びわこ",
         "error": "HTTPError: playback check failed"
       },
       {
@@ -71,16 +81,6 @@
         "error": "HTTPError: playback check failed"
       },
       {
-        "jcd": "04",
-        "name": "平和島",
-        "error": "HTTPError: playback check failed"
-      },
-      {
-        "jcd": "11",
-        "name": "びわこ",
-        "error": "HTTPError: playback check failed"
-      },
-      {
         "jcd": "09",
         "name": "津",
         "error": "HTTPError: playback check failed"
@@ -88,6 +88,11 @@
       {
         "jcd": "06",
         "name": "浜名湖",
+        "error": "cloud and official acquisition unavailable: HTTPError"
+      },
+      {
+        "jcd": "22",
+        "name": "福岡",
         "error": "cloud and official acquisition unavailable: HTTPError"
       }
     ]
