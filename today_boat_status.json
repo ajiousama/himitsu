@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-14",
-  "generated_at": "2026-09-14T14:10:39.141613+09:00",
+  "generated_at": "2026-09-14T14:11:39.091308+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260914.json",
   "schedule_checked_at": "2026-09-14T14:04:39.139818+09:00",
@@ -56,11 +56,6 @@
     "fetched": 11,
     "failures": [
       {
-        "jcd": "20",
-        "name": "若松",
-        "error": "HTTPError: playback check failed"
-      },
-      {
         "jcd": "12",
         "name": "住之江",
         "error": "HTTPError: playback check failed"
@@ -68,6 +63,11 @@
       {
         "jcd": "19",
         "name": "下関",
+        "error": "HTTPError: playback check failed"
+      },
+      {
+        "jcd": "20",
+        "name": "若松",
         "error": "HTTPError: playback check failed"
       }
     ]
@@ -812,10 +812,7 @@
       "first_race": "08:32",
       "last_race": "14:11",
       "alert_from": "2026-09-14T08:02:00+09:00",
-      "next_race": {
-        "race": 12,
-        "start": "14:11"
-      },
+      "next_race": null,
       "stream_window": "live_or_prestart",
       "guidance_switch_at": "2026-09-14T14:56:00+09:00",
       "seed_required": false,
