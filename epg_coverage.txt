@@ -1,10 +1,10 @@
 FreeWiFi merged EPG coverage
-wanted=247
+wanted=229
 matched_real=124
-fallback=123
-unmatched_real=123
-covered_total=247
-output_bytes=10014568
+fallback=105
+unmatched_real=105
+covered_total=229
+output_bytes=9925322
 
 [source errors]
 none
@@ -15,12 +15,12 @@ OK	NHK東京・教育_jp	NHK E	japanterebi	JOABDTV.jp	158 programmes
 OK	日本テレビ_jp	日本テレビ	jcom	jcom_2_1040_32738	92 programmes
 OK	tver_ntv	Tver 日テレ系	tver	ntv	79 programmes
 OK	TBS_jp	ＴＢＳ	jcom	jcom_2_1048_32739	68 programmes
-OK	tver_tbs	Tver TBS系	tver	tbs	87 programmes
+OK	tver_tbs	Tver TBS系	tver	tbs	86 programmes
 OK	フジテレビ_jp	フジテレビ	jcom	jcom_2_1056_32740	79 programmes
 OK	tver_cx	Tver フジ系	tver	cx	124 programmes
 OK	テレビ朝日_jp	テレビ朝日	jcom	jcom_2_1064_32741	92 programmes
 OK	tver_ex	Tver テレ朝系	tver	ex	47 programmes
-OK	tver_tx	Tver テレ東系	tver	tx	104 programmes
+OK	tver_tx	Tver テレ東系	tver	tx	105 programmes
 OK	テレ東_jp	テレビ東京	jcom	jcom_2_1072_32742	127 programmes
 OK	テレビ東京_jp	テレビ東京	jcom	jcom_2_1072_32742	127 programmes
 OK	TOKYO・MX_jp	TOKYO MX1	japanterebi	TokyoMX1.jp	109 programmes
@@ -152,6 +152,8 @@ OK	ecatv.event_selection	イベントセレクション	ecatv	52330	2044 program
 FALLBACK	ecatv.ehime_channel	えひめチャンネル	愛媛CATV	12 programmes
 OK	ecatv.bousai	えひめ・防災チャンネル	ecatv	115	2329 programmes
 OK	日経CNBC_jp	日経CNBC	japanterebi	NikkeiCNBC.jp	402 programmes
+FALLBACK	ecatv.matsuyama_gikai	松山市議会中継	愛媛CATV	12 programmes
+FALLBACK	ecatv.ehime_gikai	愛媛県議会中継	愛媛CATV	12 programmes
 OK	rch_30	鉄道・旅	karenda	rch_30	46 programmes
 OK	rch_125	セクシーエンタメチャンネル	karenda	rch_125	37 programmes
 OK	rch_124	おとなの歓楽街 by MEN'S NECO	karenda	rch_124	74 programmes
@@ -168,16 +170,17 @@ FALLBACK	boat.tsu	BOATRACE津	今日の開催場	12 programmes
 FALLBACK	boat.tokuyama	BOATRACE徳山	今日の開催場	12 programmes
 FALLBACK	boat.tokoname	BOATRACE常滑	今日の開催場	12 programmes
 FALLBACK	boat.heiwajima	BOATRACE平和島	今日の開催場	12 programmes
-FALLBACK	keirin.ogaki	大垣けいりん	今日の開催場	12 programmes
-FALLBACK	keirin.hofu	防府けいりん	今日の開催場	12 programmes
-FALLBACK	keirin.omiya	大宮けいりん	今日の開催場	12 programmes
-FALLBACK	auto.hamamatsu	浜松オート	今日の開催場	12 programmes
-FALLBACK	keirin.kishiwada	岸和田けいりん	今日の開催場	12 programmes
-FALLBACK	chihou.mizusawa	水沢けいば（岩手競馬）	今日の開催場	12 programmes
-FALLBACK	chihou.kanazawa	金沢けいば（金沢競馬）	今日の開催場	12 programmes
-FALLBACK	chihou.nagoya_keiba	名古屋けいば（名古屋競馬）	今日の開催場	12 programmes
+FALLBACK	boat.hamanako	BOATRACE浜名湖	今日の開催場	12 programmes
+FALLBACK	boat.fukuoka	BOATRACE福岡	今日の開催場	12 programmes
 FALLBACK	chihou.oi	大井けいば（南関東競馬）	今日の開催場	12 programmes
+FALLBACK	keirin.kishiwada	岸和田けいりん	今日の開催場	12 programmes
+FALLBACK	auto.hamamatsu	浜松オート	今日の開催場	12 programmes
 FALLBACK	chihou.mombetsu	門別けいば（ホッカイドウ競馬）	今日の開催場	12 programmes
+FALLBACK	chihou.mizusawa	水沢けいば（岩手競馬）	今日の開催場	12 programmes
+FALLBACK	keirin.hofu	防府けいりん	今日の開催場	12 programmes
+FALLBACK	chihou.kanazawa	金沢けいば（金沢競馬）	今日の開催場	12 programmes
+FALLBACK	keirin.omiya	大宮けいりん	今日の開催場	12 programmes
+FALLBACK	chihou.nagoya_keiba	名古屋けいば（名古屋競馬）	今日の開催場	12 programmes
 FALLBACK	keirin.gifu	岐阜けいりん	今日の開催場	12 programmes
 FALLBACK	keirin.iwakitaira	いわき平けいりん	今日の開催場	12 programmes
 FALLBACK	auto.isesaki	伊勢崎オート	今日の開催場	12 programmes
@@ -186,6 +189,7 @@ FALLBACK	keirin.ito	伊東温泉けいりん	今日の開催場	12 programmes
 FALLBACK	auto.iizuka	飯塚オート	今日の開催場	12 programmes
 FALLBACK	youtube.konodo1	コノド・馬の映るお天気カメラ	動物	12 programmes
 FALLBACK	youtube.natsu_shiba	柴犬なつと子供たち	動物	12 programmes
+FALLBACK	youtube.konodo2	コノド・馬の映るお天気カメラ2	動物	12 programmes
 FALLBACK	youtube.osaka_station	JR大阪駅 いまの様子	交通	12 programmes
 FALLBACK	youtube.kobe_waterfront	神戸ウォーターフロント	その他LIVE	12 programmes
 FALLBACK	youtube.kyoto_station	京都駅前バス乗り場ライブカメラ	交通	12 programmes
@@ -210,33 +214,11 @@ FALLBACK	youtube.uwajima	宇和島 LIVE	愛媛県内ライブカメラ	12 progra
 FALLBACK	youtube.shimanami	しまなみ LIVE	愛媛県内ライブカメラ	12 programmes
 FALLBACK	youtube.kbn_seto_bridge	KBN 瀬戸大橋ライブカメラ	交通	12 programmes
 FALLBACK	youtube.awaji_monkey	淡路島モンキーセンター	動物	12 programmes
-FALLBACK	youtube.chinchilla_room	チンチラ部屋配信	動物	12 programmes
 FALLBACK	youtube.kobe_airport_ytv	神戸空港【読売テレビ】	空港	12 programmes
 FALLBACK	youtube.tokyo_haneda	東京・羽田空港	空港	12 programmes
-FALLBACK	youtube.akashi_bridge	明石海峡大橋	交通	12 programmes
 FALLBACK	youtube.osaka_loop	大阪環状線	交通	12 programmes
 FALLBACK	youtube.nomura_dam	野村ダム	愛媛県内ライブカメラ	12 programmes
 FALLBACK	youtube.maiko_villa_akashi	舞子ビラ・明石海峡ライブ	交通	12 programmes
-FALLBACK	youtube.ehime_mishima_kawanoe_port	三島川之江港	愛媛県内ライブカメラ	12 programmes
-FALLBACK	youtube.ehime_toyo_port	東予港	愛媛県内ライブカメラ	12 programmes
-FALLBACK	youtube.ehime_hashihama_port	波止浜港	愛媛県内ライブカメラ	12 programmes
-FALLBACK	youtube.ehime_misaki_port	三崎港	愛媛県内ライブカメラ	12 programmes
-FALLBACK	youtube.ehime_misho_port	御荘港	愛媛県内ライブカメラ	12 programmes
-FALLBACK	youtube.ehime_ainan_ebc	愛南町・御荘湾【テレビ愛媛】	愛媛県内ライブカメラ	12 programmes
-FALLBACK	youtube.airport_okayama	岡山空港 LIVE	空港	12 programmes
-FALLBACK	youtube.airport_hiroshima	広島空港 LIVE	空港	12 programmes
-FALLBACK	youtube.airport_nagasaki	長崎空港 LIVE	空港	12 programmes
-FALLBACK	youtube.airport_goto	五島つばき空港 LIVE	空港	12 programmes
-FALLBACK	youtube.airport_kumamoto	熊本空港 LIVE	空港	12 programmes
-FALLBACK	youtube.airport_oita	大分空港 LIVE	空港	12 programmes
-FALLBACK	youtube.airport_miyazaki	宮崎空港 LIVE	空港	12 programmes
-FALLBACK	youtube.airport_amami	奄美空港 LIVE	空港	12 programmes
-FALLBACK	youtube.airport_naha	那覇空港 LIVE	空港	12 programmes
-FALLBACK	youtube.airport_sendai	仙台空港 LIVE	空港	12 programmes
-FALLBACK	youtube.airport_hanamaki	花巻空港 LIVE	空港	12 programmes
-FALLBACK	youtube.airport_yamagata	山形空港 LIVE	空港	12 programmes
-FALLBACK	youtube.airport_fukushima	福島空港 LIVE	空港	12 programmes
-FALLBACK	youtube.airport_obihiro	帯広空港 LIVE	空港	12 programmes
 FALLBACK	youtube.matsuyama.clean	♻️ 松山市クリーンセンター LIVE	その他LIVE	12 programmes
 FALLBACK	youtube.matsuyama.airport	✈️ 松山空港 LIVE	その他LIVE	12 programmes
 FALLBACK	youtube.namibia.live	🇳🇦 ナミビア LIVE	その他LIVE	12 programmes
