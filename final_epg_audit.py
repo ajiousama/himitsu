@@ -10,6 +10,7 @@ from pathlib import Path
 PLAYLISTS = [Path("freewifi"), Path("other_live.m3u")]
 EPG = Path("guides.xml")
 REPORT = Path("epg_final_audit.txt")
+COVERAGE = Path("epg_coverage.txt")
 JST = timezone(timedelta(hours=9))
 
 SYNTHETIC_MARKERS = (
@@ -186,6 +187,57 @@ def main() -> int:
     section("ORPHAN_XML_CHANNELS", orphan_xml_channels, lambda r: r)
 
     REPORT.write_text("\n".join(lines), encoding="utf-8")
+
+    # epg_coverage.txt is already published by the main workflow. Append the
+    # final merged result there so the repository's visible coverage report is
+    # based on the finished guides.xml rather than the pre-merge base build.
+    if COVERAGE.exists():
+        base = COVERAGE.read_text(encoding="utf-8", errors="replace")
+        marker = "\n[FINAL MERGED EPG AUDIT]\n"
+        if marker in base:
+            base = base.split(marker, 1)[0].rstrip() + "\n"
+        concise = [
+            marker.strip("\n"),
+            f"generated={now.isoformat()}",
+            f"healthy_current_real={len(healthy)}",
+            f"fallback_only_current={len(fallback_only)}",
+            f"missing_tvg_id_entries={len(missing_tvg_id)}",
+            f"xml_channel_missing={len(xml_channel_missing)}",
+            f"zero_programmes={len(zero_programmes)}",
+            f"stale_only={len(stale_only)}",
+            "",
+            "[FINAL MISSING_TVG_ID]",
+        ]
+        concise.extend(
+            f"{r[0]}:{r[1]}\tgroup={r[2]}\tname={r[3]}" for r in missing_tvg_id
+        )
+        if not missing_tvg_id:
+            concise.append("none")
+        concise.extend(["", "[FINAL XML_CHANNEL_MISSING]"])
+        concise.extend(
+            f"{r[0]}\tgroup={r[3]}\tname={r[4]}" for r in xml_channel_missing
+        )
+        if not xml_channel_missing:
+            concise.append("none")
+        concise.extend(["", "[FINAL ZERO_PROGRAMMES]"])
+        concise.extend(
+            f"{r[0]}\tgroup={r[3]}\tname={r[4]}" for r in zero_programmes
+        )
+        if not zero_programmes:
+            concise.append("none")
+        concise.extend(["", "[FINAL STALE_ONLY]"])
+        concise.extend(
+            f"{r[0]}\tprogrammes={r[1]}\tgroup={r[4]}\tname={r[5]}" for r in stale_only
+        )
+        if not stale_only:
+            concise.append("none")
+        concise.extend(["", "[FINAL FALLBACK_ONLY_CURRENT]"])
+        concise.extend(
+            f"{r[0]}\tcurrent={r[1]}\tgroup={r[4]}\tname={r[5]}" for r in fallback_only
+        )
+        if not fallback_only:
+            concise.append("none")
+        COVERAGE.write_text(base.rstrip() + "\n\n" + "\n".join(concise) + "\n", encoding="utf-8")
 
     print(
         "FINAL EPG AUDIT: "
