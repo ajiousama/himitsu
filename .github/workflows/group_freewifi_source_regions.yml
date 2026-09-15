@@ -46,6 +46,8 @@ jobs:
           assert 'NHK東京・総合 (naori)' in s
           assert '### TVerﾘｱﾙﾀｲﾑ' in s
           assert '## Rch' in s
+          assert 'Pigoo (haruka(9394))' in s
+          assert 'Pigoo (blog)' not in s
           for cid in ('rch_30','rch_35','rch_37','rch_46','rch_86','rch_113','rch_122','rch_123','rch_124','rch_125','rch_41'):
               assert cid in s
           assert '## Rakuten-JP' not in s
@@ -62,4 +64,5 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add freewifi
           git commit -m "Normalize FreeWiFi terrestrial channels and Rch block"
+          git pull --rebase origin main
           git push
