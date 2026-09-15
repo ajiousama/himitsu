@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-15",
-  "generated_at": "2026-09-15T17:08:31.083596+09:00",
+  "generated_at": "2026-09-15T17:09:31.083424+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260915.json",
   "schedule_checked_at": "2026-09-15T17:00:31.132522+09:00",
@@ -20,9 +20,10 @@
   "card_count": 13,
   "held_count": 13,
   "visible_count": 13,
-  "active_count": 6,
+  "active_count": 5,
   "ended_kept": [
     "平和島",
+    "浜名湖",
     "常滑",
     "津",
     "三国",
@@ -45,8 +46,8 @@
     "day": {
       "held": 7,
       "acquired": 7,
-      "active": 2,
-      "ended": 5,
+      "active": 1,
+      "ended": 6,
       "seed_required": 0,
       "cancelled": 0
     },
@@ -60,8 +61,8 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 6,
-    "fetched": 6,
+    "requested": 5,
+    "fetched": 5,
     "failures": []
   },
   "epg_programmes_written": {
@@ -109,13 +110,13 @@
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/c383ae065f0f448e96d056ebcc72b3a4/dfb75ddb4faa4f728379aef6a6e55d3f/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTYyNDgwMCwic3RhcnQiOjE3ODk0NDkwMDAsImlvcyI6MTgsImNwIjoiMjExNjQ0NjAwXzIxMTY4NzE5OSIsInBwdyI6IjQwayJ9.hR234wgJCBcOE0tYc_goUs76A4ICyGFrit_qHrcbeFY",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-09-15T14:10:31.065570+09:00",
-      "checked_at": "2026-09-15T17:04:31.086518+09:00",
+      "checked_at": "2026-09-15T17:09:31.087436+09:00",
       "first_verified_at": "2026-09-15T14:10:31.065570+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
         "sequence": 8091506,
-        "last_segment": "/c383ae065f0f448e96d056ebcc72b3a4/dfb75ddb4faa4f728379aef6a6e55d3f/manifest_4_8093250.ts",
+        "last_segment": "/c383ae065f0f448e96d056ebcc72b3a4/dfb75ddb4faa4f728379aef6a6e55d3f/manifest_4_8093300.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -189,13 +190,13 @@
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/98fbf4d2cc3f489e8d598d261445f255/0defa428c51041f59264353f1ae42f8f/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTYyNDgwMCwic3RhcnQiOjE3ODk0NDk5MDAsImlvcyI6MTgsImNwIjoiMjExNjQ1NTAwXzIxMTY4NzE5OSIsInBwdyI6IjQwayJ9.b6-_ntx9JOE31Fo79hLcn9ep44Zem6WahzqGsfpUy3o",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-09-15T14:25:31.067836+09:00",
-      "checked_at": "2026-09-15T17:04:31.087080+09:00",
+      "checked_at": "2026-09-15T17:09:31.088442+09:00",
       "first_verified_at": "2026-09-15T14:25:31.067836+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
         "sequence": 8091276,
-        "last_segment": "/98fbf4d2cc3f489e8d598d261445f255/0defa428c51041f59264353f1ae42f8f/manifest_4_8092870.ts",
+        "last_segment": "/98fbf4d2cc3f489e8d598d261445f255/0defa428c51041f59264353f1ae42f8f/manifest_4_8092920.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -375,8 +376,8 @@
       "name": "浜名湖",
       "held": true,
       "visible": true,
-      "ended": false,
-      "active": true,
+      "ended": true,
+      "active": false,
       "cancelled": false,
       "mode": "day",
       "mode_label": "デイ",
@@ -384,7 +385,7 @@
       "last_race": "17:06",
       "alert_from": "2026-09-15T11:05:00+09:00",
       "next_race": null,
-      "stream_window": "live_or_prestart",
+      "stream_window": "ended_kept",
       "guidance_switch_at": "2026-09-15T17:51:00+09:00",
       "seed_required": false,
       "playback_verified": true,
