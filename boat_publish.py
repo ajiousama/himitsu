@@ -9,6 +9,11 @@ import subprocess
 import xml.etree.ElementTree as ET
 import boat_auto_system as boat
 
+BOAT_LOGO_BASE = (
+    'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/'
+    'public_sports_logos_github_43/boatrace_24_spaced_cut_1024'
+)
+
 
 def refresh_cx2():
     try:
@@ -17,6 +22,18 @@ def refresh_cx2():
             print(f'::warning::CX2 KICK refresh exited {result.returncode}; keeping current entry')
     except Exception as exc:
         print(f'::warning::CX2 KICK refresh failed: {type(exc).__name__}; keeping current entry')
+
+
+def use_canonical_boat_logos():
+    """Point BOAT entries at the single canonical 24-venue logo set in earphone."""
+    path = boat.FREEWIFI
+    text = path.read_text(encoding='utf-8-sig')
+    for _jcd, (_name, tvg_id, filename) in boat.VENUES.items():
+        slug = filename.removeprefix('boat_').removesuffix('.png')
+        logo = f'{BOAT_LOGO_BASE}/{slug}.png'
+        pattern = re.compile(r'(^#EXTINF:.*?tvg-id="' + re.escape(tvg_id) + r'".*?tvg-logo=")[^"]+(".*$)', re.M)
+        text = pattern.sub(lambda m: m.group(1) + logo + m.group(2), text)
+    path.write_text(text, encoding='utf-8')
 
 
 def overlay_state(epg_only=False):
@@ -29,6 +46,7 @@ def overlay_state(epg_only=False):
     venues, rows, _ = boat.build_venue_state(cards, state.get('streams') or {}, now, cancelled)
     if not epg_only:
         boat.update_playlist(rows)
+        use_canonical_boat_logos()
     for path in (boat.LOCAL_EPG, boat.GUIDES):
         if path.exists():
             boat.overlay_epg_file(path, cards, now.date(), cancelled)
@@ -47,6 +65,12 @@ def validate(state=None, cards=None):
         raise RuntimeError('duplicate BOAT playlist channel')
     if len(ids) != state.get('visible_count'):
         raise RuntimeError('BOAT playlist/status count mismatch')
+    for tvg_id in ids:
+        slug = next(filename.removeprefix('boat_').removesuffix('.png') for _jcd, (_name, cid, filename) in boat.VENUES.items() if cid == tvg_id)
+        expected_logo = f'{BOAT_LOGO_BASE}/{slug}.png'
+        line = next((line for line in text.splitlines() if line.startswith('#EXTINF:') and f'tvg-id="{tvg_id}"' in line), '')
+        if f'tvg-logo="{expected_logo}"' not in line:
+            raise RuntimeError(f'non-canonical BOAT logo: {tvg_id}')
     urls = boat.managed_playlist_urls()
     if len(set(urls.values())) != len(urls):
         raise RuntimeError('same stream assigned to multiple venues')
