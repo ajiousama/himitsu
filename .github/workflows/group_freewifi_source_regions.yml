@@ -1,10 +1,9 @@
-name: Group FreeWiFi source regions
+name: Normalize FreeWiFi terrestrial order
 
 on:
   push:
     paths:
       - group_freewifi_sources.py
-      - restore_akariko_haru.py
       - .github/workflows/group_freewifi_source_regions.yml
   workflow_dispatch:
 
@@ -12,11 +11,11 @@ permissions:
   contents: write
 
 concurrency:
-  group: group-freewifi-source-regions
+  group: normalize-freewifi-terrestrial
   cancel-in-progress: false
 
 jobs:
-  group:
+  normalize:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -25,39 +24,34 @@ jobs:
         with:
           python-version: '3.x'
 
-      - name: Restore grouped Akariko entries
-        run: python restore_akariko_haru.py
-
-      - name: Group Akariko and Haruka1 Haruka2 Haruka3 by region
+      - name: Normalize terrestrial channels and TVer specials
         run: python group_freewifi_sources.py
 
       - name: Validate playlist
         run: |
           python - <<'PY'
           from pathlib import Path
-          p = Path('freewifi')
-          s = p.read_text(encoding='utf-8')
+          s = Path('freewifi').read_text(encoding='utf-8')
           assert s.startswith('#EXTM3U')
-          groups = (
-              'akariko関東', 'akariko関西', 'akarikoBS', 'akarikoCS',
-              'haruka1 関東', 'haruka1 関西', 'haruka1 BS', 'haruka1 CS',
-              'haruka2 関東', 'haruka2 関西', 'haruka2 BS', 'haruka2 CS',
-              'haruka3 関東', 'haruka3 関西', 'haruka3 BS', 'haruka3 CS',
-          )
-          for g in groups:
-              if g not in s:
-                  print(f'warning: no entries for {g}')
+          assert '## 地上波' in s
+          assert '## BS' in s
+          assert '## その他' in s
+          assert 'NHK東京・総合 (haruka(9394))' in s
+          assert 'NHK東京・総合 (blog)' in s
+          assert 'NHK東京・総合 (primehome)' in s
+          assert 'NHK東京・総合 (naori)' in s
+          assert '### TVerﾘｱﾙﾀｲﾑ' in s
           PY
           git diff --check
 
-      - name: Commit FreeWiFi grouping
+      - name: Commit normalized FreeWiFi playlist
         run: |
           if git diff --quiet -- freewifi; then
-            echo "No freewifi grouping changes"
+            echo "No freewifi changes"
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add freewifi
-          git commit -m "Group Akariko and Haruka1 Haruka2 Haruka3 FreeWiFi channels"
+          git commit -m "Normalize FreeWiFi terrestrial channels"
           git push
