@@ -203,12 +203,14 @@ print(
     f"ainan_programmes={ainan_programmes} rakuten={rakuten_counts}"
 )
 
-# Second line of defence for Rakuten R Channel:
-# 1) exact karenda ID (above), 2) Rakuten official schedule payload when exposed,
-# 3) previous committed real EPG while it is still current, 4) visible fallback.
-# Backup failure must never destroy the otherwise-valid merged guide.
+# Final authoritative Rakuten pass:
+# use Rakuten's own schedule whenever it can be parsed, even if the generic
+# source already supplied a non-empty rch_* grid. This prevents stale or
+# similarly named schedules from being accepted merely because they exist.
+# If the official page cannot be parsed, keep the existing real grid and only
+# use previous-good cache when the channel would otherwise be blank.
 try:
-    import rakuten_epg_backup
-    rakuten_epg_backup.main()
+    import rakuten_epg_fix
+    rakuten_epg_fix.main()
 except Exception as exc:
-    print(f"::warning::Rakuten EPG backup skipped: {type(exc).__name__}: {exc}")
+    print(f"::warning::Rakuten EPG authoritative repair skipped: {type(exc).__name__}: {exc}")
