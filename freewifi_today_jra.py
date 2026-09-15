@@ -7,19 +7,20 @@ JST=timezone(timedelta(hours=9)); START='# === TODAY_JRA_START ==='; END='# === 
 RAW='https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main'
 LOGO=RAW+'/public_sports_logos_github_43/jra_quality'
 SOURCES={
- 'jra.gch':('グリーンチャンネル','gchmain.m3u8','gchmain_LQ.m3u8','gch_hq.png','gch_lq.png'),
- 'jra.east':('JRA EAST','EAST_test.m3u8','EAST_test_LQ.m3u8','east_hq.png','east_lq.png'),
- 'jra.west':('JRA WEST','WEST_master%20.m3u8','WEST_master_LQ.m3u8','west_hq.png','west_lq.png'),
+ 'jra.gch':('グリーンチャンネル MAIN','gchmain.m3u8','gchmain_LQ.m3u8','gch_hq.png','gch_lq.png'),
+ 'jra.east':('JRA EAST WEB3','EAST_test.m3u8','EAST_test_LQ.m3u8','east_hq.png','east_lq.png'),
+ 'jra.west':('JRA WEST WEB4','WEST_master%20.m3u8','WEST_master_LQ.m3u8','west_hq.png','west_lq.png'),
  'jra.hokkaido':('JRA LOCAL WEB5','hokaido_master%20(1).m3u8','hokaido_master_LQ.m3u8','local_hq.png','local_lq.png'),
 }
 QUALITY_IDS={f'{base}.{q}' if base!='jra.hokkaido' else f'jra.local.{q}' for base in SOURCES for q in ('hq','lq')}
+LEGACY_FREE_IDS={'jra.official','jra.gch.free'}
 
 def strip(text):
  text=re.sub(re.escape(START)+r'.*?'+re.escape(END)+r'\n?','',text,flags=re.S)
  lines=text.splitlines(); out=[]; i=0
  while i<len(lines):
   line=lines[i]; m=re.search(r'tvg-id="([^"]+)"',line) if line.startswith('#EXTINF:') else None
-  if m and (m.group(1) in SOURCES or m.group(1) in QUALITY_IDS):
+  if m and (m.group(1) in SOURCES or m.group(1) in QUALITY_IDS or m.group(1) in LEGACY_FREE_IDS):
    i+=1
    while i<len(lines) and not lines[i].startswith(('#EXTINF:','## ','# ===')): i+=1
    continue
