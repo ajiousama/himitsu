@@ -3,7 +3,7 @@ import re
 
 FREEWIFI = Path("freewifi")
 
-PIGOO_LOGO = "https://i.imgur.com/JiJoAhJ.png"
+PIGOO_LOGO = "https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/contrast/Pigoo_jp_daa9c17a.png"
 PIGOO_BLOCK = f'''#EXTINF:-1 tvg-id="Pigoo_jp" tvg-logo="{PIGOO_LOGO}" group-title="Rch",Pigoo (haruka(9394))
 http://118.68.167.114:9394/stream/234.m3u8
 '''
@@ -32,7 +32,7 @@ def main() -> None:
     updated = text[:start] + rch + "\n\n" + PIGOO_BLOCK + "\n" + text[end:]
 
     FREEWIFI.write_text(updated.rstrip() + "\n", encoding="utf-8")
-    print("Placed Pigoo haruka(9394) directly below Rch")
+    print("Placed Pigoo haruka(9394) directly below Rch with canonical logo")
 
 
 if __name__ == "__main__":
