@@ -1,0 +1,21 @@
+name: Update Rakuten official EPG
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'rakuten_official_epg.py'
+      - '.github/workflows/update_rakuten_epg.yml'
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Inspect official programme source
+        run: python rakuten_official_epg.py
