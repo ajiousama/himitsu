@@ -21,8 +21,8 @@ def main():
         text = get(url)
         urls = sorted(set(re.findall(r'https?://[^\s"\x27`<>\\]+', text)))
         relevant = [u for u in urls if any(x in u.lower() for x in ('rakuten','rchannel'))]
-        snippets = [text[max(0,m.start()-160):m.end()+220] for m in re.finditer(r'(?:/epg|/schedules?|/channels|baseURL)',text)]
-        print(json.dumps({'script':url,'urls':relevant[:30],'snippets':snippets[:30]}, ensure_ascii=False))
+        snippets = [text[max(0,m.start()-350):m.end()+700] for m in re.finditer(r'(?i)(?:epg|programmes|schedules|scheduleDate|backendapi|graphql)',text)]
+        print(json.dumps({'script':url,'urls':relevant[:30],'snippets':snippets[:35]}, ensure_ascii=False))
 
 if __name__ == '__main__':
     main()
