@@ -1,7 +1,7 @@
 const channels = require("../kick_channels.json");
 
 const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/140 Safari/537.36";
-const RESOLVER_VERSION = "2026-09-10-gccx2-v2";
+const RESOLVER_VERSION = "2026-09-16-gccx2-v3";
 
 function norm(s) {
   return String(s || "").toLowerCase().replace(/[^a-z0-9\u3040-\u30ff\u3400-\u9fff]+/g, "");
