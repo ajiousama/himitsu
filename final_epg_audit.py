@@ -12,6 +12,7 @@ EPG = Path("guides.xml")
 REPORT = Path("epg_final_audit.txt")
 COVERAGE = Path("epg_coverage.txt")
 JST = timezone(timedelta(hours=9))
+PUBLIC_SPORT_PREFIXES = ("boat.", "keirin.", "auto.", "chihou.", "jra.")
 
 SYNTHETIC_MARKERS = (
     "番組詳細EPG未取得",
@@ -70,6 +71,10 @@ def is_synthetic(programme: ET.Element) -> bool:
     return category in SYNTHETIC_CATEGORIES or any(marker in text for marker in SYNTHETIC_MARKERS)
 
 
+def is_public_sport(cid: str, group: str) -> bool:
+    return cid.startswith(PUBLIC_SPORT_PREFIXES) or group == "今日の開催場"
+
+
 def main() -> int:
     if not EPG.exists() or not EPG.stat().st_size:
         raise RuntimeError("guides.xml is missing or empty")
@@ -96,15 +101,20 @@ def main() -> int:
     stale_only = []
     fallback_only = []
     healthy = []
+    public_sports_invalid = []
 
     for cid, meta in sorted(playlist_ids.items()):
         source, lineno, group, name = meta
         if cid not in channel_ids:
             xml_channel_missing.append((cid, source, lineno, group, name))
+            if is_public_sport(cid, group):
+                public_sports_invalid.append((cid, "XML_CHANNEL_MISSING", group, name))
             continue
         rows = programmes.get(cid, [])
         if not rows:
             zero_programmes.append((cid, source, lineno, group, name))
+            if is_public_sport(cid, group):
+                public_sports_invalid.append((cid, "ZERO_PROGRAMMES", group, name))
             continue
 
         current_rows = []
@@ -120,10 +130,14 @@ def main() -> int:
 
         if not current_rows:
             stale_only.append((cid, len(rows), source, lineno, group, name))
+            if is_public_sport(cid, group):
+                public_sports_invalid.append((cid, "STALE_ONLY", group, name))
             continue
 
         if all(is_synthetic(p) for p in current_rows):
             fallback_only.append((cid, len(current_rows), source, lineno, group, name))
+            if is_public_sport(cid, group):
+                public_sports_invalid.append((cid, "FALLBACK_ONLY_CURRENT", group, name))
         else:
             healthy.append((cid, len(current_rows), source, lineno, group, name))
 
@@ -142,6 +156,7 @@ def main() -> int:
         f"xml_channel_missing={len(xml_channel_missing)}",
         f"zero_programmes={len(zero_programmes)}",
         f"stale_only={len(stale_only)}",
+        f"public_sports_invalid={len(public_sports_invalid)}",
         f"orphan_xml_channels={len(orphan_xml_channels)}",
         "",
     ]
@@ -180,6 +195,11 @@ def main() -> int:
         lambda r: f"{r[0]}\tcurrent={r[1]}\t{r[2]}:{r[3]}\tgroup={r[4]}\tname={r[5]}",
     )
     section(
+        "PUBLIC_SPORTS_INVALID",
+        public_sports_invalid,
+        lambda r: f"{r[0]}\tstatus={r[1]}\tgroup={r[2]}\tname={r[3]}",
+    )
+    section(
         "HEALTHY_CURRENT_REAL",
         healthy,
         lambda r: f"{r[0]}\tcurrent={r[1]}\t{r[2]}:{r[3]}\tgroup={r[4]}\tname={r[5]}",
@@ -205,6 +225,7 @@ def main() -> int:
             f"xml_channel_missing={len(xml_channel_missing)}",
             f"zero_programmes={len(zero_programmes)}",
             f"stale_only={len(stale_only)}",
+            f"public_sports_invalid={len(public_sports_invalid)}",
             "",
             "[FINAL MISSING_TVG_ID]",
         ]
@@ -237,13 +258,25 @@ def main() -> int:
         )
         if not fallback_only:
             concise.append("none")
+        concise.extend(["", "[FINAL PUBLIC_SPORTS_INVALID]"])
+        concise.extend(
+            f"{r[0]}\tstatus={r[1]}\tgroup={r[2]}\tname={r[3]}" for r in public_sports_invalid
+        )
+        if not public_sports_invalid:
+            concise.append("none")
         COVERAGE.write_text(base.rstrip() + "\n\n" + "\n".join(concise) + "\n", encoding="utf-8")
 
     print(
         "FINAL EPG AUDIT: "
         f"real={len(healthy)} fallback={len(fallback_only)} missing_id={len(missing_tvg_id)} "
-        f"xml_missing={len(xml_channel_missing)} zero={len(zero_programmes)} stale={len(stale_only)}"
+        f"xml_missing={len(xml_channel_missing)} zero={len(zero_programmes)} stale={len(stale_only)} "
+        f"public_sports_invalid={len(public_sports_invalid)}"
     )
+
+    # Public sports must never be published with only the generic 6-hour
+    # fallback grid, with no programmes, or with only stale programmes.
+    if public_sports_invalid:
+        return 2
 
     strict = "--strict" in sys.argv
     if strict and (xml_channel_missing or zero_programmes or stale_only):
