@@ -6,6 +6,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import epg_final_guard
+import final_epg_audit
 
 EPG = Path("guides.xml")
 CONFIG = Path("kick_channels.json")
@@ -79,6 +80,11 @@ def main() -> int:
     # This is the final EPG writer in the hourly workflow, so repair any
     # remaining public-sports 1R overrun and fill all 愛媛CATV schedule gaps here.
     epg_final_guard.main()
+
+    # Audit the actual final guides.xml against the playlists, not the earlier
+    # intermediate coverage report. This intentionally reports synthetic/fallback
+    # channels separately instead of pretending that every non-empty row is real EPG.
+    final_epg_audit.main()
     return 0
 
 
