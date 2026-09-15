@@ -5,8 +5,7 @@ import xml.etree.ElementTree as ET
 GUIDES=Path('guides.xml'); LOCAL=Path('public_sports_epg_local.xml')
 REGIONAL=('jra.east','jra.west','jra.hokkaido')
 QUALITY={'jra.east':('jra.east','JRA EAST WEB3'),'jra.west':('jra.west','JRA WEST WEB4'),'jra.hokkaido':('jra.local','JRA LOCAL WEB5')}
-FREE={'jra.official':'GCH無料版A（YouTube）','jra.gch.free':'GCH無料版B（グリーンチャンネルWeb）'}
-TARGET=set(FREE)|{'jra.gch','jra.east','jra.west','jra.hokkaido','jra.local','jra.gch.hq','jra.gch.lq'}
+TARGET={'jra.gch','jra.east','jra.west','jra.hokkaido','jra.local','jra.official','jra.gch.free','jra.gch.hq','jra.gch.lq'}
 for base,_ in QUALITY.values(): TARGET|={base+'.hq',base+'.lq'}
 
 def add_channel(root,cid,name):
@@ -52,10 +51,7 @@ def main():
  races=combined(regional)
  if races:
   for quality,label in (('hq','HQ'),('lq','LQ')):
-   cid=f'jra.gch.{quality}'; add_channel(root,cid,f'グリーンチャンネル {label}')
-   for p in races: root.append(clone(p,cid))
-  for cid,name in FREE.items():
-   add_channel(root,cid,name)
+   cid=f'jra.gch.{quality}'; add_channel(root,cid,f'グリーンチャンネル MAIN {label}')
    for p in races: root.append(clone(p,cid))
  ET.indent(tree,space='  '); tree.write(GUIDES,encoding='utf-8',xml_declaration=True)
  print('JRA earphone HQ/LQ race EPG:',{k:len(v) for k,v in regional.items()},'GCH races=',len(races))
