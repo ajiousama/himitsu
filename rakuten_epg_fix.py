@@ -13,6 +13,17 @@ from rakuten_epg_backup import (
     update_report,
 )
 
+# Keep the authoritative Rakuten pass aligned with every Rch entry currently
+# published in freewifi. Mutating the imported mapping also updates the mapping
+# used internally by rakuten_epg_backup.fetch_official()/parse_official_html().
+RAKUTEN_CHANNELS.update({
+    "rch_35": "パチンコ・パチスロ",
+    "rch_37": "エンタメ～テレDEEP",
+    "rch_86": "ワンニャンチャンネル",
+    "rch_113": "ぷれいば！ ～ゲーム専門チャンネル～",
+    "rch_46": "釣り",
+})
+
 
 def main() -> int:
     if not GUIDES.exists():
