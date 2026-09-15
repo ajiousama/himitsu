@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - group_freewifi_sources.py
+      - update_rch_block.py
       - .github/workflows/group_freewifi_source_regions.yml
   workflow_dispatch:
 
@@ -27,6 +28,9 @@ jobs:
       - name: Normalize terrestrial channels and TVer specials
         run: python group_freewifi_sources.py
 
+      - name: Replace Rakuten block with Rch block
+        run: python update_rch_block.py
+
       - name: Validate playlist
         run: |
           python - <<'PY'
@@ -41,6 +45,10 @@ jobs:
           assert 'NHK東京・総合 (primehome)' in s
           assert 'NHK東京・総合 (naori)' in s
           assert '### TVerﾘｱﾙﾀｲﾑ' in s
+          assert '## Rch' in s
+          for cid in ('rch_30','rch_35','rch_37','rch_46','rch_86','rch_113','rch_122','rch_123','rch_124','rch_125','rch_41'):
+              assert cid in s
+          assert '## Rakuten-JP' not in s
           PY
           git diff --check
 
@@ -53,5 +61,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add freewifi
-          git commit -m "Normalize FreeWiFi terrestrial channels"
+          git commit -m "Normalize FreeWiFi terrestrial channels and Rch block"
           git push
