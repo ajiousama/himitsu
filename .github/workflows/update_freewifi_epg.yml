@@ -21,6 +21,8 @@ on:
       - "radio_tv_nationwide_freewifi.py"
       - "kick_channels.json"
       - "kick_epg.py"
+      - "kick_gccx2_sync.py"
+      - "logos/kick_gccx2.svg"
       - "public_sports_epg_local.py"
       - "sports_race_time.py"
       - "test_sports_kana_reliability.py"
@@ -177,6 +179,11 @@ jobs:
             python freewifi_today_jra.py
             python finalize_today_public_sports.py
 
+            # GCCX2 used to have a separate FreeWiFi writer. Refresh it here on
+            # the latest main so its short-lived direct KICK HLS can never race
+            # this workflow or overwrite newer BOAT/public-sports state.
+            python kick_gccx2_sync.py
+
             python boat_publish.py --epg-only
             python build_today_event_counts.py
 
@@ -194,15 +201,15 @@ jobs:
               raise SystemExit(f'FreeWiFi publish blocked: BOAT mismatch entries={entries} visible={visible}')
           PY
 
-            git add ganble freewifi today_public_sports_status.json today_jra_status.json today_event_counts.json verified_daily_status.json public_sports_epg_local.xml
+            git add ganble freewifi gccx2_live_state.json today_public_sports_status.json today_jra_status.json today_event_counts.json verified_daily_status.json public_sports_epg_local.xml
             [ ! -f public_sports_youtube_fallback.m3u ] || git add public_sports_youtube_fallback.m3u
             [ ! -f "$snapshot/general_youtube.m3u" ] || git add general_youtube.m3u
 
             if git diff --cached --quiet; then
-              echo "Local venue state already current"
+              echo "Local venue/CX2 state already current"
               exit 0
             fi
-            git commit -m "Update ajiousama public sports state [skip ci]"
+            git commit -m "Update ajiousama public sports and CX2 state [skip ci]"
             if git push origin HEAD:main; then
               echo "FreeWiFi state published without overwriting BOAT"
               exit 0
