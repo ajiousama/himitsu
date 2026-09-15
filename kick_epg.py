@@ -82,9 +82,11 @@ def main() -> int:
     epg_final_guard.main()
 
     # Audit the actual final guides.xml against the playlists, not the earlier
-    # intermediate coverage report. This intentionally reports synthetic/fallback
-    # channels separately instead of pretending that every non-empty row is real EPG.
-    final_epg_audit.main()
+    # intermediate coverage report. Public-sports fallback/missing/stale rows
+    # are fatal here, so the workflow cannot publish a broken race guide.
+    audit_rc = final_epg_audit.main()
+    if audit_rc:
+        return audit_rc
     return 0
 
 
