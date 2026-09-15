@@ -6,9 +6,6 @@ FREEWIFI = Path("freewifi")
 PIGOO_LOGO = "https://i.imgur.com/JiJoAhJ.png"
 PIGOO_BLOCK = f'''#EXTINF:-1 tvg-id="Pigoo_jp" tvg-logo="{PIGOO_LOGO}" group-title="Rch",Pigoo (haruka(9394))
 http://118.68.167.114:9394/stream/234.m3u8
-
-#EXTINF:-1 tvg-id="Pigoo_jp" tvg-logo="{PIGOO_LOGO}" group-title="Rch",Pigoo (blog)
-https://haru.charandom.blog/stream/jp/pigoo/stream-output.m3u8?mode=hls
 '''
 
 
@@ -35,7 +32,7 @@ def main() -> None:
     updated = text[:start] + rch + "\n\n" + PIGOO_BLOCK + "\n" + text[end:]
 
     FREEWIFI.write_text(updated.rstrip() + "\n", encoding="utf-8")
-    print("Placed Pigoo haruka(9394) and blog directly below Rch")
+    print("Placed Pigoo haruka(9394) directly below Rch")
 
 
 if __name__ == "__main__":
