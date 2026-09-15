@@ -13,11 +13,17 @@ import epg_build
 epg_build.SOURCES = [(name, url) for name, url in epg_build.SOURCES if name != "public_sports"]
 epg_build.SOURCE_PRIORITY = {name: i for i, (name, _) in enumerate(epg_build.SOURCES)}
 
-# Rakuten R Channel IDs must never be matched by a similar display name. In
-# Rakuten adult-category IDs were renumbered in the current karenda guide. Use only the
-# exact Rakuten source ID; when it is missing, the normal fallback is safer.
+# Rakuten R Channel IDs must never be matched by a similar display name. Keep
+# this list aligned with the full Rch block in freewifi. The final authoritative
+# pass below replaces generic source data with Rakuten's official schedule when
+# it can be parsed.
 RAKUTEN_CHANNELS = {
     "rch_30": "鉄道・旅",
+    "rch_35": "パチンコ・パチスロ",
+    "rch_37": "エンタメ～テレDEEP",
+    "rch_86": "ワンニャンチャンネル",
+    "rch_113": "ぷれいば！ ～ゲーム専門チャンネル～",
+    "rch_46": "釣り",
     "rch_125": "セクシーエンタメチャンネル",
     "rch_124": "おとなの歓楽街 by MEN'S NECO",
     "rch_41": "アイドル・グラビア",
