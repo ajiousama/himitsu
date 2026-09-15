@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
-import base64
 import json
 import time
-import urllib.parse
 import urllib.request
 from pathlib import Path
 
@@ -10,7 +8,7 @@ SLUG = "joshua-hkd"
 API = f"https://kick.com/api/v2/channels/{SLUG}"
 FREEWIFI = Path("freewifi")
 LOGO = "https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/kick_gccx2.svg"
-MIN_VALID_SECONDS = 240
+PROXY = "https://himitsu-six.vercel.app/api/kick?ch=gccx2"
 
 
 def get_json(url):
@@ -66,29 +64,6 @@ def current_cx2_url(text):
     return None
 
 
-def token_exp(url):
-    if not url:
-        return None
-    try:
-        token = urllib.parse.parse_qs(urllib.parse.urlsplit(url).query).get("token", [None])[0]
-        if not token:
-            return None
-        parts = token.split(".")
-        if len(parts) < 2:
-            return None
-        payload = parts[1] + "=" * (-len(parts[1]) % 4)
-        data = json.loads(base64.urlsafe_b64decode(payload.encode("ascii")).decode("utf-8"))
-        exp = data.get("exp")
-        return int(exp) if exp is not None else None
-    except Exception:
-        return None
-
-
-def still_fresh(url):
-    exp = token_exp(url)
-    return bool(exp and exp - int(time.time()) > MIN_VALID_SECONDS)
-
-
 def remove_cx2(text):
     lines = text.splitlines(keepends=True)
     out = []
@@ -120,51 +95,63 @@ def add_cx2(text, playback_url):
     return text.rstrip() + "\n" + block
 
 
-def main():
-    text = FREEWIFI.read_text(encoding="utf-8")
-    old_url = current_cx2_url(text)
-
-    data = get_json(API)
-    if data is None:
-        print("KICK lookup failed; keeping current Free Wi-Fi state unchanged")
-        return 0
-
-    playback = find_playback(data)
-    live = bool(playback)
-    final_url = None
-    new_text = remove_cx2(text)
-
-    if live:
-        if still_fresh(old_url):
-            final_url = old_url
-        else:
-            final_url = playback
-        new_text = add_cx2(new_text, final_url)
-
-    if new_text != text:
-        FREEWIFI.write_text(new_text, encoding="utf-8")
-        if live:
-            print("CX2 Free Wi-Fi state changed: LIVE -> refreshed direct KICK HLS")
-        else:
-            print("CX2 Free Wi-Fi state changed: OFFLINE -> removed")
-    else:
-        print("CX2 Free Wi-Fi state unchanged:", "LIVE (token still fresh)" if live else "OFFLINE")
-
-    exp = token_exp(final_url)
+def write_state(*, live, playback_detected, lookup_ok):
     Path("gccx2_live_state.json").write_text(
         json.dumps(
             {
                 "slug": SLUG,
                 "live": live,
-                "playback_detected": bool(playback),
-                "mode": "direct-kick-playback",
-                "token_expires_at": exp,
+                "playback_detected": playback_detected,
+                "lookup_ok": lookup_ok,
+                "mode": "vercel-kick-proxy",
+                "playback": PROXY if live is not False else None,
             },
             ensure_ascii=False,
             indent=2,
         ) + "\n",
         encoding="utf-8",
     )
+
+
+def main():
+    text = FREEWIFI.read_text(encoding="utf-8")
+    old_url = current_cx2_url(text)
+
+    data = get_json(API)
+    if data is None:
+        # If CX2 was already visible, keep that visibility but replace any old
+        # short-lived KICK token with the stable resolver URL. A transient KICK
+        # API failure must not leave an expiring direct HLS in FreeWiFi.
+        if old_url:
+            new_text = add_cx2(remove_cx2(text), PROXY)
+            if new_text != text:
+                FREEWIFI.write_text(new_text, encoding="utf-8")
+                print("KICK lookup failed; preserved CX2 via stable Vercel proxy")
+            else:
+                print("KICK lookup failed; existing CX2 proxy kept unchanged")
+            write_state(live=None, playback_detected=False, lookup_ok=False)
+        else:
+            print("KICK lookup failed; no current CX2 entry to preserve")
+            write_state(live=None, playback_detected=False, lookup_ok=False)
+        return 0
+
+    playback = find_playback(data)
+    live = bool(playback)
+    new_text = remove_cx2(text)
+
+    if live:
+        new_text = add_cx2(new_text, PROXY)
+
+    if new_text != text:
+        FREEWIFI.write_text(new_text, encoding="utf-8")
+        if live:
+            print("CX2 Free Wi-Fi state changed: LIVE -> stable Vercel KICK proxy")
+        else:
+            print("CX2 Free Wi-Fi state changed: OFFLINE -> removed")
+    else:
+        print("CX2 Free Wi-Fi state unchanged:", "LIVE (proxy)" if live else "OFFLINE")
+
+    write_state(live=live, playback_detected=bool(playback), lookup_ok=True)
     return 0
 
 
