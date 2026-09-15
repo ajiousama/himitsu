@@ -1,28 +1,13 @@
-"""Inspect Rakuten's public programme source before enabling publication."""
+"""Inspect the public Rakuten programme API schema."""
 import json
-import re
 import urllib.request
-from urllib.parse import urljoin
-
-BASE = 'https://channel.rakuten.co.jp'
-
-def get(url):
-    req = urllib.request.Request(url, headers={'User-Agent':'Mozilla/5.0','Referer':BASE + '/'})
-    with urllib.request.urlopen(req, timeout=30) as response:
-        return response.read().decode('utf-8')
-
-def main():
-    html = get(BASE + '/schedule')
-    scripts = re.findall(r'<script[^>]+src="([^"]+)"', html)
-    for src in scripts:
-        if '/_next/static/chunks/' not in src or any(x in src for x in ('polyfills','framework','webpack','/main-')):
-            continue
-        url = urljoin(BASE, src)
-        text = get(url)
-        urls = sorted(set(re.findall(r'https?://[^\s"\x27`<>\\]+', text)))
-        relevant = [u for u in urls if any(x in u.lower() for x in ('rakuten','rchannel'))]
-        snippets = [text[max(0,m.start()-350):m.end()+700] for m in re.finditer(r'(?i)(?:epg|programmes|schedules|scheduleDate|backendapi|graphql)',text)]
-        print(json.dumps({'script':url,'urls':relevant[:30],'snippets':snippets[:35]}, ensure_ascii=False))
-
-if __name__ == '__main__':
-    main()
+from datetime import datetime
+from zoneinfo import ZoneInfo
+BASE='https://backendapi.channel.rakuten.co.jp/platform/content/programs'
+date=datetime.now(ZoneInfo('Asia/Tokyo')).date().isoformat()
+url=BASE+'?platform=web&date='+date
+req=urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0','Referer':'https://channel.rakuten.co.jp/'})
+with urllib.request.urlopen(req,timeout=30) as response:
+    data=json.load(response)
+print('TOP', type(data).__name__, list(data)[:15] if isinstance(data,dict) else len(data))
+print('SAMPLE',json.dumps(data,ensure_ascii=False)[:14000])
