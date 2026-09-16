@@ -9,13 +9,14 @@ on:
     paths:
       - 'haru_vod.py'
       - 'haru_vod_favorites.json'
+      - 'assets/haru_vod/**'
       - '.github/workflows/update_haru_vod.yml'
 
 permissions:
   contents: write
 
 concurrency:
-  group: himitsu-freewifi-state-writer
+  group: update-haru-vod-standalone
   cancel-in-progress: false
 
 jobs:
@@ -29,7 +30,7 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
-      - name: Build and publish HARU VOD on latest main
+      - name: Build and publish standalone HARU VOD on latest main
         shell: bash
         run: |
           set -euo pipefail
@@ -39,8 +40,12 @@ jobs:
             echo "HARU VOD publish attempt $attempt/5"
             git fetch origin main
             git reset --hard origin/main
-            HARU_PROBE=1 python haru_vod.py
-            git add haru_vod.m3u freewifi
+            python haru_vod.py \
+              --check \
+              --probe-timeout 4 \
+              --max-age-days 14 \
+              --max-per-program 12
+            git add haru_vod.m3u
             if git diff --cached --quiet; then
               echo 'HARU VOD already current'
               exit 0
