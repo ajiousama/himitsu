@@ -1,0 +1,84 @@
+name: Update HARU VOD shelf
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "23 * * * *"
+  push:
+    branches:
+      - main
+    paths:
+      - "haru_favorites.json"
+      - "haru_vod.py"
+      - ".github/workflows/update_haru_vod.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: himitsu-freewifi-state-writer
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Build playable HARU VOD shelf
+        run: python -u haru_vod.py
+
+      - name: Validate outputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = json.loads(Path('haru_vod.json').read_text(encoding='utf-8'))
+          m = Path('haru_vod.m3u').read_text(encoding='utf-8')
+          assert m.startswith('#EXTM3U')
+          assert p.get('probed') is True
+          assert p.get('count') == m.count('#EXTINF:')
+          print('HARU VOD OK:', p.get('count'), 'items from', p.get('source'))
+          PY
+
+      - name: Publish HARU VOD shelf on latest main
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          snapshot="$(mktemp -d)"
+          cp haru_vod.m3u "$snapshot/haru_vod.m3u"
+          cp haru_vod.json "$snapshot/haru_vod.json"
+          for attempt in 1 2 3 4 5; do
+            echo "HARU VOD publish attempt $attempt/5"
+            git fetch origin main
+            git reset --hard origin/main
+            cp "$snapshot/haru_vod.m3u" haru_vod.m3u
+            cp "$snapshot/haru_vod.json" haru_vod.json
+            git add haru_vod.m3u haru_vod.json
+            if git diff --cached --quiet; then
+              echo "HARU VOD already current"
+              exit 0
+            fi
+            git commit -m "Update HARU VOD shelf [skip ci]"
+            if git push origin HEAD:main; then
+              echo "HARU VOD published"
+              exit 0
+            fi
+            echo "::warning::main moved; retrying on newest main"
+            sleep 1
+          done
+          echo "::error::HARU VOD publish failed after 5 attempts"
+          exit 1
