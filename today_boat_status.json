@@ -2,10 +2,10 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-17",
-  "generated_at": "2026-09-17T08:13:39.514799+09:00",
+  "generated_at": "2026-09-17T08:14:39.510500+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260917.json",
-  "schedule_checked_at": "2026-09-17T07:58:39.669551+09:00",
+  "schedule_checked_at": "2026-09-17T08:14:39.510500+09:00",
   "schedule_warnings": [
     "official_cards: TimeoutError"
   ],
@@ -20,7 +20,7 @@
   "card_count": 15,
   "held_count": 15,
   "visible_count": 2,
-  "active_count": 1,
+  "active_count": 2,
   "ended_kept": [],
   "seed_required": false,
   "seed_required_venues": [],
@@ -29,7 +29,7 @@
     "morning": {
       "held": 2,
       "acquired": 2,
-      "active": 1,
+      "active": 2,
       "ended": 0,
       "seed_required": 0,
       "cancelled": 0
@@ -56,13 +56,23 @@
     "fetched": 2,
     "failures": [
       {
-        "jcd": "13",
-        "name": "尼崎",
+        "jcd": "05",
+        "name": "多摩川",
         "error": "cloud and official acquisition unavailable: HTTPError"
       },
       {
         "jcd": "08",
         "name": "常滑",
+        "error": "cloud and official acquisition unavailable: HTTPError"
+      },
+      {
+        "jcd": "13",
+        "name": "尼崎",
+        "error": "cloud and official acquisition unavailable: HTTPError"
+      },
+      {
+        "jcd": "09",
+        "name": "津",
         "error": "cloud and official acquisition unavailable: HTTPError"
       },
       {
@@ -73,16 +83,6 @@
       {
         "jcd": "18",
         "name": "徳山",
-        "error": "cloud and official acquisition unavailable: HTTPError"
-      },
-      {
-        "jcd": "05",
-        "name": "多摩川",
-        "error": "cloud and official acquisition unavailable: HTTPError"
-      },
-      {
-        "jcd": "09",
-        "name": "津",
         "error": "cloud and official acquisition unavailable: HTTPError"
       }
     ]
@@ -100,13 +100,13 @@
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/d9fee122384f4776a536b691cbc0b121/b933ce6c977a4d81a3b49e37715d485a/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTc3MjQwMCwic3RhcnQiOjE3ODk1OTk0MjAsImlvcyI6MTgsImNwIjoiMjExNzk1MDIwXzIxMTgzODIxOSIsInBwdyI6IjQwayJ9.UYGsJboTVBYkYC3GbhI38lZ5sWFbcsQW8fXkzuK7xgc",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-09-17T07:57:39.724984+09:00",
-      "checked_at": "2026-09-17T08:09:39.579812+09:00",
+      "checked_at": "2026-09-17T08:14:47.929190+09:00",
       "first_verified_at": "2026-09-17T07:57:39.724984+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
         "sequence": 8140284,
-        "last_segment": "/d9fee122384f4776a536b691cbc0b121/b933ce6c977a4d81a3b49e37715d485a/manifest_1_8140409.ts",
+        "last_segment": "/d9fee122384f4776a536b691cbc0b121/b933ce6c977a4d81a3b49e37715d485a/manifest_1_8140461.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -116,13 +116,13 @@
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/d27555bed370452482c7b59dab2c2663/8ff13106387d492292a472dc2f2effcc/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTc3NjAwMCwic3RhcnQiOjE3ODk2MDAxNDAsImlvcyI6MTgsImNwIjoiMjExNzk1NzQwXzIxMTgzODkzOSIsInBwdyI6IjQwayJ9.UdVQCodbbA42Qm1jX4TGnETZPlTgJwVPEPfySZrVCt8",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-09-17T08:09:39.583220+09:00",
-      "checked_at": "2026-09-17T08:09:39.583220+09:00",
+      "checked_at": "2026-09-17T08:14:47.929613+09:00",
       "first_verified_at": "2026-09-17T08:09:39.583220+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
         "sequence": 8120651,
-        "last_segment": "/d27555bed370452482c7b59dab2c2663/8ff13106387d492292a472dc2f2effcc/manifest_4_8120657.ts",
+        "last_segment": "/d27555bed370452482c7b59dab2c2663/8ff13106387d492292a472dc2f2effcc/manifest_4_8120708.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -1282,7 +1282,7 @@
       "held": true,
       "visible": true,
       "ended": false,
-      "active": false,
+      "active": true,
       "cancelled": false,
       "mode": "morning",
       "mode_label": "モーニング",
@@ -1293,7 +1293,7 @@
         "race": 1,
         "start": "08:44"
       },
-      "stream_window": "scheduled",
+      "stream_window": "live_or_prestart",
       "guidance_switch_at": "2026-09-17T15:07:00+09:00",
       "seed_required": false,
       "playback_verified": true,
