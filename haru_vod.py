@@ -35,7 +35,7 @@ def clean(s: str) -> str:
 def get_text(url: str) -> str:
     if url.startswith("file://"):
         return Path(url[7:]).read_text(encoding="utf-8", errors="replace")
-    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 HARU-VOD/3.0"})
+    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 HARU-VOD/4.0"})
     with urllib.request.urlopen(req, timeout=30) as r:
         return r.read(50_000_000).decode("utf-8", "replace")
 
@@ -102,7 +102,8 @@ def parse_epg(text: str, rules: list[dict], max_age_days: int) -> list[dict]:
         if not tm or not sm:
             continue
         title, start = clean(tm.group(1)), int(sm.group(1))
-        end = start + duration(attrs)
+        dur = duration(attrs)
+        end = start + dur
         if end > now + 60 or end < oldest:
             continue
         slug = source_slug(url)
@@ -112,7 +113,7 @@ def parse_epg(text: str, rules: list[dict], max_age_days: int) -> list[dict]:
             preferred = rule.get("preferred_source")
             if preferred and preferred != slug:
                 continue
-            out.append({"rule": rule, "title": title, "url": url, "start": start})
+            out.append({"rule": rule, "title": title, "url": url, "start": start, "duration": dur})
             break
     seen, unique = set(), []
     for item in sorted(out, key=lambda x: x["start"], reverse=True):
@@ -124,7 +125,16 @@ def parse_epg(text: str, rules: list[dict], max_age_days: int) -> list[dict]:
 
 
 def probe(url: str, timeout: float) -> bool:
-    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 HARU-VOD/3.0", "Range": "bytes=0-8191"})
+    req = urllib.request.Request(
+        url,
+        headers={
+            "User-Agent": "Mozilla/5.0 HARU-VOD/4.0",
+            "Referer": "https://haru.charandom.blog/",
+            "Accept": "application/vnd.apple.mpegurl, application/x-mpegURL, text/plain, */*",
+            "Cache-Control": "no-cache",
+            "Range": "bytes=0-8191",
+        },
+    )
     try:
         with urllib.request.urlopen(req, timeout=timeout) as r:
             return b"#EXTM3U" in r.read(8192)
@@ -162,10 +172,11 @@ def build_m3u(items: list[dict], group: str, source: str) -> str:
         dt = datetime.fromtimestamp(item["start"], timezone.utc).astimezone(JST)
         ep = episode_number(item["title"])
         short = f" #{ep}" if ep is not None else ""
-        label = f"{rule['name']}{short} {dt:%m/%d %H:%M}｜{item['title']}"
+        label = f"📼 {rule['name']}{short} {dt:%m/%d %H:%M}｜{item['title']}"
         logo = RAW + rule["logo"]
         tvgid = f"haru.vod.{rule['id']}.{item['start']}"
-        lines.append(f'#EXTINF:-1 tvg-id="{esc(tvgid)}" tvg-name="{esc(rule["name"])}" tvg-logo="{esc(logo)}" group-title="{esc(group)}",{esc(label)}')
+        dur = max(30, min(int(item.get("duration") or 3600), 8 * 3600))
+        lines.append(f'#EXTINF:{dur} tvg-id="{esc(tvgid)}" tvg-name="{esc(rule["name"])}" tvg-logo="{esc(logo)}" group-title="{esc(group)}",{esc(label)}')
         lines.append(item["url"])
     return "\n".join(lines) + "\n"
 
@@ -183,9 +194,18 @@ def main() -> None:
     epg, source = fetch_epg()
     items = parse_epg(epg, rules, args.max_age_days)
     print(f"HARU VOD: matched {len(items)} candidates")
-    if args.check:
-        items = probe_items(items, args.probe_timeout)
-        print(f"HARU VOD: playable {len(items)} candidates")
+
+    # The HARU origin sometimes rejects a GitHub runner probe even though the same
+    # replay works through the Render media resolver. Never wipe a populated shelf
+    # just because every origin probe failed at once.
+    if args.check and items:
+        checked = probe_items(items, args.probe_timeout)
+        print(f"HARU VOD: playable {len(checked)}/{len(items)} candidates by origin probe")
+        if checked:
+            items = checked
+        else:
+            print("HARU VOD: all origin probes failed; keeping matched candidates for Render proxy")
+
     items = limit_items(items, rules, args.max_per_program)
     vod = build_m3u(items, cfg.get("group_title", "VOD"), source)
     OUT.write_text(vod, encoding="utf-8")

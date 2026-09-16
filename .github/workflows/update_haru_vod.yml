@@ -9,6 +9,7 @@ on:
     paths:
       - 'haru_vod.py'
       - 'haru_vod_clips.py'
+      - 'haru_vod_freewifi.py'
       - 'haru_vod_favorites.json'
       - 'build_haru_kai_epg.py'
       - 'api/haru-clip.js'
@@ -33,7 +34,7 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
-      - name: Build and publish standalone HARU VOD on latest main
+      - name: Build HARU VOD and publish into FreeWiFi on latest main
         shell: bash
         run: |
           set -euo pipefail
@@ -50,17 +51,18 @@ jobs:
               --max-age-days 14 \
               --max-per-program 12
             python haru_vod_clips.py
-            git add haru_vod.m3u
+            python haru_vod_freewifi.py
+            git add haru_vod.m3u freewifi
             if git diff --cached --quiet; then
-              echo 'HARU VOD already current'
+              echo 'HARU VOD / FreeWiFi already current'
               exit 0
             fi
-            git commit -m 'Update HARU VOD shelf [skip ci]'
+            git commit -m 'Update HARU VOD in FreeWiFi [skip ci]'
             if git push origin HEAD:main; then
-              echo 'HARU VOD published'
+              echo 'HARU VOD / FreeWiFi published'
               exit 0
             fi
             sleep 2
           done
-          echo '::error::HARU VOD publish failed after retries'
+          echo '::error::HARU VOD / FreeWiFi publish failed after retries'
           exit 1
