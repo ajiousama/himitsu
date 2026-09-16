@@ -74,7 +74,6 @@ def extract_candidates(payload) -> list[dict]:
         if not looks_like_vod_id(vod_id) or vod_id in seen:
             continue
 
-        # Avoid picking unrelated nested UUIDs unless the object looks video-ish.
         blob = json.dumps(obj, ensure_ascii=False).lower()
         if not any(k in blob for k in ("video", "livestream", "duration", "thumbnail", "source", "created_at", "start")):
             continue
@@ -107,6 +106,38 @@ def clean_title(value: str | None, fallback: str) -> str:
     return re.sub(r"\s+", " ", text)[:180]
 
 
+def normalize_duration(value) -> int | None:
+    raw = None
+    try:
+        if isinstance(value, (int, float)):
+            raw = int(value)
+        elif isinstance(value, str) and value.strip().isdigit():
+            raw = int(value.strip())
+    except Exception:
+        return None
+    if raw is None:
+        return None
+    # Kick VOD detail currently returns duration in milliseconds. Keep this
+    # tolerant in case a future response changes to seconds.
+    if raw > 7 * 24 * 60 * 60:
+        return max(0, int(round(raw / 1000)))
+    return max(0, raw)
+
+
+def parse_gmcx_range(title: str) -> dict:
+    m = re.search(r"[＃#]\s*(\d+)\s*[-‐‑‒–—―〜~～]\s*(\d+)", title)
+    if not m:
+        return {}
+    start, end = int(m.group(1)), int(m.group(2))
+    if end < start or end - start > 100:
+        return {}
+    return {
+        "episode_start": start,
+        "episode_end": end,
+        "episode_count": end - start + 1,
+    }
+
+
 def normalize_vod(vod_id: str, listed_obj: dict, channel: dict) -> dict:
     detail = get_json(f"https://kick.com/api/v1/video/{urllib.parse.quote(vod_id)}") or listed_obj
 
@@ -123,25 +154,20 @@ def normalize_vod(vod_id: str, listed_obj: dict, channel: dict) -> dict:
     if end_dt and not end_dt.tzinfo:
         end_dt = end_dt.replace(tzinfo=timezone.utc)
 
-    duration_s = None
-    try:
-        if isinstance(duration, (int, float)):
-            duration_s = int(duration)
-        elif isinstance(duration, str) and duration.strip().isdigit():
-            duration_s = int(duration.strip())
-    except Exception:
-        pass
+    duration_s = normalize_duration(duration)
     if duration_s is None and created_dt and end_dt:
         duration_s = max(0, int((end_dt - created_dt).total_seconds()))
 
     mode = "gmcx-ai" if str(channel.get("tvg_id") or "").startswith("kick.gccx") else "generic-vod"
+    clean = clean_title(title if isinstance(title, str) else None, channel.get("name") or "KICK Replay")
+    gccx = parse_gmcx_range(clean) if mode == "gmcx-ai" else {}
 
-    return {
+    item = {
         "tvg_id": channel.get("tvg_id"),
         "channel_name": channel.get("name"),
         "slug": channel.get("slug"),
         "vod_id": vod_id,
-        "title": clean_title(title if isinstance(title, str) else None, channel.get("name") or "KICK Replay"),
+        "title": clean,
         "created_at": created_dt.astimezone(JST).isoformat() if created_dt else None,
         "ended_at": end_dt.astimezone(JST).isoformat() if end_dt else None,
         "duration_seconds": duration_s,
@@ -150,6 +176,8 @@ def normalize_vod(vod_id: str, listed_obj: dict, channel: dict) -> dict:
         "analysis_mode": mode,
         "chapter_status": "pending" if mode == "gmcx-ai" else "not_required",
     }
+    item.update(gccx)
+    return item
 
 
 def fetch_channel_vods(channel: dict) -> list[dict]:
@@ -218,10 +246,7 @@ def main() -> int:
         })
         print(channel.get("name"), "VODs:", len(vods))
 
-    def sort_key(x):
-        return x.get("created_at") or ""
-
-    all_vods.sort(key=sort_key, reverse=True)
+    all_vods.sort(key=lambda x: x.get("created_at") or "", reverse=True)
     payload = {
         "generated_at": datetime.now(JST).isoformat(),
         "resolver": REPLAY_BASE,
