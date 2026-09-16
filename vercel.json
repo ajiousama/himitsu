@@ -1,4 +1,6 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "ignoreCommand": "BASE=${VERCEL_GIT_PREVIOUS_SHA:-HEAD^}; git diff --name-only \"$BASE\" HEAD | grep -Eq '^(api/|vercel\\.json$|kick_channels\\.json$)' && exit 1 || exit 0",
   "redirects": [
     {
       "source": "/j.apk",
