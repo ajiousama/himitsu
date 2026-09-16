@@ -1,5 +1,5 @@
 name: Update KICK Replay Catalog
-# replay-layer-v1 trigger
+# replay-layer-v2 gmcx chapters
 
 on:
   workflow_dispatch:
@@ -11,6 +11,8 @@ on:
     paths:
       - "kick_channels.json"
       - "kick_replay.py"
+      - "kick_gmcx_chapters.py"
+      - "gmcx_episode_titles.json"
       - "api/kick-replay.js"
       - ".github/workflows/update_kick_replay.yml"
 
@@ -42,6 +44,9 @@ jobs:
       - name: Build KICK replay catalog
         run: python -u kick_replay.py
 
+      - name: Build GMCX episode chapters
+        run: python -u kick_gmcx_chapters.py
+
       - name: Validate replay outputs
         shell: bash
         run: |
@@ -49,12 +54,20 @@ jobs:
           import json
           from pathlib import Path
           j = json.loads(Path('kick_replay.json').read_text(encoding='utf-8'))
+          g = json.loads(Path('kick_gmcx_chapters.json').read_text(encoding='utf-8'))
           m3u = Path('kick_replay.m3u').read_text(encoding='utf-8')
+          gm3u = Path('kick_gmcx_chapters.m3u').read_text(encoding='utf-8')
           assert m3u.startswith('#EXTM3U')
+          assert gm3u.startswith('#EXTM3U')
           assert isinstance(j.get('channels'), list)
           assert isinstance(j.get('vods'), list)
+          assert isinstance(g.get('results'), list)
+          ready = [x for x in g['results'] if x.get('status') == 'ready']
+          ai = [x for x in g['results'] if x.get('status') == 'ai_required']
+          chapters = sum(len(x.get('chapters') or []) for x in ready)
           print('KICK replay channels:', [(x.get('tvg_id'), x.get('vod_count')) for x in j['channels']])
           print('KICK replay VOD total:', len(j['vods']))
+          print('GMCX ready VODs:', len(ready), 'chapters:', chapters, 'AI required:', len(ai))
           PY
 
       - name: Publish replay metadata
@@ -67,24 +80,28 @@ jobs:
           snapshot="$(mktemp -d)"
           cp kick_replay.json "$snapshot/kick_replay.json"
           cp kick_replay.m3u "$snapshot/kick_replay.m3u"
+          cp kick_gmcx_chapters.json "$snapshot/kick_gmcx_chapters.json"
+          cp kick_gmcx_chapters.m3u "$snapshot/kick_gmcx_chapters.m3u"
 
           for attempt in 1 2 3 4 5; do
             git fetch origin main
             git reset --hard origin/main
             cp "$snapshot/kick_replay.json" kick_replay.json
             cp "$snapshot/kick_replay.m3u" kick_replay.m3u
-            git add kick_replay.json kick_replay.m3u
+            cp "$snapshot/kick_gmcx_chapters.json" kick_gmcx_chapters.json
+            cp "$snapshot/kick_gmcx_chapters.m3u" kick_gmcx_chapters.m3u
+            git add kick_replay.json kick_replay.m3u kick_gmcx_chapters.json kick_gmcx_chapters.m3u
             if git diff --cached --quiet; then
-              echo "KICK replay catalog already current"
+              echo "KICK/GMCX replay catalog already current"
               exit 0
             fi
-            git commit -m "Update KICK replay catalog [skip ci]"
+            git commit -m "Update KICK and GMCX replay catalog [skip ci]"
             if git push origin HEAD:main; then
-              echo "KICK replay catalog published"
+              echo "KICK/GMCX replay catalog published"
               exit 0
             fi
             sleep 1
           done
 
-          echo "::error::KICK replay publish failed after retries"
+          echo "::error::KICK/GMCX replay publish failed after retries"
           exit 1
