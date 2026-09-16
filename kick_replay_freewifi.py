@@ -29,7 +29,8 @@ def render_url(url):
     vid=vod_id(url)
     if not vid: return url
     q=urllib.parse.parse_qs(urllib.parse.urlparse(url).query); out='https://kick-resolver.onrender.com/kick?vod='+urllib.parse.quote(vid)
-    if q.get('start'): out+='&start='+urllib.parse.quote(q['start'][0])
+    for key in ('start','duration'):
+        if q.get(key): out+='&'+key+'='+urllib.parse.quote(q[key][0])
     return out
 def remove_old(text): return re.sub(r'\n?'+re.escape(START)+r'.*?'+re.escape(END)+r'\n?','\n',text,flags=re.S)
 
