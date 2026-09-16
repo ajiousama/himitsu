@@ -1,0 +1,89 @@
+name: Update KICK Replay Catalog
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "22 * * * *"
+  push:
+    branches:
+      - main
+    paths:
+      - "kick_channels.json"
+      - "kick_replay.py"
+      - "api/kick-replay.js"
+      - ".github/workflows/update_kick_replay.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: himitsu-kick-replay-writer
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Sync latest main
+        run: git pull --ff-only origin main
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Build KICK replay catalog
+        run: python -u kick_replay.py
+
+      - name: Validate replay outputs
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          j = json.loads(Path('kick_replay.json').read_text(encoding='utf-8'))
+          m3u = Path('kick_replay.m3u').read_text(encoding='utf-8')
+          assert m3u.startswith('#EXTM3U')
+          assert isinstance(j.get('channels'), list)
+          assert isinstance(j.get('vods'), list)
+          print('KICK replay channels:', [(x.get('tvg_id'), x.get('vod_count')) for x in j['channels']])
+          print('KICK replay VOD total:', len(j['vods']))
+          PY
+
+      - name: Publish replay metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          snapshot="$(mktemp -d)"
+          cp kick_replay.json "$snapshot/kick_replay.json"
+          cp kick_replay.m3u "$snapshot/kick_replay.m3u"
+
+          for attempt in 1 2 3 4 5; do
+            git fetch origin main
+            git reset --hard origin/main
+            cp "$snapshot/kick_replay.json" kick_replay.json
+            cp "$snapshot/kick_replay.m3u" kick_replay.m3u
+            git add kick_replay.json kick_replay.m3u
+            if git diff --cached --quiet; then
+              echo "KICK replay catalog already current"
+              exit 0
+            fi
+            git commit -m "Update KICK replay catalog [skip ci]"
+            if git push origin HEAD:main; then
+              echo "KICK replay catalog published"
+              exit 0
+            fi
+            sleep 1
+          done
+
+          echo "::error::KICK replay publish failed after retries"
+          exit 1
