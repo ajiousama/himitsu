@@ -49,10 +49,10 @@ jobs:
               --check \
               --probe-timeout 4 \
               --max-age-days 14 \
-              --max-per-program 12
+              --max-per-program 20
             python haru_vod_clips.py
             python haru_vod_freewifi.py
-            git add haru_vod.m3u freewifi
+            git add haru_kai_epg_history.xml haru_vod.m3u freewifi
             if git diff --cached --quiet; then
               echo 'HARU VOD / FreeWiFi already current'
               exit 0
