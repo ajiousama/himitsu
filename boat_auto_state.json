@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-16",
-  "generated_at": "2026-09-16T13:23:17.637755+09:00",
+  "generated_at": "2026-09-16T13:24:17.638849+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260916.json",
   "schedule_checked_at": "2026-09-16T13:14:17.635437+09:00",
@@ -56,6 +56,11 @@
     "fetched": 10,
     "failures": [
       {
+        "jcd": "07",
+        "name": "蒲郡",
+        "error": "HTTPError: playback check failed"
+      },
+      {
         "jcd": "12",
         "name": "住之江",
         "error": "cloud and official acquisition unavailable: HTTPError"
@@ -64,11 +69,6 @@
         "jcd": "19",
         "name": "下関",
         "error": "cloud and official acquisition unavailable: HTTPError"
-      },
-      {
-        "jcd": "07",
-        "name": "蒲郡",
-        "error": "HTTPError: playback check failed"
       }
     ]
   },
