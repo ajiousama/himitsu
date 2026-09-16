@@ -1,5 +1,5 @@
 name: Update KICK Replay Catalog
-# replay-layer-v2 gmcx chapters
+# replay-layer-v3 freewifi integration
 
 on:
   workflow_dispatch:
@@ -12,6 +12,7 @@ on:
       - "kick_channels.json"
       - "kick_replay.py"
       - "kick_gmcx_chapters.py"
+      - "kick_replay_freewifi.py"
       - "gmcx_episode_titles.json"
       - "api/kick-replay.js"
       - ".github/workflows/update_kick_replay.yml"
@@ -19,8 +20,11 @@ on:
 permissions:
   contents: write
 
+# This workflow now writes freewifi, so share the same repository-wide mutex as
+# the main FreeWiFi/EPG writer. That prevents replay updates from overwriting a
+# newer BOAT/public-sports/KICK LIVE state.
 concurrency:
-  group: himitsu-kick-replay-writer
+  group: himitsu-freewifi-state-writer
   cancel-in-progress: false
 
 jobs:
@@ -70,7 +74,7 @@ jobs:
           print('GMCX ready VODs:', len(ready), 'chapters:', chapters, 'AI required:', len(ai))
           PY
 
-      - name: Publish replay metadata
+      - name: Publish replay metadata and merge FreeWiFi
         shell: bash
         run: |
           set -euo pipefail
@@ -84,24 +88,42 @@ jobs:
           cp kick_gmcx_chapters.m3u "$snapshot/kick_gmcx_chapters.m3u"
 
           for attempt in 1 2 3 4 5; do
+            echo "KICK replay/FreeWiFi publish attempt $attempt/5"
             git fetch origin main
             git reset --hard origin/main
+
             cp "$snapshot/kick_replay.json" kick_replay.json
             cp "$snapshot/kick_replay.m3u" kick_replay.m3u
             cp "$snapshot/kick_gmcx_chapters.json" kick_gmcx_chapters.json
             cp "$snapshot/kick_gmcx_chapters.m3u" kick_gmcx_chapters.m3u
-            git add kick_replay.json kick_replay.m3u kick_gmcx_chapters.json kick_gmcx_chapters.m3u
+
+            # Rebuild the replay block against the newest FreeWiFi so this job
+            # never publishes an old copy over BOAT/public-sports/KICK LIVE.
+            python -u kick_replay_freewifi.py
+
+            python - <<'PY'
+          from pathlib import Path
+          text = Path('freewifi').read_text(encoding='utf-8-sig', errors='replace')
+          assert text.count('# === KICK_REPLAY_START ===') == 1
+          assert text.count('# === KICK_REPLAY_END ===') == 1
+          assert '# === KICK_MANAGED_END ===' in text
+          assert text.index('# === KICK_MANAGED_END ===') < text.index('# === KICK_REPLAY_START ===')
+          print('FreeWiFi KICK Replay block validated')
+          PY
+
+            git add freewifi kick_replay.json kick_replay.m3u kick_gmcx_chapters.json kick_gmcx_chapters.m3u
             if git diff --cached --quiet; then
-              echo "KICK/GMCX replay catalog already current"
+              echo "KICK/GMCX replay and FreeWiFi already current"
               exit 0
             fi
-            git commit -m "Update KICK and GMCX replay catalog [skip ci]"
+            git commit -m "Update KICK replay in FreeWiFi [skip ci]"
             if git push origin HEAD:main; then
-              echo "KICK/GMCX replay catalog published"
+              echo "KICK replay merged into FreeWiFi"
               exit 0
             fi
+            echo "::warning::main moved during replay publish; rebuilding on newest main"
             sleep 1
           done
 
-          echo "::error::KICK/GMCX replay publish failed after retries"
+          echo "::error::KICK replay/FreeWiFi publish failed after retries"
           exit 1
