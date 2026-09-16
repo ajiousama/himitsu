@@ -58,14 +58,15 @@ def make_uniform_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict[st
     for index, ep in enumerate(range(start_ep, end_ep + 1)):
         start = int(round(index * unit))
         stop = duration if index == count - 1 else int(round((index + 1) * unit))
+        clip_duration = max(0, stop - start)
         title = titles.get(str(ep), f"第{ep}回")
         chapters.append({
             "episode": ep,
             "title": title,
             "start_seconds": start,
             "stop_seconds": stop,
-            "duration_seconds": max(0, stop - start),
-            "replay_url": f"{REPLAY_BASE}{urllib.parse.quote(str(vod.get('vod_id')))}&start={start}",
+            "duration_seconds": clip_duration,
+            "replay_url": f"{REPLAY_BASE}{urllib.parse.quote(str(vod.get('vod_id')))}&start={start}&duration={clip_duration}",
             "method": "uniform-from-clean-vod",
             "confidence": "high" if abs(unit - REFERENCE_EPISODE_SECONDS) <= 120 else "medium",
         })
