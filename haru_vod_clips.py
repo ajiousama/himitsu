@@ -19,13 +19,6 @@ START_RE = re.compile(r"([?&]start=)(\d+)")
 TVG_RE = re.compile(rf"(haru\.vod\.{re.escape(TARGET_ID)}\.)(\d+)")
 
 
-def rewrite_start(url: str, epoch: int) -> str:
-    if START_RE.search(url):
-        return START_RE.sub(lambda m: m.group(1) + str(epoch), url, count=1)
-    sep = "&" if "?" in url else "?"
-    return f"{url}{sep}start={epoch}"
-
-
 def main() -> int:
     if not M3U.exists():
         raise SystemExit("haru_vod.m3u not found")
@@ -41,18 +34,20 @@ def main() -> int:
             source = lines[i + 1].strip()
             sm = START_RE.search(source)
             if sm and "/stream/jp/abc/" in source:
-                original = int(sm.group(2))
-                base_jst = datetime.fromtimestamp(original, timezone.utc).astimezone(JST)
+                programme_start = int(sm.group(2))
+                base_jst = datetime.fromtimestamp(programme_start, timezone.utc).astimezone(JST)
                 target_jst = base_jst.replace(hour=TARGET_HOUR, minute=TARGET_MINUTE, second=0, microsecond=0)
-                # If the source programme starts after 07:30, it is not the morning block we want.
-                if target_jst >= base_jst and (target_jst - base_jst).total_seconds() <= 4 * 3600:
-                    target = int(target_jst.timestamp())
-                    clipped_source = rewrite_start(source, target)
+                offset = int((target_jst - base_jst).total_seconds())
+
+                # HARU replay URLs are keyed by programme start. Do not replace start= with 07:30;
+                # keep the 05:00 boundary and seek 2h30m inside the replay playlist.
+                if 0 <= offset <= 4 * 3600:
+                    target = programme_start + offset
                     proxy = (
                         PROXY
                         + "?src="
-                        + urllib.parse.quote(clipped_source, safe="")
-                        + f"&duration={DURATION}"
+                        + urllib.parse.quote(source, safe="")
+                        + f"&offset={offset}&duration={DURATION}"
                     )
                     line = TVG_RE.sub(lambda m: m.group(1) + str(target), line)
                     if "," in line:
