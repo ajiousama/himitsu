@@ -1,0 +1,23 @@
+#EXTM3U
+# ABC primehome timezone matrix test 2026-09-16
+# Goal: test the same intended JST 05:00-05:30 using three clock interpretations.
+# For each pair: play LIVE for 10-20 sec, then the Replay entry immediately after it.
+
+# Pair A: correct conversion JST 05:00 -> UTC 2026-09-15 20:00
+#EXTINF:-1 group-title="ABC TZ TEST",1A) ABC LIVE warmup -> Correct UTC
+http://cdns.jp-primehome.com:8000/zhongying/live/playlist.m3u8?cid=gx02&isp=5&bind=0&uin=159413&playseek=0&timestamp=1732380893&sign=ca849dc6608a1dc0afb2559343d13bf779f7a6542b2ec260d8e8887f8c2e03cf
+#EXTINF:-1 group-title="ABC TZ TEST",1B) ABC Replay CORRECT UTC (05:00 JST target)
+http://cdns.jp-primehome.com:8000/zhongying/live/playlist.m3u8?cid=gx02&isp=5&bind=0&uin=159413&playseek=20260915200000-20260915203000&timestamp=1732380893&sign=ca849dc6608a1dc0afb2559343d13bf779f7a6542b2ec260d8e8887f8c2e03cf
+
+# Pair B: JST wall-clock sent literally
+#EXTINF:-1 group-title="ABC TZ TEST",2A) ABC LIVE warmup -> JST literal
+http://cdns.jp-primehome.com:8000/zhongying/live/playlist.m3u8?cid=gx02&isp=5&bind=0&uin=159413&playseek=0&timestamp=1732380893&sign=ca849dc6608a1dc0afb2559343d13bf779f7a6542b2ec260d8e8887f8c2e03cf
+#EXTINF:-1 group-title="ABC TZ TEST",2B) ABC Replay JST LITERAL 05:00
+http://cdns.jp-primehome.com:8000/zhongying/live/playlist.m3u8?cid=gx02&isp=5&bind=0&uin=159413&playseek=20260916050000-20260916053000&timestamp=1732380893&sign=ca849dc6608a1dc0afb2559343d13bf779f7a6542b2ec260d8e8887f8c2e03cf
+
+# Pair C: malformed '-0400 label but JST wall-clock' interpreted honestly -> +13h from intended JST
+# 05:00 JST wall-clock tagged -0400 corresponds to 09:00 UTC = 18:00 JST
+#EXTINF:-1 group-title="ABC TZ TEST",3A) ABC LIVE warmup -> FALSE -0400 +13h
+http://cdns.jp-primehome.com:8000/zhongying/live/playlist.m3u8?cid=gx02&isp=5&bind=0&uin=159413&playseek=0&timestamp=1732380893&sign=ca849dc6608a1dc0afb2559343d13bf779f7a6542b2ec260d8e8887f8c2e03cf
+#EXTINF:-1 group-title="ABC TZ TEST",3B) ABC Replay FALSE -0400 (+13h -> 18:00 JST)
+http://cdns.jp-primehome.com:8000/zhongying/live/playlist.m3u8?cid=gx02&isp=5&bind=0&uin=159413&playseek=20260916090000-20260916093000&timestamp=1732380893&sign=ca849dc6608a1dc0afb2559343d13bf779f7a6542b2ec260d8e8887f8c2e03cf
