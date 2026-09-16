@@ -2,10 +2,10 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-16",
-  "generated_at": "2026-09-16T20:40:07.734534+09:00",
+  "generated_at": "2026-09-16T20:41:07.734011+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260916.json",
-  "schedule_checked_at": "2026-09-16T20:26:07.732772+09:00",
+  "schedule_checked_at": "2026-09-16T20:41:07.734011+09:00",
   "schedule_warnings": [
     "official_cards: TimeoutError"
   ],
@@ -20,10 +20,11 @@
   "card_count": 13,
   "held_count": 13,
   "visible_count": 13,
-  "active_count": 2,
+  "active_count": 1,
   "ended_kept": [
     "平和島",
     "多摩川",
+    "蒲郡",
     "常滑",
     "津",
     "びわこ",
@@ -57,15 +58,15 @@
     "night": {
       "held": 3,
       "acquired": 3,
-      "active": 2,
-      "ended": 1,
+      "active": 1,
+      "ended": 2,
       "seed_required": 0,
       "cancelled": 0
     }
   },
   "cloud_acquisition": {
-    "requested": 2,
-    "fetched": 2,
+    "requested": 1,
+    "fetched": 1,
     "failures": []
   },
   "epg_programmes_written": {
@@ -466,8 +467,8 @@
       "name": "蒲郡",
       "held": true,
       "visible": true,
-      "ended": false,
-      "active": true,
+      "ended": true,
+      "active": false,
       "cancelled": false,
       "mode": "night",
       "mode_label": "ナイター",
@@ -475,7 +476,7 @@
       "last_race": "20:38",
       "alert_from": "2026-09-16T14:50:00+09:00",
       "next_race": null,
-      "stream_window": "live_or_prestart",
+      "stream_window": "ended_kept",
       "guidance_switch_at": "2026-09-16T21:23:00+09:00",
       "seed_required": false,
       "playback_verified": true,
