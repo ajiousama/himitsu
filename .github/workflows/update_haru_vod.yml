@@ -1,0 +1,56 @@
+name: Update HARU VOD
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '23 * * * *'
+  push:
+    branches: [main]
+    paths:
+      - 'haru_vod.py'
+      - 'haru_vod_favorites.json'
+      - '.github/workflows/update_haru_vod.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: himitsu-freewifi-state-writer
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Build and publish HARU VOD on latest main
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          for attempt in 1 2 3 4 5; do
+            echo "HARU VOD publish attempt $attempt/5"
+            git fetch origin main
+            git reset --hard origin/main
+            HARU_PROBE=1 python haru_vod.py
+            git add haru_vod.m3u freewifi
+            if git diff --cached --quiet; then
+              echo 'HARU VOD already current'
+              exit 0
+            fi
+            git commit -m 'Update HARU VOD shelf [skip ci]'
+            if git push origin HEAD:main; then
+              echo 'HARU VOD published'
+              exit 0
+            fi
+            sleep 2
+          done
+          echo '::error::HARU VOD publish failed after retries'
+          exit 1
