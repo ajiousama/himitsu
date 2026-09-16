@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-16",
-  "generated_at": "2026-09-16T14:09:18.096100+09:00",
+  "generated_at": "2026-09-16T14:10:17.586002+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260916.json",
   "schedule_checked_at": "2026-09-16T14:00:17.585768+09:00",
@@ -19,7 +19,7 @@
   "alert_lead_minutes": 30,
   "card_count": 13,
   "held_count": 13,
-  "visible_count": 10,
+  "visible_count": 11,
   "active_count": 10,
   "ended_kept": [],
   "seed_required": false,
@@ -44,7 +44,7 @@
     },
     "night": {
       "held": 3,
-      "acquired": 0,
+      "acquired": 1,
       "active": 0,
       "ended": 0,
       "seed_required": 0,
@@ -53,21 +53,16 @@
   },
   "cloud_acquisition": {
     "requested": 13,
-    "fetched": 10,
+    "fetched": 11,
     "failures": [
       {
-        "jcd": "07",
-        "name": "蒲郡",
+        "jcd": "19",
+        "name": "下関",
         "error": "HTTPError: playback check failed"
       },
       {
         "jcd": "12",
         "name": "住之江",
-        "error": "HTTPError: playback check failed"
-      },
-      {
-        "jcd": "19",
-        "name": "下関",
         "error": "HTTPError: playback check failed"
       }
     ]
@@ -108,6 +103,22 @@
         "ok": true,
         "sequence": 8127551,
         "last_segment": "/850471cfcfa74eb690f5c0b738c52457/da26570cca5a4da0b9110ffacb9a2d30/manifest_1_8130093.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
+    },
+    "boat.gamagori": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/6f1befafe860445cac6cba7924383052/9a74856e7dbe4c688739c16451cde659/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTcxMTIwMCwic3RhcnQiOjE3ODk1MzU0MDAsImlvcyI6MTgsImNwIjoiMjExNzMxMDAwXzIxMTc3MzU5OSIsInBwdyI6IjQwayJ9.DW_VWWyx4xlYHzeW0arWHDZZTp2yaQinouT4ybaPDYA",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-09-16T14:10:17.589065+09:00",
+      "checked_at": "2026-09-16T14:10:17.589065+09:00",
+      "first_verified_at": "2026-09-16T14:10:17.589065+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 8105906,
+        "last_segment": "/6f1befafe860445cac6cba7924383052/9a74856e7dbe4c688739c16451cde659/manifest_4_8105908.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -427,7 +438,7 @@
       "jcd": "07",
       "name": "蒲郡",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
       "active": false,
       "cancelled": false,
@@ -443,9 +454,9 @@
       "stream_window": "scheduled",
       "guidance_switch_at": "2026-09-16T21:23:00+09:00",
       "seed_required": false,
-      "playback_verified": false,
-      "first_verified_at": null,
-      "ready_before_first_race": false,
+      "playback_verified": true,
+      "first_verified_at": "2026-09-16T14:10:17.589065+09:00",
+      "ready_before_first_race": true,
       "acquire_from": "2026-09-16T12:50:00+09:00",
       "races": [
         {
@@ -509,7 +520,9 @@
           "name": "一般記者特選"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/6f1befafe860445cac6cba7924383052/9a74856e7dbe4c688739c16451cde659/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTcxMTIwMCwic3RhcnQiOjE3ODk1MzU0MDAsImlvcyI6MTgsImNwIjoiMjExNzMxMDAwXzIxMTc3MzU5OSIsInBwdyI6IjQwayJ9.DW_VWWyx4xlYHzeW0arWHDZZTp2yaQinouT4ybaPDYA",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     },
     "boat.tokoname": {
       "jcd": "08",
@@ -972,10 +985,7 @@
       "first_race": "08:32",
       "last_race": "14:10",
       "alert_from": "2026-09-16T08:02:00+09:00",
-      "next_race": {
-        "race": 12,
-        "start": "14:10"
-      },
+      "next_race": null,
       "stream_window": "live_or_prestart",
       "guidance_switch_at": "2026-09-16T14:55:00+09:00",
       "seed_required": false,
