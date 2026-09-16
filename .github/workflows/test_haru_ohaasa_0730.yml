@@ -15,19 +15,19 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Compare HARU live and replay HTTP HTTPS
+      - name: Compare HARU and akariko origin paths
         shell: bash
         run: |
           set -u
           probe () {
-            name="$1"; url="$2"
-            code=$(curl -sSL --connect-timeout 8 --max-time 20 -A 'Mozilla/5.0 HARU-VOD-Test' -w '%{http_code}' "$url" -o "/tmp/${name}.txt" || true)
-            magic=$(head -c 40 "/tmp/${name}.txt" 2>/dev/null | tr '\n' ' ' || true)
-            echo "$name HTTP=$code BODY=$magic"
+            name="$1"; url="$2"; max="${3:-20}"
+            code=$(curl -sSL --connect-timeout 8 --max-time "$max" -A 'Mozilla/5.0 HARU-VOD-Test' -w '%{http_code}' "$url" -o "/tmp/${name}.txt" || true)
+            size=$(wc -c < "/tmp/${name}.txt" 2>/dev/null || echo 0)
+            magic=$(head -c 50 "/tmp/${name}.txt" 2>/dev/null | tr '\n' ' ' || true)
+            echo "$name HTTP=$code SIZE=$size BODY=$magic"
           }
-          probe abc_live_https 'https://haru.charandom.blog/stream/jp/abc/stream-output.m3u8?mode=hls'
-          probe abc_live_http  'http://haru.charandom.blog/stream/jp/abc/stream-output.m3u8?mode=hls'
-          probe abc_replay_https 'https://haru.charandom.blog/stream/jp/abc/replay.m3u8?mode=hls&start=1789552800'
-          probe abc_replay_http  'http://haru.charandom.blog/stream/jp/abc/replay.m3u8?mode=hls&start=1789552800'
-          probe tbs_live_https 'https://haru.charandom.blog/stream/jp/tbs/stream-output.m3u8?mode=hls'
-          probe tbs_replay_https 'https://haru.charandom.blog/stream/jp/tbs/replay.m3u8?mode=hls&start=1789552800'
+          probe haru_abc_live 'https://haru.charandom.blog/stream/jp/abc/stream-output.m3u8?mode=hls'
+          probe haru_abc_replay 'https://haru.charandom.blog/stream/jp/abc/replay.m3u8?mode=hls&start=1789552800'
+          probe akariko_abc_live 'https://akariko-bck1.sankuria.sbs/stream/jp/abc/stream-output.m3u8?mode=hls'
+          probe akariko_abc_replay 'https://akariko-bck1.sankuria.sbs/stream/jp/abc/replay.m3u8?mode=hls&start=1789552800'
+          probe akariko_epg 'https://akariko-bck1.sankuria.sbs/epg/kai-epg.xml' 30
