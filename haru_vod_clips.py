@@ -9,7 +9,7 @@ from zoneinfo import ZoneInfo
 
 M3U = Path("haru_vod.m3u")
 JST = ZoneInfo("Asia/Tokyo")
-PROXY = "https://himitsu-six.vercel.app/api/haru-clip"
+PROXY = "https://kick-resolver.onrender.com/haru-clip"
 TARGET_ID = "ohayo_asahi_0730"
 TARGET_HOUR = 7
 TARGET_MINUTE = 30
@@ -40,7 +40,7 @@ def main() -> int:
                 offset = int((target_jst - base_jst).total_seconds())
 
                 # HARU replay URLs are keyed by programme start. Do not replace start= with 07:30;
-                # keep the 05:00 boundary and seek 2h30m inside the replay playlist.
+                # keep the programme boundary and seek inside the replay playlist.
                 if 0 <= offset <= 4 * 3600:
                     target = programme_start + offset
                     proxy = (
