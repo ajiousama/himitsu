@@ -15,21 +15,19 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Probe old and recent HARU replays
+      - name: Compare HARU live and replay HTTP HTTPS
         shell: bash
         run: |
           set -u
           probe () {
             name="$1"; url="$2"
             code=$(curl -sSL --connect-timeout 8 --max-time 20 -A 'Mozilla/5.0 HARU-VOD-Test' -w '%{http_code}' "$url" -o "/tmp/${name}.txt" || true)
-            magic=$(head -c 24 "/tmp/${name}.txt" 2>/dev/null | tr '\n' ' ' || true)
+            magic=$(head -c 40 "/tmp/${name}.txt" 2>/dev/null | tr '\n' ' ' || true)
             echo "$name HTTP=$code BODY=$magic"
           }
-          # Morning target (about 17h old at test time)
-          probe abc_ohaasa_0500 'https://haru.charandom.blog/stream/jp/abc/replay.m3u8?mode=hls&start=1789502400'
-          # Recent terrestrial programmes from the same EPG (about 1-3h old)
-          probe abc_1900 'https://haru.charandom.blog/stream/jp/abc/replay.m3u8?mode=hls&start=1789552800'
-          probe abc_1815 'https://haru.charandom.blog/stream/jp/abc/replay.m3u8?mode=hls&start=1789550100'
-          probe tbs_1900 'https://haru.charandom.blog/stream/jp/tbs/replay.m3u8?mode=hls&start=1789552800'
-          probe tbs_1849 'https://haru.charandom.blog/stream/jp/tbs/replay.m3u8?mode=hls&start=1789552140'
-          echo 'Probe-only run complete'
+          probe abc_live_https 'https://haru.charandom.blog/stream/jp/abc/stream-output.m3u8?mode=hls'
+          probe abc_live_http  'http://haru.charandom.blog/stream/jp/abc/stream-output.m3u8?mode=hls'
+          probe abc_replay_https 'https://haru.charandom.blog/stream/jp/abc/replay.m3u8?mode=hls&start=1789552800'
+          probe abc_replay_http  'http://haru.charandom.blog/stream/jp/abc/replay.m3u8?mode=hls&start=1789552800'
+          probe tbs_live_https 'https://haru.charandom.blog/stream/jp/tbs/stream-output.m3u8?mode=hls'
+          probe tbs_replay_https 'https://haru.charandom.blog/stream/jp/tbs/replay.m3u8?mode=hls&start=1789552800'
