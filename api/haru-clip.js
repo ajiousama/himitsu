@@ -1,5 +1,5 @@
 const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/140 Safari/537.36";
-const VERSION = "2026-09-16-haru-clip-v1";
+const VERSION = "2026-09-16-haru-clip-v2";
 
 function isAllowedSource(raw) {
   try {
@@ -29,29 +29,23 @@ async function fetchText(url) {
   return await r.text();
 }
 
-function proxyUrl(req, src, duration) {
-  const proto = req.headers["x-forwarded-proto"] || "https";
-  const host = req.headers.host || "himitsu-six.vercel.app";
-  return `${proto}://${host}/api/haru-clip?src=${encodeURIComponent(src)}&duration=${duration}`;
-}
-
-function rewriteMaster(text, source, req, duration) {
+function pickVariant(text, source) {
   const lines = String(text || "").replace(/\r/g, "").split("\n");
-  const out = [];
-  for (let line of lines) {
-    if (!line.trim()) { out.push(line); continue; }
-    if (line.startsWith("#")) {
-      line = line.replace(/URI="([^"]+)"/g, (_, uri) => {
-        const abs = absolute(source, uri);
-        return `URI="${proxyUrl(req, abs, duration)}"`;
-      });
-      out.push(line);
-      continue;
+  const candidates = [];
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line.startsWith("#EXT-X-STREAM-INF:")) continue;
+    const bw = Number((line.match(/BANDWIDTH=(\d+)/i) || [])[1] || 0);
+    for (let j = i + 1; j < lines.length; j++) {
+      const next = lines[j].trim();
+      if (!next) continue;
+      if (next.startsWith("#")) break;
+      candidates.push({ bandwidth: bw, url: absolute(source, next) });
+      break;
     }
-    const abs = absolute(source, line.trim());
-    out.push(proxyUrl(req, abs, duration));
   }
-  return out.join("\n");
+  candidates.sort((a, b) => b.bandwidth - a.bandwidth);
+  return candidates[0]?.url || null;
 }
 
 function rewriteMedia(text, source, duration) {
@@ -98,6 +92,7 @@ function rewriteMedia(text, source, duration) {
     if (cumulative >= duration - 0.25) break;
   }
 
+  if (!segmentCount) throw new Error("no media segments found");
   const out = [...header, ...body];
   if (!out.some(x => x.startsWith("#EXTM3U"))) out.unshift("#EXTM3U");
   out.push("#EXT-X-ENDLIST");
@@ -120,13 +115,20 @@ module.exports = async function handler(req, res) {
   }
 
   try {
-    const text = await fetchText(src);
-    const isMaster = /#EXT-X-STREAM-INF:/i.test(text);
-    const rewritten = isMaster
-      ? rewriteMaster(text, src, req, duration)
-      : rewriteMedia(text, src, duration);
+    let mediaUrl = src;
+    let text = await fetchText(mediaUrl);
+    for (let depth = 0; depth < 2 && /#EXT-X-STREAM-INF:/i.test(text); depth++) {
+      const variant = pickVariant(text, mediaUrl);
+      if (!variant) throw new Error("master playlist has no variant");
+      mediaUrl = variant;
+      text = await fetchText(mediaUrl);
+    }
+    if (/#EXT-X-STREAM-INF:/i.test(text)) throw new Error("nested master playlist too deep");
+
+    const rewritten = rewriteMedia(text, mediaUrl, duration);
     res.setHeader("Content-Type", "application/vnd.apple.mpegurl; charset=utf-8");
     res.setHeader("X-HARU-Clip-Duration", String(duration));
+    res.setHeader("X-HARU-Clip-Media", mediaUrl);
     return res.status(200).send(rewritten);
   } catch (e) {
     return res.status(502).json({
