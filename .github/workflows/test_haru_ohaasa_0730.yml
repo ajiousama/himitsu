@@ -1,0 +1,41 @@
+name: Test HARU Oha Asa 0730
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/test_haru_ohaasa_0730.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Probe HARU ABC 2026-09-16 07:30 JST
+        shell: bash
+        run: |
+          set -euo pipefail
+          SRC='https://haru.charandom.blog/stream/jp/abc/replay.m3u8?mode=hls&start=1789511400'
+          echo "SOURCE=$SRC"
+          curl -fL --connect-timeout 10 --max-time 25 -A 'Mozilla/5.0 HARU-VOD-Test' "$SRC" -o /tmp/source.m3u8
+          grep -q '^#EXTM3U' /tmp/source.m3u8
+          echo 'SOURCE_OK=1'
+          echo '--- source head ---'
+          head -n 20 /tmp/source.m3u8
+
+      - name: Probe 10-minute clip endpoint
+        shell: bash
+        run: |
+          set -euo pipefail
+          URL='https://himitsu-six.vercel.app/api/haru-clip?src=https%3A%2F%2Fharu.charandom.blog%2Fstream%2Fjp%2Fabc%2Freplay.m3u8%3Fmode%3Dhls%26start%3D1789511400&duration=600'
+          echo "CLIP=$URL"
+          code=$(curl -sSL --connect-timeout 10 --max-time 30 -A 'Mozilla/5.0 HARU-VOD-Test' -w '%{http_code}' "$URL" -o /tmp/clip.m3u8)
+          echo "CLIP_HTTP=$code"
+          head -n 30 /tmp/clip.m3u8 || true
+          test "$code" = '200'
+          grep -q '^#EXTM3U' /tmp/clip.m3u8
+          echo 'CLIP_OK=1'
