@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-17",
-  "generated_at": "2026-09-17T14:09:31.545860+09:00",
+  "generated_at": "2026-09-17T14:10:31.546065+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260917.json",
   "schedule_checked_at": "2026-09-17T13:57:31.600795+09:00",
@@ -19,7 +19,7 @@
   "alert_lead_minutes": 30,
   "card_count": 15,
   "held_count": 15,
-  "visible_count": 12,
+  "visible_count": 13,
   "active_count": 11,
   "ended_kept": [],
   "seed_required": false,
@@ -44,7 +44,7 @@
     },
     "night": {
       "held": 4,
-      "acquired": 1,
+      "acquired": 2,
       "active": 0,
       "ended": 0,
       "seed_required": 0,
@@ -53,13 +53,8 @@
   },
   "cloud_acquisition": {
     "requested": 14,
-    "fetched": 12,
+    "fetched": 13,
     "failures": [
-      {
-        "jcd": "07",
-        "name": "蒲郡",
-        "error": "HTTPError: playback check failed"
-      },
       {
         "jcd": "19",
         "name": "下関",
@@ -103,6 +98,22 @@
         "ok": true,
         "sequence": 8141951,
         "last_segment": "/d872cd1d15a242828b3258db01542871/a198e0fff950493293cc51afbf4254d8/manifest_1_8144495.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
+    },
+    "boat.gamagori": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/3f6528bdfde84d07af84f9d1cdd5ab94/ceb10506511b4a9fa5d899c537374a1f/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTc5NzYwMCwic3RhcnQiOjE3ODk2MjE4MDAsImlvcyI6MTgsImNwIjoiMjExODE3NDAwXzIxMTg1OTk5OSIsInBwdyI6IjQwayJ9.PhsAkUa4oDreo5IO7Gu5ppB_QA_V7tI-fPIGinbFFGQ",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-09-17T14:10:31.550250+09:00",
+      "checked_at": "2026-09-17T14:10:31.550250+09:00",
+      "first_verified_at": "2026-09-17T14:10:31.550250+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 8120306,
+        "last_segment": "/3f6528bdfde84d07af84f9d1cdd5ab94/ceb10506511b4a9fa5d899c537374a1f/manifest_4_8120310.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -454,7 +465,7 @@
       "jcd": "07",
       "name": "蒲郡",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
       "active": false,
       "cancelled": false,
@@ -470,9 +481,9 @@
       "stream_window": "scheduled",
       "guidance_switch_at": "2026-09-17T21:23:00+09:00",
       "seed_required": false,
-      "playback_verified": false,
-      "first_verified_at": null,
-      "ready_before_first_race": false,
+      "playback_verified": true,
+      "first_verified_at": "2026-09-17T14:10:31.550250+09:00",
+      "ready_before_first_race": true,
       "acquire_from": "2026-09-17T12:51:00+09:00",
       "races": [
         {
@@ -536,7 +547,9 @@
           "name": "一般戦"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/3f6528bdfde84d07af84f9d1cdd5ab94/ceb10506511b4a9fa5d899c537374a1f/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTc5NzYwMCwic3RhcnQiOjE3ODk2MjE4MDAsImlvcyI6MTgsImNwIjoiMjExODE3NDAwXzIxMTg1OTk5OSIsInBwdyI6IjQwayJ9.PhsAkUa4oDreo5IO7Gu5ppB_QA_V7tI-fPIGinbFFGQ",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     },
     "boat.tokoname": {
       "jcd": "08",
@@ -911,10 +924,7 @@
       "first_race": "08:32",
       "last_race": "14:10",
       "alert_from": "2026-09-17T08:02:00+09:00",
-      "next_race": {
-        "race": 12,
-        "start": "14:10"
-      },
+      "next_race": null,
       "stream_window": "live_or_prestart",
       "guidance_switch_at": "2026-09-17T14:55:00+09:00",
       "seed_required": false,
