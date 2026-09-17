@@ -3,8 +3,7 @@ import re
 
 FREEWIFI = Path("freewifi")
 
-OLD_HARUKA_BASE = "http://118.68.167.114:9394/stream"
-HARUKA_BASE = "http://42.113.96.247:9394/stream"
+HARUKA_BASE = "http://118.68.167.114:9394/stream"
 BLOG_BASE = "https://haru.charandom.blog/stream/jp"
 PRIME_BASE = "http://cdns.jp-primehome.com:8000/zhongying/live/playlist.m3u8"
 PRIME_QUERY = (
@@ -185,9 +184,6 @@ def main() -> None:
         rest = rest[:pos] + block + rest[pos:]
 
     new_text = prefix + terrestrial + rest.lstrip("\n")
-    # Keep every HARUKA 9394 entry (including BS/CS blocks outside the rebuilt terrestrial section)
-    # on the currently confirmed host so later normalization cannot roll it back.
-    new_text = new_text.replace(OLD_HARUKA_BASE, HARUKA_BASE)
     FREEWIFI.write_text(new_text.rstrip() + "\n", encoding="utf-8")
     print(f"Rebuilt terrestrial block; moved {len(specials)} special TVer entries")
 
