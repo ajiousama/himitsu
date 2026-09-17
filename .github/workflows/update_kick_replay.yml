@@ -2,20 +2,10 @@ name: Update KICK Replay Catalog
 # replay-layer-v3 freewifi integration
 
 on:
+  # KICK VOD is intentionally paused in FreeWiFi.
+  # Keep this workflow manual-only while the resolver/playability checks are
+  # being hardened. Re-enable a schedule only after end-to-end playback passes.
   workflow_dispatch:
-  schedule:
-    - cron: "22 * * * *"
-  push:
-    branches:
-      - main
-    paths:
-      - "kick_channels.json"
-      - "kick_replay.py"
-      - "kick_gmcx_chapters.py"
-      - "kick_replay_freewifi.py"
-      - "gmcx_episode_titles.json"
-      - "api/kick-replay.js"
-      - ".github/workflows/update_kick_replay.yml"
 
 permissions:
   contents: write
@@ -104,11 +94,11 @@ jobs:
             python - <<'PY'
           from pathlib import Path
           text = Path('freewifi').read_text(encoding='utf-8-sig', errors='replace')
-          assert text.count('# === KICK_REPLAY_START ===') == 1
-          assert text.count('# === KICK_REPLAY_END ===') == 1
+          assert text.count('# === KICK_REPLAY_START ===') == 0
+          assert text.count('# === KICK_REPLAY_END ===') == 0
+          assert 'group-title="VOD" tvg-id="kick.' not in text
           assert '# === KICK_MANAGED_END ===' in text
-          assert text.index('# === KICK_MANAGED_END ===') < text.index('# === KICK_REPLAY_START ===')
-          print('FreeWiFi KICK Replay block validated')
+          print('FreeWiFi KICK VOD pause validated')
           PY
 
             git add freewifi kick_replay.json kick_replay.m3u kick_gmcx_chapters.json kick_gmcx_chapters.m3u
@@ -116,9 +106,9 @@ jobs:
               echo "KICK/GMCX replay and FreeWiFi already current"
               exit 0
             fi
-            git commit -m "Update KICK replay in FreeWiFi [skip ci]"
+            git commit -m "Update paused KICK replay metadata [skip ci] [skip render]"
             if git push origin HEAD:main; then
-              echo "KICK replay merged into FreeWiFi"
+              echo "KICK replay metadata updated; VOD remains hidden from FreeWiFi"
               exit 0
             fi
             echo "::warning::main moved during replay publish; rebuilding on newest main"
