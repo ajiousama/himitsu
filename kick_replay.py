@@ -30,6 +30,29 @@ def get_json(url: str):
             if attempt < 2: time.sleep(2 * (attempt + 1))
     return None
 
+def hls_alive(url: str | None) -> bool:
+    if not url:
+        return False
+    headers = {
+        "User-Agent": UA,
+        "Accept": "application/vnd.apple.mpegurl, application/x-mpegURL, text/plain, */*",
+        "Referer": "https://kick.com/",
+        "Cache-Control": "no-cache",
+        "Pragma": "no-cache",
+    }
+    for attempt in range(2):
+        try:
+            req = urllib.request.Request(url, headers=headers)
+            with urllib.request.urlopen(req, timeout=20) as r:
+                head = r.read(4096).decode("utf-8", "replace")
+            if head.lstrip().startswith("#EXTM3U"):
+                return True
+        except Exception as exc:
+            print(f"HLS probe failed {url} attempt={attempt + 1}: {exc}")
+            if attempt == 0:
+                time.sleep(1)
+    return False
+
 
 def walk(value):
     if isinstance(value, dict):
@@ -122,10 +145,11 @@ def normalize_vod(vod_id, listed_obj, channel):
         and source_url.startswith(("http://", "https://"))
         and ".m3u8" in source_url
     )
-    # A duration of zero or an explicitly live item is not a finished archive.
-    # Keep it in metadata, but don't publish it as a user-facing VOD yet.
+    source_alive = hls_alive(source_url) if source_ok else False
+    # A duration of zero, live item, or dead HLS source is not publishable.
+    # Dead archives disappear cleanly instead of poisoning the whole VOD block.
     ready_for_publish = bool(
-        source_ok
+        source_alive
         and int(duration_s or 0) >= 60
         and is_live is not True
     )
@@ -147,7 +171,7 @@ def normalize_vod(vod_id, listed_obj, channel):
         "thumbnail": thumbnail.split("?", 1)[0] if isinstance(thumbnail, str) else None,
         "is_live": is_live if isinstance(is_live, bool) else None,
         "source_url": source_url if source_ok else None,
-        "playable": source_ok,
+        "playable": source_alive,
         "ready_for_publish": ready_for_publish,
         # Whole VODs can go directly to KICK HLS. The Render resolver is kept
         # only as a fallback and for chapter/clip slicing.
