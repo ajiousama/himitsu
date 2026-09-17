@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-17",
-  "generated_at": "2026-09-17T16:27:31.565895+09:00",
+  "generated_at": "2026-09-17T16:28:31.565139+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260917.json",
   "schedule_checked_at": "2026-09-17T16:17:31.722662+09:00",
@@ -20,8 +20,9 @@
   "card_count": 15,
   "held_count": 15,
   "visible_count": 14,
-  "active_count": 9,
+  "active_count": 8,
   "ended_kept": [
+    "常滑",
     "津",
     "びわこ",
     "尼崎",
@@ -43,8 +44,8 @@
     "day": {
       "held": 9,
       "acquired": 9,
-      "active": 6,
-      "ended": 3,
+      "active": 5,
+      "ended": 4,
       "seed_required": 0,
       "cancelled": 0
     },
@@ -58,8 +59,8 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 10,
-    "fetched": 9,
+    "requested": 9,
+    "fetched": 8,
     "failures": [
       {
         "jcd": "24",
@@ -578,8 +579,8 @@
       "name": "常滑",
       "held": true,
       "visible": true,
-      "ended": false,
-      "active": true,
+      "ended": true,
+      "active": false,
       "cancelled": false,
       "mode": "day",
       "mode_label": "デイ",
@@ -587,7 +588,7 @@
       "last_race": "16:25",
       "alert_from": "2026-09-17T10:13:00+09:00",
       "next_race": null,
-      "stream_window": "live_or_prestart",
+      "stream_window": "ended_kept",
       "guidance_switch_at": "2026-09-17T17:10:00+09:00",
       "seed_required": false,
       "playback_verified": true,
