@@ -102,6 +102,9 @@ def main() -> int:
         if duration <= 0:
             status = "waiting_live_end"
             chapters = []
+        elif not vod.get("ready_for_publish"):
+            status = "source_unavailable"
+            chapters = []
         elif clean_range_only and plausible_hour_blocks:
             status = "ready"
             chapters = make_uniform_chapters(vod, start_ep, end_ep, titles)
@@ -154,7 +157,11 @@ def main() -> int:
     ready = sum(1 for x in results if x.get("status") == "ready")
     ai = sum(1 for x in results if x.get("status") == "ai_required")
     waiting = sum(1 for x in results if x.get("status") == "waiting_live_end")
-    print(f"GMCX chapters: ready_vods={ready} chapters={len(all_chapters)} ai_required={ai} waiting={waiting}")
+    unavailable = sum(1 for x in results if x.get("status") == "source_unavailable")
+    print(
+        f"GMCX chapters: ready_vods={ready} chapters={len(all_chapters)} "
+        f"ai_required={ai} waiting={waiting} source_unavailable={unavailable}"
+    )
     return 0
 
 
