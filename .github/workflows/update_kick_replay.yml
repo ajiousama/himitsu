@@ -2,10 +2,9 @@ name: Update KICK Replay Catalog
 # replay-layer-v3 freewifi integration
 
 on:
-  # KICK VOD is intentionally paused in FreeWiFi.
-  # Keep this workflow manual-only while the resolver/playability checks are
-  # being hardened. Re-enable a schedule only after end-to-end playback passes.
   workflow_dispatch:
+  schedule:
+    - cron: "22 * * * *"
 
 permissions:
   contents: write
@@ -128,11 +127,17 @@ jobs:
             python - <<'PY'
           from pathlib import Path
           text = Path('freewifi').read_text(encoding='utf-8-sig', errors='replace')
-          assert text.count('# === KICK_REPLAY_START ===') == 0
-          assert text.count('# === KICK_REPLAY_END ===') == 0
-          assert 'group-title="VOD" tvg-id="kick.' not in text
+          assert text.count('# === KICK_REPLAY_START ===') == 1
+          assert text.count('# === KICK_REPLAY_END ===') == 1
           assert '# === KICK_MANAGED_END ===' in text
-          print('FreeWiFi KICK VOD pause validated')
+          start = text.index('# === KICK_REPLAY_START ===')
+          end = text.index('# === KICK_REPLAY_END ===')
+          block = text[start:end]
+          assert 'Mirumo' not in block
+          assert 'tvg-id="kick.gccx"' not in block
+          count = block.count('group-title="VOD"')
+          assert count > 0
+          print('FreeWiFi KICK VOD block validated:', count, 'entries')
           PY
 
             git add freewifi kick_replay.json kick_replay.m3u kick_gmcx_chapters.json kick_gmcx_chapters.m3u
@@ -140,9 +145,9 @@ jobs:
               echo "KICK/GMCX replay and FreeWiFi already current"
               exit 0
             fi
-            git commit -m "Update paused KICK replay metadata [skip ci] [skip render]"
+            git commit -m "Update KICK replay in FreeWiFi [skip ci] [skip render]"
             if git push origin HEAD:main; then
-              echo "KICK replay metadata updated; VOD remains hidden from FreeWiFi"
+              echo "KICK replay updated in FreeWiFi"
               exit 0
             fi
             echo "::warning::main moved during replay publish; rebuilding on newest main"
