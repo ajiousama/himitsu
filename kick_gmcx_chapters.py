@@ -12,7 +12,7 @@ TITLE_MAP = Path("gmcx_episode_titles.json")
 OUT_JSON = Path("kick_gmcx_chapters.json")
 OUT_M3U = Path("kick_gmcx_chapters.m3u")
 JST = timezone(timedelta(hours=9))
-REPLAY_BASE = "https://himitsu-six.vercel.app/api/kick-replay?vod="
+REPLAY_BASE = "https://freewifi-media.onrender.com/kick?vod="
 # One clean VOD (#90-106) currently measures 59,517 sec / 17 = 3,501 sec.
 # Use this only to propose AI search windows for irregular/SP-mixed VODs.
 REFERENCE_EPISODE_SECONDS = 3501
