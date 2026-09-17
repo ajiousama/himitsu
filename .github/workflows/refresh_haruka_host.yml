@@ -1,0 +1,89 @@
+name: Refresh HARUKA host
+
+on:
+  schedule:
+    - cron: '7,37 * * * *'
+  workflow_dispatch:
+  push:
+    paths:
+      - refresh_haruka_freewifi.py
+      - .github/workflows/refresh_haruka_host.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: refresh-haruka-host
+  cancel-in-progress: true
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Refresh current HARUKA host safely
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          for attempt in 1 2 3; do
+            echo "Attempt ${attempt}"
+            git fetch origin main
+            git reset --hard origin/main
+
+            python refresh_haruka_freewifi.py
+
+            python - <<'PY'
+          from pathlib import Path
+          import re
+          import urllib.parse
+
+          lines = Path('freewifi').read_text(encoding='utf-8').splitlines()
+          bases = set()
+          matched = 0
+          for i, line in enumerate(lines):
+              if not line.startswith('#EXTINF:') or '(haruka(9394))' not in line:
+                  continue
+              j = i + 1
+              while j < len(lines) and not lines[j].strip():
+                  j += 1
+              assert j < len(lines) and not lines[j].lstrip().startswith('#')
+              url = lines[j].strip()
+              parsed = urllib.parse.urlparse(url)
+              assert parsed.scheme in {'http', 'https'}
+              assert parsed.port == 9394
+              assert re.fullmatch(r'/stream/\d+\.m3u8', parsed.path)
+              bases.add(f'{parsed.scheme}://{parsed.netloc}')
+              matched += 1
+
+          assert matched > 0
+          assert len(bases) == 1, f'HARUKA entries disagree on host: {sorted(bases)}'
+          print(f'Validated {matched} HARUKA entries on {next(iter(bases))}')
+          PY
+
+            git diff --check
+            if git diff --quiet -- freewifi; then
+              echo "HARUKA host unchanged"
+              exit 0
+            fi
+
+            git add freewifi
+            git commit -m "Auto-refresh HARUKA host"
+            if git push origin HEAD:main; then
+              echo "HARUKA host update pushed"
+              exit 0
+            fi
+
+            echo "Push raced with another workflow; retrying from latest main"
+            sleep 5
+          done
+
+          echo "Failed to push HARUKA host update after retries" >&2
+          exit 1
