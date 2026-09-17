@@ -124,11 +124,20 @@ def main() -> int:
             "ai_windows": build_ai_windows(start_ep, end_ep, duration) if status == "ai_required" else [],
         })
 
-    out = {
-        "generated_at": datetime.now(JST).isoformat(),
+    core = {
         "reference_episode_seconds": REFERENCE_EPISODE_SECONDS,
         "results": results,
     }
+    generated_at = datetime.now(JST).isoformat()
+    if OUT_JSON.exists():
+        try:
+            previous = json.loads(OUT_JSON.read_text(encoding="utf-8"))
+            previous_core = {k: v for k, v in previous.items() if k != "generated_at"}
+            if previous_core == core and previous.get("generated_at"):
+                generated_at = previous["generated_at"]
+        except Exception:
+            pass
+    out = {"generated_at": generated_at, **core}
     OUT_JSON.write_text(json.dumps(out, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
     lines = ["#EXTM3U"]
