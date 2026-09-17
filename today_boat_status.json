@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-18",
-  "generated_at": "2026-09-18T08:16:26.863353+09:00",
+  "generated_at": "2026-09-18T08:17:26.813523+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260918.json",
   "schedule_checked_at": "2026-09-18T08:05:26.707085+09:00",
@@ -52,12 +52,22 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 6,
+    "requested": 7,
     "fetched": 2,
     "failures": [
       {
         "jcd": "17",
         "name": "宮島",
+        "error": "cloud and official acquisition unavailable: HTTPError"
+      },
+      {
+        "jcd": "02",
+        "name": "戸田",
+        "error": "cloud and official acquisition unavailable: HTTPError"
+      },
+      {
+        "jcd": "11",
+        "name": "びわこ",
         "error": "cloud and official acquisition unavailable: HTTPError"
       },
       {
@@ -68,11 +78,6 @@
       {
         "jcd": "13",
         "name": "尼崎",
-        "error": "cloud and official acquisition unavailable: HTTPError"
-      },
-      {
-        "jcd": "11",
-        "name": "びわこ",
         "error": "cloud and official acquisition unavailable: HTTPError"
       }
     ]
