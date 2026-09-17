@@ -5,7 +5,7 @@ FREEWIFI = Path("freewifi")
 
 PIGOO_LOGO = "https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/contrast/Pigoo_jp_daa9c17a.png"
 PIGOO_BLOCK = f'''#EXTINF:-1 tvg-id="Pigoo_jp" tvg-logo="{PIGOO_LOGO}" group-title="Rch",Pigoo (haruka(9394))
-http://42.113.96.247:9394/stream/234.m3u8
+http://118.68.167.114:9394/stream/234.m3u8
 '''
 
 
