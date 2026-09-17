@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-18",
-  "generated_at": "2026-09-18T08:13:26.759599+09:00",
+  "generated_at": "2026-09-18T08:14:26.815262+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260918.json",
   "schedule_checked_at": "2026-09-18T08:05:26.707085+09:00",
@@ -20,7 +20,7 @@
   "card_count": 15,
   "held_count": 15,
   "visible_count": 2,
-  "active_count": 1,
+  "active_count": 2,
   "ended_kept": [],
   "seed_required": false,
   "seed_required_venues": [],
@@ -29,7 +29,7 @@
     "morning": {
       "held": 2,
       "acquired": 2,
-      "active": 1,
+      "active": 2,
       "ended": 0,
       "seed_required": 0,
       "cancelled": 0
@@ -66,13 +66,13 @@
         "error": "cloud and official acquisition unavailable: HTTPError"
       },
       {
-        "jcd": "05",
-        "name": "多摩川",
+        "jcd": "17",
+        "name": "宮島",
         "error": "cloud and official acquisition unavailable: HTTPError"
       },
       {
-        "jcd": "17",
-        "name": "宮島",
+        "jcd": "05",
+        "name": "多摩川",
         "error": "cloud and official acquisition unavailable: HTTPError"
       }
     ]
@@ -90,13 +90,13 @@
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/29675aba0f4247b2b5311250db487eef/b7bd067f0edf44e3a21deefc6fa4bdb0/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTg1ODgwMCwic3RhcnQiOjE3ODk2ODU4MjAsImlvcyI6MTgsImNwIjoiMjExODgxNDIwXzIxMTkyNDYxOSIsInBwdyI6IjQwayJ9.QjVmXG9jtMMKkrSX6LtiLhNiJxkwpGci5T6QwIOwK70",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-09-18T07:57:26.813663+09:00",
-      "checked_at": "2026-09-18T08:09:26.817520+09:00",
+      "checked_at": "2026-09-18T08:14:26.820084+09:00",
       "first_verified_at": "2026-09-18T07:57:26.813663+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
         "sequence": 8154684,
-        "last_segment": "/29675aba0f4247b2b5311250db487eef/b7bd067f0edf44e3a21deefc6fa4bdb0/manifest_1_8154807.ts",
+        "last_segment": "/29675aba0f4247b2b5311250db487eef/b7bd067f0edf44e3a21deefc6fa4bdb0/manifest_1_8154857.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -106,13 +106,13 @@
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/2ddf0510dafd4ddaad5c62e1e31f7ea9/963899b39a1d4b2f802e9047e55dadfe/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTg2MjQwMCwic3RhcnQiOjE3ODk2ODY1NDAsImlvcyI6MTgsImNwIjoiMjExODgyMTQwXzIxMTkyNTMzOSIsInBwdyI6IjQwayJ9.Yp0LdZHx_k6v3OFbm896k8x-s8jjnNdsaFxpTTekzRE",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-09-18T08:09:26.818013+09:00",
-      "checked_at": "2026-09-18T08:09:26.818013+09:00",
+      "checked_at": "2026-09-18T08:14:26.822001+09:00",
       "first_verified_at": "2026-09-18T08:09:26.818013+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
         "sequence": 8135051,
-        "last_segment": "/2ddf0510dafd4ddaad5c62e1e31f7ea9/963899b39a1d4b2f802e9047e55dadfe/manifest_4_8135055.ts",
+        "last_segment": "/2ddf0510dafd4ddaad5c62e1e31f7ea9/963899b39a1d4b2f802e9047e55dadfe/manifest_4_8135105.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -1272,7 +1272,7 @@
       "held": true,
       "visible": true,
       "ended": false,
-      "active": false,
+      "active": true,
       "cancelled": false,
       "mode": "morning",
       "mode_label": "モーニング",
@@ -1283,7 +1283,7 @@
         "race": 1,
         "start": "08:44"
       },
-      "stream_window": "scheduled",
+      "stream_window": "live_or_prestart",
       "guidance_switch_at": "2026-09-18T15:15:00+09:00",
       "seed_required": false,
       "playback_verified": true,
