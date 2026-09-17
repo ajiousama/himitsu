@@ -3,7 +3,7 @@ import re
 
 FREEWIFI = Path("freewifi")
 
-HARUKA_BASE = "http://118.68.167.114:9394/stream"
+HARUKA_BASE = "http://42.113.96.247:9394/stream"
 BLOG_BASE = "https://haru.charandom.blog/stream/jp"
 PRIME_BASE = "http://cdns.jp-primehome.com:8000/zhongying/live/playlist.m3u8"
 PRIME_QUERY = (
