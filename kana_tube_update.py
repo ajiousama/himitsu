@@ -334,7 +334,7 @@ def restore_owned_entry():
 
 
 _VOLATILE_DIAGNOSTIC_RE = re.compile(
-    r"This live event will begin in \\d+ (?:seconds?|minutes?|hours?|days?)\\.",
+    r"This live event will begin in \d+ (?:seconds?|minutes?|hours?|days?)\.",
     re.I,
 )
 
