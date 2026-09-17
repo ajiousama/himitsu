@@ -333,12 +333,48 @@ def restore_owned_entry():
     return bool(payload)
 
 
+_VOLATILE_DIAGNOSTIC_RE = re.compile(
+    r"This live event will begin in \\d+ (?:seconds?|minutes?|hours?|days?)\\.",
+    re.I,
+)
+
+
+def stable_diagnostics(values):
+    if not values:
+        return []
+    if not isinstance(values, list):
+        values = [values]
+    return [
+        value for value in values
+        if not _VOLATILE_DIAGNOSTIC_RE.search(str(value))
+    ]
+
+
+def comparable_status(data):
+    normalized = dict(data or {})
+    normalized.pop("checked_at", None)
+    normalized["diagnostics"] = stable_diagnostics(normalized.get("diagnostics"))
+    return normalized
+
+
 def write_status(data):
+    previous = read_status()
+
+    # The watcher may run every few minutes, but that alone must not create a
+    # Git commit (and therefore a Render deploy). YouTube's harmless
+    # "will begin in N hours/minutes" text and checked_at are monitoring noise.
+    # Only write the tracked status file when the actual Kana state changes.
+    if previous and comparable_status(previous) == comparable_status(data):
+        return False
+
+    data = dict(data)
+    data["diagnostics"] = stable_diagnostics(data.get("diagnostics"))
     data["checked_at"] = datetime.now(JST).isoformat(timespec="seconds")
     STATUS.write_text(
         json.dumps(data, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )
+    return True
 
 
 def publish_snapshot(directory):
