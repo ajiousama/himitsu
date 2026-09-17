@@ -104,6 +104,7 @@ def normalize_vod(vod_id, listed_obj, channel):
     duration = find_in_tree(detail, ("duration", "duration_seconds", "length"))
     thumbnail = find_in_tree(detail, ("thumbnail", "thumbnail_url", "thumbnailUrl", "preview", "preview_url"))
     source = find_in_tree(detail, ("source", "playback_url", "playbackUrl", "hls_url", "hlsUrl"))
+    is_live = find_in_tree(detail, ("is_live", "isLive"))
 
     created_dt, end_dt = iso_to_dt(created if isinstance(created, str) else None), iso_to_dt(end if isinstance(end, str) else None)
     if created_dt and not created_dt.tzinfo:
@@ -121,9 +122,13 @@ def normalize_vod(vod_id, listed_obj, channel):
         and source_url.startswith(("http://", "https://"))
         and ".m3u8" in source_url
     )
-    # A duration of zero is commonly an in-progress/stale KICK archive. Keep it
-    # in metadata, but don't publish it as a user-facing VOD until it is final.
-    ready_for_publish = bool(source_ok and int(duration_s or 0) >= 60)
+    # A duration of zero or an explicitly live item is not a finished archive.
+    # Keep it in metadata, but don't publish it as a user-facing VOD yet.
+    ready_for_publish = bool(
+        source_ok
+        and int(duration_s or 0) >= 60
+        and is_live is not True
+    )
 
     mode = "gmcx-ai" if str(channel.get("tvg_id") or "").startswith("kick.gccx") else "generic-vod"
     clean = clean_title(title if isinstance(title, str) else None, channel.get("name") or "KICK VOD")
@@ -137,7 +142,10 @@ def normalize_vod(vod_id, listed_obj, channel):
         "created_at": created_dt.astimezone(JST).isoformat() if created_dt else None,
         "ended_at": end_dt.astimezone(JST).isoformat() if end_dt else None,
         "duration_seconds": duration_s,
-        "thumbnail": thumbnail if isinstance(thumbnail, str) else None,
+        # KICK thumbnail query strings are short-lived AWS signatures. Store
+        # only the stable object URL so hourly refreshes don't create no-op commits.
+        "thumbnail": thumbnail.split("?", 1)[0] if isinstance(thumbnail, str) else None,
+        "is_live": is_live if isinstance(is_live, bool) else None,
         "source_url": source_url if source_ok else None,
         "playable": source_ok,
         "ready_for_publish": ready_for_publish,
@@ -190,9 +198,47 @@ def build_m3u(vods, config_by_id):
 
 
 def main():
-    config=json.loads(CONFIG.read_text(encoding="utf-8-sig")); channels=[x for x in config if isinstance(x,dict) and x.get("tvg_id")]; all_vods=[]; status=[]
+    config = json.loads(CONFIG.read_text(encoding="utf-8-sig"))
+    channels = [x for x in config if isinstance(x, dict) and x.get("tvg_id")]
+    all_vods = []
+    status = []
     for channel in channels:
-        vods=fetch_channel_vods(channel); all_vods.extend(vods); status.append({"tvg_id":channel.get("tvg_id"),"name":channel.get("name"),"slug":channel.get("slug"),"vod_count":len(vods)}); print(channel.get("name"),"VODs:",len(vods))
-    all_vods.sort(key=lambda x:x.get("created_at") or "",reverse=True); payload={"generated_at":datetime.now(JST).isoformat(),"resolver":REPLAY_BASE,"channels":status,"vods":all_vods}; OUT_JSON.write_text(json.dumps(payload,ensure_ascii=False,indent=2)+"\n",encoding="utf-8"); OUT_M3U.write_text(build_m3u(all_vods,{str(x.get("tvg_id")):x for x in channels}),encoding="utf-8"); print(f"KICK VOD catalog: {len(all_vods)} VODs"); return 0
+        vods = fetch_channel_vods(channel)
+        all_vods.extend(vods)
+        status.append({
+            "tvg_id": channel.get("tvg_id"),
+            "name": channel.get("name"),
+            "slug": channel.get("slug"),
+            "vod_count": len(vods),
+        })
+        print(channel.get("name"), "VODs:", len(vods))
+
+    all_vods.sort(key=lambda x: x.get("created_at") or "", reverse=True)
+    core = {"resolver": REPLAY_BASE, "channels": status, "vods": all_vods}
+    generated_at = datetime.now(JST).isoformat()
+
+    # Preserve generated_at when nothing meaningful changed. This keeps the
+    # hourly watcher from committing and redeploying Render for timestamp-only
+    # refreshes.
+    if OUT_JSON.exists():
+        try:
+            previous = json.loads(OUT_JSON.read_text(encoding="utf-8"))
+            previous_core = {k: v for k, v in previous.items() if k != "generated_at"}
+            if previous_core == core and previous.get("generated_at"):
+                generated_at = previous["generated_at"]
+        except Exception:
+            pass
+
+    payload = {"generated_at": generated_at, **core}
+    OUT_JSON.write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    OUT_M3U.write_text(
+        build_m3u(all_vods, {str(x.get("tvg_id")): x for x in channels}),
+        encoding="utf-8",
+    )
+    print(f"KICK VOD catalog: {len(all_vods)} VODs")
+    return 0
 
 if __name__ == "__main__": raise SystemExit(main())
