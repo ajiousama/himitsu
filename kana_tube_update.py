@@ -118,13 +118,37 @@ def search_ids():
 
 
 def start_timestamp(info):
-    for key in ("release_timestamp", "timestamp"):
+    """Use YouTube's scheduled/live release time, never the ordinary upload timestamp.
+
+    For upcoming/live streams yt-dlp may temporarily omit release_timestamp while
+    still exposing timestamp (the upload/publication time). Treating that as the
+    programme start caused false schedule jumps such as 20:25 -> 18:01.
+    """
+    status = (info.get("live_status") or "").lower()
+    keys = ("release_timestamp",) if status in ("is_live", "is_upcoming") else ("release_timestamp", "timestamp")
+    for key in keys:
         try:
             value = int(info.get(key) or 0)
         except Exception:
             value = 0
         if value > 0:
             return value
+    return None
+
+
+def resolved_start_timestamp(info, previous):
+    """Keep the confirmed reservation time for the same video if YouTube omits it."""
+    current = start_timestamp(info)
+    video_id = info.get("id")
+    if current:
+        return current
+    if previous and previous.get("video_id") == video_id:
+        try:
+            previous_ts = int(previous.get("start_timestamp") or 0)
+        except Exception:
+            previous_ts = 0
+        if previous_ts > 0:
+            return previous_ts
     return None
 
 
@@ -459,7 +483,7 @@ def main():
     watch = f"https://www.youtube.com/watch?v={vid}"
     direct = direct_live_url(selected) if state == "is_live" else None
     play = direct or watch
-    ts = start_timestamp(selected)
+    ts = resolved_start_timestamp(selected, previous)
     payload = entry(play, state, ts)
 
     OUT.write_text("#EXTM3U\n" + payload + "\n", encoding="utf-8")
