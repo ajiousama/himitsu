@@ -13,6 +13,7 @@ from typing import Any
 
 GUIDES = Path("guides.xml")
 REPORT = Path("epg_coverage.txt")
+KARENDA_GUIDES_URL = "https://raw.githubusercontent.com/karenda-jp/etc/refs/heads/main/guides.xml"
 JST = timezone(timedelta(hours=9))
 
 RAKUTEN_CHANNELS = {
@@ -351,6 +352,40 @@ def fetch_official() -> tuple[dict[str, list[tuple[datetime, datetime, str]]], l
     return merged, errors
 
 
+def fetch_karenda_root() -> tuple[ET.Element | None, str | None]:
+    """Fetch karenda-jp guides.xml as a secondary Rch EPG source."""
+    try:
+        req = urllib.request.Request(
+            KARENDA_GUIDES_URL,
+            headers={"User-Agent": "Mozilla/5.0 (FreeWiFi Rch EPG backup)"},
+        )
+        with urllib.request.urlopen(req, timeout=30) as response:
+            return ET.fromstring(response.read()), None
+    except Exception as exc:
+        return None, f"{KARENDA_GUIDES_URL}: {type(exc).__name__}: {exc}"
+
+
+def replace_with_external(root: ET.Element, external: ET.Element, channel_id: str) -> int:
+    programmes = current_real_programmes(external, channel_id)
+    if not programmes:
+        return 0
+    for programme in list(root.findall("programme")):
+        if programme.get("channel") == channel_id:
+            root.remove(programme)
+    for channel in list(root.findall("channel")):
+        if channel.get("id") == channel_id:
+            root.remove(channel)
+    external_channel = external.find(f"channel[@id='{channel_id}']")
+    if external_channel is not None:
+        root.append(copy.deepcopy(external_channel))
+    else:
+        channel = ET.SubElement(root, "channel", {"id": channel_id})
+        ET.SubElement(channel, "display-name").text = RAKUTEN_CHANNELS[channel_id]
+    for programme in programmes:
+        root.append(copy.deepcopy(programme))
+    return len(programmes)
+
+
 def previous_guides_root() -> ET.Element | None:
     try:
         proc = subprocess.run(
@@ -458,6 +493,9 @@ def main() -> int:
         return 0
 
     official, errors = fetch_official()
+    karenda, karenda_error = fetch_karenda_root()
+    if karenda_error:
+        errors.append(karenda_error)
     previous = previous_guides_root()
     rescued: dict[str, tuple[str, int]] = {}
 
@@ -467,6 +505,11 @@ def main() -> int:
             count = replace_with_official(root, cid, rows)
             rescued[cid] = ("rakuten-official", count)
             continue
+        if karenda is not None:
+            count = replace_with_external(root, karenda, cid)
+            if count:
+                rescued[cid] = ("karenda-jp", count)
+                continue
         if previous is not None:
             count = replace_with_previous(root, previous, cid)
             if count:
