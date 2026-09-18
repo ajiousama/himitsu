@@ -212,7 +212,7 @@ def build_m3u(vods, config_by_id):
         except Exception:
             created_label = created
         title = item.get("title") or item.get("channel_name") or "KICK VOD"
-        display = f"📼 {item.get('channel_name')} {created_label} {title}"
+        display = f"📼 {title}（{created_label}）"
         logo = cfg.get("logo") or item.get("thumbnail") or ""
         vod_id = item.get("vod_id")
         tvg = f"{item.get('tvg_id')}.replay.{str(vod_id)[:12]}"
