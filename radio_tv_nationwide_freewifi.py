@@ -114,8 +114,8 @@ def main() -> int:
 
     updated = text[:start] + compact_block() + text[end:]
 
-    if "## Rakuten-JP" not in updated:
-        raise RuntimeError("Rakuten-JP section disappeared; refusing to write")
+    if "## Rch" not in updated:
+        raise RuntimeError("Rch section disappeared; refusing to write")
 
     radio_section = updated[start:updated.find("## 愛媛CATV", start)]
     render_count = radio_section.count(RADIO_RENDER_BASE + "/")
