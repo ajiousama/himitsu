@@ -73,20 +73,54 @@ try {
     const url=`https://channel.rakuten.co.jp/schedule/${date}`;
     await cmd("Page.navigate",{url});
     await sleep(6500);
-    const selected = await evalValue(`(() => {
+    const selected = await evalValue(`(async () => {
+      const norm = v => String(v || '').replace(/\\s+/g,' ').trim();
+
+      // Native select path.
       const selects=[...document.querySelectorAll('select')];
-      const s=selects.find(x => [...x.options].some(o => (o.textContent||'').includes('年齢制限')));
-      if (!s) return false;
-      const o=[...s.options].find(o => (o.textContent||'').includes('年齢制限'));
-      const setter=Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype,'value')?.set;
-      if (setter) setter.call(s,o.value); else s.value=o.value;
-      s.dispatchEvent(new Event('input',{bubbles:true}));
-      s.dispatchEvent(new Event('change',{bubbles:true}));
-      return true;
+      const nativeSelect=selects.find(x => [...x.options].some(o => norm(o.textContent).includes('年齢制限')));
+      if (nativeSelect) {
+        const o=[...nativeSelect.options].find(o => norm(o.textContent).includes('年齢制限'));
+        const setter=Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype,'value')?.set;
+        if (setter) setter.call(nativeSelect,o.value); else nativeSelect.value=o.value;
+        nativeSelect.dispatchEvent(new Event('input',{bubbles:true}));
+        nativeSelect.dispatchEvent(new Event('change',{bubbles:true}));
+        return 'native-select';
+      }
+
+      // Current R Channel UI may render the category selector as a custom
+      // button/div instead of a <select>. Open the control and click the
+      // visible age-restricted option.
+      const all=[...document.querySelectorAll('button,[role=button],[role=combobox],div,span')];
+      const opener=all.find(el => {
+        const t=norm(el.textContent);
+        return t && t.length < 80 && (t === 'すべて' || t.includes('チャンネル')) &&
+          (el.matches('button,[role=button],[role=combobox]') || getComputedStyle(el).cursor === 'pointer');
+      });
+      if (opener) opener.click();
+      await new Promise(r => setTimeout(r, 500));
+
+      const options=[...document.querySelectorAll('[role=option],button,li,div,span')];
+      const option=options.find(el => {
+        const t=norm(el.textContent);
+        if (!t || t.length > 80 || !t.includes('年齢制限')) return false;
+        const r=el.getBoundingClientRect();
+        return r.width > 0 && r.height > 0;
+      });
+      if (option) {
+        option.click();
+        return 'custom-option';
+      }
+      return false;
     })()`);
-    await sleep(4000);
+    await sleep(5000);
     const text = await evalValue("document.body ? document.body.innerText : ''");
-    pages[date]={selected:Boolean(selected),text:String(text||"")};
+
+    // If the selector interaction did not work but the restricted channels are
+    // already present in the DOM, accept the page as selected. This happens in
+    // some responsive layouts where all category panes stay mounted.
+    const hasRestricted = /CH\\s*(239|240|241|242|243)\\b/i.test(String(text || ''));
+    pages[date]={selected:Boolean(selected || hasRestricted),method:selected || (hasRestricted?'already-visible':false),text:String(text||"")};
   }
   console.log(JSON.stringify({pages}));
 } catch (e) {
