@@ -30,17 +30,12 @@ def strip_legacy(text: str) -> str:
     return '\n'.join(out).rstrip() + '\n'
 
 
-def apply_radio_block():
-    from radio_tv_nationwide_freewifi import main as repair_radio
-    repair_radio()
-
 
 def main():
     if not FREEWIFI.exists():
         raise SystemExit('freewifi not found')
     text = FREEWIFI.read_text(encoding='utf-8-sig', errors='replace')
     FREEWIFI.write_text(strip_legacy(text), encoding='utf-8')
-    apply_radio_block()
     print('Legacy JRA free A/B entries removed; earphone HQ/LQ set is canonical')
 
 
