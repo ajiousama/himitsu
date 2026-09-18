@@ -63,6 +63,22 @@ class SportsReliability(unittest.TestCase):
         self.assertEqual(final.epg_state(ET.tostring(root), datetime(2026,9,8,tzinfo=JST)), {})
 
 
+class PublicSportsKanaReliability(unittest.TestCase):
+    def test_public_sports_refresh_reapplies_kana_owned_entry(self):
+        with tempfile.TemporaryDirectory() as d:
+            kana_m3u = Path(d) / 'kana_tube.m3u'
+            kana_m3u.write_text(
+                '#EXTM3U\n' + kana.entry('https://youtube.com/watch?v=keepme', 'is_upcoming') + '\n',
+                encoding='utf-8',
+            )
+            base = '#EXTM3U\n' + today.GENERAL_YOUTUBE_START + '\n'
+            with patch.object(today, 'KANA_M3U', kana_m3u):
+                result = today.restore_kana_owned_entry(base)
+            self.assertEqual(result.count('tvg-id="youtube.kana_tube"'), 1)
+            self.assertIn('watch?v=keepme', result)
+            self.assertLess(result.index(today.KANA_START), result.index(today.GENERAL_YOUTUBE_START))
+
+
 class KanaReliability(unittest.TestCase):
     def test_impostor_name_and_handle_prefix_rejected(self):
         self.assertFalse(kana.official({'channel':'かなtube','channel_id':'impostor'}))
