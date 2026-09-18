@@ -70,12 +70,36 @@ try {
   await cmd("Page.enable");
   await cmd("Network.enable");
   const networkUrls = [];
+  const interestingRequests = [];
   ws.addEventListener("message", ev => {
     try {
       const m=JSON.parse(ev.data);
       if (m.method === "Network.requestWillBeSent") {
-        const u = m.params?.request?.url || "";
-        if (/rakuten|channel|schedule|program|epg|content/i.test(u)) networkUrls.push(u);
+        const req=m.params?.request || {};
+        const u = req.url || "";
+        if (/rakuten|channel|schedule|program|epg|content|rmc-cx\.api/i.test(u)) {
+          networkUrls.push(u);
+          if (/rmc-cx\.api\.rakuten\.co\.jp\/v\d+\/web\/(events|blocks)/i.test(u)) {
+            interestingRequests.push({
+              requestId:m.params?.requestId || "",
+              url:u,
+              method:req.method || "",
+              postData:req.postData || "",
+              headers:req.headers || {}
+            });
+          }
+        }
+      }
+      if (m.method === "Network.responseReceived") {
+        const u=m.params?.response?.url || "";
+        if (/rmc-cx\.api\.rakuten\.co\.jp\/v\d+\/web\/(events|blocks)/i.test(u)) {
+          const hit=interestingRequests.findLast?.(x=>x.url===u) || [...interestingRequests].reverse().find(x=>x.url===u);
+          if (hit) {
+            hit.status=m.params?.response?.status;
+            hit.mimeType=m.params?.response?.mimeType || "";
+            hit.responseRequestId=m.params?.requestId || "";
+          }
+        }
       }
     } catch {}
   });
@@ -135,7 +159,16 @@ try {
     const m241=/CH\\s*241\\b/i.exec(bodyText);
     const snippet241=m241 ? bodyText.slice(Math.max(0,m241.index-120), Math.min(bodyText.length,m241.index+1800)) : '';
     const filteredNetwork=[...new Set(networkUrls)].filter(u => /rakuten|channel|schedule|program|epg|content/i.test(u));
-    pages[date]={selected:Boolean(selected || hasRestricted),method:selected || (hasRestricted?'already-visible':false),snippet241,text:bodyText,network:filteredNetwork.slice(-120)};
+    const api=[];
+    for (const x of interestingRequests.slice(-20)) {
+      let body="";
+      const rid=x.responseRequestId || x.requestId;
+      if (rid) {
+        try { body=(await cmd("Network.getResponseBody",{requestId:rid}))?.body || ""; } catch {}
+      }
+      api.push({...x,body:String(body).slice(0,12000)});
+    }
+    pages[date]={selected:Boolean(selected || hasRestricted),method:selected || (hasRestricted?'already-visible':false),snippet241,text:bodyText,network:filteredNetwork.slice(-120),api};
   }
   console.log(JSON.stringify({pages}));
 } catch (e) {
