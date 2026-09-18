@@ -292,6 +292,98 @@ def parse_official_html(html: str) -> dict[str, list[tuple[datetime, datetime, s
     return found
 
 
+
+def parse_rakuten_browser_text(text: str, day) -> dict[str, list[tuple[datetime, datetime, str]]]:
+    """Parse the visible restricted-channel schedule rendered by Rakuten's own web app."""
+    found = {cid: [] for cid in RAKUTEN_CHANNELS}
+    if not text:
+        return found
+    markers = list(re.finditer(r"(?im)^\s*CH\s*(239|240|241|242|243)\b.*$", text))
+    for idx, marker in enumerate(markers):
+        number = int(marker.group(1))
+        cid = RAKUTEN_OFFICIAL_NUMBERS.get(number)
+        if not cid:
+            continue
+        end_pos = markers[idx + 1].start() if idx + 1 < len(markers) else len(text)
+        segment = text[marker.end():end_pos]
+        times = list(re.finditer(
+            r"(?m)^\s*(\d{1,2}):(\d{2})\s*[-–—〜～~]\s*(\d{1,2}):(\d{2})\s*$",
+            segment,
+        ))
+        for t_idx, tm in enumerate(times):
+            sh, sm, eh, em = map(int, tm.groups())
+            if sh > 23 or eh > 23 or sm > 59 or em > 59:
+                continue
+            title_end = times[t_idx + 1].start() if t_idx + 1 < len(times) else len(segment)
+            title_lines = [
+                line.strip()
+                for line in segment[tm.end():title_end].splitlines()
+                if line.strip()
+            ]
+            if not title_lines:
+                continue
+            title = " ".join(title_lines)
+            # Trim trailing page furniture if this is the last card in a channel column.
+            title = re.split(r"\s+(?:スマホアプリ|その他（年齢制限）チャンネル)\b", title, maxsplit=1)[0].strip()
+            if not title:
+                continue
+            start = datetime(day.year, day.month, day.day, sh, sm, tzinfo=JST)
+            stop = datetime(day.year, day.month, day.day, eh, em, tzinfo=JST)
+            if stop <= start:
+                stop += timedelta(days=1)
+            found[cid].append((start, stop, title))
+    return found
+
+
+def fetch_official_browser(days) -> tuple[dict[str, list[tuple[datetime, datetime, str]]], list[str]]:
+    """Render Rakuten's schedule with Chrome and select the age-restricted group.
+
+    The public JSON endpoint has changed repeatedly.  The browser fallback follows
+    the same public UI a viewer sees, so it also picks up CH241 when that API
+    requires page-generated request parameters.
+    """
+    merged = {cid: [] for cid in RAKUTEN_CHANNELS}
+    errors: list[str] = []
+    helper = Path("rakuten_schedule_browser.mjs")
+    if not helper.exists():
+        return merged, ["Rakuten browser helper missing"]
+    try:
+        proc = subprocess.run(
+            ["node", str(helper), *[d.isoformat() for d in days]],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            timeout=75,
+            check=False,
+        )
+    except Exception as exc:
+        return merged, [f"Rakuten browser fallback: {type(exc).__name__}: {exc}"]
+    if proc.returncode != 0:
+        tail = (proc.stderr or proc.stdout or "").strip().splitlines()[-3:]
+        return merged, ["Rakuten browser fallback failed: " + " | ".join(tail)]
+    try:
+        payload = json.loads(proc.stdout.strip().splitlines()[-1])
+    except Exception as exc:
+        return merged, [f"Rakuten browser fallback JSON: {type(exc).__name__}: {exc}"]
+
+    pages = payload.get("pages") or {}
+    for date_text, page in pages.items():
+        try:
+            day = datetime.strptime(date_text, "%Y-%m-%d").date()
+        except ValueError:
+            continue
+        text = str((page or {}).get("text") or "")
+        selected = bool((page or {}).get("selected"))
+        parsed = parse_rakuten_browser_text(text, day)
+        count = sum(len(rows) for rows in parsed.values())
+        if not selected:
+            errors.append(f"Rakuten browser {date_text}: age-restricted selector not found")
+        if not count:
+            errors.append(f"Rakuten browser {date_text}: parsed 0 restricted programmes")
+        for cid, rows in parsed.items():
+            merged[cid].extend(rows)
+    return merged, errors
+
 def fetch_official() -> tuple[dict[str, list[tuple[datetime, datetime, str]]], list[str]]:
     merged = {cid: [] for cid in RAKUTEN_CHANNELS}
     errors: list[str] = []
@@ -343,6 +435,19 @@ def fetch_official() -> tuple[dict[str, list[tuple[datetime, datetime, str]]], l
                 merged[cid].extend(rows)
         except Exception as exc:
             errors.append(f"{url}: {type(exc).__name__}: {exc}")
+
+    # Final public-page fallback for the restricted group.  Karenda intentionally
+    # omits R-18 schedules, while Rakuten's current web UI still displays them.
+    # Render the official page, select the restricted group, and read the same
+    # visible programme grid instead of hard-coding a transient signed API URL.
+    restricted_ids = {"rch_125", "rch_124", "rch_41", "rch_123", "rch_122"}
+    if any(not merged.get(cid) for cid in restricted_ids):
+        days = [today + timedelta(days=i) for i in range(4)]
+        browser_rows, browser_errors = fetch_official_browser(days)
+        errors.extend(browser_errors)
+        for cid, rows in browser_rows.items():
+            if rows:
+                merged[cid].extend(rows)
 
     for cid, rows in merged.items():
         dedup: dict[tuple[str, str, str], tuple[datetime, datetime, str]] = {}
