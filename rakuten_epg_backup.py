@@ -379,7 +379,10 @@ def fetch_official_browser(days) -> tuple[dict[str, list[tuple[datetime, datetim
         if not selected:
             errors.append(f"Rakuten browser {date_text}: age-restricted selector not found")
         if not count:
-            errors.append(f"Rakuten browser {date_text}: parsed 0 restricted programmes")
+            snippet = str((page or {}).get("snippet241") or "").replace("\n", " | ").strip()
+            if len(snippet) > 900:
+                snippet = snippet[:900] + "..."
+            errors.append(f"Rakuten browser {date_text}: parsed 0 restricted programmes; CH241={snippet!r}")
         for cid, rows in parsed.items():
             merged[cid].extend(rows)
     return merged, errors
