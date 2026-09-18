@@ -106,6 +106,7 @@ GCH_SPECIAL_KEYWORDS = (
     '海外競馬', '世界の競馬', 'ALL IN LINE', 'ＡＬＬ ＩＮ ＬＩＮＥ',
     'ジョッキークラブゴールドカップ', '凱旋門賞', 'ブリーダーズカップ',
     '香港', 'ドバイ', 'サウジ', 'メルボルンカップ',
+    'グリーンチャンネル地方競馬中継', '地方競馬中継',
 )
 GCH_SPECIAL_ENTRIES = (
     {
@@ -173,7 +174,7 @@ def race_datetime(today, hhmm):
 
 
 def gch_overseas_special():
-    """Return the next/active overseas-racing GCH programme through 09:00 next morning."""
+    """Return the next/active GCH live race special through 09:00 next morning."""
     # The local public-sports EPG intentionally excludes JRA/GCH. Read the
     # earphone master EPG only for this special-event visibility decision.
     try:
@@ -201,9 +202,9 @@ def gch_overseas_special():
         title = (p.findtext('title') or '').strip()
         desc = (p.findtext('desc') or '').strip()
         joined = f'{title} {desc}'.upper()
-        overseas = any(keyword.upper() in joined for keyword in GCH_SPECIAL_KEYWORDS)
+        target_special = any(keyword.upper() in joined for keyword in GCH_SPECIAL_KEYWORDS)
         live_broadcast = ('中継' in title) and ('[生]' in title or '［生］' in title or '生]' in title)
-        if not overseas or not live_broadcast:
+        if not target_special or not live_broadcast:
             continue
         effective_stop = stop or (start + timedelta(hours=2))
         if effective_stop < now - timedelta(minutes=15) or start > morning_limit:
@@ -384,7 +385,7 @@ def main():
                 'sort_dt': gch_special['start'],
             })
             status[spec['id']] = {
-                'section': '海外競馬',
+                'section': 'GCH特番',
                 'name': spec['name'],
                 'mode': 'overnight',
                 'source': 'GCH EPG overseas-racing special',
