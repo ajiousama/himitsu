@@ -382,7 +382,11 @@ def fetch_official_browser(days) -> tuple[dict[str, list[tuple[datetime, datetim
             snippet = str((page or {}).get("snippet241") or "").replace("\n", " | ").strip()
             if len(snippet) > 900:
                 snippet = snippet[:900] + "..."
-            errors.append(f"Rakuten browser {date_text}: parsed 0 restricted programmes; CH241={snippet!r}")
+            net = [str(x) for x in ((page or {}).get("network") or [])]
+            net_text = " || ".join(net[-20:])
+            if len(net_text) > 1800:
+                net_text = net_text[-1800:]
+            errors.append(f"Rakuten browser {date_text}: parsed 0 restricted programmes; CH241={snippet!r}; NET={net_text}")
         for cid, rows in parsed.items():
             merged[cid].extend(rows)
     return merged, errors
