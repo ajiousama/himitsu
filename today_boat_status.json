@@ -2,10 +2,10 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-18",
-  "generated_at": "2026-09-18T16:52:05.436374+09:00",
+  "generated_at": "2026-09-18T16:53:05.496712+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260918.json",
-  "schedule_checked_at": "2026-09-18T16:38:05.385209+09:00",
+  "schedule_checked_at": "2026-09-18T16:53:05.496712+09:00",
   "schedule_warnings": [
     "official_cards: TimeoutError"
   ],
@@ -20,7 +20,7 @@
   "card_count": 15,
   "held_count": 15,
   "visible_count": 14,
-  "active_count": 5,
+  "active_count": 4,
   "ended_kept": [
     "戸田",
     "江戸川",
@@ -29,6 +29,7 @@
     "びわこ",
     "尼崎",
     "鳴門",
+    "児島",
     "宮島",
     "唐津"
   ],
@@ -47,8 +48,8 @@
     "day": {
       "held": 9,
       "acquired": 9,
-      "active": 2,
-      "ended": 7,
+      "active": 1,
+      "ended": 8,
       "seed_required": 0,
       "cancelled": 0
     },
@@ -62,8 +63,8 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 6,
-    "fetched": 5,
+    "requested": 5,
+    "fetched": 4,
     "failures": [
       {
         "jcd": "24",
@@ -1191,8 +1192,8 @@
       "name": "児島",
       "held": true,
       "visible": true,
-      "ended": false,
-      "active": true,
+      "ended": true,
+      "active": false,
       "cancelled": false,
       "mode": "day",
       "mode_label": "デイ",
@@ -1200,7 +1201,7 @@
       "last_race": "16:50",
       "alert_from": "2026-09-18T10:19:00+09:00",
       "next_race": null,
-      "stream_window": "live_or_prestart",
+      "stream_window": "ended_kept",
       "guidance_switch_at": "2026-09-18T17:35:00+09:00",
       "seed_required": false,
       "playback_verified": true,
