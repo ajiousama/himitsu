@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-18",
-  "generated_at": "2026-09-18T10:04:27.030946+09:00",
+  "generated_at": "2026-09-18T10:05:26.979854+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260918.json",
   "schedule_checked_at": "2026-09-18T09:52:26.977701+09:00",
@@ -19,7 +19,7 @@
   "alert_lead_minutes": 30,
   "card_count": 15,
   "held_count": 15,
-  "visible_count": 7,
+  "visible_count": 8,
   "active_count": 4,
   "ended_kept": [],
   "seed_required": false,
@@ -36,7 +36,7 @@
     },
     "day": {
       "held": 9,
-      "acquired": 5,
+      "acquired": 6,
       "active": 2,
       "ended": 0,
       "seed_required": 0,
@@ -53,21 +53,16 @@
   },
   "cloud_acquisition": {
     "requested": 11,
-    "fetched": 7,
+    "fetched": 8,
     "failures": [
-      {
-        "jcd": "02",
-        "name": "戸田",
-        "error": "HTTPError: playback check failed"
-      },
-      {
-        "jcd": "17",
-        "name": "宮島",
-        "error": "HTTPError: playback check failed"
-      },
       {
         "jcd": "03",
         "name": "江戸川",
+        "error": "HTTPError: playback check failed"
+      },
+      {
+        "jcd": "02",
+        "name": "戸田",
         "error": "HTTPError: playback check failed"
       },
       {
@@ -90,13 +85,13 @@
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/1f73c4041b034d4b95f437ddcbe44b06/19af0e15ba1f41bebabe64bf353eda44/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTg2OTYwMCwic3RhcnQiOjE3ODk2OTMyMDAsImlvcyI6MTgsImNwIjoiMjExODg4ODAwXzIxMTkzMTk5OSIsInBwdyI6IjQwayJ9.s7Rdjg6fr-5KHtMzMaPBc0acRwqXlh99ZuMI48JKGq4",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-09-18T10:00:26.832953+09:00",
-      "checked_at": "2026-09-18T10:00:26.832953+09:00",
+      "checked_at": "2026-09-18T10:05:26.984371+09:00",
       "first_verified_at": "2026-09-18T10:00:26.832953+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
         "sequence": 8131323,
-        "last_segment": "/1f73c4041b034d4b95f437ddcbe44b06/19af0e15ba1f41bebabe64bf353eda44/manifest_1_8131327.ts",
+        "last_segment": "/1f73c4041b034d4b95f437ddcbe44b06/19af0e15ba1f41bebabe64bf353eda44/manifest_1_8131377.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -177,6 +172,22 @@
         "ok": true,
         "sequence": 8134527,
         "last_segment": "/1a97b76c785245e69f5a56f166474b9f/19147991cafe460d8d42171b0957796a/manifest_4_8134740.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
+    },
+    "boat.miyajima": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/9be2512eae9e49aaa5a3daf88f95ab01/d6c898bb44d0414881dee05a8f618904/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTg2OTYwMCwic3RhcnQiOjE3ODk2OTM1MDAsImlvcyI6MTgsImNwIjoiMjExODg5MTAwXzIxMTkzMjI5OSIsInBwdyI6IjQwayJ9.Ontxq-fsoPhLYstxuR5QxW82X2WN7kCZ5ZYljOfloVk",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-09-18T10:05:26.987683+09:00",
+      "checked_at": "2026-09-18T10:05:26.987683+09:00",
+      "first_verified_at": "2026-09-18T10:05:26.987683+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 8119883,
+        "last_segment": "/9be2512eae9e49aaa5a3daf88f95ab01/d6c898bb44d0414881dee05a8f618904/manifest_1_8119886.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -1184,7 +1195,7 @@
       "jcd": "17",
       "name": "宮島",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
       "active": false,
       "cancelled": false,
@@ -1200,9 +1211,9 @@
       "stream_window": "scheduled",
       "guidance_switch_at": "2026-09-18T17:30:00+09:00",
       "seed_required": false,
-      "playback_verified": false,
-      "first_verified_at": null,
-      "ready_before_first_race": false,
+      "playback_verified": true,
+      "first_verified_at": "2026-09-18T10:05:26.987683+09:00",
+      "ready_before_first_race": true,
       "acquire_from": "2026-09-18T08:10:00+09:00",
       "races": [
         {
@@ -1266,7 +1277,9 @@
           "name": "プリンセスDR"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/9be2512eae9e49aaa5a3daf88f95ab01/d6c898bb44d0414881dee05a8f618904/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTg2OTYwMCwic3RhcnQiOjE3ODk2OTM1MDAsImlvcyI6MTgsImNwIjoiMjExODg5MTAwXzIxMTkzMjI5OSIsInBwdyI6IjQwayJ9.Ontxq-fsoPhLYstxuR5QxW82X2WN7kCZ5ZYljOfloVk",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     },
     "boat.fukuoka": {
       "jcd": "22",
