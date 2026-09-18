@@ -68,6 +68,17 @@ try {
   }
   await cmd("Runtime.enable");
   await cmd("Page.enable");
+  await cmd("Network.enable");
+  const networkUrls = [];
+  ws.addEventListener("message", ev => {
+    try {
+      const m=JSON.parse(ev.data);
+      if (m.method === "Network.requestWillBeSent") {
+        const u = m.params?.request?.url || "";
+        if (/rakuten|channel|schedule|program|epg|content/i.test(u)) networkUrls.push(u);
+      }
+    } catch {}
+  });
   const pages={};
   for (const date of dates) {
     const url=`https://channel.rakuten.co.jp/schedule/${date}`;
@@ -123,7 +134,8 @@ try {
     const hasRestricted = /CH\\s*(239|240|241|242|243)\\b/i.test(bodyText);
     const m241=/CH\\s*241\\b/i.exec(bodyText);
     const snippet241=m241 ? bodyText.slice(Math.max(0,m241.index-120), Math.min(bodyText.length,m241.index+1800)) : '';
-    pages[date]={selected:Boolean(selected || hasRestricted),method:selected || (hasRestricted?'already-visible':false),snippet241,text:bodyText};
+    const filteredNetwork=[...new Set(networkUrls)].filter(u => /rakuten|channel|schedule|program|epg|content/i.test(u));
+    pages[date]={selected:Boolean(selected || hasRestricted),method:selected || (hasRestricted?'already-visible':false),snippet241,text:bodyText,network:filteredNetwork.slice(-120)};
   }
   console.log(JSON.stringify({pages}));
 } catch (e) {
