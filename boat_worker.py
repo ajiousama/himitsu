@@ -16,6 +16,51 @@ def run(*args, timeout=180):
     return subprocess.run(args, check=True, timeout=timeout)
 
 
+VOLATILE_JSON_KEYS = {'checked_at', 'generated_at'}
+
+
+def semantic_json_bytes(data):
+    """Remove heartbeat-only fields before deciding whether a commit is useful."""
+    try:
+        value = json.loads(data.decode('utf-8-sig'))
+    except Exception:
+        return data
+
+    def clean(item):
+        if isinstance(item, dict):
+            return {key: clean(val) for key, val in item.items() if key not in VOLATILE_JSON_KEYS}
+        if isinstance(item, list):
+            return [clean(val) for val in item]
+        return item
+
+    return json.dumps(clean(value), ensure_ascii=False, sort_keys=True, separators=(',', ':')).encode()
+
+
+def head_bytes(name):
+    result = subprocess.run(['git', 'show', f'HEAD:{name}'], capture_output=True)
+    return result.stdout if result.returncode == 0 else None
+
+
+def meaningful_output_changed():
+    """True only when BOAT content/state changed, not just timestamps/cycle heartbeat."""
+    for name in OUTPUTS:
+        if name == 'boat_worker_status.json':
+            continue
+        path = Path(name)
+        if not path.exists():
+            continue
+        before = head_bytes(name)
+        after = path.read_bytes()
+        if before is None:
+            return True
+        if name.endswith('.json'):
+            if semantic_json_bytes(before) != semantic_json_bytes(after):
+                return True
+        elif before != after:
+            return True
+    return False
+
+
 def publish(snapshot):
     for attempt in range(5):
         run('git', 'fetch', 'origin', 'main')
@@ -26,6 +71,11 @@ def publish(snapshot):
         # boat_publish.py also refreshes the short-lived CX2 KICK URL.
         run('python', 'boat_publish.py')
         run('python', 'build_today_event_counts.py')
+        # The worker polls every minute, but timestamps/cycle counters alone must not
+        # create a repository commit. Real stream/EPG/status changes still publish immediately.
+        if not meaningful_output_changed():
+            print('BOAT content unchanged; heartbeat commit skipped')
+            return
         run('git', 'add', *OUTPUTS)
         if subprocess.run(['git', 'diff', '--cached', '--quiet']).returncode == 0:
             return
