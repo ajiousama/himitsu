@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-18",
-  "generated_at": "2026-09-18T13:54:56.642198+09:00",
+  "generated_at": "2026-09-18T13:55:56.591957+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260918.json",
   "schedule_checked_at": "2026-09-18T13:46:56.591312+09:00",
@@ -19,7 +19,7 @@
   "alert_lead_minutes": 30,
   "card_count": 15,
   "held_count": 15,
-  "visible_count": 11,
+  "visible_count": 12,
   "active_count": 11,
   "ended_kept": [],
   "seed_required": false,
@@ -44,7 +44,7 @@
     },
     "night": {
       "held": 4,
-      "acquired": 0,
+      "acquired": 1,
       "active": 0,
       "ended": 0,
       "seed_required": 0,
@@ -53,7 +53,7 @@
   },
   "cloud_acquisition": {
     "requested": 14,
-    "fetched": 11,
+    "fetched": 12,
     "failures": [
       {
         "jcd": "12",
@@ -63,11 +63,6 @@
       {
         "jcd": "07",
         "name": "蒲郡",
-        "error": "HTTPError: playback check failed"
-      },
-      {
-        "jcd": "15",
-        "name": "丸亀",
         "error": "HTTPError: playback check failed"
       }
     ]
@@ -193,17 +188,33 @@
       },
       "consecutive_failures": 0
     },
+    "boat.marugame": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/3b5f294e3e2046a1a98a576d79ca85ec/5032d1588f5d48afa8b2a1afe32a7493/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTg4MDQwMCwic3RhcnQiOjE3ODk3MDczMDAsImlvcyI6MTgsImNwIjoiMjExOTAyOTAwXzIxMTk0NjA5OSIsInBwdyI6IjQwayJ9.nywv856sFMc0yulhYIimMq4jmx3t-jTEEtuI2rQ-m14",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-09-18T13:55:56.598331+09:00",
+      "checked_at": "2026-09-18T13:55:56.598331+09:00",
+      "first_verified_at": "2026-09-18T13:55:56.598331+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 8158303,
+        "last_segment": "/3b5f294e3e2046a1a98a576d79ca85ec/5032d1588f5d48afa8b2a1afe32a7493/manifest_4_8158312.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
+    },
     "boat.kojima": {
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/1a97b76c785245e69f5a56f166474b9f/19147991cafe460d8d42171b0957796a/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTg2NjAwMCwic3RhcnQiOjE3ODk2OTIwMDAsImlvcyI6MTgsImNwIjoiMjExODg3NjAwXzIxMTkzMDc5OSIsInBwdyI6IjQwayJ9.e4Rog9vHMD6V8gZG6Ly6x6GLKc4KZWU87I2Xh_rCx04",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-09-18T09:40:26.729781+09:00",
-      "checked_at": "2026-09-18T13:49:57.350138+09:00",
+      "checked_at": "2026-09-18T13:55:56.598355+09:00",
       "first_verified_at": "2026-09-18T09:40:26.729781+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
         "sequence": 8134527,
-        "last_segment": "/1a97b76c785245e69f5a56f166474b9f/19147991cafe460d8d42171b0957796a/manifest_4_8137025.ts",
+        "last_segment": "/1a97b76c785245e69f5a56f166474b9f/19147991cafe460d8d42171b0957796a/manifest_4_8137085.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -213,13 +224,13 @@
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/9be2512eae9e49aaa5a3daf88f95ab01/d6c898bb44d0414881dee05a8f618904/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTg2OTYwMCwic3RhcnQiOjE3ODk2OTM1MDAsImlvcyI6MTgsImNwIjoiMjExODg5MTAwXzIxMTkzMjI5OSIsInBwdyI6IjQwayJ9.Ontxq-fsoPhLYstxuR5QxW82X2WN7kCZ5ZYljOfloVk",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-09-18T10:05:26.987683+09:00",
-      "checked_at": "2026-09-18T13:49:57.350152+09:00",
+      "checked_at": "2026-09-18T13:55:56.599678+09:00",
       "first_verified_at": "2026-09-18T10:05:26.987683+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
         "sequence": 8119883,
-        "last_segment": "/9be2512eae9e49aaa5a3daf88f95ab01/d6c898bb44d0414881dee05a8f618904/manifest_1_8122131.ts",
+        "last_segment": "/9be2512eae9e49aaa5a3daf88f95ab01/d6c898bb44d0414881dee05a8f618904/manifest_1_8122191.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -1069,7 +1080,7 @@
       "jcd": "15",
       "name": "丸亀",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
       "active": false,
       "cancelled": false,
@@ -1085,9 +1096,9 @@
       "stream_window": "scheduled",
       "guidance_switch_at": "2026-09-18T21:23:00+09:00",
       "seed_required": false,
-      "playback_verified": false,
-      "first_verified_at": null,
-      "ready_before_first_race": false,
+      "playback_verified": true,
+      "first_verified_at": "2026-09-18T13:55:56.598331+09:00",
+      "ready_before_first_race": true,
       "acquire_from": "2026-09-18T12:52:00+09:00",
       "races": [
         {
@@ -1151,7 +1162,9 @@
           "name": "予選選抜"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/3b5f294e3e2046a1a98a576d79ca85ec/5032d1588f5d48afa8b2a1afe32a7493/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTg4MDQwMCwic3RhcnQiOjE3ODk3MDczMDAsImlvcyI6MTgsImNwIjoiMjExOTAyOTAwXzIxMTk0NjA5OSIsInBwdyI6IjQwayJ9.nywv856sFMc0yulhYIimMq4jmx3t-jTEEtuI2rQ-m14",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     },
     "boat.kojima": {
       "jcd": "16",
