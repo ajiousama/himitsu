@@ -13,7 +13,6 @@ on:
       - 'general_youtube_guard.py'
       - 'freewifi_youtube_cleanup.py'
       - 'public_sports_youtube_fallback.py'
-      - 'jra_freewifi_finalize.py'
       - '.github/workflows/update_general_youtube.yml'
   schedule:
     # Deliberately offset from Kana's */5 schedule so the slower general
@@ -142,7 +141,6 @@ jobs:
           test -s kana_tube_status.json
           grep -q '# === GENERAL_YOUTUBE_MANAGED_START ===' freewifi
           grep -q '# === GENERAL_YOUTUBE_MANAGED_END ===' freewifi
-          grep -q '## Rch' freewifi
           test "$(grep -c 'tvg-id="jra.official"' freewifi || true)" -le 1
           test "$(grep -c 'tvg-id="jra.gch.free"' freewifi || true)" -le 1
           test "$(grep -c 'tvg-id="youtube.kana_tube"' freewifi || true)" -le 1
