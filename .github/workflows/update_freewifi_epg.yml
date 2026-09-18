@@ -17,6 +17,7 @@ on:
       - "epg_build_safe.py"
       - "rakuten_epg_backup.py"
       - "rakuten_epg_fix.py"
+      - "rakuten_schedule_browser.mjs"
       - "radiko_epg.py"
       - "radiko_epg_merge.py"
       - "radio_tv_nationwide.py"
@@ -72,6 +73,11 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: "3.12"
+
+      - name: Set up Node.js for Rakuten schedule rendering
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
 
       - name: Sports and Kana reliability regression tests
         run: python -m unittest -v test_sports_kana_reliability
