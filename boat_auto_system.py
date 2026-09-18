@@ -502,7 +502,7 @@ def strip_boat_from_public(text: str) -> str:
             continue
         kept.append(line)
         index += 1
-    replacement = PUBLIC_START + "\n".join(kept) + PUBLIC_END
+    replacement = PUBLIC_START + "\n".join(kept).rstrip("\n") + "\n" + PUBLIC_END
     return text[: match.start()] + replacement + text[match.end() :]
 
 
