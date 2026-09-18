@@ -152,6 +152,19 @@ class ReliabilityTests(unittest.TestCase):
             self.assertFalse(playback.probe(self.url, {'last_segment': '/live/seg.ts'})['ok'])
             self.assertFalse(playback.probe(self.url, {'sequence': 6})['ok'])
 
+    def test_strip_boat_from_public_keeps_end_marker_on_own_line(self):
+        text = (
+            '#EXTM3U\n' + boat.PUBLIC_START + '\n'
+            '## 今日の開催場\n'
+            '#EXTINF:-1 tvg-id="keirin.kurume",久留米\n'
+            'https://example.test/kurume.m3u8\n'
+            '#EXTINF:-1 tvg-id="boat.mikuni",三国\n'
+            + self.url + '\n' + boat.PUBLIC_END + '\n'
+        )
+        result = boat.strip_boat_from_public(text)
+        self.assertIn('https://example.test/kurume.m3u8\n' + boat.PUBLIC_END, result)
+        self.assertNotIn('m3u8' + boat.PUBLIC_END, result)
+
     def test_schedule_requires_all_races(self):
         races = {str(n): {'closed_at': f'2026-09-08 {8+n//2:02d}:{30*(n%2):02d}:00'} for n in range(1, 11)}
         self.assertEqual(boat.cards_from_snapshot({'programs': {'stadiums': {'10': {'races': races}}}}, self.day), {})
