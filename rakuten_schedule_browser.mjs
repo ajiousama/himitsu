@@ -119,8 +119,11 @@ try {
     // If the selector interaction did not work but the restricted channels are
     // already present in the DOM, accept the page as selected. This happens in
     // some responsive layouts where all category panes stay mounted.
-    const hasRestricted = /CH\\s*(239|240|241|242|243)\\b/i.test(String(text || ''));
-    pages[date]={selected:Boolean(selected || hasRestricted),method:selected || (hasRestricted?'already-visible':false),text:String(text||"")};
+    const bodyText=String(text||"");
+    const hasRestricted = /CH\\s*(239|240|241|242|243)\\b/i.test(bodyText);
+    const m241=/CH\\s*241\\b/i.exec(bodyText);
+    const snippet241=m241 ? bodyText.slice(Math.max(0,m241.index-120), Math.min(bodyText.length,m241.index+1800)) : '';
+    pages[date]={selected:Boolean(selected || hasRestricted),method:selected || (hasRestricted?'already-visible':false),snippet241,text:bodyText};
   }
   console.log(JSON.stringify({pages}));
 } catch (e) {
