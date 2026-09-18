@@ -168,13 +168,19 @@ def fetch_html(url: str) -> str:
 
 def channel_from_value(value: Any) -> str | None:
     if isinstance(value, (int, float)) and int(value) == value:
-        cid = f"rch_{int(value)}"
+        number = int(value)
+        if number in RAKUTEN_OFFICIAL_NUMBERS:
+            return RAKUTEN_OFFICIAL_NUMBERS[number]
+        cid = f"rch_{number}"
         return cid if cid in RAKUTEN_CHANNELS else None
     if isinstance(value, str):
         text = value.strip()
         m = re.fullmatch(r"(?:rch[_-]?)?(\d{1,3})", text, re.I)
         if m:
-            cid = f"rch_{int(m.group(1))}"
+            number = int(m.group(1))
+            if number in RAKUTEN_OFFICIAL_NUMBERS:
+                return RAKUTEN_OFFICIAL_NUMBERS[number]
+            cid = f"rch_{number}"
             return cid if cid in RAKUTEN_CHANNELS else None
     if isinstance(value, dict):
         for key, nested in value.items():
@@ -270,6 +276,44 @@ def fetch_official() -> tuple[dict[str, list[tuple[datetime, datetime, str]]], l
     merged = {cid: [] for cid in RAKUTEN_CHANNELS}
     errors: list[str] = []
     today = datetime.now(JST).date()
+
+    # Primary path: Rakuten's public backend API used by the schedule page.
+    # The API exposes visible channel numbers (e.g. 241 for アイドル・グラビア),
+    # not our legacy rch_41 ID, so channel_from_value() maps them explicitly.
+    api_base = "https://backendapi.channel.rakuten.co.jp/platform/content/programs"
+    for i in range(4):
+        date = (today + timedelta(days=i)).isoformat()
+        api_ok = False
+        for platform in ("web", "pc"):
+            url = f"{api_base}?platform={platform}&date={date}"
+            try:
+                req = urllib.request.Request(
+                    url,
+                    headers={
+                        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/138 Safari/537.36",
+                        "Accept": "application/json,text/plain,*/*",
+                        "Accept-Language": "ja,en-US;q=0.8,en;q=0.6",
+                        "Referer": "https://channel.rakuten.co.jp/schedule",
+                    },
+                )
+                with urllib.request.urlopen(req, timeout=20) as response:
+                    data = json.load(response)
+                parsed = {cid: [] for cid in RAKUTEN_CHANNELS}
+                walk_json(data, parsed)
+                count = sum(len(rows) for rows in parsed.values())
+                if count:
+                    for cid, rows in parsed.items():
+                        merged[cid].extend(rows)
+                    api_ok = True
+                    break
+                errors.append(f"{url}: parsed 0 target programmes")
+            except Exception as exc:
+                errors.append(f"{url}: {type(exc).__name__}: {exc}")
+        if not api_ok:
+            errors.append(f"Rakuten API yielded no target programmes for {date}")
+
+    # Secondary path kept as a compatibility fallback in case Rakuten changes
+    # the backend API but starts embedding schedule JSON in the HTML again.
     urls = ["https://channel.rakuten.co.jp/schedule"]
     urls.extend(f"https://channel.rakuten.co.jp/schedule/{(today + timedelta(days=i)).isoformat()}" for i in range(4))
     for url in urls:
@@ -279,6 +323,7 @@ def fetch_official() -> tuple[dict[str, list[tuple[datetime, datetime, str]]], l
                 merged[cid].extend(rows)
         except Exception as exc:
             errors.append(f"{url}: {type(exc).__name__}: {exc}")
+
     for cid, rows in merged.items():
         dedup: dict[tuple[str, str, str], tuple[datetime, datetime, str]] = {}
         for row in rows:
