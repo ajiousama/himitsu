@@ -3,6 +3,7 @@ from datetime import datetime, timezone, timedelta, time
 import json
 import re
 import xml.etree.ElementTree as ET
+import urllib.request
 from sports_race_time import race_time
 
 FREEWIFI = Path('freewifi')
@@ -100,7 +101,12 @@ TARGET_SECTIONS = {'競輪', '地方競馬', 'オートレース'}
 NON_EVENT_WORDS = ('本日非開催','非開催','開催していません','開催予定はありません','本日開催なし','開催なし','次回開催','データ取得準備中','休止中','休止','準備中','現在準備中','本日の開催は終了しました','翌日開催予定','仮時間')
 
 GCH_SPECIAL_IDS = {'jra.gch.hq', 'jra.gch.lq'}
-GCH_SPECIAL_KEYWORDS = ('海外競馬', '世界の競馬', 'ALL IN LINE', 'ＡＬＬ ＩＮ ＬＩＮＥ')
+GCH_EPG_URL = 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/epg.xml'
+GCH_SPECIAL_KEYWORDS = (
+    '海外競馬', '世界の競馬', 'ALL IN LINE', 'ＡＬＬ ＩＮ ＬＩＮＥ',
+    'ジョッキークラブゴールドカップ', '凱旋門賞', 'ブリーダーズカップ',
+    '香港', 'ドバイ', 'サウジ', 'メルボルンカップ',
+)
 GCH_SPECIAL_ENTRIES = (
     {
         'id': 'jra.gch.hq',
@@ -168,11 +174,14 @@ def race_datetime(today, hhmm):
 
 def gch_overseas_special():
     """Return the next/active overseas-racing GCH programme through 09:00 next morning."""
-    if not PUBLIC_EPG.exists():
-        return None
+    # The local public-sports EPG intentionally excludes JRA/GCH. Read the
+    # earphone master EPG only for this special-event visibility decision.
     try:
-        root = ET.parse(PUBLIC_EPG).getroot()
-    except Exception:
+        req = urllib.request.Request(GCH_EPG_URL, headers={'User-Agent': 'Mozilla/5.0 (FreeWiFi GCH special checker)'})
+        with urllib.request.urlopen(req, timeout=20) as response:
+            root = ET.fromstring(response.read())
+    except Exception as exc:
+        print(f'GCH special EPG check failed: {type(exc).__name__}: {exc}')
         return None
 
     now = datetime.now(JST)
@@ -192,7 +201,9 @@ def gch_overseas_special():
         title = (p.findtext('title') or '').strip()
         desc = (p.findtext('desc') or '').strip()
         joined = f'{title} {desc}'.upper()
-        if not any(keyword.upper() in joined for keyword in GCH_SPECIAL_KEYWORDS):
+        overseas = any(keyword.upper() in joined for keyword in GCH_SPECIAL_KEYWORDS)
+        live_broadcast = ('中継' in title) and ('[生]' in title or '［生］' in title or '生]' in title)
+        if not overseas or not live_broadcast:
             continue
         effective_stop = stop or (start + timedelta(hours=2))
         if effective_stop < now - timedelta(minutes=15) or start > morning_limit:
