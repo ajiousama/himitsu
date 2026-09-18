@@ -99,6 +99,25 @@ JST = timezone(timedelta(hours=9))
 TARGET_SECTIONS = {'競輪', '地方競馬', 'オートレース'}
 NON_EVENT_WORDS = ('本日非開催','非開催','開催していません','開催予定はありません','本日開催なし','開催なし','次回開催','データ取得準備中','休止中','休止','準備中','現在準備中','本日の開催は終了しました','翌日開催予定','仮時間')
 
+GCH_SPECIAL_IDS = {'jra.gch.hq', 'jra.gch.lq'}
+GCH_SPECIAL_KEYWORDS = ('海外競馬', '世界の競馬', 'ALL IN LINE', 'ＡＬＬ ＩＮ ＬＩＮＥ')
+GCH_SPECIAL_ENTRIES = (
+    {
+        'id': 'jra.gch.hq',
+        'name': 'グリーンチャンネル（高画質）',
+        'tvg_name': 'グリーンチャンネル HQ',
+        'logo': 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports_logos_github_43/jra_quality/gch_hq.png',
+        'url': 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/gchmain.m3u8',
+    },
+    {
+        'id': 'jra.gch.lq',
+        'name': 'グリーンチャンネル（低画質）',
+        'tvg_name': 'グリーンチャンネル LQ',
+        'logo': 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports_logos_github_43/jra_quality/gch_lq.png',
+        'url': 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/gchmain_LQ.m3u8',
+    },
+)
+
 
 def parse_m3u(text):
     entries = {}
@@ -144,6 +163,52 @@ def race_datetime(today, hhmm):
         return datetime.combine(today + timedelta(days=day_add), time(hour, mm), tzinfo=JST)
     except Exception:
         return None
+
+
+
+def gch_overseas_special():
+    """Return the next/active overseas-racing GCH programme through 09:00 next morning."""
+    if not PUBLIC_EPG.exists():
+        return None
+    try:
+        root = ET.parse(PUBLIC_EPG).getroot()
+    except Exception:
+        return None
+
+    now = datetime.now(JST)
+    morning_limit = datetime.combine(now.date() + timedelta(days=1), time(9, 0), tzinfo=JST)
+    # If this runs after midnight, keep the window through 09:00 today instead.
+    if now.hour < 9:
+        morning_limit = datetime.combine(now.date(), time(9, 0), tzinfo=JST)
+
+    matches = []
+    for p in root.findall('programme'):
+        if (p.get('channel') or '') != 'jra.gch':
+            continue
+        start = parse_xmltv_time(p.get('start'))
+        stop = parse_xmltv_time(p.get('stop'))
+        if not start:
+            continue
+        title = (p.findtext('title') or '').strip()
+        desc = (p.findtext('desc') or '').strip()
+        joined = f'{title} {desc}'.upper()
+        if not any(keyword.upper() in joined for keyword in GCH_SPECIAL_KEYWORDS):
+            continue
+        effective_stop = stop or (start + timedelta(hours=2))
+        if effective_stop < now - timedelta(minutes=15) or start > morning_limit:
+            continue
+        matches.append((start, effective_stop, title))
+
+    if not matches:
+        return None
+    matches.sort(key=lambda item: item[0])
+    start, stop, title = matches[0]
+    return {
+        'title': title,
+        'start': start,
+        'stop': stop,
+        'start_text': start.strftime('%m/%d %H:%M'),
+    }
 
 
 def epg_state():
@@ -281,6 +346,7 @@ def main():
     if missing_keirin_logos:
         raise SystemExit('missing KEIRIN logo mappings: ' + ', '.join(missing_keirin_logos))
     rows=[]; status={}
+    gch_special = gch_overseas_special()
     for cid, (section, block) in entries.items():
         if cid.startswith('boat.') or cid not in real:
             continue
@@ -292,12 +358,52 @@ def main():
             status[cid] = {'section':section,'name':name,'mode':modes.get(cid,'day'),'source':'ajiousama local direct EPG','epg_available':True,'next_race':nr,'next_race_text':f"次は {nr['race']}R {nr['start']}発走" if nr else '本日開催／次レースなし'}
         except Exception as e:
             print(f'M3U row skipped {cid}: {e}')
-    rows.sort(key=lambda r: ((int(r['next_race']['start'][:2])*60+int(r['next_race']['start'][3:])) if r['next_race'] else 2000, r['name']))
+
+    if gch_special:
+        for spec in GCH_SPECIAL_ENTRIES:
+            block = [
+                f'#EXTINF:-1 tvg-id="{spec["id"]}" tvg-name="{spec["tvg_name"]}" tvg-logo="{spec["logo"]}" group-title="{GROUP}",{spec["name"]}',
+                spec['url'],
+            ]
+            rows.append({
+                'id': spec['id'],
+                'name': spec['name'],
+                'block': block,
+                'next_race': None,
+                'sort_dt': gch_special['start'],
+            })
+            status[spec['id']] = {
+                'section': '海外競馬',
+                'name': spec['name'],
+                'mode': 'overnight',
+                'source': 'GCH EPG overseas-racing special',
+                'epg_available': True,
+                'next_race': None,
+                'next_race_text': f"海外競馬中継 {gch_special['start_text']}〜",
+                'programme': gch_special['title'],
+            }
+        print(f"GCH overseas special: {gch_special['start_text']} {gch_special['title']}")
+
+    def row_sort_key(row):
+        if row.get('sort_dt'):
+            dt = row['sort_dt']
+            # Early-morning next-day specials follow the current day's late events.
+            minutes = dt.hour * 60 + dt.minute
+            if dt.date() > datetime.now(JST).date():
+                minutes += 24 * 60
+            return (minutes, row['name'])
+        nr = row.get('next_race')
+        if nr:
+            hh, mm = map(int, nr['start'].split(':'))
+            return (hh * 60 + mm, row['name'])
+        return (2000, row['name'])
+
+    rows.sort(key=row_sort_key)
     body=[]
     for r in rows: body += r['block'] + ['']
     managed = START+'\n## 今日の開催場\n'+'\n'.join(body).rstrip()+('\n' if body else '')+END
     base = FREEWIFI.read_text(encoding='utf-8-sig', errors='replace')
-    owned_ids = {cid for cid in entries if not cid.startswith('boat.')}
+    owned_ids = {cid for cid in entries if not cid.startswith('boat.')} | GCH_SPECIAL_IDS
     base = strip_ids(base, owned_ids)
     updated = replace_block(base, managed).rstrip()+'\n'
     updated = restore_kana_owned_entry(updated)
