@@ -6,12 +6,17 @@ import xml.etree.ElementTree as ET
 from sports_race_time import race_time
 
 FREEWIFI = Path('freewifi')
+KANA_M3U = Path('kana_tube.m3u')
 STATUS_JSON = Path('today_public_sports_status.json')
 PUBLIC_M3U = Path('ganble')
 PUBLIC_EPG = Path('public_sports_epg_local.xml')
 START = '# === TODAY_PUBLIC_SPORTS_START ==='
 END = '# === TODAY_PUBLIC_SPORTS_END ==='
 GROUP = '今日の開催場'
+KANA_START = '# === KANA_TUBE_MANAGED_START ==='
+KANA_END = '# === KANA_TUBE_MANAGED_END ==='
+GENERAL_YOUTUBE_START = '# === GENERAL_YOUTUBE_MANAGED_START ==='
+KANA_TVG_ID = 'youtube.kana_tube'
 RAW_BASE = 'https://raw.githubusercontent.com/ajiousama/himitsu/main'
 LOGO_PROXY = 'https://images.weserv.nl/?url=raw.githubusercontent.com/ajiousama/himitsu/main'
 
@@ -231,6 +236,38 @@ def replace_block(text, payload):
     return text.replace(anchor, payload+'\n\n'+anchor, 1) if anchor in text else text.rstrip()+'\n\n'+payload+'\n'
 
 
+def restore_kana_owned_entry(text):
+    """Reapply Kana's dedicated managed entry after a public-sports rebuild."""
+    payload = ''
+    if KANA_M3U.exists():
+        payload = '\n'.join(
+            line for line in KANA_M3U.read_text(encoding='utf-8-sig', errors='replace').splitlines()
+            if not line.startswith('#EXTM3U')
+        ).strip()
+
+    text = re.sub(
+        re.escape(KANA_START) + r'.*?' + re.escape(KANA_END) + r'\n?',
+        '', text, flags=re.S,
+    )
+    lines = text.splitlines(); out = []; i = 0
+    while i < len(lines):
+        line = lines[i]
+        if line.startswith('#EXTINF:') and f'tvg-id="{KANA_TVG_ID}"' in line:
+            i += 1
+            while i < len(lines) and not lines[i].startswith(('#EXTINF:', '## ', '# ===')):
+                i += 1
+            continue
+        out.append(line); i += 1
+    text = '\n'.join(out).rstrip() + '\n'
+
+    if not payload:
+        return text
+    block = KANA_START + '\n' + payload + '\n' + KANA_END + '\n'
+    if GENERAL_YOUTUBE_START in text:
+        return text.replace(GENERAL_YOUTUBE_START, block + '\n' + GENERAL_YOUTUBE_START, 1)
+    return text.rstrip() + '\n\n' + block
+
+
 def main():
     if not FREEWIFI.exists() or not PUBLIC_M3U.exists():
         raise SystemExit('freewifi/ganble missing')
@@ -262,7 +299,9 @@ def main():
     base = FREEWIFI.read_text(encoding='utf-8-sig', errors='replace')
     owned_ids = {cid for cid in entries if not cid.startswith('boat.')}
     base = strip_ids(base, owned_ids)
-    FREEWIFI.write_text(replace_block(base, managed).rstrip()+'\n', encoding='utf-8')
+    updated = replace_block(base, managed).rstrip()+'\n'
+    updated = restore_kana_owned_entry(updated)
+    FREEWIFI.write_text(updated.rstrip()+'\n', encoding='utf-8')
     STATUS_JSON.write_text(json.dumps({'generated_at':datetime.now(JST).isoformat(),'channels':{r['id']:status[r['id']] for r in rows}}, ensure_ascii=False, indent=2)+'\n', encoding='utf-8')
     print('Today public sports local:', len(rows))
 
