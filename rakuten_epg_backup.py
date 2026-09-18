@@ -30,6 +30,12 @@ RAKUTEN_CHANNELS = {
     "rch_122": "映画（年齢制限あり）",
 }
 
+KARENDA_CHANNEL_ALIASES = {
+    # Karenda's current XMLTV renamed the former idol/gravure id.
+    # Keep our stable FreeWiFi tvg-id while importing its real programmes.
+    "rch_41": "rch_121",
+}
+
 RAKUTEN_OFFICIAL_NUMBERS = {
     186: "rch_30",
     207: "rch_35",
@@ -491,7 +497,8 @@ def fetch_karenda_root() -> tuple[ET.Element | None, str | None]:
 
 
 def replace_with_external(root: ET.Element, external: ET.Element, channel_id: str) -> int:
-    programmes = current_real_programmes(external, channel_id)
+    source_channel_id = KARENDA_CHANNEL_ALIASES.get(channel_id, channel_id)
+    programmes = current_real_programmes(external, source_channel_id)
     if not programmes:
         return 0
     for programme in list(root.findall("programme")):
@@ -500,14 +507,18 @@ def replace_with_external(root: ET.Element, external: ET.Element, channel_id: st
     for channel in list(root.findall("channel")):
         if channel.get("id") == channel_id:
             root.remove(channel)
-    external_channel = external.find(f"channel[@id='{channel_id}']")
+    external_channel = external.find(f"channel[@id='{source_channel_id}']")
     if external_channel is not None:
-        root.append(copy.deepcopy(external_channel))
+        channel_copy = copy.deepcopy(external_channel)
+        channel_copy.set("id", channel_id)
+        root.append(channel_copy)
     else:
         channel = ET.SubElement(root, "channel", {"id": channel_id})
         ET.SubElement(channel, "display-name").text = RAKUTEN_CHANNELS[channel_id]
     for programme in programmes:
-        root.append(copy.deepcopy(programme))
+        programme_copy = copy.deepcopy(programme)
+        programme_copy.set("channel", channel_id)
+        root.append(programme_copy)
     return len(programmes)
 
 
