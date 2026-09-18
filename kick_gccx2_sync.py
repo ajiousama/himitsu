@@ -7,7 +7,7 @@ from pathlib import Path
 SLUG = "joshua-hkd"
 API = f"https://kick.com/api/v2/channels/{SLUG}"
 FREEWIFI = Path("freewifi")
-LOGO = "https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/kick_gccx2.svg"
+LOGO = "https://pbs.twimg.com/profile_images/826592912389451777/PnXfhxJD_400x400.jpg"
 PROXY = "https://himitsu-six.vercel.app/api/kick?ch=gccx2"
 
 
