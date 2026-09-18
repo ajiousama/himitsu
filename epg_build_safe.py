@@ -30,7 +30,15 @@ RAKUTEN_CHANNELS = {
     "rch_123": "刺激ストロング",
     "rch_122": "映画（年齢制限あり）",
 }
-epg_build.SOURCE_PIN.update({channel_id: ("karenda", channel_id) for channel_id in RAKUTEN_CHANNELS})
+KARENDA_SOURCE_IDS = {
+    # Karenda renamed the current アイドル・グラビア XMLTV id from rch_41 to rch_121.
+    # Preserve FreeWiFi's stable rch_41 id while cloning programmes from the new source id.
+    "rch_41": "rch_121",
+}
+epg_build.SOURCE_PIN.update({
+    channel_id: ("karenda", KARENDA_SOURCE_IDS.get(channel_id, channel_id))
+    for channel_id in RAKUTEN_CHANNELS
+})
 
 epg_build.main()
 
