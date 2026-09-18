@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-19",
-  "generated_at": "2026-09-19T06:02:47.813795+09:00",
+  "generated_at": "2026-09-19T06:14:47.816796+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260919.json",
   "schedule_checked_at": "2026-09-19T06:00:47.813101+09:00",
@@ -52,9 +52,14 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 1,
+    "requested": 2,
     "fetched": 0,
     "failures": [
+      {
+        "jcd": "23",
+        "name": "唐津",
+        "error": "cloud and official acquisition unavailable: HTTPError"
+      },
       {
         "jcd": "14",
         "name": "鳴門",
