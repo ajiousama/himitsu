@@ -108,6 +108,7 @@ GCH_SPECIAL_KEYWORDS = (
     '香港', 'ドバイ', 'サウジ', 'メルボルンカップ',
     'グリーンチャンネル地方競馬中継', '地方競馬中継',
 )
+GCH_JRA_LIVE_KEYWORDS = ('中央競馬全レース中継',)
 GCH_SPECIAL_ENTRIES = (
     {
         'id': 'jra.gch.hq',
@@ -173,27 +174,35 @@ def race_datetime(today, hhmm):
 
 
 
-def gch_overseas_special():
-    """Return the next/active GCH live race special through 09:00 next morning."""
-    # The local public-sports EPG intentionally excludes JRA/GCH. Read the
-    # earphone master EPG only for this special-event visibility decision.
+def gch_today_visibility():
+    """Return why GCH HQ/LQ should appear in today's-events group.
+
+    Normal JRA coverage is shown only on the actual JRA race date.
+    Overseas/local-racing live specials may be shown from the prior evening
+    through 09:00 the next morning so overnight broadcasts are not missed.
+    """
     try:
-        req = urllib.request.Request(GCH_EPG_URL, headers={'User-Agent': 'Mozilla/5.0 (FreeWiFi GCH special checker)'})
+        req = urllib.request.Request(
+            GCH_EPG_URL,
+            headers={'User-Agent': 'Mozilla/5.0 (FreeWiFi GCH visibility checker)'},
+        )
         with urllib.request.urlopen(req, timeout=20) as response:
             root = ET.fromstring(response.read())
     except Exception as exc:
-        print(f'GCH special EPG check failed: {type(exc).__name__}: {exc}')
+        print(f'GCH EPG check failed: {type(exc).__name__}: {exc}')
         return None
 
     now = datetime.now(JST)
-    morning_limit = datetime.combine(now.date() + timedelta(days=1), time(9, 0), tzinfo=JST)
-    # If this runs after midnight, keep the window through 09:00 today instead.
+    today = now.date()
+    overnight_limit = datetime.combine(today + timedelta(days=1), time(9, 0), tzinfo=JST)
     if now.hour < 9:
-        morning_limit = datetime.combine(now.date(), time(9, 0), tzinfo=JST)
+        overnight_limit = datetime.combine(today, time(9, 0), tzinfo=JST)
 
-    matches = []
+    normal_jra = []
+    specials = []
     for p in root.findall('programme'):
-        if (p.get('channel') or '') != 'jra.gch':
+        # HQ and LQ carry the same schedule; inspect HQ only to avoid duplicates.
+        if (p.get('channel') or '') != 'jra.gch.hq':
             continue
         start = parse_xmltv_time(p.get('start'))
         stop = parse_xmltv_time(p.get('stop'))
@@ -202,26 +211,37 @@ def gch_overseas_special():
         title = (p.findtext('title') or '').strip()
         desc = (p.findtext('desc') or '').strip()
         joined = f'{title} {desc}'.upper()
-        target_special = any(keyword.upper() in joined for keyword in GCH_SPECIAL_KEYWORDS)
-        live_broadcast = ('中継' in title) and ('[生]' in title or '［生］' in title or '生]' in title)
-        if not target_special or not live_broadcast:
-            continue
         effective_stop = stop or (start + timedelta(hours=2))
-        if effective_stop < now - timedelta(minutes=15) or start > morning_limit:
-            continue
-        matches.append((start, effective_stop, title))
+        is_live = ('[生]' in title or '［生］' in title or '生]' in title)
 
+        # 1) Actual JRA race day: show GCH only on that calendar date.
+        if (
+            start.date() == today
+            and is_live
+            and any(k.upper() in joined for k in GCH_JRA_LIVE_KEYWORDS)
+        ):
+            if effective_stop >= now - timedelta(minutes=15):
+                normal_jra.append((start, effective_stop, title, 'JRA開催日'))
+
+        # 2) Overseas/local-racing live specials: allow overnight next-morning window.
+        target_special = any(k.upper() in joined for k in GCH_SPECIAL_KEYWORDS)
+        live_broadcast = is_live and ('中継' in title)
+        if target_special and live_broadcast:
+            if effective_stop >= now - timedelta(minutes=15) and start <= overnight_limit:
+                specials.append((start, effective_stop, title, 'GCH特番'))
+
+    matches = normal_jra + specials
     if not matches:
         return None
     matches.sort(key=lambda item: item[0])
-    start, stop, title = matches[0]
+    start, stop, title, reason = matches[0]
     return {
         'title': title,
         'start': start,
         'stop': stop,
         'start_text': start.strftime('%m/%d %H:%M'),
+        'reason': reason,
     }
-
 
 def epg_state():
     if not PUBLIC_EPG.exists():
@@ -358,7 +378,7 @@ def main():
     if missing_keirin_logos:
         raise SystemExit('missing KEIRIN logo mappings: ' + ', '.join(missing_keirin_logos))
     rows=[]; status={}
-    gch_special = gch_overseas_special()
+    gch_special = gch_today_visibility()
     for cid, (section, block) in entries.items():
         if cid.startswith('boat.') or cid not in real:
             continue
@@ -385,16 +405,16 @@ def main():
                 'sort_dt': gch_special['start'],
             })
             status[spec['id']] = {
-                'section': 'GCH特番',
+                'section': gch_special['reason'],
                 'name': spec['name'],
                 'mode': 'overnight',
-                'source': 'GCH EPG overseas-racing special',
+                'source': 'GCH EPG live-race visibility',
                 'epg_available': True,
                 'next_race': None,
-                'next_race_text': f"海外競馬中継 {gch_special['start_text']}〜",
+                'next_race_text': f"{gch_special['reason']} {gch_special['start_text']}〜",
                 'programme': gch_special['title'],
             }
-        print(f"GCH overseas special: {gch_special['start_text']} {gch_special['title']}")
+        print(f"GCH visible: {gch_special['reason']} {gch_special['start_text']} {gch_special['title']}")
 
     def row_sort_key(row):
         if row.get('sort_dt'):
