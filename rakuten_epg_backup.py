@@ -386,7 +386,20 @@ def fetch_official_browser(days) -> tuple[dict[str, list[tuple[datetime, datetim
             net_text = " || ".join(net[-20:])
             if len(net_text) > 1800:
                 net_text = net_text[-1800:]
-            errors.append(f"Rakuten browser {date_text}: parsed 0 restricted programmes; CH241={snippet!r}; NET={net_text}")
+            api_items = (page or {}).get("api") or []
+            api_texts = []
+            for item in api_items[-6:]:
+                url = str(item.get("url") or "")
+                method = str(item.get("method") or "")
+                status = str(item.get("status") or "")
+                post = str(item.get("postData") or "")
+                body = str(item.get("body") or "")
+                sample = body[:5000].replace("\n"," ")
+                api_texts.append(f"{method} {status} {url} POST={post[:1200]} BODY={sample}")
+            api_text = " || ".join(api_texts)
+            if len(api_text) > 12000:
+                api_text = api_text[:12000]
+            errors.append(f"Rakuten browser {date_text}: parsed 0 restricted programmes; CH241={snippet!r}; NET={net_text}; API={api_text}")
         for cid, rows in parsed.items():
             merged[cid].extend(rows)
     return merged, errors
