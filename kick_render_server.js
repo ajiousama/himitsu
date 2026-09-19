@@ -3,7 +3,7 @@ const { URL } = require("url");
 const channels = require("./kick_channels.json");
 const PORT = Number(process.env.PORT || 10000);
 const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/140 Safari/537.36";
-const VERSION = "2026-09-19-render-v6-tver";
+const VERSION = "2026-09-19-render-v7-tver-bc";
 
 async function getJson(url){for(let a=0;a<3;a++){try{const r=await fetch(url,{headers:{accept:"application/json, text/plain, */*","user-agent":UA,referer:"https://kick.com/","cache-control":"no-cache"},cache:"no-store"});if(r.ok){try{return await r.json()}catch{}}}catch{}if(a<2)await new Promise(r=>setTimeout(r,300*(a+1)))}return null}
 async function getText(url,referer="https://kick.com/"){const r=await fetch(url,{headers:{accept:"application/vnd.apple.mpegurl, application/x-mpegURL, text/plain, */*","user-agent":UA,referer,"cache-control":"no-cache",pragma:"no-cache"},cache:"no-store"});if(!r.ok)throw new Error(`HLS fetch failed ${r.status}`);return await r.text()}
@@ -22,8 +22,36 @@ function m3u(res,text){headers(res);res.statusCode=200;res.setHeader("Content-Ty
 function rewriteM3u(text,source){return String(text||"").replace(/\r/g,"").split("\n").map(line=>{if(line.startsWith("#"))return line.replace(/URI="([^"]+)"/g,(_,x)=>`URI="${abs(source,x)}"`);return line.trim()?abs(source,line.trim()):line}).join("\n")}
 function findPlayableM3u8(v){if(!v)return null;if(Array.isArray(v)){for(const x of v){const h=findPlayableM3u8(x);if(h)return h}return null}if(typeof v==="object"){if(!v.key_systems&&typeof v.src==="string"&&/^https?:\/\//i.test(v.src)&&v.src.includes(".m3u8"))return v.src;for(const x of Object.values(v)){const h=findPlayableM3u8(x);if(h)return h}}return null}
 function tverKeyName(){const d=new Date(Date.now()+9*3600000),m=d.getUTCMonth()+1,n=m%6||6;return `key0${n}`}
-async function resolveTver(ep){const session=await fetchJson("https://platform-api.tver.jp/v2/api/platform_users/browser/create",{method:"POST",headers:{"content-type":"application/x-www-form-urlencoded","origin":"https://tver.jp","referer":"https://tver.jp/","x-tver-platform-type":"web"},body:"device_type=pc"});const s=session?.result;if(!s?.platform_uid||!s?.platform_token)throw new Error("TVer session unavailable");const q=new URLSearchParams({platform_uid:String(s.platform_uid),platform_token:String(s.platform_token),require_data:"mylist,later[epefy106ur],good[epefy106ur],resume[epefy106ur]"});const info=await fetchJson(`https://platform-api.tver.jp/service/api/v1/callEpisode/${encodeURIComponent(ep)}?${q}`,{headers:{"origin":"https://tver.jp","referer":"https://tver.jp/","x-tver-platform-type":"web"}});const content=info?.result?.episode?.content||{};const version=String(content.version||"5");const meta=await fetchJson(`https://statics.tver.jp/content/episode/${encodeURIComponent(ep)}.json?v=${encodeURIComponent(version)}`,{headers:{"referer":"https://tver.jp/"}});const project=meta?.streaks?.projectID,ref=meta?.streaks?.videoRefID;if(!project||!ref)throw new Error("TVer STREAKS metadata unavailable");const keys=await fetchJson("https://player.tver.jp/player/streaks_info_v2.json",{headers:{"referer":"https://tver.jp/"}});const apiKey=keys?.[project]?.api_key?.[tverKeyName()];if(!apiKey)throw new Error("TVer STREAKS API key unavailable");const mediaId=String(ref).startsWith("ref:")?String(ref):`ref:${ref}`;const play=await fetchJson(`https://playback.api.streaks.jp/v1/projects/${encodeURIComponent(project)}/medias/${encodeURIComponent(mediaId)}`,{headers:{"origin":"https://tver.jp","referer":"https://tver.jp/","x-streaks-api-key":apiKey}});const source=findPlayableM3u8(play?.sources);if(!source)throw new Error("TVer HLS source unavailable");return {source,project,mediaId,title:content.title||meta?.title||ep}}
-async function tverVod(u,res){const ep=String(u.searchParams.get("ep")||"").trim();if(!/^[A-Za-z0-9]{6,40}$/.test(ep))return json(res,400,{error:"invalid TVer episode id",resolver:VERSION});try{const hit=await resolveTver(ep);let media=hit.source,text=await getText(media,"https://tver.jp/");for(let d=0;d<3&&/#EXT-X-STREAM-INF:/i.test(text);d++){const v=pickVariant(text,media);if(!v)throw new Error("TVer master playlist has no variant");media=v;text=await getText(media,"https://tver.jp/")}if(/#EXT-X-STREAM-INF:/i.test(text))throw new Error("TVer nested master playlist too deep");res.setHeader("X-TVer-Project",hit.project);res.setHeader("X-TVer-Media",hit.mediaId);return m3u(res,rewriteM3u(text,media))}catch(e){return json(res,502,{error:"TVer playback unavailable",ep,detail:String(e?.message||e),resolver:VERSION})}}
+async function resolveTver(ep){
+  const meta=await fetchJson(`https://statics.tver.jp/content/episode/${encodeURIComponent(ep)}.json?v=1`,{headers:{referer:"https://tver.jp/"}});
+  if(!meta)throw new Error("TVer episode metadata unavailable");
+  const project=meta?.streaks?.projectID,ref=meta?.streaks?.videoRefID;
+  if(project&&ref){
+    try{
+      const keys=await fetchJson("https://player.tver.jp/player/streaks_info_v2.json",{headers:{referer:"https://tver.jp/"}});
+      const apiKey=keys?.[project]?.api_key?.[tverKeyName()];
+      if(apiKey){
+        const mediaId=String(ref).startsWith("ref:")?String(ref):`ref:${ref}`;
+        const play=await fetchJson(`https://playback.api.streaks.jp/v1/projects/${encodeURIComponent(project)}/medias/${encodeURIComponent(mediaId)}`,{headers:{origin:"https://tver.jp",referer:"https://tver.jp/","x-streaks-api-key":apiKey}});
+        const source=findPlayableM3u8(play?.sources);
+        if(source)return {source,project,mediaId,title:meta?.title||ep,backend:"streaks"};
+      }
+    }catch{}
+  }
+  const account=String(meta?.video?.accountID||"").trim(),player=String(meta?.video?.playerID||"").trim(),videoRef=String(meta?.video?.videoRefID||"").trim();
+  if(account&&player&&videoRef){
+    const cfg=await fetchJson(`https://players.brightcove.net/${encodeURIComponent(account)}/${encodeURIComponent(player)}_default/config.json`,{headers:{referer:"https://tver.jp/"}});
+    const policy=cfg?.video_cloud?.policy_key;
+    if(policy){
+      const bcId=videoRef.startsWith("ref:")?videoRef:`ref:${videoRef}`;
+      const bc=await fetchJson(`https://edge.api.brightcove.com/playback/v1/accounts/${encodeURIComponent(account)}/videos/${encodeURIComponent(bcId)}`,{headers:{"bcov-policy":policy,origin:"https://tver.jp",referer:"https://tver.jp/"}});
+      const source=findPlayableM3u8(bc?.sources);
+      if(source)return {source,project:"brightcove-"+account,mediaId:bcId,title:meta?.title||ep,backend:"brightcove"};
+    }
+  }
+  throw new Error("TVer HLS source unavailable");
+}
+async function tverVod(u,res){const ep=String(u.searchParams.get("ep")||"").trim();if(!/^[A-Za-z0-9]{6,40}$/.test(ep))return json(res,400,{error:"invalid TVer episode id",resolver:VERSION});try{const hit=await resolveTver(ep);let media=hit.source,text=await getText(media,"https://tver.jp/");for(let d=0;d<3&&/#EXT-X-STREAM-INF:/i.test(text);d++){const v=pickVariant(text,media);if(!v)throw new Error("TVer master playlist has no variant");media=v;text=await getText(media,"https://tver.jp/")}if(/#EXT-X-STREAM-INF:/i.test(text))throw new Error("TVer nested master playlist too deep");res.setHeader("X-TVer-Project",hit.project);res.setHeader("X-TVer-Media",hit.mediaId);res.setHeader("X-TVer-Backend",hit.backend||"unknown");return m3u(res,rewriteM3u(text,media))}catch(e){return json(res,502,{error:"TVer playback unavailable",ep,detail:String(e?.message||e),resolver:VERSION})}}
 
 function rewriteKick(text,source,start){const out=[];let inserted=false;for(let line of String(text||"").replace(/\r/g,"").split("\n")){if(!inserted&&line.startsWith("#EXTM3U")){out.push(line,`#EXT-X-START:TIME-OFFSET=${start},PRECISE=YES`);inserted=true;continue}if(line.startsWith("#")){out.push(line.replace(/URI="([^"]+)"/g,(_,x)=>`URI="${abs(source,x)}"`));continue}out.push(line.trim()?abs(source,line.trim()):line)}if(!inserted)out.unshift(`#EXT-X-START:TIME-OFFSET=${start},PRECISE=YES`);return out.join("\n")}
 async function kickVod(u,res){const vod=String(u.searchParams.get("vod")||"").trim();if(!/^[A-Za-z0-9_-]{6,120}$/.test(vod))return json(res,400,{error:"invalid KICK VOD id",resolver:VERSION});let start=Number(u.searchParams.get("start")||0);if(!Number.isFinite(start)||start<0)start=0;start=Math.floor(Math.min(start,604800));let duration=Number(u.searchParams.get("duration")||0);if(!Number.isFinite(duration)||duration<0)duration=0;duration=duration?Math.max(30,Math.min(Math.floor(duration),43200)):0;const data=await getJson("https://kick.com/api/v1/video/"+encodeURIComponent(vod));if(!data)return json(res,404,{error:"KICK VOD metadata unavailable",vod,resolver:VERSION});const source=findM3u8(data);if(!source)return json(res,410,{error:"KICK VOD media unavailable",vod,resolver:VERSION});if(!start&&!duration)return redirect(res,source);try{let media=source,text=await getText(media);for(let d=0;d<3&&/#EXT-X-STREAM-INF:/i.test(text);d++){const v=pickVariant(text,media);if(!v)throw new Error("master playlist has no variant");media=v;text=await getText(media)}if(/#EXT-X-STREAM-INF:/i.test(text))throw new Error("nested master playlist too deep");if(duration){const clipped=rewriteHaru(text,media,start,duration).replace("# HARU clip requested","# KICK clip requested");return m3u(res,clipped)}return m3u(res,rewriteKick(text,media,start))}catch(e){return json(res,502,{error:"KICK VOD clip playlist failed",vod,start,duration,detail:String(e?.message||e),resolver:VERSION})}}
