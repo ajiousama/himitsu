@@ -5,6 +5,13 @@ on:
   workflow_dispatch:
   schedule:
     - cron: "22 * * * *"
+  push:
+    branches:
+      - main
+    paths:
+      - "kick_replay.py"
+      - "kick_gmcx_chapters.py"
+      - ".github/workflows/update_kick_replay.yml"
 
 permissions:
   contents: write
@@ -45,16 +52,30 @@ jobs:
         run: |
           python - <<'PY'
           import json
+          import time
           import urllib.request
           from pathlib import Path
 
           UA = 'Mozilla/5.0 (KICK VOD validation)'
-          def probe_m3u8(url):
-              req = urllib.request.Request(url, headers={'User-Agent': UA, 'Cache-Control': 'no-cache'})
-              with urllib.request.urlopen(req, timeout=30) as r:
-                  head = r.read(4096).decode('utf-8', 'replace')
-              assert head.lstrip().startswith('#EXTM3U'), f'not HLS: {url}'
-              return True
+          def probe_m3u8(url, attempts=3):
+              last = None
+              for attempt in range(1, attempts + 1):
+                  try:
+                      req = urllib.request.Request(
+                          url,
+                          headers={'User-Agent': UA, 'Cache-Control': 'no-cache', 'Pragma': 'no-cache'},
+                      )
+                      with urllib.request.urlopen(req, timeout=30) as r:
+                          head = r.read(4096).decode('utf-8', 'replace')
+                      if head.lstrip().startswith('#EXTM3U'):
+                          return True
+                      last = RuntimeError(f'not HLS: {url}')
+                  except Exception as exc:
+                      last = exc
+                  if attempt < attempts:
+                      time.sleep(attempt * 2)
+              print(f'::warning::HLS probe failed after {attempts} attempts: {url} ({last})')
+              return False
 
           j = json.loads(Path('kick_replay.json').read_text(encoding='utf-8'))
           g = json.loads(Path('kick_gmcx_chapters.json').read_text(encoding='utf-8'))
@@ -75,21 +96,29 @@ jobs:
           for item in publishable:
               assert item.get('playable') is True
               assert item.get('source_url')
-              probe_m3u8(item['source_url'])
+              assert probe_m3u8(item['source_url']), f"publishable source failed validation: {item['source_url']}"
 
           ready = [x for x in g['results'] if x.get('status') == 'ready']
           ai = [x for x in g['results'] if x.get('status') == 'ai_required']
           all_chapters = [c for x in ready for c in (x.get('chapters') or [])]
           # Probe representative chapter playlists end-to-end through
-          # freewifi-media: first, middle and last.
+          # freewifi-media: first, middle and last. Render can transiently
+          # return 502 during a cold/redeploy window, so do not freeze the
+          # whole catalog because one representative clip hiccupped. At least
+          # one representative must still pass after retries.
           if all_chapters:
               picks = [all_chapters[0], all_chapters[len(all_chapters)//2], all_chapters[-1]]
               seen = set()
+              ok = 0
+              checked = 0
               for chapter in picks:
                   url = chapter.get('replay_url')
                   if url and url not in seen:
                       seen.add(url)
-                      probe_m3u8(url)
+                      checked += 1
+                      ok += int(probe_m3u8(url, attempts=4))
+              assert checked == 0 or ok > 0, 'all representative freewifi-media chapter probes failed'
+              print(f'GMCX Render chapter probes: {ok}/{checked} passed')
 
           chapters = len(all_chapters)
           print('KICK replay channels:', [(x.get('tvg_id'), x.get('vod_count')) for x in j['channels']])
