@@ -3,7 +3,7 @@ const { URL } = require("url");
 const channels = require("./kick_channels.json");
 const PORT = Number(process.env.PORT || 10000);
 const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/140 Safari/537.36";
-const VERSION = "2026-09-19-render-v8-tver-diag";
+const VERSION = "2026-09-19-render-v9-tver-hls-type";
 
 async function getJson(url){for(let a=0;a<3;a++){try{const r=await fetch(url,{headers:{accept:"application/json, text/plain, */*","user-agent":UA,referer:"https://kick.com/","cache-control":"no-cache"},cache:"no-store"});if(r.ok){try{return await r.json()}catch{}}}catch{}if(a<2)await new Promise(r=>setTimeout(r,300*(a+1)))}return null}
 async function getJsonHeaders(url,extra={}){for(let a=0;a<3;a++){try{const r=await fetch(url,{headers:{accept:"application/json, text/plain, */*","user-agent":UA,"cache-control":"no-cache",...extra},cache:"no-store"});if(r.ok){try{return await r.json()}catch{}}}catch{}if(a<2)await new Promise(r=>setTimeout(r,300*(a+1)))}return null}
@@ -21,7 +21,7 @@ function m3u(res,text){headers(res);res.statusCode=200;res.setHeader("Content-Ty
 
 
 function rewriteM3u(text,source){return String(text||"").replace(/\r/g,"").split("\n").map(line=>{if(line.startsWith("#"))return line.replace(/URI="([^"]+)"/g,(_,x)=>`URI="${abs(source,x)}"`);return line.trim()?abs(source,line.trim()):line}).join("\n")}
-function findPlayableM3u8(v){if(!v)return null;if(Array.isArray(v)){for(const x of v){const h=findPlayableM3u8(x);if(h)return h}return null}if(typeof v==="object"){if(!v.key_systems&&typeof v.src==="string"&&/^https?:\/\//i.test(v.src)&&v.src.includes(".m3u8"))return v.src;for(const x of Object.values(v)){const h=findPlayableM3u8(x);if(h)return h}}return null}
+function findPlayableM3u8(v){if(!v)return null;if(Array.isArray(v)){for(const x of v){const h=findPlayableM3u8(x);if(h)return h}return null}if(typeof v==="object"){const typ=String(v.type||"").toLowerCase();if(!v.key_systems&&typeof v.src==="string"&&/^https?:\/\//i.test(v.src)&&(v.src.includes(".m3u8")||typ.includes("mpegurl")||typ.includes("m3u8")))return v.src;for(const x of Object.values(v)){const h=findPlayableM3u8(x);if(h)return h}}return null}
 function tverKeyName(){const d=new Date(Date.now()+9*3600000),m=d.getUTCMonth()+1,n=m%6||6;return `key0${n}`}
 async function resolveTver(ep){
   const meta=await fetchJson(`https://statics.tver.jp/content/episode/${encodeURIComponent(ep)}.json?v=5`,{headers:{referer:"https://tver.jp/"}});
