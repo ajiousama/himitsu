@@ -2,10 +2,10 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-19",
-  "generated_at": "2026-09-19T09:39:47.120372+09:00",
+  "generated_at": "2026-09-19T09:40:47.069453+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260919.json",
-  "schedule_checked_at": "2026-09-19T09:24:47.158027+09:00",
+  "schedule_checked_at": "2026-09-19T09:40:47.069453+09:00",
   "schedule_warnings": [
     "official_cards: TimeoutError"
   ],
@@ -19,7 +19,7 @@
   "alert_lead_minutes": 30,
   "card_count": 13,
   "held_count": 13,
-  "visible_count": 2,
+  "visible_count": 3,
   "active_count": 2,
   "ended_kept": [],
   "seed_required": false,
@@ -36,7 +36,7 @@
     },
     "day": {
       "held": 8,
-      "acquired": 0,
+      "acquired": 1,
       "active": 0,
       "ended": 0,
       "seed_required": 0,
@@ -53,11 +53,16 @@
   },
   "cloud_acquisition": {
     "requested": 10,
-    "fetched": 2,
+    "fetched": 3,
     "failures": [
       {
-        "jcd": "03",
-        "name": "江戸川",
+        "jcd": "02",
+        "name": "戸田",
+        "error": "HTTPError: playback check failed"
+      },
+      {
+        "jcd": "13",
+        "name": "尼崎",
         "error": "HTTPError: playback check failed"
       },
       {
@@ -66,18 +71,8 @@
         "error": "HTTPError: playback check failed"
       },
       {
-        "jcd": "02",
-        "name": "戸田",
-        "error": "HTTPError: playback check failed"
-      },
-      {
-        "jcd": "16",
-        "name": "児島",
-        "error": "HTTPError: playback check failed"
-      },
-      {
-        "jcd": "13",
-        "name": "尼崎",
+        "jcd": "03",
+        "name": "江戸川",
         "error": "HTTPError: playback check failed"
       },
       {
@@ -117,6 +112,22 @@
         "ok": true,
         "sequence": 8169084,
         "last_segment": "/c27151a50a2d48fd9486436d5bbb4ace/ff300003baee4303b514074dd6633328/manifest_1_8170091.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
+    },
+    "boat.kojima": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/31b52bc308ad4f2993c7f9c6d5cace6f/137aa8ae8a4a4e50b51cc8c4a0958f39/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTk1MjQwMCwic3RhcnQiOjE3ODk3Nzg0MDAsImlvcyI6MTgsImNwIjoiMjExOTc0MDAwXzIxMjAxNzE5OSIsInBwdyI6IjQwayJ9.p9SQLmbygh8F1Y48I4dDtdSd3OEktBbNDSK6uLblFzo",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-09-19T09:40:55.694339+09:00",
+      "checked_at": "2026-09-19T09:40:55.694339+09:00",
+      "first_verified_at": "2026-09-19T09:40:55.694339+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 8148927,
+        "last_segment": "/31b52bc308ad4f2993c7f9c6d5cace6f/137aa8ae8a4a4e50b51cc8c4a0958f39/manifest_4_8148935.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -938,7 +949,7 @@
       "jcd": "16",
       "name": "児島",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
       "active": false,
       "cancelled": false,
@@ -954,9 +965,9 @@
       "stream_window": "scheduled",
       "guidance_switch_at": "2026-09-19T17:35:00+09:00",
       "seed_required": false,
-      "playback_verified": false,
-      "first_verified_at": null,
-      "ready_before_first_race": false,
+      "playback_verified": true,
+      "first_verified_at": "2026-09-19T09:40:55.694339+09:00",
+      "ready_before_first_race": true,
       "acquire_from": "2026-09-19T08:19:00+09:00",
       "races": [
         {
@@ -1020,7 +1031,9 @@
           "name": "記者選抜戦"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/31b52bc308ad4f2993c7f9c6d5cace6f/137aa8ae8a4a4e50b51cc8c4a0958f39/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTk1MjQwMCwic3RhcnQiOjE3ODk3Nzg0MDAsImlvcyI6MTgsImNwIjoiMjExOTc0MDAwXzIxMjAxNzE5OSIsInBwdyI6IjQwayJ9.p9SQLmbygh8F1Y48I4dDtdSd3OEktBbNDSK6uLblFzo",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     },
     "boat.miyajima": {
       "jcd": "17",
