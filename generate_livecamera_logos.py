@@ -18,7 +18,7 @@ RAW = 'https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/youtube/'
 # 44-70 are intentionally written to new v4 filenames. APTV is very aggressive
 # about image caching, so changing only a query string was not enough on some devices.
 SPECS = [
-    ('youtube.maiko_villa_akashi', 'yt43_44_maiko_villa_akashi_v4.png', '舞子ビラ・明石海峡', '交通'),
+    ('youtube.maiko_villa_akashi', 'yt43_44_maiko_villa_akashi_illustration.png', '舞子ビラ・明石海峡', '交通'),
     ('youtube.tokyo_dome_city', 'yt43_45_tokyo_dome_city_v4.png', '東京ドームシティ', 'その他LIVE'),
     ('youtube.shinhotaka_ropeway', 'yt43_46_shinhotaka_ropeway_v4.png', '新穂高ロープウェイ', 'その他LIVE'),
     ('youtube.airport_okayama', 'yt43_47_airport_okayama_v4.png', '岡山空港', '空港'),
@@ -405,6 +405,9 @@ def main():
     pending = []
     for tvg, filename, title, group in SPECS:
         out = ROOT / filename
+        if filename.endswith('_illustration.png') and out.exists() and out.stat().st_size > 1_000:
+            print('keep manual illustration', out)
+            continue
         if out.exists() and out.stat().st_size > 12_000 and has_current_style(out):
             print('keep existing', out)
             continue
