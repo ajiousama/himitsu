@@ -2,10 +2,10 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-20",
-  "generated_at": "2026-09-20T08:11:54.281104+09:00",
+  "generated_at": "2026-09-20T08:13:54.590034+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260920.json",
-  "schedule_checked_at": "2026-09-20T07:58:54.326965+09:00",
+  "schedule_checked_at": "2026-09-20T08:13:54.590034+09:00",
   "schedule_warnings": [
     "official_cards: TimeoutError"
   ],
@@ -19,7 +19,7 @@
   "alert_lead_minutes": 30,
   "card_count": 14,
   "held_count": 14,
-  "visible_count": 2,
+  "visible_count": 3,
   "active_count": 2,
   "ended_kept": [],
   "seed_required": false,
@@ -28,7 +28,7 @@
   "phase_counts": {
     "morning": {
       "held": 3,
-      "acquired": 2,
+      "acquired": 3,
       "active": 2,
       "ended": 0,
       "seed_required": 0,
@@ -53,26 +53,21 @@
   },
   "cloud_acquisition": {
     "requested": 6,
-    "fetched": 2,
+    "fetched": 3,
     "failures": [
-      {
-        "jcd": "23",
-        "name": "唐津",
-        "error": "HTTPError: playback check failed"
-      },
       {
         "jcd": "17",
         "name": "宮島",
         "error": "cloud and official acquisition unavailable: HTTPError"
       },
       {
-        "jcd": "13",
-        "name": "尼崎",
+        "jcd": "05",
+        "name": "多摩川",
         "error": "cloud and official acquisition unavailable: HTTPError"
       },
       {
-        "jcd": "05",
-        "name": "多摩川",
+        "jcd": "13",
+        "name": "尼崎",
         "error": "cloud and official acquisition unavailable: HTTPError"
       }
     ]
@@ -90,13 +85,13 @@
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/2d622fa46ecc4ef081689ff1c4d7b51c/d3e910739ede46a2be544171db3b309d/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MDAzMTYwMCwic3RhcnQiOjE3ODk4NTg2MjAsImlvcyI6MTgsImNwIjoiMjEyMDU0MjIwXzIxMjA5NzQxOSIsInBwdyI6IjQwayJ9.nJgMiEPg9U0mV55II4bvVTvKlFlE5UtYt38sihLa8oM",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-09-20T07:57:54.329813+09:00",
-      "checked_at": "2026-09-20T08:07:54.642086+09:00",
+      "checked_at": "2026-09-20T08:14:02.707837+09:00",
       "first_verified_at": "2026-09-20T07:57:54.329813+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
         "sequence": 8155895,
-        "last_segment": "/2d622fa46ecc4ef081689ff1c4d7b51c/d3e910739ede46a2be544171db3b309d/manifest_4_8156003.ts",
+        "last_segment": "/2d622fa46ecc4ef081689ff1c4d7b51c/d3e910739ede46a2be544171db3b309d/manifest_4_8156065.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -113,6 +108,22 @@
         "ok": true,
         "sequence": 8183564,
         "last_segment": "/76b3743c1cd84417af8998e02360d4c7/40a2c249f36a43ffb00c6d1d90d0a561/manifest_1_8183622.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
+    },
+    "boat.karatsu": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/4db0c4c4806c4a628f337a8b8746e4a7/8afd371013e54c60b10984ec6fc52803/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MDAzNTIwMCwic3RhcnQiOjE3ODk4NTk1ODAsImlvcyI6MTgsImNwIjoiMjEyMDU1MTgwXzIxMjA5ODM3OSIsInBwdyI6IjQwayJ9.NaV3W5nuPSO6VIuwdby28XK0gTcSJVk8CiBxFnZQxPk",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-09-20T08:14:02.708601+09:00",
+      "checked_at": "2026-09-20T08:14:02.708601+09:00",
+      "first_verified_at": "2026-09-20T08:14:02.708601+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 8163891,
+        "last_segment": "/4db0c4c4806c4a628f337a8b8746e4a7/8afd371013e54c60b10984ec6fc52803/manifest_4_8163901.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -1184,7 +1195,7 @@
       "jcd": "23",
       "name": "唐津",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
       "active": false,
       "cancelled": false,
@@ -1200,9 +1211,9 @@
       "stream_window": "scheduled",
       "guidance_switch_at": "2026-09-20T15:14:00+09:00",
       "seed_required": false,
-      "playback_verified": false,
-      "first_verified_at": null,
-      "ready_before_first_race": false,
+      "playback_verified": true,
+      "first_verified_at": "2026-09-20T08:14:02.708601+09:00",
+      "ready_before_first_race": true,
       "acquire_from": "2026-09-20T06:18:00+09:00",
       "races": [
         {
@@ -1266,7 +1277,9 @@
           "name": "優勝戦"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/4db0c4c4806c4a628f337a8b8746e4a7/8afd371013e54c60b10984ec6fc52803/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MDAzNTIwMCwic3RhcnQiOjE3ODk4NTk1ODAsImlvcyI6MTgsImNwIjoiMjEyMDU1MTgwXzIxMjA5ODM3OSIsInBwdyI6IjQwayJ9.NaV3W5nuPSO6VIuwdby28XK0gTcSJVk8CiBxFnZQxPk",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     },
     "boat.omura": {
       "jcd": "24",
