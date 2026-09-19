@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-19",
-  "generated_at": "2026-09-19T10:04:46.962197+09:00",
+  "generated_at": "2026-09-19T10:05:47.069423+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260919.json",
   "schedule_checked_at": "2026-09-19T09:56:46.962238+09:00",
@@ -19,7 +19,7 @@
   "alert_lead_minutes": 30,
   "card_count": 13,
   "held_count": 13,
-  "visible_count": 6,
+  "visible_count": 7,
   "active_count": 4,
   "ended_kept": [],
   "seed_required": false,
@@ -36,7 +36,7 @@
     },
     "day": {
       "held": 8,
-      "acquired": 4,
+      "acquired": 5,
       "active": 2,
       "ended": 0,
       "seed_required": 0,
@@ -53,16 +53,11 @@
   },
   "cloud_acquisition": {
     "requested": 10,
-    "fetched": 6,
+    "fetched": 7,
     "failures": [
       {
         "jcd": "06",
         "name": "浜名湖",
-        "error": "HTTPError: playback check failed"
-      },
-      {
-        "jcd": "03",
-        "name": "江戸川",
         "error": "HTTPError: playback check failed"
       },
       {
@@ -71,8 +66,8 @@
         "error": "HTTPError: playback check failed"
       },
       {
-        "jcd": "17",
-        "name": "宮島",
+        "jcd": "03",
+        "name": "江戸川",
         "error": "HTTPError: playback check failed"
       }
     ]
@@ -90,13 +85,13 @@
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/ccfd8ec326924bdc902cb75cf4681303/cb0dc7987e974517acbe3fabd6b1341b/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTk1NjAwMCwic3RhcnQiOjE3ODk3Nzk2MDAsImlvcyI6MTgsImNwIjoiMjExOTc1MjAwXzIxMjAxODM5OSIsInBwdyI6IjQwayJ9.bfhG2Pg4JqQcIqeWDtynu0x2unYmVTzuaimEwz6ND6A",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-09-19T10:00:47.017017+09:00",
-      "checked_at": "2026-09-19T10:00:47.017017+09:00",
+      "checked_at": "2026-09-19T10:05:47.074382+09:00",
       "first_verified_at": "2026-09-19T10:00:47.017017+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
         "sequence": 8145723,
-        "last_segment": "/ccfd8ec326924bdc902cb75cf4681303/cb0dc7987e974517acbe3fabd6b1341b/manifest_1_8145730.ts",
+        "last_segment": "/ccfd8ec326924bdc902cb75cf4681303/cb0dc7987e974517acbe3fabd6b1341b/manifest_1_8145780.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -138,13 +133,13 @@
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/c27151a50a2d48fd9486436d5bbb4ace/ff300003baee4303b514074dd6633328/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTk0NTIwMCwic3RhcnQiOjE3ODk3NzIyMjAsImlvcyI6MTgsImNwIjoiMjExOTY3ODIwXzIxMjAxMTAxOSIsInBwdyI6IjQwayJ9.CAjaV_uuT4ow3S7W6MWRWDFpZB_cunoIE74GtJrTuJo",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-09-19T07:57:47.831554+09:00",
-      "checked_at": "2026-09-19T10:00:47.023536+09:00",
+      "checked_at": "2026-09-19T10:05:47.080542+09:00",
       "first_verified_at": "2026-09-19T07:57:47.831554+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
         "sequence": 8169084,
-        "last_segment": "/c27151a50a2d48fd9486436d5bbb4ace/ff300003baee4303b514074dd6633328/manifest_1_8170321.ts",
+        "last_segment": "/c27151a50a2d48fd9486436d5bbb4ace/ff300003baee4303b514074dd6633328/manifest_1_8170371.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -161,6 +156,22 @@
         "ok": true,
         "sequence": 8148927,
         "last_segment": "/31b52bc308ad4f2993c7f9c6d5cace6f/137aa8ae8a4a4e50b51cc8c4a0958f39/manifest_4_8149164.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
+    },
+    "boat.miyajima": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/ee5da8bfb5594ca8a7ad8cc09aac6d3b/361727fcf39d48fba33f2687e0330e9b/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTk1NjAwMCwic3RhcnQiOjE3ODk3Nzk5MDAsImlvcyI6MTgsImNwIjoiMjExOTc1NTAwXzIxMjAxODY5OSIsInBwdyI6IjQwayJ9.-IX8jWDRAd7597PYhMaAAZP-FC6XRTw0vwTyAXeNp3g",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-09-19T10:05:47.081362+09:00",
+      "checked_at": "2026-09-19T10:05:47.081362+09:00",
+      "first_verified_at": "2026-09-19T10:05:47.081362+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 8134283,
+        "last_segment": "/ee5da8bfb5594ca8a7ad8cc09aac6d3b/361727fcf39d48fba33f2687e0330e9b/manifest_1_8134290.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -1078,7 +1089,7 @@
       "jcd": "17",
       "name": "宮島",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
       "active": false,
       "cancelled": false,
@@ -1094,9 +1105,9 @@
       "stream_window": "scheduled",
       "guidance_switch_at": "2026-09-19T17:30:00+09:00",
       "seed_required": false,
-      "playback_verified": false,
-      "first_verified_at": null,
-      "ready_before_first_race": false,
+      "playback_verified": true,
+      "first_verified_at": "2026-09-19T10:05:47.081362+09:00",
+      "ready_before_first_race": true,
       "acquire_from": "2026-09-19T08:10:00+09:00",
       "races": [
         {
@@ -1160,7 +1171,9 @@
           "name": "プリンセス特選"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/ee5da8bfb5594ca8a7ad8cc09aac6d3b/361727fcf39d48fba33f2687e0330e9b/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc4OTk1NjAwMCwic3RhcnQiOjE3ODk3Nzk5MDAsImlvcyI6MTgsImNwIjoiMjExOTc1NTAwXzIxMjAxODY5OSIsInBwdyI6IjQwayJ9.-IX8jWDRAd7597PYhMaAAZP-FC6XRTw0vwTyAXeNp3g",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     },
     "boat.karatsu": {
       "jcd": "23",
