@@ -13,10 +13,44 @@ OUT_JSON = Path("kick_gmcx_chapters.json")
 OUT_M3U = Path("kick_gmcx_chapters.m3u")
 JST = timezone(timedelta(hours=9))
 REPLAY_BASE = "https://freewifi-media.onrender.com/kick?vod="
-# One clean VOD (#90-106) currently measures 59,517 sec / 17 = 3,501 sec.
-# Use this only to propose AI search windows for irregular/SP-mixed VODs.
+# Clean archive #90-106 is 59,517 sec / 17 = 3,501 sec per regular episode.
 REFERENCE_EPISODE_SECONDS = 3501
 AI_WINDOW_SECONDS = 600
+
+# Known mixed archive bundles. Regular episodes are first, then the listed special(s).
+# A final special with duration_seconds=None consumes the remainder so no footage is lost.
+KNOWN_SPECIALS: dict[tuple[int, int], list[dict]] = {
+    (107, 116): [
+        {
+            "key": "2010-oomisoka-gccx",
+            "title": "GMCX 大みそかだよ! 有野課長! ～8年間の軌跡…今夜はコントローラーを握らない!?～",
+            "duration_seconds": 18000,
+            "expected_broadcast_seconds": 18000,
+        },
+        {
+            "key": "2010-yoi-matsuri",
+            "title": "よゐこの企画案 年越しスペシャル",
+            "duration_seconds": None,
+            "expected_broadcast_seconds": 25200,
+        },
+    ],
+    (117, 130): [
+        {
+            "key": "2011-usa",
+            "title": "GMCX in U.S.A. ～有野課長ロサンゼルスへ行く～",
+            "duration_seconds": None,
+            "expected_broadcast_seconds": 7200,
+        },
+    ],
+    (131, 136): [
+        {
+            "key": "2012-last30s-live",
+            "title": "GMCX 有野30代最後の生挑戦",
+            "duration_seconds": None,
+            "expected_broadcast_seconds": 43200,
+        },
+    ],
+}
 
 RANGE_RE = re.compile(r"[＃#]\s*(\d+)\s*[-‐‑‒–—―〜~～]\s*(\d+)")
 
@@ -48,6 +82,10 @@ def build_ai_windows(start_ep: int, end_ep: int, duration: int) -> list[dict]:
     return windows
 
 
+def clip_url(vod_id: str, start: int, duration: int) -> str:
+    return f"{REPLAY_BASE}{urllib.parse.quote(vod_id)}&start={start}&duration={duration}"
+
+
 def make_uniform_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict[str, str]) -> list[dict]:
     count = end_ep - start_ep + 1
     duration = int(vod.get("duration_seconds") or 0)
@@ -61,14 +99,82 @@ def make_uniform_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict[st
         clip_duration = max(0, stop - start)
         title = titles.get(str(ep), f"第{ep}回")
         chapters.append({
+            "kind": "episode",
             "episode": ep,
             "title": title,
             "start_seconds": start,
             "stop_seconds": stop,
             "duration_seconds": clip_duration,
-            "replay_url": f"{REPLAY_BASE}{urllib.parse.quote(str(vod.get('vod_id')))}&start={start}&duration={clip_duration}",
+            "replay_url": clip_url(str(vod.get("vod_id")), start, clip_duration),
             "method": "uniform-from-clean-vod",
             "confidence": "high" if abs(unit - REFERENCE_EPISODE_SECONDS) <= 120 else "medium",
+        })
+    return chapters
+
+
+def make_mixed_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict[str, str]) -> list[dict]:
+    count = end_ep - start_ep + 1
+    duration = int(vod.get("duration_seconds") or 0)
+    regular_total = count * REFERENCE_EPISODE_SECONDS
+    if duration < regular_total:
+        return []
+
+    vod_id = str(vod.get("vod_id"))
+    chapters = []
+    for index, ep in enumerate(range(start_ep, end_ep + 1)):
+        start = index * REFERENCE_EPISODE_SECONDS
+        stop = min(duration, start + REFERENCE_EPISODE_SECONDS)
+        clip_duration = max(0, stop - start)
+        chapters.append({
+            "kind": "episode",
+            "episode": ep,
+            "title": titles.get(str(ep), f"第{ep}回"),
+            "start_seconds": start,
+            "stop_seconds": stop,
+            "duration_seconds": clip_duration,
+            "replay_url": clip_url(vod_id, start, clip_duration),
+            "method": "reference-episode-cadence",
+            "confidence": "high",
+        })
+
+    cursor = regular_total
+    for spec in KNOWN_SPECIALS.get((start_ep, end_ep), []):
+        if cursor >= duration:
+            break
+        requested = spec.get("duration_seconds")
+        if requested is None:
+            stop = duration
+        else:
+            stop = min(duration, cursor + int(requested))
+        clip_duration = max(0, stop - cursor)
+        if clip_duration <= 0:
+            continue
+        chapters.append({
+            "kind": "special",
+            "special_key": spec["key"],
+            "title": spec["title"],
+            "start_seconds": cursor,
+            "stop_seconds": stop,
+            "duration_seconds": clip_duration,
+            "expected_broadcast_seconds": spec.get("expected_broadcast_seconds"),
+            "replay_url": clip_url(vod_id, cursor, clip_duration),
+            "method": "known-program-order",
+            "confidence": "high" if requested is not None else "medium",
+        })
+        cursor = stop
+
+    if cursor < duration:
+        clip_duration = duration - cursor
+        chapters.append({
+            "kind": "special",
+            "special_key": f"{start_ep}-{end_ep}-tail",
+            "title": "GMCX 追加映像",
+            "start_seconds": cursor,
+            "stop_seconds": duration,
+            "duration_seconds": clip_duration,
+            "replay_url": clip_url(vod_id, cursor, clip_duration),
+            "method": "unclassified-tail",
+            "confidence": "low",
         })
     return chapters
 
@@ -81,13 +187,13 @@ def main() -> int:
     results = []
     all_chapters = []
     for vod in vods:
-        title = str(vod.get("title") or "")
-        parsed = parse_range(title)
+        source_title = str(vod.get("title") or "")
+        parsed = parse_range(source_title)
         duration = int(vod.get("duration_seconds") or 0)
         if not parsed:
             results.append({
                 "vod_id": vod.get("vod_id"),
-                "title": title,
+                "title": source_title,
                 "status": "range_unknown",
                 "chapters": [],
             })
@@ -98,6 +204,7 @@ def main() -> int:
         average = (duration / count) if duration > 0 else 0
         clean_range_only = not tail
         plausible_hour_blocks = 2700 <= average <= 4500 if average else False
+        known_mixed = (start_ep, end_ep) in KNOWN_SPECIALS
 
         if duration <= 0:
             status = "waiting_live_end"
@@ -105,17 +212,29 @@ def main() -> int:
         elif not vod.get("ready_for_publish"):
             status = "source_unavailable"
             chapters = []
+        elif known_mixed:
+            chapters = make_mixed_chapters(vod, start_ep, end_ep, titles)
+            status = "ready" if chapters else "ai_required"
         elif clean_range_only and plausible_hour_blocks:
             status = "ready"
             chapters = make_uniform_chapters(vod, start_ep, end_ep, titles)
-            all_chapters.extend([{**c, "vod_id": vod.get("vod_id"), "source_title": title} for c in chapters])
         else:
             status = "ai_required"
             chapters = []
 
+        all_chapters.extend([
+            {
+                **chapter,
+                "vod_id": vod.get("vod_id"),
+                "source_title": source_title,
+                "range_start": start_ep,
+            }
+            for chapter in chapters
+        ])
+
         results.append({
             "vod_id": vod.get("vod_id"),
-            "source_title": title,
+            "source_title": source_title,
             "episode_start": start_ep,
             "episode_end": end_ep,
             "episode_count": count,
@@ -144,12 +263,19 @@ def main() -> int:
     OUT_JSON.write_text(json.dumps(out, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
     lines = ["#EXTM3U"]
-    for item in sorted(all_chapters, key=lambda x: (str(x.get("vod_id")), int(x.get("episode") or 0))):
-        ep = int(item["episode"])
-        label = f"📼 GMCX #{ep} {item['title']}"
+    ordered = sorted(all_chapters, key=lambda x: (int(x.get("range_start") or 9999), int(x.get("start_seconds") or 0)))
+    for item in ordered:
+        if item.get("kind") == "special":
+            key = re.sub(r"[^a-zA-Z0-9._-]+", "-", str(item.get("special_key") or "special")).strip("-")
+            tvg_id = f"kick.gmcx.special.{key}"
+            label = f"📼 {item['title']}"
+        else:
+            ep = int(item["episode"])
+            tvg_id = f"kick.gmcx.chapter.{ep}"
+            label = f"📼 GMCX #{ep} {item['title']}"
         lines.append(
             '#EXTINF:-1 group-title="GMCX Replay" '
-            f'tvg-id="kick.gmcx.chapter.{ep}" tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/kick_gccx2.svg",{label}'
+            f'tvg-id="{tvg_id}" tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/kick_gccx2.svg",{label}'
         )
         lines.append(item["replay_url"])
     OUT_M3U.write_text("\n".join(lines) + "\n", encoding="utf-8")
