@@ -2,10 +2,10 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-20",
-  "generated_at": "2026-09-20T08:43:54.388470+09:00",
+  "generated_at": "2026-09-20T08:44:54.390257+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260920.json",
-  "schedule_checked_at": "2026-09-20T08:29:54.283381+09:00",
+  "schedule_checked_at": "2026-09-20T08:44:54.390257+09:00",
   "schedule_warnings": [
     "official_cards: TimeoutError"
   ],
@@ -52,7 +52,7 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 8,
+    "requested": 9,
     "fetched": 3,
     "failures": [
       {
@@ -61,13 +61,13 @@
         "error": "HTTPError: playback check failed"
       },
       {
-        "jcd": "17",
-        "name": "宮島",
+        "jcd": "02",
+        "name": "戸田",
         "error": "cloud and official acquisition unavailable: HTTPError"
       },
       {
-        "jcd": "02",
-        "name": "戸田",
+        "jcd": "17",
+        "name": "宮島",
         "error": "cloud and official acquisition unavailable: HTTPError"
       },
       {
@@ -78,6 +78,11 @@
       {
         "jcd": "05",
         "name": "多摩川",
+        "error": "cloud and official acquisition unavailable: HTTPError"
+      },
+      {
+        "jcd": "03",
+        "name": "江戸川",
         "error": "cloud and official acquisition unavailable: HTTPError"
       }
     ]
@@ -111,13 +116,13 @@
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/76b3743c1cd84417af8998e02360d4c7/40a2c249f36a43ffb00c6d1d90d0a561/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MDAzNTIwMCwic3RhcnQiOjE3ODk4NTkxMDAsImlvcyI6MTgsImNwIjoiMjEyMDU0NzAwXzIxMjA5Nzg5OSIsInBwdyI6IjQwayJ9.0jAN5Vs-Eo5Rxbgu_sMbsylzXNOZ8sUUuaWTOk4hzvM",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-09-20T08:05:54.390584+09:00",
-      "checked_at": "2026-09-20T08:38:54.393186+09:00",
+      "checked_at": "2026-09-20T08:45:02.517207+09:00",
       "first_verified_at": "2026-09-20T08:05:54.390584+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
         "sequence": 8183564,
-        "last_segment": "/76b3743c1cd84417af8998e02360d4c7/40a2c249f36a43ffb00c6d1d90d0a561/manifest_1_8183902.ts",
+        "last_segment": "/76b3743c1cd84417af8998e02360d4c7/40a2c249f36a43ffb00c6d1d90d0a561/manifest_1_8183963.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
