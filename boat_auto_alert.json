@@ -1,7 +1,7 @@
 {
   "system": "boat-auto-v3",
   "date": "2026-09-20",
-  "checked_at": "2026-09-20T07:12:46.903095+09:00",
+  "checked_at": "2026-09-20T07:13:46.799011+09:00",
   "active": false,
   "kind": "healthy",
   "title": "BOAT自動更新 正常",
@@ -9,6 +9,11 @@
   "seed_required_venues": [],
   "system_errors": [],
   "cloud_failures": [
+    {
+      "jcd": "23",
+      "name": "唐津",
+      "error": "HTTPError: playback check failed"
+    },
     {
       "jcd": "10",
       "name": "三国",
@@ -18,11 +23,6 @@
       "jcd": "14",
       "name": "鳴門",
       "error": "HTTPError: playback check failed"
-    },
-    {
-      "jcd": "23",
-      "name": "唐津",
-      "error": "cloud and official acquisition unavailable: HTTPError"
     }
   ],
   "recovery": "automatic retry; no manual SEED dependency"
