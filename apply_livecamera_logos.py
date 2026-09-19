@@ -80,11 +80,11 @@ CANONICAL = {
     'youtube.ehime_hashihama_port': 'yt43_63_ehime_hashihama_port_illustration.png',
     'youtube.ehime_misaki_port': 'yt43_64_ehime_misaki_port_illustration.png',
     'youtube.ehime_misho_port': 'yt43_65_ehime_misho_port_illustration.png',
-    'youtube.ehime_kuma_skiland': 'yt43_66_ehime_kuma_skiland_v4.png',
-    'youtube.ehime_saragamine': 'yt43_67_ehime_saragamine_v4.png',
-    'youtube.ehime_omogo_ishizuchi': 'yt43_68_ehime_omogo_ishizuchi_v4.png',
-    'youtube.ehime_ainan_ebc': 'yt43_69_ehime_ainan_ebc_v4.png',
-    'youtube.ehime_dogo_honkan': 'yt43_70_ehime_dogo_honkan_v4.png',
+    'youtube.ehime_kuma_skiland': 'yt43_66_ehime_kuma_skiland_illustration.png',
+    'youtube.ehime_saragamine': 'yt43_67_ehime_saragamine_illustration.png',
+    'youtube.ehime_omogo_ishizuchi': 'yt43_68_ehime_omogo_ishizuchi_illustration.png',
+    'youtube.ehime_ainan_ebc': 'yt43_69_ehime_ainan_ebc_illustration.png',
+    'youtube.ehime_dogo_honkan': 'yt43_70_ehime_dogo_honkan_illustration.png',
 }
 
 
