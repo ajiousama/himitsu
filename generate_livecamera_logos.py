@@ -45,6 +45,10 @@ SPECS = [
     ('youtube.ehime_omogo_ishizuchi', 'yt43_68_ehime_omogo_ishizuchi_v4.png', '面河・石鎚山系', '愛媛県内ライブカメラ'),
     ('youtube.ehime_ainan_ebc', 'yt43_69_ehime_ainan_ebc_v4.png', '愛南町・御荘湾', '愛媛県内ライブカメラ'),
     ('youtube.ehime_dogo_honkan', 'yt43_70_ehime_dogo_honkan_v4.png', '道後温泉本館', '愛媛県内ライブカメラ'),
+    ('youtube.fushimi_inari', 'yt43_71_fushimi_inari_v4.png', '伏見稲荷大社', 'その他LIVE'),
+    ('youtube.daigoji', 'yt43_72_daigoji_v4.png', '醍醐寺', 'その他LIVE'),
+    ('youtube.oharano_jinja', 'yt43_73_oharano_jinja_v4.png', '大原野神社', 'その他LIVE'),
+    ('youtube.arashiyama_monkeypark', 'yt43_74_arashiyama_monkeypark_v4.png', '嵐山モンキーパーク', '動物'),
 ]
 
 SOURCE_FILES = [
