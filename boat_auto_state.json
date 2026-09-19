@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-20",
-  "generated_at": "2026-09-20T07:59:54.328109+09:00",
+  "generated_at": "2026-09-20T08:00:54.428512+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260920.json",
   "schedule_checked_at": "2026-09-20T07:58:54.326965+09:00",
@@ -52,18 +52,23 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 3,
+    "requested": 4,
     "fetched": 1,
     "failures": [
+      {
+        "jcd": "14",
+        "name": "鳴門",
+        "error": "HTTPError: playback check failed"
+      },
       {
         "jcd": "23",
         "name": "唐津",
         "error": "HTTPError: playback check failed"
       },
       {
-        "jcd": "14",
-        "name": "鳴門",
-        "error": "HTTPError: playback check failed"
+        "jcd": "05",
+        "name": "多摩川",
+        "error": "cloud and official acquisition unavailable: HTTPError"
       }
     ]
   },
