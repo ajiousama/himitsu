@@ -75,9 +75,11 @@ def add_entry(out, tvg_id, logo, name, source, url):
     ])
 
 
-def add_three(out, tvg_id, logo, name, stream_no, blog_slug, cid):
+def add_three(out, tvg_id, logo, name, stream_no, blog_slug, cid, hd_cid=None):
     add_entry(out, tvg_id, logo, name, "haruka(9394)", f"{HARUKA_BASE}/{stream_no}.m3u8")
     add_entry(out, tvg_id, logo, name, "blog", f"{BLOG_BASE}/{blog_slug}/stream-output.m3u8?mode=hls")
+    if hd_cid:
+        add_entry(out, tvg_id, logo, name, "primehomeHD", f"{PRIME_BASE}?cid={hd_cid}&{PRIME_QUERY}")
     add_entry(out, tvg_id, logo, name, "primehome", f"{PRIME_BASE}?cid={cid}&{PRIME_QUERY}")
 
 
@@ -131,38 +133,38 @@ def main() -> None:
         out.extend([set_group(inf, "地上波"), url, ""])
 
     # 1) NHK: Tokyo x3 -> Osaka x3 -> Kyoto -> E x3
-    add_three(out, "NHK東京・総合_jp", LOGOS["nhk"], "NHK東京・総合", 14, "nhk_g", "gd01")
+    add_three(out, "NHK東京・総合_jp", LOGOS["nhk"], "NHK東京・総合", 14, "nhk_g", "gd01", "hdgd01")
     add_three(out, "NHK大阪・総合_jp", LOGOS["nhk"], "NHK大阪・総合", 25, "nhk_g_osaka", "gx06")
     add_entry(out, "NHK京都・総合_jp", LOGOS["nhk"], "NHK京都・総合", "haruka(9394)", f"{HARUKA_BASE}/321.m3u8")
     add_three(out, "NHK東京・教育_jp", LOGOS["nhke"], "NHK教育", 3, "nhk_e", "gd02")
 
     # 2) TBS -> TVer -> MBS
-    add_three(out, "TBS_jp", LOGOS["tbs"], "TBS", 5, "tbs", "gd04")
+    add_three(out, "TBS_jp", LOGOS["tbs"], "TBS", 5, "tbs", "gd04", "hdgd04")
     add_tver("Tver TBS系")
     add_three(out, "毎日テレビ_jp", LOGOS["mbs"], "MBS毎日放送", 18, "mbs", "gx01")
 
     # 3) TV Asahi -> TVer -> ABC
-    add_three(out, "テレビ朝日_jp", LOGOS["ex"], "テレビ朝日", 7, "tv_asahi", "gd06")
+    add_three(out, "テレビ朝日_jp", LOGOS["ex"], "テレビ朝日", 7, "tv_asahi", "gd06", "hdgd06")
     add_tver("Tver テレ朝系")
     add_three(out, "ABCテレビ_jp", LOGOS["abc"], "ABCテレビ", 28, "abc", "gx02")
 
     # 4) TV Tokyo -> TVer -> TV Osaka
-    add_three(out, "テレ東_jp", LOGOS["tx"], "テレビ東京", 8, "tv_tokyo", "gd07")
+    add_three(out, "テレ東_jp", LOGOS["tx"], "テレビ東京", 8, "tv_tokyo", "gd07", "hdgd07")
     add_tver("Tver テレ東系")
     add_three(out, "テレビ大阪_jp", LOGOS["tvo"], "テレビ大阪", 22, "tv_osaka", "gx05")
 
     # 5) Fuji -> TVer -> Kansai TV
-    add_three(out, "フジテレビ_jp", LOGOS["cx"], "フジテレビ", 12, "fuji_tv", "gd05")
+    add_three(out, "フジテレビ_jp", LOGOS["cx"], "フジテレビ", 12, "fuji_tv", "gd05", "hdgd05")
     add_tver("Tver フジ系")
     add_three(out, "関西テレビ_jp", LOGOS["ktv"], "関西テレビ", 20, "kansai_tv", "gx03")
 
     # 6) NTV -> TVer -> YTV
-    add_three(out, "日本テレビ_jp", LOGOS["ntv"], "日本テレビ", 4, "ntv", "gd03")
+    add_three(out, "日本テレビ_jp", LOGOS["ntv"], "日本テレビ", 4, "ntv", "gd03", "hdgd03")
     add_tver("Tver 日テレ系")
     add_three(out, "読売テレビ_jp", LOGOS["ytv"], "読売テレビ", 21, "ytv", "gx04")
 
     # 7) MX1 x3 -> MX2 -> SUN x3 -> KBS Kyoto
-    add_three(out, "TOKYO・MX_jp", LOGOS["mx"], "TOKYO MX1", 17, "tokyo_mx1", "gd08")
+    add_three(out, "TOKYO・MX_jp", LOGOS["mx"], "TOKYO MX1", 17, "tokyo_mx1", "gd08", "hdgd08")
     add_entry(out, "TOKYO・MX2_jp", LOGOS["mx2"], "TOKYO MX2", "blog", f"{BLOG_BASE}/tokyo_mx2/stream-output.m3u8?mode=hls")
     add_three(out, "サンテレビ_jp", LOGOS["sun"], "サンテレビ", 23, "sun", "gx07")
     add_entry(out, "KBS京都_jp", LOGOS["kbs"], "KBS京都", "haruka(9394)", f"{HARUKA_BASE}/116.m3u8")
