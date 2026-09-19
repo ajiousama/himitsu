@@ -59,7 +59,7 @@ CANONICAL = {
     'youtube.osaka_loop': 'yt43_42_osaka_loop.png',
     'youtube.nomura_dam': 'yt43_43_nomura_dam.png',
     'youtube.maiko_villa_akashi': 'yt43_44_maiko_villa_akashi_illustration.png',
-    'youtube.tokyo_dome_city': 'yt43_45_tokyo_dome_city_v4.png',
+    'youtube.tokyo_dome_city': 'yt43_45_tokyo_dome_city_illustration.png',
     'youtube.shinhotaka_ropeway': 'yt43_46_shinhotaka_ropeway_v4.png',
     'youtube.airport_okayama': 'yt43_47_airport_okayama_v4.png',
     'youtube.airport_hiroshima': 'yt43_48_airport_hiroshima_v4.png',
