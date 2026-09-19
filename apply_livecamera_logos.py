@@ -58,7 +58,7 @@ CANONICAL = {
     'youtube.kobe_waterfront2': 'yt43_41_kobe_waterfront2.png',
     'youtube.osaka_loop': 'yt43_42_osaka_loop.png',
     'youtube.nomura_dam': 'yt43_43_nomura_dam.png',
-    'youtube.maiko_villa_akashi': 'yt43_44_maiko_villa_akashi_v4.png',
+    'youtube.maiko_villa_akashi': 'yt43_44_maiko_villa_akashi_illustration.png',
     'youtube.tokyo_dome_city': 'yt43_45_tokyo_dome_city_v4.png',
     'youtube.shinhotaka_ropeway': 'yt43_46_shinhotaka_ropeway_v4.png',
     'youtube.airport_okayama': 'yt43_47_airport_okayama_v4.png',
@@ -92,7 +92,8 @@ def logo_url(filename):
     url = RAW + filename
     m = re.match(r'yt43_(\d+)_', filename)
     if m and int(m.group(1)) >= 44:
-        url += '?v=' + CACHE_REV
+        rev = '20260919-illustration-v1' if 'illustration' in filename else CACHE_REV
+        url += '?v=' + rev
     return url
 
 
