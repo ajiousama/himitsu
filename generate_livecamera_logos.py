@@ -205,7 +205,27 @@ def main():
     a=items(); mp={}; used=set()
     for seq,x in enumerate(a,1):
         current=str(x.get('logo') or '')
-        m=re.search(r'/logos/youtube/(yt_(\\d{2})_[^/]+\\.png)$',current)
+        m=re.search(r'/logos/youtube/(yt_(\d{2})_[^/]+\.png)
+        if m:
+            f=m.group(1); n=int(m.group(2))
+        else:
+            n=seq
+            while n in used:
+                n+=1
+            f=fname(n,x['id'])
+        if n in used:
+            raise RuntimeError(f'duplicate YouTube logo number {n:02d}: {x["id"]}')
+        used.add(n)
+        mp[x['id']]=f
+        render(n,x,f)
+    patch_sources(mp)
+    for p in PL:
+        patch_playlist(p,mp)
+    cleanup(set(mp.values()))
+    print('canonical YouTube logos',len(mp))
+if __name__=='__main__':
+    main()
+,current)
         if m:
             f=m.group(1); n=int(m.group(2))
         else:

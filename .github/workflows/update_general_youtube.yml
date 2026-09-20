@@ -31,7 +31,7 @@ concurrency:
 jobs:
   update:
     runs-on: ubuntu-latest
-    timeout-minutes: 18
+    timeout-minutes: 24
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -111,7 +111,7 @@ jobs:
       - name: Refresh general YouTube LIVE
         shell: bash
         run: |
-          if ! timeout 12m python general_youtube_update.py; then
+          if ! timeout 16m python general_youtube_update.py; then
             echo '::warning::YouTube refresh failed or timed out'
           fi
 
@@ -180,18 +180,23 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
 
           snapshot="$(mktemp -d)"
-          for f in general_youtube_sources.json general_youtube_sources_ports.json general_youtube_sources_airports.json general_youtube.m3u public_sports_youtube_fallback.m3u logos/youtube/yt_72_muko_rail.png; do
+          for f in general_youtube_sources.json general_youtube_sources_ports.json general_youtube_sources_airports.json general_youtube.m3u public_sports_youtube_fallback.m3u; do
             [ ! -f "$f" ] || cp "$f" "$snapshot/$f"
           done
+          mkdir -p "$snapshot/logos"
+          cp -a logos/youtube "$snapshot/logos/"
 
           for attempt in 1 2 3 4 5; do
             echo "YouTube overlay publish attempt $attempt/5"
             git fetch origin main
             git reset --hard origin/main
 
-            for f in general_youtube_sources.json general_youtube_sources_ports.json general_youtube_sources_airports.json general_youtube.m3u public_sports_youtube_fallback.m3u logos/youtube/yt_72_muko_rail.png; do
+            for f in general_youtube_sources.json general_youtube_sources_ports.json general_youtube_sources_airports.json general_youtube.m3u public_sports_youtube_fallback.m3u; do
               [ ! -f "$snapshot/$f" ] || cp "$snapshot/$f" "$f"
             done
+            rm -rf logos/youtube
+            mkdir -p logos
+            cp -a "$snapshot/logos/youtube" logos/
 
             python - <<'PY'
           from pathlib import Path
@@ -221,7 +226,8 @@ jobs:
             test "$(grep -c 'tvg-id="youtube.kana_tube"' general_youtube.m3u || true)" -eq 0
             python -c 'import kana_tube_update as k; k.validate_outputs()'
 
-            git add general_youtube_sources.json general_youtube_sources_ports.json general_youtube_sources_airports.json general_youtube.m3u public_sports_youtube_fallback.m3u freewifi kana_tube.m3u kana_tube_status.json logos/youtube/yt_72_muko_rail.png
+            git add general_youtube_sources.json general_youtube_sources_ports.json general_youtube_sources_airports.json general_youtube.m3u public_sports_youtube_fallback.m3u freewifi kana_tube.m3u kana_tube_status.json
+            git add -A logos/youtube
             if git diff --cached --quiet; then
               echo 'YouTube-managed state already current'
               rm -f youtube_cookies.txt

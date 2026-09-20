@@ -13,7 +13,7 @@ END='# === GENERAL_YOUTUBE_MANAGED_END ==='
 SKIP_IDS={'youtube.kobe_waterfront2','youtube.narita_t1','jra.official','youtube.kana_tube'}
 CMD_TIMEOUT=22
 SEARCH_TIMEOUT=18
-MAX_WORKERS=2
+MAX_WORKERS=3
 MIN_CALL_INTERVAL=1.25
 JST=ZoneInfo('Asia/Tokyo')
 SERIOUS_CODES={'RATE_LIMIT','BOT_CHECK','COOKIE_ERROR'}
