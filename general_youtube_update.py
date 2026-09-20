@@ -138,7 +138,10 @@ def search_live(query, count=6):
             continue
         else:
             unknown.append(vid)
-    candidates=live + unknown[:2]
+    # Unknown-status search hits are expensive to probe and are the main cause of
+    # full refreshes overrunning the workflow window. Prefer confirmed LIVE hits;
+    # probe at most one unknown result as a compatibility fallback.
+    candidates=live[:2] + ([] if live else unknown[:1])
     if not candidates:
         return None,('NOT_LIVE','検索結果に現在LIVEの候補なし')
     reasons=[]
