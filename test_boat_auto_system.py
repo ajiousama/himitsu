@@ -48,6 +48,36 @@ class BoatAutoSystemTests(unittest.TestCase):
         self.assertEqual(len(rows), 1)
         self.assertEqual(phases["morning"]["ended"], 1)
 
+    def test_schedule_change_keeps_existing_stream_visible(self):
+        day = date(2026, 9, 21)
+        races = card(day, 10, 47)
+        now = datetime(2026, 9, 21, 8, 30, tzinfo=boat.JST)
+        url = fake_stream(day)
+        venues, rows, phases = boat.build_venue_state(
+            {"02": races},
+            {"boat.toda": {"url": url, "source": "test", "playback_verified": True}},
+            now,
+            {"02"},
+        )
+        item = venues["boat.toda"]
+        self.assertTrue(item["cancelled"])
+        self.assertTrue(item["visible"])
+        self.assertFalse(item["active"])
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(phases["day"]["cancelled"], 1)
+
+    def test_schedule_change_epg_uses_generic_guidance(self):
+        day = date(2026, 9, 21)
+        races = card(day, 11, 14)
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "epg.xml"
+            count = boat.overlay_epg_file(path, {"03": races}, day, {"03"})
+            root = ET.parse(path).getroot()
+            programmes = [p for p in root.findall("programme") if p.get("channel") == "boat.edogawa"]
+            self.assertEqual(count, 1)
+            self.assertEqual(programmes[0].findtext("title"), "本日の開催予定に変更があります")
+            self.assertIn("中止・順延・延期", programmes[0].findtext("desc") or "")
+
     def test_seed_alert_starts_only_when_venue_is_due(self):
         day = date(2026, 9, 8)
         races = card(day, 15, 0)
