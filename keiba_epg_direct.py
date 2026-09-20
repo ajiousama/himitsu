@@ -134,7 +134,8 @@ def main():
     today = now.date()
     venues = load_verified_venues(today)
     if not venues:
-        raise SystemExit('No verified local horse racing venues for today')
+        print('NAR DIRECT: no verified local horse racing venues today; nothing to repair')
+        return 0
 
     tree = ET.parse(GUIDES)
     root = tree.getroot()
