@@ -11,9 +11,9 @@ COOKIES=Path('youtube_cookies.txt')
 START='# === GENERAL_YOUTUBE_MANAGED_START ==='
 END='# === GENERAL_YOUTUBE_MANAGED_END ==='
 SKIP_IDS={'youtube.kobe_waterfront2','youtube.narita_t1','jra.official','youtube.kana_tube'}
-CMD_TIMEOUT=22
-SEARCH_TIMEOUT=18
-MAX_WORKERS=3
+CMD_TIMEOUT=16
+SEARCH_TIMEOUT=14
+MAX_WORKERS=4
 MIN_CALL_INTERVAL=1.25
 JST=ZoneInfo('Asia/Tokyo')
 SERIOUS_CODES={'RATE_LIMIT','BOT_CHECK','COOKIE_ERROR'}
@@ -71,20 +71,14 @@ def short_error(stderr):
 
 
 def direct_url(page):
-    last_reason=None
-    for sel in ['best[protocol^=m3u8]','best']:
-        try:
-            p=run(base_cmd()+['--extractor-args','youtube:player_client=default,web_safari,web','--no-playlist','--match-filter','is_live','-f',sel,'-g',page],CMD_TIMEOUT)
-        except subprocess.TimeoutExpired:
-            last_reason=('TIMEOUT','direct URL timeout'); continue
-        urls=[x.strip() for x in p.stdout.splitlines() if x.strip().startswith(('http://','https://'))]
-        if p.returncode==0 and len(urls)==1:
-            return urls[0],None
-        last_reason=(classify_error(p.stderr),short_error(p.stderr))
-        if last_reason[0] in SERIOUS_CODES:
-            break
-    return None,last_reason or ('OTHER','direct URL取得失敗')
-
+    try:
+        p=run(base_cmd()+['--extractor-args','youtube:player_client=default,web_safari,web','--no-playlist','--match-filter','is_live','-f','best[protocol^=m3u8]/best','-g',page],CMD_TIMEOUT)
+    except subprocess.TimeoutExpired:
+        return None,('TIMEOUT','direct URL timeout')
+    urls=[x.strip() for x in p.stdout.splitlines() if x.strip().startswith(('http://','https://'))]
+    if p.returncode==0 and len(urls)==1:
+        return urls[0],None
+    return None,(classify_error(p.stderr),short_error(p.stderr))
 
 def channel_live(page, scan=20, live_only=False):
     if not page or '/@' not in page:
@@ -131,12 +125,24 @@ def search_live(query, count=6):
         return None,('TIMEOUT','search timeout')
     if p.returncode!=0:
         return None,(classify_error(p.stderr),short_error(p.stderr))
-    reasons=[]
+    live=[]; unknown=[]
     for line in p.stdout.splitlines():
         try: item=json.loads(line)
         except Exception: continue
         vid=item.get('id')
         if not vid: continue
+        status=(item.get('live_status') or '').lower()
+        if status=='is_live':
+            live.append(vid)
+        elif status in {'not_live','was_live','post_live','is_upcoming'}:
+            continue
+        else:
+            unknown.append(vid)
+    candidates=live + unknown[:2]
+    if not candidates:
+        return None,('NOT_LIVE','検索結果に現在LIVEの候補なし')
+    reasons=[]
+    for vid in candidates:
         url,reason=direct_url('https://www.youtube.com/watch?v='+vid)
         if url: return url,None
         if reason:
@@ -144,12 +150,11 @@ def search_live(query, count=6):
             if reason[0] in SERIOUS_CODES:
                 return None,reason
     if not reasons:
-        return None,('SEARCH_EMPTY','検索結果なし')
+        return None,('NOT_LIVE','LIVE URL取得なし')
     for code in ['RATE_LIMIT','BOT_CHECK','COOKIE_ERROR','TIMEOUT','NOT_STARTED','NOT_LIVE','PRIVATE','UNAVAILABLE','UNSUPPORTED','OTHER']:
         for r in reasons:
             if r[0]==code: return None,r
     return None,reasons[0]
-
 
 def existing_logos():
     logos={}
