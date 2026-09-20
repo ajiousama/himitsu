@@ -1,7 +1,7 @@
 const channels = require("../kick_channels.json");
 
 const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/140 Safari/537.36";
-const RESOLVER_VERSION = "2026-09-20-kick-live-vod-v5-vercel-clips";
+const RESOLVER_VERSION = "2026-09-21-kick-live-vod-v6-gccx2";
 
 function norm(s) {
   return String(s || "").toLowerCase().replace(/[^a-z0-9\u3040-\u30ff\u3400-\u9fff]+/g, "");
