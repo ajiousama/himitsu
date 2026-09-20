@@ -455,7 +455,8 @@ def refresh_cloud_streams(cards: dict[str, list[dict]], streams: dict[str, dict]
             else:
                 failures.append({"jcd": jcd, "name": name, "error": error})
                 print(f"BOAT AUTO {name}: cloud SEED pending: {error}")
-    failures.sort(key=lambda item: (str(item.get("jcd") or ""), str(item.get("error") or "")))\n    return {"requested": len(cards), "fetched": fetched, "failures": failures}
+    failures.sort(key=lambda item: (str(item.get("jcd") or ""), str(item.get("error") or "")))
+    return {"requested": len(cards), "fetched": fetched, "failures": failures}
 
 
 def mode_for(races: list[dict]) -> str:
