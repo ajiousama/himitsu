@@ -72,7 +72,10 @@ def is_synthetic(programme: ET.Element) -> bool:
 
 
 def is_public_sport(cid: str, group: str) -> bool:
-    return cid.startswith(PUBLIC_SPORT_PREFIXES) or group == "今日の開催場"
+    # "今日の開催場" is a presentation group, not a sport classifier.
+    # Kana Tube can intentionally appear there, so strict race-EPG auditing
+    # must be based on the stable public-sports tvg-id prefixes only.
+    return cid.startswith(PUBLIC_SPORT_PREFIXES)
 
 
 def main() -> int:
