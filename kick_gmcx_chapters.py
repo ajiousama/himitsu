@@ -275,7 +275,7 @@ def main() -> int:
             label = f"📼 GMCX #{ep} {item['title']}"
         lines.append(
             '#EXTINF:-1 group-title="GMCX Replay" '
-            f'tvg-id="{tvg_id}" tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/kick_gccx2.svg",{label}'
+            f'tvg-id="{tvg_id}" tvg-logo="https://pbs.twimg.com/profile_images/826592912389451777/PnXfhxJD_400x400.jpg",{label}'
         )
         lines.append(item["replay_url"])
     OUT_M3U.write_text("\n".join(lines) + "\n", encoding="utf-8")
