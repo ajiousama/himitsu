@@ -522,9 +522,13 @@ def main():
     for path, item in rows:
         cid = str(item.get("id") or "").strip()
         number, filename = mapping[cid]
-        render_logo(number, item, filename)
+        target = ROOT / filename
+        if cid == "youtube.kana_tube" and target.exists() and target.stat().st_size > 10000:
+            print(f"keep adopted Kana Tube logo: {target}")
+        else:
+            render_logo(number, item, filename)
+            print(f"generated {number:02d}: {cid} -> {filename}")
         keep.add(filename)
-        print(f"generated {number:02d}: {cid} -> {filename}")
 
     patch_sources(mapping)
     for path in PLAYLIST_FILES:
