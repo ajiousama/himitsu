@@ -171,35 +171,73 @@ jobs:
           kana_bad="$(grep 'tvg-id=\"youtube.kana_tube\"' freewifi kana_tube.m3u | grep -v 'logos/youtube/kana_tube.png' || true)"
           test -z "$kana_bad"
 
-      - name: Commit updated YouTube LIVE URLs and canonical logos
+      - name: Publish YouTube state onto latest FreeWiFi without whole-file rebase
         shell: bash
         run: |
-          rm -f general_youtube.prev.m3u freewifi.prev youtube_cookies.txt
+          set -euo pipefail
+          rm -f general_youtube.prev.m3u freewifi.prev
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -A logos/youtube general_youtube_sources.json general_youtube_sources_ports.json general_youtube_sources_airports.json general_youtube.m3u public_sports_youtube_fallback.m3u freewifi kana_tube.m3u kana_tube_status.json
-          if git diff --cached --quiet; then
-            echo 'No changes'
-            exit 0
-          fi
-          git commit -m 'Update YouTube-managed FreeWiFi entries and logos'
-          git reset --hard HEAD
-          git clean -fd
+
+          snapshot="$(mktemp -d)"
+          for f in general_youtube_sources.json general_youtube_sources_ports.json general_youtube_sources_airports.json general_youtube.m3u public_sports_youtube_fallback.m3u; do
+            [ ! -f "$f" ] || cp "$f" "$snapshot/$f"
+          done
+
           for attempt in 1 2 3 4 5; do
-            echo "YouTube publish attempt $attempt/5"
+            echo "YouTube overlay publish attempt $attempt/5"
             git fetch origin main
-            if ! git rebase origin/main; then
-              git rebase --abort || true
-              echo "::error::YouTube publish rebase conflicted with newer main; refusing to overwrite concurrent state"
-              exit 1
-            fi
-            if git push origin HEAD:main; then
-              echo "YouTube-managed FreeWiFi state published successfully"
+            git reset --hard origin/main
+
+            for f in general_youtube_sources.json general_youtube_sources_ports.json general_youtube_sources_airports.json general_youtube.m3u public_sports_youtube_fallback.m3u; do
+              [ ! -f "$snapshot/$f" ] || cp "$snapshot/$f" "$f"
+            done
+
+            python - <<'PY'
+          from pathlib import Path
+          fw=Path('freewifi')
+          gy=Path('general_youtube.m3u')
+          text=fw.read_text(encoding='utf-8-sig',errors='replace')
+          lines=gy.read_text(encoding='utf-8-sig',errors='replace').splitlines()
+          body='\n'.join(lines[1:] if lines and lines[0].startswith('#EXTM3U') else lines).strip()
+          start='# === GENERAL_YOUTUBE_MANAGED_START ==='
+          end='# === GENERAL_YOUTUBE_MANAGED_END ==='
+          a=text.find(start)
+          b=text.find(end,a+len(start)) if a>=0 else -1
+          if a<0 or b<0:
+              raise SystemExit('GENERAL_YOUTUBE managed block missing')
+          block=start+'\n'+body+'\n'+end
+          text=text[:a]+block+text[b+len(end):]
+          fw.write_text(text,encoding='utf-8')
+          PY
+
+            # Re-apply entries owned by other writers on top of the newest main.
+            python jra_freewifi_finalize.py
+            python kana_tube_update.py
+            python freewifi_youtube_cleanup.py
+
+            test -s general_youtube.m3u
+            test -s freewifi
+            test "$(grep -c 'tvg-id="youtube.kana_tube"' general_youtube.m3u || true)" -eq 0
+            python -c 'import kana_tube_update as k; k.validate_outputs()'
+
+            git add general_youtube_sources.json general_youtube_sources_ports.json general_youtube_sources_airports.json general_youtube.m3u public_sports_youtube_fallback.m3u freewifi kana_tube.m3u kana_tube_status.json
+            if git diff --cached --quiet; then
+              echo 'YouTube-managed state already current'
+              rm -f youtube_cookies.txt
               exit 0
             fi
-            echo "::warning::main moved or GitHub temporarily rejected the ref; retrying YouTube publish"
+
+            git commit -m 'Update YouTube-managed FreeWiFi entries [skip render]'
+            if git push origin HEAD:main; then
+              echo 'YouTube-managed FreeWiFi state published successfully'
+              rm -f youtube_cookies.txt
+              exit 0
+            fi
+            echo '::warning::main moved; rebuilding YouTube overlay on newest main'
             sleep "$attempt"
           done
 
-          echo "::error::YouTube publish failed after 5 attempts"
+          rm -f youtube_cookies.txt
+          echo '::error::YouTube overlay publish failed after 5 attempts'
           exit 1
