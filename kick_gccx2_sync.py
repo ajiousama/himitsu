@@ -8,7 +8,7 @@ SLUG = "joshua-hkd"
 API = f"https://kick.com/api/v2/channels/{SLUG}"
 FREEWIFI = Path("freewifi")
 LOGO = "https://pbs.twimg.com/profile_images/826592912389451777/PnXfhxJD_400x400.jpg"
-PROXY = "https://himitsu-six.vercel.app/api/kick?ch=gccx2"
+PROXY = "https://kick-resolver.onrender.com/kick?ch=gccx2"
 
 
 def get_json(url):
@@ -103,7 +103,7 @@ def write_state(*, live, playback_detected, lookup_ok):
                 "live": live,
                 "playback_detected": playback_detected,
                 "lookup_ok": lookup_ok,
-                "mode": "vercel-kick-proxy",
+                "mode": "stable-render-kick-proxy",
                 "playback": PROXY if live is not False else None,
             },
             ensure_ascii=False,
@@ -126,7 +126,7 @@ def main():
             new_text = add_cx2(remove_cx2(text), PROXY)
             if new_text != text:
                 FREEWIFI.write_text(new_text, encoding="utf-8")
-                print("KICK lookup failed; preserved CX2 via stable Vercel proxy")
+                print("KICK lookup failed; preserved CX2 via stable Render resolver")
             else:
                 print("KICK lookup failed; existing CX2 proxy kept unchanged")
             write_state(live=None, playback_detected=False, lookup_ok=False)
@@ -145,7 +145,7 @@ def main():
     if new_text != text:
         FREEWIFI.write_text(new_text, encoding="utf-8")
         if live:
-            print("CX2 Free Wi-Fi state changed: LIVE -> stable Vercel KICK proxy")
+            print("CX2 Free Wi-Fi state changed: LIVE -> stable Render KICK resolver")
         else:
             print("CX2 Free Wi-Fi state changed: OFFLINE -> removed")
     else:
