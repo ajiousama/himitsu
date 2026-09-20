@@ -71,12 +71,13 @@ class PublicSportsKanaReliability(unittest.TestCase):
                 '#EXTM3U\n' + kana.entry('https://youtube.com/watch?v=keepme', 'is_upcoming') + '\n',
                 encoding='utf-8',
             )
-            base = '#EXTM3U\n' + today.GENERAL_YOUTUBE_START + '\n'
+            base = '#EXTM3U\n' + today.START + '\n## 今日の開催場\n' + today.END + '\n' + today.GENERAL_YOUTUBE_START + '\n'
             with patch.object(today, 'KANA_M3U', kana_m3u):
                 result = today.restore_kana_owned_entry(base)
             self.assertEqual(result.count('tvg-id="youtube.kana_tube"'), 1)
             self.assertIn('watch?v=keepme', result)
-            self.assertLess(result.index(today.KANA_START), result.index(today.GENERAL_YOUTUBE_START))
+            self.assertGreater(result.index(today.KANA_START), result.index('## 今日の開催場'))
+            self.assertLess(result.index(today.KANA_START), result.index(today.END))
 
 
 class KanaReliability(unittest.TestCase):
@@ -166,8 +167,10 @@ class KanaReliability(unittest.TestCase):
                 self.assertFalse(status['direct_hls'])
                 self.assertTrue(status['hls_retry_required'])
                 kana.validate_outputs()
-            for k in ('OUT','GENERAL','FREEWIFI'):
-                self.assertIn('watch?v=new', paths[k].read_text())
+            self.assertIn('watch?v=new', paths['OUT'].read_text())
+            self.assertNotIn('watch?v=new', paths['GENERAL'].read_text())
+            self.assertIn('watch?v=new', paths['FREEWIFI'].read_text())
+            self.assertIn('group-title="今日の開催場"', paths['FREEWIFI'].read_text())
             self.assertIn('https://boat.example/live', paths['FREEWIFI'].read_text())
 
     def test_unreachable_check_reapplies_last_owned_entry_after_rebuild(self):
@@ -184,7 +187,7 @@ class KanaReliability(unittest.TestCase):
                 self.assertEqual(status['state'],'is_upcoming')
                 self.assertTrue(status['check_error'])
                 kana.validate_outputs()
-            self.assertIn('watch?v=known', paths['GENERAL'].read_text())
+            self.assertNotIn('watch?v=known', paths['GENERAL'].read_text())
             self.assertIn('watch?v=known', paths['FREEWIFI'].read_text())
 
 
