@@ -189,7 +189,7 @@ jobs:
             git fetch origin main
             git reset --hard origin/main
 
-            for f in general_youtube_sources.json general_youtube_sources_ports.json general_youtube_sources_airports.json general_youtube.m3u public_sports_youtube_fallback.m3u; do
+            for f in general_youtube_sources.json general_youtube_sources_ports.json general_youtube_sources_airports.json general_youtube.m3u public_sports_youtube_fallback.m3u logos/youtube/yt_72_muko_rail.png; do
               [ ! -f "$snapshot/$f" ] || cp "$snapshot/$f" "$f"
             done
 
