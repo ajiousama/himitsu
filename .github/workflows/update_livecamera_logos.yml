@@ -88,10 +88,10 @@ jobs:
             test -s logos/ehime_catv/14_ainan_livecam_v2.png
             ! grep -F '/logos/youtube/unified/' general_youtube.m3u
             ! grep -F '/logos/youtube/unified/' freewifi
-            grep -F 'yt43_47_airport_okayama_illustration.png' freewifi >/dev/null
-            grep -F 'yt43_55_airport_naha_illustration.png' freewifi >/dev/null
-            grep -F 'yt43_61_ehime_mishima_kawanoe_port_illustration.png' freewifi >/dev/null
-            grep -F 'yt43_69_ehime_ainan_ebc_illustration.png' freewifi >/dev/null
+            grep -F 'yt43_57_airport_okayama_illustration.png' freewifi >/dev/null
+            grep -F 'yt43_65_airport_naha_illustration.png' freewifi >/dev/null
+            grep -F 'yt43_47_ehime_mishima_kawanoe_port_illustration.png' freewifi >/dev/null
+            grep -F 'yt43_55_ehime_ainan_ebc_illustration.png' freewifi >/dev/null
 
             git add -A logos/youtube/yt43_*.png logos/ehime_catv general_youtube_sources.json general_youtube_sources_ports.json general_youtube_sources_airports.json general_youtube.m3u freewifi
             if git diff --cached --quiet; then
