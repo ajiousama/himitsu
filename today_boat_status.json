@@ -2,10 +2,10 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-21",
-  "generated_at": "2026-09-21T06:02:09.206032+09:00",
+  "generated_at": "2026-09-21T06:14:08.806975+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260921.json",
-  "schedule_checked_at": "2026-09-21T05:54:09.255317+09:00",
+  "schedule_checked_at": "2026-09-21T06:14:08.806975+09:00",
   "schedule_warnings": [
     "official_cards: TimeoutError"
   ],
@@ -52,12 +52,17 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 1,
+    "requested": 2,
     "fetched": 0,
     "failures": [
       {
         "jcd": "10",
         "name": "三国",
+        "error": "cloud and official acquisition unavailable: HTTPError"
+      },
+      {
+        "jcd": "18",
+        "name": "徳山",
         "error": "cloud and official acquisition unavailable: HTTPError"
       }
     ]
