@@ -109,6 +109,14 @@ def set_group(ext, group):
     return ext.replace(',', f' group-title="{group}",', 1)
 
 
+def set_logo(ext, logo):
+    if not logo:
+        return ext
+    if 'tvg-logo="' in ext:
+        return re.sub(r'tvg-logo="[^"]*"', f'tvg-logo="{logo}"', ext, count=1)
+    return ext.replace(' group-title=', f' tvg-logo="{logo}" group-title=', 1)
+
+
 def group_title(ext):
     m = re.search(r'group-title="([^"]+)"', ext)
     return m.group(1).strip() if m else ''
@@ -208,10 +216,24 @@ def main():
         source_kept.append([cid, ext, url])
     entries = source_kept
 
-    # Airport feeds always live in the dedicated airport group.
+    # The source list is authoritative for grouping and logo mapping.
+    # This keeps Matsuyama Airport in Ehime, Shimanami/Kurushima in Ehime,
+    # and applies the explicit Animal -> Ehime -> Bridge -> Airport -> Kansai -> Other order.
+    source_items = json.loads(SOURCE.read_text(encoding='utf-8'))
+    source_meta = {
+        (item.get('id') or '').strip(): item
+        for item in source_items
+        if (item.get('id') or '').strip()
+    }
+    source_order = {
+        (item.get('id') or '').strip(): i
+        for i, item in enumerate(source_items)
+        if (item.get('id') or '').strip()
+    }
     for entry in entries:
-        if '空港' in entry[1]:
-            entry[1] = set_group(entry[1], '空港')
+        meta = source_meta.get(entry[0]) or {}
+        entry[1] = set_group(entry[1], meta.get('group') or group_title(entry[1]))
+        entry[1] = set_logo(entry[1], (meta.get('logo') or '').strip())
 
     # Reported feeds are allowed only from the intended fixed video/channel.
     strict = {cid: direct_hls(page) for cid, page in STRICT_DIRECT_PAGES.items()}
@@ -256,12 +278,10 @@ def main():
             seen_video[vid] = (cid, entry_name(ext))
         kept.append([cid, ext, url])
 
-    for group, label in [('動物', 'Animal'), ('空港', 'Airport')]:
-        before = [entry_name(ext) for _, ext, _ in kept if group_title(ext) == group]
-        kept = sort_group_by_logo_number(kept, group)
-        after = [entry_name(ext) for _, ext, _ in kept if group_title(ext) == group]
-        if before != after:
-            print(f'{label} order:', ' -> '.join(after))
+    before_order = [cid for cid, _, _ in kept]
+    kept.sort(key=lambda entry: source_order.get(entry[0], 10**9))
+    if before_order != [cid for cid, _, _ in kept]:
+        print('Source order reapplied')
 
     missing_logos = []
     default_logos = []
@@ -277,7 +297,7 @@ def main():
     sync_freewifi(general)
 
     print('Source-deleted/disabled entries removed:', source_pruned)
-    print('Airport groups normalized:', sum(1 for _, ext, _ in kept if 'group-title="空港"' in ext))
+    print('Source groups reapplied:', len(kept))
     print('Duplicate YouTube entries removed:', duplicate_count)
     print('Entries with logo:', len(kept) - len(missing_logos), '/', len(kept))
     if missing_logos:
