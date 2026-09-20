@@ -93,7 +93,7 @@ jobs:
             grep -F 'yt43_47_ehime_mishima_kawanoe_port_illustration.png' freewifi >/dev/null
             grep -F 'yt43_55_ehime_ainan_ebc_illustration.png' freewifi >/dev/null
 
-            git add -A logos/youtube/yt43_*.png logos/ehime_catv general_youtube_sources.json general_youtube_sources_ports.json general_youtube_sources_airports.json general_youtube.m3u freewifi
+            git add -A logos/youtube logos/ehime_catv general_youtube_sources.json general_youtube_sources_ports.json general_youtube_sources_airports.json general_youtube.m3u freewifi
             if git diff --cached --quiet; then
               echo 'Canonical yt43 YouTube / Ehime CATV logos already current'
               exit 0
