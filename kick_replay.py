@@ -14,7 +14,7 @@ OUT_JSON = Path("kick_replay.json")
 OUT_M3U = Path("kick_replay.m3u")
 JST = timezone(timedelta(hours=9))
 UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/140 Safari/537.36"
-REPLAY_BASE = "https://freewifi-media.onrender.com/kick?vod="
+REPLAY_BASE = "https://kick-resolver.onrender.com/kick?vod="
 MAX_VODS_PER_CHANNEL = 12
 
 
