@@ -22,8 +22,10 @@ on:
 permissions:
   contents: write
 
+# Share the same writer mutex as the main FreeWiFi/EPG and KICK replay jobs.
+# This prevents long-running YouTube refreshes from racing those writers.
 concurrency:
-  group: himitsu-freewifi-writer
+  group: himitsu-freewifi-state-writer
   cancel-in-progress: false
 
 jobs:
@@ -174,5 +176,21 @@ jobs:
           git commit -m 'Update YouTube-managed FreeWiFi entries and logos'
           git reset --hard HEAD
           git clean -fd
-          git pull --rebase origin main
-          git push origin main
+          for attempt in 1 2 3 4 5; do
+            echo "YouTube publish attempt $attempt/5"
+            git fetch origin main
+            if ! git rebase origin/main; then
+              git rebase --abort || true
+              echo "::error::YouTube publish rebase conflicted with newer main; refusing to overwrite concurrent state"
+              exit 1
+            fi
+            if git push origin HEAD:main; then
+              echo "YouTube-managed FreeWiFi state published successfully"
+              exit 0
+            fi
+            echo "::warning::main moved or GitHub temporarily rejected the ref; retrying YouTube publish"
+            sleep "$attempt"
+          done
+
+          echo "::error::YouTube publish failed after 5 attempts"
+          exit 1
