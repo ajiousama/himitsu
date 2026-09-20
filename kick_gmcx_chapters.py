@@ -12,7 +12,7 @@ TITLE_MAP = Path("gmcx_episode_titles.json")
 OUT_JSON = Path("kick_gmcx_chapters.json")
 OUT_M3U = Path("kick_gmcx_chapters.m3u")
 JST = timezone(timedelta(hours=9))
-REPLAY_BASE = "https://kick-resolver.onrender.com/kick?vod="
+REPLAY_BASE = "https://freewifi-media.onrender.com/kick?vod="
 # Clean archive #90-106 is 59,517 sec / 17 = 3,501 sec per regular episode.
 REFERENCE_EPISODE_SECONDS = 3501
 AI_WINDOW_SECONDS = 600

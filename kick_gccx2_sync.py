@@ -8,7 +8,7 @@ SLUG = "joshua-hkd"
 API = f"https://kick.com/api/v2/channels/{SLUG}"
 FREEWIFI = Path("freewifi")
 LOGO = "https://pbs.twimg.com/profile_images/826592912389451777/PnXfhxJD_400x400.jpg"
-PROXY = "https://kick-resolver.onrender.com/kick?ch=gccx2"
+PROXY = "https://freewifi-media.onrender.com/kick?ch=gccx2"
 
 
 def get_json(url):
