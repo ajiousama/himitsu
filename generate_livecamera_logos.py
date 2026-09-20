@@ -8,6 +8,7 @@ RAW='https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/youtube/'
 SRC=[Path('general_youtube_sources.json'),Path('general_youtube_sources_ports.json'),Path('general_youtube_sources_airports.json')]
 PL=[Path('general_youtube.m3u'),Path('freewifi'),Path('kana_tube.m3u')]
 SIZE=512; KANA='youtube.kana_tube'
+GROUP_ORDER={'動物':1,'愛媛県内ライブカメラ':2,'橋':3,'空港':4,'関西':5,'その他LIVE':6}
 FONTS=[
     '/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc',
     '/usr/share/fonts/opentype/noto/NotoSansCJKjp-Bold.otf',
@@ -36,8 +37,11 @@ def items():
         if not p.exists():continue
         for x in json.loads(p.read_text(encoding='utf-8')):
             cid=str(x.get('id') or '')
-            if cid.startswith('youtube.') and cid not in seen: seen.add(cid); out.append(x)
-    return out
+            if cid.startswith('youtube.') and cid != KANA and cid not in seen:
+                seen.add(cid); out.append(x)
+    indexed=list(enumerate(out))
+    indexed.sort(key=lambda pair:(GROUP_ORDER.get(str(pair[1].get('group') or ''),99),pair[0]))
+    return [x for _,x in indexed]
 
 def slug(cid):return re.sub(r'[^a-z0-9_]+','_',cid.split('.',1)[-1].lower()).strip('_')
 def fname(n,cid):return f'yt_{n:02d}_{slug(cid)}.png'
@@ -104,7 +108,9 @@ def lines(name):
 
 def render(n,x,f):
     out=ROOT/f
-    if x.get('id')==KANA and out.exists() and out.stat().st_size>1000:return
+    # Adopted artwork is immutable during routine LIVE refreshes.
+    # The generator only creates a placeholder when a newly-numbered logo is missing.
+    if out.exists() and out.stat().st_size>1000:return
     k=kind(x); img=Image.new('RGB',(SIZE,SIZE),(249,249,246)); d=ImageDraw.Draw(img); accent=(227,73,103) if k=='kana' else (31,111,181)
     d.rounded_rectangle((8,8,SIZE-8,SIZE-8),38,fill=(248,250,250),outline=accent,width=8); d.rectangle((16,352,SIZE-16,SIZE-16),fill='white'); icon(d,k)
     badge=f'{n:02d}'; d.ellipse((18,18,125,125),fill=accent,outline=(53,45,45),width=6); bf=fit(d,badge,90,58,34); b=d.textbbox((0,0),badge,font=bf); d.text((71-(b[2]-b[0])/2-b[0],69-(b[3]-b[1])/2-b[1]),badge,font=bf,fill='white')
@@ -133,9 +139,21 @@ def patch_playlist(p,mp):
         out.append(line)
     p.write_text('\n'.join(out).rstrip()+'\n',encoding='utf-8')
 
-def cleanup():
+def cleanup(valid):
+    numbered=re.compile(r'^yt_\d{2}_.+\.png
+def main():
+    a=items(); mp={}
+    for n,x in enumerate(a,1): mp[x['id']]=fname(n,x['id']); render(n,x,mp[x['id']])
+    patch_sources(mp)
+    for p in PL:patch_playlist(p,mp)
+    cleanup(set(mp.values())); print('canonical YouTube logos',len(mp))
+
+if __name__=='__main__':main()
+)
     for p in list(ROOT.iterdir()):
-        if p.name.startswith(('yt43_','yt_unified_','ehime_port_')) or p.name in {'unified','guinea_youtube.jpg'}:
+        stale_numbered=p.is_file() and numbered.match(p.name) and p.name not in valid
+        stale_legacy=p.name.startswith(('yt43_','yt_unified_','ehime_port_')) or p.name in {'unified','guinea_youtube.jpg'}
+        if stale_numbered or stale_legacy:
             shutil.rmtree(p) if p.is_dir() else p.unlink()
 
 def main():
