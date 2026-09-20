@@ -80,6 +80,19 @@ class PublicSportsKanaReliability(unittest.TestCase):
             self.assertLess(result.index(today.KANA_START), result.index(today.END))
 
 
+    def test_finalizer_never_parses_kana_as_public_sports_entry(self):
+        kana_entry = kana.entry('https://youtube.com/watch?v=keepme', 'is_upcoming')
+        base = (
+            '#EXTM3U\n' + final.START + '\n## 今日の開催場\n' +
+            final.KANA_START + '\n' + kana_entry + '\n' + final.KANA_END + '\n' +
+            '#EXTINF:-1 tvg-id="keirin.test" tvg-name="Test",Test\nhttps://example.com/live.m3u8\n' +
+            final.END + '\n'
+        )
+        entries, match = final.parse_managed_entries(base)
+        self.assertIsNotNone(match)
+        self.assertEqual([x['id'] for x in entries], ['keirin.test'])
+
+
 class KanaReliability(unittest.TestCase):
     def test_impostor_name_and_handle_prefix_rejected(self):
         self.assertFalse(kana.official({'channel':'かなtube','channel_id':'impostor'}))
