@@ -276,6 +276,8 @@ def main() -> int:
     # Public sports must never be published with only the generic 6-hour
     # fallback grid, with no programmes, or with only stale programmes.
     if public_sports_invalid:
+        for cid, status, group, name in public_sports_invalid:
+            print(f"PUBLIC SPORTS INVALID: {cid} status={status} group={group} name={name}")
         return 2
 
     strict = "--strict" in sys.argv
