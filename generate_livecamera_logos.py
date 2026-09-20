@@ -1,543 +1,142 @@
 from __future__ import annotations
-
-import base64
-import json
-import math
-import re
-import shutil
+import json,re,shutil
 from pathlib import Path
-
-from PIL import Image, ImageDraw, ImageFont
-
-ROOT = Path("logos/youtube")
-ROOT.mkdir(parents=True, exist_ok=True)
-RAW = "https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/youtube/"
-SIZE = 512
-KANA_ADOPTED_B64 = """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"""
-
-SOURCE_FILES = [
-    Path("general_youtube_sources.json"),
-    Path("general_youtube_sources_ports.json"),
-    Path("general_youtube_sources_airports.json"),
-]
-PLAYLIST_FILES = [
-    Path("general_youtube.m3u"),
-    Path("freewifi"),
-    Path("kana_tube.m3u"),
-]
-SKIP_IDS = {
-    "jra.official",
-    "youtube.narita_t1",
-    "youtube.kobe_waterfront2",
-}
-
-FONT_CANDIDATES = [
-    "/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc",
-    "/usr/share/fonts/opentype/noto/NotoSansCJKjp-Bold.otf",
-    "/usr/share/fonts/truetype/noto/NotoSansCJK-Bold.ttc",
-    "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
-]
-
-
-def choose_font():
-    for path in FONT_CANDIDATES:
-        if Path(path).exists():
-            return path
-    return FONT_CANDIDATES[-1]
-
-
-FONT = choose_font()
-
-
-def font(size):
-    try:
-        return ImageFont.truetype(FONT, size)
-    except Exception:
-        return ImageFont.load_default()
-
-
-def load_items():
-    rows = []
-    for path in SOURCE_FILES:
-        if not path.exists():
-            continue
-        data = json.loads(path.read_text(encoding="utf-8"))
-        for item in data:
-            cid = str(item.get("id") or "").strip()
-            if not cid or cid in SKIP_IDS or not item.get("enabled", True):
-                continue
-            rows.append((path, item))
-    return rows
-
-
-def safe_slug(cid):
-    slug = cid.split(".", 1)[-1]
-    slug = re.sub(r"[^a-zA-Z0-9_]+", "_", slug).strip("_")
-    return slug or "youtube"
-
-
-def kind_for(item):
-    cid = str(item.get("id") or "").lower()
-    name = str(item.get("name") or "")
-    group = str(item.get("group") or "")
-    s = (cid + " " + name + " " + group).lower()
-
-    if cid == "youtube.kana_tube":
-        return "kana"
-    if "空港" in name or "airport" in s or "haneda" in s or "kix" in s or "centrair" in s:
-        return "airport"
-    if any(k in name for k in ("港", "湾")) or "waterfront" in s:
-        return "port"
-    if any(k in name for k in ("駅", "鉄道", "線")) or any(k in s for k in ("rail", "osaka_station", "osaka_loop")):
-        return "rail"
-    if "バス" in name:
-        return "bus"
-    if "橋" in name or "bridge" in s:
-        return "bridge"
-    if any(k in name for k in ("神社", "稲荷")):
-        return "shrine"
-    if "寺" in name:
-        return "temple"
-    if "城" in name:
-        return "castle"
-    if any(k in name for k in ("山", "スキー", "ロープウェイ", "皿ヶ嶺", "石鎚")):
-        return "mountain"
-    if any(k in name for k in ("川", "ダム")):
-        return "river"
-    if "温泉" in name or "道後" in name:
-        return "onsen"
-    if "クリーンセンター" in name:
-        return "clean"
-    if "マンダリン" in name:
-        return "baseball"
-    if "サービスエリア" in name or "別府町" in name or "本町" in name or "東京ドーム" in name or "向日" in name:
-        return "city"
-    if any(k in name for k in ("柴犬", "馬", "モンキー", "チンチラ", "ナミビア")) or group == "動物":
-        if "馬" in name:
-            return "horse"
-        if "柴犬" in name:
-            return "dog"
-        if "モンキー" in name:
-            return "monkey"
-        return "animal"
-    if any(k in name for k in ("海", "しまなみ", "八幡浜", "愛南")):
-        return "coast"
-    return "city"
-
-
-def palette_for(kind):
-    palettes = {
-        "kana": ((255, 246, 249), (255, 58, 116), (33, 164, 235)),
-        "airport": ((232, 248, 255), (31, 132, 223), (255, 87, 130)),
-        "port": ((231, 249, 255), (19, 143, 211), (250, 116, 34)),
-        "rail": ((239, 252, 238), (36, 155, 84), (44, 113, 194)),
-        "bus": ((242, 252, 244), (48, 156, 91), (244, 122, 34)),
-        "bridge": ((233, 248, 255), (39, 128, 214), (235, 80, 90)),
-        "shrine": ((255, 241, 238), (215, 52, 45), (44, 112, 73)),
-        "temple": ((247, 243, 232), (117, 77, 47), (56, 122, 77)),
-        "castle": ((243, 247, 255), (46, 75, 119), (94, 139, 76)),
-        "mountain": ((238, 251, 235), (49, 133, 66), (39, 145, 196)),
-        "river": ((235, 249, 255), (31, 136, 207), (53, 144, 79)),
-        "onsen": ((255, 244, 232), (211, 102, 47), (52, 124, 171)),
-        "clean": ((241, 250, 247), (52, 133, 102), (69, 120, 170)),
-        "baseball": ((255, 245, 232), (240, 117, 42), (47, 117, 186)),
-        "dog": ((255, 247, 228), (206, 123, 43), (255, 72, 120)),
-        "horse": ((255, 248, 230), (150, 91, 48), (56, 160, 89)),
-        "monkey": ((255, 244, 228), (168, 91, 49), (67, 143, 77)),
-        "animal": ((245, 248, 230), (102, 139, 60), (240, 122, 53)),
-        "coast": ((233, 249, 255), (29, 145, 207), (47, 160, 110)),
-        "city": ((241, 247, 255), (47, 112, 183), (244, 104, 61)),
-    }
-    return palettes.get(kind, palettes["city"])
-
-
-def roundrect(draw, box, radius, fill, outline=None, width=1):
-    draw.rounded_rectangle(box, radius=radius, fill=fill, outline=outline, width=width)
-
-
-def draw_sun(draw, x, y, r=28, fill=(255, 193, 41)):
-    draw.ellipse((x-r, y-r, x+r, y+r), fill=fill)
-    for a in range(0, 360, 45):
-        t = math.radians(a)
-        x1 = x + math.cos(t) * (r + 10)
-        y1 = y + math.sin(t) * (r + 10)
-        x2 = x + math.cos(t) * (r + 26)
-        y2 = y + math.sin(t) * (r + 26)
-        draw.line((x1, y1, x2, y2), fill=fill, width=8)
-
-
-def draw_cloud(draw, x, y, scale=1.0):
-    c = (255, 255, 255)
-    draw.ellipse((x, y+18*scale, x+90*scale, y+62*scale), fill=c)
-    draw.ellipse((x+18*scale, y, x+72*scale, y+55*scale), fill=c)
-    draw.ellipse((x+48*scale, y+8*scale, x+106*scale, y+60*scale), fill=c)
-
-
-def draw_airplane(draw):
-    white=(252,252,252); blue=(35,118,205); dark=(32,47,62)
-    draw.polygon([(110,256),(286,214),(416,150),(437,164),(327,244),(434,267),(433,289),(315,280),(276,354),(247,356),(263,281),(119,293)], fill=white, outline=dark)
-    draw.polygon([(253,242),(307,222),(278,271),(213,281)], fill=blue)
-    draw.line((130,290,427,284), fill=blue, width=8)
-    draw.ellipse((360,190,380,204), fill=dark)
-    draw.ellipse((390,176,409,191), fill=dark)
-
-
-def draw_port(draw):
-    blue=(31,143,207); navy=(32,73,111); white=(250,250,250)
-    draw.rectangle((0,320,512,390), fill=blue)
-    for y in (337,366):
-        for x in range(20,500,90):
-            draw.arc((x,y,x+55,y+18), 10, 170, fill=(255,255,255), width=4)
-    draw.polygon([(116,294),(365,294),(336,345),(150,345)], fill=white, outline=navy)
-    draw.rectangle((198,240,280,294), fill=white, outline=navy, width=4)
-    draw.rectangle((224,207,257,240), fill=white, outline=navy, width=4)
-    draw.rectangle((242,188,248,207), fill=navy)
-
-
-def draw_train(draw):
-    dark=(42,54,66); white=(247,249,250); green=(40,154,83)
-    roundrect(draw,(110,165,402,352),34,white,dark,8)
-    draw.rectangle((132,206,380,274), fill=(54,119,176))
-    draw.rectangle((128,292,385,319), fill=green)
-    draw.rectangle((160,330,352,350), fill=dark)
-    draw.ellipse((145,340,195,390), fill=dark)
-    draw.ellipse((317,340,367,390), fill=dark)
-
-
-def draw_bus(draw):
-    dark=(44,60,72); white=(250,250,250); blue=(40,130,196)
-    roundrect(draw,(90,190,422,345),24,white,dark,7)
-    draw.rectangle((116,215,392,275), fill=(90,165,210))
-    draw.rectangle((104,294,408,318), fill=blue)
-    draw.ellipse((125,325,180,380), fill=dark)
-    draw.ellipse((330,325,385,380), fill=dark)
-
-
-def draw_bridge(draw):
-    blue=(39,130,203); white=(249,249,249)
-    draw.rectangle((0,335,512,390), fill=blue)
-    draw.line((80,300,432,300), fill=white, width=15)
-    draw.line((126,300,180,198), fill=white, width=12)
-    draw.line((386,300,332,198), fill=white, width=12)
-    draw.line((180,198,332,198), fill=white, width=10)
-    for x in range(155,370,36):
-        draw.line((x,215,x+22,300), fill=white, width=5)
-
-
-def draw_shrine(draw):
-    red=(211,52,45); dark=(70,49,42)
-    draw.rectangle((126,195,156,340), fill=red)
-    draw.rectangle((356,195,386,340), fill=red)
-    draw.rectangle((102,176,410,202), fill=red)
-    draw.polygon([(82,156),(430,156),(405,179),(107,179)], fill=dark)
-    draw.rectangle((158,232,354,250), fill=red)
-    draw.polygon([(195,340),(317,340),(300,290),(212,290)], fill=(72,105,74))
-
-
-def draw_temple(draw):
-    dark=(73,61,50); red=(137,72,51)
-    draw.polygon([(130,235),(382,235),(344,202),(168,202)], fill=dark)
-    draw.rectangle((170,235,342,330), fill=(235,221,190), outline=dark, width=5)
-    draw.rectangle((205,260,232,330), fill=red)
-    draw.rectangle((280,260,307,330), fill=red)
-    draw.polygon([(166,202),(346,202),(320,171),(192,171)], fill=dark)
-
-
-def draw_castle(draw):
-    dark=(46,65,82); white=(249,249,246)
-    draw.polygon([(145,327),(367,327),(338,284),(174,284)], fill=(135,139,140))
-    draw.rectangle((180,226,332,284), fill=white, outline=dark, width=5)
-    draw.polygon([(156,226),(356,226),(322,195),(190,195)], fill=dark)
-    draw.rectangle((206,176,306,218), fill=white, outline=dark, width=4)
-    draw.polygon([(190,176),(322,176),(295,151),(217,151)], fill=dark)
-
-
-def draw_mountain(draw):
-    draw.polygon([(62,350),(190,180),(274,292),(335,215),(455,350)], fill=(51,135,68))
-    draw.polygon([(190,180),(158,222),(222,222)], fill=(245,250,248))
-    draw.polygon([(335,215),(311,246),(360,246)], fill=(245,250,248))
-    draw.rectangle((0,350,512,390), fill=(84,167,77))
-
-
-def draw_river(draw):
-    draw_mountain(draw)
-    draw.rectangle((0,330,512,390), fill=(48,155,215))
-    draw.polygon([(95,390),(207,332),(273,390)], fill=(226,205,158))
-    draw.polygon([(278,390),(367,338),(438,390)], fill=(226,205,158))
-
-
-def draw_city(draw):
-    cols=[(82,270,145,360),(153,230,224,360),(238,255,302,360),(315,205,397,360)]
-    colors=[(91,145,191),(62,116,174),(122,164,196),(75,125,180)]
-    for box,c in zip(cols,colors):
-        draw.rectangle(box,fill=c)
-        for y in range(box[1]+18,box[3]-12,30):
-            for x in range(box[0]+12,box[2]-10,24):
-                draw.rectangle((x,y,x+10,y+13),fill=(230,240,247))
-    draw.rectangle((0,360,512,390),fill=(106,112,117))
-    draw.line((220,375,292,375),fill=(250,250,250),width=6)
-
-
-def draw_onsen(draw):
-    brown=(157,104,61); dark=(92,65,49); blue=(45,129,185)
-    draw.ellipse((125,250,387,350), fill=brown, outline=dark, width=6)
-    draw.rectangle((125,286,387,330), fill=brown)
-    draw.ellipse((143,260,369,315), fill=(217,161,102))
-    for x in (190,256,322):
-        draw.arc((x-28,175,x+28,255),0,180,fill=blue,width=8)
-
-
-def draw_clean(draw):
-    draw.rectangle((126,240,386,350), fill=(229,235,238), outline=(68,89,98), width=6)
-    draw.rectangle((166,195,208,240), fill=(123,145,151))
-    draw.rectangle((290,170,330,240), fill=(123,145,151))
-    draw.ellipse((230,250,282,302), outline=(52,139,97), width=10)
-    draw.polygon([(256,238),(268,263),(244,263)], fill=(52,139,97))
-
-
-def draw_baseball(draw):
-    draw.ellipse((165,175,347,357), fill=(250,250,247), outline=(70,70,70), width=7)
-    draw.arc((172,205,252,330), 290, 70, fill=(218,69,53), width=7)
-    draw.arc((260,205,340,330), 110, 250, fill=(218,69,53), width=7)
-    draw.rectangle((305,160,326,320), fill=(166,104,52))
-    draw.ellipse((284,145,348,175), fill=(242,146,54), outline=(100,75,50), width=4)
-
-
-def draw_dog(draw):
-    brown=(204,126,57); cream=(255,244,219); dark=(65,48,41)
-    draw.ellipse((150,170,362,360), fill=brown, outline=dark, width=6)
-    draw.polygon([(165,205),(108,142),(202,166)], fill=brown, outline=dark)
-    draw.polygon([(347,205),(404,142),(310,166)], fill=brown, outline=dark)
-    draw.ellipse((205,245,307,332), fill=cream)
-    draw.ellipse((203,228,225,251), fill=dark)
-    draw.ellipse((287,228,309,251), fill=dark)
-    draw.ellipse((245,267,270,288), fill=dark)
-
-
-def draw_horse(draw):
-    brown=(174,102,56); cream=(254,243,220); dark=(65,47,42)
-    draw.ellipse((154,165,358,360), fill=brown, outline=dark, width=6)
-    draw.polygon([(168,193),(132,116),(214,171)], fill=brown, outline=dark)
-    draw.polygon([(344,193),(380,116),(298,171)], fill=brown, outline=dark)
-    draw.polygon([(239,166),(277,166),(298,320),(216,320)], fill=cream)
-    draw.ellipse((202,228,224,250), fill=dark)
-    draw.ellipse((287,228,309,250), fill=dark)
-    draw.ellipse((240,294,272,312), fill=dark)
-
-
-def draw_monkey(draw):
-    brown=(155,91,51); tan=(238,184,126); dark=(63,46,39)
-    draw.ellipse((150,166,362,355), fill=brown, outline=dark, width=6)
-    draw.ellipse((125,225,190,295), fill=tan, outline=dark, width=5)
-    draw.ellipse((322,225,387,295), fill=tan, outline=dark, width=5)
-    draw.ellipse((193,214,319,330), fill=tan)
-    draw.ellipse((213,238,234,258), fill=dark)
-    draw.ellipse((278,238,299,258), fill=dark)
-
-
-def draw_animal(draw):
-    draw.ellipse((156,176,356,356), fill=(210,182,141), outline=(67,57,48), width=6)
-    draw.ellipse((128,161,210,237), fill=(210,182,141), outline=(67,57,48), width=5)
-    draw.ellipse((302,161,384,237), fill=(210,182,141), outline=(67,57,48), width=5)
-    draw.ellipse((210,235,230,255), fill=(62,52,45))
-    draw.ellipse((282,235,302,255), fill=(62,52,45))
-    draw.ellipse((244,270,270,292), fill=(62,52,45))
-
-
-def draw_coast(draw):
-    draw.rectangle((0,300,512,390), fill=(42,157,214))
-    draw.polygon([(0,360),(120,300),(205,345),(308,280),(512,350),(512,390),(0,390)], fill=(52,144,91))
-    draw.arc((365,280,470,365), 180, 360, fill=(255,255,255), width=7)
-
-
-def draw_kana(draw):
-    red=(245,47,82); dark=(56,37,39); blue=(48,167,224)
-    roundrect(draw,(118,150,394,334),46,red,dark,8)
-    draw.rectangle((232,120,246,150), fill=dark)
-    draw.rectangle((300,112,314,150), fill=dark)
-    draw.ellipse((225,108,252,135), fill=dark)
-    draw.ellipse((293,100,320,127), fill=dark)
-    draw.polygon([(224,200),(224,286),(310,243)], fill=(255,255,255))
-    draw.arc((78,175,150,255),100,260,fill=blue,width=9)
-    draw.arc((362,175,434,255),280,80,fill=blue,width=9)
-
-
-def draw_icon(draw, kind):
-    if kind == "kana": draw_kana(draw)
-    elif kind == "airport": draw_airplane(draw)
-    elif kind == "port": draw_port(draw)
-    elif kind == "rail": draw_train(draw)
-    elif kind == "bus": draw_bus(draw)
-    elif kind == "bridge": draw_bridge(draw)
-    elif kind == "shrine": draw_shrine(draw)
-    elif kind == "temple": draw_temple(draw)
-    elif kind == "castle": draw_castle(draw)
-    elif kind == "mountain": draw_mountain(draw)
-    elif kind == "river": draw_river(draw)
-    elif kind == "onsen": draw_onsen(draw)
-    elif kind == "clean": draw_clean(draw)
-    elif kind == "baseball": draw_baseball(draw)
-    elif kind == "dog": draw_dog(draw)
-    elif kind == "horse": draw_horse(draw)
-    elif kind == "monkey": draw_monkey(draw)
-    elif kind == "animal": draw_animal(draw)
-    elif kind == "coast": draw_coast(draw)
-    else: draw_city(draw)
-
-
-def fit_text(draw, text, max_width, start=48, minimum=22):
-    for size in range(start, minimum-1, -2):
-        f = font(size)
-        box = draw.textbbox((0,0), text, font=f)
-        if box[2]-box[0] <= max_width:
-            return f
-    return font(minimum)
-
-
-def split_title(draw, text, max_width=438):
-    # Prefer natural separators; otherwise split around the middle.
-    text = text.replace("【", " 【").replace("・", "・")
-    for sep in (" ", "・", "／", "/"):
-        if sep in text:
-            parts = text.split(sep)
-            if len(parts) >= 2:
-                mid = max(1, len(parts)//2)
-                a = sep.join(parts[:mid]).strip()
-                b = sep.join(parts[mid:]).strip()
-                if a and b:
-                    return [a, b]
-    f = fit_text(draw, text, max_width, 43, 24)
-    if draw.textbbox((0,0), text, font=f)[2] <= max_width:
-        return [text]
-    cut = max(1, len(text)//2)
-    return [text[:cut], text[cut:]]
-
-
-def render_logo(number, item, filename):
-    kind = kind_for(item)
-    bg, accent, accent2 = palette_for(kind)
-    img = Image.new("RGB", (SIZE, SIZE), bg)
-    d = ImageDraw.Draw(img)
-
-    # frame + simple sky decoration
-    d.rounded_rectangle((8,8,504,504), radius=34, outline=accent, width=10)
-    draw_sun(d, 436, 92, 22, fill=(255,194,40))
-    draw_cloud(d, 320, 92, 0.7)
-
-    # number badge
-    roundrect(d, (22,22,132,118), 30, accent, (48,40,42), 6)
-    num = f"{number:02d}"
-    nf = font(58)
-    box = d.textbbox((0,0), num, font=nf)
-    d.text((77-(box[2]-box[0])/2, 69-(box[3]-box[1])/2-box[1]), num, font=nf, fill="white")
-
-    draw_icon(d, kind)
-
-    # title card
-    d.rounded_rectangle((28,374,484,486), radius=28, fill=(255,255,255), outline=(68,49,45), width=7)
-    title = str(item.get("name") or item.get("id") or "")
-    title = re.sub(r"\s+LIVE$", "", title)
-    lines = split_title(d, title)
-    if len(lines) == 1:
-        f = fit_text(d, lines[0], 424, 48, 24)
-        b = d.textbbox((0,0), lines[0], font=f)
-        x = 256 - (b[2]-b[0])/2
-        y = 430 - (b[3]-b[1])/2 - b[1]
-        d.text((x,y), lines[0], font=f, fill=accent)
+from PIL import Image,ImageDraw,ImageFont
+
+ROOT=Path('logos/youtube'); ROOT.mkdir(parents=True,exist_ok=True)
+RAW='https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/youtube/'
+SRC=[Path('general_youtube_sources.json'),Path('general_youtube_sources_ports.json'),Path('general_youtube_sources_airports.json')]
+PL=[Path('general_youtube.m3u'),Path('freewifi'),Path('kana_tube.m3u')]
+SIZE=512; KANA='youtube.kana_tube'
+FONTS=['/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc','/usr/share/fonts/opentype/noto/NotoSansCJKjp-Bold.otf','/usr/share/fonts/truetype/noto/NotoSansCJK-Bold.ttc','/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf']
+FONT=next((x for x in FONTS if Path(x).exists()),FONTS[-1])
+
+def ft(n):
+    try:return ImageFont.truetype(FONT,n)
+    except:return ImageFont.load_default()
+
+def fit(d,s,w,n=48,m=18):
+    for z in range(n,m-1,-2):
+        f=ft(z); b=d.textbbox((0,0),s,font=f)
+        if b[2]-b[0]<=w:return f
+    return ft(m)
+
+def center(d,s,y,f,c):
+    b=d.textbbox((0,0),s,font=f); d.text(((SIZE-(b[2]-b[0]))/2-b[0],y-b[1]),s,font=f,fill=c)
+
+def items():
+    out=[]; seen=set()
+    for p in SRC:
+        if not p.exists():continue
+        for x in json.loads(p.read_text(encoding='utf-8')):
+            cid=str(x.get('id') or '')
+            if cid.startswith('youtube.') and cid not in seen: seen.add(cid); out.append(x)
+    return out
+
+def slug(cid):return re.sub(r'[^a-z0-9_]+','_',cid.split('.',1)[-1].lower()).strip('_')
+def fname(n,cid):return f'yt_{n:02d}_{slug(cid)}.png'
+
+def kind(x):
+    cid=str(x.get('id') or '').lower(); name=str(x.get('name') or ''); grp=str(x.get('group') or '')
+    tests=[
+      ('airport','airport' in cid or '空港' in name),('horse','konodo' in cid or '馬' in name),('dog','柴犬' in name),
+      ('animal','monkey' in cid or 'チンチラ' in name or grp=='動物'),('baseball','mandarin' in cid),
+      ('shrine','fushimi' in cid or 'jinja' in cid or '神社' in name),('temple','daigoji' in cid or '寺' in name),
+      ('castle','castle' in cid or '城' in name),('factory','clean' in cid or 'クリーンセンター' in name),
+      ('hot','dogo' in cid or '温泉' in name),('parking','parking' in cid or '駐車場' in name),('dam','dam' in cid or 'ダム' in name),
+      ('mountain','ropeway' in cid or 'スキー' in name or '山系' in name or '皿ヶ嶺' in name),
+      ('bridge','bridge' in cid or 'しまなみ' in name or '大橋' in name or '瀬戸大橋' in name),
+      ('harbor','port' in cid or '港' in name or '湾' in name or 'waterfront' in cid or '海側' in name),
+      ('river','katsuragawa' in cid or '桂川' in name),('train','rail' in cid or 'station' in cid or 'loop' in cid or grp=='交通')]
+    if cid==KANA:return 'kana'
+    return next((k for k,v in tests if v),'city')
+
+def icon(d,k):
+    navy=(32,59,83); blue=(67,160,218); red=(216,67,58); brown=(118,77,48); green=(69,151,85); white=(250,250,250)
+    if k=='airport':
+        d.rectangle((75,275,440,330),fill=(200,220,234),outline=navy,width=5); d.polygon([(80,190),(325,145),(430,178),(325,202),(275,250),(245,250),(260,205),(150,220)],fill=white,outline=navy)
+    elif k=='train':
+        d.rounded_rectangle((85,135,425,305),28,fill=white,outline=navy,width=7); d.rectangle((115,165,395,215),fill=(115,185,225),outline=navy,width=4); d.rectangle((105,240,405,262),fill=blue); d.ellipse((135,280,180,325),fill=navy); d.ellipse((330,280,375,325),fill=navy)
+    elif k=='harbor':
+        d.rectangle((60,255,452,330),fill=blue); d.polygon([(110,235),(350,235),(320,285),(145,285)],fill=white,outline=navy); d.rectangle((205,180,292,235),fill=white,outline=navy,width=5); d.rectangle((238,140,258,180),fill=red)
+    elif k=='bridge':
+        d.rectangle((55,295,455,340),fill=blue); d.line((70,260,445,260),fill=navy,width=12); d.line((125,260,125,175),fill=navy,width=12); d.line((385,260,385,175),fill=navy,width=12); d.arc((125,175,385,330),180,360,fill=navy,width=8)
+    elif k=='river':
+        d.polygon([(205,90),(310,90),(285,165),(345,245),(275,350),(185,350),(235,255),(175,180)],fill=blue); d.polygon([(55,315),(155,205),(235,315)],fill=green); d.polygon([(260,315),(360,190),(460,315)],fill=(75,130,80))
+    elif k in ('horse','dog','animal'):
+        col=(177,111,62) if k=='horse' else (221,143,66) if k=='dog' else (205,158,100); d.ellipse((165,125,355,320),fill=col,outline=brown,width=6); d.polygon([(180,160),(145,95),(215,140)],fill=col,outline=brown); d.polygon([(340,160),(375,95),(305,140)],fill=col,outline=brown); d.ellipse((220,210,300,280),fill=(240,214,178)); d.ellipse((205,180,225,200),fill=navy); d.ellipse((295,180,315,200),fill=navy)
+    elif k=='shrine':
+        d.rectangle((130,140,155,325),fill=red); d.rectangle((355,140,380,325),fill=red); d.rectangle((95,125,415,155),fill=red); d.rectangle((125,180,385,200),fill=(238,126,45))
+    elif k=='temple':
+        for y,w in [(145,230),(205,190),(260,145)]:
+            x=(SIZE-w)//2; d.polygon([(x,y+30),(x+w//2,y),(x+w,y+30),(x+w-25,y+45),(x+25,y+45)],fill=navy)
+    elif k=='castle':
+        d.rectangle((195,215,315,325),fill=white,outline=navy,width=5); d.polygon([(160,225),(255,170),(350,225)],fill=navy); d.rectangle((215,150,295,205),fill=white,outline=navy,width=5); d.polygon([(185,160),(255,115),(325,160)],fill=navy)
+    elif k=='factory':
+        d.rectangle((110,225,410,330),fill=(190,200,206),outline=navy,width=5); d.rectangle((150,135,195,225),fill=(110,125,140),outline=navy,width=5); d.rectangle((255,165,300,225),fill=(110,125,140),outline=navy,width=5)
+    elif k=='hot':
+        d.rounded_rectangle((105,230,405,330),28,fill=blue,outline=navy,width=6); [d.arc((x-28,120,x+28,225),80,280,fill=red,width=8) for x in (185,255,325)]
+    elif k=='parking':
+        d.rounded_rectangle((115,115,265,310),12,fill=(47,124,203)); center(d,'P',145,ft(120),white); d.rounded_rectangle((280,235,430,315),18,fill=red,outline=navy,width=5)
+    elif k=='dam':
+        d.rectangle((85,120,180,330),fill=blue); d.polygon([(180,140),(405,210),(360,330),(180,330)],fill=(185,194,200),outline=navy)
+    elif k=='mountain':
+        d.polygon([(80,325),(225,135),(315,325)],fill=green,outline=navy); d.polygon([(230,325),(355,175),(455,325)],fill=(75,130,80),outline=navy); d.line((120,125,400,125),fill=(110,125,140),width=5); d.rectangle((285,105,345,150),fill=red,outline=navy,width=4)
+    elif k=='baseball':
+        d.ellipse((165,120,345,300),fill=white,outline=navy,width=6); d.arc((175,135,255,285),280,80,fill=red,width=5); d.arc((255,135,335,285),100,260,fill=red,width=5); d.line((355,100,395,330),fill=brown,width=16)
     else:
-        fs=[]
-        for line in lines[:2]:
-            fs.append(fit_text(d, line, 424, 38, 21))
-        ys=[393,438]
-        for line,f,y in zip(lines[:2],fs,ys):
-            b=d.textbbox((0,0), line, font=f)
-            x=256-(b[2]-b[0])/2
-            d.text((x,y-b[1]), line, font=f, fill=accent if y==393 else accent2)
+        for x,y,w,h in [(95,190,80,135),(190,135,100,190),(310,170,105,155)]: d.rectangle((x,y,x+w,y+h),fill=(85,151,198),outline=navy,width=5)
 
-    img.save(ROOT / filename, "PNG", optimize=True)
+def lines(name):
+    s=re.sub(r'【([^】]+)】',r' \1',name).replace(' LIVE','').strip()
+    if len(s)<=12:return [s]
+    for sep in ('・',' ','／','ライブカメラ'):
+        if sep in s:
+            p=[x.strip() for x in s.split(sep) if x.strip()]
+            if len(p)>1:return [p[0],('・' if sep=='・' else ' ').join(p[1:])]
+    n=len(s)//2; return [s[:n],s[n:]]
 
+def render(n,x,f):
+    out=ROOT/f
+    if x.get('id')==KANA and out.exists() and out.stat().st_size>1000:return
+    k=kind(x); img=Image.new('RGB',(SIZE,SIZE),(249,249,246)); d=ImageDraw.Draw(img); accent=(227,73,103) if k=='kana' else (31,111,181)
+    d.rounded_rectangle((8,8,SIZE-8,SIZE-8),38,fill=(248,250,250),outline=accent,width=8); d.rectangle((16,352,SIZE-16,SIZE-16),fill='white'); icon(d,k)
+    badge=f'{n:02d}'; d.ellipse((18,18,125,125),fill=accent,outline=(53,45,45),width=6); bf=fit(d,badge,90,58,34); b=d.textbbox((0,0),badge,font=bf); d.text((71-(b[2]-b[0])/2-b[0],69-(b[3]-b[1])/2-b[1]),badge,font=bf,fill='white')
+    ls=lines(str(x.get('name') or slug(str(x.get('id')))))
+    if len(ls)==1:center(d,ls[0],395,fit(d,ls[0],450,46,20),(48,56,64))
+    else:center(d,ls[0],375,fit(d,ls[0],450,40,19),(48,56,64)); center(d,ls[1],428,fit(d,ls[1],450,36,18),accent)
+    img.resize((418,418),Image.Resampling.LANCZOS).save(out,'PNG',optimize=True)
 
-def canonical_mapping(rows):
-    mapping = {}
-    for idx, (_, item) in enumerate(rows, start=1):
-        cid = str(item.get("id") or "").strip()
-        filename = f"yt43_{idx:02d}_{safe_slug(cid)}_illustration.png"
-        mapping[cid] = (idx, filename)
-    return mapping
+def patch_sources(mp):
+    for p in SRC:
+        if not p.exists():continue
+        a=json.loads(p.read_text(encoding='utf-8'))
+        for x in a:
+            if x.get('id') in mp:x['logo']=RAW+mp[x['id']]
+        p.write_text(json.dumps(a,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
 
-
-def patch_sources(mapping):
-    for path in SOURCE_FILES:
-        if not path.exists():
-            continue
-        data = json.loads(path.read_text(encoding="utf-8"))
-        changed = 0
-        for item in data:
-            cid = str(item.get("id") or "").strip()
-            if cid in mapping:
-                wanted = RAW + mapping[cid][1]
-                if item.get("logo") != wanted:
-                    item["logo"] = wanted
-                    changed += 1
-        if changed:
-            path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-        print(path, "logo mappings updated:", changed)
-
-
-def patch_playlist(path, mapping):
-    if not path.exists():
-        return
-    text = path.read_text(encoding="utf-8-sig", errors="replace")
-    out = []
-    for line in text.splitlines():
-        if line.startswith("#EXTINF:"):
-            m = re.search(r'tvg-id="([^"]+)"', line)
-            if m and m.group(1) in mapping:
-                logo = RAW + mapping[m.group(1)][1]
-                if re.search(r'tvg-logo="[^"]*"', line):
-                    line = re.sub(r'tvg-logo="[^"]*"', f'tvg-logo="{logo}"', line, count=1)
-                else:
-                    line = line.replace(" group-title=", f' tvg-logo="{logo}" group-title=', 1)
+def patch_playlist(p,mp):
+    if not p.exists():return
+    out=[]
+    for line in p.read_text(encoding='utf-8-sig',errors='replace').splitlines():
+        if line.startswith('#EXTINF:'):
+            m=re.search(r'tvg-id="([^"]+)"',line); f=mp.get(m.group(1)) if m else None
+            if f:
+                u=RAW+f
+                line=re.sub(r'tvg-logo="[^"]*"',f'tvg-logo="{u}"',line,count=1) if 'tvg-logo="' in line else line.replace(' group-title=',f' tvg-logo="{u}" group-title=',1)
         out.append(line)
-    path.write_text("\n".join(out).rstrip() + "\n", encoding="utf-8")
+    p.write_text('\n'.join(out).rstrip()+'\n',encoding='utf-8')
 
-
-def cleanup_old(keep):
-    removed = 0
-    for p in ROOT.glob("yt43_*.png"):
-        if p.name not in keep:
-            p.unlink()
-            removed += 1
-    unified = ROOT / "unified"
-    if unified.exists():
-        shutil.rmtree(unified)
-        print("removed legacy unified directory")
-    print("legacy yt43 logos removed:", removed)
-
+def cleanup():
+    for p in list(ROOT.iterdir()):
+        if p.name.startswith(('yt43_','yt_unified_','ehime_port_')) or p.name in {'unified','guinea_youtube.jpg'}:
+            shutil.rmtree(p) if p.is_dir() else p.unlink()
 
 def main():
-    rows = load_items()
-    mapping = canonical_mapping(rows)
-    print("canonical YouTube logo count:", len(mapping))
+    a=items(); mp={}
+    for n,x in enumerate(a,1): mp[x['id']]=fname(n,x['id']); render(n,x,mp[x['id']])
+    patch_sources(mp)
+    for p in PL:patch_playlist(p,mp)
+    cleanup(); print('canonical YouTube logos',len(mp))
 
-    keep = set()
-    for path, item in rows:
-        cid = str(item.get("id") or "").strip()
-        number, filename = mapping[cid]
-        target = ROOT / filename
-        if cid == "youtube.kana_tube":
-            target.write_bytes(base64.b64decode(KANA_ADOPTED_B64))
-            print(f"write adopted Kana Tube logo: {target}")
-        else:
-            render_logo(number, item, filename)
-            print(f"generated {number:02d}: {cid} -> {filename}")
-        keep.add(filename)
-
-    patch_sources(mapping)
-    for path in PLAYLIST_FILES:
-        patch_playlist(path, mapping)
-    cleanup_old(keep)
-
-
-if __name__ == "__main__":
-    main()
+if __name__=='__main__':main()

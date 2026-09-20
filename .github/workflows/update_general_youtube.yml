@@ -69,7 +69,7 @@ jobs:
       - name: Sync latest main
         run: git pull --ff-only origin main
 
-      - name: Generate canonical yt43 live-camera logos
+      - name: Generate canonical YouTube live-camera logos
         run: python generate_livecamera_logos.py
 
       - name: Refresh public sports YouTube fallbacks
@@ -149,11 +149,14 @@ jobs:
           ! grep -Eq 'yt54_(44|45|46)_' general_youtube_sources.json
           ! grep -Eq 'logos/youtube/airport_[^\"]+\.png' general_youtube_sources_airports.json
           ! grep -Eq 'logos/youtube/ehime_[^\"]+\.png' general_youtube_sources_ports.json
+          ! grep -F 'yt43_' general_youtube_sources.json
+          ! grep -F 'yt43_' general_youtube_sources_airports.json
+          ! grep -F 'yt43_' general_youtube_sources_ports.json
           ! grep -F '/logos/youtube/unified/' general_youtube.m3u
           ! grep -F '/logos/youtube/unified/' freewifi
           ! grep -F '/logos/youtube/unified/' kana_tube.m3u
           for playlist in general_youtube.m3u freewifi kana_tube.m3u; do
-            bad="$(grep 'tvg-id=\"youtube\.' "$playlist" | grep -v 'tvg-logo=\"https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/youtube/yt43_' || true)"
+            bad="$(grep 'tvg-id=\"youtube\.' "$playlist" | grep -v 'tvg-logo=\"https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/youtube/yt_' || true)"
             test -z "$bad"
           done
 
@@ -163,7 +166,7 @@ jobs:
           rm -f general_youtube.prev.m3u freewifi.prev youtube_cookies.txt
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -A logos/youtube general_youtube.m3u public_sports_youtube_fallback.m3u freewifi kana_tube.m3u kana_tube_status.json
+          git add -A logos/youtube general_youtube_sources.json general_youtube_sources_ports.json general_youtube_sources_airports.json general_youtube.m3u public_sports_youtube_fallback.m3u freewifi kana_tube.m3u kana_tube_status.json
           if git diff --cached --quiet; then
             echo 'No changes'
             exit 0
