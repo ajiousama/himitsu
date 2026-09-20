@@ -16,7 +16,7 @@ def run(*args, timeout=180):
     return subprocess.run(args, check=True, timeout=timeout)
 
 
-VOLATILE_JSON_KEYS = {'checked_at', 'generated_at'}
+VOLATILE_JSON_KEYS = {'checked_at', 'generated_at', 'schedule_checked_at', 'sequence', 'last_segment'}
 
 
 def semantic_json_bytes(data):
