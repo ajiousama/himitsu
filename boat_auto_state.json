@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-20",
-  "generated_at": "2026-09-20T12:55:54.419072+09:00",
+  "generated_at": "2026-09-20T12:56:54.362010+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260920.json",
   "schedule_checked_at": "2026-09-20T12:51:54.417710+09:00",
@@ -52,7 +52,7 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 12,
+    "requested": 13,
     "fetched": 10,
     "failures": [
       {
@@ -63,6 +63,11 @@
       {
         "jcd": "12",
         "name": "住之江",
+        "error": "cloud and official acquisition unavailable: HTTPError"
+      },
+      {
+        "jcd": "01",
+        "name": "桐生",
         "error": "cloud and official acquisition unavailable: HTTPError"
       }
     ]
