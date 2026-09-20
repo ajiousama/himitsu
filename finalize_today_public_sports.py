@@ -6,10 +6,14 @@ import xml.etree.ElementTree as ET
 from sports_race_time import race_time
 
 FREEWIFI = Path('freewifi')
+KANA_M3U = Path('kana_tube.m3u')
 STATUS_JSON = Path('today_public_sports_status.json')
 LOCAL_EPG = Path('public_sports_epg_local.xml')
 START = '# === TODAY_PUBLIC_SPORTS_START ==='
 END = '# === TODAY_PUBLIC_SPORTS_END ==='
+KANA_TVG_ID = 'youtube.kana_tube'
+KANA_START = '# === KANA_TUBE_MANAGED_START ==='
+KANA_END = '# === KANA_TUBE_MANAGED_END ==='
 JST = timezone(timedelta(hours=9))
 END_GRACE_MINUTES = 45
 NON_EVENT_WORDS = (
@@ -86,6 +90,37 @@ def parse_managed_entries(text):
     return entries, m
 
 
+
+def restore_kana_owned_entry(text):
+    # Rebuild Kana's wrapper from its canonical file and remove any orphan
+    # START/END markers left by older public-sports finalization.
+    text = re.sub(re.escape(KANA_START) + r'.*?' + re.escape(KANA_END) + r'\n?', '', text, flags=re.S)
+    text = '\n'.join(
+        line for line in text.splitlines()
+        if line.strip() not in (KANA_START, KANA_END)
+    ).rstrip() + '\n'
+
+    if not KANA_M3U.exists():
+        return text
+
+    payload = '\n'.join(
+        line for line in KANA_M3U.read_text(encoding='utf-8-sig', errors='replace').splitlines()
+        if not line.startswith('#EXTM3U')
+    ).strip()
+    if not payload:
+        return text
+
+    block = KANA_START + '\n' + payload + '\n' + KANA_END + '\n'
+    start = text.find(START)
+    end = text.find(END, start + len(START)) if start >= 0 else -1
+    heading = text.find('## 今日の開催場', start, end) if start >= 0 and end >= 0 else -1
+    if heading >= 0:
+        insert_at = text.find('\n', heading)
+        insert_at = len(text) if insert_at < 0 else insert_at + 1
+        return text[:insert_at] + block + text[insert_at:]
+    return text
+
+
 def sort_key(item):
     nr = item.get('next_race')
     if nr and re.fullmatch(r'\d{2}:\d{2}', nr.get('start', '')):
@@ -156,6 +191,7 @@ def main():
     payload = '\n'.join(body).rstrip()
     managed = START + '\n## 今日の開催場\n' + payload + ('\n' if payload else '') + END
     text = text[:match.start()] + managed + text[match.end():]
+    text = restore_kana_owned_entry(text)
     FREEWIFI.write_text(text.rstrip() + '\n', encoding='utf-8')
 
     result = dict(old_status)
