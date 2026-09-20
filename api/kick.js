@@ -1,7 +1,7 @@
 const channels = require("../kick_channels.json");
 
 const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/140 Safari/537.36";
-const RESOLVER_VERSION = "2026-09-16-kick-live-vod-v4";
+const RESOLVER_VERSION = "2026-09-20-kick-live-vod-v5-vercel-clips";
 
 function norm(s) {
   return String(s || "").toLowerCase().replace(/[^a-z0-9\u3040-\u30ff\u3400-\u9fff]+/g, "");
@@ -184,6 +184,110 @@ function rewritePlaylist(text, source, startSeconds) {
   return out.join("\n");
 }
 
+
+function pickVariant(text, source) {
+  const lines = String(text || "").replace(/\r/g, "").split("\n");
+  const candidates = [];
+  for (let i = 0; i < lines.length; i++) {
+    if (!lines[i].trim().startsWith("#EXT-X-STREAM-INF:")) continue;
+    const bandwidth = Number((lines[i].match(/BANDWIDTH=(\d+)/i) || [])[1] || 0);
+    for (let j = i + 1; j < lines.length; j++) {
+      const next = lines[j].trim();
+      if (!next) continue;
+      if (next.startsWith("#")) break;
+      candidates.push({ bandwidth, url: absolute(source, next) });
+      break;
+    }
+  }
+  candidates.sort((a, b) => b.bandwidth - a.bandwidth);
+  return candidates[0]?.url || null;
+}
+
+function clipPlaylist(text, source, offset, duration) {
+  const lines = String(text || "").replace(/\r/g, "").split("\n");
+  const header = [];
+  const groups = [];
+  let tags = [];
+  let inf = null;
+  const isHeader = line =>
+    line === "#EXTM3U" ||
+    /^#EXT-X-(VERSION|TARGETDURATION|MEDIA-SEQUENCE|DISCONTINUITY-SEQUENCE|PLAYLIST-TYPE|INDEPENDENT-SEGMENTS|ALLOW-CACHE)/.test(line);
+
+  for (const raw of lines) {
+    let line = raw.trim();
+    if (!line || line === "#EXT-X-ENDLIST") continue;
+    if (line.startsWith("#EXTINF:")) {
+      inf = {
+        line,
+        seconds: Number((line.match(/^#EXTINF:([0-9.]+)/) || [])[1] || 0)
+      };
+      continue;
+    }
+    if (line.startsWith("#")) {
+      line = line.replace(/URI="([^"]+)"/g, (_, uri) => `URI="${absolute(source, uri)}"`);
+      if (!inf && !groups.length && !tags.length && isHeader(line)) header.push(line);
+      else tags.push(line);
+      continue;
+    }
+    if (inf) {
+      groups.push({
+        tags,
+        inf: inf.line,
+        seconds: Math.max(0, inf.seconds || 0),
+        uri: absolute(source, line)
+      });
+      tags = [];
+      inf = null;
+    }
+  }
+
+  if (!groups.length) throw new Error("no media segments found");
+
+  let cumulative = 0;
+  let skipped = 0;
+  let key = null;
+  let map = null;
+  const selected = [];
+
+  for (const group of groups) {
+    for (const tag of group.tags) {
+      if (tag.startsWith("#EXT-X-KEY:")) key = tag;
+      if (tag.startsWith("#EXT-X-MAP:")) map = tag;
+    }
+    const start = cumulative;
+    const end = cumulative + group.seconds;
+    cumulative = end;
+
+    if (end <= offset + 0.001) {
+      skipped++;
+      continue;
+    }
+    if (start >= offset + duration - 0.001) break;
+
+    const outTags = [...group.tags];
+    if (!selected.length) {
+      if (key && !outTags.some(x => x.startsWith("#EXT-X-KEY:"))) outTags.unshift(key);
+      if (map && !outTags.some(x => x.startsWith("#EXT-X-MAP:"))) outTags.unshift(map);
+      outTags.unshift(
+        "#EXT-X-START:TIME-OFFSET=0,PRECISE=YES",
+        `# KICK clip requested offset=${offset}s actual_segment_start=${start.toFixed(3)}s`
+      );
+    }
+    selected.push({ ...group, tags: outTags });
+  }
+
+  if (!selected.length) throw new Error(`offset ${offset}s is outside available replay`);
+
+  const out = header.map(line => {
+    const match = line.match(/^#EXT-X-MEDIA-SEQUENCE:(\d+)/);
+    return match ? `#EXT-X-MEDIA-SEQUENCE:${Number(match[1]) + skipped}` : line;
+  });
+  if (!out.includes("#EXTM3U")) out.unshift("#EXTM3U");
+  for (const group of selected) out.push(...group.tags, group.inf, group.uri);
+  out.push("#EXT-X-ENDLIST");
+  return out.join("\n") + "\n";
+}
+
 async function handleVod(req, res) {
   const vod = String(req.query?.vod || "").trim();
   if (!/^[A-Za-z0-9_-]{6,120}$/.test(vod)) {
@@ -193,6 +297,10 @@ async function handleVod(req, res) {
   let start = Number(req.query?.start || 0);
   if (!Number.isFinite(start) || start < 0) start = 0;
   start = Math.floor(Math.min(start, 7 * 24 * 60 * 60));
+
+  let duration = Number(req.query?.duration || 0);
+  if (!Number.isFinite(duration) || duration < 0) duration = 0;
+  duration = duration ? Math.max(30, Math.min(Math.floor(duration), 12 * 60 * 60)) : 0;
 
   const data = await getJson("https://kick.com/api/v1/video/" + encodeURIComponent(vod));
   if (!data) {
@@ -206,12 +314,25 @@ async function handleVod(req, res) {
 
   res.setHeader("X-Kick-VOD-Id", vod);
   res.setHeader("X-Kick-Replay-Start", String(start));
+  res.setHeader("X-Kick-Replay-Duration", String(duration));
 
-  if (!start) return res.redirect(302, source);
+  if (!start && !duration) return res.redirect(302, source);
 
   try {
-    const playlist = await getText(source);
-    const rewritten = rewritePlaylist(playlist, source, start);
+    let media = source;
+    let playlist = await getText(media);
+    for (let depth = 0; depth < 3 && /#EXT-X-STREAM-INF:/i.test(playlist); depth++) {
+      const variant = pickVariant(playlist, media);
+      if (!variant) throw new Error("master playlist has no variant");
+      media = variant;
+      playlist = await getText(media);
+    }
+    if (/#EXT-X-STREAM-INF:/i.test(playlist)) throw new Error("nested master playlist too deep");
+
+    const rewritten = duration
+      ? clipPlaylist(playlist, media, start, duration)
+      : rewritePlaylist(playlist, media, start);
+
     res.setHeader("Content-Type", "application/vnd.apple.mpegurl; charset=utf-8");
     return res.status(200).send(rewritten);
   } catch (e) {
@@ -219,6 +340,7 @@ async function handleVod(req, res) {
       error: "KICK VOD seek playlist failed",
       vod,
       start,
+      duration,
       detail: String(e?.message || e),
       resolver: RESOLVER_VERSION
     });
