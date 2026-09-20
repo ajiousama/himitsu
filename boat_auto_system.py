@@ -320,7 +320,10 @@ def detect_cancelled_venues(day: date, cards: dict[str, list[dict]]) -> set[str]
         text = re.sub(r'\s+', ' ', html.unescape(re.sub(r'<[^>]+>', ' ', source)))
         # Venue pages label the selected date itself as "9月9日順延" or
         # equivalent. Bind the status to today's date, not to generic nav text.
-        if re.search(re.escape(day_label) + r'\s*(?:中止|順延|中止順延|中止・順延)', text):
+        # Official wording varies by venue/date: 中止・順延・延期など。
+        # Keep the venue visible when a usable stream already exists; this flag is
+        # primarily used to stop pointless reacquisition and to write EPG guidance.
+        if re.search(re.escape(day_label) + r'[^。]{0,48}?(?:開催\s*)?(?:中止|順延|延期)', text):
             cancelled.add(jcd)
     return cancelled
 
@@ -537,9 +540,11 @@ def build_venue_state(cards: dict[str, list[dict]], streams: dict[str, dict], no
         is_cancelled = jcd in cancelled
         ended = now >= finish and not is_cancelled
         active = alert_from <= now < finish and not is_cancelled
-        stream = {} if is_cancelled else (streams.get(tvg_id) or {})
+        # A schedule change should not make an already-published venue disappear.
+        # Preserve any same-day stream URL; only new acquisition is suppressed below.
+        stream = streams.get(tvg_id) or {}
         url = str(stream.get("url") or "")
-        current_url = current_day_stream(url, now.date()) if not is_cancelled else False
+        current_url = current_day_stream(url, now.date())
         expired = token_expired(url) if current_url else False
         visible = bool(current_url)
         source_ready = bool(current_url and not expired and stream.get('playback_verified'))
@@ -580,7 +585,7 @@ def build_venue_state(cards: dict[str, list[dict]], streams: dict[str, dict], no
                 "block": make_entry(name, tvg_id, logo_url(logo), url),
             })
         else:
-            item["source"] = "official cancellation/postponement" if is_cancelled else "automatic cloud SEED pending"
+            item["source"] = "official schedule change" if is_cancelled else "automatic cloud SEED pending"
         venues[tvg_id] = item
         phase_counts[mode]["held"] += 1
         phase_counts[mode]["acquired"] += int(visible)
@@ -672,8 +677,8 @@ def overlay_epg_file(path: Path, cards: dict[str, list[dict]], day: date, cancel
             start = datetime.combine(day, time(0, 0), tzinfo=JST)
             add_programme(
                 root, cid, start, end_of_day,
-                "本日の開催は中止になりました",
-                f"BOATRACE{name}は本日の開催中止・順延が公式発表されています。",
+                "本日の開催予定に変更があります",
+                f"BOATRACE{name}は公式発表で中止・順延・延期等の案内があります。最新情報は主催者発表をご確認ください。",
             )
             count += 1
             continue
@@ -881,8 +886,6 @@ def main() -> int:
     if cancelled_jcd:
         names = "、".join(VENUES[jcd][0] for jcd in sorted(cancelled_jcd))
         print(f"BOAT AUTO official cancellation/postponement: {names}")
-    for jcd in cancelled_jcd:
-        streams.pop(VENUES[jcd][1], None)
     # Schedule and playback acquisition are independent. The continuous worker
     # retries unready venues each minute; verified streams are only monitored.
     due_cards = {
