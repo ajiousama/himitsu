@@ -8,12 +8,18 @@ RAW='https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/youtube/'
 SRC=[Path('general_youtube_sources.json'),Path('general_youtube_sources_ports.json'),Path('general_youtube_sources_airports.json')]
 PL=[Path('general_youtube.m3u'),Path('freewifi'),Path('kana_tube.m3u')]
 SIZE=512; KANA='youtube.kana_tube'
-FONTS=['/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc','/usr/share/fonts/opentype/noto/NotoSansCJKjp-Bold.otf','/usr/share/fonts/truetype/noto/NotoSansCJK-Bold.ttc','/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf']
-FONT=next((x for x in FONTS if Path(x).exists()),FONTS[-1])
+FONTS=[
+    '/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc',
+    '/usr/share/fonts/opentype/noto/NotoSansCJKjp-Bold.otf',
+    '/usr/share/fonts/opentype/noto/NotoSansCJKjp-Bold.ttf',
+    '/usr/share/fonts/truetype/noto/NotoSansCJK-Bold.ttc',
+]
+FONT=next((x for x in FONTS if Path(x).exists()),None)
+if not FONT:
+    raise RuntimeError('Japanese font missing: install fonts-noto-cjk before generating YouTube logos')
 
 def ft(n):
-    try:return ImageFont.truetype(FONT,n)
-    except:return ImageFont.load_default()
+    return ImageFont.truetype(FONT,n)
 
 def fit(d,s,w,n=48,m=18):
     for z in range(n,m-1,-2):
