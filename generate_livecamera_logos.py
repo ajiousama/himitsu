@@ -205,7 +205,7 @@ def main():
     a=items(); mp={}; used=set()
     for seq,x in enumerate(a,1):
         current=str(x.get('logo') or '')
-        m=re.search(r'/logos/youtube/(yt_(\d{2})_[^/]+\.png)
+        m=re.search(r'/logos/youtube/(yt_(\d{2})_[^/]+\.png)$',current)
         if m:
             f=m.group(1); n=int(m.group(2))
         else:
