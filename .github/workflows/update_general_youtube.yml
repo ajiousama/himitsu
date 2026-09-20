@@ -153,7 +153,7 @@ jobs:
           test "$(grep -c 'tvg-id="jra.official"' freewifi || true)" -le 1
           test "$(grep -c 'tvg-id="jra.gch.free"' freewifi || true)" -le 1
           test "$(grep -c 'tvg-id="youtube.kana_tube"' freewifi || true)" -le 1
-          test "$(grep -c 'tvg-id="youtube.kana_tube"' general_youtube.m3u || true)" -le 1
+          test "$(grep -c 'tvg-id="youtube.kana_tube"' general_youtube.m3u || true)" -eq 0
           python -c 'import kana_tube_update as k; k.validate_outputs()'
           ! grep -Eq 'yt54_(44|45|46)_' general_youtube_sources.json
           ! grep -Eq 'logos/youtube/airport_[^\"]+\.png' general_youtube_sources_airports.json
@@ -165,9 +165,11 @@ jobs:
           ! grep -F '/logos/youtube/unified/' freewifi
           ! grep -F '/logos/youtube/unified/' kana_tube.m3u
           for playlist in general_youtube.m3u freewifi kana_tube.m3u; do
-            bad="$(grep 'tvg-id=\"youtube\.' "$playlist" | grep -v 'tvg-logo=\"https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/youtube/yt_' || true)"
+            bad="$(grep 'tvg-id=\"youtube\.' "$playlist" | grep -v 'tvg-id=\"youtube.kana_tube\"' | grep -v 'tvg-logo=\"https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/youtube/yt_' || true)"
             test -z "$bad"
           done
+          kana_bad="$(grep 'tvg-id=\"youtube.kana_tube\"' freewifi kana_tube.m3u | grep -v 'logos/youtube/kana_tube.png' || true)"
+          test -z "$kana_bad"
 
       - name: Commit updated YouTube LIVE URLs and canonical logos
         shell: bash
