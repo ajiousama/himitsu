@@ -140,16 +140,7 @@ def patch_playlist(p,mp):
     p.write_text('\n'.join(out).rstrip()+'\n',encoding='utf-8')
 
 def cleanup(valid):
-    numbered=re.compile(r'^yt_\d{2}_.+\.png
-def main():
-    a=items(); mp={}
-    for n,x in enumerate(a,1): mp[x['id']]=fname(n,x['id']); render(n,x,mp[x['id']])
-    patch_sources(mp)
-    for p in PL:patch_playlist(p,mp)
-    cleanup(set(mp.values())); print('canonical YouTube logos',len(mp))
-
-if __name__=='__main__':main()
-)
+    numbered=re.compile(r'^yt_\d{2}_.+\.png$')
     for p in list(ROOT.iterdir()):
         stale_numbered=p.is_file() and numbered.match(p.name) and p.name not in valid
         stale_legacy=p.name.startswith(('yt43_','yt_unified_','ehime_port_')) or p.name in {'unified','guinea_youtube.jpg'}
@@ -158,9 +149,14 @@ if __name__=='__main__':main()
 
 def main():
     a=items(); mp={}
-    for n,x in enumerate(a,1): mp[x['id']]=fname(n,x['id']); render(n,x,mp[x['id']])
+    for n,x in enumerate(a,1):
+        mp[x['id']]=fname(n,x['id'])
+        render(n,x,mp[x['id']])
     patch_sources(mp)
-    for p in PL:patch_playlist(p,mp)
-    cleanup(); print('canonical YouTube logos',len(mp))
+    for p in PL:
+        patch_playlist(p,mp)
+    cleanup(set(mp.values()))
+    print('canonical YouTube logos',len(mp))
 
-if __name__=='__main__':main()
+if __name__=='__main__':
+    main()
