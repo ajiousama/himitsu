@@ -360,6 +360,15 @@ def restore_kana_owned_entry(text):
     if not payload:
         return text
     block = KANA_START + '\n' + payload + '\n' + KANA_END + '\n'
+
+    # Kana is part of today's venues. Keep it at the top of the managed block.
+    start = text.find(START)
+    end = text.find(END, start + len(START)) if start >= 0 else -1
+    heading = text.find('## 今日の開催場', start, end if end >= 0 else None) if start >= 0 else -1
+    if heading >= 0:
+        insert_at = text.find('\n', heading)
+        insert_at = len(text) if insert_at < 0 else insert_at + 1
+        return text[:insert_at] + block + text[insert_at:]
     if GENERAL_YOUTUBE_START in text:
         return text.replace(GENERAL_YOUTUBE_START, block + '\n' + GENERAL_YOUTUBE_START, 1)
     return text.rstrip() + '\n\n' + block
