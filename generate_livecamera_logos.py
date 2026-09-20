@@ -1,438 +1,536 @@
 from __future__ import annotations
 
 import json
+import math
 import re
-import subprocess
-import urllib.request
-from concurrent.futures import ThreadPoolExecutor, as_completed
-from io import BytesIO
+import shutil
 from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageEnhance, ImageFont, PngImagePlugin
+from PIL import Image, ImageDraw, ImageFont
 
-ROOT = Path('logos/youtube')
+ROOT = Path("logos/youtube")
 ROOT.mkdir(parents=True, exist_ok=True)
-SIZE = 418
-RAW = 'https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/youtube/'
-
-# 44-70 are intentionally written to new v4 filenames. APTV is very aggressive
-# about image caching, so changing only a query string was not enough on some devices.
-SPECS = [
-    ('youtube.maiko_villa_akashi', 'yt43_44_maiko_villa_akashi_illustration.png', '舞子ビラ・明石海峡', '交通'),
-    ('youtube.tokyo_dome_city', 'yt43_45_tokyo_dome_city_illustration.png', '東京ドームシティ', 'その他LIVE'),
-    ('youtube.shinhotaka_ropeway', 'yt43_46_shinhotaka_ropeway_illustration.png', '新穂高ロープウェイ', 'その他LIVE'),
-    ('youtube.airport_okayama', 'yt43_47_airport_okayama_illustration.png', '岡山空港', '空港'),
-    ('youtube.airport_hiroshima', 'yt43_48_airport_hiroshima_illustration.png', '広島空港', '空港'),
-    ('youtube.airport_nagasaki', 'yt43_49_airport_nagasaki_illustration.png', '長崎空港', '空港'),
-    ('youtube.airport_goto', 'yt43_50_airport_goto_illustration.png', '五島つばき空港', '空港'),
-    ('youtube.airport_kumamoto', 'yt43_51_airport_kumamoto_illustration.png', '阿蘇くまもと空港', '空港'),
-    ('youtube.airport_oita', 'yt43_52_airport_oita_illustration.png', '大分空港', '空港'),
-    ('youtube.airport_miyazaki', 'yt43_53_airport_miyazaki_illustration.png', '宮崎空港', '空港'),
-    ('youtube.airport_amami', 'yt43_54_airport_amami_illustration.png', '奄美空港', '空港'),
-    ('youtube.airport_naha', 'yt43_55_airport_naha_illustration.png', '那覇空港', '空港'),
-    ('youtube.airport_sendai', 'yt43_56_airport_sendai_illustration.png', '仙台空港', '空港'),
-    ('youtube.airport_hanamaki', 'yt43_57_airport_hanamaki_illustration.png', '花巻空港', '空港'),
-    ('youtube.airport_yamagata', 'yt43_58_airport_yamagata_illustration.png', '山形空港', '空港'),
-    ('youtube.airport_fukushima', 'yt43_59_airport_fukushima_illustration.png', '福島空港', '空港'),
-    ('youtube.airport_obihiro', 'yt43_60_airport_obihiro_illustration.png', '帯広空港', '空港'),
-    ('youtube.ehime_mishima_kawanoe_port', 'yt43_61_ehime_mishima_kawanoe_port_illustration.png', '三島川之江港', '愛媛県内ライブカメラ'),
-    ('youtube.ehime_toyo_port', 'yt43_62_ehime_toyo_port_illustration.png', '東予港', '愛媛県内ライブカメラ'),
-    ('youtube.ehime_hashihama_port', 'yt43_63_ehime_hashihama_port_illustration.png', '波止浜港', '愛媛県内ライブカメラ'),
-    ('youtube.ehime_misaki_port', 'yt43_64_ehime_misaki_port_illustration.png', '三崎港', '愛媛県内ライブカメラ'),
-    ('youtube.ehime_misho_port', 'yt43_65_ehime_misho_port_illustration.png', '御荘港', '愛媛県内ライブカメラ'),
-    ('youtube.ehime_kuma_skiland', 'yt43_66_ehime_kuma_skiland_illustration.png', '久万スキーランド', '愛媛県内ライブカメラ'),
-    ('youtube.ehime_saragamine', 'yt43_67_ehime_saragamine_illustration.png', '皿ヶ嶺方面', '愛媛県内ライブカメラ'),
-    ('youtube.ehime_omogo_ishizuchi', 'yt43_68_ehime_omogo_ishizuchi_illustration.png', '面河・石鎚山系', '愛媛県内ライブカメラ'),
-    ('youtube.ehime_ainan_ebc', 'yt43_69_ehime_ainan_ebc_illustration.png', '愛南町・御荘湾', '愛媛県内ライブカメラ'),
-    ('youtube.ehime_dogo_honkan', 'yt43_70_ehime_dogo_honkan_illustration.png', '道後温泉本館', '愛媛県内ライブカメラ'),
-    ('youtube.fushimi_inari', 'yt43_71_fushimi_inari_v4.png', '伏見稲荷大社', 'その他LIVE'),
-    ('youtube.daigoji', 'yt43_72_daigoji_v4.png', '醍醐寺', 'その他LIVE'),
-    ('youtube.oharano_jinja', 'yt43_73_oharano_jinja_v4.png', '大原野神社', 'その他LIVE'),
-    ('youtube.arashiyama_monkeypark', 'yt43_74_arashiyama_monkeypark_v4.png', '嵐山モンキーパーク', '動物'),
-]
+RAW = "https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/youtube/"
+SIZE = 512
 
 SOURCE_FILES = [
-    Path('general_youtube_sources.json'),
-    Path('general_youtube_sources_airports.json'),
-    Path('general_youtube_sources_ports.json'),
+    Path("general_youtube_sources.json"),
+    Path("general_youtube_sources_ports.json"),
+    Path("general_youtube_sources_airports.json"),
 ]
-PLAYLIST_FILES = [Path('freewifi'), Path('general_youtube.m3u')]
+PLAYLIST_FILES = [
+    Path("general_youtube.m3u"),
+    Path("freewifi"),
+    Path("kana_tube.m3u"),
+]
+SKIP_IDS = {
+    "jra.official",
+    "youtube.narita_t1",
+    "youtube.kobe_waterfront2",
+}
 
 FONT_CANDIDATES = [
-    '/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc',
-    '/usr/share/fonts/opentype/noto/NotoSansCJKjp-Bold.otf',
-    '/usr/share/fonts/opentype/noto/NotoSansJP-Bold.ttf',
-    '/usr/share/fonts/truetype/noto/NotoSansCJK-Bold.ttc',
-    '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf',
+    "/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc",
+    "/usr/share/fonts/opentype/noto/NotoSansCJKjp-Bold.otf",
+    "/usr/share/fonts/truetype/noto/NotoSansCJK-Bold.ttc",
+    "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
 ]
 
-STYLE_KEY = 'freewifi_logo_style'
-STYLE_VALUE = 'yt43-photo-card-v4'
 
-
-def choose_font() -> str:
+def choose_font():
     for path in FONT_CANDIDATES:
         if Path(path).exists():
-            try:
-                ImageFont.truetype(path, 30)
-                return path
-            except Exception:
-                pass
-    return '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'
+            return path
+    return FONT_CANDIDATES[-1]
 
 
 FONT = choose_font()
 
 
-def fit_font(draw: ImageDraw.ImageDraw, text: str, max_width: int, start: int, minimum: int = 20):
-    font = ImageFont.load_default()
-    for size in range(start, minimum - 1, -2):
-        try:
-            font = ImageFont.truetype(FONT, size)
-        except Exception:
-            font = ImageFont.load_default()
-        box = draw.textbbox((0, 0), text, font=font)
-        if box[2] - box[0] <= max_width:
-            return font
-    return font
+def font(size):
+    try:
+        return ImageFont.truetype(FONT, size)
+    except Exception:
+        return ImageFont.load_default()
 
 
-def load_sources() -> dict[str, dict]:
-    found: dict[str, dict] = {}
+def load_items():
+    rows = []
     for path in SOURCE_FILES:
         if not path.exists():
             continue
-        try:
-            items = json.loads(path.read_text(encoding='utf-8'))
-        except Exception:
-            continue
-        for item in items:
-            tvg = str(item.get('id') or '').strip()
-            if tvg:
-                found[tvg] = item
-    return found
-
-
-def extract_video_id(value: str) -> str | None:
-    if not value:
-        return None
-    patterns = (
-        r'(?:watch\?v=|youtu\.be/)([A-Za-z0-9_-]{11})',
-        r'/id/([A-Za-z0-9_-]{11})(?:[./?]|$)',
-        r'/embed/([A-Za-z0-9_-]{11})(?:[/?]|$)',
-    )
-    for pattern in patterns:
-        m = re.search(pattern, value)
-        if m:
-            return m.group(1)
-    return None
-
-
-def playlist_video_ids() -> dict[str, str]:
-    ids: dict[str, str] = {}
-    for path in PLAYLIST_FILES:
-        if not path.exists():
-            continue
-        current = None
-        text = path.read_text(encoding='utf-8-sig', errors='replace')
-        for line in text.splitlines():
-            if line.startswith('#EXTINF:'):
-                m = re.search(r'tvg-id="([^"]+)"', line)
-                current = m.group(1) if m else None
+        data = json.loads(path.read_text(encoding="utf-8"))
+        for item in data:
+            cid = str(item.get("id") or "").strip()
+            if not cid or cid in SKIP_IDS or not item.get("enabled", True):
                 continue
-            if current and line and not line.startswith('#'):
-                vid = extract_video_id(line)
-                if vid:
-                    ids.setdefault(current, vid)
-                current = None
-    return ids
+            rows.append((path, item))
+    return rows
 
 
-def fetch_url_bytes(url: str, limit: int = 5_000_000) -> bytes | None:
-    try:
-        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
-        with urllib.request.urlopen(req, timeout=15) as r:
-            data = r.read(limit)
-        if not data:
-            return None
-        with Image.open(BytesIO(data)) as test:
-            if test.width < 320 or test.height < 180:
-                return None
-        return data
-    except Exception:
-        return None
+def safe_slug(cid):
+    slug = cid.split(".", 1)[-1]
+    slug = re.sub(r"[^a-zA-Z0-9_]+", "_", slug).strip("_")
+    return slug or "youtube"
 
 
-def direct_youtube_thumbnail(video_id: str | None) -> bytes | None:
-    if not video_id:
-        return None
-    for name in ('maxresdefault.jpg', 'sddefault.jpg', 'hqdefault.jpg'):
-        data = fetch_url_bytes(f'https://i.ytimg.com/vi/{video_id}/{name}')
-        if data:
-            return data
-    return None
+def kind_for(item):
+    cid = str(item.get("id") or "").lower()
+    name = str(item.get("name") or "")
+    group = str(item.get("group") or "")
+    s = (cid + " " + name + " " + group).lower()
+
+    if cid == "youtube.kana_tube":
+        return "kana"
+    if "空港" in name or "airport" in s or "haneda" in s or "kix" in s or "centrair" in s:
+        return "airport"
+    if any(k in name for k in ("港", "湾")) or "waterfront" in s:
+        return "port"
+    if any(k in name for k in ("駅", "鉄道", "線")) or any(k in s for k in ("rail", "osaka_station", "osaka_loop")):
+        return "rail"
+    if "バス" in name:
+        return "bus"
+    if "橋" in name or "bridge" in s:
+        return "bridge"
+    if any(k in name for k in ("神社", "稲荷")):
+        return "shrine"
+    if "寺" in name:
+        return "temple"
+    if "城" in name:
+        return "castle"
+    if any(k in name for k in ("山", "スキー", "ロープウェイ", "皿ヶ嶺", "石鎚")):
+        return "mountain"
+    if any(k in name for k in ("川", "ダム")):
+        return "river"
+    if "温泉" in name or "道後" in name:
+        return "onsen"
+    if "クリーンセンター" in name:
+        return "clean"
+    if "マンダリン" in name:
+        return "baseball"
+    if "サービスエリア" in name or "別府町" in name or "本町" in name or "東京ドーム" in name or "向日" in name:
+        return "city"
+    if any(k in name for k in ("柴犬", "馬", "モンキー", "チンチラ", "ナミビア")) or group == "動物":
+        if "馬" in name:
+            return "horse"
+        if "柴犬" in name:
+            return "dog"
+        if "モンキー" in name:
+            return "monkey"
+        return "animal"
+    if any(k in name for k in ("海", "しまなみ", "八幡浜", "愛南")):
+        return "coast"
+    return "city"
 
 
-def candidate_score(info: dict, query: str) -> int:
-    title = str(info.get('title') or '')
-    status = str(info.get('live_status') or '')
-    score = 0
-    if status == 'is_live':
-        score += 100
-    elif status in {'post_live', 'was_live'}:
-        score += 60
-    if 'ライブカメラ' in title or 'LIVE CAMERA' in title.upper():
-        score += 35
-    if 'LIVE' in title.upper():
-        score += 15
-    for word in re.findall(r'[\w一-龯ぁ-んァ-ヶ]{2,}', query):
-        if word.lower() in title.lower():
-            score += 2
-    return score
+def palette_for(kind):
+    palettes = {
+        "kana": ((255, 246, 249), (255, 58, 116), (33, 164, 235)),
+        "airport": ((232, 248, 255), (31, 132, 223), (255, 87, 130)),
+        "port": ((231, 249, 255), (19, 143, 211), (250, 116, 34)),
+        "rail": ((239, 252, 238), (36, 155, 84), (44, 113, 194)),
+        "bus": ((242, 252, 244), (48, 156, 91), (244, 122, 34)),
+        "bridge": ((233, 248, 255), (39, 128, 214), (235, 80, 90)),
+        "shrine": ((255, 241, 238), (215, 52, 45), (44, 112, 73)),
+        "temple": ((247, 243, 232), (117, 77, 47), (56, 122, 77)),
+        "castle": ((243, 247, 255), (46, 75, 119), (94, 139, 76)),
+        "mountain": ((238, 251, 235), (49, 133, 66), (39, 145, 196)),
+        "river": ((235, 249, 255), (31, 136, 207), (53, 144, 79)),
+        "onsen": ((255, 244, 232), (211, 102, 47), (52, 124, 171)),
+        "clean": ((241, 250, 247), (52, 133, 102), (69, 120, 170)),
+        "baseball": ((255, 245, 232), (240, 117, 42), (47, 117, 186)),
+        "dog": ((255, 247, 228), (206, 123, 43), (255, 72, 120)),
+        "horse": ((255, 248, 230), (150, 91, 48), (56, 160, 89)),
+        "monkey": ((255, 244, 228), (168, 91, 49), (67, 143, 77)),
+        "animal": ((245, 248, 230), (102, 139, 60), (240, 122, 53)),
+        "coast": ((233, 249, 255), (29, 145, 207), (47, 160, 110)),
+        "city": ((241, 247, 255), (47, 112, 183), (244, 104, 61)),
+    }
+    return palettes.get(kind, palettes["city"])
 
 
-def yt_dlp_thumbnail(item: dict) -> bytes | None:
-    page = str(item.get('page') or '').strip()
-    query = str(item.get('query') or '').strip()
-    targets: list[tuple[str, bool]] = []
-    if page:
-        targets.append((page, False))
-    if query:
-        targets.append(('ytsearch5:' + query, True))
-
-    for target, is_search in targets:
-        cmd = [
-            'yt-dlp', '--skip-download', '--dump-single-json', '--no-warnings',
-            '--socket-timeout', '12', '--retries', '1', '--playlist-end', '5', target,
-        ]
-        try:
-            p = subprocess.run(cmd, capture_output=True, text=True, timeout=40)
-        except Exception:
-            continue
-        if p.returncode != 0 or not p.stdout.strip():
-            continue
-        try:
-            info = json.loads(p.stdout.splitlines()[-1])
-        except Exception:
-            continue
-
-        candidates = info.get('entries') if is_search else None
-        if candidates:
-            candidates = [x for x in candidates if isinstance(x, dict)]
-            candidates.sort(key=lambda x: candidate_score(x, query), reverse=True)
-        else:
-            candidates = [info]
-
-        for candidate in candidates:
-            vid = str(candidate.get('id') or '').strip()
-            data = direct_youtube_thumbnail(vid if len(vid) == 11 else None)
-            if data:
-                return data
-            thumb = str(candidate.get('thumbnail') or '').strip()
-            if not thumb:
-                thumbs = candidate.get('thumbnails') or []
-                if thumbs:
-                    thumb = str(thumbs[-1].get('url') or '').strip()
-            if thumb:
-                data = fetch_url_bytes(thumb)
-                if data:
-                    return data
-    return None
+def roundrect(draw, box, radius, fill, outline=None, width=1):
+    draw.rounded_rectangle(box, radius=radius, fill=fill, outline=outline, width=width)
 
 
-def thumbnail_for(tvg: str, item: dict, live_ids: dict[str, str]) -> bytes | None:
-    data = direct_youtube_thumbnail(live_ids.get(tvg))
-    if data:
-        return data
-    page_id = extract_video_id(str(item.get('page') or ''))
-    data = direct_youtube_thumbnail(page_id)
-    if data:
-        return data
-    return yt_dlp_thumbnail(item)
+def draw_sun(draw, x, y, r=28, fill=(255, 193, 41)):
+    draw.ellipse((x-r, y-r, x+r, y+r), fill=fill)
+    for a in range(0, 360, 45):
+        t = math.radians(a)
+        x1 = x + math.cos(t) * (r + 10)
+        y1 = y + math.sin(t) * (r + 10)
+        x2 = x + math.cos(t) * (r + 26)
+        y2 = y + math.sin(t) * (r + 26)
+        draw.line((x1, y1, x2, y2), fill=fill, width=8)
 
 
-def crop_to_size(img: Image.Image, width: int, height: int) -> Image.Image:
-    img = img.convert('RGB')
-    src_ratio = img.width / img.height
-    dst_ratio = width / height
-    if src_ratio > dst_ratio:
-        new_h = height
-        new_w = round(new_h * src_ratio)
-    else:
-        new_w = width
-        new_h = round(new_w / src_ratio)
-    img = img.resize((new_w, new_h), Image.Resampling.LANCZOS)
-    left = max(0, (new_w - width) // 2)
-    top = max(0, (new_h - height) // 2)
-    return img.crop((left, top, left + width, top + height))
+def draw_cloud(draw, x, y, scale=1.0):
+    c = (255, 255, 255)
+    draw.ellipse((x, y+18*scale, x+90*scale, y+62*scale), fill=c)
+    draw.ellipse((x+18*scale, y, x+72*scale, y+55*scale), fill=c)
+    draw.ellipse((x+48*scale, y+8*scale, x+106*scale, y+60*scale), fill=c)
 
 
-def clean_fallback(title: str, group: str) -> Image.Image:
-    img = Image.new('RGB', (SIZE, SIZE), (118, 158, 193))
+def draw_airplane(draw):
+    white=(252,252,252); blue=(35,118,205); dark=(32,47,62)
+    draw.polygon([(110,256),(286,214),(416,150),(437,164),(327,244),(434,267),(433,289),(315,280),(276,354),(247,356),(263,281),(119,293)], fill=white, outline=dark)
+    draw.polygon([(253,242),(307,222),(278,271),(213,281)], fill=blue)
+    draw.line((130,290,427,284), fill=blue, width=8)
+    draw.ellipse((360,190,380,204), fill=dark)
+    draw.ellipse((390,176,409,191), fill=dark)
+
+
+def draw_port(draw):
+    blue=(31,143,207); navy=(32,73,111); white=(250,250,250)
+    draw.rectangle((0,320,512,390), fill=blue)
+    for y in (337,366):
+        for x in range(20,500,90):
+            draw.arc((x,y,x+55,y+18), 10, 170, fill=(255,255,255), width=4)
+    draw.polygon([(116,294),(365,294),(336,345),(150,345)], fill=white, outline=navy)
+    draw.rectangle((198,240,280,294), fill=white, outline=navy, width=4)
+    draw.rectangle((224,207,257,240), fill=white, outline=navy, width=4)
+    draw.rectangle((242,188,248,207), fill=navy)
+
+
+def draw_train(draw):
+    dark=(42,54,66); white=(247,249,250); green=(40,154,83)
+    roundrect(draw,(110,165,402,352),34,white,dark,8)
+    draw.rectangle((132,206,380,274), fill=(54,119,176))
+    draw.rectangle((128,292,385,319), fill=green)
+    draw.rectangle((160,330,352,350), fill=dark)
+    draw.ellipse((145,340,195,390), fill=dark)
+    draw.ellipse((317,340,367,390), fill=dark)
+
+
+def draw_bus(draw):
+    dark=(44,60,72); white=(250,250,250); blue=(40,130,196)
+    roundrect(draw,(90,190,422,345),24,white,dark,7)
+    draw.rectangle((116,215,392,275), fill=(90,165,210))
+    draw.rectangle((104,294,408,318), fill=blue)
+    draw.ellipse((125,325,180,380), fill=dark)
+    draw.ellipse((330,325,385,380), fill=dark)
+
+
+def draw_bridge(draw):
+    blue=(39,130,203); white=(249,249,249)
+    draw.rectangle((0,335,512,390), fill=blue)
+    draw.line((80,300,432,300), fill=white, width=15)
+    draw.line((126,300,180,198), fill=white, width=12)
+    draw.line((386,300,332,198), fill=white, width=12)
+    draw.line((180,198,332,198), fill=white, width=10)
+    for x in range(155,370,36):
+        draw.line((x,215,x+22,300), fill=white, width=5)
+
+
+def draw_shrine(draw):
+    red=(211,52,45); dark=(70,49,42)
+    draw.rectangle((126,195,156,340), fill=red)
+    draw.rectangle((356,195,386,340), fill=red)
+    draw.rectangle((102,176,410,202), fill=red)
+    draw.polygon([(82,156),(430,156),(405,179),(107,179)], fill=dark)
+    draw.rectangle((158,232,354,250), fill=red)
+    draw.polygon([(195,340),(317,340),(300,290),(212,290)], fill=(72,105,74))
+
+
+def draw_temple(draw):
+    dark=(73,61,50); red=(137,72,51)
+    draw.polygon([(130,235),(382,235),(344,202),(168,202)], fill=dark)
+    draw.rectangle((170,235,342,330), fill=(235,221,190), outline=dark, width=5)
+    draw.rectangle((205,260,232,330), fill=red)
+    draw.rectangle((280,260,307,330), fill=red)
+    draw.polygon([(166,202),(346,202),(320,171),(192,171)], fill=dark)
+
+
+def draw_castle(draw):
+    dark=(46,65,82); white=(249,249,246)
+    draw.polygon([(145,327),(367,327),(338,284),(174,284)], fill=(135,139,140))
+    draw.rectangle((180,226,332,284), fill=white, outline=dark, width=5)
+    draw.polygon([(156,226),(356,226),(322,195),(190,195)], fill=dark)
+    draw.rectangle((206,176,306,218), fill=white, outline=dark, width=4)
+    draw.polygon([(190,176),(322,176),(295,151),(217,151)], fill=dark)
+
+
+def draw_mountain(draw):
+    draw.polygon([(62,350),(190,180),(274,292),(335,215),(455,350)], fill=(51,135,68))
+    draw.polygon([(190,180),(158,222),(222,222)], fill=(245,250,248))
+    draw.polygon([(335,215),(311,246),(360,246)], fill=(245,250,248))
+    draw.rectangle((0,350,512,390), fill=(84,167,77))
+
+
+def draw_river(draw):
+    draw_mountain(draw)
+    draw.rectangle((0,330,512,390), fill=(48,155,215))
+    draw.polygon([(95,390),(207,332),(273,390)], fill=(226,205,158))
+    draw.polygon([(278,390),(367,338),(438,390)], fill=(226,205,158))
+
+
+def draw_city(draw):
+    cols=[(82,270,145,360),(153,230,224,360),(238,255,302,360),(315,205,397,360)]
+    colors=[(91,145,191),(62,116,174),(122,164,196),(75,125,180)]
+    for box,c in zip(cols,colors):
+        draw.rectangle(box,fill=c)
+        for y in range(box[1]+18,box[3]-12,30):
+            for x in range(box[0]+12,box[2]-10,24):
+                draw.rectangle((x,y,x+10,y+13),fill=(230,240,247))
+    draw.rectangle((0,360,512,390),fill=(106,112,117))
+    draw.line((220,375,292,375),fill=(250,250,250),width=6)
+
+
+def draw_onsen(draw):
+    brown=(157,104,61); dark=(92,65,49); blue=(45,129,185)
+    draw.ellipse((125,250,387,350), fill=brown, outline=dark, width=6)
+    draw.rectangle((125,286,387,330), fill=brown)
+    draw.ellipse((143,260,369,315), fill=(217,161,102))
+    for x in (190,256,322):
+        draw.arc((x-28,175,x+28,255),0,180,fill=blue,width=8)
+
+
+def draw_clean(draw):
+    draw.rectangle((126,240,386,350), fill=(229,235,238), outline=(68,89,98), width=6)
+    draw.rectangle((166,195,208,240), fill=(123,145,151))
+    draw.rectangle((290,170,330,240), fill=(123,145,151))
+    draw.ellipse((230,250,282,302), outline=(52,139,97), width=10)
+    draw.polygon([(256,238),(268,263),(244,263)], fill=(52,139,97))
+
+
+def draw_baseball(draw):
+    draw.ellipse((165,175,347,357), fill=(250,250,247), outline=(70,70,70), width=7)
+    draw.arc((172,205,252,330), 290, 70, fill=(218,69,53), width=7)
+    draw.arc((260,205,340,330), 110, 250, fill=(218,69,53), width=7)
+    draw.rectangle((305,160,326,320), fill=(166,104,52))
+    draw.ellipse((284,145,348,175), fill=(242,146,54), outline=(100,75,50), width=4)
+
+
+def draw_dog(draw):
+    brown=(204,126,57); cream=(255,244,219); dark=(65,48,41)
+    draw.ellipse((150,170,362,360), fill=brown, outline=dark, width=6)
+    draw.polygon([(165,205),(108,142),(202,166)], fill=brown, outline=dark)
+    draw.polygon([(347,205),(404,142),(310,166)], fill=brown, outline=dark)
+    draw.ellipse((205,245,307,332), fill=cream)
+    draw.ellipse((203,228,225,251), fill=dark)
+    draw.ellipse((287,228,309,251), fill=dark)
+    draw.ellipse((245,267,270,288), fill=dark)
+
+
+def draw_horse(draw):
+    brown=(174,102,56); cream=(254,243,220); dark=(65,47,42)
+    draw.ellipse((154,165,358,360), fill=brown, outline=dark, width=6)
+    draw.polygon([(168,193),(132,116),(214,171)], fill=brown, outline=dark)
+    draw.polygon([(344,193),(380,116),(298,171)], fill=brown, outline=dark)
+    draw.polygon([(239,166),(277,166),(298,320),(216,320)], fill=cream)
+    draw.ellipse((202,228,224,250), fill=dark)
+    draw.ellipse((287,228,309,250), fill=dark)
+    draw.ellipse((240,294,272,312), fill=dark)
+
+
+def draw_monkey(draw):
+    brown=(155,91,51); tan=(238,184,126); dark=(63,46,39)
+    draw.ellipse((150,166,362,355), fill=brown, outline=dark, width=6)
+    draw.ellipse((125,225,190,295), fill=tan, outline=dark, width=5)
+    draw.ellipse((322,225,387,295), fill=tan, outline=dark, width=5)
+    draw.ellipse((193,214,319,330), fill=tan)
+    draw.ellipse((213,238,234,258), fill=dark)
+    draw.ellipse((278,238,299,258), fill=dark)
+
+
+def draw_animal(draw):
+    draw.ellipse((156,176,356,356), fill=(210,182,141), outline=(67,57,48), width=6)
+    draw.ellipse((128,161,210,237), fill=(210,182,141), outline=(67,57,48), width=5)
+    draw.ellipse((302,161,384,237), fill=(210,182,141), outline=(67,57,48), width=5)
+    draw.ellipse((210,235,230,255), fill=(62,52,45))
+    draw.ellipse((282,235,302,255), fill=(62,52,45))
+    draw.ellipse((244,270,270,292), fill=(62,52,45))
+
+
+def draw_coast(draw):
+    draw.rectangle((0,300,512,390), fill=(42,157,214))
+    draw.polygon([(0,360),(120,300),(205,345),(308,280),(512,350),(512,390),(0,390)], fill=(52,144,91))
+    draw.arc((365,280,470,365), 180, 360, fill=(255,255,255), width=7)
+
+
+def draw_kana(draw):
+    red=(245,47,82); dark=(56,37,39); blue=(48,167,224)
+    roundrect(draw,(118,150,394,334),46,red,dark,8)
+    draw.rectangle((232,120,246,150), fill=dark)
+    draw.rectangle((300,112,314,150), fill=dark)
+    draw.ellipse((225,108,252,135), fill=dark)
+    draw.ellipse((293,100,320,127), fill=dark)
+    draw.polygon([(224,200),(224,286),(310,243)], fill=(255,255,255))
+    draw.arc((78,175,150,255),100,260,fill=blue,width=9)
+    draw.arc((362,175,434,255),280,80,fill=blue,width=9)
+
+
+def draw_icon(draw, kind):
+    if kind == "kana": draw_kana(draw)
+    elif kind == "airport": draw_airplane(draw)
+    elif kind == "port": draw_port(draw)
+    elif kind == "rail": draw_train(draw)
+    elif kind == "bus": draw_bus(draw)
+    elif kind == "bridge": draw_bridge(draw)
+    elif kind == "shrine": draw_shrine(draw)
+    elif kind == "temple": draw_temple(draw)
+    elif kind == "castle": draw_castle(draw)
+    elif kind == "mountain": draw_mountain(draw)
+    elif kind == "river": draw_river(draw)
+    elif kind == "onsen": draw_onsen(draw)
+    elif kind == "clean": draw_clean(draw)
+    elif kind == "baseball": draw_baseball(draw)
+    elif kind == "dog": draw_dog(draw)
+    elif kind == "horse": draw_horse(draw)
+    elif kind == "monkey": draw_monkey(draw)
+    elif kind == "animal": draw_animal(draw)
+    elif kind == "coast": draw_coast(draw)
+    else: draw_city(draw)
+
+
+def fit_text(draw, text, max_width, start=48, minimum=22):
+    for size in range(start, minimum-1, -2):
+        f = font(size)
+        box = draw.textbbox((0,0), text, font=f)
+        if box[2]-box[0] <= max_width:
+            return f
+    return font(minimum)
+
+
+def split_title(draw, text, max_width=438):
+    # Prefer natural separators; otherwise split around the middle.
+    text = text.replace("【", " 【").replace("・", "・")
+    for sep in (" ", "・", "／", "/"):
+        if sep in text:
+            parts = text.split(sep)
+            if len(parts) >= 2:
+                mid = max(1, len(parts)//2)
+                a = sep.join(parts[:mid]).strip()
+                b = sep.join(parts[mid:]).strip()
+                if a and b:
+                    return [a, b]
+    f = fit_text(draw, text, max_width, 43, 24)
+    if draw.textbbox((0,0), text, font=f)[2] <= max_width:
+        return [text]
+    cut = max(1, len(text)//2)
+    return [text[:cut], text[cut:]]
+
+
+def render_logo(number, item, filename):
+    kind = kind_for(item)
+    bg, accent, accent2 = palette_for(kind)
+    img = Image.new("RGB", (SIZE, SIZE), bg)
     d = ImageDraw.Draw(img)
-    for y in range(SIZE):
-        t = y / max(1, SIZE - 1)
-        if y < SIZE * 0.62:
-            c = (int(108 + 55 * t), int(158 + 55 * t), int(202 + 38 * t))
-        else:
-            c = (44, 91, 110) if ('港' in title or '愛南' in title) else (61, 103, 64)
-        d.line((0, y, SIZE, y), fill=c)
 
-    if group == '空港' or '空港' in title:
-        d.polygon([(70, 390), (348, 390), (280, 300), (142, 300)], fill=(74, 76, 82))
-        d.line((209, 310, 209, 390), fill=(240, 240, 240), width=8)
-        d.polygon([(165, 205), (247, 205), (272, 220), (236, 226), (218, 253),
-                   (201, 253), (192, 227), (148, 220)], fill=(245, 245, 245))
-    elif '港' in title or '湾' in title:
-        d.rectangle((0, 290, SIZE, SIZE), fill=(39, 108, 150))
-        d.polygon([(102, 300), (310, 300), (280, 342), (130, 342)], fill=(239, 239, 239))
-        d.rectangle((180, 240, 230, 300), fill=(242, 242, 242))
+    # frame + simple sky decoration
+    d.rounded_rectangle((8,8,504,504), radius=34, outline=accent, width=10)
+    draw_sun(d, 436, 92, 22, fill=(255,194,40))
+    draw_cloud(d, 320, 92, 0.7)
+
+    # number badge
+    roundrect(d, (22,22,132,118), 30, accent, (48,40,42), 6)
+    num = f"{number:02d}"
+    nf = font(58)
+    box = d.textbbox((0,0), num, font=nf)
+    d.text((77-(box[2]-box[0])/2, 69-(box[3]-box[1])/2-box[1]), num, font=nf, fill="white")
+
+    draw_icon(d, kind)
+
+    # title card
+    d.rounded_rectangle((28,374,484,486), radius=28, fill=(255,255,255), outline=(68,49,45), width=7)
+    title = str(item.get("name") or item.get("id") or "")
+    title = re.sub(r"\s+LIVE$", "", title)
+    lines = split_title(d, title)
+    if len(lines) == 1:
+        f = fit_text(d, lines[0], 424, 48, 24)
+        b = d.textbbox((0,0), lines[0], font=f)
+        x = 256 - (b[2]-b[0])/2
+        y = 430 - (b[3]-b[1])/2 - b[1]
+        d.text((x,y), lines[0], font=f, fill=accent)
     else:
-        d.polygon([(0, 340), (100, 245), (170, 310), (250, 205), (418, 342), (418, 418), (0, 418)],
-                  fill=(62, 103, 68))
-    return img
+        fs=[]
+        for line in lines[:2]:
+            fs.append(fit_text(d, line, 424, 38, 21))
+        ys=[393,438]
+        for line,f,y in zip(lines[:2],fs,ys):
+            b=d.textbbox((0,0), line, font=f)
+            x=256-(b[2]-b[0])/2
+            d.text((x,y-b[1]), line, font=f, fill=accent if y==393 else accent2)
+
+    img.save(ROOT / filename, "PNG", optimize=True)
 
 
-def has_current_style(path: Path) -> bool:
-    try:
-        with Image.open(path) as img:
-            return img.info.get(STYLE_KEY) == STYLE_VALUE
-    except Exception:
-        return False
+def canonical_mapping(rows):
+    mapping = {}
+    for idx, (_, item) in enumerate(rows, start=1):
+        cid = str(item.get("id") or "").strip()
+        filename = f"yt43_{idx:02d}_{safe_slug(cid)}_illustration.png"
+        mapping[cid] = (idx, filename)
+    return mapping
 
 
-def render_logo(filename: str, title: str, group: str, data: bytes | None):
-    header_h = 94
-    photo_h = SIZE - header_h
-    if data:
-        try:
-            photo_src = Image.open(BytesIO(data)).convert('RGB')
-        except Exception:
-            photo_src = clean_fallback(title, group)
-    else:
-        photo_src = clean_fallback(title, group)
-
-    photo = crop_to_size(photo_src, SIZE, photo_h)
-    photo = ImageEnhance.Contrast(photo).enhance(1.05)
-    photo = ImageEnhance.Color(photo).enhance(1.04)
-
-    out = Image.new('RGB', (SIZE, SIZE), 'white')
-    out.paste(photo, (0, header_h))
-    draw = ImageDraw.Draw(out)
-    accent = (29, 78, 160) if group != '愛媛県内ライブカメラ' else (230, 91, 28)
-    draw.rectangle((1, 1, SIZE - 2, SIZE - 2), outline=(214, 214, 214), width=3)
-
-    num = int(filename.split('_', 2)[1])
-    badge_w = 56
-    draw.rounded_rectangle((10, 12, 10 + badge_w, 12 + 56), radius=8, fill=accent)
-    num_font = fit_font(draw, str(num), badge_w - 10, 35, 24)
-    nbox = draw.textbbox((0, 0), str(num), font=num_font)
-    nx = 10 + badge_w / 2 - (nbox[2] - nbox[0]) / 2 - nbox[0]
-    ny = 12 + 28 - (nbox[3] - nbox[1]) / 2 - nbox[1]
-    draw.text((nx, ny), str(num), font=num_font, fill='white')
-
-    title_font = fit_font(draw, title, SIZE - 90, 39, 22)
-    box = draw.textbbox((0, 0), title, font=title_font)
-    tx = 78
-    ty = (header_h - (box[3] - box[1])) / 2 - box[1] - 1
-    draw.text((tx, ty), title, font=title_font, fill=accent)
-
-    live_w, live_h = 112, 46
-    x1, y1 = SIZE - live_w - 10, SIZE - live_h - 10
-    x2, y2 = SIZE - 10, SIZE - 10
-    draw.rounded_rectangle((x1, y1, x2, y2), radius=7, fill=(229, 25, 25))
-    draw.rounded_rectangle((x1 + 7, y1 + 8, x1 + 39, y1 + 38), radius=6, fill='white')
-    draw.polygon([(x1 + 18, y1 + 14), (x1 + 18, y1 + 32), (x1 + 31, y1 + 23)], fill=(229, 25, 25))
-    live_font = fit_font(draw, 'LIVE', 60, 25, 18)
-    live_box = draw.textbbox((0, 0), 'LIVE', font=live_font)
-    draw.text((x1 + 45, y1 + (live_h - (live_box[3] - live_box[1])) / 2 - live_box[1] - 1),
-              'LIVE', font=live_font, fill='white')
-
-    pnginfo = PngImagePlugin.PngInfo()
-    pnginfo.add_text(STYLE_KEY, STYLE_VALUE)
-    pnginfo.add_text('thumbnail_source', 'youtube' if data else 'clean-fallback')
-    out.save(ROOT / filename, 'PNG', optimize=True, pnginfo=pnginfo)
-    print('generated', ROOT / filename, 'thumbnail=' + ('yes' if data else 'clean-fallback'))
-
-
-def patch_source_files():
-    logo_by_id = {tvg: RAW + filename for tvg, filename, *_ in SPECS}
+def patch_sources(mapping):
     for path in SOURCE_FILES:
         if not path.exists():
             continue
-        items = json.loads(path.read_text(encoding='utf-8'))
+        data = json.loads(path.read_text(encoding="utf-8"))
         changed = 0
-        for item in items:
-            tvg = str(item.get('id') or '').strip()
-            wanted = logo_by_id.get(tvg)
-            if wanted and item.get('logo') != wanted:
-                item['logo'] = wanted
-                changed += 1
+        for item in data:
+            cid = str(item.get("id") or "").strip()
+            if cid in mapping:
+                wanted = RAW + mapping[cid][1]
+                if item.get("logo") != wanted:
+                    item["logo"] = wanted
+                    changed += 1
         if changed:
-            path.write_text(json.dumps(items, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
-        print(path, 'canonical yt43 v4 logo mappings:', changed)
+            path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        print(path, "logo mappings updated:", changed)
 
 
-def render_ehime_catv_ainan():
-    outdir = Path('logos/ehime_catv')
-    outdir.mkdir(parents=True, exist_ok=True)
-    size = 512
-    img = Image.new('RGB', (size, size), 'white')
-    d = ImageDraw.Draw(img)
-    blue = (31, 104, 190)
-    d.rectangle((0, 0, size, 29), fill=blue)
+def patch_playlist(path, mapping):
+    if not path.exists():
+        return
+    text = path.read_text(encoding="utf-8-sig", errors="replace")
+    out = []
+    for line in text.splitlines():
+        if line.startswith("#EXTINF:"):
+            m = re.search(r'tvg-id="([^"]+)"', line)
+            if m and m.group(1) in mapping:
+                logo = RAW + mapping[m.group(1)][1]
+                if re.search(r'tvg-logo="[^"]*"', line):
+                    line = re.sub(r'tvg-logo="[^"]*"', f'tvg-logo="{logo}"', line, count=1)
+                else:
+                    line = line.replace(" group-title=", f' tvg-logo="{logo}" group-title=', 1)
+        out.append(line)
+    path.write_text("\n".join(out).rstrip() + "\n", encoding="utf-8")
 
-    def centered(text, top, font, fill):
-        box = d.textbbox((0, 0), text, font=font)
-        x = (size - (box[2] - box[0])) / 2 - box[0]
-        d.text((x, top - box[1]), text, font=font, fill=fill)
 
-    centered('愛南', 90, fit_font(d, '愛南', 320, 116, 80), blue)
-    centered('ライブカメラ', 248, fit_font(d, 'ライブカメラ', 390, 64, 42), blue)
-    centered('愛媛CATV', 421, fit_font(d, '愛媛CATV', 220, 39, 30), blue)
-    d.rectangle((58, 478, 454, 487), fill=blue)
-
-    for name in ('14_ainan_livecam.png', '14_ainan_livecam_v2.png'):
-        img.save(outdir / name, 'PNG', optimize=True)
-        print('generated', outdir / name)
+def cleanup_old(keep):
+    removed = 0
+    for p in ROOT.glob("yt43_*.png"):
+        if p.name not in keep:
+            p.unlink()
+            removed += 1
+    unified = ROOT / "unified"
+    if unified.exists():
+        shutil.rmtree(unified)
+        print("removed legacy unified directory")
+    print("legacy yt43 logos removed:", removed)
 
 
 def main():
-    sources = load_sources()
-    live_ids = playlist_video_ids()
-    print('live thumbnail video IDs:', len(live_ids))
+    rows = load_items()
+    mapping = canonical_mapping(rows)
+    print("canonical YouTube logo count:", len(mapping))
 
-    pending = []
-    for tvg, filename, title, group in SPECS:
-        out = ROOT / filename
-        if filename.endswith('_illustration.png') and out.exists() and out.stat().st_size > 1_000:
-            print('keep manual illustration', out)
-            continue
-        if out.exists() and out.stat().st_size > 12_000 and has_current_style(out):
-            print('keep existing', out)
-            continue
-        pending.append((tvg, filename, title, group))
+    keep = set()
+    for path, item in rows:
+        cid = str(item.get("id") or "").strip()
+        number, filename = mapping[cid]
+        render_logo(number, item, filename)
+        keep.add(filename)
+        print(f"generated {number:02d}: {cid} -> {filename}")
 
-    thumbs: dict[str, bytes | None] = {}
-    if pending:
-        with ThreadPoolExecutor(max_workers=4) as pool:
-            jobs = {
-                pool.submit(thumbnail_for, tvg, sources.get(tvg, {}), live_ids): tvg
-                for tvg, *_ in pending
-            }
-            for future in as_completed(jobs):
-                tvg = jobs[future]
-                try:
-                    thumbs[tvg] = future.result()
-                except Exception:
-                    thumbs[tvg] = None
-
-    for tvg, filename, title, group in pending:
-        render_logo(filename, title, group, thumbs.get(tvg))
-
-    patch_source_files()
-    render_ehime_catv_ainan()
+    patch_sources(mapping)
+    for path in PLAYLIST_FILES:
+        patch_playlist(path, mapping)
+    cleanup_old(keep)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
