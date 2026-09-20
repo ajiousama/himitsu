@@ -82,7 +82,7 @@ def parse_managed_entries(text):
                 block.append(lines[j])
             j += 1
         mid = re.search(r'tvg-id="([^"]+)"', line)
-        if mid:
+        if mid and mid.group(1) != KANA_TVG_ID:
             name_m = re.search(r'tvg-name="([^"]+)"', line)
             name = name_m.group(1) if name_m else line.rsplit(',', 1)[-1].strip()
             entries.append({'id': mid.group(1), 'name': name, 'block': block})
