@@ -180,7 +180,7 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
 
           snapshot="$(mktemp -d)"
-          for f in general_youtube_sources.json general_youtube_sources_ports.json general_youtube_sources_airports.json general_youtube.m3u public_sports_youtube_fallback.m3u; do
+          for f in general_youtube_sources.json general_youtube_sources_ports.json general_youtube_sources_airports.json general_youtube.m3u public_sports_youtube_fallback.m3u logos/youtube/yt_72_muko_rail.png; do
             [ ! -f "$f" ] || cp "$f" "$snapshot/$f"
           done
 
@@ -221,7 +221,7 @@ jobs:
             test "$(grep -c 'tvg-id="youtube.kana_tube"' general_youtube.m3u || true)" -eq 0
             python -c 'import kana_tube_update as k; k.validate_outputs()'
 
-            git add general_youtube_sources.json general_youtube_sources_ports.json general_youtube_sources_airports.json general_youtube.m3u public_sports_youtube_fallback.m3u freewifi kana_tube.m3u kana_tube_status.json
+            git add general_youtube_sources.json general_youtube_sources_ports.json general_youtube_sources_airports.json general_youtube.m3u public_sports_youtube_fallback.m3u freewifi kana_tube.m3u kana_tube_status.json logos/youtube/yt_72_muko_rail.png
             if git diff --cached --quiet; then
               echo 'YouTube-managed state already current'
               rm -f youtube_cookies.txt

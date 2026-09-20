@@ -19,6 +19,7 @@ STRICT_DIRECT_PAGES = {
     'youtube.tokyo_dome_city': 'https://www.youtube.com/watch?v=7XzfKy8CzdY',
     'youtube.uwajima': 'https://www.youtube.com/watch?v=aJcTvBuj5AA',
     'youtube.tokyo_haneda': 'https://www.youtube.com/watch?v=LZlHg3vzwe0',
+    'youtube.muko_rail': 'https://www.youtube.com/watch?v=b5fdhGWb3rc',
 }
 
 # Rotating LIVE URLs are resolved only inside the intended broadcaster channel.

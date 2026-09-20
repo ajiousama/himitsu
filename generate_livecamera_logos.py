@@ -106,11 +106,65 @@ def lines(name):
             if len(p)>1:return [p[0],('・' if sep=='・' else ' ').join(p[1:])]
     n=len(s)//2; return [s[:n],s[n:]]
 
+def render_muko_rail(out,n,name):
+    # Dedicated illustrated railway-yard artwork; intentionally not a pictogram.
+    scale=2; s=SIZE*scale
+    img=Image.new('RGB',(s,s),(223,238,248)); d=ImageDraw.Draw(img,'RGBA')
+    for y in range(s):
+        t=min(1,y/(s*0.58))
+        c=(int(205+35*t),int(228-14*t),int(246-55*t))
+        d.line((0,y,s,y),fill=c)
+    d.ellipse((int(s*.77),int(s*.11),int(s*.86),int(s*.20)),fill=(255,235,175,220))
+    d.polygon([(0,int(s*.47)),(int(s*.18),int(s*.40)),(int(s*.31),int(s*.45)),(int(s*.45),int(s*.37)),(int(s*.62),int(s*.45)),(int(s*.78),int(s*.39)),(s,int(s*.44)),(s,int(s*.60)),(0,int(s*.60))],fill=(102,127,137,180))
+    for x,h in [(20,70),(100,100),(205,75),(660,90),(755,125),(860,80),(945,110)]:
+        d.rectangle((x,int(s*.55)-h,x+45,int(s*.55)),fill=(105,119,124,170))
+    d.rectangle((0,int(s*.56),s,s),fill=(112,105,94,255))
+    vp=(s//2,int(s*.55))
+    centers=[80,245,430,600,785,940]
+    for c in centers:
+        for off in (-28,28):
+            d.line((vp[0],vp[1],c+off,s),fill=(51,54,55,255),width=8)
+    for yy in range(int(s*.60),s,24):
+        t=(yy-vp[1])/(s-vp[1])
+        for c in centers:
+            half=27+45*t
+            d.line((c-half,yy,c+half,yy),fill=(72,60,49,235),width=max(5,int(5+4*t)))
+    for x in (110,285,515,735,930):
+        d.line((x,int(s*.26),x,int(s*.88)),fill=(48,59,62,255),width=9)
+        d.line((x-55,int(s*.32),x+75,int(s*.32)),fill=(48,59,62,255),width=6)
+        d.line((x,int(s*.32),x+45,int(s*.28)),fill=(48,59,62,220),width=4)
+    for y in (315,390,455):
+        d.line((30,y,995,y-18),fill=(45,54,58,180),width=3)
+    d.rounded_rectangle((72,520,395,630),18,fill=(215,221,220,255),outline=(55,63,67,255),width=5)
+    d.rectangle((95,540,360,575),fill=(51,83,95,255)); d.rectangle((70,590,395,605),fill=(72,140,91,255))
+    for x in range(105,355,48): d.rectangle((x,542,x+30,572),fill=(62,96,110,255))
+    body=[(240,500),(665,500),(835,650),(775,860),(325,860),(205,700)]
+    d.polygon(body,fill=(230,235,235,255),outline=(39,47,51,255))
+    d.polygon([(665,500),(835,650),(775,860),(680,795)],fill=(198,211,216,255),outline=(45,54,58,255))
+    for x in (300,385,470,555):
+        d.polygon([(x,555),(x+62,555),(x+72,635),(x+8,635)],fill=(48,83,103,255))
+    d.polygon([(690,555),(790,642),(770,705),(690,650)],fill=(35,68,87,255))
+    d.polygon([(220,665),(812,682),(802,720),(225,706)],fill=(39,114,174,255))
+    d.polygon([(225,713),(798,730),(792,748),(235,733)],fill=(199,62,59,255))
+    for x in (330,510,680): d.ellipse((x,825,x+80,905),fill=(32,34,35,255))
+    for x,y in ((710,744),(756,780)): d.ellipse((x-12,y-12,x+12,y+12),fill=(255,241,175,255))
+    d.line((500,500,540,450),fill=(48,55,58,255),width=7); d.line((540,450,590,500),fill=(48,55,58,255),width=7)
+    d.ellipse((30,28,238,236),fill=(28,104,176,245),outline=(31,41,50,255),width=12)
+    f72=ft(108); bb=d.textbbox((0,0),f'{n:02d}',font=f72)
+    d.text((134-(bb[2]-bb[0])/2,129-(bb[3]-bb[1])/2-6),f'{n:02d}',font=f72,fill='white')
+    d.rounded_rectangle((60,865,964,985),30,fill=(250,250,248,245),outline=(28,104,176,255),width=8)
+    label='向日町・鉄道LIVE'; fl=fit(d,label,850,72,42); bb=d.textbbox((0,0),label,font=fl)
+    d.text(((s-(bb[2]-bb[0]))/2,887),label,font=fl,fill=(35,43,51,255))
+    d.rounded_rectangle((8,8,s-8,s-8),65,outline=(28,104,176,230),width=14)
+    img.resize((418,418),Image.Resampling.LANCZOS).save(out,'PNG',optimize=True)
+
 def render(n,x,f):
     out=ROOT/f
     # Adopted artwork is immutable during routine LIVE refreshes.
     # The generator only creates a placeholder when a newly-numbered logo is missing.
     if out.exists() and out.stat().st_size>1000:return
+    if str(x.get('id') or '')=='youtube.muko_rail':
+        render_muko_rail(out,n,str(x.get('name') or '向日町・鉄道LIVE')); return
     k=kind(x); img=Image.new('RGB',(SIZE,SIZE),(249,249,246)); d=ImageDraw.Draw(img); accent=(227,73,103) if k=='kana' else (31,111,181)
     d.rounded_rectangle((8,8,SIZE-8,SIZE-8),38,fill=(248,250,250),outline=accent,width=8); d.rectangle((16,352,SIZE-16,SIZE-16),fill='white'); icon(d,k)
     badge=f'{n:02d}'; d.ellipse((18,18,125,125),fill=accent,outline=(53,45,45),width=6); bf=fit(d,badge,90,58,34); b=d.textbbox((0,0),badge,font=bf); d.text((71-(b[2]-b[0])/2-b[0],69-(b[3]-b[1])/2-b[1]),badge,font=bf,fill='white')
@@ -148,10 +202,26 @@ def cleanup(valid):
             shutil.rmtree(p) if p.is_dir() else p.unlink()
 
 def main():
-    a=items(); mp={}
-    for n,x in enumerate(a,1):
-        mp[x['id']]=fname(n,x['id'])
-        render(n,x,mp[x['id']])
+    a=items(); mp={}; used=set()
+    for seq,x in enumerate(a,1):
+        current=str(x.get('logo') or '')
+        m=re.search(r'/logos/youtube/(yt_(\\d{2})_[^/]+\\.png)
+
+if __name__=='__main__':
+    main()
+,current)
+        if m:
+            f=m.group(1); n=int(m.group(2))
+        else:
+            n=seq
+            while n in used:
+                n+=1
+            f=fname(n,x['id'])
+        if n in used:
+            raise RuntimeError(f'duplicate YouTube logo number {n:02d}: {x["id"]}')
+        used.add(n)
+        mp[x['id']]=f
+        render(n,x,f)
     patch_sources(mp)
     for p in PL:
         patch_playlist(p,mp)
