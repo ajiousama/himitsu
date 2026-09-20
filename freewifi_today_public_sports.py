@@ -98,7 +98,7 @@ JST = timezone(timedelta(hours=9))
 # BOAT Auto v3 exclusively owns every boat.* entry and the TODAY_BOAT block.
 # This builder must never parse, remove, recreate, reorder, or otherwise mutate BOAT.
 TARGET_SECTIONS = {'競輪', '地方競馬', 'オートレース'}
-NON_EVENT_WORDS = ('本日非開催','非開催','開催していません','開催予定はありません','本日開催なし','開催なし','次回開催','データ取得準備中','休止中','休止','準備中','現在準備中','本日の開催は終了しました','翌日開催予定','仮時間')
+NON_EVENT_WORDS = ('本日非開催','非開催','開催していません','開催予定はありません','本日開催なし','開催なし','開催中止','本日の開催は中止','中止順延','中止・順延','順延','中止','取りやめ','打ち切り','次回開催','データ取得準備中','休止中','休止','準備中','現在準備中','本日の開催は終了しました','翌日開催予定','仮時間')
 
 GCH_SPECIAL_IDS = {'jra.gch.hq', 'jra.gch.lq'}
 GCH_EPG_URL = 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/epg.xml'
