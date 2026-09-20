@@ -1,112 +1,70 @@
-name: Build FreeWiFi canonical YouTube logos
+name: Validate FreeWiFi YouTube logos
 
 on:
   workflow_dispatch:
   push:
-    branches:
-      - main
+    branches: [main]
     paths:
-      - 'generate_livecamera_logos.py'
-      - 'apply_livecamera_logos.py'
-      - 'generate_ehime_catv_logos.py'
       - 'general_youtube_sources.json'
       - 'general_youtube_sources_ports.json'
       - 'general_youtube_sources_airports.json'
-      - 'logos/ehime_catv/**'
+      - 'logos/youtube/**'
       - '.github/workflows/update_livecamera_logos.yml'
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
-  group: himitsu-livecamera-logo-writer
-  cancel-in-progress: false
+  group: himitsu-livecamera-logo-validator
+  cancel-in-progress: true
 
 jobs:
-  logos:
+  validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 5
     steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-
-      - name: Set up Python
-        uses: actions/setup-python@v6
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
-
-      - name: Install logo dependencies
+      - name: Validate adopted 01-71 artwork without regenerating it
         run: |
-          python -m pip install --upgrade pillow yt-dlp
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq fonts-noto-cjk
+          python - <<'PY'
+          import json, re
+          from pathlib import Path
 
-      - name: Continue canonical yt43 logo series
-        run: python generate_livecamera_logos.py
+          src=json.loads(Path('general_youtube_sources.json').read_text(encoding='utf-8'))
+          numbered=[]
+          kana=[]
+          for item in src:
+              cid=str(item.get('id') or '')
+              if not cid.startswith('youtube.'):
+                  continue
+              logo=str(item.get('logo') or '')
+              if cid == 'youtube.kana_tube':
+                  kana.append((cid,logo))
+                  continue
+              m=re.search(r'/logos/youtube/(yt_(\d{2})_[^/]+\.png)$',logo)
+              if not m:
+                  raise SystemExit(f'bad numbered logo mapping: {cid} -> {logo}')
+              numbered.append((int(m.group(2)),cid,m.group(1)))
 
-      - name: Apply canonical yt43 mappings
-        run: python apply_livecamera_logos.py
+          if len(numbered) != 71:
+              raise SystemExit(f'expected 71 numbered YouTube logos, got {len(numbered)}')
+          nums=sorted(n for n,_,_ in numbered)
+          if nums != list(range(1,72)):
+              raise SystemExit(f'numbering mismatch: {nums}')
+          if kana != [('youtube.kana_tube','https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/youtube/kana_tube.png')]:
+              raise SystemExit(f'Kana must stay unnumbered: {kana}')
 
-      - name: Rebuild Ehime CATV Ainan logo
-        run: python generate_ehime_catv_logos.py
+          for _,cid,name in numbered:
+              p=Path('logos/youtube')/name
+              if not p.exists() or p.stat().st_size < 1000:
+                  raise SystemExit(f'missing/small logo: {cid} -> {p}')
 
-      - name: Validate canonical FreeWiFi logo mappings
-        shell: bash
-        run: |
-          set -euo pipefail
-          test -s logos/ehime_catv/14_ainan_livecam.png
-          test -s logos/ehime_catv/14_ainan_livecam_v2.png
-          ! grep -F '/logos/youtube/unified/' general_youtube.m3u
-          ! grep -F '/logos/youtube/unified/' freewifi
-          grep -F '/logos/youtube/yt43_' general_youtube.m3u >/dev/null
-          grep -F '/logos/youtube/yt43_' freewifi >/dev/null
-          python apply_livecamera_logos.py
+          for p in map(Path,['general_youtube_sources.json','general_youtube_sources_ports.json','general_youtube_sources_airports.json','general_youtube.m3u','freewifi','kana_tube.m3u']):
+              if p.exists() and 'yt43_' in p.read_text(encoding='utf-8-sig',errors='replace'):
+                  raise SystemExit(f'legacy yt43 reference remains: {p}')
 
-      - name: Publish canonical logos without losing concurrent updates
-        shell: bash
-        run: |
-          set -euo pipefail
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-
-          for attempt in 1 2 3 4; do
-            echo "Publish attempt ${attempt}"
-            git fetch origin main
-            git reset --hard origin/main
-
-            # Rebuild from the newest main every attempt. This repo has several
-            # frequent playlist writers, so rebasing a generated freewifi file
-            # is intentionally avoided; regenerate it against the latest state.
-            python generate_livecamera_logos.py
-            python apply_livecamera_logos.py
-            python generate_ehime_catv_logos.py
-            python apply_livecamera_logos.py
-
-            test -s logos/ehime_catv/14_ainan_livecam.png
-            test -s logos/ehime_catv/14_ainan_livecam_v2.png
-            ! grep -F '/logos/youtube/unified/' general_youtube.m3u
-            ! grep -F '/logos/youtube/unified/' freewifi
-            grep -F 'yt43_57_airport_okayama_illustration.png' freewifi >/dev/null
-            grep -F 'yt43_65_airport_naha_illustration.png' freewifi >/dev/null
-            grep -F 'yt43_47_ehime_mishima_kawanoe_port_illustration.png' freewifi >/dev/null
-            grep -F 'yt43_55_ehime_ainan_ebc_illustration.png' freewifi >/dev/null
-
-            git add -A logos/youtube logos/ehime_catv general_youtube_sources.json general_youtube_sources_ports.json general_youtube_sources_airports.json general_youtube.m3u freewifi
-            if git diff --cached --quiet; then
-              echo 'Canonical yt43 YouTube / Ehime CATV logos already current'
-              exit 0
-            fi
-
-            git commit -m 'Restore canonical yt43 YouTube logo mappings [skip render]'
-            if git push origin HEAD:main; then
-              exit 0
-            fi
-
-            echo '::warning::main moved while publishing live-camera logos; regenerating on newest main'
-            sleep 2
-          done
-
-          echo '::error::Live-camera logo publish failed after retries'
-          exit 1
+          print('YouTube artwork OK: 01-71 + unnumbered Kana; no regeneration performed')
+          PY
