@@ -316,7 +316,7 @@ def main():
     groups={}
     for _,g in got: groups[g]=groups.get(g,0)+1
     print('=== GROUP COUNTS ===')
-    for g in ['愛媛県内ライブカメラ','交通','動物','その他LIVE','かなチューブ','空港','競馬']:
+    for g in ['動物','愛媛県内ライブカメラ','橋','空港','関西','その他LIVE','競馬']:
         print(f'{g}: {groups.get(g,0)}')
     serious=[x for x in failed if x[1] in SERIOUS_CODES]
     if serious:
