@@ -40,6 +40,7 @@ GROUP = "今日の開催場"
 JST = timezone(timedelta(hours=9))
 ACQUIRE_LEAD_MINUTES = 150
 ALERT_LEAD_MINUTES = 30
+CANCELLATION_LEAD_MINUTES = 180
 RACE_SWITCH_MINUTES = 3
 END_GUIDANCE_MINUTES = 45
 SCHEDULE_API = "https://boatraceopenapi.github.io/api/v1/{year}/{ymd}.json"
@@ -314,7 +315,8 @@ def detect_cancelled_venues(day: date, cards: dict[str, list[dict]]) -> set[str]
                 if attempt < 2:
                     time_module.sleep(1 + attempt)
         if source is None:
-            raise RuntimeError(f'cancellation page unavailable: {type(last_error).__name__}')
+            print(f"BOAT AUTO cancellation check warning: {jcd} {type(last_error).__name__}")
+            continue
         text = re.sub(r'\s+', ' ', html.unescape(re.sub(r'<[^>]+>', ' ', source)))
         # Venue pages label the selected date itself as "9月9日順延" or
         # equivalent. Bind the status to today's date, not to generic nav text.
@@ -861,14 +863,14 @@ def main() -> int:
     }
     cancellation_warnings = []
     streams = load_current_streams(day)
-    # Only probe official cancellation status for venues that are at/inside the
-    # 30-minute readiness window and still have no verified playback. Once an
-    # official cancellation is confirmed it is retained for the rest of the day.
+    # Probe official cancellation status before stream acquisition/readiness.
+    # Typhoon and rough-water postponements are often announced hours before 1R.
+    # Once an official cancellation is confirmed it is retained for the rest of the day.
     cancellation_candidates = {
         jcd: races for jcd, races in cards.items()
         if jcd not in previous_cancelled
         and races
-        and now >= races[0]["start"] - timedelta(minutes=ALERT_LEAD_MINUTES)
+        and now >= races[0]["start"] - timedelta(minutes=CANCELLATION_LEAD_MINUTES)
         and not (streams.get(VENUES[jcd][1]) or {}).get("playback_verified")
     }
     try:
