@@ -364,7 +364,7 @@ def restore_kana_owned_entry(text):
     # Kana is part of today's venues. Keep it at the top of the managed block.
     start = text.find(START)
     end = text.find(END, start + len(START)) if start >= 0 else -1
-    heading = text.find('## 今日の開催場', start, end if end >= 0 else None) if start >= 0 else -1
+    heading = (text.find('## 今日の開催場', start, end) if end >= 0 else text.find('## 今日の開催場', start)) if start >= 0 else -1
     if heading >= 0:
         insert_at = text.find('\n', heading)
         insert_at = len(text) if insert_at < 0 else insert_at + 1
