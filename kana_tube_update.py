@@ -347,7 +347,7 @@ def sync_freewifi(payload):
     # Put Kana at the top of the managed "今日の開催場" section.
     start = base.find(TODAY_START)
     end = base.find(TODAY_END, start + len(TODAY_START)) if start >= 0 else -1
-    heading = base.find(TODAY_HEADING, start, end if end >= 0 else None) if start >= 0 else -1
+    heading = (base.find(TODAY_HEADING, start, end) if end >= 0 else base.find(TODAY_HEADING, start)) if start >= 0 else -1
     if heading >= 0:
         insert_at = base.find("\n", heading)
         insert_at = len(base) if insert_at < 0 else insert_at + 1
