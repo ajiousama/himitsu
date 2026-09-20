@@ -17,10 +17,13 @@ CHANNEL_ID = "UCmHdGDdZGf4cMWRBmEw4Xww"
 CHANNEL = f"https://www.youtube.com/{HANDLE}"
 TVG_ID = "youtube.kana_tube"
 NAME = "かなチューブ"
-LOGO = "https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/youtube/yt_01_kana_tube.png"
+LOGO = "https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/youtube/kana_tube.png"
 START = "# === KANA_TUBE_MANAGED_START ==="
 END = "# === KANA_TUBE_MANAGED_END ==="
 GENERAL_START = "# === GENERAL_YOUTUBE_MANAGED_START ==="
+TODAY_START = "# === TODAY_PUBLIC_SPORTS_START ==="
+TODAY_END = "# === TODAY_PUBLIC_SPORTS_END ==="
+TODAY_HEADING = "## 今日の開催場"
 JST = ZoneInfo("Asia/Tokyo")
 
 
@@ -278,7 +281,7 @@ def entry(url, state, ts=None):
         suffix = f"【配信予定 {when}】" if when else "【配信予定】"
     label = NAME + suffix
     return "\n".join([
-        f'#EXTINF:-1 tvg-id="{TVG_ID}" tvg-name="{NAME}" tvg-logo="{LOGO}" group-title="一般YouTube LIVE",{label}',
+        f'#EXTINF:-1 tvg-id="{TVG_ID}" tvg-name="{NAME}" tvg-logo="{LOGO}" group-title="今日の開催場",{label}',
         url,
     ])
 
@@ -325,12 +328,11 @@ def payload_from_out(path=None):
 
 
 def sync_general(payload):
+    # Kana belongs to "今日の開催場", not the general YouTube playlist.
     base = GENERAL.read_text(encoding="utf-8-sig", errors="replace") if GENERAL.exists() else "#EXTM3U\n"
     base = strip_entry(base)
     if not base.strip():
         base = "#EXTM3U\n"
-    if payload:
-        base = base.rstrip() + "\n\n" + payload + "\n"
     GENERAL.write_text(base, encoding="utf-8")
 
 
@@ -341,11 +343,21 @@ def sync_freewifi(payload):
         FREEWIFI.write_text(base, encoding="utf-8")
         return
     block = START + "\n" + payload + "\n" + END + "\n"
-    pos = base.find(GENERAL_START)
-    if pos >= 0:
-        base = base[:pos].rstrip() + "\n\n" + block + "\n" + base[pos:]
+
+    # Put Kana at the top of the managed "今日の開催場" section.
+    start = base.find(TODAY_START)
+    end = base.find(TODAY_END, start + len(TODAY_START)) if start >= 0 else -1
+    heading = base.find(TODAY_HEADING, start, end if end >= 0 else None) if start >= 0 else -1
+    if heading >= 0:
+        insert_at = base.find("\n", heading)
+        insert_at = len(base) if insert_at < 0 else insert_at + 1
+        base = base[:insert_at] + block + base[insert_at:]
     else:
-        base = base.rstrip() + "\n\n" + block
+        pos = base.find(GENERAL_START)
+        if pos >= 0:
+            base = base[:pos].rstrip() + "\n\n" + block + "\n" + base[pos:]
+        else:
+            base = base.rstrip() + "\n\n" + block
     FREEWIFI.write_text(base, encoding="utf-8")
 
 
@@ -428,17 +440,16 @@ def read_status():
 def validate_outputs():
     status = read_status()
     state = status.get("state")
-    for path in (OUT, GENERAL, FREEWIFI):
+    expected = {OUT: 1, FREEWIFI: 1, GENERAL: 0} if state in ('is_live', 'is_upcoming') else {OUT: 0, FREEWIFI: 0, GENERAL: 0}
+    for path, want in expected.items():
         text = path.read_text(encoding="utf-8-sig")
         entries = [line for line in text.splitlines() if line.startswith("#EXTINF:") and f'tvg-id="{TVG_ID}"' in line]
-        if len(entries) > 1:
-            raise ValueError(f"duplicate Kana entry: {path}")
-        if state == 'none' and entries:
-            raise ValueError(f"offline Kana entry remains: {path}")
-        if state in ('is_live', 'is_upcoming') and len(entries) != 1:
-            raise ValueError(f"Kana entry missing: {path}")
+        if len(entries) != want:
+            raise ValueError(f"Kana entry count mismatch: {path} expected={want} actual={len(entries)}")
         if any(f'tvg-logo="{LOGO}"' not in line for line in entries):
             raise ValueError(f"Kana logo mismatch: {path}")
+        if path == FREEWIFI and entries and any('group-title="今日の開催場"' not in line for line in entries):
+            raise ValueError("Kana must be in 今日の開催場")
     if state == 'is_live' and status.get('direct_hls'):
         if not (status.get('play_url') or '').startswith(("http://", "https://")):
             raise ValueError("Kana LIVE HLS URL missing")
