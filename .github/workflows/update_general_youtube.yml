@@ -79,9 +79,6 @@ jobs:
       - name: Sync latest main
         run: git pull --ff-only origin main
 
-      - name: Generate canonical YouTube live-camera logos
-        run: python generate_livecamera_logos.py
-
       - name: Refresh public sports YouTube fallbacks
         run: python public_sports_youtube_fallback.py
 
