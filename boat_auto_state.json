@@ -2,10 +2,10 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-21",
-  "generated_at": "2026-09-21T15:24:23.539730+09:00",
+  "generated_at": "2026-09-21T15:25:23.540962+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260921.json",
-  "schedule_checked_at": "2026-09-21T15:09:23.593490+09:00",
+  "schedule_checked_at": "2026-09-21T15:25:23.540962+09:00",
   "schedule_warnings": [
     "official_cards: TimeoutError"
   ],
@@ -26,7 +26,7 @@
   "card_count": 13,
   "held_count": 13,
   "visible_count": 11,
-  "active_count": 9,
+  "active_count": 8,
   "ended_kept": [
     "三国",
     "徳山"
@@ -46,7 +46,7 @@
     "day": {
       "held": 8,
       "acquired": 6,
-      "active": 6,
+      "active": 5,
       "ended": 0,
       "seed_required": 0,
       "cancelled": 2
@@ -61,15 +61,9 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 9,
+    "requested": 8,
     "fetched": 8,
-    "failures": [
-      {
-        "jcd": "09",
-        "name": "津",
-        "error": "ValueError: ended VOD playlist is not a live stream"
-      }
-    ]
+    "failures": []
   },
   "epg_programmes_written": {
     "public_sports_epg_local.xml": 156,
@@ -720,7 +714,7 @@
       "held": true,
       "visible": true,
       "ended": false,
-      "active": true,
+      "active": false,
       "cancelled": false,
       "mode": "day",
       "mode_label": "デイ",
@@ -728,11 +722,16 @@
       "last_race": "16:20",
       "alert_from": "2026-09-21T10:06:00+09:00",
       "next_race": {
-        "race": 11,
-        "start": "15:42"
+        "race": 12,
+        "start": "16:20"
       },
-      "stream_window": "live_or_prestart",
-      "intermission": null,
+      "stream_window": "intermission",
+      "intermission": {
+        "after_race": 11,
+        "next_race": 12,
+        "from": "2026-09-21T13:59:00+09:00",
+        "until": "2026-09-21T15:50:00+09:00"
+      },
       "guidance_switch_at": "2026-09-21T17:05:00+09:00",
       "seed_required": false,
       "reverify_due": false,
@@ -793,7 +792,7 @@
         },
         {
           "race": 11,
-          "start": "15:42",
+          "start": "13:56",
           "name": "予選特選"
         },
         {
@@ -1192,7 +1191,7 @@
       "intermission": null,
       "guidance_switch_at": "2026-09-21T17:35:00+09:00",
       "seed_required": false,
-      "reverify_due": false,
+      "reverify_due": true,
       "playback_verified": true,
       "first_verified_at": "2026-09-21T10:45:23.714785+09:00",
       "ready_before_first_race": true,
