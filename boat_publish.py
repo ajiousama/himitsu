@@ -86,10 +86,10 @@ def validate(state=None, cards=None):
                                 key=lambda p: p.get('start'))
             titles = [p.findtext('title', '') for p in programmes]
             if jcd in cancelled:
-                if titles != ['本日の開催は中止になりました']:
+                if titles != ['本日の開催予定に変更があります']:
                     raise RuntimeError(f'{path}: cancellation EPG missing: {cid}')
                 continue
-            if sum('発走' in title for title in titles) != len(races):
+            if sum(bool(re.search(r'【[０-９0-9]+Ｒ】', title)) for title in titles) != len(races):
                 raise RuntimeError(f'{path}: missing/duplicate races: {cid}')
             if any(a.get('stop') > b.get('start') for a, b in zip(programmes, programmes[1:])):
                 raise RuntimeError(f'{path}: overlapping EPG: {cid}')
