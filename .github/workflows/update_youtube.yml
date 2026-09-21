@@ -36,7 +36,7 @@ jobs:
         shell: bash
         run: |
           hour="$(TZ=Asia/Tokyo date +%H)"
-          if [ "${{ github.event_name }}" = "push" ] || { [ "$hour" -ge 7 ] && [ "$hour" -le 23 ]; }; then
+          if [ "$hour" -ge 7 ] && [ "$hour" -le 23 ]; then
             echo "active=true" >> "$GITHUB_OUTPUT"
           else
             echo "active=false" >> "$GITHUB_OUTPUT"
@@ -151,7 +151,7 @@ jobs:
           successor_queued=0
           for cycle in $(seq 0 63); do
             hour="$(TZ=Asia/Tokyo date +%H)"
-            if [ "$hour" -lt 7 ] && [ "${{ github.event_name }}" != "push" ]; then
+            if [ "$hour" -lt 7 ]; then
               echo "Nighttime pause reached; stopping worker until morning recovery cron"
               break
             fi
