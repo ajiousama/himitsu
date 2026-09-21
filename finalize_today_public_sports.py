@@ -6,7 +6,7 @@ import xml.etree.ElementTree as ET
 from sports_race_time import race_time
 
 FREEWIFI = Path('freewifi')
-KANA_M3U = Path('kana_tube.m3u')
+KANA_M3U = Path('youtube/output/kana.m3u')
 STATUS_JSON = Path('today_public_sports_status.json')
 LOCAL_EPG = Path('public_sports_epg_local.xml')
 START = '# === TODAY_PUBLIC_SPORTS_START ==='

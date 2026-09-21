@@ -1,0 +1,129 @@
+name: Update YouTube v2
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'youtube/**'
+      - '.github/workflows/update_youtube.yml'
+  schedule:
+    - cron: '*/5 * * * *'
+    - cron: '17 * * * *'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: himitsu-freewifi-state-writer
+  cancel-in-progress: false
+
+jobs:
+  update:
+    if: github.event_name != 'push' || github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Sync latest main
+        run: git pull --ff-only origin main
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install YouTube resolver
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install --upgrade --pre 'yt-dlp[default]'
+          python -m pip install --upgrade curl_cffi
+          yt-dlp --version
+
+      - name: Restore YouTube cookies
+        shell: bash
+        env:
+          YOUTUBE_COOKIES: ${{ secrets.YOUTUBE_COOKIES }}
+        run: |
+          rm -f youtube_cookies.txt
+          if [ -n "$YOUTUBE_COOKIES" ]; then
+            printf '%s' "$YOUTUBE_COOKIES" > youtube_cookies.txt
+            chmod 600 youtube_cookies.txt
+          fi
+
+      - name: Choose update scope
+        id: scope
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "schedule" ] && [ "${{ github.event.schedule }}" = "*/5 * * * *" ]; then
+            echo "value=special" >> "$GITHUB_OUTPUT"
+          elif [ "${{ github.event_name }}" = "schedule" ] && [ "${{ github.event.schedule }}" = "17 * * * *" ]; then
+            echo "value=general" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=all" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Run structure tests
+        run: python -m unittest -v youtube.test_manager
+
+      - name: Refresh YouTube v2
+        run: timeout 18m python youtube/manager.py --scope "${{ steps.scope.outputs.value }}"
+
+      - name: Publish onto latest main
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+
+          snapshot="$(mktemp -d)"
+          mkdir -p "$snapshot/output" "$snapshot/state"
+          cp -a youtube/output/. "$snapshot/output/"
+          cp -a youtube/state/. "$snapshot/state/"
+
+          for attempt in 1 2 3 4 5; do
+            git fetch origin main
+            git reset --hard origin/main
+
+            mkdir -p youtube/output youtube/state
+            cp -a "$snapshot/output/." youtube/output/
+            cp -a "$snapshot/state/." youtube/state/
+
+            python youtube/manager.py --sync-only
+            if [ "${{ steps.scope.outputs.value }}" != "general" ]; then
+              python youtube/manager.py --epg-only
+            fi
+            python -m unittest -v youtube.test_manager
+
+            git add youtube/output youtube/state freewifi
+            if [ "${{ steps.scope.outputs.value }}" != "general" ]; then
+              git add public_sports_epg_local.xml
+            fi
+
+            if git diff --cached --quiet; then
+              rm -f youtube_cookies.txt
+              echo 'YouTube v2 already current'
+              exit 0
+            fi
+
+            git commit -m 'Update YouTube v2 state [skip ci] [skip render]'
+            if git push origin HEAD:main; then
+              rm -f youtube_cookies.txt
+              echo 'YouTube v2 published'
+              exit 0
+            fi
+            sleep "$attempt"
+          done
+
+          rm -f youtube_cookies.txt
+          echo '::error::YouTube v2 publish failed after retries'
+          exit 1

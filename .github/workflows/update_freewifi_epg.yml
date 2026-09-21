@@ -28,7 +28,7 @@ on:
       - "logos/kick_gccx2.svg"
       - "public_sports_epg_local.py"
       - "sports_race_time.py"
-      - "test_sports_kana_reliability.py"
+      - "youtube/test_manager.py"
       - "public_sports_epg_local_fast.py"
       - "public_sports_epg_merge.py"
       - "keiba_epg_direct.py"
@@ -80,7 +80,7 @@ jobs:
           node-version: '22'
 
       - name: Sports and Kana reliability regression tests
-        run: python -m unittest -v test_sports_kana_reliability
+        run: python -m unittest -v youtube.test_manager
       - name: Normalize public sports master to ajiousama-only references
         run: python normalize_ganble_local.py
 
