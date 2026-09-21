@@ -36,7 +36,7 @@ jobs:
         shell: bash
         run: |
           hour="$(TZ=Asia/Tokyo date +%H)"
-          if [ "$hour" -ge 7 ] && [ "$hour" -le 23 ]; then
+          if [ "${{ github.event_name }}" = "push" ] || { [ "$hour" -ge 7 ] && [ "$hour" -le 23 ]; }; then
             echo "active=true" >> "$GITHUB_OUTPUT"
           else
             echo "active=false" >> "$GITHUB_OUTPUT"
