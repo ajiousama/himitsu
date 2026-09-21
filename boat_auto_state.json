@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-21",
-  "generated_at": "2026-09-21T13:43:44.120498+09:00",
+  "generated_at": "2026-09-21T13:44:44.070329+09:00",
   "last_update_ok": false,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260921.json",
   "schedule_checked_at": "2026-09-21T13:34:44.175164+09:00",
@@ -31,7 +31,8 @@
   "ended_kept": [],
   "seed_required": true,
   "seed_required_venues": [
-    "津"
+    "津",
+    "三国"
   ],
   "system_errors": [
     "official_cards: TimeoutError",
@@ -44,7 +45,7 @@
       "acquired": 2,
       "active": 2,
       "ended": 0,
-      "seed_required": 0,
+      "seed_required": 1,
       "cancelled": 0
     },
     "day": {
@@ -66,16 +67,21 @@
   },
   "cloud_acquisition": {
     "requested": 11,
-    "fetched": 7,
+    "fetched": 6,
     "failures": [
       {
         "jcd": "01",
         "name": "桐生",
-        "error": "cloud and official acquisition unavailable: HTTPError"
+        "error": "HTTPError: playback check failed"
       },
       {
         "jcd": "09",
         "name": "津",
+        "error": "ValueError: ended VOD playlist is not a live stream"
+      },
+      {
+        "jcd": "10",
+        "name": "三国",
         "error": "ValueError: ended VOD playlist is not a live stream"
       },
       {
@@ -135,7 +141,7 @@
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/5092622e4ab340aea5a22c93076c452a/f9c6d2e745674a75831f410a72e0e621/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MDEyODgwMCwic3RhcnQiOjE3ODk5NTI0MDAsImlvcyI6MTgsImNwIjoiMjEyMTQ4MDAwXzIxMjE5MTE5OSIsInBwdyI6IjQwayJ9.xO04Ml5YL0t3cBgEbwDfSoRE7Vglrt7Qv0eroHpZTZk",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-09-21T10:45:23.713719+09:00",
-      "checked_at": "2026-09-21T13:44:11.335303+09:00",
+      "checked_at": "2026-09-21T13:45:11.224537+09:00",
       "first_verified_at": "2026-09-21T10:45:23.713719+09:00",
       "playback_verified": false,
       "probe": {
@@ -145,15 +151,15 @@
         "video_decoded": true,
         "audio_decoded": true
       },
-      "consecutive_failures": 18
+      "consecutive_failures": 19
     },
     "boat.mikuni": {
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/2cdbefc2d11b478ca5fd47271e55a928/18c1ee3ccd874c699d1a228ffeb881b4/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MDExODAwMCwic3RhcnQiOjE3ODk5NDUwMjAsImlvcyI6MTgsImNwIjoiMjEyMTQwNjIwXzIxMjE4MzgxOSIsInBwdyI6IjQwayJ9.cWgSQJX9OtHY98Rtn_fB_RlDbtZrDrPKh01WuNpzRYY",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-09-21T07:57:38.037063+09:00",
-      "checked_at": "2026-09-21T13:43:11.473073+09:00",
+      "checked_at": "2026-09-21T13:45:11.224978+09:00",
       "first_verified_at": "2026-09-21T07:57:38.037063+09:00",
-      "playback_verified": true,
+      "playback_verified": false,
       "probe": {
         "ok": true,
         "sequence": 8170295,
@@ -161,7 +167,7 @@
         "video_decoded": true,
         "audio_decoded": true
       },
-      "consecutive_failures": 1
+      "consecutive_failures": 2
     },
     "boat.amagasaki": {
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/0128861409e94b9aa06a6fc5773da7d3/41061cee2e164ac2bd300e209668cb1b/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MDEyODgwMCwic3RhcnQiOjE3ODk5NTI1MjAsImlvcyI6MTgsImNwIjoiMjEyMTQ4MTIwXzIxMjE5MTMxOSIsInBwdyI6IjQwayJ9.mKtJYKXg5TwZdJ9C4msJgTVMBpSuUKFieu4CDDME39E",
@@ -782,8 +788,8 @@
       },
       "stream_window": "live_or_prestart",
       "guidance_switch_at": "2026-09-21T14:54:00+09:00",
-      "seed_required": false,
-      "playback_verified": true,
+      "seed_required": true,
+      "playback_verified": false,
       "first_verified_at": "2026-09-21T07:57:38.037063+09:00",
       "ready_before_first_race": true,
       "acquire_from": "2026-09-21T06:02:00+09:00",
