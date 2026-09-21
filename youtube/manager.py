@@ -338,9 +338,12 @@ def update_general(config):
 
             if not url:
                 old = previous.get(item["id"], {}).get("url")
-                if old and "iptv-9x-browser-proxy.onrender.com/yt-" not in old and code in TRANSIENT:
+                if old and "iptv-9x-browser-proxy.onrender.com/yt-" not in old:
+                    # Keep the last known direct URL on temporary misses and
+                    # offline/search ambiguity. A channel should not vanish
+                    # from Free WiFi just because one refresh failed.
                     url = old
-                    print(f'GENERAL keep direct previous: {item["id"]} [{code}]')
+                    print(f'GENERAL keep previous: {item["id"]} [{code}]')
 
             if url:
                 resolved[i] = entry(item, url)
