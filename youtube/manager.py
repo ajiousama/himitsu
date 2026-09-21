@@ -13,7 +13,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timedelta, timezone
 from html import unescape
 from pathlib import Path
-from urllib.parse import urlsplit
+from urllib.parse import quote, urlsplit
 from zoneinfo import ZoneInfo
 
 ROOT = Path(__file__).resolve().parent
@@ -36,8 +36,9 @@ TODAY_END = "# === TODAY_PUBLIC_SPORTS_END ==="
 TODAY_HEADING = "## 今日の開催場"
 
 JST = ZoneInfo("Asia/Tokyo")
-CACHE_VERSION = "ytv3-20260922a"
+CACHE_VERSION = "ytv3-20260922b"
 GENERAL_PLAYBACK_PROXY = "https://iptv-9x-browser-proxy.onrender.com/yt-hls?id="
+GENERAL_SEARCH_PROXY = "https://iptv-9x-browser-proxy.onrender.com/yt-live?q="
 DEFAULT_YOUTUBE_LOGO = "https://www.gstatic.com/youtube/img/branding/favicon/favicon_144x144.png"
 TRANSIENT = {"RATE_LIMIT", "BOT_CHECK", "COOKIE_ERROR", "TIMEOUT", "OTHER", "EXCEPTION"}
 MAX_WORKERS = 4
@@ -284,27 +285,17 @@ def stable_general_playback(url):
     return url
 
 
-def update_general(config):
-    previous = parse_m3u(GENERAL_OUT)
-    rows = []
-    with ThreadPoolExecutor(max_workers=MAX_WORKERS) as pool:
-        futures = [pool.submit(resolve_general_one, i, item, previous) for i, item in enumerate(config["general"])]
-        for f in as_completed(futures):
-            rows.append(f.result())
-    rows.sort(key=lambda x: x[0])
+def general_target(item):
+    page = (item.get("page") or "").strip()
+    key = video_key(page)
+    if key.startswith("video:"):
+        return GENERAL_PLAYBACK_PROXY + key.split(":", 1)[1]
+    query = (item.get("query") or item["name"]).strip()
+    return GENERAL_SEARCH_PROXY + quote(query, safe="")
 
-    blocks = []
-    seen = set()
-    for _, item, url, code in rows:
-        if not url:
-            print(f'GENERAL offline: {item["id"]} [{code}]')
-            continue
-        key = video_key(url)
-        if key in seen:
-            print(f'GENERAL duplicate skipped: {item["id"]}')
-            continue
-        seen.add(key)
-        blocks.append(entry(item, stable_general_playback(url)))
+
+def update_general(config):
+    blocks = [entry(item, general_target(item)) for item in config["general"]]
     if not blocks:
         raise SystemExit("refusing to publish empty general YouTube output")
     write_playlist(GENERAL_OUT, blocks)
