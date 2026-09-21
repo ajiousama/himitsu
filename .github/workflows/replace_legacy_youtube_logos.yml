@@ -1,0 +1,51 @@
+name: Replace legacy YouTube logos
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/replace_legacy_youtube_logos.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  replace:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Install drawing dependencies
+        run: |
+          python -m pip install --upgrade Pillow
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq fonts-noto-cjk
+      - name: Replace legacy pictogram logos
+        run: python youtube/replace_pictogram_logos.py
+      - name: Verify YouTube logo structure
+        run: python -m unittest -v youtube.test_manager
+      - name: Publish replacements
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add youtube/logos/general
+          if git diff --cached --quiet; then
+            echo "No logo changes"
+            exit 0
+          fi
+          git commit -m "Replace legacy YouTube pictogram logos [skip ci] [skip render]"
+          for attempt in 1 2 3 4 5; do
+            if git push origin HEAD:main; then
+              exit 0
+            fi
+            git fetch origin main
+            git rebase origin/main
+            sleep "$attempt"
+          done
+          exit 1
