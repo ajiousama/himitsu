@@ -44,6 +44,7 @@ on:
       - "build_today_event_counts.py"
       - "verified_daily_status.json"
       - "freewifi_council_live.py"
+      - "group_freewifi_sources.py"
       - ".github/workflows/update_freewifi_epg.yml"
 
 permissions:
@@ -151,6 +152,9 @@ jobs:
             # the latest main so its short-lived direct KICK HLS can never race
             # this workflow or overwrite newer BOAT/public-sports state.
             python kick_gccx2_sync.py
+
+            # Keep terrestrial/BS/CS source groups stable after every full publish.
+            python group_freewifi_sources.py
 
             python boat_publish.py --epg-only
             python build_today_event_counts.py

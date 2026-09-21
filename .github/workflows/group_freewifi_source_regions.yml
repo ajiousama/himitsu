@@ -1,4 +1,4 @@
-name: Normalize FreeWiFi terrestrial order
+name: Normalize FreeWiFi TV source order
 
 on:
   push:
@@ -25,7 +25,7 @@ jobs:
         with:
           python-version: '3.x'
 
-      - name: Normalize terrestrial channels and TVer specials
+      - name: Normalize terrestrial, BS and CS source order
         run: python group_freewifi_sources.py
 
       - name: Replace Rakuten block with Rch block
@@ -41,13 +41,10 @@ jobs:
           assert '## BS' in s
           assert '## その他' in s
           assert 'NHK東京・総合 (haruka(9394))' in s
-          assert 'NHK東京・総合 (blog)' in s
           assert 'NHK東京・総合 (primehome)' in s
-          assert 'NHK東京・総合 (naori)' in s
-          assert '### TVerﾘｱﾙﾀｲﾑ' in s
           assert '## Rch' in s
           assert 'Pigoo (haruka(9394))' in s
-          assert 'Pigoo (blog)' not in s
+          assert 'haru.charandom.blog' not in s
           for cid in ('rch_30','rch_35','rch_37','rch_46','rch_86','rch_113','rch_122','rch_123','rch_124','rch_125','rch_41'):
               assert cid in s
           assert '## Rakuten-JP' not in s
@@ -63,6 +60,6 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add freewifi
-          git commit -m "Normalize FreeWiFi terrestrial channels and Rch block"
+          git commit -m "Normalize FreeWiFi TV source order and Rch block"
           git pull --rebase origin main
           git push
