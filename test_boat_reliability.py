@@ -195,7 +195,7 @@ class ReliabilityTests(unittest.TestCase):
             root = ET.parse(path).getroot()
             titles = [p.findtext('title', '') for p in root.findall('programme')
                       if p.get('channel') == 'boat.edogawa']
-            self.assertEqual(titles, ['本日の開催は中止になりました'])
+            self.assertEqual(titles, ['本日の開催予定に変更があります'])
 
 
 if __name__ == '__main__':
