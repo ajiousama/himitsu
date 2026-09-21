@@ -180,12 +180,32 @@ def channel_live(page):
     return None, "NOT_LIVE"
 
 
-def search_live(query):
+def _candidate_matches(item, query, guard_terms=None):
+    title = (item.get("title") or "").lower()
+    channel = " ".join(str(item.get(k) or "") for k in ("channel", "uploader")).lower()
+    hay = title + " " + channel
+
+    # Explicit guard terms are strongest. At least one must match.
+    terms = [str(x).strip().lower() for x in (guard_terms or []) if str(x).strip()]
+    if terms:
+        return any(t in hay for t in terms)
+
+    # Generic safety net for search-based channels: require at least one
+    # meaningful token from the query to appear in the candidate metadata.
+    stop = {"live", "youtube", "camera", "stream", "ライブ", "ライブカメラ", "配信", "公式"}
+    tokens = [t.lower() for t in re.split(r"\s+", query) if len(t) >= 2 and t.lower() not in stop]
+    return any(t in hay for t in tokens[:4]) if tokens else False
+
+
+def search_live(query, guard_terms=None):
     items, code = flat_listing("ytsearch8:" + query, 8)
     if code not in ("OK", "PARTIAL"):
         return None, code
     for item in items:
         if (item.get("live_status") or "").lower() != "is_live" or not item.get("id"):
+            continue
+        if not _candidate_matches(item, query, guard_terms):
+            print(f'GENERAL reject mismatch: {item.get("id")} title={item.get("title")!r}')
             continue
         url, result = direct_hls("https://www.youtube.com/watch?v=" + item["id"])
         if url:
@@ -254,7 +274,10 @@ def resolve_general_one(index, item, previous):
             if not url and code not in TRANSIENT and "watch?v=" not in page and "youtu.be/" not in page:
                 url, code = channel_live(page)
         else:
-            url, code = search_live(item.get("query") or item["name"])
+            url, code = search_live(
+                item.get("query") or item["name"],
+                item.get("guard_terms") or [],
+            )
     except Exception:
         url, code = None, "EXCEPTION"
 
