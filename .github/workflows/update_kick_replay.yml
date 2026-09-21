@@ -22,7 +22,7 @@ permissions:
 # the main FreeWiFi/EPG writer. That prevents replay updates from overwriting a
 # newer BOAT/public-sports/KICK LIVE state.
 concurrency:
-  group: himitsu-freewifi-state-writer
+  group: himitsu-kick-replay
   cancel-in-progress: false
 
 jobs:
