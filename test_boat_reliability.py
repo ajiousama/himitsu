@@ -142,7 +142,7 @@ class ReliabilityTests(unittest.TestCase):
             root = ET.parse(path).getroot()
             self.assertEqual(len([p for p in root.findall('programme') if p.get('channel') == 'auto.iizuka']), 1)
             progs = [p for p in root.findall('programme') if p.get('channel') == 'boat.mikuni']
-            self.assertEqual(len(progs), 13)
+            self.assertEqual(len(progs), 14)
             self.assertEqual(progs[-1].get('stop'), '20260909000000 +0900')
 
     def test_stopped_and_vod_playlists_rejected(self):
