@@ -27,7 +27,7 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
-      - name: Validate adopted 01-72 artwork
+      - name: Validate adopted 01-74 artwork
         run: |
           python - <<'PY'
           import json, re
@@ -49,10 +49,10 @@ jobs:
                   raise SystemExit(f'bad numbered logo mapping: {cid} -> {logo}')
               numbered.append((int(m.group(2)),cid,m.group(1)))
 
-          if len(numbered) != 72:
-              raise SystemExit(f'expected 72 numbered YouTube logos, got {len(numbered)}')
+          if len(numbered) != 74:
+              raise SystemExit(f'expected 74 numbered YouTube logos, got {len(numbered)}')
           nums=sorted(n for n,_,_ in numbered)
-          if nums != list(range(1,73)):
+          if nums != list(range(1,75)):
               raise SystemExit(f'numbering mismatch: {nums}')
           if kana != [('youtube.kana_tube','https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/youtube/kana_tube.png')]:
               raise SystemExit(f'Kana must stay unnumbered: {kana}')
@@ -66,5 +66,5 @@ jobs:
               if p.exists() and 'yt43_' in p.read_text(encoding='utf-8-sig',errors='replace'):
                   raise SystemExit(f'legacy yt43 reference remains: {p}')
 
-          print('YouTube artwork OK: 01-72 + unnumbered Kana; no regeneration performed')
+          print('YouTube artwork OK: 01-74 + unnumbered Kana; no regeneration performed')
           PY
