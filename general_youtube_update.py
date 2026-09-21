@@ -17,6 +17,9 @@ MAX_WORKERS=4
 MIN_CALL_INTERVAL=1.25
 JST=ZoneInfo('Asia/Tokyo')
 SERIOUS_CODES={'RATE_LIMIT','BOT_CHECK','COOKIE_ERROR'}
+TRANSIENT_CODES=SERIOUS_CODES|{'TIMEOUT','EXCEPTION','OTHER'}
+PINNED_WATCH_FALLBACK_IDS={'youtube.muko_rail'}
+LOGO_CACHE_VERSION='20260921a'
 KANA_ID='youtube.kana_tube'
 KANA_PAGE='https://www.youtube.com/@kanatubechannel/live'
 OSAKA_LOOP_ID='youtube.osaka_loop'
@@ -199,9 +202,18 @@ def strip_m3u_id(text,tvg_id):
     return '\n'.join(out).rstrip()+'\n'
 
 
+def version_logo(url):
+    url=(url or '').strip()
+    if '/logos/youtube/yt_' not in url:
+        return url
+    base=re.sub(r'([?&])v=[^&]*','',url).rstrip('?&')
+    sep='&' if '?' in base else '?'
+    return f'{base}{sep}v={LOGO_CACHE_VERSION}'
+
+
 def make_entry(item,url,old_logos):
     tvg=item['id']; name=item['name']; group=item.get('group','一般YouTube LIVE')
-    logo=(item.get('logo') or old_logos.get(tvg) or '').strip()
+    logo=version_logo(item.get('logo') or old_logos.get(tvg) or '')
     attrs=f'tvg-id="{tvg}" tvg-name="{name}"'+(f' tvg-logo="{logo}"' if logo else '')+f' group-title="{group}"'
     return [f'#EXTINF:-1 {attrs},{name}',url,'']
 
@@ -209,7 +221,7 @@ def make_entry(item,url,old_logos):
 def apply_source_logos(text):
     wanted={}
     for item in json.loads(SRC.read_text(encoding='utf-8')):
-        cid=(item.get('id') or '').strip(); logo=(item.get('logo') or '').strip()
+        cid=(item.get('id') or '').strip(); logo=version_logo(item.get('logo') or '')
         if cid and logo: wanted[cid]=logo
     out=[]
     for line in text.splitlines():
@@ -271,9 +283,78 @@ def build():
         name=item['name']; tvg=item['id']; code=(reason or ('NO_LIVE',''))[0]
         old_url=old_urls.get(tvg)
         allow_old_fallback=(tvg not in {KANA_ID,OSAKA_LOOP_ID} and tvg in active_ids)
-        if not url and code in SERIOUS_CODES and old_url and allow_old_fallback:
+        if not url and code in TRANSIENT_CODES and old_url and allow_old_fallback:
             url=old_url; fallback_count+=1
             failed.append((name,code,(reason or ('',''))[1]+' [previous URL kept]'))
+        elif not url and tvg in PINNED_WATCH_FALLBACK_IDS:
+            page=(item.get('page') or '').strip()
+            if re.match(r'^https://www\.youtube\.com/watch\?v=[A-Za-z0-9_-]+$',page):
+                url=page
+                failed.append((name,'WATCH_FALLBACK','LIVE HLS取得失敗のため固定Watch URLを維持'))
+            else:
+                c,d=reason or ('NO_LIVE','LIVE URL取得なし'); failed.append((name,c,d)); continue
+        elif not url:
+            c,d=reason or ('NO_LIVE','LIVE URL取得なし'); failed.append((name,c,d)); continue
+
+        key=url.split('?')[0]
+        if key in seen:
+            if old_url and allow_old_fallback and old_url.split('?')[0] not in seen:
+                url=old_url; key=url.split('?')[0]; duplicate_repairs+=1
+                failed.append((name,'DUPLICATE_REPAIRED','新規検索が他局と重複したため前回URLを維持'))
+            else:
+                failed.append((name,'DUPLICATE','同一LIVE URLのため重複除外')); continue
+
+        seen.add(key)
+        out += make_entry(item,url,old_logos)
+        got.append((name,item.get('group','一般YouTube LIVE')))
+
+    text='\n'.join(out).rstrip()+'\n'
+    output_count=len(got)
+    serious=[x for x in failed if x[1] in SERIOUS_CODES]
+    if old_count>0 and serious and output_count<old_count:
+        print(f'QUALITY GATE: keeping previous playlist ({old_count}) because rebuilt output is {output_count}.',flush=True)
+        kept=apply_source_logos(old_text)
+        OUT.write_text(kept,encoding='utf-8')
+        return kept,got,failed
+
+    OUT.write_text(text,encoding='utf-8')
+    print(f'FALLBACK previous URLs: {fallback_count} / duplicate repairs: {duplicate_repairs}',flush=True)
+    return text,got,failed
+
+
+def merge_freewifi(general):
+    base=FREEWIFI.read_text(encoding='utf-8-sig',errors='replace') if FREEWIFI.exists() else '#EXTM3U\n'
+    pattern=re.compile(re.escape(START)+r'.*?'+re.escape(END),re.S)
+    body='\n'.join(general.splitlines()[1:]).strip()
+    block=START+'\n'+body+'\n'+END if body else START+'\n'+END
+    FREEWIFI.write_text(pattern.sub(block,base) if pattern.search(base) else base.rstrip()+'\n\n'+block+'\n',encoding='utf-8')
+
+
+def main():
+    text,got,failed=build(); merge_freewifi(text)
+    print('=== General YouTube LIVE diagnostic ===')
+    print('OUTPUT ENTRIES:',text.count('#EXTINF:'))
+    print('SUCCESS/KEPT:',len(got))
+    for n,g in got: print(f' + OK [{g}] {n}')
+    print('SKIP/FAIL/REPAIRED:',len(failed))
+    for n,code,detail in failed:
+        print(f' - {code}: {n}')
+        if detail: print('   ',detail)
+    groups={}
+    for _,g in got: groups[g]=groups.get(g,0)+1
+    print('=== GROUP COUNTS ===')
+    for g in ['動物','愛媛県内ライブカメラ','橋','空港','関西','その他LIVE','競馬']:
+        print(f'{g}: {groups.get(g,0)}')
+    serious=[x for x in failed if x[1] in SERIOUS_CODES]
+    if serious:
+        print('=== WARNING: YouTube access restriction detected; previous per-channel URLs were preferred where safe ===')
+        for n,code,detail in serious: print(f' ! {code}: {n} :: {detail}')
+
+if __name__=='__main__': main(),page):
+                url=page
+                failed.append((name,'WATCH_FALLBACK','LIVE HLS取得失敗のため固定Watch URLを維持'))
+            else:
+                c,d=reason or ('NO_LIVE','LIVE URL取得なし'); failed.append((name,c,d)); continue
         elif not url:
             c,d=reason or ('NO_LIVE','LIVE URL取得なし'); failed.append((name,c,d)); continue
 

@@ -184,9 +184,6 @@ jobs:
           for f in general_youtube_sources.json general_youtube_sources_ports.json general_youtube_sources_airports.json general_youtube.m3u public_sports_youtube_fallback.m3u; do
             [ ! -f "$f" ] || cp "$f" "$snapshot/$f"
           done
-          mkdir -p "$snapshot/logos"
-          cp -a logos/youtube "$snapshot/logos/"
-
           for attempt in 1 2 3 4 5; do
             echo "YouTube overlay publish attempt $attempt/5"
             git fetch origin main
@@ -195,10 +192,6 @@ jobs:
             for f in general_youtube_sources.json general_youtube_sources_ports.json general_youtube_sources_airports.json general_youtube.m3u public_sports_youtube_fallback.m3u; do
               [ ! -f "$snapshot/$f" ] || cp "$snapshot/$f" "$f"
             done
-            rm -rf logos/youtube
-            mkdir -p logos
-            cp -a "$snapshot/logos/youtube" logos/
-
             python - <<'PY'
           from pathlib import Path
           fw=Path('freewifi')
@@ -228,7 +221,6 @@ jobs:
             python -c 'import kana_tube_update as k; k.validate_outputs()'
 
             git add general_youtube_sources.json general_youtube_sources_ports.json general_youtube_sources_airports.json general_youtube.m3u public_sports_youtube_fallback.m3u freewifi kana_tube.m3u kana_tube_status.json
-            git add -A logos/youtube
             if git diff --cached --quiet; then
               echo 'YouTube-managed state already current'
               rm -f youtube_cookies.txt
