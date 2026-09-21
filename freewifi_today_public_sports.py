@@ -7,7 +7,7 @@ import urllib.request
 from sports_race_time import race_time
 
 FREEWIFI = Path('freewifi')
-KANA_M3U = Path('kana_tube.m3u')
+KANA_M3U = Path('youtube/output/kana.m3u')
 STATUS_JSON = Path('today_public_sports_status.json')
 PUBLIC_M3U = Path('ganble')
 PUBLIC_EPG = Path('public_sports_epg_local.xml')
