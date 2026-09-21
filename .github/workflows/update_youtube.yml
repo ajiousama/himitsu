@@ -1,46 +1,44 @@
-name: Update YouTube v2
+name: Update YouTube v3 Worker
 
 on:
   workflow_dispatch:
+  schedule:
+    # Recovery trigger only. The active worker refreshes special channels itself.
+    - cron: '17 * * * *'
   push:
     branches: [main]
     paths:
-      - 'youtube/**'
+      - 'youtube/config.json'
+      - 'youtube/manager.py'
+      - 'youtube/test_manager.py'
       - '.github/workflows/update_youtube.yml'
-  schedule:
-    - cron: '*/5 * * * *'
-    - cron: '17 * * * *'
 
 permissions:
   contents: write
+  actions: write
 
 concurrency:
-  group: himitsu-youtube-v2
-  cancel-in-progress: false
+  group: himitsu-youtube-v3-worker
+  cancel-in-progress: ${{ github.event_name == 'push' && github.actor != 'github-actions[bot]' }}
 
 jobs:
   update:
     if: github.event_name != 'push' || github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 350
+    env:
+      GH_TOKEN: ${{ github.token }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
-      - name: Sync latest main
-        run: git pull --ff-only origin main
-
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
           python-version: '3.12'
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
 
       - name: Install YouTube resolver
         run: |
@@ -60,70 +58,98 @@ jobs:
             chmod 600 youtube_cookies.txt
           fi
 
-      - name: Choose update scope
-        id: scope
-        shell: bash
-        run: |
-          if [ "${{ github.event_name }}" = "schedule" ] && [ "${{ github.event.schedule }}" = "*/5 * * * *" ]; then
-            echo "value=special" >> "$GITHUB_OUTPUT"
-          elif [ "${{ github.event_name }}" = "schedule" ] && [ "${{ github.event.schedule }}" = "17 * * * *" ]; then
-            echo "value=general" >> "$GITHUB_OUTPUT"
-          else
-            echo "value=all" >> "$GITHUB_OUTPUT"
-          fi
-
       - name: Run structure tests
         run: python -m unittest -v youtube.test_manager
 
-      - name: Refresh YouTube v2
-        run: timeout 18m python youtube/manager.py --scope "${{ steps.scope.outputs.value }}"
-
-      - name: Publish onto latest main
+      - name: Run continuous YouTube refresh worker
         shell: bash
         run: |
-          set -euo pipefail
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          set -u
 
-          snapshot="$(mktemp -d)"
-          mkdir -p "$snapshot/output" "$snapshot/state"
-          cp -a youtube/output/. "$snapshot/output/"
-          cp -a youtube/state/. "$snapshot/state/"
+          publish_scope() {
+            scope="$1"
+            for attempt in 1 2 3 4 5; do
+              echo "=== YouTube scope=$scope attempt=$attempt ==="
+              git fetch origin main
+              git reset --hard origin/main
 
-          for attempt in 1 2 3 4 5; do
-            git fetch origin main
-            git reset --hard origin/main
+              if [ "$scope" = "special" ]; then
+                if ! timeout 4m python youtube/manager.py --scope special; then
+                  echo "::warning::special refresh failed on attempt $attempt"
+                  sleep "$attempt"
+                  continue
+                fi
+              else
+                if ! timeout 15m python youtube/manager.py --scope general; then
+                  echo "::warning::general refresh failed on attempt $attempt"
+                  sleep "$attempt"
+                  continue
+                fi
+              fi
 
-            mkdir -p youtube/output youtube/state
-            cp -a "$snapshot/output/." youtube/output/
-            cp -a "$snapshot/state/." youtube/state/
+              if ! python -m unittest -v youtube.test_manager; then
+                echo "::warning::YouTube structure test failed after scope=$scope"
+                sleep "$attempt"
+                continue
+              fi
 
-            python youtube/manager.py --sync-only
-            if [ "${{ steps.scope.outputs.value }}" != "general" ]; then
-              python youtube/manager.py --epg-only
+              git config user.name 'github-actions[bot]'
+              git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+
+              if [ "$scope" = "special" ]; then
+                git add youtube/output/kana.m3u youtube/output/mandarin.m3u \
+                        youtube/state/kana.json youtube/state/mandarin.json \
+                        freewifi public_sports_epg_local.xml
+              else
+                git add youtube/output/general.m3u freewifi
+              fi
+
+              if git diff --cached --quiet; then
+                echo "YouTube $scope already current"
+                return 0
+              fi
+
+              git commit -m "Update YouTube v3 $scope state [skip ci] [skip render]"
+              if git push origin HEAD:main; then
+                echo "YouTube $scope published"
+                return 0
+              fi
+
+              echo "::warning::push race on scope=$scope; retrying from latest main"
+              sleep "$attempt"
+            done
+
+            echo "::error::YouTube $scope publish failed after retries"
+            return 1
+          }
+
+          # Refresh Kana/Mandarin immediately, then every ~5 minutes.
+          # Refresh the larger general list about hourly, after special has been
+          # handled first so a live-start change is never delayed by the full scan.
+          successor_queued=0
+          for cycle in $(seq 0 63); do
+            cycle_started="$(date +%s)"
+
+            publish_scope special || true
+
+            if [ $((cycle % 12)) -eq 0 ]; then
+              publish_scope general || true
             fi
-            python -m unittest -v youtube.test_manager
 
-            git add youtube/output youtube/state freewifi
-            if [ "${{ steps.scope.outputs.value }}" != "general" ]; then
-              git add public_sports_epg_local.xml
+            # Queue the next worker before this runner reaches its 6-hour limit.
+            if [ "$cycle" -eq 58 ] && [ "$successor_queued" -eq 0 ]; then
+              if gh workflow run update_youtube.yml --ref main; then
+                echo "Queued successor YouTube worker"
+                successor_queued=1
+              else
+                echo "::warning::Could not queue successor; hourly recovery cron remains enabled"
+              fi
             fi
 
-            if git diff --cached --quiet; then
-              rm -f youtube_cookies.txt
-              echo 'YouTube v2 already current'
-              exit 0
+            elapsed=$(( $(date +%s) - cycle_started ))
+            if [ "$elapsed" -lt 300 ]; then
+              sleep $((300 - elapsed))
             fi
-
-            git commit -m 'Update YouTube v2 state [skip ci] [skip render]'
-            if git push origin HEAD:main; then
-              rm -f youtube_cookies.txt
-              echo 'YouTube v2 published'
-              exit 0
-            fi
-            sleep "$attempt"
           done
 
           rm -f youtube_cookies.txt
-          echo '::error::YouTube v2 publish failed after retries'
-          exit 1
