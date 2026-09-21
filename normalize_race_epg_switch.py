@@ -3,7 +3,9 @@ from __future__ import annotations
 """Normalize race-by-race XMLTV blocks to the common FreeWiFi race rule.
 
 Rule for every real race programme:
-- the first race of a meeting starts 45 minutes before its advertised start;
+- normally the first race starts 45 minutes before its advertised start;
+- when FreeWiFi has a standardized "本日開催 / 1R / 開催区分" guide, that guide
+  stays visible from midnight until 3 minutes before 1R;
 - race N remains selected until its advertised start time + 3 minutes;
 - race N+1 starts exactly at race N start time + 3 minutes;
 - after the final race, an existing finished notice starts at final start + 3 minutes.
@@ -14,13 +16,14 @@ must always follow the same race boundary rule.
 """
 
 import argparse
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time
 from pathlib import Path
 import xml.etree.ElementTree as ET
 
 from sports_race_time import JST, race_time
 
 FIRST_RACE_LEAD = timedelta(minutes=45)
+PRESTART_SWITCH = timedelta(minutes=3)
 SWITCH = timedelta(minutes=3)
 TARGET_PREFIXES = (
     "keirin.",
@@ -89,6 +92,51 @@ def find_finish_notice(root: ET.Element, channel: str, final_dt: datetime) -> ET
     return min(candidates, key=lambda item: item[0])[1] if candidates else None
 
 
+def is_prestart_guidance(programme: ET.Element) -> bool:
+    text = title(programme)
+    return text.startswith("本日") and "開催" in text and "1R" in text and "発走" in text
+
+
+def prestart_guidance(root: ET.Element, channel: str) -> ET.Element | None:
+    rows = [
+        p for p in root.findall("programme")
+        if p.get("channel") == channel and not race_time(p) and is_prestart_guidance(p)
+    ]
+    if not rows:
+        return None
+    rows.sort(key=lambda p: p.get("start", ""))
+    return rows[0]
+
+
+def normalize_prestart_guidance(
+    root: ET.Element,
+    channel: str,
+    meeting_day,
+    first_start: datetime,
+) -> int:
+    """Keep the FreeWiFi '本日開催' guide visible until the real 1R lead-in."""
+    guide = prestart_guidance(root, channel)
+    if guide is None:
+        return 0
+    changed = 0
+    wanted_start = datetime.combine(meeting_day, time(0, 0), tzinfo=JST)
+    if guide.get("start") != fmt(wanted_start):
+        guide.set("start", fmt(wanted_start))
+        changed += 1
+    if guide.get("stop") != fmt(first_start):
+        guide.set("stop", fmt(first_start))
+        changed += 1
+
+    for programme in list(root.findall("programme")):
+        if programme is guide or programme.get("channel") != channel or race_time(programme):
+            continue
+        text = title(programme)
+        if is_prestart_guidance(programme) or "開催待ち" in text or text.startswith("⏳ 待機"):
+            root.remove(programme)
+            changed += 1
+    return changed
+
+
 def trim_overlapping_leadin(root: ET.Element, channel: str, first_start: datetime) -> int:
     """End a non-race lead-in/waiting block exactly where 1R begins."""
     changed = 0
@@ -114,11 +162,15 @@ def normalize_root(root: ET.Element) -> tuple[int, int]:
         races_seen += len(rows)
 
         first_dt, _first_number, first_programme = rows[0]
-        wanted_first_start = first_dt - FIRST_RACE_LEAD
+        has_prestart = prestart_guidance(root, channel) is not None
+        wanted_first_start = first_dt - (PRESTART_SWITCH if has_prestart else FIRST_RACE_LEAD)
         if first_programme.get("start") != fmt(wanted_first_start):
             first_programme.set("start", fmt(wanted_first_start))
             changed += 1
-        changed += trim_overlapping_leadin(root, channel, wanted_first_start)
+        if has_prestart:
+            changed += normalize_prestart_guidance(root, channel, _meeting_day, wanted_first_start)
+        else:
+            changed += trim_overlapping_leadin(root, channel, wanted_first_start)
 
         for index, (race_dt, _number, programme) in enumerate(rows):
             wanted_stop = race_dt + SWITCH
@@ -152,7 +204,8 @@ def validate_root(root: ET.Element, label: str) -> int:
 
         first_dt, first_number, first_programme = rows[0]
         first_start = parse_xmltv(first_programme.get("start"))
-        wanted_first_start = first_dt - FIRST_RACE_LEAD
+        has_prestart = prestart_guidance(root, channel) is not None
+        wanted_first_start = first_dt - (PRESTART_SWITCH if has_prestart else FIRST_RACE_LEAD)
         if first_start != wanted_first_start:
             errors.append(
                 f"{channel} {meeting_day} {first_number}R first_start={first_start} expected={wanted_first_start}"
@@ -204,7 +257,7 @@ def process(path: Path, check_only: bool) -> None:
     root = tree.getroot()
     if check_only:
         checked = validate_root(root, str(path))
-        print(f"{path}: 45m/+3 check OK races={checked}")
+        print(f"{path}: prestart/+3 check OK races={checked}")
         return
 
     changed, races_seen = normalize_root(root)
