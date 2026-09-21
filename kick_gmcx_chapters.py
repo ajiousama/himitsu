@@ -50,6 +50,30 @@ KNOWN_SPECIALS: dict[tuple[int, int], list[dict]] = {
             "expected_broadcast_seconds": 43200,
         },
     ],
+    (137, 156): [
+        {
+            "key": "2012-in-asia",
+            "title": "GMCX in ASIA",
+            "duration_seconds": None,
+            "expected_broadcast_seconds": 7200,
+        },
+    ],
+    (157, 166): [
+        {
+            "key": "2013-famicom30-live",
+            "title": "GMCX ファミコン30周年／地上波生挑戦",
+            "duration_seconds": None,
+            "expected_broadcast_seconds": None,
+        },
+    ],
+    (167, 176): [
+        {
+            "key": "2013-paris-budokan",
+            "title": "GMCX in PARIS／有野の挑戦 in 武道館",
+            "duration_seconds": None,
+            "expected_broadcast_seconds": None,
+        },
+    ],
 }
 
 RANGE_RE = re.compile(r"[＃#]\s*(\d+)\s*[-‐‑‒–—―〜~～]\s*(\d+)")
