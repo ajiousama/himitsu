@@ -44,6 +44,7 @@ CANCELLATION_LEAD_MINUTES = 180
 RACE_SWITCH_MINUTES = 3
 END_GUIDANCE_MINUTES = 45
 INTERMISSION_MIN_GAP_MINUTES = 60
+REVERIFY_ALERT_LEAD_MINUTES = 15
 SCHEDULE_API = "https://boatraceopenapi.github.io/api/v1/{year}/{ymd}.json"
 SCHEDULE_TODAY_API = "https://boatraceopenapi.github.io/api/v1/today.json"
 SEED_API = "https://himitsu-six.vercel.app/api/boat-seed?venue={jcd}"
@@ -582,7 +583,17 @@ def build_venue_state(cards: dict[str, list[dict]], streams: dict[str, dict], no
         expired = token_expired(url) if current_url else False
         visible = bool(current_url)
         source_ready = bool(current_url and not expired and stream.get('playback_verified'))
-        seed_required = bool(active and not source_ready)
+        upcoming = next((race for race in races if race["start"] >= now), None)
+        ever_verified = bool(stream.get('first_verified_at'))
+        if ever_verified and upcoming is not None:
+            # After a venue has already been decoded successfully today, a
+            # temporary between-race stop is not immediately an incident.
+            # Keep recovery running, but only raise a viewer-facing alert if
+            # playback is still unavailable inside the final 15-minute window.
+            reverify_due = now >= upcoming["start"] - timedelta(minutes=REVERIFY_ALERT_LEAD_MINUTES)
+        else:
+            reverify_due = True
+        seed_required = bool(active and not source_ready and reverify_due)
         race_rows = [
             {"race": race["race"], "start": race["start"].strftime("%H:%M"), "name": race["name"]}
             for race in races
@@ -605,6 +616,7 @@ def build_venue_state(cards: dict[str, list[dict]], streams: dict[str, dict], no
             "intermission": intermission,
             "guidance_switch_at": guidance_switch.isoformat(),
             "seed_required": seed_required,
+            "reverify_due": reverify_due if active else False,
             "playback_verified": source_ready,
             "first_verified_at": stream.get('first_verified_at'),
             "ready_before_first_race": bool(stream.get('first_verified_at') and datetime.fromisoformat(stream['first_verified_at']) <= first),
