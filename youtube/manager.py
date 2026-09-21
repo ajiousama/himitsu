@@ -213,6 +213,10 @@ def parse_m3u(path):
 
 
 def logo_url(url):
+    # Newly added channels may intentionally omit a dedicated logo while the
+    # artwork is being prepared. Use the official YouTube icon temporarily
+    # instead of crashing the whole playlist build.
+    url = url or DEFAULT_YOUTUBE_LOGO
     return url + ("&" if "?" in url else "?") + "v=" + CACHE_VERSION
 
 
