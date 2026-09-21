@@ -2,10 +2,10 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-22",
-  "generated_at": "2026-09-22T07:09:23.360512+09:00",
+  "generated_at": "2026-09-22T07:57:23.466473+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260922.json",
-  "schedule_checked_at": "2026-09-22T07:00:23.258033+09:00",
+  "schedule_checked_at": "2026-09-22T07:57:23.466473+09:00",
   "schedule_warnings": [
     "official_cards: TimeoutError"
   ],
@@ -19,7 +19,7 @@
   "alert_lead_minutes": 30,
   "card_count": 14,
   "held_count": 14,
-  "visible_count": 0,
+  "visible_count": 1,
   "active_count": 0,
   "ended_kept": [],
   "seed_required": false,
@@ -28,7 +28,7 @@
   "phase_counts": {
     "morning": {
       "held": 2,
-      "acquired": 0,
+      "acquired": 1,
       "active": 0,
       "ended": 0,
       "seed_required": 0,
@@ -53,13 +53,8 @@
   },
   "cloud_acquisition": {
     "requested": 2,
-    "fetched": 0,
+    "fetched": 1,
     "failures": [
-      {
-        "jcd": "10",
-        "name": "三国",
-        "error": "HTTPError: playback check failed"
-      },
       {
         "jcd": "18",
         "name": "徳山",
@@ -75,7 +70,24 @@
     "active": false,
     "kind": "healthy"
   },
-  "streams": {},
+  "streams": {
+    "boat.mikuni": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/7bc8b41d33bd4e8b9e44ebc5a307f03b/0fcac7d10cb24b10a1a3bc61c3a01e59/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MDIwNDQwMCwic3RhcnQiOjE3OTAwMzE0MjAsImlvcyI6MTgsImNwIjoiMjEyMjI3MDIwXzIxMjI3MDIxOSIsInBwdyI6IjQwayJ9.aS1qR-sta6YYFYBrNEt15GSSplF8T9DQAN6SS8Qh6cQ",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-09-22T07:57:58.776429+09:00",
+      "checked_at": "2026-09-22T07:57:58.776429+09:00",
+      "first_verified_at": "2026-09-22T07:57:58.776429+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 8184695,
+        "last_segment": "/7bc8b41d33bd4e8b9e44ebc5a307f03b/0fcac7d10cb24b10a1a3bc61c3a01e59/manifest_4_8184704.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
+    }
+  },
   "venues": {
     "boat.kiryu": {
       "jcd": "01",
@@ -621,7 +633,7 @@
       "jcd": "10",
       "name": "三国",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
       "active": false,
       "cancelled": false,
@@ -639,9 +651,9 @@
       "guidance_switch_at": "2026-09-22T14:56:00+09:00",
       "seed_required": false,
       "reverify_due": false,
-      "playback_verified": false,
-      "first_verified_at": null,
-      "ready_before_first_race": false,
+      "playback_verified": true,
+      "first_verified_at": "2026-09-22T07:57:58.776429+09:00",
+      "ready_before_first_race": true,
       "acquire_from": "2026-09-22T06:02:00+09:00",
       "races": [
         {
@@ -705,7 +717,9 @@
           "name": "カニ坊選抜"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/7bc8b41d33bd4e8b9e44ebc5a307f03b/0fcac7d10cb24b10a1a3bc61c3a01e59/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MDIwNDQwMCwic3RhcnQiOjE3OTAwMzE0MjAsImlvcyI6MTgsImNwIjoiMjEyMjI3MDIwXzIxMjI3MDIxOSIsInBwdyI6IjQwayJ9.aS1qR-sta6YYFYBrNEt15GSSplF8T9DQAN6SS8Qh6cQ",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     },
     "boat.biwako": {
       "jcd": "11",
