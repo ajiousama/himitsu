@@ -1,5 +1,5 @@
 name: Update KICK Replay Catalog
-# replay-layer-v3 freewifi integration
+# replay-layer-v3 VOD5 integration
 # recovery-touch: 2026-09-21 14:40 JST
 
 on:
@@ -19,8 +19,8 @@ on:
 permissions:
   contents: write
 
-# This workflow now writes freewifi, so share the same repository-wide mutex as
-# the main FreeWiFi/EPG writer. That prevents replay updates from overwriting a
+# This workflow now writes VOD5, so share the same repository-wide mutex as
+# the main VOD5/EPG writer. That prevents replay updates from overwriting a
 # newer BOAT/public-sports/KICK LIVE state.
 concurrency:
   group: himitsu-kick-replay
@@ -109,7 +109,7 @@ jobs:
           ai = [x for x in g['results'] if x.get('status') == 'ai_required']
           all_chapters = [c for x in ready for c in (x.get('chapters') or [])]
           # Probe representative chapter playlists end-to-end through
-          # freewifi-media: first, middle and last. Render can transiently
+          # VOD5-media: first, middle and last. Render can transiently
           # return 502 during a cold/redeploy window, so do not freeze the
           # whole catalog because one representative clip hiccupped. At least
           # one representative must still pass after retries.
@@ -125,7 +125,7 @@ jobs:
                       checked += 1
                       ok += int(probe_m3u8(url, attempts=4))
               if checked and ok == 0:
-                  print('::warning::all representative freewifi-media chapter probes failed transiently; continuing without freezing the whole replay catalog')
+                  print('::warning::all representative VOD5-media chapter probes failed transiently; continuing without freezing the whole replay catalog')
               print(f'GMCX Render chapter probes: {ok}/{checked} passed')
 
           chapters = len(all_chapters)
@@ -134,7 +134,7 @@ jobs:
           print('GMCX ready VODs:', len(ready), 'chapters:', chapters, 'AI required:', len(ai))
           PY
 
-      - name: Publish replay metadata and merge FreeWiFi
+      - name: Publish replay metadata and merge VOD5
         shell: bash
         run: |
           set -euo pipefail
@@ -148,7 +148,7 @@ jobs:
           cp kick_gmcx_chapters.m3u "$snapshot/kick_gmcx_chapters.m3u"
 
           for attempt in 1 2 3 4 5; do
-            echo "KICK replay/FreeWiFi publish attempt $attempt/5"
+            echo "KICK replay/VOD5 publish attempt $attempt/5"
             git fetch origin main
             git reset --hard origin/main
 
@@ -157,13 +157,13 @@ jobs:
             cp "$snapshot/kick_gmcx_chapters.json" kick_gmcx_chapters.json
             cp "$snapshot/kick_gmcx_chapters.m3u" kick_gmcx_chapters.m3u
 
-            # Rebuild the replay block against the newest FreeWiFi so this job
+            # Rebuild the replay block against the newest VOD5 so this job
             # never publishes an old copy over BOAT/public-sports/KICK LIVE.
-            python -u kick_replay_freewifi.py
+            python -u kick_replay_VOD5.py
 
             python - <<'PY'
           from pathlib import Path
-          text = Path('freewifi').read_text(encoding='utf-8-sig', errors='replace')
+          text = Path('VOD5').read_text(encoding='utf-8-sig', errors='replace')
           assert text.count('# === KICK_REPLAY_START ===') == 1
           assert text.count('# === KICK_REPLAY_END ===') == 1
           assert '# === KICK_MANAGED_END ===' in text
@@ -174,22 +174,22 @@ jobs:
           assert 'tvg-id="kick.gccx"' not in block
           count = block.count('group-title="VOD"')
           assert count > 0
-          print('FreeWiFi KICK VOD block validated:', count, 'entries')
+          print('VOD5 KICK VOD block validated:', count, 'entries')
           PY
 
-            git add freewifi kick_replay.json kick_replay.m3u kick_gmcx_chapters.json kick_gmcx_chapters.m3u
+            git add VOD5 kick_replay.json kick_replay.m3u kick_gmcx_chapters.json kick_gmcx_chapters.m3u
             if git diff --cached --quiet; then
-              echo "KICK/GMCX replay and FreeWiFi already current"
+              echo "KICK/GMCX replay and VOD5 already current"
               exit 0
             fi
-            git commit -m "Update KICK replay in FreeWiFi [skip ci] [skip render]"
+            git commit -m "Update KICK replay in VOD5 [skip ci] [skip render]"
             if git push origin HEAD:main; then
-              echo "KICK replay updated in FreeWiFi"
+              echo "KICK replay updated in VOD5"
               exit 0
             fi
             echo "::warning::main moved during replay publish; rebuilding on newest main"
             sleep 1
           done
 
-          echo "::error::KICK replay/FreeWiFi publish failed after retries"
+          echo "::error::KICK replay/VOD5 publish failed after retries"
           exit 1
