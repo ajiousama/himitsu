@@ -288,7 +288,14 @@ def build():
             failed.append((name,code,(reason or ('',''))[1]+' [previous URL kept]'))
         elif not url and tvg in PINNED_WATCH_FALLBACK_IDS:
             page=(item.get('page') or '').strip()
-            if re.match(r'^https://www\.youtube\.com/watch\?v=[A-Za-z0-9_-]+
+            if re.match(r'^https://www\.youtube\.com/watch\?v=[A-Za-z0-9_-]+$',page):
+                url=page
+                failed.append((name,'WATCH_FALLBACK','LIVE HLS取得失敗のため固定Watch URLを維持'))
+            else:
+                c,d=reason or ('NO_LIVE','LIVE URL取得なし'); failed.append((name,c,d)); continue
+        elif not url:
+            c,d=reason or ('NO_LIVE','LIVE URL取得なし'); failed.append((name,c,d)); continue
+
         key=url.split('?')[0]
         if key in seen:
             if old_url and allow_old_fallback and old_url.split('?')[0] not in seen:
