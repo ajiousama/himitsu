@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-21",
-  "generated_at": "2026-09-21T14:23:24.590416+09:00",
+  "generated_at": "2026-09-21T14:25:23.637366+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260921.json",
   "schedule_checked_at": "2026-09-21T14:23:24.590416+09:00",
@@ -25,7 +25,7 @@
   "alert_lead_minutes": 30,
   "card_count": 13,
   "held_count": 13,
-  "visible_count": 9,
+  "visible_count": 10,
   "active_count": 6,
   "ended_kept": [
     "三国"
@@ -52,7 +52,7 @@
     },
     "night": {
       "held": 3,
-      "acquired": 1,
+      "acquired": 2,
       "active": 0,
       "ended": 0,
       "seed_required": 0,
@@ -61,16 +61,11 @@
   },
   "cloud_acquisition": {
     "requested": 9,
-    "fetched": 7,
+    "fetched": 8,
     "failures": [
       {
         "jcd": "01",
         "name": "桐生",
-        "error": "HTTPError: playback check failed"
-      },
-      {
-        "jcd": "12",
-        "name": "住之江",
         "error": "HTTPError: playback check failed"
       }
     ]
@@ -147,6 +142,22 @@
         "audio_decoded": true
       },
       "consecutive_failures": 36
+    },
+    "boat.suminoe": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/f82b59a4d721411f83609760d99e23f4/db410228c2fe4d41abf429e8b72ebf74/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MDE0MzIwMCwic3RhcnQiOjE3ODk5NjgzMDAsImlvcyI6MTgsImNwIjoiMjEyMTYzOTAwXzIxMjIwNTU5OSIsInBwdyI6IjQwayJ9.QUcdtanKtXCos6jxerHoP_OCH5E94mwZn6L9ilelngk",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-09-21T14:25:50.905328+09:00",
+      "checked_at": "2026-09-21T14:25:50.905328+09:00",
+      "first_verified_at": "2026-09-21T14:25:50.905328+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 8177676,
+        "last_segment": "/f82b59a4d721411f83609760d99e23f4/db410228c2fe4d41abf429e8b72ebf74/manifest_4_8177684.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
     },
     "boat.amagasaki": {
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/0128861409e94b9aa06a6fc5773da7d3/41061cee2e164ac2bd300e209668cb1b/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MDEyODgwMCwic3RhcnQiOjE3ODk5NTI1MjAsImlvcyI6MTgsImNwIjoiMjEyMTQ4MTIwXzIxMjE5MTMxOSIsInBwdyI6IjQwayJ9.mKtJYKXg5TwZdJ9C4msJgTVMBpSuUKFieu4CDDME39E",
@@ -874,7 +885,7 @@
       "jcd": "12",
       "name": "住之江",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
       "active": false,
       "cancelled": false,
@@ -892,9 +903,9 @@
       "guidance_switch_at": "2026-09-21T21:15:00+09:00",
       "seed_required": false,
       "reverify_due": false,
-      "playback_verified": false,
-      "first_verified_at": null,
-      "ready_before_first_race": false,
+      "playback_verified": true,
+      "first_verified_at": "2026-09-21T14:25:50.905328+09:00",
+      "ready_before_first_race": true,
       "acquire_from": "2026-09-21T12:49:00+09:00",
       "races": [
         {
@@ -958,7 +969,9 @@
           "name": "一般特別戦"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/f82b59a4d721411f83609760d99e23f4/db410228c2fe4d41abf429e8b72ebf74/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MDE0MzIwMCwic3RhcnQiOjE3ODk5NjgzMDAsImlvcyI6MTgsImNwIjoiMjEyMTYzOTAwXzIxMjIwNTU5OSIsInBwdyI6IjQwayJ9.QUcdtanKtXCos6jxerHoP_OCH5E94mwZn6L9ilelngk",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     },
     "boat.amagasaki": {
       "jcd": "13",
