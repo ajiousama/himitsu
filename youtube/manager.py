@@ -669,9 +669,37 @@ def validate(config):
             raise SystemExit("legacy YouTube logo path remains in freewifi: " + bad[0])
     if text.count(GENERAL_START) != 1 or text.count(GENERAL_END) != 1:
         raise SystemExit("general YouTube managed block count invalid")
-    kana_count = text.count(f'tvg-id="{config["special"]["kana"]["id"]}"')
+    kana_id = config["special"]["kana"]["id"]
+    kana_count = text.count(f'tvg-id="{kana_id}"')
     if kana_count > 1:
         raise SystemExit("duplicate Kana entry in freewifi")
+
+    # Reservation/LIVE publication is an invariant, not best-effort. Once the
+    # official channel has been resolved, FreeWiFi must contain the exact same
+    # Kana slot immediately.
+    kana_state = read_json(KANA_STATE, {})
+    kana_entry = parse_m3u(FREEWIFI).get(kana_id)
+    kana_mode = (kana_state.get("state") or "").lower()
+    if kana_mode in ("is_upcoming", "is_live"):
+        if not kana_entry:
+            raise SystemExit(f"Kana {kana_mode} detected but missing from freewifi")
+        expected = (
+            kana_state.get("play_url")
+            if kana_mode == "is_live" and kana_state.get("play_url")
+            else kana_state.get("watch_url")
+        )
+        if expected and kana_entry.get("url") != expected:
+            raise SystemExit(
+                f"Kana {kana_mode} URL mismatch: freewifi={kana_entry.get('url')} state={expected}"
+            )
+        ext = kana_entry.get("ext") or ""
+        if kana_mode == "is_upcoming" and "配信予定" not in ext:
+            raise SystemExit("Kana reservation detected but freewifi is not labelled 配信予定")
+        if kana_mode == "is_live" and "【LIVE】" not in ext:
+            raise SystemExit("Kana live detected but freewifi is not labelled LIVE")
+    elif kana_mode == "offline" and kana_entry:
+        raise SystemExit("Kana is offline but stale entry remains in freewifi")
+
     print("YouTube v2 validation OK")
 
 
