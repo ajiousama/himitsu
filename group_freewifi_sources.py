@@ -51,11 +51,13 @@ def source_rank(inf: str) -> int:
         return 0
     if "(primehomehd)" in lower:
         return 1
-    if "(primehome)" in lower:
+    if "(5002直)" in lower:
         return 2
-    if tvg_id(inf).startswith("tver_") or ",tver " in lower:
+    if "(primehome)" in lower:
         return 3
-    return 4
+    if tvg_id(inf).startswith("tver_") or ",tver " in lower:
+        return 4
+    return 5
 
 
 def group_by_channel(entries):
