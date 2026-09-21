@@ -157,27 +157,24 @@ jobs:
             cp "$snapshot/kick_gmcx_chapters.json" kick_gmcx_chapters.json
             cp "$snapshot/kick_gmcx_chapters.m3u" kick_gmcx_chapters.m3u
 
-            # Rebuild the replay block against the newest VOD5 so this job
-            # never publishes an old copy over BOAT/public-sports/KICK LIVE.
-            python -u kick_replay_VOD5.py
+            # Rebuild VOD5 from the newest replay metadata.
+            # The helper also removes any legacy KICK replay block from FreeWiFi.
+            python -u kick_replay_freewifi.py
 
             python - <<'PY'
           from pathlib import Path
           text = Path('VOD5').read_text(encoding='utf-8-sig', errors='replace')
-          assert text.count('# === KICK_REPLAY_START ===') == 1
-          assert text.count('# === KICK_REPLAY_END ===') == 1
-          assert '# === KICK_MANAGED_END ===' in text
-          start = text.index('# === KICK_REPLAY_START ===')
-          end = text.index('# === KICK_REPLAY_END ===')
-          block = text[start:end]
-          assert 'Mirumo' not in block
-          assert 'tvg-id="kick.gccx"' not in block
-          count = block.count('group-title="VOD"')
+          assert text.startswith('#EXTM3U')
+          assert '# === KICK_REPLAY_START ===' not in text
+          assert '# === KICK_REPLAY_END ===' not in text
+          assert 'Mirumo' not in text
+          assert 'tvg-id="kick.gccx"' not in text
+          count = text.count('group-title="VOD"')
           assert count > 0
-          print('VOD5 KICK VOD block validated:', count, 'entries')
+          print('VOD5 KICK VOD catalog validated:', count, 'entries')
           PY
 
-            git add VOD5 kick_replay.json kick_replay.m3u kick_gmcx_chapters.json kick_gmcx_chapters.m3u
+            git add VOD5 freewifi kick_replay.json kick_replay.m3u kick_gmcx_chapters.json kick_gmcx_chapters.m3u
             if git diff --cached --quiet; then
               echo "KICK/GMCX replay and VOD5 already current"
               exit 0
