@@ -80,8 +80,8 @@ jobs:
               --max-age-days 14 \
               --max-per-program 20
             python haru_vod_clips.py
-            python haru_vod_freewifi.py
-            git add haru_kai_epg_history.xml haru_vod.m3u freewifi
+            # FreeWiFi injection disabled while HARU/blog is out of service
+            git add haru_kai_epg_history.xml haru_vod.m3u
             if git diff --cached --quiet; then
               echo 'HARU VOD / FreeWiFi already current'
               exit 0
