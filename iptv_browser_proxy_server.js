@@ -19,10 +19,54 @@ function pxy(abs){return '/proxy?url='+encodeURIComponent(abs);}
 function fixJra(text,url){const l=url.toLowerCase();if(!l.includes('west_master')&&!l.includes('hokaido_master'))return text;const v=l.includes('west_master')?'manifest_6.m3u8':'manifest_5.m3u8';return text.split(/\r?\n/).map(x=>x.startsWith('#EXT-X-MEDIA')&&x.includes('TYPE=AUDIO')?x.replace(/manifest_\d+\.m3u8/g,'manifest_8.m3u8'):(x.trim()&&!x.startsWith('#')&&x.includes('.m3u8')?x.replace(/manifest_\d+\.m3u8/g,v):x)).join('\n');}
 function rewrite(text,base){text=fixJra(text,base);return text.split(/\r?\n/).map(line=>{if(!line)return line;if(line.startsWith('#'))return line.replace(/URI=\"([^\"]+)\"/g,(_,r)=>'URI=\"'+px(new URL(r,base).href)+'\"').replace(/URI='([^']+)'/g,(_,r)=>"URI='"+px(new URL(r,base).href)+"'");try{return pxy(new URL(line.trim(),base).href);}catch{return line;}}).join('\n');}
 function cors(res){res.setHeader('Access-Control-Allow-Origin','*');res.setHeader('Access-Control-Allow-Methods','GET,HEAD,OPTIONS');res.setHeader('Access-Control-Allow-Headers','Range,Content-Type,Accept');res.setHeader('Access-Control-Expose-Headers','Content-Length,Content-Range,Accept-Ranges,Content-Type');res.setHeader('Cross-Origin-Resource-Policy','cross-origin');res.setHeader('X-Content-Type-Options','nosniff');}
-function copy(r,res,n){const v=r.headers.get(n);if(v)res.setHeader(n,v);}
+function copy(r,res,n){const v=r.headers.get(n);if(v)res.setHeader(n,v);}\nfunction decodeJsonString(s){
+  try{return JSON.parse('"' + s + '"');}
+  catch{return s.replace(/\\u0026/g,'&').replace(/\\\//g,'/');}
+}
+async function resolveYouTubeHls(id){
+  const watch='https://www.youtube.com/watch?v='+encodeURIComponent(id)+'&hl=en&bpctr=9999999999&has_verified=1';
+  const ac=new AbortController(),t=setTimeout(()=>ac.abort(),20000);
+  let r;
+  try{
+    r=await fetch(watch,{
+      headers:{'User-Agent':UA,'Accept-Language':'en-US,en;q=.9','Cache-Control':'no-cache'},
+      redirect:'follow',
+      signal:ac.signal
+    });
+  }finally{clearTimeout(t);}
+  if(!r.ok)throw Error('youtube watch '+r.status);
+  const html=await r.text();
+  const m=html.match(/"hlsManifestUrl"\s*:\s*"([^"]+)"/);
+  if(!m)throw Error('live HLS manifest not found');
+  const u=decodeJsonString(m[1]);
+  if(!u.startsWith('https://'))throw Error('invalid live HLS manifest');
+  return u;
+}
+
 
 const server=http.createServer(async(req,res)=>{cors(res);const parsed=new URL(req.url,'http://'+(req.headers.host||'localhost'));if(req.method==='OPTIONS'){res.statusCode=204;return res.end();}
   if(parsed.pathname==='/'||parsed.pathname==='/health'){res.setHeader('Content-Type','application/json; charset=utf-8');res.setHeader('Cache-Control','no-store');return res.end(JSON.stringify({ok:true,service:'iptv-9x-browser-proxy',version:'2'}));}
+  if(parsed.pathname==='/yt-hls'){
+    if(!['GET','HEAD'].includes(req.method)){res.statusCode=405;return res.end('method not allowed');}
+    const id=parsed.searchParams.get('id')||'';
+    if(!/^[A-Za-z0-9_-]{11}$/.test(id)){res.statusCode=400;return res.end('bad id');}
+    try{
+      const manifest=await resolveYouTubeHls(id);
+      const rr=await getUp(manifest,{method:'GET',headers:req.headers||{}});
+      if(!rr.ok){res.statusCode=rr.status;return res.end('youtube manifest '+rr.status);}
+      const body=await rr.text();
+      res.statusCode=200;
+      res.setHeader('Content-Type','application/vnd.apple.mpegurl; charset=utf-8');
+      res.setHeader('Cache-Control','no-store');
+      if(req.method==='HEAD')return res.end();
+      return res.end(rewrite(body,rr.url||manifest));
+    }catch(e){
+      res.statusCode=502;
+      res.setHeader('Content-Type','text/plain; charset=utf-8');
+      res.setHeader('Cache-Control','no-store');
+      return res.end('youtube resolver error: '+(e.message||e));
+    }
+  }
   if(parsed.pathname==='/youtube'){const id=parsed.searchParams.get('id')||'';if(!/^[A-Za-z0-9_-]{11}$/.test(id)){res.statusCode=400;return res.end('bad id');}const origin='https://'+req.headers.host;const src='https://www.youtube.com/embed/'+encodeURIComponent(id)+'?autoplay=1&mute=1&playsinline=1&rel=0&enablejsapi=1&origin='+encodeURIComponent(origin);res.setHeader('Content-Type','text/html; charset=utf-8');res.setHeader('Referrer-Policy','strict-origin-when-cross-origin');res.setHeader('Cache-Control','no-store');return res.end(`<!doctype html><html><head><meta name="referrer" content="strict-origin-when-cross-origin"><style>html,body,iframe{margin:0;width:100%;height:100%;border:0;background:#000;overflow:hidden}</style></head><body><iframe src="${src}" referrerpolicy="strict-origin-when-cross-origin" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe></body></html>`);}
   if(parsed.pathname!=='/proxy'){res.statusCode=404;return res.end('not found');}if(!['GET','HEAD'].includes(req.method)){res.statusCode=405;return res.end('method not allowed');}const target=parsed.searchParams.get('url');if(!target){res.statusCode=400;return res.end('missing url');}
   try{const r=await getUp(target,req),final=r.url||target,ct=(r.headers.get('content-type')||'').toLowerCase();res.statusCode=r.status;for(const n of ['content-type','content-range','accept-ranges','etag','last-modified'])copy(r,res,n);if(req.method==='HEAD'){copy(r,res,'content-length');return res.end();}let path='';try{path=new URL(final).pathname.toLowerCase();}catch{}if(ct.includes('mpegurl')||path.endsWith('.m3u8')){const b=await r.text();res.setHeader('Content-Type','application/vnd.apple.mpegurl; charset=utf-8');res.setHeader('Cache-Control','no-store');res.removeHeader('content-length');return res.end(rewrite(b,final));}copy(r,res,'content-length');res.setHeader('Cache-Control',r.headers.get('cache-control')||'public,max-age=5');if(!r.body)return res.end();Readable.fromWeb(r.body).on('error',e=>res.destroy(e)).pipe(res);}catch(e){res.statusCode=502;res.setHeader('Content-Type','text/plain; charset=utf-8');res.setHeader('Cache-Control','no-store');res.end('proxy error: '+(e.message||e));}
