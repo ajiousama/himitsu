@@ -1,0 +1,51 @@
+name: One-shot YouTube logo publish
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/one_shot_youtube_logos.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Install logo dependencies
+        run: |
+          python -m pip install --upgrade Pillow
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq fonts-noto-cjk
+      - name: Generate and link illustrated logos
+        run: python youtube/generate_missing_logos.py
+      - name: Verify logo structure
+        run: python -m unittest -v youtube.test_manager
+      - name: Publish logos
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add youtube/config.json youtube/logos/general
+          if git diff --cached --quiet; then
+            echo "Logo set already current"
+            exit 0
+          fi
+          git commit -m "Publish illustrated YouTube logos 72-102 [skip ci] [skip render]"
+          for attempt in 1 2 3 4 5; do
+            if git push origin HEAD:main; then
+              exit 0
+            fi
+            git fetch origin main
+            git rebase origin/main
+            sleep "$attempt"
+          done
+          exit 1
