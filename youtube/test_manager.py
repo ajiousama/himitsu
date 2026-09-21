@@ -45,6 +45,30 @@ class YouTubeV2StructureTests(unittest.TestCase):
         ]
         self.assertEqual(bad, [])
 
+    def test_active_youtube_entries_use_current_numbered_logos(self):
+        text = Path("freewifi").read_text(encoding="utf-8-sig", errors="replace")
+        for line in text.splitlines():
+            if not line.startswith("#EXTINF:") or 'tvg-id="youtube.' not in line:
+                continue
+            self.assertIn('tvg-logo="', line)
+            self.assertIn("/youtube/logos/", line)
+            self.assertNotIn("/logos/youtube", line)
+
+    def test_youtube_logo_files_are_not_duplicate_blobs(self):
+        logo_root = Path("youtube/logos")
+        seen = {}
+        import hashlib
+        for path in sorted(logo_root.rglob("*")):
+            if not path.is_file():
+                continue
+            digest = hashlib.sha256(path.read_bytes()).hexdigest()
+            self.assertNotIn(
+                digest,
+                seen,
+                f"duplicate logo content: {seen.get(digest)} and {path.as_posix()}",
+            )
+            seen[digest] = path.as_posix()
+
     def test_rch_and_ehime_catv_do_not_contain_youtube_entries(self):
         text = Path("freewifi").read_text(encoding="utf-8-sig", errors="replace")
         lines = text.splitlines()
