@@ -36,7 +36,7 @@ TODAY_END = "# === TODAY_PUBLIC_SPORTS_END ==="
 TODAY_HEADING = "## 今日の開催場"
 
 JST = ZoneInfo("Asia/Tokyo")
-CACHE_VERSION = "ytv2-20260921"
+CACHE_VERSION = "ytv2-20260921"\nDEFAULT_YOUTUBE_LOGO = "https://www.gstatic.com/youtube/img/branding/favicon/favicon_144x144.png"
 TRANSIENT = {"RATE_LIMIT", "BOT_CHECK", "COOKIE_ERROR", "TIMEOUT", "OTHER", "EXCEPTION"}
 MAX_WORKERS = 4
 MIN_CALL_INTERVAL = 1.20
@@ -219,7 +219,7 @@ def entry(item, url, label=None):
     name = item["name"]
     shown = label or name
     return "\n".join([
-        f'#EXTINF:-1 tvg-id="{item["id"]}" tvg-name="{name}" tvg-logo="{logo_url(item["logo"])}" group-title="{item["group"]}",{shown}',
+        f'#EXTINF:-1 tvg-id="{item["id"]}" tvg-name="{name}" tvg-logo="{logo_url(item.get("logo"))}" group-title="{item["group"]}",{shown}',
         url,
     ])
 
