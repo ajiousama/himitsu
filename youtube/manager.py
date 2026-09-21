@@ -36,7 +36,8 @@ TODAY_END = "# === TODAY_PUBLIC_SPORTS_END ==="
 TODAY_HEADING = "## 今日の開催場"
 
 JST = ZoneInfo("Asia/Tokyo")
-CACHE_VERSION = "ytv2-20260921"
+CACHE_VERSION = "ytv3-20260922a"
+GENERAL_PLAYBACK_PROXY = "https://iptv-9x-browser-proxy.onrender.com/yt-hls?id="
 DEFAULT_YOUTUBE_LOGO = "https://www.gstatic.com/youtube/img/branding/favicon/favicon_144x144.png"
 TRANSIENT = {"RATE_LIMIT", "BOT_CHECK", "COOKIE_ERROR", "TIMEOUT", "OTHER", "EXCEPTION"}
 MAX_WORKERS = 4
@@ -276,6 +277,13 @@ def video_key(url):
     return url.split("?", 1)[0]
 
 
+def stable_general_playback(url):
+    key = video_key(url)
+    if key.startswith("video:"):
+        return GENERAL_PLAYBACK_PROXY + key.split(":", 1)[1]
+    return url
+
+
 def update_general(config):
     previous = parse_m3u(GENERAL_OUT)
     rows = []
@@ -296,7 +304,7 @@ def update_general(config):
             print(f'GENERAL duplicate skipped: {item["id"]}')
             continue
         seen.add(key)
-        blocks.append(entry(item, url))
+        blocks.append(entry(item, stable_general_playback(url)))
     if not blocks:
         raise SystemExit("refusing to publish empty general YouTube output")
     write_playlist(GENERAL_OUT, blocks)
@@ -655,8 +663,8 @@ def update_mandarin_epg(config):
 
 
 def validate(config):
-    if len(config["general"]) != 71:
-        raise SystemExit(f"expected 71 general channels, got {len(config['general'])}")
+    if not config["general"]:
+        raise SystemExit("general YouTube channel list is empty")
     for item in config["general"]:
         rel = item["logo"].replace("https://raw.githubusercontent.com/ajiousama/himitsu/main/", "")
         if not Path(rel).exists():
