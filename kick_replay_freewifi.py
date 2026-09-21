@@ -6,6 +6,7 @@ import re
 from pathlib import Path
 
 FREEWIFI = Path("freewifi")
+VOD5 = Path("VOD5")
 REPLAY_M3U = Path("kick_replay.m3u")
 REPLAY_JSON = Path("kick_replay.json")
 GMCX_M3U = Path("kick_gmcx_chapters.m3u")
@@ -13,7 +14,6 @@ GMCX_JSON = Path("kick_gmcx_chapters.json")
 
 START = "# === KICK_REPLAY_START ==="
 END = "# === KICK_REPLAY_END ==="
-INSERT_AFTER = "# === KICK_MANAGED_END ==="
 
 
 def remove_old(text: str) -> str:
@@ -69,28 +69,24 @@ def tvg_id(extinf: str) -> str:
     return m.group(1) if m else ""
 
 
-def build_block() -> str:
+def build_vod5() -> str:
     chapter_vods = ready_chapter_vods()
     id_to_vod = replay_vod_ids()
 
     whole: list[tuple[str, str]] = []
     for extinf, url in read_entries(REPLAY_M3U):
         vod_id = id_to_vod.get(tvg_id(extinf))
-        # If a clean GMCX VOD has validated episode chapters, publish the
-        # chapters instead of a duplicate whole-VOD entry.
         if vod_id and vod_id in chapter_vods:
             continue
         whole.append((extinf, url))
 
     chapters = read_entries(GMCX_M3U)
-
-    lines = [START, "## VOD"]
+    lines = ["#EXTM3U"]
     for extinf, url in whole:
-        lines.extend([extinf, url])
+        lines.extend([extinf.replace('group-title="VOD"', 'group-title="VOD"'), url])
     for extinf, url in chapters:
         lines.extend([extinf.replace('group-title="GMCX Replay"', 'group-title="VOD"'), url])
-    lines.append(END)
-    return "\n".join(lines)
+    return "\n".join(lines) + "\n"
 
 
 def main() -> int:
@@ -103,15 +99,13 @@ def main() -> int:
 
     text = FREEWIFI.read_text(encoding="utf-8-sig", errors="replace")
     cleaned = remove_old(text)
-    if INSERT_AFTER not in cleaned:
-        raise RuntimeError("KICK managed marker missing; refusing blind insert")
+    if cleaned != text:
+        FREEWIFI.write_text(cleaned, encoding="utf-8")
 
-    block = build_block()
-    cleaned = cleaned.replace(INSERT_AFTER, INSERT_AFTER + "\n\n" + block, 1)
-    FREEWIFI.write_text(cleaned, encoding="utf-8")
-
-    vod_count = block.count('group-title="VOD"')
-    print(f"KICK VOD published to FreeWiFi: {vod_count} entries")
+    vod5 = build_vod5()
+    VOD5.write_text(vod5, encoding="utf-8")
+    vod_count = vod5.count('group-title="VOD"')
+    print(f"KICK VOD published to VOD5: {vod_count} entries")
     return 0
 
 
