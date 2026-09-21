@@ -1,0 +1,46 @@
+name: TEMP Ainan switch probe
+
+on:
+  workflow_dispatch:
+  schedule:
+    # 2026-09-21 18:30-20:30 JST
+    - cron: '30-59/5 9 21 9 *'
+    - cron: '*/5 10 21 9 *'
+    - cron: '0-30/5 11 21 9 *'
+    # 2026-09-22 04:30-06:30 JST (= 2026-09-21 UTC)
+    - cron: '30-59/5 19 21 9 *'
+    - cron: '*/5 20 21 9 *'
+    - cron: '0-30/5 21 21 9 *'
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - name: Capture Ainan live-camera samples
+        id: capture
+        shell: bash
+        run: |
+          set -u
+          URL='https://cdn.e-catv.ne.jp/mpeg-dash/hc_ainan_live_cam/dash.mpd'
+          TS="$(TZ=Asia/Tokyo date +%Y%m%d-%H%M%S)"
+          mkdir -p out
+          echo "ts=$TS" >> "$GITHUB_OUTPUT"
+          echo "jst=$TS" > "out/${TS}.txt"
+          curl -fsSL --max-time 15 "$URL" -o "out/${TS}.mpd" || true
+          for n in 1 2 3; do
+            timeout 35 ffmpeg -hide_banner -loglevel error -rw_timeout 15000000 -i "$URL" -frames:v 1 -q:v 2 "out/${TS}_${n}.jpg" || true
+            sleep 4
+          done
+          sha256sum out/* > "out/${TS}_sha256.txt" || true
+
+      - name: Upload probe
+        uses: actions/upload-artifact@v4
+        with:
+          name: ainan-${{ steps.capture.outputs.ts }}
+          path: out/
+          retention-days: 2
+          if-no-files-found: warn
