@@ -105,6 +105,26 @@ class BoatAutoSystemTests(unittest.TestCase):
         self.assertEqual(item["intermission"]["after_race"], 9)
         self.assertEqual(item["intermission"]["next_race"], 10)
 
+    def test_previously_verified_stream_warns_only_inside_15_minutes_of_next_race(self):
+        day = date(2026, 9, 21)
+        races = [
+            {"race": 11, "start": datetime(2026, 9, 21, 14, 7, tzinfo=boat.JST), "name": "記者特選"},
+            {"race": 12, "start": datetime(2026, 9, 21, 14, 45, tzinfo=boat.JST), "name": "カニ坊選抜"},
+        ]
+        stream = {
+            "url": fake_stream(day),
+            "playback_verified": False,
+            "first_verified_at": "2026-09-21T07:57:38+09:00",
+        }
+        early = datetime(2026, 9, 21, 14, 17, tzinfo=boat.JST)
+        late = datetime(2026, 9, 21, 14, 31, tzinfo=boat.JST)
+        early_item = boat.build_venue_state({"10": races}, {"boat.mikuni": stream}, early)[0]["boat.mikuni"]
+        late_item = boat.build_venue_state({"10": races}, {"boat.mikuni": stream}, late)[0]["boat.mikuni"]
+        self.assertFalse(early_item["seed_required"])
+        self.assertFalse(early_item["reverify_due"])
+        self.assertTrue(late_item["seed_required"])
+        self.assertTrue(late_item["reverify_due"])
+
     def test_intermission_monitoring_resumes_30_minutes_before_next_race(self):
         races = [
             {"race": 9, "start": datetime(2026, 9, 21, 13, 44, tzinfo=boat.JST), "name": "予選特賞"},
