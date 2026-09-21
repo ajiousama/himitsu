@@ -88,6 +88,36 @@ class BoatAutoSystemTests(unittest.TestCase):
         self.assertFalse(early_item["seed_required"])
         self.assertTrue(due_item["seed_required"])
 
+    def test_mid_card_intermission_is_not_a_seed_error(self):
+        day = date(2026, 9, 21)
+        races = [
+            {"race": 8, "start": datetime(2026, 9, 21, 13, 38, tzinfo=boat.JST), "name": "予選"},
+            {"race": 9, "start": datetime(2026, 9, 21, 13, 44, tzinfo=boat.JST), "name": "予選特賞"},
+            {"race": 10, "start": datetime(2026, 9, 21, 15, 7, tzinfo=boat.JST), "name": "予選特賞"},
+            {"race": 11, "start": datetime(2026, 9, 21, 15, 42, tzinfo=boat.JST), "name": "予選特選"},
+            {"race": 12, "start": datetime(2026, 9, 21, 16, 20, tzinfo=boat.JST), "name": "ドリーム"},
+        ]
+        now = datetime(2026, 9, 21, 14, 11, tzinfo=boat.JST)
+        item = boat.build_venue_state({"09": races}, {}, now)[0]["boat.tsu"]
+        self.assertFalse(item["active"])
+        self.assertFalse(item["seed_required"])
+        self.assertEqual(item["stream_window"], "intermission")
+        self.assertEqual(item["intermission"]["after_race"], 9)
+        self.assertEqual(item["intermission"]["next_race"], 10)
+
+    def test_intermission_monitoring_resumes_30_minutes_before_next_race(self):
+        races = [
+            {"race": 9, "start": datetime(2026, 9, 21, 13, 44, tzinfo=boat.JST), "name": "予選特賞"},
+            {"race": 10, "start": datetime(2026, 9, 21, 15, 7, tzinfo=boat.JST), "name": "予選特賞"},
+            {"race": 11, "start": datetime(2026, 9, 21, 15, 42, tzinfo=boat.JST), "name": "予選特選"},
+            {"race": 12, "start": datetime(2026, 9, 21, 16, 20, tzinfo=boat.JST), "name": "ドリーム"},
+        ]
+        now = datetime(2026, 9, 21, 14, 38, tzinfo=boat.JST)
+        item = boat.build_venue_state({"09": races}, {}, now)[0]["boat.tsu"]
+        self.assertTrue(item["active"])
+        self.assertTrue(item["seed_required"])
+        self.assertEqual(item["stream_window"], "live_or_prestart")
+
     def test_epg_switches_to_tomorrow_guidance_after_45_minutes(self):
         day = date(2026, 9, 8)
         races = card(day, 10, 5)
