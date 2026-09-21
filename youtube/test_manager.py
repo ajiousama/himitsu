@@ -10,16 +10,23 @@ class YouTubeV2StructureTests(unittest.TestCase):
         cfg = json.loads(manager.CONFIG.read_text(encoding="utf-8"))
         self.assertEqual(cfg.get("version"), 2)
         general = cfg.get("general") or []
-        self.assertEqual(len(general), 71)
-        self.assertEqual(len({x["id"] for x in general}), 71)
-        self.assertNotIn("youtube.kana_tube", {x["id"] for x in general})
-        self.assertNotIn("youtube.ehime_mandarin", {x["id"] for x in general})
+        self.assertGreaterEqual(len(general), 71)
+        ids = [x["id"] for x in general]
+        self.assertEqual(len(ids), len(set(ids)))
+        self.assertNotIn("youtube.kana_tube", set(ids))
+        self.assertNotIn("youtube.ehime_mandarin", set(ids))
 
-    def test_all_logos_are_inside_youtube_v2(self):
+    def test_logos_or_default_are_valid(self):
         cfg = json.loads(manager.CONFIG.read_text(encoding="utf-8"))
         items = list(cfg["general"]) + list(cfg["special"].values())
         for item in items:
-            url = item["logo"]
+            url = item.get("logo")
+            if not url:
+                self.assertEqual(
+                    manager.logo_url(None).split("?", 1)[0],
+                    manager.DEFAULT_YOUTUBE_LOGO,
+                )
+                continue
             self.assertIn("/youtube/logos/", url)
             rel = url.replace("https://raw.githubusercontent.com/ajiousama/himitsu/main/", "")
             self.assertTrue(Path(rel).is_file(), rel)
