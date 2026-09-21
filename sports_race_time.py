@@ -7,7 +7,16 @@ NORMALIZE = str.maketrans('０１２３４５６７８９：Ｒ', '0123456789:R'
 
 
 def race_time(programme):
-    title = (programme.findtext('title') or '').translate(NORMALIZE)
+    raw_title = (programme.findtext('title') or '').strip()
+    # EPG guidance/waiting rows can mention "1R HH:MM発走" but are not the
+    # race programme itself. Keep them out of race-boundary normalization.
+    if (
+        ('本日' in raw_title and '開催' in raw_title and re.search(r'1\s*[ＲR].*発走', raw_title))
+        or '開催待ち' in raw_title
+        or raw_title.startswith('⏳ 待機')
+    ):
+        return None
+    title = raw_title.translate(NORMALIZE)
     number = re.search(r'(\d{1,2})\s*R', title, re.I)
     clock = re.search(r'(\d{1,2}):([0-5]\d)\s*発走', title)
     if not number or not clock:
