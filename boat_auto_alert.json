@@ -1,13 +1,16 @@
 {
   "system": "boat-auto-v3",
   "date": "2026-09-21",
-  "checked_at": "2026-09-21T13:17:44.222393+09:00",
-  "active": false,
-  "kind": "healthy",
-  "title": "BOAT自動更新 正常",
-  "message": "朝・デイ・ナイターを自動取得中です。",
+  "checked_at": "2026-09-21T13:18:44.173349+09:00",
+  "active": true,
+  "kind": "system_error",
+  "title": "BOAT自動更新エラー",
+  "message": "official_cards: TimeoutError / 開催表から場が消失したため当日確認済みの開催表を保持",
   "seed_required_venues": [],
-  "system_errors": [],
+  "system_errors": [
+    "official_cards: TimeoutError",
+    "開催表から場が消失したため当日確認済みの開催表を保持"
+  ],
   "cloud_failures": [
     {
       "jcd": "01",
