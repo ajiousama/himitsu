@@ -113,7 +113,8 @@ jobs:
       - name: Refresh general YouTube LIVE (manual only)
         if: github.event_name == 'workflow_dispatch'
         run: |
-          python general_youtube_update.py
+          python youtube_live_update.py
+          python mandarin_youtube_guard.py
           python jra_freewifi_finalize.py
 
       - name: Normalize public sports master to ajiousama-only references

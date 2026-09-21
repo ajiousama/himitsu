@@ -8,7 +8,7 @@ CHANNEL_ID = 'youtube.ehime_mandarin'
 CHANNEL_NAME = '愛媛マンダリンパイレーツ'
 CHANNEL_PAGE = 'https://www.youtube.com/@EhimeMandarinPirates/live'
 CHANNEL_STREAMS = 'https://www.youtube.com/@EhimeMandarinPirates/streams'
-LOGO = 'https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/youtube/yt_32_ehime_mandarin.png'
+LOGO = 'https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/youtube_special/ehime_mandarin.png?v=20260921-clean1'
 GROUP = '愛媛県内ライブカメラ'
 GENERAL = Path('general_youtube.m3u')
 FREEWIFI = Path('freewifi')

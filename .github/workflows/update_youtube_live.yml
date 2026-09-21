@@ -1,0 +1,155 @@
+name: Update YouTube LIVE Clean
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'youtube_channels.json'
+      - 'youtube_live_update.py'
+      - 'mandarin_youtube_guard.py'
+      - 'kana_tube_update.py'
+      - 'logos/youtube_live/**'
+      - 'logos/youtube_special/**'
+      - '.github/workflows/update_youtube_live.yml'
+  schedule:
+    - cron: '17 * * * *'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: himitsu-freewifi-state-writer
+  cancel-in-progress: false
+
+jobs:
+  update:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 24
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install YouTube resolver
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install --upgrade --pre 'yt-dlp[default]'
+          python -m pip install --upgrade curl_cffi
+          yt-dlp --version
+
+      - name: Restore YouTube cookies
+        shell: bash
+        env:
+          YOUTUBE_COOKIES: ${{ secrets.YOUTUBE_COOKIES }}
+        run: |
+          rm -f youtube_cookies.txt
+          if [ -n "$YOUTUBE_COOKIES" ]; then
+            printf '%s' "$YOUTUBE_COOKIES" > youtube_cookies.txt
+            chmod 600 youtube_cookies.txt
+          fi
+
+      - name: Sync latest main
+        run: git pull --ff-only origin main
+
+      - name: Rebuild general YouTube LIVE
+        run: timeout 16m python youtube_live_update.py
+
+      - name: Re-apply Mandarin dedicated YouTube state
+        run: python mandarin_youtube_guard.py
+
+      - name: Validate clean YouTube state
+        shell: bash
+        run: |
+          test -s general_youtube.m3u
+          test -s freewifi
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          src=json.loads(Path('youtube_channels.json').read_text(encoding='utf-8'))
+          if len(src) != 71:
+              raise SystemExit(f'expected 71 general YouTube channels, got {len(src)}')
+          if len({x['id'] for x in src}) != 71:
+              raise SystemExit('duplicate YouTube tvg-id in canonical source')
+          logos=list(Path('logos/youtube_live').glob('*.png'))
+          if len(logos) != 71:
+              raise SystemExit(f'expected 71 general YouTube logos, got {len(logos)}')
+          special=sorted(p.name for p in Path('logos/youtube_special').glob('*.png'))
+          if special != ['ehime_mandarin.png','kana_tube.png']:
+              raise SystemExit(f'unexpected YouTube special logos: {special}')
+          for path in map(Path,['general_youtube.m3u','freewifi','kana_tube.m3u']):
+              text=path.read_text(encoding='utf-8-sig',errors='replace')
+              for line in text.splitlines():
+                  if 'tvg-id="youtube.' not in line:
+                      continue
+                  if '/logos/youtube/' in line:
+                      raise SystemExit(f'legacy YouTube logo path remains in {path}: {line}')
+          print('Clean YouTube validation OK')
+          PY
+
+      - name: Publish YouTube block onto latest FreeWiFi
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          snapshot="$(mktemp -d)"
+          cp general_youtube.m3u "$snapshot/general_youtube.m3u"
+
+          for attempt in 1 2 3 4 5; do
+            git fetch origin main
+            git reset --hard origin/main
+            cp "$snapshot/general_youtube.m3u" general_youtube.m3u
+
+            python - <<'PY'
+          from pathlib import Path
+          fw=Path('freewifi')
+          gy=Path('general_youtube.m3u')
+          text=fw.read_text(encoding='utf-8-sig',errors='replace')
+          lines=gy.read_text(encoding='utf-8-sig',errors='replace').splitlines()
+          body='\n'.join(lines[1:] if lines and lines[0].startswith('#EXTM3U') else lines).strip()
+          start='# === GENERAL_YOUTUBE_MANAGED_START ==='
+          end='# === GENERAL_YOUTUBE_MANAGED_END ==='
+          a=text.find(start)
+          b=text.find(end,a+len(start)) if a>=0 else -1
+          if a < 0 or b < 0:
+              raise SystemExit('GENERAL_YOUTUBE managed block missing')
+          block=start+'\n'+body+'\n'+end
+          fw.write_text((text[:a]+block+text[b+len(end):]).rstrip()+'\n',encoding='utf-8')
+          PY
+
+            test -s general_youtube.m3u
+            test -s freewifi
+            if grep 'tvg-id="youtube\.' general_youtube.m3u freewifi | grep -F '/logos/youtube/'; then
+              echo '::error::legacy YouTube logo path detected'
+              exit 1
+            fi
+
+            git add general_youtube.m3u freewifi
+            if git diff --cached --quiet; then
+              rm -f youtube_cookies.txt
+              exit 0
+            fi
+            git commit -m 'Update clean YouTube LIVE state [skip ci] [skip render]'
+            if git push origin HEAD:main; then
+              rm -f youtube_cookies.txt
+              exit 0
+            fi
+            sleep "$attempt"
+          done
+
+          rm -f youtube_cookies.txt
+          echo '::error::YouTube publish failed after retries'
+          exit 1
