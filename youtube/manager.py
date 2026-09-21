@@ -295,7 +295,37 @@ def general_target(item):
 
 
 def update_general(config):
-    blocks = [entry(item, general_target(item)) for item in config["general"]]
+    # Resolve playable HLS in GitHub Actions. Do not make every channel depend
+    # on the Render resolver at playback time: a resolver outage would blank
+    # the entire YouTube group at once.
+    previous = parse_m3u(GENERAL_OUT)
+    resolved = [None] * len(config["general"])
+
+    with ThreadPoolExecutor(max_workers=MAX_WORKERS) as pool:
+        futures = [
+            pool.submit(resolve_general_one, i, item, previous)
+            for i, item in enumerate(config["general"])
+        ]
+        for future in as_completed(futures):
+            i, item, url, code = future.result()
+
+            # Never preserve the broken Render resolver as a fallback.
+            if url and "iptv-9x-browser-proxy.onrender.com/yt-" in url:
+                url = None
+
+            if not url:
+                old = previous.get(item["id"], {}).get("url")
+                if old and "iptv-9x-browser-proxy.onrender.com/yt-" not in old and code in TRANSIENT:
+                    url = old
+                    print(f'GENERAL keep direct previous: {item["id"]} [{code}]')
+
+            if url:
+                resolved[i] = entry(item, url)
+                print(f'GENERAL resolved: {item["id"]} [{code}]')
+            else:
+                print(f'GENERAL unavailable: {item["id"]} [{code}]')
+
+    blocks = [x for x in resolved if x]
     if not blocks:
         raise SystemExit("refusing to publish empty general YouTube output")
     write_playlist(GENERAL_OUT, blocks)
