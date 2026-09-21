@@ -18,7 +18,7 @@ MIN_CALL_INTERVAL=1.25
 JST=ZoneInfo('Asia/Tokyo')
 SERIOUS_CODES={'RATE_LIMIT','BOT_CHECK','COOKIE_ERROR'}
 TRANSIENT_CODES=SERIOUS_CODES|{'TIMEOUT','EXCEPTION','OTHER'}
-PINNED_WATCH_FALLBACK_IDS={'youtube.muko_rail'}
+PINNED_PAGE_FALLBACK_IDS={'youtube.muko_rail','youtube.tsukamoto','youtube.masaki_hama'}
 LOGO_CACHE_VERSION='20260921a'
 KANA_ID='youtube.kana_tube'
 KANA_PAGE='https://www.youtube.com/@kanatubechannel/live'
@@ -286,11 +286,11 @@ def build():
         if not url and code in TRANSIENT_CODES and old_url and allow_old_fallback:
             url=old_url; fallback_count+=1
             failed.append((name,code,(reason or ('',''))[1]+' [previous URL kept]'))
-        elif not url and tvg in PINNED_WATCH_FALLBACK_IDS:
+        elif not url and tvg in PINNED_PAGE_FALLBACK_IDS:
             page=(item.get('page') or '').strip()
-            if re.match(r'^https://www\.youtube\.com/watch\?v=[A-Za-z0-9_-]+$',page):
+            if page.startswith('https://www.youtube.com/'):
                 url=page
-                failed.append((name,'WATCH_FALLBACK','LIVE HLS取得失敗のため固定Watch URLを維持'))
+                failed.append((name,'PAGE_FALLBACK','LIVE HLS取得失敗のため固定YouTube URLを維持'))
             else:
                 c,d=reason or ('NO_LIVE','LIVE URL取得なし'); failed.append((name,c,d)); continue
         elif not url:
