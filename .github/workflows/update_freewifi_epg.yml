@@ -40,7 +40,7 @@ on:
       - "freewifi_today_public_sports.py"
       - "freewifi_strip_public_boat.py"
       - "freewifi_today_jra.py"
-      - "finalize_today_public_sports.py"
+      - "finalize_today_public_sports.py"\n      - "finalize_public_sports_prestart_epg.py"
       - "public_sports_youtube_fallback.py"
       - "public_sports_youtube_fallback.m3u"
       - "build_today_event_counts.py"
@@ -262,6 +262,9 @@ jobs:
 
       - name: Merge local JRA race EPG
         run: python jra_epg_merge.py
+
+      - name: Standardize pre-start EPG for every FreeWiFi public sport
+        run: python finalize_public_sports_prestart_epg.py
 
       - name: Validate today's BOAT EPG survived final merge
         run: |
