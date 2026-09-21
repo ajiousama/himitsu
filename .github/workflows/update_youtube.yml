@@ -11,6 +11,7 @@ on:
       - 'youtube/config.json'
       - 'youtube/manager.py'
       - 'youtube/test_manager.py'
+      - 'youtube/generate_missing_logos.py'
       - '.github/workflows/update_youtube.yml'
 
 permissions:
@@ -59,7 +60,9 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install --upgrade --pre 'yt-dlp[default]'
-          python -m pip install --upgrade curl_cffi
+          python -m pip install --upgrade curl_cffi Pillow
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq fonts-noto-cjk
           yt-dlp --version
 
       - name: Restore YouTube cookies
@@ -98,6 +101,7 @@ jobs:
                   continue
                 fi
               else
+                python youtube/generate_missing_logos.py
                 if ! timeout 15m python youtube/manager.py --scope general; then
                   echo "::warning::general refresh failed on attempt $attempt"
                   sleep "$attempt"
@@ -119,7 +123,7 @@ jobs:
                         youtube/state/kana.json youtube/state/mandarin.json \
                         freewifi public_sports_epg_local.xml
               else
-                git add youtube/output/general.m3u freewifi
+                git add youtube/config.json youtube/logos/general youtube/output/general.m3u freewifi
               fi
 
               if git diff --cached --quiet; then
