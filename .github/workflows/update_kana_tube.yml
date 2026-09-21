@@ -112,7 +112,6 @@ jobs:
             git fetch origin main
             git reset --hard origin/main
             python -c 'import kana_tube_update as k; import sys; k.publish_snapshot(sys.argv[1])' "$snapshot"
-            python freewifi_youtube_cleanup.py
             python - <<'PY'
           from pathlib import Path
 
