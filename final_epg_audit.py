@@ -7,7 +7,7 @@ from collections import defaultdict
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-PLAYLISTS = [Path("freewifi"), Path("other_live.m3u")]
+PLAYLISTS = [Path("freewifi")]
 EPG = Path("guides.xml")
 REPORT = Path("epg_final_audit.txt")
 COVERAGE = Path("epg_coverage.txt")

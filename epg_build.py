@@ -12,7 +12,7 @@ from collections import defaultdict
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-PLAYLISTS = [Path("freewifi"), Path("other_live.m3u")]
+PLAYLISTS = [Path("freewifi")]
 OUT_XML = Path("guides.xml")
 REPORT = Path("epg_coverage.txt")
 STATUS_JSON = Path("today_public_sports_status.json")
