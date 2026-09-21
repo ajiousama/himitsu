@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   schedule:
     # Recovery trigger only. The active worker refreshes special channels itself.
-    - cron: '17 * * * *'
+    - cron: '17 22-23,0-14 * * *'  # JST 07:17-23:17 only
   push:
     branches: [main]
     paths:
@@ -30,17 +30,32 @@ jobs:
       GH_TOKEN: ${{ github.token }}
 
     steps:
+      - name: Check active hours
+        id: hours
+        shell: bash
+        run: |
+          hour="$(TZ=Asia/Tokyo date +%H)"
+          if [ "$hour" -ge 7 ] && [ "$hour" -le 23 ]; then
+            echo "active=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "active=false" >> "$GITHUB_OUTPUT"
+            echo "Nighttime pause: JST 00:00-06:59"
+          fi
+
       - name: Checkout
+        if: steps.hours.outputs.active == 'true'
         uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
       - name: Set up Python
+        if: steps.hours.outputs.active == 'true'
         uses: actions/setup-python@v6
         with:
           python-version: '3.12'
 
       - name: Install YouTube resolver
+        if: steps.hours.outputs.active == 'true'
         run: |
           python -m pip install --upgrade pip
           python -m pip install --upgrade --pre 'yt-dlp[default]'
@@ -48,6 +63,7 @@ jobs:
           yt-dlp --version
 
       - name: Restore YouTube cookies
+        if: steps.hours.outputs.active == 'true'
         shell: bash
         env:
           YOUTUBE_COOKIES: ${{ secrets.YOUTUBE_COOKIES }}
@@ -59,9 +75,11 @@ jobs:
           fi
 
       - name: Run structure tests
+        if: steps.hours.outputs.active == 'true'
         run: python -m unittest -v youtube.test_manager
 
       - name: Run continuous YouTube refresh worker
+        if: steps.hours.outputs.active == 'true'
         shell: bash
         run: |
           set -u
@@ -128,6 +146,12 @@ jobs:
           # handled first so a live-start change is never delayed by the full scan.
           successor_queued=0
           for cycle in $(seq 0 63); do
+            hour="$(TZ=Asia/Tokyo date +%H)"
+            if [ "$hour" -lt 7 ]; then
+              echo "Nighttime pause reached; stopping worker until morning recovery cron"
+              break
+            fi
+
             cycle_started="$(date +%s)"
 
             publish_scope special || true
