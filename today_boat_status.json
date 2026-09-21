@@ -2,10 +2,10 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-21",
-  "generated_at": "2026-09-21T20:45:32.613284+09:00",
+  "generated_at": "2026-09-21T20:48:32.614338+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260921.json",
-  "schedule_checked_at": "2026-09-21T20:30:32.660501+09:00",
+  "schedule_checked_at": "2026-09-21T20:48:32.614338+09:00",
   "schedule_warnings": [
     "official_cards: TimeoutError"
   ],
@@ -26,8 +26,9 @@
   "card_count": 13,
   "held_count": 13,
   "visible_count": 11,
-  "active_count": 1,
+  "active_count": 0,
   "ended_kept": [
+    "桐生",
     "多摩川",
     "浜名湖",
     "津",
@@ -62,16 +63,18 @@
     "night": {
       "held": 3,
       "acquired": 3,
-      "active": 1,
-      "ended": 2,
+      "active": 0,
+      "ended": 3,
       "seed_required": 0,
       "cancelled": 0
     }
   },
   "cloud_acquisition": {
-    "requested": 1,
-    "fetched": 1,
-    "failures": []
+    "requested": 0,
+    "fetched": 0,
+    "failures": [],
+    "deferred": 13,
+    "reason": "stream acquisition waits until each venue 1R prefetch window"
   },
   "epg_programmes_written": {
     "public_sports_epg_local.xml": 156,
@@ -265,8 +268,8 @@
       "name": "桐生",
       "held": true,
       "visible": true,
-      "ended": false,
-      "active": true,
+      "ended": true,
+      "active": false,
       "cancelled": false,
       "mode": "night",
       "mode_label": "ナイター",
@@ -274,11 +277,11 @@
       "last_race": "20:45",
       "alert_from": "2026-09-21T14:56:00+09:00",
       "next_race": null,
-      "stream_window": "live_or_prestart",
+      "stream_window": "ended_kept",
       "intermission": null,
       "guidance_switch_at": "2026-09-21T21:30:00+09:00",
       "seed_required": false,
-      "reverify_due": true,
+      "reverify_due": false,
       "playback_verified": true,
       "first_verified_at": "2026-09-21T14:45:50.846002+09:00",
       "ready_before_first_race": true,
