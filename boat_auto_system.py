@@ -43,6 +43,7 @@ ALERT_LEAD_MINUTES = 30
 CANCELLATION_LEAD_MINUTES = 180
 RACE_SWITCH_MINUTES = 3
 END_GUIDANCE_MINUTES = 45
+INTERMISSION_MIN_GAP_MINUTES = 60
 SCHEDULE_API = "https://boatraceopenapi.github.io/api/v1/{year}/{ymd}.json"
 SCHEDULE_TODAY_API = "https://boatraceopenapi.github.io/api/v1/today.json"
 SEED_API = "https://himitsu-six.vercel.app/api/boat-seed?venue={jcd}"
@@ -490,6 +491,29 @@ def next_race(races: list[dict], now: datetime) -> dict | None:
     return None
 
 
+def intermission_window(races: list[dict], now: datetime) -> dict | None:
+    """Return a scheduled mid-card break where a stopped stream is expected.
+
+    A gap of at least one hour is treated as an intentional intermission.
+    Monitoring resumes 30 minutes before the next race so a fresh live source
+    can be reacquired before racing restarts.
+    """
+    for previous, upcoming in zip(races, races[1:]):
+        gap = upcoming["start"] - previous["start"]
+        if gap < timedelta(minutes=INTERMISSION_MIN_GAP_MINUTES):
+            continue
+        pause_from = previous["start"] + timedelta(minutes=RACE_SWITCH_MINUTES)
+        resume_from = upcoming["start"] - timedelta(minutes=ALERT_LEAD_MINUTES)
+        if pause_from <= now < resume_from:
+            return {
+                "after_race": previous["race"],
+                "next_race": upcoming["race"],
+                "from": pause_from.isoformat(),
+                "until": resume_from.isoformat(),
+            }
+    return None
+
+
 def logo_url(filename: str) -> str:
     return f"{LOGO_PROXY}/logos/public_sports/venues/{filename}&output=png"
 
@@ -547,8 +571,9 @@ def build_venue_state(cards: dict[str, list[dict]], streams: dict[str, dict], no
         finish = last + timedelta(minutes=RACE_SWITCH_MINUTES)
         guidance_switch = last + timedelta(minutes=END_GUIDANCE_MINUTES)
         is_cancelled = jcd in cancelled
+        intermission = intermission_window(races, now) if not is_cancelled else None
         ended = now >= finish and not is_cancelled
-        active = alert_from <= now < finish and not is_cancelled
+        active = alert_from <= now < finish and not is_cancelled and not intermission
         # A schedule change should not make an already-published venue disappear.
         # Preserve any same-day stream URL; only new acquisition is suppressed below.
         stream = streams.get(tvg_id) or {}
@@ -576,7 +601,8 @@ def build_venue_state(cards: dict[str, list[dict]], streams: dict[str, dict], no
             "last_race": last.strftime("%H:%M"),
             "alert_from": alert_from.isoformat(),
             "next_race": next_race(races, now),
-            "stream_window": "ended_kept" if ended else ("live_or_prestart" if active else "scheduled"),
+            "stream_window": "ended_kept" if ended else ("intermission" if intermission else ("live_or_prestart" if active else "scheduled")),
+            "intermission": intermission,
             "guidance_switch_at": guidance_switch.isoformat(),
             "seed_required": seed_required,
             "playback_verified": source_ready,
@@ -913,6 +939,7 @@ def main() -> int:
         jcd: races for jcd, races in cards.items()
         if jcd not in cancelled_jcd and races and now >= races[0]["start"] - timedelta(minutes=ACQUIRE_LEAD_MINUTES)
         and now < races[-1]["start"] + timedelta(minutes=RACE_SWITCH_MINUTES)
+        and not intermission_window(races, now)
     }
     cloud = refresh_cloud_streams(due_cards, streams, day) if due_cards else {
         "requested": 0, "fetched": 0, "failures": [], "deferred": len(cards),
