@@ -298,33 +298,42 @@ def current_day_stream(url: object, day: date) -> bool:
 
 def detect_cancelled_venues(day: date, cards: dict[str, list[dict]]) -> set[str]:
     """Detect official same-day whole-venue cancellation/postponement."""
-    cancelled = set()
     day_label = f'{day.month}月{day.day}日'
-    for jcd in cards:
+
+    def check(jcd: str) -> tuple[str, bool, str]:
         url = f'https://www.boatrace.jp/owpc/pc/race/raceindex?hd={day:%Y%m%d}&jcd={jcd}'
         source = None
         last_error = None
         for attempt in range(3):
-            req = urllib.request.Request(url, headers={'User-Agent': UA, 'Cache-Control': 'no-cache'})
             try:
-                with urllib.request.urlopen(req, timeout=20) as response:
-                    source = response.read(1048576).decode('utf-8', 'replace')
+                source = boat_playback.read_url(url).decode('utf-8', 'replace')
                 break
             except Exception as exc:
                 last_error = exc
                 if attempt < 2:
                     time_module.sleep(1 + attempt)
         if source is None:
-            print(f"BOAT AUTO cancellation check warning: {jcd} {type(last_error).__name__}")
-            continue
-        text = re.sub(r'\s+', ' ', html.unescape(re.sub(r'<[^>]+>', ' ', source)))
-        # Venue pages label the selected date itself as "9月9日順延" or
-        # equivalent. Bind the status to today's date, not to generic nav text.
-        # Official wording varies by venue/date: 中止・順延・延期など。
-        # Keep the venue visible when a usable stream already exists; this flag is
-        # primarily used to stop pointless reacquisition and to write EPG guidance.
-        if re.search(re.escape(day_label) + r'[^。]{0,48}?(?:開催\s*)?(?:中止|順延|延期)', text):
-            cancelled.add(jcd)
+            return jcd, False, type(last_error).__name__ if last_error else 'unknown'
+        text = re.sub(r'\\s+', ' ', html.unescape(re.sub(r'<[^>]+>', ' ', source)))
+        matched = bool(re.search(re.escape(day_label) + r'[^。]{0,48}?(?:開催\\s*)?(?:中止|順延|延期)', text))
+        return jcd, matched, ''
+
+    cancelled = set()
+    if not cards:
+        return cancelled
+    workers = min(8, max(1, len(cards)))
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        futures = {pool.submit(check, jcd): jcd for jcd in cards}
+        for future in as_completed(futures):
+            jcd = futures[future]
+            try:
+                code, matched, error = future.result()
+            except Exception as exc:
+                code, matched, error = jcd, False, type(exc).__name__
+            if error:
+                print(f"BOAT AUTO cancellation check warning: {code} {error}")
+            elif matched:
+                cancelled.add(code)
     return cancelled
 
 
