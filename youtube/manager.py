@@ -349,38 +349,86 @@ def info_hls(info):
 def update_kana(config):
     item = config["special"]["kana"]
     previous = read_json(KANA_STATE, {})
-    candidates = []
-    if previous.get("video_id"):
-        candidates.append(previous["video_id"])
-
-    confirmed = False
-    trouble = False
     channel = item["channel"].rstrip("/")
-    for url, limit in ((channel + "/streams", 80), (channel + "/live", 40), (channel + "/videos", 40)):
-        rows, code = flat_listing(url, limit)
-        if code == "OK" and url.endswith("/streams"):
-            confirmed = True
-        if code not in ("OK", "PARTIAL"):
-            trouble = True
-        ordered = sorted(
-            [x for x in rows if x.get("id")],
-            key=lambda x: 0 if (x.get("live_status") or "").lower() == "is_live" else 1 if (x.get("live_status") or "").lower() == "is_upcoming" else 2,
-        )
-        candidates += [x["id"] for x in ordered[:40]]
+    trouble = False
+    confirmed = False
 
-    for query in item.get("search") or []:
-        rows, code = flat_listing("ytsearchdate12:" + query, 12)
-        if code not in ("OK", "PARTIAL"):
+    def publish_selected(selected):
+        status = (selected.get("live_status") or "").lower()
+        vid = selected["id"]
+        watch = "https://www.youtube.com/watch?v=" + vid
+        start = info_start(selected, previous)
+        play = info_hls(selected)
+        if status == "is_live" and not play:
+            play, _ = direct_hls(watch)
+        url = play if status == "is_live" and play else watch
+        if status == "is_live":
+            label = item["name"] + "【LIVE】"
+        else:
+            when = datetime.fromtimestamp(start, JST).strftime("%m/%d %H:%M") if start else ""
+            label = item["name"] + (f"【配信予定 {when}】" if when else "【配信予定】")
+        write_playlist(KANA_OUT, [entry(item, url, label)])
+        write_json(KANA_STATE, {
+            "state": status,
+            "channel": item.get("handle"),
+            "channel_id": item["channel_id"],
+            "video_id": vid,
+            "watch_url": watch,
+            "play_url": play,
+            "direct_hls": bool(play),
+            "title": selected.get("title") or item["name"],
+            "start_timestamp": start,
+            "start_jst": datetime.fromtimestamp(start, JST).isoformat(timespec="seconds") if start else None,
+            "check_error": False,
+            "checked_at": datetime.now(JST).isoformat(timespec="seconds"),
+        })
+        print(f"KANA {status}: {vid}")
+
+    # Fast path: the most common transition is the already-known reservation
+    # changing from upcoming -> live. Check that exact video first instead of
+    # crawling the whole channel before looking at it.
+    previous_id = previous.get("video_id")
+    previous_info = None
+    if previous_id:
+        info, code = inspect_watch(previous_id)
+        if info and official_youtube(info, item["channel_id"], item.get("handle")):
+            status = (info.get("live_status") or "").lower()
+            if status == "is_live":
+                publish_selected(info)
+                print("KANA fast-path: previous reservation is now live")
+                return
+            if status == "is_upcoming":
+                previous_info = info
+        elif code in TRANSIENT:
             trouble = True
-        candidates += [x["id"] for x in rows if x.get("id")]
+
+    # Primary discovery is the official streams tab only. Keep the list small:
+    # we only need current live/upcoming slots, not dozens of old broadcasts.
+    candidates = [previous_id] if previous_id else []
+    rows, code = flat_listing(channel + "/streams", 24)
+    if code == "OK":
+        confirmed = True
+    elif code not in ("OK", "PARTIAL"):
+        trouble = True
+
+    ordered = sorted(
+        [x for x in rows if x.get("id")],
+        key=lambda x: 0 if (x.get("live_status") or "").lower() == "is_live"
+        else 1 if (x.get("live_status") or "").lower() == "is_upcoming"
+        else 2,
+    )
+    candidates += [x["id"] for x in ordered[:12]]
 
     chosen = []
     seen = set()
     for vid in candidates:
-        if vid in seen:
+        if not vid or vid in seen:
             continue
         seen.add(vid)
-        info, code = inspect_watch(vid)
+        if previous_info is not None and vid == previous_id:
+            info, code = previous_info, "OK"
+        else:
+            info, code = inspect_watch(vid)
         if not info:
             if code in TRANSIENT:
                 trouble = True
@@ -388,69 +436,68 @@ def update_kana(config):
         if not official_youtube(info, item["channel_id"], item.get("handle")):
             continue
         status = (info.get("live_status") or "").lower()
-        if status in ("is_live", "is_upcoming"):
+        if status == "is_live":
+            publish_selected(info)
+            return
+        if status == "is_upcoming":
             chosen.append(info)
 
-    live = [x for x in chosen if (x.get("live_status") or "").lower() == "is_live"]
-    upcoming = [x for x in chosen if (x.get("live_status") or "").lower() == "is_upcoming"]
-    selected = None
-    if live:
-        live.sort(key=lambda x: info_start(x, previous) or 0, reverse=True)
-        selected = live[0]
-    elif upcoming:
-        now = int(datetime.now(timezone.utc).timestamp())
-        upcoming.sort(key=lambda x: info_start(x, previous) or now + 10**9)
-        selected = upcoming[0]
+    # Search/live-page fallback is only needed when the official streams tab did
+    # not produce a usable live/upcoming slot.
+    if not chosen:
+        fallback_ids = []
+        for url, limit in ((channel + "/live", 8), (channel + "/videos", 12)):
+            rows, code = flat_listing(url, limit)
+            if code not in ("OK", "PARTIAL"):
+                trouble = True
+            fallback_ids += [x["id"] for x in rows if x.get("id")]
+        for query in item.get("search") or []:
+            rows, code = flat_listing("ytsearchdate6:" + query, 6)
+            if code not in ("OK", "PARTIAL"):
+                trouble = True
+            fallback_ids += [x["id"] for x in rows if x.get("id")]
 
-    if not selected:
-        if trouble or not confirmed:
-            state = dict(previous)
-            state["check_error"] = True
-            state["checked_at"] = datetime.now(JST).isoformat(timespec="seconds")
-            write_json(KANA_STATE, state)
-            print("KANA check inconclusive; previous output preserved")
-            return
-        write_playlist(KANA_OUT, [])
-        write_json(KANA_STATE, {
-            "state": "offline",
-            "channel": item.get("handle"),
-            "channel_id": item["channel_id"],
-            "check_error": False,
-            "checked_at": datetime.now(JST).isoformat(timespec="seconds"),
-        })
-        print("KANA offline")
+        for vid in fallback_ids:
+            if not vid or vid in seen:
+                continue
+            seen.add(vid)
+            info, code = inspect_watch(vid)
+            if not info:
+                if code in TRANSIENT:
+                    trouble = True
+                continue
+            if not official_youtube(info, item["channel_id"], item.get("handle")):
+                continue
+            status = (info.get("live_status") or "").lower()
+            if status == "is_live":
+                publish_selected(info)
+                return
+            if status == "is_upcoming":
+                chosen.append(info)
+
+    if chosen:
+        now = int(datetime.now(timezone.utc).timestamp())
+        chosen.sort(key=lambda x: info_start(x, previous) or now + 10**9)
+        publish_selected(chosen[0])
         return
 
-    status = (selected.get("live_status") or "").lower()
-    vid = selected["id"]
-    watch = "https://www.youtube.com/watch?v=" + vid
-    start = info_start(selected, previous)
-    play = info_hls(selected)
-    if status == "is_live" and not play:
-        play, _ = direct_hls(watch)
-    url = play if status == "is_live" and play else watch
-    if status == "is_live":
-        label = item["name"] + "【LIVE】"
-    else:
-        when = datetime.fromtimestamp(start, JST).strftime("%m/%d %H:%M") if start else ""
-        label = item["name"] + (f"【配信予定 {when}】" if when else "【配信予定】")
-    write_playlist(KANA_OUT, [entry(item, url, label)])
+    if trouble or not confirmed:
+        state = dict(previous)
+        state["check_error"] = True
+        state["checked_at"] = datetime.now(JST).isoformat(timespec="seconds")
+        write_json(KANA_STATE, state)
+        print("KANA check inconclusive; previous output preserved")
+        return
+
+    write_playlist(KANA_OUT, [])
     write_json(KANA_STATE, {
-        "state": status,
+        "state": "offline",
         "channel": item.get("handle"),
         "channel_id": item["channel_id"],
-        "video_id": vid,
-        "watch_url": watch,
-        "play_url": play,
-        "direct_hls": bool(play),
-        "title": selected.get("title") or item["name"],
-        "start_timestamp": start,
-        "start_jst": datetime.fromtimestamp(start, JST).isoformat(timespec="seconds") if start else None,
         "check_error": False,
         "checked_at": datetime.now(JST).isoformat(timespec="seconds"),
     })
-    print(f"KANA {status}: {vid}")
-
+    print("KANA offline")
 
 def update_mandarin(config):
     item = config["special"]["mandarin"]
