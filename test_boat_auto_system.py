@@ -120,8 +120,9 @@ class BoatAutoSystemTests(unittest.TestCase):
             root = ET.parse(path).getroot()
             programmes = [p for p in root.findall("programme") if p.get("channel") == "boat.heiwajima"]
             titles = [p.findtext("title") for p in programmes]
-            self.assertEqual(count, 13)
-            self.assertEqual(len(programmes), 13)
+            self.assertEqual(count, 14)
+            self.assertEqual(len(programmes), 14)
+            self.assertIn("本日平和島開催　1R10:05発走　デイ", titles)
             self.assertIn("【１Ｒ】 10:05発走  🚤【BOATRACE平和島 🚤】", titles)
             self.assertEqual(titles[-1], "本日の開催は終了しました")
 
