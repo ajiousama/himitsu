@@ -682,8 +682,20 @@ def overlay_epg_file(path: Path, cards: dict[str, list[dict]], day: date, cancel
             )
             count += 1
             continue
+        start_of_day = datetime.combine(day, time(0, 0), tzinfo=JST)
+        prestart_end = races[0]["start"] - timedelta(minutes=RACE_SWITCH_MINUTES)
+        if prestart_end > start_of_day:
+            add_programme(
+                root,
+                cid,
+                start_of_day,
+                prestart_end,
+                f"本日{name}開催　1R{races[0]['start'].strftime('%H:%M')}発走　{MODE_LABEL[mode]}",
+                f"BOATRACE{name}\n本日開催\n開催区分: {MODE_LABEL[mode]}\n1R発走予定: {races[0]['start'].strftime('%H:%M')}",
+            )
+            count += 1
         for index, race in enumerate(races):
-            start = races[0]["start"] - timedelta(minutes=ACQUIRE_LEAD_MINUTES) if index == 0 else races[index - 1]["start"] + timedelta(minutes=RACE_SWITCH_MINUTES)
+            start = prestart_end if index == 0 else races[index - 1]["start"] + timedelta(minutes=RACE_SWITCH_MINUTES)
             stop = race["start"] + timedelta(minutes=RACE_SWITCH_MINUTES)
             number = str(race["race"]).translate(FULLWIDTH)
             title = f"【{number}Ｒ】 {race['start'].strftime('%H:%M')}発走  🚤【BOATRACE{name} 🚤】"
