@@ -36,7 +36,8 @@ TODAY_END = "# === TODAY_PUBLIC_SPORTS_END ==="
 TODAY_HEADING = "## 今日の開催場"
 
 JST = ZoneInfo("Asia/Tokyo")
-CACHE_VERSION = "ytv2-20260921"\nDEFAULT_YOUTUBE_LOGO = "https://www.gstatic.com/youtube/img/branding/favicon/favicon_144x144.png"
+CACHE_VERSION = "ytv2-20260921"
+DEFAULT_YOUTUBE_LOGO = "https://www.gstatic.com/youtube/img/branding/favicon/favicon_144x144.png"
 TRANSIENT = {"RATE_LIMIT", "BOT_CHECK", "COOKIE_ERROR", "TIMEOUT", "OTHER", "EXCEPTION"}
 MAX_WORKERS = 4
 MIN_CALL_INTERVAL = 1.20
