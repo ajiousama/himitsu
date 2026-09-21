@@ -11,7 +11,7 @@ on:
     paths:
       - "public_sports_epg_local.py"
       - "sports_race_time.py"
-      - "test_sports_kana_reliability.py"
+      - "youtube/test_manager.py"
       - "public_sports_epg_local_fast.py"
       - "freewifi_today_public_sports.py"
       - "finalize_today_public_sports.py"
@@ -43,7 +43,7 @@ jobs:
           python-version: "3.12"
 
       - name: Sports and Kana reliability regression tests
-        run: python -m unittest -v test_sports_kana_reliability
+        run: python -m unittest -v youtube.test_manager
       - name: Build fresh direct public-sports EPG
         run: python -u public_sports_epg_local_fast.py
 
