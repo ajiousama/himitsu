@@ -66,8 +66,15 @@ def split_name(name):
     return [name[:mid], name[mid:]]
 
 def is_port_item(item):
-    text = " ".join(str(item.get(k) or "") for k in ("id", "name", "query"))
-    return any(key in text.lower() for key in ("港", "port", "harbor", "terminal"))
+    ident = str(item.get("id") or "").lower()
+    name = str(item.get("name") or "")
+    query = str(item.get("query") or "")
+    # Do not mistake "airport" for a seaport. Japanese 港 names and explicit
+    # *_port IDs are harbor channels; airport entries keep the airport artwork.
+    if "airport" in ident or "空港" in name or "空港" in query:
+        return False
+    text = f"{ident} {name} {query}".lower()
+    return ("港" in text) or ("_port" in ident) or ("harbor" in text) or ("seaport" in text)
 
 def draw_port_scene(d):
     # Harbor illustration: sea, pier, ferry and port crane.
