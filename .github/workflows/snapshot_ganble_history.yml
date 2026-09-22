@@ -6,7 +6,7 @@ on:
     branches:
       - main
     paths:
-      - "ganble"
+      - "ganble/playlist.m3u"
       - "snapshot_text_file.py"
   schedule:
     - cron: "7,17,27,37,47,57 * * * *"
@@ -29,7 +29,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Save immutable snapshot
-        run: python snapshot_text_file.py ganble history/ganble
+        run: python snapshot_text_file.py ganble/playlist.m3u history/ganble
       - name: Commit new snapshot
         shell: bash
         run: |

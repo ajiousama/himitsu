@@ -9,7 +9,7 @@ from sports_race_time import race_time
 FREEWIFI = Path('freewifi')
 KANA_M3U = Path('youtube/output/kana.m3u')
 STATUS_JSON = Path('today_public_sports_status.json')
-PUBLIC_M3U = Path('ganble')
+PUBLIC_M3U = Path('ganble/playlist.m3u')
 PUBLIC_EPG = Path('public_sports_epg_local.xml')
 START = '# === TODAY_PUBLIC_SPORTS_START ==='
 END = '# === TODAY_PUBLIC_SPORTS_END ==='
@@ -376,13 +376,13 @@ def restore_kana_owned_entry(text):
 
 def main():
     if not FREEWIFI.exists() or not PUBLIC_M3U.exists():
-        raise SystemExit('freewifi/ganble missing')
+        raise SystemExit('freewifi/ganble/playlist.m3u missing')
     # BOAT Auto v3 owns the complete OpenAPI race grid. This general builder
     # consumes the already-generated local EPG and never mutates BOAT state.
     real, modes, next_race = epg_state()
     entries = parse_m3u(PUBLIC_M3U.read_text(encoding='utf-8-sig', errors='replace'))
     if not entries:
-        raise SystemExit('ganble has no non-BOAT public-sports master entries')
+        raise SystemExit('ganble/playlist.m3u has no non-BOAT public-sports master entries')
     missing_keirin_logos = sorted(cid for cid in entries if cid.startswith('keirin.') and cid not in KEIRIN_LOGOS)
     if missing_keirin_logos:
         raise SystemExit('missing KEIRIN logo mappings: ' + ', '.join(missing_keirin_logos))

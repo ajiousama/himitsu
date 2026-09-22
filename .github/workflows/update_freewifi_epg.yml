@@ -10,7 +10,7 @@ on:
     branches:
       - main
     paths:
-      - "ganble"
+      - "ganble/playlist.m3u"
       - "normalize_ganble_local.py"
       - "epg_build.py"
       - "epg_build_safe.py"
@@ -100,7 +100,7 @@ jobs:
         run: |
           python -c "import xml.etree.ElementTree as ET; ET.parse('public_sports_epg_local.xml'); print('LOCAL PUBLIC SPORTS XML OK')"
           test -s verified_daily_status.json
-          ! grep -E 'earphone1981/public-sports-iptv' ganble public_sports_epg_local.py public_sports_epg_local_fast.py public_sports_epg_merge.py jra_epg_merge.py verified_daily_override.py
+          ! grep -E 'earphone1981/public-sports-iptv' ganble/playlist.m3u public_sports_epg_local.py public_sports_epg_local_fast.py public_sports_epg_merge.py jra_epg_merge.py verified_daily_override.py
 
       - name: Sync today's non-BOAT public sports venues into FreeWiFi
         run: |
@@ -130,7 +130,7 @@ jobs:
           # after syncing main so a concurrent BOAT one-click update can never be
           # overwritten by this job's older checkout.
           snapshot="$(mktemp -d)"
-          cp ganble "$snapshot/ganble"
+          cp ganble/playlist.m3u "$snapshot/ganble.m3u"
           cp today_public_sports_status.json "$snapshot/today_public_sports_status.json"
           cp today_jra_status.json "$snapshot/today_jra_status.json"
           cp today_event_counts.json "$snapshot/today_event_counts.json"
@@ -142,7 +142,7 @@ jobs:
             git fetch origin main
             git reset --hard origin/main
 
-            cp "$snapshot/ganble" ganble
+            cp "$snapshot/ganble.m3u" ganble/playlist.m3u
             cp "$snapshot/today_public_sports_status.json" today_public_sports_status.json
             cp "$snapshot/today_jra_status.json" today_jra_status.json
             cp "$snapshot/today_event_counts.json" today_event_counts.json
@@ -181,7 +181,7 @@ jobs:
               raise SystemExit(f'FreeWiFi publish blocked: BOAT mismatch entries={entries} visible={visible}')
           PY
 
-            git add ganble freewifi gccx2_live_state.json today_public_sports_status.json today_jra_status.json today_event_counts.json verified_daily_status.json public_sports_epg_local.xml
+            git add ganble/playlist.m3u freewifi gccx2_live_state.json today_public_sports_status.json today_jra_status.json today_event_counts.json verified_daily_status.json public_sports_epg_local.xml
 
             if git diff --cached --quiet; then
               echo "Local venue/CX2 state already current"

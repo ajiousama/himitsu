@@ -1,14 +1,14 @@
 from pathlib import Path
 import re
 
-PATH = Path('ganble')
+PATH = Path('ganble/playlist.m3u')
 LOCAL_EPG = 'https://raw.githubusercontent.com/ajiousama/himitsu/main/guides.xml'
 EARPHONE = re.compile(r'https://raw\.githubusercontent\.com/earphone1981/public-sports-iptv/[^"\s]+', re.I)
 
 
 def main():
     if not PATH.exists():
-        raise SystemExit('ganble missing')
+        raise SystemExit('ganble/playlist.m3u missing')
     text = PATH.read_text(encoding='utf-8-sig', errors='replace')
     lines = text.replace('\r\n', '\n').replace('\r', '\n').split('\n')
     if lines and lines[0].startswith('#EXTM3U'):
