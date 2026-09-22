@@ -24,12 +24,14 @@ KNOWN_SPECIALS: dict[tuple[int, int], list[dict]] = {
         {
             "key": "2010-oomisoka-gccx",
             "title": "GMCX 大みそかだよ! 有野課長! ～8年間の軌跡…今夜はコントローラーを握らない!?～",
+            "after_episode": 116,
             "duration_seconds": 18000,
             "expected_broadcast_seconds": 18000,
         },
         {
             "key": "2010-yoi-matsuri",
             "title": "よゐこの企画案 年越しスペシャル",
+            "after_episode": 116,
             "duration_seconds": None,
             "expected_broadcast_seconds": 25200,
         },
@@ -38,6 +40,7 @@ KNOWN_SPECIALS: dict[tuple[int, int], list[dict]] = {
         {
             "key": "2011-usa",
             "title": "GMCX in U.S.A. ～有野課長ロサンゼルスへ行く～",
+            "after_episode": 127,
             "duration_seconds": None,
             "expected_broadcast_seconds": 7200,
         },
@@ -46,14 +49,16 @@ KNOWN_SPECIALS: dict[tuple[int, int], list[dict]] = {
         {
             "key": "2012-last30s-live",
             "title": "GMCX 有野30代最後の生挑戦",
+            "after_episode": 135,
             "duration_seconds": None,
-            "expected_broadcast_seconds": 43200,
+            "expected_broadcast_seconds": 28800,
         },
     ],
     (137, 156): [
         {
             "key": "2012-in-asia",
-            "title": "GMCX in ASIA",
+            "title": "GMCX in ASIA ～目指せカンボジア代表!～",
+            "after_episode": 147,
             "duration_seconds": None,
             "expected_broadcast_seconds": 7200,
         },
@@ -61,17 +66,33 @@ KNOWN_SPECIALS: dict[tuple[int, int], list[dict]] = {
     (157, 166): [
         {
             "key": "2013-famicom30-live",
-            "title": "GMCX ファミコン30周年／地上波生挑戦",
+            "title": "GMCX ファミコン30周年生放送SP",
+            "after_episode": 164,
+            "duration_seconds": 7200,
+            "expected_broadcast_seconds": 7200,
+        },
+        {
+            "key": "2013-terrestrial-live",
+            "title": "GMCX 地上波生挑戦",
+            "after_episode": 164,
             "duration_seconds": None,
-            "expected_broadcast_seconds": None,
+            "expected_broadcast_seconds": 5400,
         },
     ],
     (167, 176): [
         {
-            "key": "2013-paris-budokan",
-            "title": "GMCX in PARIS／有野の挑戦 in 武道館",
+            "key": "2013-paris",
+            "title": "GMCX in PARIS ～有野課長ジャパンエキスポ参戦～",
+            "after_episode": 167,
+            "duration_seconds": 7200,
+            "expected_broadcast_seconds": 7200,
+        },
+        {
+            "key": "2013-budokan",
+            "title": "GMCX 有野の挑戦 in 武道館",
+            "after_episode": 171,
             "duration_seconds": None,
-            "expected_broadcast_seconds": None,
+            "expected_broadcast_seconds": 7200,
         },
     ],
 }
@@ -143,49 +164,67 @@ def make_mixed_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict[str,
     if duration < regular_total:
         return []
 
+    specs = [dict(x) for x in KNOWN_SPECIALS.get((start_ep, end_ep), [])]
+    extra_total = duration - regular_total
+    fixed_extra = sum(int(x.get("duration_seconds") or 0) for x in specs)
+    flexible = [x for x in specs if x.get("duration_seconds") is None]
+
+    # The KICK bundle duration tells us exactly how much non-regular footage
+    # exists. Known broadcast lengths are hints, but the archive remainder is
+    # authoritative for the final flexible special.
+    if fixed_extra > extra_total:
+        return []
+    flexible_total = extra_total - fixed_extra
+    if len(flexible) > 1:
+        return []
+    if flexible:
+        flexible[0]["duration_seconds"] = flexible_total
+    elif fixed_extra != extra_total:
+        return []
+
     vod_id = str(vod.get("vod_id"))
+    by_after: dict[int, list[dict]] = {}
+    for spec in specs:
+        after_ep = int(spec.get("after_episode") or end_ep)
+        by_after.setdefault(after_ep, []).append(spec)
+
     chapters = []
-    for index, ep in enumerate(range(start_ep, end_ep + 1)):
-        start = index * REFERENCE_EPISODE_SECONDS
-        stop = min(duration, start + REFERENCE_EPISODE_SECONDS)
-        clip_duration = max(0, stop - start)
+    cursor = 0
+    for ep in range(start_ep, end_ep + 1):
+        stop = min(duration, cursor + REFERENCE_EPISODE_SECONDS)
+        clip_duration = max(0, stop - cursor)
         chapters.append({
             "kind": "episode",
             "episode": ep,
             "title": titles.get(str(ep), f"第{ep}回"),
-            "start_seconds": start,
-            "stop_seconds": stop,
-            "duration_seconds": clip_duration,
-            "replay_url": clip_url(vod_id, start, clip_duration),
-            "method": "reference-episode-cadence",
-            "confidence": "high",
-        })
-
-    cursor = regular_total
-    for spec in KNOWN_SPECIALS.get((start_ep, end_ep), []):
-        if cursor >= duration:
-            break
-        requested = spec.get("duration_seconds")
-        if requested is None:
-            stop = duration
-        else:
-            stop = min(duration, cursor + int(requested))
-        clip_duration = max(0, stop - cursor)
-        if clip_duration <= 0:
-            continue
-        chapters.append({
-            "kind": "special",
-            "special_key": spec["key"],
-            "title": spec["title"],
             "start_seconds": cursor,
             "stop_seconds": stop,
             "duration_seconds": clip_duration,
-            "expected_broadcast_seconds": spec.get("expected_broadcast_seconds"),
             "replay_url": clip_url(vod_id, cursor, clip_duration),
-            "method": "known-program-order",
-            "confidence": "high" if requested is not None else "medium",
+            "method": "chronological-reference-cadence",
+            "confidence": "high",
         })
         cursor = stop
+
+        for spec in by_after.get(ep, []):
+            requested = int(spec.get("duration_seconds") or 0)
+            if requested <= 0 or cursor >= duration:
+                continue
+            stop = min(duration, cursor + requested)
+            clip_duration = max(0, stop - cursor)
+            chapters.append({
+                "kind": "special",
+                "special_key": spec["key"],
+                "title": spec["title"],
+                "start_seconds": cursor,
+                "stop_seconds": stop,
+                "duration_seconds": clip_duration,
+                "expected_broadcast_seconds": spec.get("expected_broadcast_seconds"),
+                "replay_url": clip_url(vod_id, cursor, clip_duration),
+                "method": "chronological-known-program-order",
+                "confidence": "high",
+            })
+            cursor = stop
 
     if cursor < duration:
         clip_duration = duration - cursor
