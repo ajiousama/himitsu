@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-22",
-  "generated_at": "2026-09-22T10:03:45.981409+09:00",
+  "generated_at": "2026-09-22T10:04:45.875374+09:00",
   "last_update_ok": false,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260922.json",
   "schedule_checked_at": "2026-09-22T09:50:46.030607+09:00",
@@ -19,7 +19,7 @@
   "alert_lead_minutes": 30,
   "card_count": 14,
   "held_count": 14,
-  "visible_count": 5,
+  "visible_count": 6,
   "active_count": 4,
   "ended_kept": [],
   "seed_required": true,
@@ -40,7 +40,7 @@
     },
     "day": {
       "held": 9,
-      "acquired": 3,
+      "acquired": 4,
       "active": 2,
       "ended": 0,
       "seed_required": 1,
@@ -57,7 +57,7 @@
   },
   "cloud_acquisition": {
     "requested": 11,
-    "fetched": 5,
+    "fetched": 6,
     "failures": [
       {
         "jcd": "02",
@@ -78,11 +78,6 @@
         "jcd": "09",
         "name": "津",
         "error": "ValueError: ended VOD playlist is not a live stream"
-      },
-      {
-        "jcd": "17",
-        "name": "宮島",
-        "error": "HTTPError: playback check failed"
       },
       {
         "jcd": "22",
@@ -159,6 +154,22 @@
         "ok": true,
         "sequence": 8192127,
         "last_segment": "/1c4962a5bcff4fa09b5faf83ce3ccbc9/373ff7b1a40c46418fae17b16e923699/manifest_4_8192328.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
+    },
+    "boat.miyajima": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/341c641a4524405e88c76cb967c1db8e/f3859bccbfc44df4abcab11823123781/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MDIxNTIwMCwic3RhcnQiOjE3OTAwMzkxMDAsImlvcyI6MTgsImNwIjoiMjEyMjM0NzAwXzIxMjI3Nzg5OSIsInBwdyI6IjQwayJ9.Z3bdbS6_fLm82S33zbcNNIRquHqhe_Pu-q4QQk1vsE4",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-09-22T10:05:13.153580+09:00",
+      "checked_at": "2026-09-22T10:05:13.153580+09:00",
+      "first_verified_at": "2026-09-22T10:05:13.153580+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 8177483,
+        "last_segment": "/341c641a4524405e88c76cb967c1db8e/f3859bccbfc44df4abcab11823123781/manifest_1_8177484.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -1094,7 +1105,7 @@
       "jcd": "17",
       "name": "宮島",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
       "active": false,
       "cancelled": false,
@@ -1112,9 +1123,9 @@
       "guidance_switch_at": "2026-09-22T17:30:00+09:00",
       "seed_required": false,
       "reverify_due": false,
-      "playback_verified": false,
-      "first_verified_at": null,
-      "ready_before_first_race": false,
+      "playback_verified": true,
+      "first_verified_at": "2026-09-22T10:05:13.153580+09:00",
+      "ready_before_first_race": true,
       "acquire_from": "2026-09-22T08:11:00+09:00",
       "races": [
         {
@@ -1178,7 +1189,9 @@
           "name": "準優勝戦"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/341c641a4524405e88c76cb967c1db8e/f3859bccbfc44df4abcab11823123781/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MDIxNTIwMCwic3RhcnQiOjE3OTAwMzkxMDAsImlvcyI6MTgsImNwIjoiMjEyMjM0NzAwXzIxMjI3Nzg5OSIsInBwdyI6IjQwayJ9.Z3bdbS6_fLm82S33zbcNNIRquHqhe_Pu-q4QQk1vsE4",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     },
     "boat.tokuyama": {
       "jcd": "18",
