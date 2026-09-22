@@ -9,12 +9,12 @@ from pathlib import Path
 
 from radiko_epg import build_xmltv
 
-RADIO = Path("radio/playlist.m3u")
+RADIO = Path("radio/nationwide.m3u")
 GUIDES = Path("guides.xml")
 UA = {"User-Agent": "Mozilla/5.0"}
 RADIO_TV_BASE = os.environ.get(
     "RADIO_TV_BASE",
-    "https://raw.githubusercontent.com/ajiousama/himitsu/radio-ts-assets",
+    "https://ajiousama-radiko.onrender.com/radio-tv",
 ).rstrip("/")
 
 
@@ -105,7 +105,7 @@ def station_lines(sid, meta, group):
     station = urllib.parse.quote(sid, safe="")
     return [
         f'#EXTINF:-1 tvg-id="radiko.{sid}" tvg-logo="{logo}" group-title="{group}",{name}',
-        f"{RADIO_TV_BASE}/{station}/master.m3u8",
+        f"{RADIO_TV_BASE}/{station}",
     ]
 
 
@@ -134,8 +134,11 @@ def write_radio_playlist(stations):
 
     all_radiko = []
     for sid, meta in stations.items():
-        group = "短波（ラジオ）" if is_shortwave_station(sid, meta.get("name", "")) else f'{meta.get("region", "その他")}（ラジオ）'
-        all_radiko.append((meta.get("region", ""), meta.get("pref", 99), meta.get("name", ""), sid, meta, group))
+        name = str(meta.get("name", ""))
+        if "NHK" in name.upper():
+            continue
+        group = "短波（ラジオ）" if is_shortwave_station(sid, name) else f'{meta.get("region", "その他")}（ラジオ）'
+        all_radiko.append((meta.get("region", ""), meta.get("pref", 99), name, sid, meta, group))
     all_radiko.sort()
 
     kept.extend(["", "## RADIKO 全局"])
@@ -169,7 +172,7 @@ def main():
     if len(stations) < 100:
         raise SystemExit(f"radiko station discovery too small: {len(stations)}")
     radio_count = write_radio_playlist(stations)
-    print(f"radio/playlist.m3u stable TS Radiko stations: {radio_count}")
+    print(f"radio/nationwide.m3u static-image video Radiko stations: {radio_count}")
     print("FreeWiFi untouched")
     if radio_count < 100:
         raise SystemExit("Radiko catalog result too small")
