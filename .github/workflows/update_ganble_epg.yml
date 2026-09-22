@@ -1,0 +1,235 @@
+name: Update Ganble EPG 3 Days
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "5 23 * * *"
+  push:
+    branches:
+      - main
+    paths:
+      - "ganble/public_sports.m3u"
+      - "ganble/boatrace_today.ps1"
+      - "ganble/sync_boat_v4.py"
+      - "ganble/merge_m3u.py"
+      - "ganble/main_epg_3days.py"
+      - "ganble/split_jra_quality_epg.py"
+      - "ganble/split_jra_quality_m3u.py"
+      - "ganble/sanitize_jra_epg.py"
+      - "ganble/fix_boat_active_from_m3u.py"
+      - "ganble/fix_epg_v11.py"
+      - "ganble/fix_boat_waiting_title.py"
+      - "ganble/fix_boat_day_type.py"
+      - "ganble/fix_autorace_today_official.py"
+      - "ganble/verified_daily_override.py"
+      - "ganble/apply_verified_status.py"
+      - "ganble/format_race_number_epg.py"
+      - "ganble/validate_race_epg_boundaries.py"
+      - "ganble/fix_epg_duplicate_channel_ids.py"
+      - "ganble/sort_public_sports_by_epg.py"
+      - "ganble/reorder_epg_channels_by_m3u.py"
+      - ".github/workflows/update_ganble_epg.yml"
+
+concurrency:
+  group: ganble-public-sports-writer
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ganble
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Sync latest main before generation
+        run: git pull --ff-only origin main
+
+      - name: Backup last-known-good BOAT mirror
+        run: |
+          cp boatrace_today.m3u /tmp/boatrace_today.m3u.lastgood
+          cp boat_v4_status.json /tmp/boat_v4_status.json.lastgood
+
+      - name: Update today's BOAT RACE schedule metadata
+        shell: pwsh
+        timeout-minutes: 8
+        run: ./boatrace_today.ps1
+
+      - name: Sync verified BOAT Auto v4 streams from ajiousama
+        id: boat_v4_streams
+        continue-on-error: true
+        timeout-minutes: 3
+        run: python -u sync_boat_v4.py streams
+
+      - name: Restore last-known-good BOAT streams when v4 is unhealthy
+        if: steps.boat_v4_streams.outcome != 'success'
+        run: |
+          echo "::warning::BOAT Auto v4 is unhealthy; preserving last-known-good stream mirror and continuing EPG generation."
+          cp /tmp/boatrace_today.m3u.lastgood boatrace_today.m3u
+          cp /tmp/boat_v4_status.json.lastgood boat_v4_status.json
+
+      - name: Validate BOAT v4 mirror
+        if: steps.boat_v4_streams.outcome == 'success'
+        run: |
+          python - <<'PY'
+          import json, re
+          s=json.load(open('boat_v4_status.json',encoding='utf-8'))
+          m=open('boatrace_today.m3u',encoding='utf-8').read()
+          n=len(re.findall(r'(?m)^https?://',m))
+          assert s.get('architecture_version') == 4
+          assert s.get('last_update_ok') is True
+          assert n == int(s.get('visible_count',0)), (n,s.get('visible_count'))
+          print(f"BOAT Auto v4 mirror OK: streams={n}, date={s.get('date')}")
+          PY
+
+      - name: Generate 3-day EPG
+        timeout-minutes: 12
+        env:
+          PYTHONUNBUFFERED: "1"
+        run: python -u main_epg_3days.py
+
+      - name: Merge verified BOAT v4 M3U into public sports
+        run: python -u merge_m3u.py
+
+      - name: Repair BOAT active venues from current M3U
+        run: python -u fix_boat_active_from_m3u.py
+
+      - name: Repair today's AutoRace directly from all 5 official program pages
+        run: python -u fix_autorace_today_official.py
+
+      - name: Finalize v11 race titles and three-minute switching
+        run: python -u fix_epg_v11.py
+
+      - name: Show BOAT first race while waiting
+        run: python -u fix_boat_waiting_title.py
+
+      - name: Fix BOAT day type including midnight races
+        run: python -u fix_boat_day_type.py
+
+      - name: Verify today's active venues from official indexes
+        run: python -u verified_daily_override.py
+
+      - name: Apply verified active and non-event status
+        run: python -u apply_verified_status.py
+
+      - name: Format race numbers for OTT Navigator
+        run: python -u format_race_number_epg.py
+
+      - name: Validate race dates, pre-race and post-race states
+        run: python -u validate_race_epg_boundaries.py
+
+      - name: Fix duplicate-name channel IDs
+        run: python -u fix_epg_duplicate_channel_ids.py
+
+      - name: Sort public sports M3U from today's EPG
+        run: python -u sort_public_sports_by_epg.py
+
+      - name: Split JRA EPG into HQ and LQ channel IDs
+        run: python -u split_jra_quality_epg.py
+
+      - name: Sanitize JRA EPG duplicates and times
+        run: python -u sanitize_jra_epg.py
+
+      - name: Split JRA M3U IDs and assign new HQ LQ logos
+        run: python -u split_jra_quality_m3u.py
+
+      - name: Sync EPG channel order to sorted M3U
+        run: python -u reorder_epg_channels_by_m3u.py
+
+      - name: Replace BOAT EPG with BOAT Auto v4 verified EPG
+        id: boat_v4_epg
+        continue-on-error: true
+        timeout-minutes: 3
+        run: python -u sync_boat_v4.py epg
+
+      - name: Keep official BOAT EPG fallback when v4 EPG is unavailable
+        if: steps.boat_v4_epg.outcome != 'success'
+        run: echo "::warning::BOAT v4 guides.xml unavailable/unhealthy; keeping BOAT RACE official EPG generated by main_epg_3days.py."
+
+      - name: Prune EPG to current 3-day window
+        run: |
+          python - <<'PY'
+          import datetime
+          import xml.etree.ElementTree as ET
+
+          JST = datetime.timezone(datetime.timedelta(hours=9))
+          today = datetime.datetime.now(JST).date()
+          allowed = {(today + datetime.timedelta(days=i)).strftime("%Y%m%d") for i in range(3)}
+
+          tree = ET.parse("epg.xml")
+          root = tree.getroot()
+          removed = 0
+          for p in list(root.findall("programme")):
+              d = (p.get("start") or "")[:8]
+              if d and d not in allowed:
+                  root.remove(p)
+                  removed += 1
+
+          ET.indent(tree, space="    ")
+          tree.write("epg.xml", encoding="utf-8", xml_declaration=True)
+          print(f"Pruned EPG to {sorted(allowed)}; removed={removed}")
+          PY
+
+      - name: Validate XML and 3-day coverage
+        run: |
+          python - <<'PY'
+          import datetime
+          import xml.etree.ElementTree as ET
+
+          JST = datetime.timezone(datetime.timedelta(hours=9))
+          today = datetime.datetime.now(JST).date()
+          expected = {(today + datetime.timedelta(days=i)).strftime("%Y%m%d") for i in range(3)}
+
+          root = ET.parse("epg.xml").getroot()
+          programmes = root.findall("programme")
+          dates = {p.get("start", "")[:8] for p in programmes if len(p.get("start", "")) >= 8}
+          missing = expected - dates
+          stale = {d for d in dates if d < today.strftime("%Y%m%d")}
+
+          boat_today = [
+              p for p in programmes
+              if (p.get("channel") or "").startswith("boat.")
+              and p.get("start", "").startswith(today.strftime("%Y%m%d"))
+          ]
+
+          assert not missing, f"EPG missing required dates: {sorted(missing)}; present={sorted(dates)}"
+          assert not stale, f"EPG contains stale past dates: {sorted(stale)}"
+          assert boat_today, "Today's BOAT EPG is empty; refusing to publish incomplete EPG"
+
+          print(f"XML/coverage OK: dates={sorted(dates)} boat_today={len(boat_today)}")
+          PY
+
+      - name: Commit and push generated files safely
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          cp epg.xml /tmp/epg.xml.generated
+          cp public_sports.m3u /tmp/public_sports.m3u.generated
+          cp public_sports.m3u /tmp/playlist.m3u.generated
+          cp boatrace_today.json /tmp/boatrace_today.json.generated
+          cp boatrace_today.m3u /tmp/boatrace_today.m3u.generated
+          cp boat_v4_status.json /tmp/boat_v4_status.json.generated
+          git fetch origin main
+          git reset --hard origin/main
+          cp /tmp/epg.xml.generated epg.xml
+          cp /tmp/public_sports.m3u.generated public_sports.m3u
+          cp /tmp/playlist.m3u.generated playlist.m3u
+          cp /tmp/boatrace_today.json.generated boatrace_today.json
+          cp /tmp/boatrace_today.m3u.generated boatrace_today.m3u
+          cp /tmp/boat_v4_status.json.generated boat_v4_status.json
+          git add epg.xml public_sports.m3u playlist.m3u boatrace_today.json boatrace_today.m3u boat_v4_status.json
+          git diff --cached --quiet && echo "No changes" && exit 0
+          git commit -m "Update ganble canonical public sports data"
+          git push origin HEAD:main
