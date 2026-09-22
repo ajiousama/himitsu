@@ -8,6 +8,7 @@ from pathlib import Path
 from urllib.parse import quote
 
 FREEWIFI = Path("freewifi")
+RADIO_PROJECTION = Path("radio/freewifi.m3u")
 RADIO_AUDIO_BASE = "https://himitsu-six.vercel.app/api/radiko"
 RADIO_RENDER_BASE = "https://ajiousama-radiko.onrender.com/radio-tv"
 RADIO_BUILD = "20260908a"
@@ -112,7 +113,10 @@ def main() -> int:
     if start < 0 or end < 0 or end <= start:
         raise RuntimeError("could not locate radio section boundaries")
 
-    updated = text[:start] + compact_block() + text[end:]
+    block = compact_block()
+    RADIO_PROJECTION.parent.mkdir(parents=True, exist_ok=True)
+    RADIO_PROJECTION.write_text("#EXTM3U\n\n" + block, encoding="utf-8")
+    updated = text[:start] + block + text[end:]
 
     if "## Rch" not in updated:
         raise RuntimeError("Rch section disappeared; refusing to write")
