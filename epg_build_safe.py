@@ -224,7 +224,7 @@ print(
 # If the official page cannot be parsed, keep the existing real grid and only
 # use previous-good cache when the channel would otherwise be blank.
 try:
-    import rakuten_epg_fix
+    from rakuten import rakuten_epg_fix
     rakuten_epg_fix.main()
 except Exception as exc:
     print(f"::warning::Rakuten EPG authoritative repair skipped: {type(exc).__name__}: {exc}")
