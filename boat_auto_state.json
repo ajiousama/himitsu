@@ -2,8 +2,8 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-22",
-  "generated_at": "2026-09-22T10:02:46.175504+09:00",
-  "last_update_ok": true,
+  "generated_at": "2026-09-22T10:03:45.981409+09:00",
+  "last_update_ok": false,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260922.json",
   "schedule_checked_at": "2026-09-22T09:50:46.030607+09:00",
   "schedule_warnings": [
@@ -20,11 +20,15 @@
   "card_count": 14,
   "held_count": 14,
   "visible_count": 5,
-  "active_count": 3,
+  "active_count": 4,
   "ended_kept": [],
-  "seed_required": false,
-  "seed_required_venues": [],
-  "system_errors": [],
+  "seed_required": true,
+  "seed_required_venues": [
+    "津"
+  ],
+  "system_errors": [
+    "開始時刻が近い開催場の当日中継を取得・再生確認できません"
+  ],
   "phase_counts": {
     "morning": {
       "held": 2,
@@ -37,9 +41,9 @@
     "day": {
       "held": 9,
       "acquired": 3,
-      "active": 1,
+      "active": 2,
       "ended": 0,
-      "seed_required": 0,
+      "seed_required": 1,
       "cancelled": 0
     },
     "night": {
@@ -92,21 +96,21 @@
     "guides.xml": 196
   },
   "alert": {
-    "active": false,
-    "kind": "healthy"
+    "active": true,
+    "kind": "system_error"
   },
   "streams": {
     "boat.tokoname": {
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/5b678914e4ae47b7918dbb9785ff0408/5b4e9a194af94f3e942c14c852663793/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MDIxMTYwMCwic3RhcnQiOjE3OTAwMzg3NDAsImlvcyI6MTgsImNwIjoiMjEyMjM0MzQwXzIxMjI3NzUzOSIsInBwdyI6IjQwayJ9.vES_J6kkdCBaBfoWSw20PqUrCjgPAMxwFGJSJBj8JtQ",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-09-22T09:59:13.346377+09:00",
-      "checked_at": "2026-09-22T09:59:13.346377+09:00",
+      "checked_at": "2026-09-22T10:04:13.415631+09:00",
       "first_verified_at": "2026-09-22T09:59:13.346377+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
         "sequence": 8190801,
-        "last_segment": "/5b678914e4ae47b7918dbb9785ff0408/5b4e9a194af94f3e942c14c852663793/manifest_4_8190803.ts",
+        "last_segment": "/5b678914e4ae47b7918dbb9785ff0408/5b4e9a194af94f3e942c14c852663793/manifest_4_8190853.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -636,7 +640,7 @@
       "held": true,
       "visible": false,
       "ended": false,
-      "active": false,
+      "active": true,
       "cancelled": false,
       "mode": "day",
       "mode_label": "デイ",
@@ -647,11 +651,11 @@
         "race": 1,
         "start": "10:33"
       },
-      "stream_window": "scheduled",
+      "stream_window": "live_or_prestart",
       "intermission": null,
       "guidance_switch_at": "2026-09-22T17:05:00+09:00",
-      "seed_required": false,
-      "reverify_due": false,
+      "seed_required": true,
+      "reverify_due": true,
       "playback_verified": false,
       "first_verified_at": null,
       "ready_before_first_race": false,
@@ -741,7 +745,7 @@
       "intermission": null,
       "guidance_switch_at": "2026-09-22T14:56:00+09:00",
       "seed_required": false,
-      "reverify_due": false,
+      "reverify_due": true,
       "playback_verified": true,
       "first_verified_at": "2026-09-22T07:57:58.776429+09:00",
       "ready_before_first_race": true,
