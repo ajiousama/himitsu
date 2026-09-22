@@ -84,6 +84,9 @@ jobs:
         with:
           node-version: '22'
 
+      - name: Prepare YouTube logos before regression tests
+        run: python youtube/generate_missing_logos.py
+
       - name: Sports and Kana reliability regression tests
         run: python -m unittest -v youtube.test_manager
       - name: Normalize public sports master to ajiousama-only references
