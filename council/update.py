@@ -45,15 +45,31 @@ def html_to_text(html: str) -> str:
 
 def scheduled_today(url: str, now: datetime) -> bool:
     try:
-        text = html_to_text(fetch_text(url))
+        html = fetch_text(url)
     except Exception as e:
         print(f"schedule fetch failed: {url}: {type(e).__name__}: {e}")
         return False
+
     md = rf"{now.month}月\s*{now.day}日"
-    # Only plenary-session days are eligible. Committee-only days stay hidden.
-    hit = re.search(md + r".{0,180}?本会議", text)
-    print(f"schedule check {url}: today_plenary={bool(hit)}")
-    return bool(hit)
+    # Prefer one HTML table row at a time. The old flattened-text check could
+    # accidentally pair today's committee row with a later day's plenary row.
+    for row in re.findall(r"(?is)<tr\b[^>]*>.*?</tr>", html):
+        text = html_to_text(row)
+        if re.search(md, text) and "本会議" in text:
+            print(f"schedule check {url}: today_plenary=True")
+            return True
+
+    # Conservative fallback for non-table pages: only inspect a short local
+    # window around the exact date and never reach into the next day's entry.
+    text = html_to_text(html)
+    for m in re.finditer(md, text):
+        local_window = text[max(0, m.start() - 24):m.end() + 72]
+        if "本会議" in local_window:
+            print(f"schedule check {url}: today_plenary=True")
+            return True
+
+    print(f"schedule check {url}: today_plenary=False")
+    return False
 
 
 def stream_live(url: str) -> bool:
