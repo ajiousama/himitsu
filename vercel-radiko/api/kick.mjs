@@ -1,6 +1,7 @@
 const CHANNELS = {
   gccx: 'mirumo-ch',
   nogizaka: 'nogi20110821',
+  seiz: 'seiz',
 };
 
 const UA =
