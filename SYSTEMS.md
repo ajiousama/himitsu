@@ -15,7 +15,14 @@ FreeWiFi is the aggregate output. Update ownership is split into five systems:
 5. **ehime_catv/** — Ehime CATV channels
    - canonical playlist: `ehime_catv/playlist.m3u`
 
+6. **rakuten/** — Rakuten Rch channels and Rakuten EPG helpers
+7. **tv/** — terrestrial / BS / Green Channel / CS source system
+8. **tver/** — standalone TVer realtime/news streams
+9. **epg/** — common EPG build and final audit system
+10. **logos/** — shared logo assets, generators and contrast normalization
+
 The root `freewifi` file remains the user-facing aggregate playlist.
+The root `guides.xml` remains the user-facing EPG compatibility output.
 
 Compatibility:
 - root `radio.m3u` is a generated compatibility mirror
