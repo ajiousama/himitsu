@@ -91,8 +91,81 @@ jobs:
         run: |
           set -u
 
+          publish_general() {
+            echo "=== YouTube scope=general resolve once ==="
+            git fetch origin main
+            git reset --hard origin/main
+
+            python youtube/generate_missing_logos.py
+            if ! timeout 15m python youtube/manager.py --scope general; then
+              echo "::error::general refresh failed"
+              return 1
+            fi
+            if ! python -m unittest -v youtube.test_manager; then
+              echo "::error::YouTube structure test failed after general resolve"
+              return 1
+            fi
+
+            snapshot="$(mktemp -d)"
+            mkdir -p "$snapshot/logos"
+            cp youtube/output/general.m3u "$snapshot/general.m3u"
+            cp -a youtube/logos/general/. "$snapshot/logos/"
+
+            for attempt in 1 2 3 4 5 6; do
+              echo "=== YouTube general publish overlay attempt=$attempt ==="
+              git fetch origin main
+              git reset --hard origin/main
+
+              mkdir -p youtube/logos/general youtube/output
+              rm -rf youtube/logos/general/*
+              cp -a "$snapshot/logos/." youtube/logos/general/
+              cp "$snapshot/general.m3u" youtube/output/general.m3u
+
+              # Rebuild only the managed YouTube block onto the latest FreeWiFi
+              # so concurrent BOAT/KICK/EPG commits are preserved.
+              if ! python youtube/manager.py --sync-only; then
+                echo "::warning::general sync-only failed on latest main"
+                sleep "$attempt"
+                continue
+              fi
+              if ! python -m unittest -v youtube.test_manager; then
+                echo "::warning::YouTube structure test failed on publish overlay"
+                sleep "$attempt"
+                continue
+              fi
+
+              git config user.name 'github-actions[bot]'
+              git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+              git add youtube/logos/general youtube/output/general.m3u freewifi
+
+              if git diff --cached --quiet; then
+                echo "YouTube general already current"
+                rm -rf "$snapshot"
+                return 0
+              fi
+
+              git commit -m "Update YouTube v3 general state [skip ci] [skip render]"
+              if git push origin HEAD:main; then
+                echo "YouTube general published"
+                rm -rf "$snapshot"
+                return 0
+              fi
+
+              echo "::warning::main moved during general publish; re-overlaying snapshot"
+              sleep "$attempt"
+            done
+
+            rm -rf "$snapshot"
+            echo "::error::YouTube general publish failed after overlay retries"
+            return 1
+          }
+
           publish_scope() {
             scope="$1"
+            if [ "$scope" = "general" ]; then
+              publish_general
+              return $?
+            fi
             for attempt in 1 2 3 4 5; do
               echo "=== YouTube scope=$scope attempt=$attempt ==="
               git fetch origin main
