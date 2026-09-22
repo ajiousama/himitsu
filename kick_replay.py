@@ -9,7 +9,7 @@ import urllib.request
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
-CONFIG = Path("kick_channels.json")
+CONFIG = Path("vod5/kick_channels.json")
 OUT_JSON = Path("kick_replay.json")
 OUT_M3U = Path("kick_replay.m3u")
 JST = timezone(timedelta(hours=9))
