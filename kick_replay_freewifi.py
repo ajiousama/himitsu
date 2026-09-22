@@ -6,7 +6,7 @@ import re
 from pathlib import Path
 
 FREEWIFI = Path("freewifi")
-VOD5 = Path("VOD5")
+VOD5 = Path("vod5/playlist.m3u")\nVOD5_COMPAT = Path("VOD5")\nFREEWIFI_SPECIALS = Path("vod5/freewifi_specials.m3u")
 REPLAY_M3U = Path("kick_replay.m3u")
 REPLAY_JSON = Path("kick_replay.json")
 GMCX_M3U = Path("kick_gmcx_chapters.m3u")
@@ -140,7 +140,7 @@ def main() -> int:
         FREEWIFI.write_text(cleaned, encoding="utf-8")
 
     vod5 = build_vod5()
-    VOD5.write_text(vod5, encoding="utf-8")
+    VOD5.parent.mkdir(parents=True, exist_ok=True)\n    VOD5.write_text(vod5, encoding="utf-8")\n    VOD5_COMPAT.write_text(vod5, encoding="utf-8")\n    FREEWIFI_SPECIALS.write_text("#EXTM3U\\n\\n" + ("\\n".join(block) + "\\n" if long_entries else ""), encoding="utf-8")
     vod_count = vod5.count('group-title="VOD"')
     print(f"KICK VOD published to VOD5: {vod_count} entries")
     return 0
