@@ -360,7 +360,8 @@ module.exports = async function handler(req, res) {
     gccx: "kick.gccx",
     gccx2: "kick.gccx2",
     nogizaka: "kick.nogizaka",
-    nogi: "kick.nogizaka"
+    nogi: "kick.nogizaka",
+    seiz: "kick.seiz"
   };
   const tvgId = aliases[key] || key;
   const item = channels.find(x => String(x.tvg_id || "").toLowerCase() === tvgId);
