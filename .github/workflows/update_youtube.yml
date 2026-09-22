@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   schedule:
     # Recovery trigger only. The active worker refreshes special channels itself.
-    - cron: '17 22-23,0-14 * * *'  # JST 07:17-23:17 only
+    - cron: '17 21-23,0-14 * * *'  # JST 06:17-23:17 only
   push:
     branches: [main]
     paths:
@@ -36,11 +36,11 @@ jobs:
         shell: bash
         run: |
           hour="$(TZ=Asia/Tokyo date +%H)"
-          if [ "$hour" -ge 7 ] && [ "$hour" -le 23 ]; then
+          if [ "$hour" -ge 6 ] && [ "$hour" -le 23 ]; then
             echo "active=true" >> "$GITHUB_OUTPUT"
           else
             echo "active=false" >> "$GITHUB_OUTPUT"
-            echo "Nighttime pause: JST 00:00-06:59"
+            echo "Nighttime pause: JST 00:00-05:59"
           fi
 
       - name: Checkout
@@ -236,7 +236,7 @@ jobs:
           successor_queued=0
           for cycle in $(seq 0 63); do
             hour="$(TZ=Asia/Tokyo date +%H)"
-            if [ "$hour" -lt 7 ]; then
+            if [ "$hour" -lt 6 ]; then
               echo "Nighttime pause reached; stopping worker until morning recovery cron"
               break
             fi
