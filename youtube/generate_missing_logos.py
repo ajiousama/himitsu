@@ -151,9 +151,11 @@ def main():
         rel = url[len(RAW_PREFIX):]
         path = ROOT / rel
         path.parent.mkdir(parents=True, exist_ok=True)
+        if path.exists():
+            continue
         draw_logo(item, path)
         count += 1
-    print(f"rebuilt_no_pictogram_logos={count}")
+    print(f"generated_missing_logos={count}")
 
 if __name__ == "__main__":
     main()
