@@ -60,14 +60,14 @@ jobs:
       - name: Validate radio only
         shell: bash
         run: |
-          test -s radio.m3u
+          test -s radio/playlist.m3u
           test -s guides.xml
           python -c "import xml.etree.ElementTree as ET; ET.parse('guides.xml'); print('XML OK')"
-          grep -q 'NHKラジオ第1（松山）' radio.m3u
-          grep -q 'NHK-FM（松山）' radio.m3u
-          grep -q 'RNB南海放送（ラジオ）' radio.m3u
-          grep -q 'FM愛媛（ラジオ）' radio.m3u
-          RADIO_COUNT=$(grep -c 'tvg-id="radiko\.' radio.m3u || true)
+          grep -q 'NHKラジオ第1（松山）' radio/playlist.m3u
+          grep -q 'NHK-FM（松山）' radio/playlist.m3u
+          grep -q 'RNB南海放送（ラジオ）' radio/playlist.m3u
+          grep -q 'FM愛媛（ラジオ）' radio/playlist.m3u
+          RADIO_COUNT=$(grep -c 'tvg-id="radiko\.' radio/playlist.m3u || true)
           RADIKO_EPG_CH=$(grep -c '<channel id="radiko\.' guides.xml || true)
           RADIKO_EPG_PG=$(grep -c 'channel="radiko\.' guides.xml || true)
           NHK_EPG_CH=$(grep -E -c '<channel id="nhk_(r1|fm)_' guides.xml || true)
@@ -83,7 +83,7 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add radio.m3u guides.xml
+          git add radio/playlist.m3u guides.xml
           if git diff --cached --quiet; then
             echo 'No radio changes'
             exit 0
