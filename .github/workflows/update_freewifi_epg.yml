@@ -11,6 +11,13 @@ on:
       - main
     paths:
       - "ganble/playlist.m3u"
+      - "radio/playlist.m3u"
+      - "radio/freewifi.m3u"
+      - "vod5/playlist.m3u"
+      - "vod5/freewifi_live.m3u"
+      - "vod5/freewifi_specials.m3u"
+      - "ehime_catv/playlist.m3u"
+      - "ehime_catv/sync_freewifi.py"
       - "normalize_ganble_local.py"
       - "epg_build.py"
       - "epg_build_safe.py"
@@ -83,6 +90,9 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
+
+      - name: Sync Ehime CATV canonical playlist
+        run: python ehime_catv/sync_freewifi.py
 
       - name: Prepare YouTube logos before regression tests
         run: python youtube/generate_missing_logos.py
@@ -181,7 +191,7 @@ jobs:
               raise SystemExit(f'FreeWiFi publish blocked: BOAT mismatch entries={entries} visible={visible}')
           PY
 
-            git add ganble/playlist.m3u freewifi gccx2_live_state.json today_public_sports_status.json today_jra_status.json today_event_counts.json verified_daily_status.json public_sports_epg_local.xml
+            git add ganble/playlist.m3u ehime_catv/playlist.m3u freewifi gccx2_live_state.json today_public_sports_status.json today_jra_status.json today_event_counts.json verified_daily_status.json public_sports_epg_local.xml
 
             if git diff --cached --quiet; then
               echo "Local venue/CX2 state already current"
