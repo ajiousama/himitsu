@@ -217,7 +217,6 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           cp epg.xml /tmp/epg.xml.generated
           cp public_sports.m3u /tmp/public_sports.m3u.generated
-          cp public_sports.m3u /tmp/playlist.m3u.generated
           cp boatrace_today.json /tmp/boatrace_today.json.generated
           cp boatrace_today.m3u /tmp/boatrace_today.m3u.generated
           cp boat_v4_status.json /tmp/boat_v4_status.json.generated
@@ -225,11 +224,10 @@ jobs:
           git reset --hard origin/main
           cp /tmp/epg.xml.generated epg.xml
           cp /tmp/public_sports.m3u.generated public_sports.m3u
-          cp /tmp/playlist.m3u.generated playlist.m3u
           cp /tmp/boatrace_today.json.generated boatrace_today.json
           cp /tmp/boatrace_today.m3u.generated boatrace_today.m3u
           cp /tmp/boat_v4_status.json.generated boat_v4_status.json
-          git add epg.xml public_sports.m3u playlist.m3u boatrace_today.json boatrace_today.m3u boat_v4_status.json
+          git add epg.xml public_sports.m3u boatrace_today.json boatrace_today.m3u boat_v4_status.json
           git diff --cached --quiet && echo "No changes" && exit 0
           git commit -m "Update ganble canonical public sports data"
           git push origin HEAD:main
