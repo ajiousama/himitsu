@@ -57,7 +57,7 @@ jobs:
       - name: Build contrast-safe station images
         run: python logo_contrast_apply.py
 
-      - name: Build standalone nationwide radio.m3u
+      - name: Build standalone nationwide radio/playlist.m3u
         run: python radiko_freewifi.py --playlist-only
 
       - name: Validate IPTV-compatible image and audio radio routing
@@ -78,7 +78,7 @@ jobs:
           free_direct_count="$(grep -Fc "$direct" /tmp/freewifi-radio.txt || true)"
           free_render_count="$(grep -Fc "$render" /tmp/freewifi-radio.txt || true)"
           free_ts_count="$(grep -Fc "$base" /tmp/freewifi-radio.txt || true)"
-          nationwide_count="$(grep -Fc "$base" radio.m3u || true)"
+          nationwide_count="$(grep -Fc "$base" radio/playlist.m3u || true)"
           echo "FreeWiFi direct Radiko count=$free_direct_count"
           echo "FreeWiFi Render image+audio count=$free_render_count"
           echo "FreeWiFi stable TS count=$free_ts_count"
@@ -92,7 +92,7 @@ jobs:
           test "$(grep -c 'group-title="ラジオ"' /tmp/freewifi-radio.txt)" -eq 19
           # The original 16 Radiko stations retain their contrast-safe local logos.
           test "$(grep -c '/logos/contrast/radiko\.' /tmp/freewifi-radio.txt || true)" -eq 16
-          ! grep -q 'ajiousama-radiko.onrender.com/radio-tv/' radio.m3u
+          ! grep -q 'ajiousama-radiko.onrender.com/radio-tv/' radio/playlist.m3u
           ! grep -q 'himitsu-six.vercel.app/api/radio-tv' /tmp/freewifi-radio.txt
           ! grep -Eq 'NHKラジオ|NHK-FM|nhk_(r1|fm)_' /tmp/freewifi-radio.txt
           ! grep -Eq '^## (愛媛|在阪|京都|滋賀|兵庫)（ラジオ）$' /tmp/freewifi-radio.txt
@@ -118,7 +118,7 @@ jobs:
           set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add freewifi radio.m3u logo_contrast_sources.json logos/contrast
+          git add freewifi radio/playlist.m3u logo_contrast_sources.json logos/contrast
           if git diff --cached --quiet; then
             echo 'Radio playlists and station images already current'
             exit 0
