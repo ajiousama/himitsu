@@ -1,0 +1,230 @@
+from __future__ import annotations
+
+import re
+import xml.etree.ElementTree as ET
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
+
+from epg import epg_build
+
+# Public-sports EPG is generated locally in this repository and merged later by
+# public_sports_epg_merge.py. Never fetch the retired external public-sports repo
+# from the base EPG builder.
+epg_build.SOURCES = [(name, url) for name, url in epg_build.SOURCES if name != "public_sports"]
+epg_build.SOURCE_PRIORITY = {name: i for i, (name, _) in enumerate(epg_build.SOURCES)}
+
+# Rakuten R Channel IDs must never be matched by a similar display name. Keep
+# this list aligned with the full Rch block in freewifi. The final authoritative
+# pass below replaces generic source data with Rakuten's official schedule when
+# it can be parsed.
+RAKUTEN_CHANNELS = {
+    "rch_30": "鉄道・旅",
+    "rch_35": "パチンコ・パチスロ",
+    "rch_37": "エンタメ～テレDEEP",
+    "rch_86": "ワンニャンチャンネル",
+    "rch_113": "ぷれいば！ ～ゲーム専門チャンネル～",
+    "rch_46": "釣り",
+    "rch_125": "セクシーエンタメチャンネル",
+    "rch_124": "おとなの歓楽街 by MEN'S NECO",
+    "rch_41": "アイドル・グラビア",
+    "rch_123": "刺激ストロング",
+    "rch_122": "映画（年齢制限あり）",
+}
+KARENDA_SOURCE_IDS = {
+    # Karenda renamed the current アイドル・グラビア XMLTV id from rch_41 to rch_121.
+    # Preserve FreeWiFi's stable rch_41 id while cloning programmes from the new source id.
+    "rch_41": "rch_121",
+}
+epg_build.SOURCE_PIN.update({
+    channel_id: ("karenda", KARENDA_SOURCE_IDS.get(channel_id, channel_id))
+    for channel_id in RAKUTEN_CHANNELS
+})
+
+epg_build.main()
+
+out = Path("guides.xml")
+if not out.is_file() or out.stat().st_size < 100_000:
+    raise SystemExit(f"guides.xml suspiciously small: {out.stat().st_size if out.exists() else 0} bytes")
+
+# The online Ainan feed is actually switched to Shop Channel overnight even
+# though the channel introduction describes it as a 24-hour live camera.
+# Direct feed observation and the broadcaster's 06:00 programme-day boundary
+# are reflected here so the FreeWiFi EPG matches the video viewers receive.
+AINAN_ID = "ecatv.ainan_livecam"
+AINAN_NAME = "愛南ライブカメラ"
+JST = timezone(timedelta(hours=9))
+
+root = ET.parse(out).getroot()
+
+# Replace only our synthetic Ainan entries; leave every other channel untouched.
+for p in list(root.findall("programme")):
+    if p.get("channel") == AINAN_ID:
+        root.remove(p)
+
+ch = root.find(f"channel[@id='{AINAN_ID}']")
+if ch is None:
+    ch = ET.SubElement(root, "channel", {"id": AINAN_ID})
+    ET.SubElement(ch, "display-name").text = AINAN_NAME
+
+start_day = datetime.now(JST).replace(hour=0, minute=0, second=0, microsecond=0)
+for offset in range(4):
+    day = start_day + timedelta(days=offset)
+    slots = (
+        (
+            day,
+            day + timedelta(hours=6),
+            "🛍️ ショップチャンネル｜夜間放送",
+            "愛南ライブカメラ回線は夜間、ショップチャンネルへ切り替わります。",
+            "通販",
+        ),
+        (
+            day + timedelta(hours=6),
+            day + timedelta(hours=18),
+            "📹 愛南ライブカメラ｜LIVE",
+            "愛媛CATV 愛南ライブカメラ。愛南地域の海や道路の様子をライブ映像でお届けします。",
+            "ライブカメラ",
+        ),
+        (
+            day + timedelta(hours=18),
+            day + timedelta(days=1),
+            "🔄 夜間切替時刻を確認中｜愛南LIVE／ショップチャンネル",
+            "ショップチャンネルへの夜の切替開始時刻を実配信で確認中です。0時開始とは確定していません。",
+            "放送案内",
+        ),
+    )
+    for start, stop, title, desc, category in slots:
+        programme = ET.SubElement(
+            root,
+            "programme",
+            {
+                "start": start.strftime("%Y%m%d%H%M%S +0900"),
+                "stop": stop.strftime("%Y%m%d%H%M%S +0900"),
+                "channel": AINAN_ID,
+            },
+        )
+        ET.SubElement(programme, "title", {"lang": "ja"}).text = title
+        ET.SubElement(programme, "desc", {"lang": "ja"}).text = desc
+        ET.SubElement(programme, "category", {"lang": "ja"}).text = category
+
+
+def parse_xmltv_time(value: str | None) -> datetime | None:
+    """Parse the common XMLTV YYYYmmddHHMMSS +/-ZZZZ form."""
+    if not value:
+        return None
+    m = re.match(r"^(\d{14})(?:\s*([+-]\d{4}))?", value.strip())
+    if not m:
+        return None
+    stamp, offset = m.groups()
+    try:
+        if offset:
+            return datetime.strptime(f"{stamp} {offset}", "%Y%m%d%H%M%S %z")
+        return datetime.strptime(stamp, "%Y%m%d%H%M%S").replace(tzinfo=JST)
+    except ValueError:
+        return None
+
+
+# A source can contain historical programmes and still look "non-empty" to the
+# base matcher. That made Rakuten rows appear OK in the report while VLC/IPTV
+# clients had no programme covering the current time. Require at least one
+# programme overlapping now through the next three days. Otherwise replace it
+# with a visible fallback guide instead of leaving a blank row.
+now = datetime.now(JST)
+window_start = now - timedelta(hours=1)
+window_end = now + timedelta(days=3)
+forced_rakuten_fallback: list[tuple[str, str]] = []
+
+for channel_id, channel_name in RAKUTEN_CHANNELS.items():
+    programmes = [p for p in root.findall("programme") if p.get("channel") == channel_id]
+    has_current = False
+    for p in programmes:
+        start = parse_xmltv_time(p.get("start"))
+        stop = parse_xmltv_time(p.get("stop"))
+        if start is None:
+            continue
+        if stop is None or stop <= start:
+            stop = start + timedelta(hours=6)
+        if stop >= window_start and start <= window_end:
+            has_current = True
+            break
+
+    if has_current:
+        continue
+
+    # Remove stale/wrong source material and any duplicate channel declaration.
+    for p in programmes:
+        root.remove(p)
+    for old_ch in list(root.findall("channel")):
+        if old_ch.get("id") == channel_id:
+            root.remove(old_ch)
+
+    epg_build.add_fallback(root, channel_id, channel_name, "楽天")
+    forced_rakuten_fallback.append((channel_id, channel_name))
+
+ET.ElementTree(root).write(out, encoding="utf-8", xml_declaration=True)
+
+# Keep the coverage report truthful when the post-build Rakuten guard had to
+# replace a stale source with fallback EPG.
+report_path = Path("epg_coverage.txt")
+if forced_rakuten_fallback and report_path.is_file():
+    lines = report_path.read_text(encoding="utf-8", errors="replace").splitlines()
+    replaced = 0
+    forced_ids = {channel_id: channel_name for channel_id, channel_name in forced_rakuten_fallback}
+    for i, line in enumerate(lines):
+        if not line.startswith("OK\t"):
+            continue
+        parts = line.split("\t")
+        if len(parts) >= 2 and parts[1] in forced_ids:
+            channel_id = parts[1]
+            lines[i] = (
+                f"FALLBACK\t{channel_id}\t{forced_ids[channel_id]}\t楽天\t"
+                "12 programmes (no current Rakuten EPG)"
+            )
+            replaced += 1
+
+    if replaced:
+        def adjust(prefix: str, delta: int) -> None:
+            for idx, line in enumerate(lines):
+                if line.startswith(prefix):
+                    value = int(line.split("=", 1)[1])
+                    lines[idx] = f"{prefix}{value + delta}"
+                    return
+
+        adjust("matched_real=", -replaced)
+        adjust("fallback=", replaced)
+        adjust("unmatched_real=", replaced)
+
+    report_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+root = ET.parse(out).getroot()
+channels = len(root.findall("channel"))
+programmes = len(root.findall("programme"))
+if channels < 50 or programmes < 100:
+    raise SystemExit(f"guides.xml suspiciously sparse: channels={channels} programmes={programmes}")
+
+ainan_programmes = sum(1 for p in root.findall("programme") if p.get("channel") == AINAN_ID)
+if ainan_programmes != 12:
+    raise SystemExit(f"Ainan provisional night-switch EPG missing: programmes={ainan_programmes}")
+
+rakuten_counts = {
+    channel_id: sum(1 for p in root.findall("programme") if p.get("channel") == channel_id)
+    for channel_id in RAKUTEN_CHANNELS
+}
+if any(count == 0 for count in rakuten_counts.values()):
+    raise SystemExit(f"Rakuten EPG blank after guard: {rakuten_counts}")
+
+print(
+    f"SAFE EPG OK: bytes={out.stat().st_size} channels={channels} programmes={programmes} "
+    f"ainan_programmes={ainan_programmes} rakuten={rakuten_counts}"
+)
+
+# Final authoritative Rakuten pass:
+# use Rakuten's own schedule whenever it can be parsed, even if the generic
+# source already supplied a non-empty rch_* grid. This prevents stale or
+# similarly named schedules from being accepted merely because they exist.
+# If the official page cannot be parsed, keep the existing real grid and only
+# use previous-good cache when the channel would otherwise be blank.
+try:
+    from rakuten import rakuten_epg_fix
+    rakuten_epg_fix.main()
+except Exception as exc:
+    print(f"::warning::Rakuten EPG authoritative repair skipped: {type(exc).__name__}: {exc}")
