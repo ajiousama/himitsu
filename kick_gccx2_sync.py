@@ -4,19 +4,25 @@ import time
 import urllib.request
 from pathlib import Path
 
-SLUG = "joshua-hkd"
-API = f"https://kick.com/api/v2/channels/{SLUG}"
+CONFIG = Path("vod5/kick_channels.json")
 FREEWIFI = Path("freewifi")
 LIVE_OUT = Path("vod5/freewifi_live.m3u")
-LOGO = "https://pbs.twimg.com/profile_images/826592912389451777/PnXfhxJD_400x400.jpg"
-PROXY = "https://kick-resolver.onrender.com/kick?ch=gccx2"
+STATE_OUT = Path("vod5/kick_live_state.json")
+
+PROXIES = {
+    "kick.gccx2": "https://kick-resolver.onrender.com/kick?ch=gccx2",
+    "kick.nogizaka": "https://himitsu-six.vercel.app/api/kick?ch=nogizaka",
+    "kick.seiz": "https://himitsu-six.vercel.app/api/kick?ch=seiz",
+}
+ORDER = ["kick.gccx2", "kick.nogizaka", "kick.seiz"]
 
 
-def get_json(url):
+def get_json(slug):
+    url = f"https://kick.com/api/v2/channels/{slug}"
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/140 Safari/537.36",
         "Accept": "application/json, text/plain, */*",
-        "Referer": f"https://kick.com/{SLUG}",
+        "Referer": f"https://kick.com/{slug}",
         "Cache-Control": "no-cache",
         "Pragma": "no-cache",
     }
@@ -26,23 +32,20 @@ def get_json(url):
             with urllib.request.urlopen(req, timeout=20) as response:
                 return json.loads(response.read().decode("utf-8"))
         except Exception as exc:
-            print(f"KICK lookup attempt {attempt + 1} failed: {exc}")
+            print(f"KICK lookup {slug} attempt {attempt + 1} failed: {exc}")
             if attempt < 2:
-                time.sleep(3 * (attempt + 1))
+                time.sleep(2 * (attempt + 1))
     return None
 
 
 def find_playback(value):
     if isinstance(value, str):
-        if value.startswith(("http://", "https://")) and ".m3u8" in value:
-            return value
-        return None
+        return value if value.startswith(("http://", "https://")) and ".m3u8" in value else None
     if isinstance(value, list):
         for item in value:
             hit = find_playback(item)
             if hit:
                 return hit
-        return None
     if isinstance(value, dict):
         for key in ("playback_url", "playbackUrl", "hls_url", "hlsUrl", "stream_url", "streamUrl"):
             candidate = value.get(key)
@@ -55,112 +58,87 @@ def find_playback(value):
     return None
 
 
-def current_cx2_url(text):
+def parse_entries(text):
     lines = text.splitlines()
-    for i, line in enumerate(lines):
-        if 'tvg-id="kick.gccx2"' in line and i + 1 < len(lines):
-            candidate = lines[i + 1].strip()
-            if candidate.startswith(("http://", "https://")):
-                return candidate
-    return None
-
-
-def remove_cx2(text):
-    lines = text.splitlines(keepends=True)
     out = []
     i = 0
     while i < len(lines):
-        if 'tvg-id="kick.gccx2"' in lines[i]:
-            i += 1
-            if i < len(lines) and lines[i].strip() and not lines[i].lstrip().startswith("#"):
-                i += 1
+        if lines[i].startswith("#EXTINF:"):
+            ext = lines[i]
+            url = lines[i + 1].strip() if i + 1 < len(lines) else ""
+            out.append((ext, url))
+            i += 2
             continue
-        out.append(lines[i])
         i += 1
-    return "".join(out)
+    return out
 
 
-def add_cx2(text, playback_url):
-    block = (
-        f'#EXTINF:-1 group-title="その他" tvg-id="kick.gccx2" tvg-logo="{LOGO}",ゲームセンターＣＸ2(KICK)\n'
-        f"{playback_url}\n"
-    )
-    nogi = '#EXTINF:-1 group-title="その他" tvg-id="kick.nogizaka"'
-    pos = text.find(nogi)
-    if pos >= 0:
-        return text[:pos] + block + text[pos:]
-    end = "# === KICK_MANAGED_END ==="
-    pos = text.find(end)
-    if pos >= 0:
-        return text[:pos] + block + text[pos:]
-    return text.rstrip() + "\n" + block
+def id_from_ext(ext):
+    marker = 'tvg-id="'
+    if marker not in ext:
+        return ""
+    return ext.split(marker, 1)[1].split('"', 1)[0]
 
 
-def write_state(*, live, playback_detected, lookup_ok):
-    Path("gccx2_live_state.json").write_text(
-        json.dumps(
-            {
-                "slug": SLUG,
-                "live": live,
-                "playback_detected": playback_detected,
-                "lookup_ok": lookup_ok,
-                "mode": "stable-render-kick-proxy",
-                "playback": PROXY if live is not False else None,
-            },
-            ensure_ascii=False,
-            indent=2,
-        ) + "\n",
-        encoding="utf-8",
-    )
-
-
-def write_live_projection(text):
+def managed_block(text):
     start = text.find("# === KICK_MANAGED_START ===")
     end_marker = "# === KICK_MANAGED_END ==="
     end = text.find(end_marker, start + 1) if start >= 0 else -1
-    if start >= 0 and end >= 0:
-        LIVE_OUT.parent.mkdir(parents=True, exist_ok=True)
-        LIVE_OUT.write_text(
-            "#EXTM3U\n\n" + text[start:end + len(end_marker)].strip() + "\n",
-            encoding="utf-8",
-        )
+    if start < 0 or end < 0:
+        raise RuntimeError("KICK managed block missing")
+    end += len(end_marker)
+    return start, end, text[start:end]
+
+
+def build_entry(item, url):
+    return (
+        f'#EXTINF:-1 group-title="その他" tvg-id="{item["tvg_id"]}" '
+        f'tvg-logo="{item.get("logo", "")}",{item.get("name", item["tvg_id"])}\n'
+        f"{url}\n"
+    )
 
 
 def main():
+    config = json.loads(CONFIG.read_text(encoding="utf-8"))
+    by_id = {str(x.get("tvg_id")): x for x in config if isinstance(x, dict)}
     text = FREEWIFI.read_text(encoding="utf-8")
-    old_url = current_cx2_url(text)
+    start, end, old_block = managed_block(text)
+    old_entries = {id_from_ext(ext): (ext, url) for ext, url in parse_entries(old_block)}
 
-    data = get_json(API)
-    if data is None:
-        if old_url:
-            new_text = add_cx2(remove_cx2(text), PROXY)
-            if new_text != text:
-                FREEWIFI.write_text(new_text, encoding="utf-8")
-                print("KICK lookup failed; preserved CX2 via stable Render resolver")
-            else:
-                print("KICK lookup failed; existing CX2 proxy kept unchanged")
-            write_live_projection(new_text)
-            write_state(live=None, playback_detected=False, lookup_ok=False)
-        else:
-            print("KICK lookup failed; no current CX2 entry to preserve")
-            write_live_projection(text)
-            write_state(live=None, playback_detected=False, lookup_ok=False)
-        return 0
+    states = {}
+    active = {}
+    for tvg_id in ORDER:
+        item = by_id.get(tvg_id)
+        if not item:
+            continue
+        slug = str(item.get("slug") or "").strip()
+        if not slug:
+            continue
+        data = get_json(slug)
+        if data is None:
+            if tvg_id in old_entries:
+                active[tvg_id] = PROXIES[tvg_id]
+            states[tvg_id] = {"slug": slug, "lookup_ok": False, "live": None, "preserved": tvg_id in old_entries}
+            continue
+        playback = find_playback(data)
+        live = bool(playback)
+        if live:
+            active[tvg_id] = PROXIES[tvg_id]
+        states[tvg_id] = {"slug": slug, "lookup_ok": True, "live": live, "playback_detected": bool(playback)}
 
-    playback = find_playback(data)
-    live = bool(playback)
-    new_text = remove_cx2(text)
-    if live:
-        new_text = add_cx2(new_text, PROXY)
+    lines = ["# === KICK_MANAGED_START ===", "## KICK"]
+    for tvg_id in ORDER:
+        if tvg_id in active and tvg_id in by_id:
+            lines.append(build_entry(by_id[tvg_id], active[tvg_id]).rstrip())
+    lines.append("# === KICK_MANAGED_END ===")
+    new_block = "\n".join(lines)
 
-    if new_text != text:
-        FREEWIFI.write_text(new_text, encoding="utf-8")
-        print("CX2 Free Wi-Fi state changed:", "LIVE -> stable Render KICK resolver" if live else "OFFLINE -> removed")
-    else:
-        print("CX2 Free Wi-Fi state unchanged:", "LIVE (proxy)" if live else "OFFLINE")
-
-    write_live_projection(new_text)
-    write_state(live=live, playback_detected=bool(playback), lookup_ok=True)
+    new_text = text[:start] + new_block + text[end:]
+    FREEWIFI.write_text(new_text.rstrip() + "\n", encoding="utf-8")
+    LIVE_OUT.parent.mkdir(parents=True, exist_ok=True)
+    LIVE_OUT.write_text("#EXTM3U\n\n" + new_block + "\n", encoding="utf-8")
+    STATE_OUT.write_text(json.dumps(states, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    print("KICK live channels:", list(active))
     return 0
 
 
