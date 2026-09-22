@@ -160,7 +160,7 @@ def inspect_watch(video_id):
     return None, classify(p.stderr)
 
 
-def channel_live(page):
+def channel_live(page, query=None, guard_terms=None):
     base = re.sub(r"/(?:live|streams|videos)/?$", "", page.rstrip("/"))
     reasons = []
     for listing in (base + "/streams", base + "/videos"):
@@ -170,6 +170,14 @@ def channel_live(page):
             continue
         for item in items:
             if (item.get("live_status") or "").lower() != "is_live" or not item.get("id"):
+                continue
+            # A channel may run several simultaneous live cameras.  Never use
+            # the first arbitrary /live result when we have location guards.
+            if guard_terms and not _candidate_matches(item, query or "", guard_terms):
+                print(
+                    f'GENERAL reject channel mismatch: {item.get("id")} '
+                    f'title={item.get("title")!r}'
+                )
                 continue
             url, result = direct_hls("https://www.youtube.com/watch?v=" + item["id"])
             if url:
@@ -270,9 +278,24 @@ def resolve_general_one(index, item, previous):
     page = (item.get("page") or "").strip()
     try:
         if page:
-            url, code = direct_hls(page)
-            if not url and code not in TRANSIENT and "watch?v=" not in page and "youtu.be/" not in page:
-                url, code = channel_live(page)
+            is_watch = "watch?v=" in page or "youtu.be/" in page
+            guards = item.get("guard_terms") or []
+            if not is_watch and guards:
+                # Multi-live channels must be resolved by matching the intended
+                # location/title inside the channel, not by arbitrary /live.
+                url, code = channel_live(
+                    page,
+                    item.get("query") or item["name"],
+                    guards,
+                )
+            else:
+                url, code = direct_hls(page)
+                if not url and code not in TRANSIENT and not is_watch:
+                    url, code = channel_live(
+                        page,
+                        item.get("query") or item["name"],
+                        guards,
+                    )
         else:
             url, code = search_live(
                 item.get("query") or item["name"],
