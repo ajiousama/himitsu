@@ -1,4 +1,4 @@
-const channels = require("../kick_channels.json");
+const channels = require("../../vod5/kick_channels.json");
 
 const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/140 Safari/537.36";
 const RESOLVER_VERSION = "2026-09-21-kick-live-vod-v6-gccx2";
