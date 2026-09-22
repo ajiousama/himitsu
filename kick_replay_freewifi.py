@@ -14,11 +14,20 @@ GMCX_JSON = Path("kick_gmcx_chapters.json")
 
 START = "# === KICK_REPLAY_START ==="
 END = "# === KICK_REPLAY_END ==="
+LONG_START = "# === GMCX_LONG_VOD_START ==="
+LONG_END = "# === GMCX_LONG_VOD_END ==="
+FREEWIFI_SPECIAL_IDS = {"kick.gmcx.special.2012-last30s-live"}
 
 
 def remove_old(text: str) -> str:
-    return re.sub(
+    text = re.sub(
         r"\n?" + re.escape(START) + r".*?" + re.escape(END) + r"\n?",
+        "\n",
+        text,
+        flags=re.S,
+    )
+    return re.sub(
+        r"\n?" + re.escape(LONG_START) + r".*?" + re.escape(LONG_END) + r"\n?",
         "\n",
         text,
         flags=re.S,
@@ -80,7 +89,11 @@ def build_vod5() -> str:
             continue
         whole.append((extinf, url))
 
-    chapters = read_entries(GMCX_M3U)
+    chapters = [
+        (extinf, url)
+        for extinf, url in read_entries(GMCX_M3U)
+        if tvg_id(extinf) not in FREEWIFI_SPECIAL_IDS
+    ]
     lines = ["#EXTM3U"]
     for extinf, url in whole:
         lines.extend([extinf.replace('group-title="VOD"', 'group-title="VOD"'), url])
@@ -98,7 +111,23 @@ def main() -> int:
         raise RuntimeError("GMCX chapter outputs missing")
 
     text = FREEWIFI.read_text(encoding="utf-8-sig", errors="replace")
-    cleaned = remove_old(text)
+    cleaned = remove_old(text).rstrip() + "\n"
+
+    long_entries = [
+        (extinf, url)
+        for extinf, url in read_entries(GMCX_M3U)
+        if tvg_id(extinf) in FREEWIFI_SPECIAL_IDS
+    ]
+    if long_entries:
+        block = [LONG_START]
+        for extinf, url in long_entries:
+            block.extend([
+                extinf.replace('group-title="GMCX Replay"', 'group-title="VOD"'),
+                url,
+            ])
+        block.append(LONG_END)
+        cleaned += "\n" + "\n".join(block) + "\n"
+
     if cleaned != text:
         FREEWIFI.write_text(cleaned, encoding="utf-8")
 
