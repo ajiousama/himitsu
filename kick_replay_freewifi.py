@@ -16,7 +16,15 @@ START = "# === KICK_REPLAY_START ==="
 END = "# === KICK_REPLAY_END ==="
 LONG_START = "# === GMCX_LONG_VOD_START ==="
 LONG_END = "# === GMCX_LONG_VOD_END ==="
-FREEWIFI_SPECIAL_IDS = {"kick.gmcx.special.2012-last30s-live"}
+FREEWIFI_SPECIAL_IDS = {
+    "kick.gmcx.special.2013-paris",
+    "kick.gmcx.special.2013-budokan",
+    "kick.gmcx.special.2013-famicom30-live",
+    "kick.gmcx.special.2013-terrestrial-live",
+    "kick.gmcx.special.2012-in-asia",
+    "kick.gmcx.special.2012-last30s-live",
+    "kick.gmcx.special.2011-usa",
+}
 
 
 def remove_old(text: str) -> str:
