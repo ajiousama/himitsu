@@ -180,7 +180,6 @@ jobs:
           # after syncing main so a concurrent BOAT one-click update can never be
           # overwritten by this job's older checkout.
           snapshot="$(mktemp -d)"
-          cp ganble/playlist.m3u "$snapshot/ganble.m3u"
           cp today_public_sports_status.json "$snapshot/today_public_sports_status.json"
           cp today_jra_status.json "$snapshot/today_jra_status.json"
           cp today_event_counts.json "$snapshot/today_event_counts.json"
@@ -192,12 +191,15 @@ jobs:
             git fetch origin main
             git reset --hard origin/main
 
-            cp "$snapshot/ganble.m3u" ganble/playlist.m3u
             cp "$snapshot/today_public_sports_status.json" today_public_sports_status.json
             cp "$snapshot/today_jra_status.json" today_jra_status.json
             cp "$snapshot/today_event_counts.json" today_event_counts.json
             cp "$snapshot/verified_daily_status.json" verified_daily_status.json
             cp "$snapshot/public_sports_epg_local.xml" public_sports_epg_local.xml
+
+            # ganble is a shared canonical source. Always normalize the latest
+            # main version instead of restoring a stale snapshot over newer updates.
+            python normalize_ganble_local.py
 
             # Rebuild only the non-BOAT blocks. BOAT Auto v3 owns the separate
             # TODAY_BOAT block and keeps ended venues until the JST date changes.
