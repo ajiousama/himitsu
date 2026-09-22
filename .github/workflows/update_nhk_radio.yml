@@ -4,7 +4,8 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - 'update_nhk_radio.py'
+      - 'radio/update_nhk.py'
+      - 'radio/build_playlist.py'
       - 'preserve_radio_local_channels.py'
       - 'radiko_freewifi.py'
       - 'radiko_epg.py'
@@ -38,11 +39,13 @@ jobs:
       - name: Sync latest main
         run: git pull --ff-only origin main
 
-      - name: Refresh NHK radio playlist
-        run: python update_nhk_radio.py
+      - name: Refresh NHK static-image video playlist
+        run: python radio/update_nhk.py
 
-      - name: Refresh full Radiko catalog
-        run: python preserve_radio_local_channels.py
+      - name: Refresh full Radiko static-image video catalog
+        run: |
+          python preserve_radio_local_channels.py
+          python radio/build_playlist.py
 
       - name: Merge full Radiko EPG
         run: |
@@ -60,19 +63,30 @@ jobs:
       - name: Validate radio only
         shell: bash
         run: |
+          test -s radio/nationwide.m3u
+          test -s radio/nhk.m3u
+          test -s radio/nhk_stations.json
           test -s radio/playlist.m3u
           test -s guides.xml
           python -c "import xml.etree.ElementTree as ET; ET.parse('guides.xml'); print('XML OK')"
-          grep -q 'NHKラジオ第1（松山）' radio/playlist.m3u
-          grep -q 'NHK-FM（松山）' radio/playlist.m3u
-          grep -q 'RNB南海放送（ラジオ）' radio/playlist.m3u
-          grep -q 'FM愛媛（ラジオ）' radio/playlist.m3u
-          RADIO_COUNT=$(grep -c 'tvg-id="radiko\.' radio/playlist.m3u || true)
+          grep -q 'NHKラジオ第1（松山）' radio/nhk.m3u
+          grep -q 'NHK-FM（松山）' radio/nhk.m3u
+          grep -q 'RNB南海放送（ラジオ）' radio/nationwide.m3u
+          grep -q 'FM愛媛（ラジオ）' radio/nationwide.m3u
+          grep -Fq 'https://ajiousama-radiko.onrender.com/radio-tv/nhk_r1_matsuyama' radio/nhk.m3u
+          grep -Fq 'https://ajiousama-radiko.onrender.com/radio-tv/nhk_fm_matsuyama' radio/nhk.m3u
+          ! grep -Fq 'radio-ts-assets/' radio/nationwide.m3u
+          ! grep -Fq 'radio-ts-assets/' radio/nhk.m3u
+          RADIO_COUNT=$(grep -c 'tvg-id="radiko\.' radio/nationwide.m3u || true)
+          NHK_COUNT=$(grep -E -c 'tvg-id="nhk_(r1|fm)_' radio/nhk.m3u || true)
+          COMBINED_COUNT=$(grep -c '^#EXTINF:' radio/playlist.m3u || true)
           RADIKO_EPG_CH=$(grep -c '<channel id="radiko\.' guides.xml || true)
           RADIKO_EPG_PG=$(grep -c 'channel="radiko\.' guides.xml || true)
           NHK_EPG_CH=$(grep -E -c '<channel id="nhk_(r1|fm)_' guides.xml || true)
           NHK_EPG_PG=$(grep -E -c '<programme .*channel="nhk_(r1|fm)_' guides.xml || true)
           [ "$RADIO_COUNT" -ge 100 ]
+          [ "$NHK_COUNT" -eq 16 ]
+          [ "$COMBINED_COUNT" -ge 116 ]
           [ "$RADIKO_EPG_CH" -ge 100 ]
           [ "$RADIKO_EPG_PG" -ge 500 ]
           [ "$NHK_EPG_CH" -gt 0 ]
@@ -83,7 +97,8 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add radio/playlist.m3u guides.xml
+          cp radio/playlist.m3u radio.m3u
+          git add radio/nationwide.m3u radio/nhk.m3u radio/nhk_stations.json radio/playlist.m3u radio.m3u guides.xml
           if git diff --cached --quiet; then
             echo 'No radio changes'
             exit 0
