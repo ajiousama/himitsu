@@ -359,17 +359,30 @@ def previous_safe_for_item(item, old_url):
     return bool(item.get("retain_previous"))
 
 
-def update_general(config):
+def update_general(config, only_ids=None):
     # Resolve playable HLS in GitHub Actions. Do not make every channel depend
     # on the Render resolver at playback time: a resolver outage would blank
     # the entire YouTube group at once.
     previous = parse_m3u(GENERAL_OUT)
-    resolved = [None] * len(config["general"])
+    general = config["general"]
+    selected = {x for x in (only_ids or []) if x}
+    resolved = [None] * len(general)
+
+    work = []
+    for i, item in enumerate(general):
+        if selected and item["id"] not in selected:
+            old = previous.get(item["id"], {}).get("url")
+            if old:
+                # Preserve non-target rows while refreshing only urgent channels.
+                # Rebuild EXTINF from current config so renamed channels update too.
+                resolved[i] = entry(item, old)
+            continue
+        work.append((i, item))
 
     with ThreadPoolExecutor(max_workers=MAX_WORKERS) as pool:
         futures = [
             pool.submit(resolve_general_one, i, item, previous)
-            for i, item in enumerate(config["general"])
+            for i, item in work
         ]
         for future in as_completed(futures):
             i, item, url, code = future.result()
@@ -415,7 +428,7 @@ def update_general(config):
     if not blocks:
         raise SystemExit("refusing to publish empty general YouTube output")
     write_playlist(GENERAL_OUT, blocks)
-    print(f"GENERAL output: {len(blocks)}/{len(config['general'])}")
+    print(f"GENERAL output: {len(blocks)}/{len(general)}" + (f" targeted={sorted(selected)}" if selected else ""))
 
 
 def official_youtube(info, channel_id, handle=None):
@@ -826,6 +839,7 @@ def validate(config):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--scope", choices=("general", "special", "all"), default="all")
+    parser.add_argument("--ids", default="", help="Comma-separated general channel ids to refresh first")
     parser.add_argument("--sync-only", action="store_true")
     parser.add_argument("--epg-only", action="store_true")
     args = parser.parse_args()
@@ -840,7 +854,8 @@ def main():
         return
 
     if args.scope in ("general", "all"):
-        update_general(config)
+        only_ids = [x.strip() for x in args.ids.split(",") if x.strip()]
+        update_general(config, only_ids=only_ids)
     if args.scope in ("special", "all"):
         update_kana(config)
         update_mandarin(config)
