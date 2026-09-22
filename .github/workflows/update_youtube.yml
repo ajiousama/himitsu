@@ -92,12 +92,20 @@ jobs:
           set -u
 
           publish_general() {
-            echo "=== YouTube scope=general resolve once ==="
+            ids="${1:-}"
+            echo "=== YouTube scope=general resolve once ids=${ids:-ALL} ==="
             git fetch origin main
             git reset --hard origin/main
 
             python youtube/generate_missing_logos.py
-            if ! timeout 15m python youtube/manager.py --scope general; then
+            if [ -n "$ids" ]; then
+              general_cmd=(python youtube/manager.py --scope general --ids "$ids")
+              general_timeout=5m
+            else
+              general_cmd=(python youtube/manager.py --scope general)
+              general_timeout=15m
+            fi
+            if ! timeout "$general_timeout" "${general_cmd[@]}"; then
               echo "::error::general refresh failed"
               return 1
             fi
@@ -234,6 +242,12 @@ jobs:
             fi
 
             cycle_started="$(date +%s)"
+
+            # Urgent/local cameras refresh first so they do not wait behind the
+            # full nationwide scan.
+            if [ "$cycle" -eq 0 ]; then
+              publish_general "youtube.tsukamoto,youtube.masaki_hama,youtube.kurushima_bridge,youtube.kobe_port_shinko2_south,youtube.osaka_port_nanko" || true
+            fi
 
             publish_scope special || true
 
