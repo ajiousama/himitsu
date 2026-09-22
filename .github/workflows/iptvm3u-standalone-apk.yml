@@ -5,8 +5,8 @@ on:
   push:
     paths:
       - '.github/workflows/iptvm3u-standalone-apk.yml'
-      - 'iptvm3u-build/patch_iptvm3u_assets.py'
-      - 'iptvm3u-build/iptvm3u-fixed.jks.b64'
+      - 'apps/iptvm3u/build/patch_iptvm3u_assets.py'
+      - 'apps/iptvm3u/build/iptvm3u-fixed.jks.b64'
       - '.iptvm3u-apk-trigger'
 
 permissions:
@@ -55,7 +55,7 @@ jobs:
           test -f "$BASE"
           test -f /tmp/xapk/config.armeabi_v7a.apk
           unzip -q "$BASE" -d /tmp/base
-          python3 iptvm3u-build/patch_iptvm3u_assets.py /tmp/base
+          python3 apps/iptvm3u/build/patch_iptvm3u_assets.py /tmp/base
           rm -rf /tmp/base/META-INF
           rm -f /tmp/base/stamp-cert-sha256
           rm -f "$BASE"
@@ -90,7 +90,7 @@ jobs:
         run: |
           set -euxo pipefail
           BT="$ANDROID_HOME/build-tools/36.0.0"
-          base64 -d iptvm3u-build/iptvm3u-fixed.jks.b64 > /tmp/iptvm3u.jks
+          base64 -d apps/iptvm3u/build/iptvm3u-fixed.jks.b64 > /tmp/iptvm3u.jks
           keytool -list -keystore /tmp/iptvm3u.jks -storepass iptvm3u -alias iptvm3u >/dev/null
           "$BT/zipalign" -p -f 4 /tmp/iptvm3u-unsigned.apk /tmp/iptvm3u-aligned.apk
           "$BT/apksigner" sign \
@@ -100,6 +100,8 @@ jobs:
             --out iptvm3u.apk \
             /tmp/iptvm3u-aligned.apk
           "$BT/apksigner" verify --verbose --print-certs iptvm3u.apk
+          mkdir -p apps/iptvm3u
+          cp iptvm3u.apk apps/iptvm3u/iptvm3u.apk
           "$BT/aapt2" dump badging iptvm3u.apk | tee /tmp/badging.txt
           grep -q "package: name='de.herber_edevelopment.m3uiptv'" /tmp/badging.txt
           grep -q 'launchable-activity:' /tmp/badging.txt
@@ -120,7 +122,7 @@ jobs:
           set -euxo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -f iptvm3u.apk a.apk
+          git add -f apps/iptvm3u/iptvm3u.apk iptvm3u.apk a.apk
           if git diff --cached --quiet; then
             echo 'APK unchanged'
             exit 0
