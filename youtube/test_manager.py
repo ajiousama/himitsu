@@ -31,6 +31,48 @@ class YouTubeV2StructureTests(unittest.TestCase):
             rel = url.replace("https://raw.githubusercontent.com/ajiousama/himitsu/main/", "")
             self.assertTrue(Path(rel).is_file(), rel)
 
+
+    def test_search_based_general_channels_have_guards(self):
+        cfg = json.loads(manager.CONFIG.read_text(encoding="utf-8"))
+        unguarded = [
+            item["id"] for item in cfg["general"]
+            if not (item.get("page") or "").strip()
+            and not (item.get("guard_terms") or [])
+        ]
+        self.assertEqual(unguarded, [])
+
+    def test_general_output_has_only_configured_ids_and_unique_video_ids(self):
+        import re
+        cfg = json.loads(manager.CONFIG.read_text(encoding="utf-8"))
+        allowed = {item["id"] for item in cfg["general"]}
+        text = manager.GENERAL_OUT.read_text(encoding="utf-8-sig", errors="replace")
+        lines = text.splitlines()
+        seen_video = {}
+        stale = []
+        duplicate = []
+        for i, line in enumerate(lines):
+            if not line.startswith("#EXTINF:"):
+                continue
+            m = re.search(r'tvg-id="([^"]+)"', line)
+            if not m:
+                continue
+            channel_id = m.group(1)
+            if channel_id not in allowed:
+                stale.append(channel_id)
+            j = i + 1
+            while j < len(lines) and not lines[j].strip():
+                j += 1
+            if j >= len(lines):
+                continue
+            key = manager.video_key(lines[j].strip())
+            if key.startswith("video:"):
+                if key in seen_video:
+                    duplicate.append((seen_video[key], channel_id, key))
+                else:
+                    seen_video[key] = channel_id
+        self.assertEqual(stale, [])
+        self.assertEqual(duplicate, [])
+
     def test_outputs_are_inside_youtube_v2(self):
         self.assertEqual(manager.GENERAL_OUT.as_posix().split("youtube/")[-1], "output/general.m3u")
         self.assertEqual(manager.KANA_OUT.as_posix().split("youtube/")[-1], "output/kana.m3u")
