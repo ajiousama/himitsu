@@ -45,13 +45,14 @@ jobs:
             git reset --hard origin/main
 
             python refresh_haruka_freewifi.py
+            python tv/sync_freewifi.py
 
             python - <<'PY'
           from pathlib import Path
           import re
           import urllib.parse
 
-          lines = Path('freewifi').read_text(encoding='utf-8').splitlines()
+          lines = Path('tv/playlist.m3u').read_text(encoding='utf-8').splitlines()
           bases = set()
           matched = 0
           for i, line in enumerate(lines):
@@ -75,12 +76,12 @@ jobs:
           PY
 
             git diff --check
-            if git diff --quiet -- freewifi; then
+            if git diff --quiet -- tv/playlist.m3u freewifi; then
               echo "HARUKA host unchanged"
               exit 0
             fi
 
-            git add freewifi
+            git add tv/playlist.m3u freewifi
             git commit -m "Auto-refresh HARUKA host"
             if git push origin HEAD:main; then
               echo "HARUKA host update pushed"
