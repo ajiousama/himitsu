@@ -1,7 +1,7 @@
 const channels = require("../../vod5/kick_channels.json");
 
 const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/140 Safari/537.36";
-const RESOLVER_VERSION = "2026-09-21-kick-live-vod-v6-gccx2";
+const RESOLVER_VERSION = "2026-09-22-kick-live-vod-v7-id-check";
 
 function norm(s) {
   return String(s || "").toLowerCase().replace(/[^a-z0-9\u3040-\u30ff\u3400-\u9fff]+/g, "");
@@ -62,7 +62,15 @@ async function resolveSlug(slug, expectedId) {
   if (!data) return null;
   const playback = playbackOf(data);
   if (!playback) return null;
-  if (expectedId && !sameIvsChannel(playback, expectedId)) return null;
+  if (expectedId) {
+    const numericExpected = /^\d+$/.test(expectedId);
+    if (numericExpected) {
+      const kickId = String(data.id || data.channel_id || data.channel?.id || "").trim();
+      if (kickId !== expectedId) return null;
+    } else if (!sameIvsChannel(playback, expectedId)) {
+      return null;
+    }
+  }
   return { slug: data.slug || slug, playback };
 }
 
