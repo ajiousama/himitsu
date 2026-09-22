@@ -11,6 +11,14 @@ on:
       - main
     paths:
       - "ganble/playlist.m3u"
+      - "tv/playlist.m3u"
+      - "tv/sync_freewifi.py"
+      - "rakuten/playlist.m3u"
+      - "rakuten/sync_freewifi.py"
+      - "tver/playlist.m3u"
+      - "tver/sync_freewifi.py"
+      - "radio/sync_freewifi.py"
+      - "vod5/sync_freewifi.py"
       - "radio/playlist.m3u"
       - "radio/freewifi.m3u"
       - "vod5/playlist.m3u"
@@ -91,8 +99,15 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Sync Ehime CATV canonical playlist
-        run: python ehime_catv/sync_freewifi.py
+      - name: Sync canonical subsystem projections
+        run: |
+          python tv/sync_freewifi.py
+          python radio/sync_freewifi.py
+          python ehime_catv/sync_freewifi.py
+          python rakuten/sync_freewifi.py
+          python tver/sync_freewifi.py
+          python vod5/sync_freewifi.py
+          python youtube/manager.py --sync-only
 
       - name: Prepare YouTube logos before regression tests
         run: python youtube/generate_missing_logos.py
@@ -173,6 +188,13 @@ jobs:
 
             # Keep terrestrial/BS/CS source groups stable after every full publish.
             python group_freewifi_sources.py
+            python tv/sync_freewifi.py
+            python radio/sync_freewifi.py
+            python ehime_catv/sync_freewifi.py
+            python rakuten/sync_freewifi.py
+            python tver/sync_freewifi.py
+            python vod5/sync_freewifi.py
+            python youtube/manager.py --sync-only
 
             python boat_publish.py --epg-only
             python build_today_event_counts.py
