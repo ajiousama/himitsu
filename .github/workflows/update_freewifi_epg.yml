@@ -55,6 +55,18 @@ on:
       - "autorace_epg_direct.py"
       - "jra_epg_merge.py"
       - "final_epg_audit.py"
+      - "epg/epg_build.py"
+      - "epg/epg_build_safe.py"
+      - "epg/radiko_epg_merge.py"
+      - "epg/public_sports_epg_merge.py"
+      - "epg/keiba_epg_direct.py"
+      - "epg/keirin_epg_direct.py"
+      - "epg/autorace_epg_direct.py"
+      - "epg/jra_epg_merge.py"
+      - "epg/finalize_public_sports_prestart_epg.py"
+      - "epg/kick_epg.py"
+      - "epg/epg_final_guard.py"
+      - "epg/final_epg_audit.py"
       - "jra_freewifi_finalize.py"
       - "freewifi_today_public_sports.py"
       - "freewifi_strip_public_boat.py"
@@ -244,28 +256,28 @@ jobs:
           python -c "import xml.etree.ElementTree as ET; ET.parse('guides.xml'); print('GUIDES BASE XML OK')"
 
       - name: Build merged EPG safely without external public-sports source
-        run: python epg_build_safe.py
+        run: python -m epg.epg_build_safe
 
       - name: Merge selected Radiko EPG
-        run: python radiko_epg_merge.py
+        run: python -m epg.radiko_epg_merge
 
       - name: Merge local public sports EPG for today's venues
-        run: python public_sports_epg_merge.py
+        run: python -m epg.public_sports_epg_merge
 
       - name: Repair today's local horse racing EPG directly from NAR
-        run: python keiba_epg_direct.py
+        run: python -m epg.keiba_epg_direct
 
       - name: Repair today's KEIRIN EPG from current race cards
-        run: python keirin_epg_direct.py
+        run: python -m epg.keirin_epg_direct
 
       - name: Repair today's AutoRace EPG from official race cards
-        run: python autorace_epg_direct.py
+        run: python -m epg.autorace_epg_direct
 
       - name: Merge local JRA race EPG
-        run: python jra_epg_merge.py
+        run: python -m epg.jra_epg_merge
 
       - name: Standardize pre-start EPG for every FreeWiFi public sport
-        run: python finalize_public_sports_prestart_epg.py
+        run: python -m epg.finalize_public_sports_prestart_epg
 
       - name: Validate today's BOAT EPG survived final merge
         run: |
@@ -307,7 +319,7 @@ jobs:
 
 
       - name: Add persistent KICK receiver EPG
-        run: python kick_epg.py
+        run: python -m epg.kick_epg
 
       - name: Validate XML and reject empty/sparse guides
         run: |
