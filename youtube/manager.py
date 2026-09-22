@@ -310,9 +310,9 @@ def resolve_general_one(index, item, previous):
         print(f'GENERAL keep safe previous: {item["id"]} [{code}]')
     elif not url and old and code in TRANSIENT:
         print(f'GENERAL discard unsafe previous: {item["id"]} [{code}]')
-    elif not url and item.get("persistent") and page:
-        url = page
-        print(f'GENERAL keep persistent page: {item["id"]}')
+    elif not url and item.get("persistent"):
+        url = general_target(item)
+        print(f'GENERAL keep persistent target: {item["id"]}')
     return index, item, url, code
 
 
@@ -388,7 +388,11 @@ def update_general(config, only_ids=None):
             i, item, url, code = future.result()
 
             # Never preserve the broken Render resolver as a fallback.
-            if url and "iptv-9x-browser-proxy.onrender.com/yt-" in url:
+            if (
+                url
+                and "iptv-9x-browser-proxy.onrender.com/yt-" in url
+                and not item.get("persistent")
+            ):
                 url = None
 
             if not url:
@@ -396,7 +400,10 @@ def update_general(config, only_ids=None):
                 if (
                     code in TRANSIENT
                     and old
-                    and "iptv-9x-browser-proxy.onrender.com/yt-" not in old
+                    and (
+                        "iptv-9x-browser-proxy.onrender.com/yt-" not in old
+                        or item.get("persistent")
+                    )
                     and previous_safe_for_item(item, old)
                 ):
                     url = old
