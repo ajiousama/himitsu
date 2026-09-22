@@ -1,7 +1,7 @@
 from pathlib import Path
 import re
 
-FREEWIFI = Path('freewifi')
+FREEWIFI = Path("tv/playlist.m3u")
 START = '# === GREEN_CHANNEL_PERSISTENT_START ==='
 END = '# === GREEN_CHANNEL_PERSISTENT_END ==='
 GROUP = 'グリーンCh'
