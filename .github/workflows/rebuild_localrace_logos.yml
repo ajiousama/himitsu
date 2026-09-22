@@ -3,8 +3,8 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - 'generate_localrace_logos.py'
-      - 'generate_localrace_logos_repair.py'
+      - 'logos/tools/generate_localrace_logos.py'
+      - 'logos/tools/generate_localrace_logos_repair.py'
       - 'assets/localrace_sheet_b64/**'
 permissions:
   contents: write
@@ -28,7 +28,7 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y -qq fonts-noto-cjk
       - name: Generate approved local-racing logos
-        run: python generate_localrace_logos_repair.py
+        run: python logos/tools/generate_localrace_logos_repair.py
       - name: Validate
         run: |
           count=$(find logos/public_sports/venues -maxdepth 1 -type f -name 'localrace_*.png' | wc -l)
