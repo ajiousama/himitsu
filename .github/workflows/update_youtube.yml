@@ -77,6 +77,10 @@ jobs:
             chmod 600 youtube_cookies.txt
           fi
 
+      - name: Prepare YouTube logos before structure tests
+        if: steps.hours.outputs.active == 'true'
+        run: python youtube/generate_missing_logos.py
+
       - name: Run structure tests
         if: steps.hours.outputs.active == 'true'
         run: python -m unittest -v youtube.test_manager
