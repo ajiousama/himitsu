@@ -5,6 +5,7 @@ import collections
 import hashlib
 import json
 import os
+import pathlib
 import re
 import secrets
 import select
@@ -155,24 +156,24 @@ class NationwideStations(dict):
 
 
 _initial = dict(base.STATIONS)
-# NHK R1 Matsuyama exists on Radiko as JOZK, so it can use the same
-# image+audio mux route as the other nationwide stations.
-_initial["nhk_r1_matsuyama"] = (
-    "NHK RADIO 1 MATSUYAMA",
-    "RADIKO / SHIKOKU",
-    (210, 34, 34),
-    "JOZK",
-    None,
-)
-# Keep this direct feed exactly as requested because Radiko has no local
-# NHK-FM Matsuyama station ID.
-_initial["nhk_fm_matsuyama"] = (
-    "NHK FM MATSUYAMA",
-    "FM MATSUYAMA",
-    (54, 138, 57),
-    None,
-    "https://simul2.drdi.st.nhk/live/17/joined/master.m3u8",
-)
+
+# All NHK R1/FM regional feeds are exposed through the same static-image
+# video mux route as the Radiko stations. The audio URLs are refreshed from
+# NHK's official config by radio/update_nhk.py and stored in this repo.
+_nhk_map = pathlib.Path(__file__).resolve().parent / "radio" / "nhk_stations.json"
+try:
+    payload = json.loads(_nhk_map.read_text(encoding="utf-8"))
+    for item in payload.get("stations", []):
+        station = str(item.get("id") or "").strip()
+        source = str(item.get("url") or "").strip()
+        display = str(item.get("display") or station).strip()
+        kind = str(item.get("kind") or "").lower()
+        if not station or not source.startswith("http"):
+            continue
+        accent = (210, 34, 34) if kind == "r1" else (54, 138, 57)
+        _initial[station] = (display, "NHK RADIO", accent, None, source)
+except Exception as e:
+    print(f"[radio-tv] NHK station map load failed: {type(e).__name__}: {e}", flush=True)
 
 base.STATIONS = NationwideStations(_initial)
 
