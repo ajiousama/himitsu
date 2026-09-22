@@ -101,7 +101,7 @@ TARGET_SECTIONS = {'競輪', '地方競馬', 'オートレース'}
 NON_EVENT_WORDS = ('本日非開催','非開催','開催していません','開催予定はありません','本日開催なし','開催なし','次回開催','データ取得準備中','休止中','休止','準備中','現在準備中','本日の開催は終了しました','翌日開催予定','仮時間')
 
 GCH_SPECIAL_IDS = {'jra.gch.hq', 'jra.gch.lq'}
-GCH_EPG_URL = 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/epg.xml'
+GCH_EPG_URL = 'https://raw.githubusercontent.com/ajiousama/himitsu/main/ganble/epg.xml'
 GCH_SPECIAL_KEYWORDS = (
     '海外競馬', '世界の競馬', 'ALL IN LINE', 'ＡＬＬ ＩＮ ＬＩＮＥ',
     'ジョッキークラブゴールドカップ', '凱旋門賞', 'ブリーダーズカップ',
