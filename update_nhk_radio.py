@@ -4,7 +4,7 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 CONFIG = "https://www.nhk.or.jp/radio/config/config_web.xml"
-OUT = Path("radio.m3u")
+OUT = Path("radio/playlist.m3u")
 LOGO = "https://upload.wikimedia.org/wikipedia/commons/b/bb/NHK_logo_2020.svg"
 
 WANTED = ["札幌", "仙台", "東京", "名古屋", "大阪", "広島", "松山", "福岡"]
