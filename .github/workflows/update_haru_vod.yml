@@ -7,11 +7,11 @@ on:
   push:
     branches: [main]
     paths:
-      - 'haru_vod.py'
-      - 'haru_vod_clips.py'
-      - 'haru_vod_freewifi.py'
-      - 'haru_vod_favorites.json'
-      - 'build_haru_kai_epg.py'
+      - 'haru/haru_vod.py'
+      - 'haru/haru_vod_clips.py'
+      - 'haru/haru_vod_freewifi.py'
+      - 'haru/haru_vod_favorites.json'
+      - 'haru/build_haru_kai_epg.py'
       - 'api/haru-clip.js'
       - 'assets/haru_vod/**'
       - '.github/workflows/update_haru_vod.yml'
@@ -73,15 +73,17 @@ jobs:
             echo "HARU VOD publish attempt $attempt/5"
             git fetch origin main
             git reset --hard origin/main
-            python build_haru_kai_epg.py
-            HARU_EPG_URL="file://${GITHUB_WORKSPACE}/haru_kai_epg.xml" python haru_vod.py \
+            python haru/build_haru_kai_epg.py
+            HARU_EPG_URL="file://${GITHUB_WORKSPACE}/haru/haru_kai_epg.xml" python haru/haru_vod.py \
               --check \
               --probe-timeout 4 \
               --max-age-days 14 \
               --max-per-program 20
-            python haru_vod_clips.py
+            python haru/haru_vod_clips.py
             # FreeWiFi injection disabled while HARU/blog is out of service
-            git add haru_kai_epg_history.xml haru_vod.m3u
+            cp haru/haru_vod.m3u haru_vod.m3u
+            cp haru/haru_kai_epg_history.xml haru_kai_epg_history.xml
+            git add haru/haru_vod.m3u haru/haru_kai_epg_history.xml haru_vod.m3u haru_kai_epg_history.xml
             if git diff --cached --quiet; then
               echo 'HARU VOD / FreeWiFi already current'
               exit 0
