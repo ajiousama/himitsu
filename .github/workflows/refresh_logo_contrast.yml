@@ -41,14 +41,14 @@ jobs:
       - name: Build contrast-safe radio and TV logos
         run: |
           python radio_tv_nationwide_freewifi.py
-          python logo_contrast_apply.py
+          python logos/tools/logo_contrast_apply.py
 
       - name: Validate logo output
         shell: bash
         run: |
           set -euo pipefail
           test -s freewifi
-          test -s logo_contrast_sources.json
+          test -s logos/contrast_sources.json
           test -d logos/contrast
           ! grep -F 'tvg-logo="tvg-logo=' freewifi
           test "$(grep -c '/logos/contrast/radiko\.' freewifi || true)" -eq 16
@@ -75,7 +75,7 @@ jobs:
             # Re-apply against the newest FreeWiFi so a newer BOAT/public-sports
             # update can never be overwritten by an older checkout.
             python radio_tv_nationwide_freewifi.py
-            python logo_contrast_apply.py
+            python logos/tools/logo_contrast_apply.py
 
             test "$(grep -c '/logos/contrast/radiko\.' freewifi || true)" -eq 16
             grep -F 'tvg-id="radiko.LFR"' freewifi >/dev/null
@@ -84,7 +84,7 @@ jobs:
             grep -F 'tvg-id="radiko.FMT"' freewifi >/dev/null
             ! grep -F 'tvg-logo="tvg-logo=' freewifi
 
-            git add freewifi logo_contrast_sources.json logos/contrast
+            git add freewifi logos/contrast_sources.json logos/contrast
             if git diff --cached --quiet; then
               echo "Contrast-safe logos already current"
               exit 0
