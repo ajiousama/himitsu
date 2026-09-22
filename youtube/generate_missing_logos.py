@@ -65,6 +65,26 @@ def split_name(name):
     mid = len(name) // 2
     return [name[:mid], name[mid:]]
 
+def is_port_item(item):
+    text = " ".join(str(item.get(k) or "") for k in ("id", "name", "query"))
+    return any(key in text.lower() for key in ("港", "port", "harbor", "terminal"))
+
+def draw_port_scene(d):
+    # Harbor illustration: sea, pier, ferry and port crane.
+    d.rectangle((28, 240, 484, 408), fill=(34, 132, 181, 255))
+    for y in (282, 322, 362):
+        d.arc((42, y - 12, 180, y + 18), 0, 180, fill="white", width=5)
+        d.arc((190, y - 8, 340, y + 22), 0, 180, fill="white", width=5)
+    d.rectangle((300, 274, 460, 314), fill=(88, 92, 98, 255))
+    d.rectangle((350, 205, 366, 276), fill=(235, 190, 60, 255))
+    d.line((358, 212, 430, 238), fill=(235, 190, 60, 255), width=10)
+    d.line((430, 238, 430, 284), fill=(235, 190, 60, 255), width=6)
+    d.polygon([(78, 312), (224, 312), (204, 350), (102, 350)], fill=(248, 248, 248, 255))
+    d.rectangle((116, 274, 184, 312), fill=(248, 248, 248, 255))
+    d.rectangle((130, 282, 144, 294), fill=(56, 95, 132, 255))
+    d.rectangle((154, 282, 168, 294), fill=(56, 95, 132, 255))
+    d.line((112, 351, 212, 351), fill=(18, 78, 120, 255), width=7)
+
 def draw_logo(item, out):
     top, bottom = PALETTES.get(item.get("group"), ((58, 94, 124), (226, 237, 243)))
     im = Image.new("RGBA", (W, H), (255, 255, 255, 255))
@@ -85,14 +105,18 @@ def draw_logo(item, out):
     bb = d.textbbox((0, 0), live, font=live_font)
     d.text(((512 - (bb[2] - bb[0])) // 2, 168), live, font=live_font, fill="white")
 
+    if is_port_item(item):
+        draw_port_scene(d)
+
     lines = split_name(item["name"])
+    name_y = 365 if is_port_item(item) else 286
     if len(lines) == 1:
         font = fit(d, lines[0], 450, 62, 30)
         bb = d.textbbox((0, 0), lines[0], font=font)
-        d.text(((512 - (bb[2] - bb[0])) // 2, 286), lines[0], font=font,
+        d.text(((512 - (bb[2] - bb[0])) // 2, name_y), lines[0], font=font,
                fill="white", stroke_width=5, stroke_fill="#102a43")
     else:
-        y = 260
+        y = 338 if is_port_item(item) else 260
         for line in lines[:2]:
             font = fit(d, line, 450, 48, 27)
             bb = d.textbbox((0, 0), line, font=font)
