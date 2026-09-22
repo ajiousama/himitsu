@@ -75,9 +75,9 @@ def render(entries) -> str:
     return "\n\n".join(f"{inf}\n{url}" for inf, url, _seq in entries) + "\n\n"
 
 
-def replace_section(text: str, start: str, end: str, prefix: str = "") -> str:
+def replace_section(text: str, start: str, end: str | None, prefix: str = "") -> str:
     a = text.index(start) + len(start)
-    b = text.index(end, a)
+    b = text.index(end, a) if end is not None else len(text)
     entries = group_by_channel(parse_entries(text[a:b]))
     return text[:a] + "\n" + prefix + render(entries) + text[b:]
 
@@ -95,16 +95,16 @@ def normalize(text: str) -> str:
     b = text.index(ge, a)
     text = text[:a] + "## グリーンCh\n\n" + render(group_by_channel(parse_entries(text[a:b]))) + text[b:]
 
-    text = replace_section(text, "## CS\n", "## ラジオ")
+    text = replace_section(text, "## CS\n", None)
 
     while "\n\n\n\n" in text:
         text = text.replace("\n\n\n\n", "\n\n\n")
     return text.rstrip() + "\n"
 
 
-def validate_grouping(text: str, start: str, end: str) -> None:
+def validate_grouping(text: str, start: str, end: str | None) -> None:
     a = text.index(start) + len(start)
-    b = text.index(end, a)
+    b = text.index(end, a) if end is not None else len(text)
     entries = parse_entries(text[a:b])
 
     seen = set()
@@ -136,16 +136,16 @@ def main() -> None:
     validate_grouping(updated, "## 地上波\n", "## BS")
     validate_grouping(updated, "## BS\n", "# === GREEN_CHANNEL_PERSISTENT_START ===")
     validate_grouping(updated, "# === GREEN_CHANNEL_PERSISTENT_START ===\n", "# === GREEN_CHANNEL_PERSISTENT_END ===")
-    validate_grouping(updated, "## CS\n", "## ラジオ")
+    validate_grouping(updated, "## CS\n", None)
 
     if "haru.charandom.blog" in updated or "(blog)" in updated:
-        raise RuntimeError("legacy blog source returned to FreeWiFi")
+        raise RuntimeError("legacy blog source returned to TV playlist")
 
     if updated != original:
         FREEWIFI.write_text(updated, encoding="utf-8")
         print("Normalized TV order per channel: haruka -> primehomeHD -> primehome -> TVer/other")
     else:
-        print("FreeWiFi per-channel source order already normalized")
+        print("TV playlist per-channel source order already normalized")
 
 
 if __name__ == "__main__":
