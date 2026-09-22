@@ -282,9 +282,11 @@ def resolve_general_one(index, item, previous):
         url, code = None, "EXCEPTION"
 
     old = previous.get(item["id"], {}).get("url")
-    if not url and code in TRANSIENT and old:
+    if not url and code in TRANSIENT and old and previous_safe_for_item(item, old):
         url = old
-        print(f'GENERAL keep previous: {item["id"]} [{code}]')
+        print(f'GENERAL keep safe previous: {item["id"]} [{code}]')
+    elif not url and old and code in TRANSIENT:
+        print(f'GENERAL discard unsafe previous: {item["id"]} [{code}]')
     elif not url and item.get("persistent") and page:
         url = page
         print(f'GENERAL keep persistent page: {item["id"]}')
@@ -317,6 +319,23 @@ def general_target(item):
     return GENERAL_SEARCH_PROXY + quote(query, safe="")
 
 
+def previous_safe_for_item(item, old_url):
+    """Only retain a previous URL when it is provably the same target.
+
+    A stale, wrongly-resolved YouTube URL is worse than a temporarily missing
+    channel. Fixed watch URLs must keep the same video id. Search/channel
+    targets are not retained unless explicitly opted in with retain_previous.
+    """
+    if not old_url:
+        return False
+    page = (item.get("page") or "").strip()
+    page_key = video_key(page)
+    old_key = video_key(old_url)
+    if page_key.startswith("video:"):
+        return old_key == page_key
+    return bool(item.get("retain_previous"))
+
+
 def update_general(config):
     # Resolve playable HLS in GitHub Actions. Do not make every channel depend
     # on the Render resolver at playback time: a resolver outage would blank
@@ -338,12 +357,14 @@ def update_general(config):
 
             if not url:
                 old = previous.get(item["id"], {}).get("url")
-                if old and "iptv-9x-browser-proxy.onrender.com/yt-" not in old:
-                    # Keep the last known direct URL on temporary misses and
-                    # offline/search ambiguity. A channel should not vanish
-                    # from Free WiFi just because one refresh failed.
+                if (
+                    code in TRANSIENT
+                    and old
+                    and "iptv-9x-browser-proxy.onrender.com/yt-" not in old
+                    and previous_safe_for_item(item, old)
+                ):
                     url = old
-                    print(f'GENERAL keep previous: {item["id"]} [{code}]')
+                    print(f'GENERAL keep safe previous: {item["id"]} [{code}]')
 
             if url:
                 resolved[i] = entry(item, url)
@@ -351,7 +372,23 @@ def update_general(config):
             else:
                 print(f'GENERAL unavailable: {item["id"]} [{code}]')
 
-    blocks = [x for x in resolved if x]
+    blocks = []
+    seen_video_keys = {}
+    for i, block in enumerate(resolved):
+        if not block:
+            continue
+        url = block.rsplit("\n", 1)[-1].strip()
+        key = video_key(url)
+        if key.startswith("video:") and key in seen_video_keys:
+            print(
+                f'GENERAL drop duplicate video: {config["general"][i]["id"]} '
+                f'== {seen_video_keys[key]} [{key}]'
+            )
+            continue
+        if key.startswith("video:"):
+            seen_video_keys[key] = config["general"][i]["id"]
+        blocks.append(block)
+
     if not blocks:
         raise SystemExit("refusing to publish empty general YouTube output")
     write_playlist(GENERAL_OUT, blocks)
