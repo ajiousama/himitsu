@@ -193,7 +193,7 @@ def add_fallback(out_root, target_id, target_name, target_group="", sports_statu
         desc = f"{target_name} / {sport.get('section','公営競技')}。実レースEPG取得失敗時の案内です。"
         category = str(sport.get("section") or "公営競技")
     elif is_youtube_live:
-        title = "📡✨ ただいまYouTubeよりライブカメラ中継中 ✨📡"; desc = f"🎥 LIVE CAMERA ON AIR 🎥\n📺 YouTubeからライブ映像を中継しています。\n📍 {target_name}"; category = "ライブカメラ"
+        title = f"📡 {target_name}｜YouTube LIVE"; desc = f"🎥 LIVE CAMERA ON AIR 🎥\n📺 YouTubeからライブ映像を中継しています。\n📍 {target_name}"; category = "ライブカメラ"
     elif target_id in ECATV_FALLBACK:
         title, desc, category = ECATV_FALLBACK[target_id]
     elif is_ecatv:
