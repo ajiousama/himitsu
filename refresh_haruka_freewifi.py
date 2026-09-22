@@ -5,7 +5,7 @@ import re
 import urllib.parse
 import urllib.request
 
-FREEWIFI = Path("freewifi")
+FREEWIFI = Path("tv/playlist.m3u")
 API_URL = "http://app.harukashop.site:3008/api/news/get-link"
 AU = os.environ.get("HARUKA_AU", "05zs80LO1csztPgNDkFeJcwkiSqNw9J6")
 HEADERS = {
