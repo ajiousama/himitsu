@@ -67,8 +67,6 @@ jobs:
           test -s radio/nhk.m3u
           test -s radio/nhk_stations.json
           test -s radio/playlist.m3u
-          test -s guides.xml
-          python -c "import xml.etree.ElementTree as ET; ET.parse('guides.xml'); print('XML OK')"
           grep -q 'NHKラジオ第1（松山）' radio/nhk.m3u
           grep -q 'NHK-FM（松山）' radio/nhk.m3u
           grep -q 'RNB南海放送（ラジオ）' radio/nationwide.m3u
@@ -80,17 +78,9 @@ jobs:
           RADIO_COUNT=$(grep -c 'tvg-id="radiko\.' radio/nationwide.m3u || true)
           NHK_COUNT=$(grep -E -c 'tvg-id="nhk_(r1|fm)_' radio/nhk.m3u || true)
           COMBINED_COUNT=$(grep -c '^#EXTINF:' radio/playlist.m3u || true)
-          RADIKO_EPG_CH=$(grep -c '<channel id="radiko\.' guides.xml || true)
-          RADIKO_EPG_PG=$(grep -c 'channel="radiko\.' guides.xml || true)
-          NHK_EPG_CH=$(grep -E -c '<channel id="nhk_(r1|fm)_' guides.xml || true)
-          NHK_EPG_PG=$(grep -E -c '<programme .*channel="nhk_(r1|fm)_' guides.xml || true)
           [ "$RADIO_COUNT" -ge 100 ]
           [ "$NHK_COUNT" -eq 16 ]
           [ "$COMBINED_COUNT" -ge 116 ]
-          [ "$RADIKO_EPG_CH" -ge 100 ]
-          [ "$RADIKO_EPG_PG" -ge 500 ]
-          [ "$NHK_EPG_CH" -gt 0 ]
-          [ "$NHK_EPG_PG" -gt 0 ]
 
       - name: Commit updated radio catalog and EPG
         shell: bash
@@ -98,11 +88,11 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           cp radio/playlist.m3u radio.m3u
-          git add radio/nationwide.m3u radio/nhk.m3u radio/nhk_stations.json radio/playlist.m3u radio.m3u guides.xml
+          git add radio/nationwide.m3u radio/nhk.m3u radio/nhk_stations.json radio/playlist.m3u radio.m3u
           if git diff --cached --quiet; then
             echo 'No radio changes'
             exit 0
           fi
-          git commit -m 'Update radio catalog and EPG'
+          git commit -m 'Update radio catalog'
           git pull --rebase origin main
           git push origin main
