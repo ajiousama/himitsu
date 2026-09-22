@@ -25,6 +25,9 @@ on:
       - "vod5/freewifi_live.m3u"
       - "vod5/freewifi_specials.m3u"
       - "ehime_catv/playlist.m3u"
+      - "council/playlist.m3u"
+      - "council/sync_freewifi.py"
+      - "council/update.py"
       - "ehime_catv/sync_freewifi.py"
       - "normalize_ganble_local.py"
       - "epg_build.py"
@@ -123,6 +126,7 @@ jobs:
           python tv/sync_freewifi.py
           python radio/sync_freewifi.py
           python ehime_catv/sync_freewifi.py
+          python council/sync_freewifi.py
           python rakuten/sync_freewifi.py
           python tver/sync_freewifi.py
           python vod5/sync_freewifi.py
@@ -158,7 +162,9 @@ jobs:
         run: python finalize_today_public_sports.py
 
       - name: Update council live visibility
-        run: python freewifi_council_live.py
+        run: |
+          python council/update.py
+          python council/sync_freewifi.py
 
       - name: Build compact current event counts
         run: python build_today_event_counts.py
