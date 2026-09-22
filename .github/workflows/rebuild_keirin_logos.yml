@@ -32,7 +32,7 @@ jobs:
           sudo apt-get install -y -qq fonts-noto-cjk
 
       - name: Generate keirin logos
-        run: python generate_keirin_logos.py
+        run: python logos/tools/generate_keirin_logos.py
 
       - name: Validate PNG set
         shell: bash
