@@ -6,7 +6,7 @@ from pathlib import Path
 
 SLUG = "joshua-hkd"
 API = f"https://kick.com/api/v2/channels/{SLUG}"
-FREEWIFI = Path("freewifi")
+FREEWIFI = Path("freewifi")\nLIVE_OUT = Path("vod5/freewifi_live.m3u")
 LOGO = "https://pbs.twimg.com/profile_images/826592912389451777/PnXfhxJD_400x400.jpg"
 PROXY = "https://kick-resolver.onrender.com/kick?ch=gccx2"
 
@@ -113,7 +113,7 @@ def write_state(*, live, playback_detected, lookup_ok):
     )
 
 
-def main():
+def write_live_projection(text):\n    start = text.find("# === KICK_MANAGED_START ===")\n    end_marker = "# === KICK_MANAGED_END ==="\n    end = text.find(end_marker, start + 1) if start >= 0 else -1\n    if start >= 0 and end >= 0:\n        LIVE_OUT.parent.mkdir(parents=True, exist_ok=True)\n        LIVE_OUT.write_text("#EXTM3U\\n\\n" + text[start:end + len(end_marker)].strip() + "\\n", encoding="utf-8")\n\n\ndef main():
     text = FREEWIFI.read_text(encoding="utf-8")
     old_url = current_cx2_url(text)
 
@@ -125,7 +125,7 @@ def main():
         if old_url:
             new_text = add_cx2(remove_cx2(text), PROXY)
             if new_text != text:
-                FREEWIFI.write_text(new_text, encoding="utf-8")
+                FREEWIFI.write_text(new_text, encoding="utf-8")\n        write_live_projection(new_text)\n                write_live_projection(new_text)
                 print("KICK lookup failed; preserved CX2 via stable Render resolver")
             else:
                 print("KICK lookup failed; existing CX2 proxy kept unchanged")
