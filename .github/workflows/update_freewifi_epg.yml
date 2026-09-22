@@ -30,14 +30,10 @@ on:
       - "council/update.py"
       - "ehime_catv/sync_freewifi.py"
       - "normalize_ganble_local.py"
-      - "epg_build.py"
-      - "epg_build_safe.py"
       - "radiko_epg.py"
-      - "radiko_epg_merge.py"
       - "radio_tv_nationwide.py"
       - "radio_tv_nationwide_freewifi.py"
       - "kick_channels.json"
-      - "kick_epg.py"
       - "kick_gccx2_sync.py"
       - "logos/kick_gccx2.svg"
       - "public_sports_epg_local.py"
@@ -53,12 +49,6 @@ on:
       - "youtube/output/mandarin.m3u"
       - "youtube/test_manager.py"
       - "public_sports_epg_local_fast.py"
-      - "public_sports_epg_merge.py"
-      - "keiba_epg_direct.py"
-      - "keirin_epg_direct.py"
-      - "autorace_epg_direct.py"
-      - "jra_epg_merge.py"
-      - "final_epg_audit.py"
       - "epg/epg_build.py"
       - "epg/epg_build_safe.py"
       - "epg/radiko_epg_merge.py"
@@ -76,7 +66,6 @@ on:
       - "freewifi_strip_public_boat.py"
       - "freewifi_today_jra.py"
       - "finalize_today_public_sports.py"
-      - "finalize_public_sports_prestart_epg.py"
       - "build_today_event_counts.py"
       - "verified_daily_status.json"
       - "freewifi_council_live.py"
@@ -145,7 +134,7 @@ jobs:
         run: |
           python -c "import xml.etree.ElementTree as ET; ET.parse('public_sports_epg_local.xml'); print('LOCAL PUBLIC SPORTS XML OK')"
           test -s verified_daily_status.json
-          ! grep -E 'earphone1981/public-sports-iptv' ganble/playlist.m3u public_sports_epg_local.py public_sports_epg_local_fast.py public_sports_epg_merge.py jra_epg_merge.py verified_daily_override.py
+          ! grep -E 'earphone1981/public-sports-iptv' ganble/playlist.m3u public_sports_epg_local.py public_sports_epg_local_fast.py epg/public_sports_epg_merge.py epg/jra_epg_merge.py verified_daily_override.py
 
       - name: Sync today's non-BOAT public sports venues into FreeWiFi
         run: |
