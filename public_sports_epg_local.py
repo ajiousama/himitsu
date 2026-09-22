@@ -11,8 +11,8 @@ import urllib.parse
 import urllib.request
 import xml.etree.ElementTree as ET
 
-import keirin_epg_direct as keirin_direct
-import autorace_epg_direct as auto_direct
+from epg import keirin_epg_direct as keirin_direct
+from epg import autorace_epg_direct as auto_direct
 from sports_race_time import race_time
 
 OUT = Path('public_sports_epg_local.xml')
