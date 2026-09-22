@@ -1,0 +1,115 @@
+{
+  "version": 1,
+  "group_title": "HARU VOD",
+  "max_per_program": 12,
+  "max_age_days": 14,
+  "epg_sources": [
+    "https://akariko−bck1.sankuria.sbs/epg/kai-epg.xml",
+    "https://akariko-bck1.sankuria.sbs/epg/kai-epg.xml"
+  ],
+  "discovery_playlist": "https://raw.githubusercontent.com/TvJapan/iptv-jp/main/jp_relay.m3u",
+  "favorites": [
+    {
+      "id": "0655",
+      "display": "0655",
+      "patterns": [
+        "^Eテレ0655",
+        "^0655"
+      ],
+      "preferred_channels": [
+        "gd02"
+      ],
+      "logo": ""
+    },
+    {
+      "id": "nightscoop",
+      "display": "探偵！ナイトスクープ",
+      "patterns": [
+        "探偵[!！]ナイトスクープ"
+      ],
+      "preferred_channels": [
+        "gx02",
+        "sport_live_plus"
+      ],
+      "logo": ""
+    },
+    {
+      "id": "nogikou",
+      "display": "乃木坂工事中",
+      "patterns": [
+        "^乃木坂工事中"
+      ],
+      "preferred_channels": [
+        "gd07",
+        "gx05"
+      ],
+      "logo": ""
+    },
+    {
+      "id": "homeru",
+      "display": "土曜のあさはほめるちゃん",
+      "patterns": [
+        "^土曜の(?:あさ|朝)はほめるちゃん"
+      ],
+      "preferred_channels": [
+        "gx01"
+      ],
+      "logo": ""
+    },
+    {
+      "id": "gobugobu",
+      "display": "ごぶごぶ",
+      "patterns": [
+        "^ごぶごぶ"
+      ],
+      "preferred_channels": [
+        "gx01"
+      ],
+      "logo": ""
+    },
+    {
+      "id": "vivant",
+      "display": "VIVANT",
+      "patterns": [
+        "^日曜劇場[「『]?VIVANT[」』]?第[0-9０-９]+話"
+      ],
+      "preferred_channels": [
+        "gd04",
+        "gx01"
+      ],
+      "logo": ""
+    },
+    {
+      "id": "tsurigoro",
+      "display": "釣りごろつられごろ",
+      "patterns": [
+        "釣りごろつられごろ"
+      ],
+      "preferred_channels": [
+        "gx03"
+      ],
+      "logo": ""
+    },
+    {
+      "id": "gccx",
+      "display": "ゲームセンターCX",
+      "patterns": [
+        "ゲームセンター(?:CX|ＣＸ)"
+      ],
+      "preferred_channels": [
+        "fuji_tv_one"
+      ],
+      "logo": "",
+      "dedupe_kick_episode_numbers": true
+    },
+    {
+      "id": "tetsuo",
+      "display": "鉄オタ選手権",
+      "patterns": [
+        "鉄オタ選手権"
+      ],
+      "preferred_channels": [],
+      "logo": ""
+    }
+  ]
+}
