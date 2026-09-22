@@ -4,7 +4,7 @@ from collections import OrderedDict
 from pathlib import Path
 import re
 
-FREEWIFI = Path("freewifi")
+FREEWIFI = Path("tv/playlist.m3u")
 
 TVER_PARENT = {
     "tver_tbs": "TBS_jp",
