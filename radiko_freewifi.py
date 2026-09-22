@@ -9,7 +9,7 @@ from pathlib import Path
 
 from radiko_epg import build_xmltv
 
-RADIO = Path("radio.m3u")
+RADIO = Path("radio/playlist.m3u")
 GUIDES = Path("guides.xml")
 UA = {"User-Agent": "Mozilla/5.0"}
 RADIO_TV_BASE = os.environ.get(
@@ -169,7 +169,7 @@ def main():
     if len(stations) < 100:
         raise SystemExit(f"radiko station discovery too small: {len(stations)}")
     radio_count = write_radio_playlist(stations)
-    print(f"radio.m3u stable TS Radiko stations: {radio_count}")
+    print(f"radio/playlist.m3u stable TS Radiko stations: {radio_count}")
     print("FreeWiFi untouched")
     if radio_count < 100:
         raise SystemExit("Radiko catalog result too small")
