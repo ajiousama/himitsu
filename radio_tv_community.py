@@ -16,12 +16,16 @@ COMMUNITY_STATIONS = {
     "FMOTOKUNI": ("FM OTOKUNI", "FM 86.2 MHz", (67, 139, 90), "FMOTOKUNI", None),
     "FM845": ("FM845", "FM 84.5 MHz", (185, 53, 86), "FM845", None),
     "BARIBARI": ("FM RADIO BARIBARI", "FM 78.9 MHz", (35, 113, 174), "BARIBARI", None),
+    "FMGAIYA": ("FM GAIYA", "FM 76.9 MHz", (36, 112, 181), "FMGAIYA", None),
+    "NIIHAMA": ("Hello! NEW Niihama FM", "FM 78.0 MHz", (236, 91, 47), "NIIHAMA", None),
 }
 
 COMMUNITY_LOGOS = {
     "FMOTOKUNI": "https://www.simulradio.info/data/161.jpg",
     "FM845": "https://radimo.s3.amazonaws.com/logo/97f3b857175c58d24de8ec54c956dff09aa4c301ab6e20150ff11d2d071f874b.jpg",
     "BARIBARI": "https://radimo.s3.amazonaws.com/logo/7fef6dc58526b7a6d55560ae97dacce850edf946b5cca38e54bd68de387b0e95.jpg",
+    "FMGAIYA": "https://radimo.s3.amazonaws.com/logo/86718bf5cbe18f2b2a48206a59f6c282e7f76d1564ae693c830dde10ee1927da.png",
+    "NIIHAMA": "https://radimo.s3.amazonaws.com/logo/373877bd84cd9bc3c9fa01f7309ef918dcbd6c805a116eee53bbf1cf9e8425aa.png",
 }
 
 BROWSER_UA = (
@@ -42,6 +46,8 @@ LISTENRADIO = {
 JCBA = {
     "FM845": "kyotoribingufm",
     "BARIBARI": "fmradiobaribari",
+    "FMGAIYA": "fmgaiya",
+    "NIIHAMA": "niihamafm",
 }
 
 # JCBA's select_stream is the geo-sensitive step. Resolve that short-lived
@@ -232,6 +238,8 @@ def install(impl) -> None:
             "FMOTOKUNI": "FM OTOKUNI 86.2",
             "FM845": "FM845 84.5",
             "BARIBARI": "FM BARIBARI 78.9",
+            "FMGAIYA": "FM GAIYA 76.9",
+            "NIIHAMA": "HELLO NEW NIIHAMA 78.0",
         }.get(station, station)
         box = draw.textbbox((0, 0), label, font=font)
         tw, th = box[2] - box[0], box[3] - box[1]
