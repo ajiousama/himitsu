@@ -104,7 +104,7 @@ jobs:
           test "$combined_render_count" -ge 116
 
           test "$(grep -c '^#EXTINF:' /tmp/freewifi-radio.txt)" -eq 21
-          test "$(grep -c 'group-title="ラジオ"' /tmp/freewifi-radio.txt)" -eq 19
+          test "$(grep -c 'group-title="ラジオ"' /tmp/freewifi-radio.txt)" -eq 21
           test "$(grep -c '^#EXTINF:' radio/nationwide.m3u)" -ge 100
           test "$(grep -c '^#EXTINF:' radio/nhk.m3u)" -eq 16
           test "$(grep -c '^#EXTINF:' radio/playlist.m3u)" -ge 116
