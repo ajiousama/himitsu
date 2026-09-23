@@ -37,6 +37,7 @@ class YouTubeV2StructureTests(unittest.TestCase):
         unguarded = [
             item["id"] for item in cfg["general"]
             if not (item.get("page") or "").strip()
+            and not (item.get("direct_url") or "").strip()
             and not (item.get("guard_terms") or [])
         ]
         self.assertEqual(unguarded, [])
