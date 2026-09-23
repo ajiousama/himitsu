@@ -33,6 +33,9 @@ def gch_special_broadcasts_today(now):
  for ch in root.findall('channel'):
   cid=str(ch.get('id') or '')
   names=' '.join((x.text or '') for x in ch.findall('display-name'))
+  # Generated HQ/LQ mirrors must never become the trigger source themselves.
+  if cid.startswith('jra.gch.'):
+   continue
   if 'グリーンチャンネル' in names or 'グリーンチャンネル' in cid:
    gch_ids.add(cid)
 
