@@ -97,19 +97,19 @@ jobs:
 
           test "$free_direct_count" -eq 0
           test "$free_vercel_count" -eq 16
-          test "$free_render_count" -eq 5
+          test "$free_render_count" -eq 12
           test "$free_ts_count" -eq 0
           test "$nationwide_render_count" -ge 100
           test "$nhk_render_count" -eq 16
           test "$combined_render_count" -ge 116
 
-          test "$(grep -c '^#EXTINF:' /tmp/freewifi-radio.txt)" -eq 21
-          test "$(grep -c 'group-title="ラジオ"' /tmp/freewifi-radio.txt)" -eq 21
+          test "$(grep -c '^#EXTINF:' /tmp/freewifi-radio.txt)" -eq 28
+          test "$(grep -c 'group-title="ラジオ"' /tmp/freewifi-radio.txt)" -eq 28
           test "$(grep -c '^#EXTINF:' radio/nationwide.m3u)" -ge 100
           test "$(grep -c '^#EXTINF:' radio/nhk.m3u)" -eq 16
           test "$(grep -c '^#EXTINF:' radio/playlist.m3u)" -ge 116
 
-          test "$(grep -c '/logos/contrast/radiko\.' /tmp/freewifi-radio.txt || true)" -eq 16
+          test "$(grep -c '/logos/contrast/radiko\.' /tmp/freewifi-radio.txt || true)" -eq 22
           ! grep -Fq "$base" radio/nationwide.m3u
           ! grep -Fq "$base" radio/nhk.m3u
           ! grep -Fq "$base" radio/playlist.m3u
@@ -127,11 +127,17 @@ jobs:
           grep -Fq "${vercel}KBS" /tmp/freewifi-radio.txt
           grep -Fq "${render}FMOTOKUNI" /tmp/freewifi-radio.txt
           grep -Fq "${render}FM845" /tmp/freewifi-radio.txt
+          grep -Fq "${render}HBC" /tmp/freewifi-radio.txt
+          grep -Fq "${render}TBC" /tmp/freewifi-radio.txt
+          grep -Fq "${render}CBC" /tmp/freewifi-radio.txt
+          grep -Fq "${render}RCC" /tmp/freewifi-radio.txt
+          grep -Fq "${render}RKB" /tmp/freewifi-radio.txt
+          grep -Fq "${render}KBC" /tmp/freewifi-radio.txt
+          grep -Fq "${render}nhk_r1_matsuyama" /tmp/freewifi-radio.txt
           grep -Fq "${render}BARIBARI" /tmp/freewifi-radio.txt
           grep -Fq "${render}NIIHAMA" /tmp/freewifi-radio.txt
           grep -Fq "${render}FMGAIYA" /tmp/freewifi-radio.txt
 
-          ! grep -Eq 'NHKラジオ|NHK-FM|nhk_(r1|fm)_' /tmp/freewifi-radio.txt
           ! grep -Eq '^## (愛媛|在阪|京都|滋賀|兵庫)（ラジオ）$' /tmp/freewifi-radio.txt
 
           test -f logos/contrast/radiko.LFR_*.png
