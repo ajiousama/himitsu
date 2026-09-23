@@ -4,6 +4,8 @@ const UA = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/6
 const STATIONS = {
   FM845: 'kyotoribingufm',
   BARIBARI: 'fmradiobaribari',
+  FMGAIYA: 'fmgaiya',
+  NIIHAMA: 'niihamafm',
 };
 
 export default async function handler(req, res) {
