@@ -17,43 +17,34 @@ QUALITY_IDS={f'{base}.{q}' if base!='jra.hokkaido' else f'jra.local.{q}' for bas
 LEGACY_FREE_IDS={'jra.official','jra.gch.free'}
 
 
-GRADE_RE = re.compile(r'(?i)(?:Jpn\s*(?:I{1,3}|[123])|G\s*(?:I{1,3}|[123])|Jpn[ⅠⅡⅢ]|G[ⅠⅡⅢ])')
-OVERSEAS_RE = re.compile(r'(?:海外競馬|海外馬券|凱旋門賞|ブリーダーズ.?カップ|ドバイ(?:ワールドカップ|シーマクラシック|ターフ)|香港国際競走|香港カップ|香港マイル|香港スプリント|香港ヴァーズ|サウジカップ|ロイヤルアスコット|メルボルンカップ)', re.I)
+GCH_TRIGGER_RE = re.compile(r'(?:海外競馬中継|地方競馬中継)', re.I)
 
-def local_graded_races_today(now):
- graded=[]
- if not LOCAL_EPG.exists(): return graded
- try:
-  root=ET.parse(LOCAL_EPG).getroot()
- except Exception:
-  return graded
- date_prefix=now.strftime('%Y%m%d')
- for p in root.findall('programme'):
-  if not str(p.get('channel') or '').startswith('chihou.'): continue
-  start=str(p.get('start') or '')
-  if not start.startswith(date_prefix): continue
-  title=' '.join((p.findtext('title') or '', p.findtext('desc') or ''))
-  m=GRADE_RE.search(title)
-  if m:
-   graded.append({'channel':p.get('channel'),'grade':m.group(0),'title':(p.findtext('title') or '').strip()})
- return graded
-
-def overseas_races_today(now):
+def gch_special_broadcasts_today(now):
  events=[]
  if not GUIDES.exists(): return events
  try:
   root=ET.parse(GUIDES).getroot()
  except Exception:
   return events
+
+ # Find the actual Green Channel EPG channel IDs from channel/display-name,
+ # instead of assuming one hard-coded XMLTV id.
+ gch_ids=set()
+ for ch in root.findall('channel'):
+  cid=str(ch.get('id') or '')
+  names=' '.join((x.text or '') for x in ch.findall('display-name'))
+  if 'グリーンチャンネル' in names or 'グリーンチャンネル' in cid:
+   gch_ids.add(cid)
+
  date_prefix=now.strftime('%Y%m%d')
  for p in root.findall('programme'):
+  if str(p.get('channel') or '') not in gch_ids: continue
   start=str(p.get('start') or '')
   if not start.startswith(date_prefix): continue
   title=(p.findtext('title') or '').strip()
   desc=(p.findtext('desc') or '').strip()
-  text=' '.join((title,desc))
-  if OVERSEAS_RE.search(text):
-   events.append({'channel':p.get('channel'),'title':title})
+  if GCH_TRIGGER_RE.search(' '.join((title,desc))):
+   events.append({'channel':p.get('channel'),'title':title,'start':start})
  return events
 
 def strip(text):
@@ -69,12 +60,13 @@ def strip(text):
  return '\n'.join(out).rstrip()+'\n'
 
 def main():
- now=datetime.now(JST); reported=[]; local_graded=local_graded_races_today(now); overseas=overseas_races_today(now)
+ now=datetime.now(JST); reported=[]; gch_special=gch_special_broadcasts_today(now)
  try:
   cfg=json.loads(VERIFIED.read_text(encoding='utf-8-sig'))
   if cfg.get('date')==now.date().isoformat(): reported=[x for x in cfg.get('jra_active_ids',[]) if x in SOURCES]
  except Exception: pass
- active=list(dict.fromkeys(['jra.gch',*reported])) if (reported or local_graded or overseas) else []
+ active=[x for x in dict.fromkeys(reported) if x != 'jra.gch']
+ if gch_special: active.insert(0,'jra.gch')
  base=strip(FREEWIFI.read_text(encoding='utf-8-sig',errors='replace')); rows=[]; exposed=[]
  for source in active:
   name,hq,lq,hqlogo,lqlogo=SOURCES[source]
@@ -87,6 +79,6 @@ def main():
  anchor='# === GENERAL_YOUTUBE_MANAGED_START ==='
  text=base.replace(anchor,managed+'\n\n'+anchor,1) if anchor in base else base.rstrip()+'\n\n'+managed+'\n'
  FREEWIFI.write_text(text.rstrip()+'\n',encoding='utf-8')
- STATUS.write_text(json.dumps({'generated_at':now.isoformat(),'active_count':len(active),'active_ids':active,'active_labels':[SOURCES[x][0] for x in active],'exposed_quality_ids':exposed,'local_graded_races':local_graded,'overseas_races':overseas,'gch_reason':('JRA active' if reported else ('local graded race' if local_graded else ('overseas race broadcast' if overseas else None))),'channels':{x:{'active':x in active,'source':'earphone HQ/LQ canonical'} for x in SOURCES}},ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+ STATUS.write_text(json.dumps({'generated_at':now.isoformat(),'active_count':len(active),'active_ids':active,'active_labels':[SOURCES[x][0] for x in active],'exposed_quality_ids':exposed,'gch_special_broadcasts':gch_special,'gch_reason':('GCH programme guide: overseas/local race broadcast' if gch_special else None),'channels':{x:{'active':x in active,'source':'earphone HQ/LQ canonical'} for x in SOURCES}},ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
  print('JRA earphone HQ/LQ active:',exposed)
 if __name__=='__main__': main()
