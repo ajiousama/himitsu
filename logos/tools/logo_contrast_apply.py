@@ -177,10 +177,17 @@ def main() -> int:
     for src, meta in db.items():
         path = meta.get("path") or local_relpath(meta.get("tvg_id", "logo"), src)
         meta["path"] = path
-        items.append((src, path, str(meta.get("tvg_id") or "")))\n
+        items.append((src, path, str(meta.get("tvg_id") or "")))
+
     errors: dict[str, str] = {}
     with concurrent.futures.ThreadPoolExecutor(max_workers=8) as ex:
-        futs = {ex.submit(make_white_card, src, path, tvgid): (src, path, tvgid) for src, path, tvgid in items}\n        for fut in concurrent.futures.as_completed(futs):\n            src, path, tvgid = futs[fut]\n            _, err = fut.result()
+        futs = {
+            ex.submit(make_white_card, src, path, tvgid): (src, path, tvgid)
+            for src, path, tvgid in items
+        }
+        for fut in concurrent.futures.as_completed(futs):
+            src, path, tvgid = futs[fut]
+            _, err = fut.result()
             if err:
                 errors[src] = err
 
