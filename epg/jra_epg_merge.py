@@ -54,7 +54,9 @@ def main():
  # local-horse-racing programmes so final audit never sees an orphan channel.
  local_graded=[]
  grade_re=re.compile(r'(?i)(?:Jpn\\s*(?:I{1,3}|[123])|G\\s*(?:I{1,3}|[123])|Jpn[ⅠⅡⅢ]|G[ⅠⅡⅢ])')
- for p in src.findall('programme'):
+ # NAR direct repair writes the authoritative local-racing programmes into
+ # guides.xml before this step, so scan the merged guide tree (not LOCAL).
+ for p in root.findall('programme'):
   cid=p.get('channel') or ''
   if not cid.startswith('chihou.'): continue
   text=' '.join(((p.findtext('title') or ''),(p.findtext('desc') or '')))
