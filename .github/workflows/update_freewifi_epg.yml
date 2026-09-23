@@ -108,6 +108,9 @@ jobs:
         with:
           node-version: '22'
 
+      - name: Prepare YouTube logos before canonical sync
+        run: python youtube/generate_missing_logos.py
+
       - name: Sync canonical subsystem projections
         run: |
           python tv/sync_freewifi.py
