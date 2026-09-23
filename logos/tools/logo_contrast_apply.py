@@ -10,7 +10,7 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 
-from PIL import Image, ImageOps
+from PIL import Image, ImageOps, ImageChops
 
 FREEWIFI = Path("freewifi")
 DB_PATH = Path("logos/contrast_sources.json")
@@ -31,6 +31,9 @@ TARGET_HOSTS = {
     "www.lyngsat.com",
     "lyngsat.com",
     "upload.wikimedia.org",
+    "images.weserv.nl",
+    "www.lyngsat-logo.com",
+    "lyngsat-logo.com",
 }
 
 RADIO_SIDS = [
@@ -82,15 +85,11 @@ def fetch_image(url: str, timeout: int = 15) -> Image.Image:
     return im.convert("RGBA")
 
 
-def make_white_card(source_url: str, relpath: str) -> tuple[str, str | None]:
-    out = Path(relpath)
+def trim_light_margin(im: Image.Image) -> Image.Image:\n    rgba = im.convert("RGBA")\n    # Composite on white, then find pixels that materially differ from white.\n    white = Image.new("RGBA", rgba.size, (255, 255, 255, 255))\n    comp = Image.alpha_composite(white, rgba)\n    rgb = comp.convert("RGB")\n    bg = Image.new("RGB", rgb.size, (255, 255, 255))\n    diff = ImageChops.difference(rgb, bg).convert("L")\n    # Ignore tiny JPEG/antialias noise in nominally white margins.\n    diff = diff.point(lambda p: 255 if p > 22 else 0)\n    bbox = diff.getbbox()\n    if not bbox:\n        return rgba\n    l, t, r, b = bbox\n    pad = max(6, int(max(r-l, b-t) * 0.05))\n    l=max(0,l-pad); t=max(0,t-pad); r=min(rgba.width,r+pad); b=min(rgba.height,b+pad)\n    return rgba.crop((l,t,r,b))\n\n\ndef make_white_card(source_url: str, relpath: str, tvgid: str = "") -> tuple[str, str | None]:\n    out = Path(relpath)
     try:
-        im = fetch_image(source_url)
-        # A 512x512 white card is intentionally used so black-background IPTV
-        # clients never swallow black/dark or transparent portions of logos.
+        im = fetch_image(source_url)\n        if tvgid in ZOOM_IDS:\n            im = trim_light_margin(im)\n        # A 512x512 white card is intentionally used so black-background IPTV\n        # clients never swallow black/dark or transparent portions of logos.
         card = Image.new("RGBA", (512, 512), (255, 255, 255, 255))
-        fitted = ImageOps.contain(im, (448, 448), method=Image.Resampling.LANCZOS)
-        x = (512 - fitted.width) // 2
+        max_box = (480, 480) if tvgid in ZOOM_IDS else (448, 448)\n        fitted = ImageOps.contain(im, max_box, method=Image.Resampling.LANCZOS)\n        x = (512 - fitted.width) // 2
         y = (512 - fitted.height) // 2
         card.alpha_composite(fitted, (x, y))
         out.parent.mkdir(parents=True, exist_ok=True)
@@ -149,14 +148,10 @@ def main() -> int:
     for src, meta in db.items():
         path = meta.get("path") or local_relpath(meta.get("tvg_id", "logo"), src)
         meta["path"] = path
-        items.append((src, path))
-
+        items.append((src, path, str(meta.get("tvg_id") or "")))\n
     errors: dict[str, str] = {}
     with concurrent.futures.ThreadPoolExecutor(max_workers=8) as ex:
-        futs = {ex.submit(make_white_card, src, path): (src, path) for src, path in items}
-        for fut in concurrent.futures.as_completed(futs):
-            src, path = futs[fut]
-            _, err = fut.result()
+        futs = {ex.submit(make_white_card, src, path, tvgid): (src, path, tvgid) for src, path, tvgid in items}\n        for fut in concurrent.futures.as_completed(futs):\n            src, path, tvgid = futs[fut]\n            _, err = fut.result()
             if err:
                 errors[src] = err
 
