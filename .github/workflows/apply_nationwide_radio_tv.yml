@@ -70,6 +70,7 @@ jobs:
         run: |
           set -euo pipefail
           direct='https://himitsu-six.vercel.app/api/radiko?station='
+          vercel='https://himitsu-six.vercel.app/api/radio-tv?station='
           render='https://ajiousama-radiko.onrender.com/radio-tv/'
           base='https://raw.githubusercontent.com/ajiousama/himitsu/radio-ts-assets/'
 
@@ -81,19 +82,22 @@ jobs:
           sed -n "${radio_start},$((catv_start - 1))p" freewifi > /tmp/freewifi-radio.txt
 
           free_direct_count="$(grep -Fc "$direct" /tmp/freewifi-radio.txt || true)"
+          free_vercel_count="$(grep -Fc "$vercel" /tmp/freewifi-radio.txt || true)"
           free_render_count="$(grep -Fc "$render" /tmp/freewifi-radio.txt || true)"
           free_ts_count="$(grep -Fc "$base" /tmp/freewifi-radio.txt || true)"
           nationwide_render_count="$(grep -Fc "$render" radio/nationwide.m3u || true)"
           nhk_render_count="$(grep -Fc "$render" radio/nhk.m3u || true)"
           combined_render_count="$(grep -Fc "$render" radio/playlist.m3u || true)"
 
-          echo "FreeWiFi Render image+audio count=$free_render_count"
+          echo "FreeWiFi Vercel Radiko image+audio count=$free_vercel_count"
+          echo "FreeWiFi Render community image+audio count=$free_render_count"
           echo "Nationwide Render static-video count=$nationwide_render_count"
           echo "NHK Render static-video count=$nhk_render_count"
           echo "Combined Render static-video count=$combined_render_count"
 
           test "$free_direct_count" -eq 0
-          test "$free_render_count" -eq 19
+          test "$free_vercel_count" -eq 16
+          test "$free_render_count" -eq 3
           test "$free_ts_count" -eq 0
           test "$nationwide_render_count" -ge 100
           test "$nhk_render_count" -eq 16
@@ -113,18 +117,18 @@ jobs:
 
           grep -Fq "${render}nhk_r1_matsuyama" radio/nhk.m3u
           grep -Fq "${render}nhk_fm_matsuyama" radio/nhk.m3u
-          grep -Fq "${render}RNB" /tmp/freewifi-radio.txt
-          grep -Fq "${render}LFR" /tmp/freewifi-radio.txt
-          grep -Fq "${render}QRR" /tmp/freewifi-radio.txt
-          grep -Fq "${render}TBS" /tmp/freewifi-radio.txt
-          grep -Fq "${render}FMT" /tmp/freewifi-radio.txt
-          grep -Fq "${render}OBC" /tmp/freewifi-radio.txt
-          grep -Fq "${render}KBS" /tmp/freewifi-radio.txt
+          grep -Fq "${vercel}JOEU-FM" /tmp/freewifi-radio.txt
+          grep -Fq "${vercel}RNB" /tmp/freewifi-radio.txt
+          grep -Fq "${vercel}LFR" /tmp/freewifi-radio.txt
+          grep -Fq "${vercel}QRR" /tmp/freewifi-radio.txt
+          grep -Fq "${vercel}TBS" /tmp/freewifi-radio.txt
+          grep -Fq "${vercel}FMT" /tmp/freewifi-radio.txt
+          grep -Fq "${vercel}OBC" /tmp/freewifi-radio.txt
+          grep -Fq "${vercel}KBS" /tmp/freewifi-radio.txt
           grep -Fq "${render}FMOTOKUNI" /tmp/freewifi-radio.txt
           grep -Fq "${render}FM845" /tmp/freewifi-radio.txt
           grep -Fq "${render}BARIBARI" /tmp/freewifi-radio.txt
 
-          ! grep -q 'himitsu-six.vercel.app/api/radio-tv' /tmp/freewifi-radio.txt
           ! grep -Eq 'NHKラジオ|NHK-FM|nhk_(r1|fm)_' /tmp/freewifi-radio.txt
           ! grep -Eq '^## (愛媛|在阪|京都|滋賀|兵庫)（ラジオ）$' /tmp/freewifi-radio.txt
 
