@@ -85,11 +85,40 @@ def fetch_image(url: str, timeout: int = 15) -> Image.Image:
     return im.convert("RGBA")
 
 
-def trim_light_margin(im: Image.Image) -> Image.Image:\n    rgba = im.convert("RGBA")\n    # Composite on white, then find pixels that materially differ from white.\n    white = Image.new("RGBA", rgba.size, (255, 255, 255, 255))\n    comp = Image.alpha_composite(white, rgba)\n    rgb = comp.convert("RGB")\n    bg = Image.new("RGB", rgb.size, (255, 255, 255))\n    diff = ImageChops.difference(rgb, bg).convert("L")\n    # Ignore tiny JPEG/antialias noise in nominally white margins.\n    diff = diff.point(lambda p: 255 if p > 22 else 0)\n    bbox = diff.getbbox()\n    if not bbox:\n        return rgba\n    l, t, r, b = bbox\n    pad = max(6, int(max(r-l, b-t) * 0.05))\n    l=max(0,l-pad); t=max(0,t-pad); r=min(rgba.width,r+pad); b=min(rgba.height,b+pad)\n    return rgba.crop((l,t,r,b))\n\n\ndef make_white_card(source_url: str, relpath: str, tvgid: str = "") -> tuple[str, str | None]:\n    out = Path(relpath)
+def trim_light_margin(im: Image.Image) -> Image.Image:
+    rgba = im.convert("RGBA")
+    # Composite on white, then find pixels that materially differ from white.
+    white = Image.new("RGBA", rgba.size, (255, 255, 255, 255))
+    comp = Image.alpha_composite(white, rgba)
+    rgb = comp.convert("RGB")
+    bg = Image.new("RGB", rgb.size, (255, 255, 255))
+    diff = ImageChops.difference(rgb, bg).convert("L")
+    # Ignore tiny JPEG/antialias noise in nominally white margins.
+    diff = diff.point(lambda p: 255 if p > 22 else 0)
+    bbox = diff.getbbox()
+    if not bbox:
+        return rgba
+    l, t, r, b = bbox
+    pad = max(6, int(max(r - l, b - t) * 0.05))
+    l = max(0, l - pad)
+    t = max(0, t - pad)
+    r = min(rgba.width, r + pad)
+    b = min(rgba.height, b + pad)
+    return rgba.crop((l, t, r, b))
+
+
+def make_white_card(source_url: str, relpath: str, tvgid: str = "") -> tuple[str, str | None]:
+    out = Path(relpath)
     try:
-        im = fetch_image(source_url)\n        if tvgid in ZOOM_IDS:\n            im = trim_light_margin(im)\n        # A 512x512 white card is intentionally used so black-background IPTV\n        # clients never swallow black/dark or transparent portions of logos.
+        im = fetch_image(source_url)
+        if tvgid in ZOOM_IDS:
+            im = trim_light_margin(im)
+        # A 512x512 white card is intentionally used so black-background IPTV
+        # clients never swallow black/dark or transparent portions of logos.
         card = Image.new("RGBA", (512, 512), (255, 255, 255, 255))
-        max_box = (480, 480) if tvgid in ZOOM_IDS else (448, 448)\n        fitted = ImageOps.contain(im, max_box, method=Image.Resampling.LANCZOS)\n        x = (512 - fitted.width) // 2
+        max_box = (480, 480) if tvgid in ZOOM_IDS else (448, 448)
+        fitted = ImageOps.contain(im, max_box, method=Image.Resampling.LANCZOS)
+        x = (512 - fitted.width) // 2
         y = (512 - fitted.height) // 2
         card.alpha_composite(fitted, (x, y))
         out.parent.mkdir(parents=True, exist_ok=True)
