@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   workflow_run:
     workflows:
-      - "Update FreeWiFi ALL（手動一発 / 自動EPG）"
+      - "Update FreeWiFi ALL（ajiousama単独 / 自動EPG）"
     types:
       - completed
   schedule:
@@ -21,7 +21,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: himitsu-freewifi-writer
+  group: himitsu-freewifi-state-writer
   cancel-in-progress: false
 
 jobs:
