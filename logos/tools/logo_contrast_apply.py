@@ -34,6 +34,7 @@ TARGET_HOSTS = {
     "images.weserv.nl",
     "www.lyngsat-logo.com",
     "lyngsat-logo.com",
+    "radimo.s3.amazonaws.com",
 }
 
 RADIO_SIDS = [
@@ -42,6 +43,13 @@ RADIO_SIDS = [
     "ALPHA-STATION", "E-RADIO", "CRK",
 ]
 EXPECTED_RADIO_COUNT = len(RADIO_SIDS)
+
+# These logos have large blank/light margins in their source artwork.
+ZOOM_IDS = {
+    "MTV_jp",
+    "WOWOWプラス_jp",
+    "FIGHTING-TV-サムライ_jp",
+}
 
 LOGO_RE = re.compile(r'tvg-logo="([^"]+)"')
 ID_RE = re.compile(r'tvg-id="([^"]+)"')
