@@ -276,7 +276,10 @@ def playlist_body(path):
 
 def resolve_general_one(index, item, previous):
     page = (item.get("page") or "").strip()
+    direct_url = (item.get("direct_url") or "").strip()
     try:
+        if direct_url:
+            return index, item, direct_url, "DIRECT"
         if page:
             is_watch = "watch?v=" in page or "youtu.be/" in page
             guards = item.get("guard_terms") or []
