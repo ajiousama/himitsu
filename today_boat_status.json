@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-23",
-  "generated_at": "2026-09-23T14:27:28.232908+09:00",
+  "generated_at": "2026-09-23T14:28:28.184812+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260923.json",
   "schedule_checked_at": "2026-09-23T14:20:28.087936+09:00",
@@ -22,7 +22,8 @@
   "visible_count": 12,
   "active_count": 9,
   "ended_kept": [
-    "三国"
+    "三国",
+    "徳山"
   ],
   "seed_required": false,
   "seed_required_venues": [],
@@ -31,8 +32,8 @@
     "morning": {
       "held": 2,
       "acquired": 2,
-      "active": 1,
-      "ended": 1,
+      "active": 0,
+      "ended": 2,
       "seed_required": 0,
       "cancelled": 0
     },
@@ -47,15 +48,15 @@
     "night": {
       "held": 3,
       "acquired": 2,
-      "active": 0,
+      "active": 1,
       "ended": 0,
       "seed_required": 0,
       "cancelled": 0
     }
   },
   "cloud_acquisition": {
-    "requested": 12,
-    "fetched": 11,
+    "requested": 11,
+    "fetched": 10,
     "failures": [
       {
         "jcd": "01",
@@ -1187,8 +1188,8 @@
       "name": "徳山",
       "held": true,
       "visible": true,
-      "ended": false,
-      "active": true,
+      "ended": true,
+      "active": false,
       "cancelled": false,
       "mode": "morning",
       "mode_label": "モーニング",
@@ -1196,11 +1197,11 @@
       "last_race": "14:25",
       "alert_from": "2026-09-23T08:14:00+09:00",
       "next_race": null,
-      "stream_window": "live_or_prestart",
+      "stream_window": "ended_kept",
       "intermission": null,
       "guidance_switch_at": "2026-09-23T15:10:00+09:00",
       "seed_required": false,
-      "reverify_due": true,
+      "reverify_due": false,
       "playback_verified": true,
       "first_verified_at": "2026-09-23T08:09:59.414870+09:00",
       "ready_before_first_race": true,
@@ -1277,7 +1278,7 @@
       "held": true,
       "visible": true,
       "ended": false,
-      "active": false,
+      "active": true,
       "cancelled": false,
       "mode": "night",
       "mode_label": "ナイター",
@@ -1288,7 +1289,7 @@
         "race": 1,
         "start": "14:58"
       },
-      "stream_window": "scheduled",
+      "stream_window": "live_or_prestart",
       "intermission": null,
       "guidance_switch_at": "2026-09-23T21:25:00+09:00",
       "seed_required": false,
