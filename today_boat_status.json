@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-23",
-  "generated_at": "2026-09-23T09:55:31.947244+09:00",
+  "generated_at": "2026-09-23T09:59:31.948006+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260923.json",
   "schedule_checked_at": "2026-09-23T09:53:31.947180+09:00",
@@ -19,7 +19,7 @@
   "alert_lead_minutes": 30,
   "card_count": 13,
   "held_count": 13,
-  "visible_count": 3,
+  "visible_count": 4,
   "active_count": 2,
   "ended_kept": [],
   "seed_required": false,
@@ -36,7 +36,7 @@
     },
     "day": {
       "held": 8,
-      "acquired": 1,
+      "acquired": 2,
       "active": 0,
       "ended": 0,
       "seed_required": 0,
@@ -53,7 +53,7 @@
   },
   "cloud_acquisition": {
     "requested": 10,
-    "fetched": 3,
+    "fetched": 4,
     "failures": [
       {
         "jcd": "02",
@@ -68,11 +68,6 @@
       {
         "jcd": "06",
         "name": "浜名湖",
-        "error": "HTTPError: playback check failed"
-      },
-      {
-        "jcd": "08",
-        "name": "常滑",
         "error": "HTTPError: playback check failed"
       },
       {
@@ -101,17 +96,33 @@
     "kind": "healthy"
   },
   "streams": {
+    "boat.tokoname": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/5feec208aec24b7a848bfebd32541464/740851e928d94dc49b6ea99c693a6acf/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MDI5ODAwMCwic3RhcnQiOjE3OTAxMjUxNDAsImlvcyI6MTgsImNwIjoiMjEyMzIwNzQwXzIxMjM2MzkzOSIsInBwdyI6IjQwayJ9.koxr5xtkftunhRZJefxsew5iDeMwZXkYBy8FjBtYxK4",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-09-23T09:59:59.135898+09:00",
+      "checked_at": "2026-09-23T09:59:59.135898+09:00",
+      "first_verified_at": "2026-09-23T09:59:59.135898+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 8205201,
+        "last_segment": "/5feec208aec24b7a848bfebd32541464/740851e928d94dc49b6ea99c693a6acf/manifest_4_8205210.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
+    },
     "boat.mikuni": {
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/b095cb5ce98644eeb4f32a778df3b231/84ba1fc53ba2408792e3950a340ba65e/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MDI5MDgwMCwic3RhcnQiOjE3OTAxMTc4MjAsImlvcyI6MTgsImNwIjoiMjEyMzEzNDIwXzIxMjM1NjYxOSIsInBwdyI6IjQwayJ9.YP4Spy9-6rwXBUGh1cPzQ0pVMsblgJCSH3nMvyKShhA",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-09-23T07:58:07.228595+09:00",
-      "checked_at": "2026-09-23T09:50:59.259006+09:00",
+      "checked_at": "2026-09-23T09:59:59.136509+09:00",
       "first_verified_at": "2026-09-23T07:58:07.228595+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
         "sequence": 8199095,
-        "last_segment": "/b095cb5ce98644eeb4f32a778df3b231/84ba1fc53ba2408792e3950a340ba65e/manifest_4_8200234.ts",
+        "last_segment": "/b095cb5ce98644eeb4f32a778df3b231/84ba1fc53ba2408792e3950a340ba65e/manifest_4_8200324.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -137,13 +148,13 @@
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/9869560a72b74b4cbec616654af82fd6/ac3e633081d94f0c9999f42d80498823/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MDI5NDQwMCwic3RhcnQiOjE3OTAxMTg1NDAsImlvcyI6MTgsImNwIjoiMjEyMzE0MTQwXzIxMjM1NzMzOSIsInBwdyI6IjQwayJ9.hmeZ_h8olCNQeIDZqOff7ZHxDhv0tBCc-6I-DqWCriQ",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-09-23T08:09:59.414870+09:00",
-      "checked_at": "2026-09-23T09:50:59.260055+09:00",
+      "checked_at": "2026-09-23T09:59:59.137163+09:00",
       "first_verified_at": "2026-09-23T08:09:59.414870+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
         "sequence": 8204803,
-        "last_segment": "/9869560a72b74b4cbec616654af82fd6/ac3e633081d94f0c9999f42d80498823/manifest_1_8205822.ts",
+        "last_segment": "/9869560a72b74b4cbec616654af82fd6/ac3e633081d94f0c9999f42d80498823/manifest_1_8205912.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -515,7 +526,7 @@
       "jcd": "08",
       "name": "常滑",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
       "active": false,
       "cancelled": false,
@@ -533,9 +544,9 @@
       "guidance_switch_at": "2026-09-23T16:52:00+09:00",
       "seed_required": false,
       "reverify_due": false,
-      "playback_verified": false,
-      "first_verified_at": null,
-      "ready_before_first_race": false,
+      "playback_verified": true,
+      "first_verified_at": "2026-09-23T09:59:59.135898+09:00",
+      "ready_before_first_race": true,
       "acquire_from": "2026-09-23T08:07:00+09:00",
       "races": [
         {
@@ -599,7 +610,9 @@
           "name": "予選特選"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/5feec208aec24b7a848bfebd32541464/740851e928d94dc49b6ea99c693a6acf/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MDI5ODAwMCwic3RhcnQiOjE3OTAxMjUxNDAsImlvcyI6MTgsImNwIjoiMjEyMzIwNzQwXzIxMjM2MzkzOSIsInBwdyI6IjQwayJ9.koxr5xtkftunhRZJefxsew5iDeMwZXkYBy8FjBtYxK4",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     },
     "boat.tsu": {
       "jcd": "09",
