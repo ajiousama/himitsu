@@ -49,10 +49,22 @@ def main():
    cid=f'{base}.{quality}'; add_channel(root,cid,f'{display} {label}')
    for p in regional[source]: root.append(clone(p,cid))
  races=combined(regional)
- if races:
+ # GCH MAIN is also exposed on days with a local graded race (Jpn/G).
+ # When JRA regional race EPG is empty, build GCH EPG from the matching
+ # local-horse-racing programmes so final audit never sees an orphan channel.
+ local_graded=[]
+ grade_re=re.compile(r'(?i)(?:Jpn\\s*(?:I{1,3}|[123])|G\\s*(?:I{1,3}|[123])|Jpn[ⅠⅡⅢ]|G[ⅠⅡⅢ])')
+ for p in src.findall('programme'):
+  cid=p.get('channel') or ''
+  if not cid.startswith('chihou.'): continue
+  text=' '.join(((p.findtext('title') or ''),(p.findtext('desc') or '')))
+  if grade_re.search(text):
+   local_graded.append(copy.deepcopy(p))
+ gch_programmes=races if races else local_graded
+ if gch_programmes:
   for quality,label in (('hq','HQ'),('lq','LQ')):
    cid=f'jra.gch.{quality}'; add_channel(root,cid,f'グリーンチャンネル MAIN {label}')
-   for p in races: root.append(clone(p,cid))
+   for p in gch_programmes: root.append(clone(p,cid))
  ET.indent(tree,space='  '); tree.write(GUIDES,encoding='utf-8',xml_declaration=True)
- print('JRA earphone HQ/LQ race EPG:',{k:len(v) for k,v in regional.items()},'GCH races=',len(races))
+ print('JRA earphone HQ/LQ race EPG:',{k:len(v) for k,v in regional.items()},'GCH races=',len(races),'GCH local graded=',len(local_graded))
 if __name__=='__main__': main()
