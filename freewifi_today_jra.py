@@ -1,8 +1,9 @@
 from pathlib import Path
 from datetime import datetime, timezone, timedelta
 import json, re
+import xml.etree.ElementTree as ET
 
-FREEWIFI=Path('freewifi'); VERIFIED=Path('verified_daily_status.json'); STATUS=Path('today_jra_status.json')
+FREEWIFI=Path('freewifi'); VERIFIED=Path('verified_daily_status.json'); STATUS=Path('today_jra_status.json'); LOCAL_EPG=Path('public_sports_epg_local.xml')
 JST=timezone(timedelta(hours=9)); START='# === TODAY_JRA_START ==='; END='# === TODAY_JRA_END ==='; GROUP='今日の開催場'
 RAW='https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main'
 LOGO=RAW+'/public_sports_logos_github_43/jra_quality'
@@ -14,6 +15,27 @@ SOURCES={
 }
 QUALITY_IDS={f'{base}.{q}' if base!='jra.hokkaido' else f'jra.local.{q}' for base in SOURCES for q in ('hq','lq')}
 LEGACY_FREE_IDS={'jra.official','jra.gch.free'}
+
+
+GRADE_RE = re.compile(r'(?i)(?:Jpn\s*(?:I{1,3}|[123])|G\s*(?:I{1,3}|[123])|Jpn[ⅠⅡⅢ]|G[ⅠⅡⅢ])')
+
+def local_graded_races_today(now):
+ graded=[]
+ if not LOCAL_EPG.exists(): return graded
+ try:
+  root=ET.parse(LOCAL_EPG).getroot()
+ except Exception:
+  return graded
+ date_prefix=now.strftime('%Y%m%d')
+ for p in root.findall('programme'):
+  if not str(p.get('channel') or '').startswith('chihou.'): continue
+  start=str(p.get('start') or '')
+  if not start.startswith(date_prefix): continue
+  title=' '.join((p.findtext('title') or '', p.findtext('desc') or ''))
+  m=GRADE_RE.search(title)
+  if m:
+   graded.append({'channel':p.get('channel'),'grade':m.group(0),'title':(p.findtext('title') or '').strip()})
+ return graded
 
 def strip(text):
  text=re.sub(re.escape(START)+r'.*?'+re.escape(END)+r'\n?','',text,flags=re.S)
@@ -28,12 +50,12 @@ def strip(text):
  return '\n'.join(out).rstrip()+'\n'
 
 def main():
- now=datetime.now(JST); reported=[]
+ now=datetime.now(JST); reported=[]; local_graded=local_graded_races_today(now)
  try:
   cfg=json.loads(VERIFIED.read_text(encoding='utf-8-sig'))
   if cfg.get('date')==now.date().isoformat(): reported=[x for x in cfg.get('jra_active_ids',[]) if x in SOURCES]
  except Exception: pass
- active=list(dict.fromkeys(['jra.gch',*reported])) if reported else []
+ active=list(dict.fromkeys(['jra.gch',*reported])) if (reported or local_graded) else []
  base=strip(FREEWIFI.read_text(encoding='utf-8-sig',errors='replace')); rows=[]; exposed=[]
  for source in active:
   name,hq,lq,hqlogo,lqlogo=SOURCES[source]
@@ -46,6 +68,6 @@ def main():
  anchor='# === GENERAL_YOUTUBE_MANAGED_START ==='
  text=base.replace(anchor,managed+'\n\n'+anchor,1) if anchor in base else base.rstrip()+'\n\n'+managed+'\n'
  FREEWIFI.write_text(text.rstrip()+'\n',encoding='utf-8')
- STATUS.write_text(json.dumps({'generated_at':now.isoformat(),'active_count':len(active),'active_ids':active,'active_labels':[SOURCES[x][0] for x in active],'exposed_quality_ids':exposed,'channels':{x:{'active':x in active,'source':'earphone HQ/LQ canonical'} for x in SOURCES}},ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+ STATUS.write_text(json.dumps({'generated_at':now.isoformat(),'active_count':len(active),'active_ids':active,'active_labels':[SOURCES[x][0] for x in active],'exposed_quality_ids':exposed,'local_graded_races':local_graded,'gch_reason':'local graded race' if local_graded and not reported else ('JRA active' if reported else None),'channels':{x:{'active':x in active,'source':'earphone HQ/LQ canonical'} for x in SOURCES}},ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
  print('JRA earphone HQ/LQ active:',exposed)
 if __name__=='__main__': main()
