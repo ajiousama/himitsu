@@ -1,4 +1,5 @@
 from pathlib import Path
+from datetime import datetime, timezone, timedelta
 import copy, re
 import xml.etree.ElementTree as ET
 
@@ -48,31 +49,30 @@ def main():
   for quality,label in (('hq','HQ'),('lq','LQ')):
    cid=f'{base}.{quality}'; add_channel(root,cid,f'{display} {label}')
    for p in regional[source]: root.append(clone(p,cid))
- races=combined(regional)
- # GCH MAIN is also exposed for local graded races and overseas race broadcasts.
- # When JRA regional race EPG is empty, build GCH EPG from the matching
- # local-horse-racing programmes so final audit never sees an orphan channel.
- local_graded=[]; overseas=[]
- grade_re=re.compile(r'(?i)(?:Jpn\\s*(?:I{1,3}|[123])|G\\s*(?:I{1,3}|[123])|Jpn[ⅠⅡⅢ]|G[ⅠⅡⅢ])')
- overseas_re=re.compile(r'(?:海外競馬|海外馬券|凱旋門賞|ブリーダーズ.?カップ|ドバイ(?:ワールドカップ|シーマクラシック|ターフ)|香港国際競走|香港カップ|香港マイル|香港スプリント|香港ヴァーズ|サウジカップ|ロイヤルアスコット|メルボルンカップ)',re.I)
- # NAR repair and the normal TV EPG have already populated guides.xml here.
- for p in root.findall('programme'):
-  cid=p.get('channel') or ''
-  text=' '.join(((p.findtext('title') or ''),(p.findtext('desc') or '')))
-  if cid.startswith('chihou.') and grade_re.search(text):
-   local_graded.append(copy.deepcopy(p))
-  if overseas_re.search(text):
-   overseas.append(copy.deepcopy(p))
- gch_programmes=[]
- seen=set()
- for p in [*races,*local_graded,*overseas]:
-  key=(p.get('start'),p.get('stop'),(p.findtext('title') or '').strip())
-  if key in seen: continue
-  seen.add(key); gch_programmes.append(p)
- if gch_programmes:
+ # GCH MAIN visibility/EPG is controlled only by the actual Green Channel
+ # programme guide. Do not infer it from JRA activity or local-race grades.
+ gch_ids=set()
+ for ch in root.findall('channel'):
+  cid=str(ch.get('id') or '')
+  names=' '.join((x.text or '') for x in ch.findall('display-name'))
+  if 'グリーンチャンネル' in names or 'グリーンチャンネル' in cid:
+   gch_ids.add(cid)
+
+ JST=timezone(timedelta(hours=9))
+ today=datetime.now(JST).strftime('%Y%m%d')
+ trigger_re=re.compile(r'(?:海外競馬中継|地方競馬中継)',re.I)
+ gch_today=[
+  copy.deepcopy(p) for p in root.findall('programme')
+  if str(p.get('channel') or '') in gch_ids and str(p.get('start') or '').startswith(today)
+ ]
+ gch_special=[
+  p for p in gch_today
+  if trigger_re.search(' '.join(((p.findtext('title') or ''),(p.findtext('desc') or ''))))
+ ]
+ if gch_special:
   for quality,label in (('hq','HQ'),('lq','LQ')):
    cid=f'jra.gch.{quality}'; add_channel(root,cid,f'グリーンチャンネル MAIN {label}')
-   for p in gch_programmes: root.append(clone(p,cid))
+   for p in gch_today: root.append(clone(p,cid))
  ET.indent(tree,space='  '); tree.write(GUIDES,encoding='utf-8',xml_declaration=True)
- print('JRA earphone HQ/LQ race EPG:',{k:len(v) for k,v in regional.items()},'GCH races=',len(races),'GCH local graded=',len(local_graded),'GCH overseas=',len(overseas))
+ print('JRA earphone HQ/LQ race EPG:',{k:len(v) for k,v in regional.items()},'GCH source ids=',sorted(gch_ids),'GCH trigger programmes=',len(gch_special),'GCH mirrored programmes=',len(gch_today) if gch_special else 0)
 if __name__=='__main__': main()
