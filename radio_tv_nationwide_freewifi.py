@@ -10,14 +10,22 @@ from urllib.parse import quote
 FREEWIFI = Path("freewifi")
 RADIO_PROJECTION = Path("radio/freewifi.m3u")
 RADIO_AUDIO_BASE = "https://himitsu-six.vercel.app/api/radiko"
+RADIO_VERCEL_BASE = "https://himitsu-six.vercel.app/api/radio-tv?station="
 RADIO_RENDER_BASE = "https://ajiousama-radiko.onrender.com/radio-tv"
 RADIO_BUILD = "20260908a"
+RADIKO_SIDS = {
+    "JOEU-FM", "RNB", "LFR", "QRR", "TBS", "FMT",
+    "ABC", "CCL", "802", "FMO", "MBS", "OBC", "KBS",
+    "ALPHA-STATION", "E-RADIO", "CRK",
+}
 LOGO_RAW_BASE = "https://raw.githubusercontent.com/ajiousama/himitsu/main"
 EXPECTED_RADIO_COUNT = 19
 EXPECTED_RADIKO_COUNT = 16
 
 
 def radio_url(sid: str) -> str:
+    if sid in RADIKO_SIDS:
+        return f"{RADIO_VERCEL_BASE}{quote(sid, safe='')}"
     return f"{RADIO_RENDER_BASE}/{quote(sid, safe='')}?v={RADIO_BUILD}"
 
 
@@ -122,9 +130,12 @@ def main() -> int:
         raise RuntimeError("Rch section disappeared; refusing to write")
 
     radio_section = updated[start:updated.find("## 愛媛CATV", start)]
+    vercel_count = radio_section.count(RADIO_VERCEL_BASE)
     render_count = radio_section.count(RADIO_RENDER_BASE + "/")
-    if render_count != EXPECTED_RADIO_COUNT:
-        raise RuntimeError(f"compact FreeWiFi image+audio radio count unexpected: {render_count}")
+    if vercel_count != EXPECTED_RADIKO_COUNT or render_count != EXPECTED_RADIO_COUNT - EXPECTED_RADIKO_COUNT:
+        raise RuntimeError(
+            f"compact FreeWiFi radio routing unexpected: vercel={vercel_count} render={render_count}"
+        )
     if RADIO_AUDIO_BASE + "?station=" in radio_section:
         raise RuntimeError("audio-only route leaked into FreeWiFi radio section")
     if "NHKラジオ" in radio_section or "NHK-FM" in radio_section or "nhk_r1_" in radio_section or "nhk_fm_" in radio_section:
@@ -139,13 +150,18 @@ def main() -> int:
     if radio_section.count("/logos/contrast/radiko.") != EXPECTED_RADIKO_COUNT:
         raise RuntimeError("contrast-safe compact Radiko logos are not complete")
 
-    required_sids = ("LFR", "QRR", "TBS", "FMT", "FMOTOKUNI", "FM845", "BARIBARI")
-    for sid in required_sids:
+    for sid in ("JOEU-FM", "RNB", "LFR", "QRR", "TBS", "FMT", "OBC", "KBS"):
+        if f'{RADIO_VERCEL_BASE}{sid}' not in radio_section:
+            raise RuntimeError(f"required Vercel Radiko station missing: {sid}")
+    for sid in ("FMOTOKUNI", "FM845", "BARIBARI"):
         if f'{RADIO_RENDER_BASE}/{sid}' not in radio_section:
-            raise RuntimeError(f"required radio station missing: {sid}")
+            raise RuntimeError(f"required community radio station missing: {sid}")
 
     FREEWIFI.write_text(updated, encoding="utf-8")
-    print(f"FreeWiFi compact radio restored: {render_count} image+audio stations with station artwork")
+    print(
+        f"FreeWiFi compact radio restored: {vercel_count} Vercel Radiko + "
+        f"{render_count} Render community image+audio stations"
+    )
     return 0
 
 
