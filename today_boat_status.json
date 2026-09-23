@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-23",
-  "generated_at": "2026-09-23T11:08:28.064279+09:00",
+  "generated_at": "2026-09-23T11:10:28.063196+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260923.json",
   "schedule_checked_at": "2026-09-23T10:59:28.161022+09:00",
@@ -19,7 +19,7 @@
   "alert_lead_minutes": 30,
   "card_count": 13,
   "held_count": 13,
-  "visible_count": 9,
+  "visible_count": 10,
   "active_count": 9,
   "ended_kept": [],
   "seed_required": false,
@@ -36,7 +36,7 @@
     },
     "day": {
       "held": 8,
-      "acquired": 7,
+      "acquired": 8,
       "active": 7,
       "ended": 0,
       "seed_required": 0,
@@ -53,14 +53,8 @@
   },
   "cloud_acquisition": {
     "requested": 10,
-    "fetched": 9,
-    "failures": [
-      {
-        "jcd": "22",
-        "name": "福岡",
-        "error": "HTTPError: playback check failed"
-      }
-    ]
+    "fetched": 10,
+    "failures": []
   },
   "epg_programmes_written": {
     "public_sports_epg_local.xml": 182,
@@ -210,6 +204,22 @@
         "ok": true,
         "sequence": 8204803,
         "last_segment": "/9869560a72b74b4cbec616654af82fd6/ac3e633081d94f0c9999f42d80498823/manifest_1_8206603.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
+    },
+    "boat.fukuoka": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/329cd37681924801ad8d79114c8e6090/648b48d7f71246e083abe822cb3f7743/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MDMwNTIwMCwic3RhcnQiOjE3OTAxMjk0MDAsImlvcyI6MTgsImNwIjoiMjEyMzI1MDAwXzIxMjM2ODE5OSIsInBwdyI6IjQwayJ9.0t81Qf_2yBjjPRVt3xzpMDFA7xmBWRTeNbz8nZGrr1k",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-09-23T11:10:55.404095+09:00",
+      "checked_at": "2026-09-23T11:10:55.404095+09:00",
+      "first_verified_at": "2026-09-23T11:10:55.404095+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 8227589,
+        "last_segment": "/329cd37681924801ad8d79114c8e6090/648b48d7f71246e083abe822cb3f7743/manifest_1_8227598.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -1055,14 +1065,14 @@
       "last_race": "16:45",
       "alert_from": "2026-09-23T10:11:00+09:00",
       "next_race": {
-        "race": 2,
-        "start": "11:10"
+        "race": 3,
+        "start": "11:39"
       },
       "stream_window": "live_or_prestart",
       "intermission": null,
       "guidance_switch_at": "2026-09-23T17:30:00+09:00",
       "seed_required": false,
-      "reverify_due": true,
+      "reverify_due": false,
       "playback_verified": true,
       "first_verified_at": "2026-09-23T10:05:59.132351+09:00",
       "ready_before_first_race": true,
@@ -1319,7 +1329,7 @@
       "jcd": "22",
       "name": "福岡",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
       "active": false,
       "cancelled": false,
@@ -1337,9 +1347,9 @@
       "guidance_switch_at": "2026-09-23T18:13:00+09:00",
       "seed_required": false,
       "reverify_due": false,
-      "playback_verified": false,
-      "first_verified_at": null,
-      "ready_before_first_race": false,
+      "playback_verified": true,
+      "first_verified_at": "2026-09-23T11:10:55.404095+09:00",
+      "ready_before_first_race": true,
       "acquire_from": "2026-09-23T09:13:00+09:00",
       "races": [
         {
@@ -1403,7 +1413,9 @@
           "name": "福岡選抜"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/329cd37681924801ad8d79114c8e6090/648b48d7f71246e083abe822cb3f7743/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MDMwNTIwMCwic3RhcnQiOjE3OTAxMjk0MDAsImlvcyI6MTgsImNwIjoiMjEyMzI1MDAwXzIxMjM2ODE5OSIsInBwdyI6IjQwayJ9.0t81Qf_2yBjjPRVt3xzpMDFA7xmBWRTeNbz8nZGrr1k",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     }
   }
 }
