@@ -1,5 +1,5 @@
 name: Update FreeWiFi ALL（ajiousama単独 / 自動EPG）
-# recovery-touch: 2026-09-24 morning playback recovery
+# recovery-touch: 2026-09-24 radio-28-nhk-epg
 
 on:
   workflow_dispatch:
@@ -236,7 +236,7 @@ jobs:
               raise SystemExit(f'FreeWiFi publish blocked: BOAT mismatch entries={entries} visible={visible}')
           PY
 
-            git add ganble/playlist.m3u ehime_catv/playlist.m3u freewifi gccx2_live_state.json today_public_sports_status.json today_jra_status.json today_event_counts.json verified_daily_status.json public_sports_epg_local.xml
+            git add ganble/playlist.m3u ehime_catv/playlist.m3u freewifi radio/freewifi.m3u gccx2_live_state.json today_public_sports_status.json today_jra_status.json today_event_counts.json verified_daily_status.json public_sports_epg_local.xml
 
             if git diff --cached --quiet; then
               echo "Local venue/CX2 state already current"
