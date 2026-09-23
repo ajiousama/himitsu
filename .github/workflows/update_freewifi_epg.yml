@@ -13,6 +13,7 @@ on:
       - "ganble/playlist.m3u"
       - "tv/playlist.m3u"
       - "tv/sync_freewifi.py"
+      - "refresh_haruka_freewifi.py"
       - "rakuten/playlist.m3u"
       - "rakuten/sync_freewifi.py"
       - "tver/playlist.m3u"
@@ -113,6 +114,7 @@ jobs:
 
       - name: Sync canonical subsystem projections
         run: |
+          python refresh_haruka_freewifi.py
           python tv/sync_freewifi.py
           python radio/sync_freewifi.py
           python ehime_catv/sync_freewifi.py
@@ -205,6 +207,7 @@ jobs:
 
             # Keep terrestrial/BS/CS source groups stable after every full publish.
             python group_freewifi_sources.py
+            python refresh_haruka_freewifi.py
             python tv/sync_freewifi.py
             python radio/sync_freewifi.py
             python ehime_catv/sync_freewifi.py
