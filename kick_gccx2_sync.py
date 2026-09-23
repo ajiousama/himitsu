@@ -12,9 +12,8 @@ STATE_OUT = Path("vod5/kick_live_state.json")
 PROXIES = {
     "kick.gccx2": "https://kick-resolver.onrender.com/kick?ch=gccx2",
     "kick.nogizaka": "https://himitsu-six.vercel.app/api/kick?ch=nogizaka",
-    "kick.seiz": "https://kick-resolver.onrender.com/kick?ch=seiz",
 }
-ORDER = ["kick.gccx2", "kick.nogizaka", "kick.seiz"]
+ORDER = ["kick.gccx2", "kick.nogizaka"]
 
 
 def get_json(slug):
