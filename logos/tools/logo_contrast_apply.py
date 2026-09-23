@@ -41,6 +41,7 @@ RADIO_SIDS = [
     "JOEU-FM", "RNB", "LFR", "QRR", "TBS", "FMT",
     "ABC", "CCL", "802", "FMO", "MBS", "OBC", "KBS",
     "ALPHA-STATION", "E-RADIO", "CRK",
+    "HBC", "TBC", "CBC", "RCC", "RKB", "KBC",
 ]
 EXPECTED_RADIO_COUNT = len(RADIO_SIDS)
 
