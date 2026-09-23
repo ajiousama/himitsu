@@ -19,7 +19,7 @@ RADIKO_SIDS = {
     "ALPHA-STATION", "E-RADIO", "CRK",
 }
 LOGO_RAW_BASE = "https://raw.githubusercontent.com/ajiousama/himitsu/main"
-EXPECTED_RADIO_COUNT = 19
+EXPECTED_RADIO_COUNT = 21
 EXPECTED_RADIKO_COUNT = 16
 
 
@@ -110,6 +110,22 @@ def compact_block() -> str:
             "https://radimo.s3.amazonaws.com/logo/7fef6dc58526b7a6d55560ae97dacce850edf946b5cca38e54bd68de387b0e95.jpg",
         )
     )
+    parts.append(
+        radio_entry(
+            "community.NIIHAMA",
+            "NIIHAMA",
+            "Hello! NEW 新居浜 FM78.0（ラジオ）",
+            "https://radimo.s3.amazonaws.com/logo/373877bd84cd9bc3c9fa01f7309ef918dcbd6c805a116eee53bbf1cf9e8425aa.png",
+        )
+    )
+    parts.append(
+        radio_entry(
+            "community.FMGAIYA",
+            "FMGAIYA",
+            "FMがいや 76.9MHz（ラジオ）",
+            "https://radimo.s3.amazonaws.com/logo/86718bf5cbe18f2b2a48206a59f6c282e7f76d1564ae693c830dde10ee1927da.png",
+        )
+    )
 
     return "".join(parts).rstrip() + "\n\n"
 
@@ -153,7 +169,7 @@ def main() -> int:
     for sid in ("JOEU-FM", "RNB", "LFR", "QRR", "TBS", "FMT", "OBC", "KBS"):
         if f'{RADIO_VERCEL_BASE}{sid}' not in radio_section:
             raise RuntimeError(f"required Vercel Radiko station missing: {sid}")
-    for sid in ("FMOTOKUNI", "FM845", "BARIBARI"):
+    for sid in ("FMOTOKUNI", "FM845", "BARIBARI", "NIIHAMA", "FMGAIYA"):
         if f'{RADIO_RENDER_BASE}/{sid}' not in radio_section:
             raise RuntimeError(f"required community radio station missing: {sid}")
 
