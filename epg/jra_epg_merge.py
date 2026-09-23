@@ -49,24 +49,30 @@ def main():
    cid=f'{base}.{quality}'; add_channel(root,cid,f'{display} {label}')
    for p in regional[source]: root.append(clone(p,cid))
  races=combined(regional)
- # GCH MAIN is also exposed on days with a local graded race (Jpn/G).
+ # GCH MAIN is also exposed for local graded races and overseas race broadcasts.
  # When JRA regional race EPG is empty, build GCH EPG from the matching
  # local-horse-racing programmes so final audit never sees an orphan channel.
- local_graded=[]
+ local_graded=[]; overseas=[]
  grade_re=re.compile(r'(?i)(?:Jpn\\s*(?:I{1,3}|[123])|G\\s*(?:I{1,3}|[123])|Jpn[ⅠⅡⅢ]|G[ⅠⅡⅢ])')
- # NAR direct repair writes the authoritative local-racing programmes into
- # guides.xml before this step, so scan the merged guide tree (not LOCAL).
+ overseas_re=re.compile(r'(?:海外競馬|海外馬券|凱旋門賞|ブリーダーズ.?カップ|ドバイ(?:ワールドカップ|シーマクラシック|ターフ)|香港国際競走|香港カップ|香港マイル|香港スプリント|香港ヴァーズ|サウジカップ|ロイヤルアスコット|メルボルンカップ)',re.I)
+ # NAR repair and the normal TV EPG have already populated guides.xml here.
  for p in root.findall('programme'):
   cid=p.get('channel') or ''
-  if not cid.startswith('chihou.'): continue
   text=' '.join(((p.findtext('title') or ''),(p.findtext('desc') or '')))
-  if grade_re.search(text):
+  if cid.startswith('chihou.') and grade_re.search(text):
    local_graded.append(copy.deepcopy(p))
- gch_programmes=races if races else local_graded
+  if overseas_re.search(text):
+   overseas.append(copy.deepcopy(p))
+ gch_programmes=[]
+ seen=set()
+ for p in [*races,*local_graded,*overseas]:
+  key=(p.get('start'),p.get('stop'),(p.findtext('title') or '').strip())
+  if key in seen: continue
+  seen.add(key); gch_programmes.append(p)
  if gch_programmes:
   for quality,label in (('hq','HQ'),('lq','LQ')):
    cid=f'jra.gch.{quality}'; add_channel(root,cid,f'グリーンチャンネル MAIN {label}')
    for p in gch_programmes: root.append(clone(p,cid))
  ET.indent(tree,space='  '); tree.write(GUIDES,encoding='utf-8',xml_declaration=True)
- print('JRA earphone HQ/LQ race EPG:',{k:len(v) for k,v in regional.items()},'GCH races=',len(races),'GCH local graded=',len(local_graded))
+ print('JRA earphone HQ/LQ race EPG:',{k:len(v) for k,v in regional.items()},'GCH races=',len(races),'GCH local graded=',len(local_graded),'GCH overseas=',len(overseas))
 if __name__=='__main__': main()
