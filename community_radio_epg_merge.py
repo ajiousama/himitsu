@@ -17,6 +17,8 @@ STATIONS = {
     "community.FMOTOKUNI": "FMおとくに（ラジオ）",
     "community.FM845": "FM845（ラジオ）",
     "community.BARIBARI": "FMラヂオバリバリ（ラジオ）",
+    "community.NIIHAMA": "Hello! NEW 新居浜 FM78.0（ラジオ）",
+    "community.FMGAIYA": "FMがいや 76.9MHz（ラジオ）",
 }
 
 DAY_SLUGS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
@@ -179,6 +181,53 @@ class _Rows(HTMLParser):
             self._cell = None
 
 
+
+class _Tables(HTMLParser):
+    """Collect HTML tables as lists of text rows."""
+
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self.tables: list[list[list[str]]] = []
+        self._table: list[list[str]] | None = None
+        self._row: list[str] | None = None
+        self._cell: list[str] | None = None
+
+    def handle_starttag(self, tag, attrs):
+        tag = tag.lower()
+        if tag == "table":
+            self._table = []
+        elif tag == "tr" and self._table is not None:
+            self._row = []
+        elif tag in {"td", "th"} and self._row is not None:
+            self._cell = []
+        elif tag == "br" and self._cell is not None:
+            self._cell.append(" ")
+
+    def handle_data(self, data):
+        if self._cell is not None:
+            self._cell.append(data)
+
+    def handle_endtag(self, tag):
+        tag = tag.lower()
+        if tag in {"td", "th"} and self._cell is not None and self._row is not None:
+            self._row.append(_clean("".join(self._cell)))
+            self._cell = None
+        elif tag == "tr" and self._row is not None and self._table is not None:
+            if any(self._row):
+                self._table.append(self._row)
+            self._row = None
+            self._cell = None
+        elif tag == "table" and self._table is not None:
+            if self._table:
+                self.tables.append(self._table)
+            self._table = None
+            self._row = None
+            self._cell = None
+
+
+_WEEKLY_TABLE_CACHE: dict[str, list[list[list[str]]]] = {}
+
+
 def _clean(s: str) -> str:
     return re.sub(r"\s+", " ", (s or "").replace("\u3000", " ")).strip()
 
@@ -202,6 +251,105 @@ def _rows(url: str) -> list[list[str]]:
     p = _Rows()
     p.feed(_fetch(url))
     return p.rows
+
+
+
+def _tables(url: str) -> list[list[list[str]]]:
+    if url in _WEEKLY_TABLE_CACHE:
+        return _WEEKLY_TABLE_CACHE[url]
+    parser = _Tables()
+    parser.feed(_fetch(url))
+    timed_tables: list[list[list[str]]] = []
+    rx = re.compile(r"^\s*(\d{1,2})[:：](\d{2})\s*$")
+    for table in parser.tables:
+        timed = sum(1 for row in table if row and rx.match(_clean(row[0])))
+        if timed >= 5:
+            timed_tables.append(table)
+    if len(timed_tables) < 7:
+        raise RuntimeError(f"weekly timetable parsed only {len(timed_tables)} day tables")
+    _WEEKLY_TABLE_CACHE[url] = timed_tables[:7]
+    return _WEEKLY_TABLE_CACHE[url]
+
+
+def _parse_clock(text: str) -> tuple[int, int] | None:
+    m = re.match(r"^\s*(\d{1,2})[:：](\d{2})\s*$", _clean(text))
+    if not m:
+        return None
+    h, minute = int(m.group(1)), int(m.group(2))
+    if not (0 <= h <= 47 and 0 <= minute <= 59):
+        return None
+    return h, minute
+
+
+def _table_starts(table: list[list[str]]) -> list[tuple[int, int, str]]:
+    out: list[tuple[int, int, str]] = []
+    for cells in table:
+        if not cells:
+            continue
+        parsed = _parse_clock(cells[0])
+        if not parsed:
+            continue
+        title = _clean(" ".join(cells[1:])) or "放送中"
+        out.append((parsed[0], parsed[1], title))
+    return out
+
+
+def _weekly_programme_day(day: dt.date, url: str, generic_title: str):
+    """Build one calendar day from the site's Monday-Sunday timetable tables.
+
+    Rows written as 24:00..28:59 belong to the following calendar day.
+    29:00+ is intentionally ignored because the next day's own 05:00 table
+    is authoritative and some sites duplicate that boundary.
+    """
+    tables = _tables(url)
+    current = _table_starts(tables[day.weekday()])
+    previous = _table_starts(tables[(day.weekday() - 1) % 7])
+    starts: list[tuple[dt.datetime, str]] = []
+
+    for h, minute, title in previous:
+        if 24 <= h < 29:
+            starts.append((
+                dt.datetime.combine(day, dt.time(h - 24, minute), JST),
+                title,
+            ))
+    for h, minute, title in current:
+        if 0 <= h < 24:
+            starts.append((dt.datetime.combine(day, dt.time(h, minute), JST), title))
+
+    by_start: dict[dt.datetime, str] = {}
+    for start, title in starts:
+        by_start[start] = title
+
+    begin = dt.datetime.combine(day, dt.time(0, 0), JST)
+    end = begin + dt.timedelta(days=1)
+    ordered = sorted((t, title) for t, title in by_start.items() if begin <= t < end)
+    if not ordered:
+        raise RuntimeError("no usable timetable rows")
+
+    out: list[tuple[dt.datetime, dt.datetime, str]] = []
+    if ordered[0][0] > begin:
+        out.append((begin, ordered[0][0], generic_title))
+    for i, (start, title) in enumerate(ordered):
+        stop = ordered[i + 1][0] if i + 1 < len(ordered) else end
+        if stop > start:
+            out.append((start, stop, title))
+    return out
+
+
+def _niihama(day: dt.date):
+    return _weekly_programme_day(
+        day,
+        "https://www.hello78.jp/contents/?post_type=program",
+        "Hello! NEW 新居浜 FM",
+    )
+
+
+def _gaiya(day: dt.date):
+    return _weekly_programme_day(
+        day,
+        "https://gaiya769.jp/time_table/",
+        "FMがいや",
+    )
 
 
 def _at(day: dt.date, hhmm: str, *, next_day_for_24: bool = True) -> dt.datetime:
@@ -462,13 +610,45 @@ def main() -> int:
     for i in range(3):
         built["community.BARIBARI"].extend(_baribari(today + dt.timedelta(days=i)))
 
-    # A transient FMおとくに failure preserves the last good EPG; on the first
-    # ever failure, show a transparent acquisition-waiting guide rather than a
-    # fabricated programme title.
-    cid = "community.FMOTOKUNI"
-    if not built[cid]:
-        if not old_programmes.get(cid):
-            built[cid] = _generic_days(today, "FMおとくに")
+    # Hello! NEW 新居浜 FM: official weekly timetable page (Mon-Sun tables).
+    try:
+        rows = []
+        for i in range(3):
+            day = today + dt.timedelta(days=i)
+            daily = _niihama(day)
+            if len(daily) < 8:
+                raise RuntimeError(f"{day}: timetable parsed only {len(daily)} rows")
+            rows.extend(daily)
+        built["community.NIIHAMA"] = rows
+    except Exception as exc:
+        failures.append(f"Hello! NEW 新居浜 FM: {type(exc).__name__}: {exc}")
+
+    # FMがいや: use the official timetable when its host permits automated
+    # access. The site sometimes returns 403 to data-center clients, so the last
+    # good guide is preserved; on first acquisition failure we publish an honest
+    # acquisition-waiting placeholder instead of inventing programme names.
+    try:
+        rows = []
+        for i in range(3):
+            day = today + dt.timedelta(days=i)
+            daily = _gaiya(day)
+            if len(daily) < 5:
+                raise RuntimeError(f"{day}: timetable parsed only {len(daily)} rows")
+            rows.extend(daily)
+        built["community.FMGAIYA"] = rows
+    except Exception as exc:
+        failures.append(f"FMがいや: {type(exc).__name__}: {exc}")
+
+    # Transient source failures preserve the last good EPG. On first acquisition
+    # failure, publish a transparent acquisition-waiting guide rather than
+    # fabricating programme titles.
+    for cid, title in (
+        ("community.FMOTOKUNI", "FMおとくに"),
+        ("community.NIIHAMA", "Hello! NEW 新居浜 FM"),
+        ("community.FMGAIYA", "FMがいや"),
+    ):
+        if not built[cid] and not old_programmes.get(cid):
+            built[cid] = _generic_days(today, title)
 
     replacing = {cid for cid, rows in built.items() if rows}
     for n in list(root.findall("channel")):
