@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-23",
-  "generated_at": "2026-09-23T10:51:28.062201+09:00",
+  "generated_at": "2026-09-23T10:54:28.212898+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260923.json",
   "schedule_checked_at": "2026-09-23T10:44:28.062680+09:00",
@@ -19,7 +19,7 @@
   "alert_lead_minutes": 30,
   "card_count": 13,
   "held_count": 13,
-  "visible_count": 8,
+  "visible_count": 9,
   "active_count": 8,
   "ended_kept": [],
   "seed_required": false,
@@ -36,7 +36,7 @@
     },
     "day": {
       "held": 8,
-      "acquired": 6,
+      "acquired": 7,
       "active": 6,
       "ended": 0,
       "seed_required": 0,
@@ -53,13 +53,8 @@
   },
   "cloud_acquisition": {
     "requested": 10,
-    "fetched": 8,
+    "fetched": 9,
     "failures": [
-      {
-        "jcd": "06",
-        "name": "浜名湖",
-        "error": "HTTPError: playback check failed"
-      },
       {
         "jcd": "22",
         "name": "福岡",
@@ -96,13 +91,29 @@
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/b9347c3fc02749cdbe4595f76a6ad64d/ff0fd5bb1f3c46b6bbceb4b6e1f489b4/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MDMwMTYwMCwic3RhcnQiOjE3OTAxMjc1NDAsImlvcyI6MTgsImNwIjoiMjEyMzIzMTQwXzIxMjM2NjMzOSIsInBwdyI6IjQwayJ9.NIU6xCg-iN3olxiQ0ZWYi3NvCZkvXwNSvxWiS60edic",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-09-23T10:40:56.666480+09:00",
-      "checked_at": "2026-09-23T10:47:55.237601+09:00",
+      "checked_at": "2026-09-23T10:54:55.472071+09:00",
       "first_verified_at": "2026-09-23T10:40:56.666480+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
         "sequence": 8205991,
-        "last_segment": "/b9347c3fc02749cdbe4595f76a6ad64d/ff0fd5bb1f3c46b6bbceb4b6e1f489b4/manifest_1_8206080.ts",
+        "last_segment": "/b9347c3fc02749cdbe4595f76a6ad64d/ff0fd5bb1f3c46b6bbceb4b6e1f489b4/manifest_1_8206150.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
+    },
+    "boat.hamanako": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/b0292967ad8e45ceb67394862d3f5538/fb5ed0973caf4378b4d6261f6ca6bfeb/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MDMwMTYwMCwic3RhcnQiOjE3OTAxMjg0NDAsImlvcyI6MTgsImNwIjoiMjEyMzI0MDQwXzIxMjM2NzIzOSIsInBwdyI6IjQwayJ9.U8MCswbJ9N1Spd7HkhO8ggTlEt4xKsM8eapFIj6xYco",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-09-23T10:54:55.472084+09:00",
+      "checked_at": "2026-09-23T10:54:55.472084+09:00",
+      "first_verified_at": "2026-09-23T10:54:55.472084+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 8228898,
+        "last_segment": "/b0292967ad8e45ceb67394862d3f5538/fb5ed0973caf4378b4d6261f6ca6bfeb/manifest_1_8228907.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -484,7 +495,7 @@
       "jcd": "06",
       "name": "浜名湖",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
       "active": false,
       "cancelled": false,
@@ -502,9 +513,9 @@
       "guidance_switch_at": "2026-09-23T17:46:00+09:00",
       "seed_required": false,
       "reverify_due": false,
-      "playback_verified": false,
-      "first_verified_at": null,
-      "ready_before_first_race": false,
+      "playback_verified": true,
+      "first_verified_at": "2026-09-23T10:54:55.472084+09:00",
+      "ready_before_first_race": true,
       "acquire_from": "2026-09-23T08:56:00+09:00",
       "races": [
         {
@@ -568,7 +579,9 @@
           "name": "準優勝戦"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/b0292967ad8e45ceb67394862d3f5538/fb5ed0973caf4378b4d6261f6ca6bfeb/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MDMwMTYwMCwic3RhcnQiOjE3OTAxMjg0NDAsImlvcyI6MTgsImNwIjoiMjEyMzI0MDQwXzIxMjM2NzIzOSIsInBwdyI6IjQwayJ9.U8MCswbJ9N1Spd7HkhO8ggTlEt4xKsM8eapFIj6xYco",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     },
     "boat.tokoname": {
       "jcd": "08",
