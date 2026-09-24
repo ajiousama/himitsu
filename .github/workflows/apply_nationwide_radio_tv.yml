@@ -157,6 +157,6 @@ jobs:
             echo 'Radio playlists and station images already current'
             exit 0
           fi
-          git commit -m 'Serve radio catalogs with static-image video [skip ci]'
+          git commit -m 'Serve radio catalogs with static-image video [skip ci] [skip render]'
           git pull --rebase origin main
           git push origin HEAD:main
