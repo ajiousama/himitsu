@@ -2,10 +2,10 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-25",
-  "generated_at": "2026-09-25T08:10:51.168149+09:00",
+  "generated_at": "2026-09-25T08:12:51.268571+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260925.json",
-  "schedule_checked_at": "2026-09-25T07:56:51.167385+09:00",
+  "schedule_checked_at": "2026-09-25T08:12:51.268571+09:00",
   "schedule_warnings": [
     "official_cards: TimeoutError"
   ],
@@ -19,7 +19,7 @@
   "alert_lead_minutes": 30,
   "card_count": 12,
   "held_count": 12,
-  "visible_count": 2,
+  "visible_count": 3,
   "active_count": 2,
   "ended_kept": [],
   "seed_required": false,
@@ -28,7 +28,7 @@
   "phase_counts": {
     "morning": {
       "held": 3,
-      "acquired": 2,
+      "acquired": 3,
       "active": 2,
       "ended": 0,
       "seed_required": 0,
@@ -53,7 +53,7 @@
   },
   "cloud_acquisition": {
     "requested": 6,
-    "fetched": 2,
+    "fetched": 3,
     "failures": [
       {
         "jcd": "08",
@@ -69,11 +69,6 @@
         "jcd": "11",
         "name": "びわこ",
         "error": "cloud and official acquisition unavailable: HTTPError"
-      },
-      {
-        "jcd": "21",
-        "name": "芦屋",
-        "error": "HTTPError: playback check failed"
       }
     ]
   },
@@ -113,6 +108,22 @@
         "ok": true,
         "sequence": 8233563,
         "last_segment": "/6d752c56b5b24b60a23a2089460824b5/af7cbc43b66c47c39563727d26d5cd4a/manifest_1_8233625.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
+    },
+    "boat.ashiya": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/adc50fcf992c48ed945f80984c989b45/f6416718531a41b6b692b4bfa5fff96b/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MDQ2NzIwMCwic3RhcnQiOjE3OTAyOTE1ODAsImlvcyI6MTgsImNwIjoiMjEyNDg3MTgwXzIxMjUzMDM3OSIsInBwdyI6IjQwayJ9.-HAlvi5VMnU-EGPlPTXJ0p3ZDX74HDq8DHogQ4ABWFE",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-09-25T08:13:26.965934+09:00",
+      "checked_at": "2026-09-25T08:13:26.965934+09:00",
+      "first_verified_at": "2026-09-25T08:13:26.965934+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 8248332,
+        "last_segment": "/adc50fcf992c48ed945f80984c989b45/f6416718531a41b6b692b4bfa5fff96b/manifest_1_8248335.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -1028,7 +1039,7 @@
       "jcd": "21",
       "name": "芦屋",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
       "active": false,
       "cancelled": false,
@@ -1046,9 +1057,9 @@
       "guidance_switch_at": "2026-09-25T15:12:00+09:00",
       "seed_required": false,
       "reverify_due": false,
-      "playback_verified": false,
-      "first_verified_at": null,
-      "ready_before_first_race": false,
+      "playback_verified": true,
+      "first_verified_at": "2026-09-25T08:13:26.965934+09:00",
+      "ready_before_first_race": true,
       "acquire_from": "2026-09-25T06:18:00+09:00",
       "races": [
         {
@@ -1112,7 +1123,9 @@
           "name": "予選特選"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/adc50fcf992c48ed945f80984c989b45/f6416718531a41b6b692b4bfa5fff96b/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MDQ2NzIwMCwic3RhcnQiOjE3OTAyOTE1ODAsImlvcyI6MTgsImNwIjoiMjEyNDg3MTgwXzIxMjUzMDM3OSIsInBwdyI6IjQwayJ9.-HAlvi5VMnU-EGPlPTXJ0p3ZDX74HDq8DHogQ4ABWFE",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     },
     "boat.fukuoka": {
       "jcd": "22",
