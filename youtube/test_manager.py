@@ -74,6 +74,28 @@ class YouTubeV2StructureTests(unittest.TestCase):
         self.assertEqual(stale, [])
         self.assertEqual(duplicate, [])
 
+    def test_volatile_live_sources_are_health_gated(self):
+        cfg = json.loads(manager.CONFIG.read_text(encoding="utf-8"))
+        by_id = {item["id"]: item for item in cfg["general"]}
+
+        arashiyama = by_id["youtube.arashiyama_monkeypark"]
+        self.assertEqual(
+            arashiyama.get("page"),
+            "https://www.youtube.com/@ArashiyamaMonkeyparkLivecam",
+        )
+        self.assertTrue(arashiyama.get("guard_terms"))
+        self.assertFalse(arashiyama.get("persistent", False))
+
+        for channel_id in (
+            "youtube.matsuyama_kankoko",
+            "youtube.matsuyama_kankoko_board",
+            "youtube.matsuyama_kankoko_exterior",
+        ):
+            item = by_id[channel_id]
+            self.assertEqual(item.get("probe"), "visual")
+            self.assertFalse(item.get("persistent", False))
+
+
     def test_outputs_are_inside_youtube_v2(self):
         self.assertEqual(manager.GENERAL_OUT.as_posix().split("youtube/")[-1], "output/general.m3u")
         self.assertEqual(manager.KANA_OUT.as_posix().split("youtube/")[-1], "output/kana.m3u")
