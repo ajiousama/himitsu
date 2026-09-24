@@ -21,7 +21,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add .vercel-gccx2-bot-trigger.txt
-          git commit -m "Force Vercel deploy for GameCenter CX2" || exit 0
+          git commit -m "Force Vercel deploy for GameCenter CX2 [skip render]" || exit 0
           git pull --rebase origin main
           git push
 
