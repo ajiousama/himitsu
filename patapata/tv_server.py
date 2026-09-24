@@ -29,6 +29,9 @@ FRAME_AT = 0.0
 BROWSER_ERROR = ""
 STOP = threading.Event()
 STREAM_SEM = threading.BoundedSemaphore(2)
+HLS_DIR = pathlib.Path("/tmp/patapata-tv-hls")
+HLS_PLAYLIST = HLS_DIR / "index.m3u8"
+HLS_ERROR = ""
 
 TV_CSS = """
 html, body { width:100% !important; height:100% !important; margin:0 !important; overflow:hidden !important; background:#071019 !important; }
@@ -135,13 +138,128 @@ def ffmpeg_cmd() -> list[str]:
         "-f", "image2pipe", "-framerate", "2", "-vcodec", "mjpeg", "-i", "pipe:0",
         "-f", "lavfi", "-i", "anullsrc=r=48000:cl=stereo",
         "-map", "0:v:0", "-map", "1:a:0",
+        "-vf", "fps=10",
         "-c:v", "libx264", "-preset", "ultrafast", "-tune", "zerolatency",
-        "-crf", "28", "-pix_fmt", "yuv420p", "-r", "2", "-g", "4",
+        "-profile:v", "baseline", "-level", "3.1",
+        "-crf", "28", "-pix_fmt", "yuv420p", "-r", "10", "-g", "20",
+        "-keyint_min", "20", "-sc_threshold", "0",
         "-c:a", "aac", "-b:a", "64k", "-ar", "48000", "-ac", "2",
         "-muxdelay", "0", "-muxpreload", "0", "-flush_packets", "1",
         "-mpegts_flags", "resend_headers",
         "-f", "mpegts", "pipe:1",
     ]
+
+def ffmpeg_hls_cmd() -> list[str]:
+    ff = shutil.which("ffmpeg")
+    if not ff:
+        raise RuntimeError("ffmpeg not found")
+    HLS_DIR.mkdir(parents=True, exist_ok=True)
+    return [
+        ff,
+        "-nostdin", "-hide_banner", "-loglevel", "warning",
+        "-f", "image2pipe", "-framerate", "2", "-vcodec", "mjpeg", "-i", "pipe:0",
+        "-f", "lavfi", "-i", "anullsrc=r=48000:cl=stereo",
+        "-map", "0:v:0", "-map", "1:a:0",
+        "-vf", "fps=10",
+        "-c:v", "libx264", "-preset", "ultrafast", "-tune", "zerolatency",
+        "-profile:v", "baseline", "-level", "3.1",
+        "-crf", "28", "-pix_fmt", "yuv420p", "-r", "10", "-g", "20",
+        "-keyint_min", "20", "-sc_threshold", "0",
+        "-c:a", "aac", "-b:a", "64k", "-ar", "48000", "-ac", "2",
+        "-f", "hls",
+        "-hls_time", "2",
+        "-hls_list_size", "6",
+        "-hls_allow_cache", "0",
+        "-hls_flags", "delete_segments+omit_endlist+independent_segments+program_date_time",
+        "-hls_segment_filename", str(HLS_DIR / "seg_%06d.ts"),
+        str(HLS_PLAYLIST),
+    ]
+
+def hls_worker() -> None:
+    global HLS_ERROR
+    while not STOP.is_set():
+        proc = None
+        feeder_stop = threading.Event()
+        try:
+            first = wait_frame(timeout=45.0)
+            if not first:
+                HLS_ERROR = BROWSER_ERROR or "waiting for first frame"
+                time.sleep(3)
+                continue
+            HLS_DIR.mkdir(parents=True, exist_ok=True)
+            for old in HLS_DIR.glob("*"):
+                try:
+                    old.unlink()
+                except OSError:
+                    pass
+            cmd = ffmpeg_hls_cmd()
+            print("[patapata] HLS ffmpeg:", " ".join(cmd[:4]), "...", flush=True)
+            proc = subprocess.Popen(
+                cmd,
+                stdin=subprocess.PIPE,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.PIPE,
+                bufsize=0,
+            )
+            HLS_ERROR = ""
+
+            def feed() -> None:
+                last = first
+                try:
+                    while not feeder_stop.is_set() and proc.poll() is None:
+                        with FRAME_LOCK:
+                            if LATEST_FRAME:
+                                last = LATEST_FRAME
+                        proc.stdin.write(last)
+                        proc.stdin.flush()
+                        time.sleep(0.5)
+                except (BrokenPipeError, OSError, ValueError):
+                    pass
+                finally:
+                    try:
+                        proc.stdin.close()
+                    except Exception:
+                        pass
+
+            threading.Thread(target=feed, daemon=True).start()
+            while not STOP.is_set() and proc.poll() is None:
+                time.sleep(1)
+            if proc.poll() is not None:
+                err = (proc.stderr.read() or b"").decode("utf-8", "replace")[-4000:]
+                HLS_ERROR = f"ffmpeg exited {proc.returncode}: {err.strip()}"
+                print("[patapata] HLS error:", HLS_ERROR, flush=True)
+        except Exception as e:
+            HLS_ERROR = f"{type(e).__name__}: {e}"
+            print("[patapata] HLS worker error:", HLS_ERROR, flush=True)
+        finally:
+            feeder_stop.set()
+            if proc is not None and proc.poll() is None:
+                try:
+                    proc.terminate()
+                    proc.wait(timeout=2)
+                except Exception:
+                    try:
+                        proc.kill()
+                    except Exception:
+                        pass
+        if not STOP.is_set():
+            time.sleep(3)
+
+def wait_hls(timeout: float = 20.0) -> bool:
+    end = time.time() + timeout
+    while time.time() < end:
+        if HLS_PLAYLIST.is_file() and HLS_PLAYLIST.stat().st_size > 0:
+            try:
+                text = HLS_PLAYLIST.read_text(encoding="utf-8", errors="replace")
+                if "#EXTM3U" in text and any(
+                    line.strip() and not line.startswith("#")
+                    for line in text.splitlines()
+                ):
+                    return True
+            except OSError:
+                pass
+        time.sleep(0.2)
+    return False
 
 def stream_tv(handler: "Handler") -> None:
     first = wait_frame()
@@ -235,6 +353,10 @@ class Handler(http.server.BaseHTTPRequestHandler):
             self.send_header("Access-Control-Allow-Origin", "*")
             self.end_headers()
             return
+        if path == "/live.m3u8":
+            status = 200 if wait_hls(timeout=2.0) else 503
+            self._text(status, "#EXTM3U\n" if status == 200 else "HLS warming up\n", "application/vnd.apple.mpegurl; charset=utf-8")
+            return
         if path == "/health":
             self._text(200, "ok\n")
             return
@@ -245,20 +367,56 @@ class Handler(http.server.BaseHTTPRequestHandler):
         if path == "/tv":
             stream_tv(self)
             return
+        if path == "/live.m3u8":
+            if not wait_hls(timeout=20.0):
+                self.send_error(503, f"Patapata HLS not ready: {HLS_ERROR or 'warming up'}")
+                return
+            text = HLS_PLAYLIST.read_text(encoding="utf-8", errors="replace")
+            out = []
+            for line in text.splitlines():
+                if line and not line.startswith("#"):
+                    out.append("/hls/" + pathlib.Path(line).name)
+                else:
+                    out.append(line)
+            self._text(200, "\n".join(out).rstrip() + "\n", "application/vnd.apple.mpegurl; charset=utf-8")
+            return
+        if path.startswith("/hls/"):
+            name = pathlib.Path(path[len("/hls/"):]).name
+            if not name.endswith(".ts"):
+                self.send_error(404)
+                return
+            target = HLS_DIR / name
+            if not target.is_file():
+                self.send_error(404)
+                return
+            data = target.read_bytes()
+            self.send_response(200)
+            self.send_header("Content-Type", "video/mp2t")
+            self.send_header("Content-Length", str(len(data)))
+            self.send_header("Cache-Control", "no-store")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            self.wfile.write(data)
+            return
         if path == "/health":
             with FRAME_LOCK:
                 age = time.time() - FRAME_AT if FRAME_AT else -1
                 ready = LATEST_FRAME is not None and age >= 0 and age < 8
-            self._text(200 if ready else 503, f"ready={str(ready).lower()} frame_age={age:.2f} error={BROWSER_ERROR}\n")
+            hls_ready = HLS_PLAYLIST.is_file() and HLS_PLAYLIST.stat().st_size > 0
+            self._text(
+                200 if ready else 503,
+                f"ready={str(ready).lower()} hls_ready={str(hls_ready).lower()} frame_age={age:.2f} error={BROWSER_ERROR} hls_error={HLS_ERROR}\n"
+            )
             return
         if path in ("/", "/status"):
             self._text(
                 200,
                 "Patapata TV\n"
                 "source=FINAL-v5-JR-DEADHEAD\n"
-                "video=1280x720 2fps H.264 MPEG-TS\n"
+                "video=1280x720 10fps H.264 baseline\n"
                 "audio=AAC 48kHz stereo silence\n"
-                "stream=/tv\n",
+                "stream=/tv\n"
+                "hls=/live.m3u8\n",
             )
             return
         if path.startswith("/patapata/"):
@@ -287,7 +445,8 @@ def main() -> None:
     ensure_assets()
     server = http.server.ThreadingHTTPServer((HOST, PORT), Handler)
     threading.Thread(target=browser_worker, daemon=True).start()
-    print(f"[patapata] listening on {HOST}:{PORT}", flush=True)
+    threading.Thread(target=hls_worker, daemon=True).start()
+    print(f"[patapata] listening on {HOST}:{PORT}; ffmpeg={shutil.which('ffmpeg')}", flush=True)
     try:
         server.serve_forever(poll_interval=0.5)
     finally:
