@@ -96,8 +96,8 @@ jobs:
           echo "Combined Render static-video count=$combined_render_count"
 
           test "$free_direct_count" -eq 0
-          test "$free_vercel_count" -eq 16
-          test "$free_render_count" -eq 12
+          test "$free_vercel_count" -eq 17
+          test "$free_render_count" -eq 11
           test "$free_ts_count" -eq 0
           test "$nationwide_render_count" -ge 100
           test "$nhk_render_count" -eq 16
@@ -133,7 +133,7 @@ jobs:
           grep -Fq "${render}RCC" /tmp/freewifi-radio.txt
           grep -Fq "${render}RKB" /tmp/freewifi-radio.txt
           grep -Fq "${render}KBC" /tmp/freewifi-radio.txt
-          grep -Fq "${render}nhk_r1_matsuyama" /tmp/freewifi-radio.txt
+          grep -Fq "${vercel}nhk_r1_matsuyama" /tmp/freewifi-radio.txt
           grep -Fq "${render}BARIBARI" /tmp/freewifi-radio.txt
           grep -Fq "${render}NIIHAMA" /tmp/freewifi-radio.txt
           grep -Fq "${render}FMGAIYA" /tmp/freewifi-radio.txt
