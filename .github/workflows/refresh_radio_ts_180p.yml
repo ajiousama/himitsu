@@ -167,6 +167,6 @@ jobs:
             echo 'Radio playlists already use stable TS visuals'
             exit 0
           fi
-          git commit -m 'Use stable TS visuals for all radio stations'
+          git commit -m 'Use stable TS visuals for all radio stations [skip render]'
           git pull --rebase origin main
           git push origin HEAD:main
