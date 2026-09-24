@@ -5,6 +5,7 @@ import base64
 import hashlib
 import http.server
 import io
+import json
 import mimetypes
 import os
 import pathlib
@@ -13,9 +14,12 @@ import subprocess
 import zipfile
 import threading
 import time
+import re
+from datetime import datetime, timezone
 import urllib.parse
 
 from playwright.sync_api import sync_playwright
+from websockets.sync.client import connect as ws_connect
 
 HERE = pathlib.Path(__file__).resolve().parent
 PORT = int(os.environ.get("PORT", "10000"))
@@ -32,6 +36,20 @@ STREAM_SEM = threading.BoundedSemaphore(6)
 HLS_DIR = pathlib.Path("/tmp/patapata-tv-hls")
 HLS_PLAYLIST = HLS_DIR / "index.m3u8"
 HLS_ERROR = ""
+
+# --- AIS PROXY v1 ---
+AIS_API_KEY = os.environ.get("AISSTREAM_API_KEY", "").strip()
+AIS_STREAM_URL = "wss://stream.aisstream.io/v0/stream"
+# 西瀬戸内〜豊後水道北部。lat/lon の対角2点。
+AIS_BOUNDING_BOXES = [[[35.0, 130.5], [32.9, 134.7]]]
+AIS_LOCK = threading.Lock()
+AIS_VESSELS: dict[str, dict] = {}
+AIS_STATIC: dict[str, dict] = {}
+AIS_STATUS = "key_missing" if not AIS_API_KEY else "starting"
+AIS_ERROR = ""
+AIS_UPDATED_AT = 0.0
+AIS_STALE_SECONDS = 20 * 60
+AIS_NAME_RE = re.compile(r"(FERRY|SUNFLOWER|ORANGE|HANKYU|HAN9|YAMATO|SETTSU|HIBIKI|IZUMI|OCEAN|TOKYU|SEA\\s*PASEO|SEAPASEO|SUPER\\s*JET|JET)", re.I)
 
 TV_CSS = """
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700;800;900&display=swap');
@@ -343,6 +361,158 @@ def stream_tv(handler: "Handler") -> None:
                     pass
         STREAM_SEM.release()
 
+
+def _ais_is_passenger(name: str, ship_type) -> bool:
+    try:
+        t = int(ship_type) if ship_type is not None else -1
+    except Exception:
+        t = -1
+    return 60 <= t <= 69 or bool(AIS_NAME_RE.search(name or ""))
+
+def _ais_update_static(mmsi: str, payload: dict, msg_type: str, metadata: dict) -> None:
+    current = AIS_STATIC.get(mmsi, {}).copy()
+    if msg_type == "ShipStaticData":
+        current.update({
+            "name": (payload.get("Name") or metadata.get("ShipName") or current.get("name") or "").strip(),
+            "ship_type": payload.get("Type", current.get("ship_type")),
+            "destination": (payload.get("Destination") or current.get("destination") or "").strip(),
+            "imo": payload.get("ImoNumber", current.get("imo")),
+        })
+    elif msg_type == "StaticDataReport":
+        a = payload.get("ReportA") or {}
+        b = payload.get("ReportB") or {}
+        if a.get("Valid") and a.get("Name"):
+            current["name"] = str(a.get("Name")).strip()
+        if b.get("Valid"):
+            current["ship_type"] = b.get("ShipType", current.get("ship_type"))
+    if not current.get("name"):
+        current["name"] = str(metadata.get("ShipName") or "").strip()
+    current["updated_at"] = time.time()
+    AIS_STATIC[mmsi] = current
+
+def _ais_position_from_message(msg_type: str, payload: dict, metadata: dict):
+    lat = payload.get("Latitude", metadata.get("Latitude", metadata.get("latitude")))
+    lon = payload.get("Longitude", metadata.get("Longitude", metadata.get("longitude")))
+    if lat is None or lon is None:
+        return None
+    try:
+        lat = float(lat); lon = float(lon)
+    except Exception:
+        return None
+    if not (-90 <= lat <= 90 and -180 <= lon <= 180):
+        return None
+    return {
+        "lat": lat,
+        "lng": lon,
+        "sog": payload.get("Sog"),
+        "cog": payload.get("Cog"),
+        "heading": payload.get("TrueHeading"),
+        "nav_status": payload.get("NavigationalStatus"),
+    }
+
+def _ais_handle_message(obj: dict) -> None:
+    global AIS_UPDATED_AT
+    msg_type = str(obj.get("MessageType") or "")
+    metadata = obj.get("MetaData") or {}
+    mmsi = str(metadata.get("MMSI") or "")
+    if not mmsi:
+        return
+    payload = (obj.get("Message") or {}).get(msg_type) or {}
+    now = time.time()
+    with AIS_LOCK:
+        if msg_type in ("ShipStaticData", "StaticDataReport"):
+            _ais_update_static(mmsi, payload, msg_type, metadata)
+        elif msg_type in ("PositionReport", "StandardClassBPositionReport", "ExtendedClassBPositionReport", "LongRangeAisBroadcastMessage"):
+            pos = _ais_position_from_message(msg_type, payload, metadata)
+            if pos:
+                static = AIS_STATIC.get(mmsi, {})
+                name = str(metadata.get("ShipName") or static.get("name") or "").strip()
+                AIS_VESSELS[mmsi] = {
+                    "mmsi": mmsi,
+                    "name": name,
+                    "ship_type": static.get("ship_type"),
+                    "destination": static.get("destination", ""),
+                    **pos,
+                    "updated_at": now,
+                }
+                AIS_UPDATED_AT = now
+
+def ais_worker() -> None:
+    global AIS_STATUS, AIS_ERROR
+    if not AIS_API_KEY:
+        AIS_STATUS = "key_missing"
+        return
+    backoff = 2
+    while not STOP.is_set():
+        try:
+            AIS_STATUS = "connecting"
+            AIS_ERROR = ""
+            with ws_connect(AIS_STREAM_URL, compression="deflate", open_timeout=15, close_timeout=5) as ws:
+                ws.send(json.dumps({
+                    "APIKey": AIS_API_KEY,
+                    "BoundingBoxes": AIS_BOUNDING_BOXES,
+                    "FilterMessageTypes": [
+                        "PositionReport",
+                        "StandardClassBPositionReport",
+                        "ExtendedClassBPositionReport",
+                        "LongRangeAisBroadcastMessage",
+                        "ShipStaticData",
+                        "StaticDataReport",
+                    ],
+                }))
+                AIS_STATUS = "live"
+                backoff = 2
+                while not STOP.is_set():
+                    try:
+                        raw = ws.recv(timeout=90)
+                    except TimeoutError:
+                        raise RuntimeError("AIS stream timeout")
+                    if raw is None:
+                        raise RuntimeError("AIS stream closed")
+                    if isinstance(raw, bytes):
+                        raw = raw.decode("utf-8", "replace")
+                    obj = json.loads(raw)
+                    if obj.get("MessageType") == "SubscriptionConfirmation":
+                        continue
+                    _ais_handle_message(obj)
+        except Exception as e:
+            AIS_STATUS = "error"
+            AIS_ERROR = f"{type(e).__name__}: {e}"
+            print(f"[ais] worker error: {AIS_ERROR}", flush=True)
+            if STOP.wait(backoff):
+                break
+            backoff = min(backoff * 2, 60)
+
+def ais_snapshot() -> dict:
+    now = time.time()
+    rows = []
+    with AIS_LOCK:
+        stale = [m for m, v in AIS_VESSELS.items() if now - float(v.get("updated_at") or 0) > AIS_STALE_SECONDS]
+        for m in stale:
+            AIS_VESSELS.pop(m, None)
+        for v in AIS_VESSELS.values():
+            static = AIS_STATIC.get(str(v.get("mmsi")), {})
+            name = str(v.get("name") or static.get("name") or "").strip()
+            ship_type = v.get("ship_type", static.get("ship_type"))
+            if not _ais_is_passenger(name, ship_type):
+                continue
+            row = dict(v)
+            row["name"] = name or f"MMSI {v.get('mmsi','')}"
+            row["ship_type"] = ship_type
+            row["destination"] = str(v.get("destination") or static.get("destination") or "").strip()
+            row["age_seconds"] = max(0, int(now - float(v.get("updated_at") or now)))
+            rows.append(row)
+    rows.sort(key=lambda x: (x.get("name") or "", x.get("mmsi") or ""))
+    updated = datetime.fromtimestamp(AIS_UPDATED_AT, timezone.utc).isoformat() if AIS_UPDATED_AT else None
+    return {
+        "status": AIS_STATUS,
+        "updated_at": updated,
+        "error": AIS_ERROR,
+        "bbox": AIS_BOUNDING_BOXES,
+        "vessels": rows,
+    }
+
+
 class Handler(http.server.BaseHTTPRequestHandler):
     protocol_version = "HTTP/1.1"
 
@@ -360,8 +530,22 @@ class Handler(http.server.BaseHTTPRequestHandler):
         if self.command != "HEAD":
             self.wfile.write(data)
 
+    def _json(self, status: int, obj):
+        data = json.dumps(obj, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+        self.send_response(status)
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Content-Length", str(len(data)))
+        self.send_header("Cache-Control", "no-store")
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.end_headers()
+        if self.command != "HEAD":
+            self.wfile.write(data)
+
     def do_HEAD(self):
         path = urllib.parse.urlsplit(self.path).path
+        if path == "/ais.json":
+            self._json(200, ais_snapshot())
+            return
         if path == "/tv":
             self.send_response(200)
             self.send_header("Content-Type", "video/mp2t")
@@ -380,6 +564,9 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
     def do_GET(self):
         path = urllib.parse.unquote(urllib.parse.urlsplit(self.path).path)
+        if path == "/ais.json":
+            self._json(200, ais_snapshot())
+            return
         if path == "/tv":
             stream_tv(self)
             return
@@ -462,6 +649,10 @@ def main() -> None:
     server = http.server.ThreadingHTTPServer((HOST, PORT), Handler)
     threading.Thread(target=browser_worker, daemon=True).start()
     threading.Thread(target=hls_worker, daemon=True).start()
+    if AIS_API_KEY:
+        threading.Thread(target=ais_worker, daemon=True).start()
+    else:
+        print("[ais] AISSTREAM_API_KEY not set; /ais.json will report key_missing", flush=True)
     print(f"[patapata] listening on {HOST}:{PORT}; ffmpeg={shutil.which('ffmpeg')}", flush=True)
     try:
         server.serve_forever(poll_interval=0.5)
