@@ -88,7 +88,7 @@ jobs:
               echo 'HARU VOD / FreeWiFi already current'
               exit 0
             fi
-            git commit -m 'Update HARU VOD in FreeWiFi [skip ci]'
+            git commit -m 'Update HARU VOD in FreeWiFi [skip ci] [skip render]'
             if git push origin HEAD:main; then
               echo 'HARU VOD / FreeWiFi published'
               exit 0
