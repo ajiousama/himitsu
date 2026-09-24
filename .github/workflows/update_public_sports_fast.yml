@@ -140,7 +140,7 @@ jobs:
               echo "Public sports fast state already current"
               exit 0
             fi
-            git commit -m "Refresh public sports fast state [skip ci]"
+            git commit -m "Refresh public sports fast state [skip ci] [skip render]"
             if git push origin HEAD:main; then
               exit 0
             fi
