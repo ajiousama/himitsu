@@ -114,6 +114,11 @@ def browser_worker() -> None:
                 except Exception as e:
                     print(f"[patapata] webfont wait warning: {e}", flush=True)
                 page.wait_for_timeout(1200)
+                try:
+                    ok = page.evaluate("document.fonts.check(\"16px 'Noto Sans JP'\", \"松山交通総合発着案内\")")
+                    print(f"[patapata] japanese font ready={ok}", flush=True)
+                except Exception as e:
+                    print(f"[patapata] font check warning: {e}", flush=True)
                 BROWSER_ERROR = ""
                 while not STOP.is_set():
                     frame = page.screenshot(type="jpeg", quality=76, animations="allow")
