@@ -6,7 +6,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "check": "node --check server.js",
+    "check": "node --check server.js && npx puppeteer browsers install chrome",
     "postinstall": "puppeteer browsers install chrome"
   },
   "engines": {
