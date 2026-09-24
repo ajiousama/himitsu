@@ -274,12 +274,43 @@ def playlist_body(path):
     return "\n".join(lines).strip()
 
 
+def probe_direct_url(url, mode):
+    """Verify volatile non-YouTube direct streams before publishing them."""
+    if not mode:
+        return True, "DIRECT"
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/152 Safari/537.36",
+        "Accept": "multipart/x-mixed-replace,image/jpeg,image/*,video/*,*/*;q=.5",
+        "Cache-Control": "no-cache",
+    }
+    try:
+        req = urllib.request.Request(url, headers=headers, method="GET")
+        with urllib.request.urlopen(req, timeout=15) as response:
+            status = int(getattr(response, "status", 200) or 200)
+            content_type = (response.headers.get("Content-Type") or "").lower()
+            if status < 200 or status >= 300:
+                return False, f"DIRECT_HTTP_{status}"
+            if mode == "visual":
+                if (
+                    "multipart/x-mixed-replace" in content_type
+                    or content_type.startswith("image/")
+                    or content_type.startswith("video/")
+                ):
+                    return True, "DIRECT_OK"
+                return False, "DIRECT_BAD_TYPE"
+            return True, "DIRECT_OK"
+    except Exception as exc:
+        print(f"DIRECT probe failed: {url} [{type(exc).__name__}: {exc}]")
+        return False, "DIRECT_DOWN"
+
+
 def resolve_general_one(index, item, previous):
     page = (item.get("page") or "").strip()
     direct_url = (item.get("direct_url") or "").strip()
     try:
         if direct_url:
-            return index, item, direct_url, "DIRECT"
+            ok, code = probe_direct_url(direct_url, item.get("probe"))
+            return index, item, (direct_url if ok else None), code
         if page:
             is_watch = "watch?v=" in page or "youtu.be/" in page
             guards = item.get("guard_terms") or []
