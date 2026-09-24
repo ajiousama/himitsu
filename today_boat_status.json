@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-25",
-  "generated_at": "2026-09-25T08:04:51.110610+09:00",
+  "generated_at": "2026-09-25T08:08:51.168058+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260925.json",
   "schedule_checked_at": "2026-09-25T07:56:51.167385+09:00",
@@ -52,9 +52,14 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 5,
+    "requested": 6,
     "fetched": 2,
     "failures": [
+      {
+        "jcd": "08",
+        "name": "常滑",
+        "error": "cloud and official acquisition unavailable: HTTPError"
+      },
       {
         "jcd": "09",
         "name": "津",
@@ -85,13 +90,13 @@
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/4cf0f8341b89431b8e239f8778b5cab1/f14a1f79edad43ccb5e9e55a3a27ace2/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MDQ2MzYwMCwic3RhcnQiOjE3OTAyOTA2MjAsImlvcyI6MTgsImNwIjoiMjEyNDg2MjIwXzIxMjUyOTQxOSIsInBwdyI6IjQwayJ9.MQ73vlIWidboZ-5w1M8oPvYk4bIIMOKPQk6IeiBjRNM",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-09-25T07:57:27.010973+09:00",
-      "checked_at": "2026-09-25T08:03:18.772973+09:00",
+      "checked_at": "2026-09-25T08:09:18.518162+09:00",
       "first_verified_at": "2026-09-25T07:57:27.010973+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
         "sequence": 8227895,
-        "last_segment": "/4cf0f8341b89431b8e239f8778b5cab1/f14a1f79edad43ccb5e9e55a3a27ace2/manifest_4_8227957.ts",
+        "last_segment": "/4cf0f8341b89431b8e239f8778b5cab1/f14a1f79edad43ccb5e9e55a3a27ace2/manifest_4_8228017.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
