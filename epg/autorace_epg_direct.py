@@ -90,7 +90,11 @@ def parse_program(source, race_no):
     m = re.search(rf'第\s*{race_no}\s*レース\s*[|｜]?\s*([^|｜]{{1,40}})', p)
     if m:
         candidate = re.sub(r'\s+', ' ', m.group(1)).strip()
-        if not re.fullmatch(r'20\d{2}年.*', candidate):
+        # Some AutoRace pages place the date/deadline/start-time metadata
+        # immediately after "第Nレース".  That is not a race name and the
+        # 40-character capture can truncate it mid-time (e.g. "発走予定12 : 4").
+        metadata = re.search(r'(?:20\d{2}年|電投締切|発走予定)', candidate)
+        if not metadata:
             name = candidate
     if not name:
         for word in ('優勝戦', '準決勝戦', '準決勝', '特別選抜戦', '選抜戦', '一般戦', '予選'):
