@@ -21,15 +21,16 @@ VERCEL_RADIKO_SIDS = {
 # These nationwide stations use the Render image+audio mux immediately. Their
 # stable station-art TS assets already exist, while Vercel is currently rate-limited.
 RENDER_RADIKO_SIDS = {"HBC", "TBC", "CBC", "RCC", "RKB", "KBC"}
+VERCEL_NHK_SIDS = {"nhk_r1_matsuyama"}
 ALL_RADIKO_SIDS = VERCEL_RADIKO_SIDS | RENDER_RADIKO_SIDS
 LOGO_RAW_BASE = "https://raw.githubusercontent.com/ajiousama/himitsu/main"
 EXPECTED_RADIO_COUNT = 28
 EXPECTED_RADIKO_COUNT = 22
-EXPECTED_VERCEL_RADIKO_COUNT = 16
+EXPECTED_VERCEL_ROUTE_COUNT = 17
 
 
 def radio_url(sid: str) -> str:
-    if sid in VERCEL_RADIKO_SIDS:
+    if sid in VERCEL_RADIKO_SIDS or sid in VERCEL_NHK_SIDS:
         return f"{RADIO_VERCEL_BASE}{quote(sid, safe='')}"
     return f"{RADIO_RENDER_BASE}/{quote(sid, safe='')}?v={RADIO_BUILD}"
 
@@ -168,7 +169,7 @@ def main() -> int:
     radio_section = updated[start:updated.find("## 愛媛CATV", start)]
     vercel_count = radio_section.count(RADIO_VERCEL_BASE)
     render_count = radio_section.count(RADIO_RENDER_BASE + "/")
-    if vercel_count != EXPECTED_VERCEL_RADIKO_COUNT or render_count != EXPECTED_RADIO_COUNT - EXPECTED_VERCEL_RADIKO_COUNT:
+    if vercel_count != EXPECTED_VERCEL_ROUTE_COUNT or render_count != EXPECTED_RADIO_COUNT - EXPECTED_VERCEL_ROUTE_COUNT:
         raise RuntimeError(
             f"compact FreeWiFi radio routing unexpected: vercel={vercel_count} render={render_count}"
         )
@@ -184,10 +185,10 @@ def main() -> int:
     if radio_section.count("/logos/contrast/radiko.") != EXPECTED_RADIKO_COUNT:
         raise RuntimeError("contrast-safe compact Radiko logos are not complete")
 
-    for sid in ("JOEU-FM", "RNB", "LFR", "QRR", "TBS", "FMT", "OBC", "KBS"):
+    for sid in ("JOEU-FM", "RNB", "LFR", "QRR", "TBS", "FMT", "OBC", "KBS", "nhk_r1_matsuyama"):
         if f'{RADIO_VERCEL_BASE}{sid}' not in radio_section:
             raise RuntimeError(f"required Vercel Radiko station missing: {sid}")
-    for sid in ("HBC", "TBC", "CBC", "RCC", "RKB", "KBC", "nhk_r1_matsuyama",
+    for sid in ("HBC", "TBC", "CBC", "RCC", "RKB", "KBC",
                 "FMOTOKUNI", "FM845", "BARIBARI", "NIIHAMA", "FMGAIYA"):
         if f'{RADIO_RENDER_BASE}/{sid}' not in radio_section:
             raise RuntimeError(f"required Render radio station missing: {sid}")
