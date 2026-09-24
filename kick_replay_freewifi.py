@@ -18,6 +18,8 @@ START = "# === KICK_REPLAY_START ==="
 END = "# === KICK_REPLAY_END ==="
 LONG_START = "# === GMCX_LONG_VOD_START ==="
 LONG_END = "# === GMCX_LONG_VOD_END ==="
+VOD5_START = "# === VOD5_CATALOG_START ==="
+VOD5_END = "# === VOD5_CATALOG_END ==="
 FREEWIFI_SPECIAL_IDS = {
     "kick.gmcx.special.2013-paris",
     "kick.gmcx.special.2013-budokan",
@@ -36,8 +38,14 @@ def remove_old(text: str) -> str:
         text,
         flags=re.S,
     )
-    return re.sub(
+    text = re.sub(
         r"\n?" + re.escape(LONG_START) + r".*?" + re.escape(LONG_END) + r"\n?",
+        "\n",
+        text,
+        flags=re.S,
+    )
+    return re.sub(
+        r"\n?" + re.escape(VOD5_START) + r".*?" + re.escape(VOD5_END) + r"\n?",
         "\n",
         text,
         flags=re.S,
@@ -133,11 +141,24 @@ def main() -> int:
     text = FREEWIFI.read_text(encoding="utf-8-sig", errors="replace")
     cleaned = remove_old(text).rstrip() + "\n"
 
+    vod5 = build_vod5()
+    VOD5.parent.mkdir(parents=True, exist_ok=True)
+    VOD5.write_text(vod5, encoding="utf-8")
+    VOD5_COMPAT.write_text(vod5, encoding="utf-8")
+
+    # Project the complete VOD5 catalog into FreeWiFi.  This is intentionally
+    # separate from KICK live and survives every hourly replay refresh.
+    vod5_lines = vod5.splitlines()
+    vod5_body = "\n".join(vod5_lines[1:] if vod5_lines and vod5_lines[0].startswith("#EXTM3U") else vod5_lines).strip()
+    if vod5_body:
+        cleaned += "\n" + VOD5_START + "\n" + vod5_body + "\n" + VOD5_END + "\n"
+
     long_entries = [
         (extinf, url)
         for extinf, url in read_entries(GMCX_M3U)
         if tvg_id(extinf) in FREEWIFI_SPECIAL_IDS
     ]
+    block = []
     if long_entries:
         block = [LONG_START]
         for extinf, url in long_entries:
@@ -151,10 +172,6 @@ def main() -> int:
     if cleaned != text:
         FREEWIFI.write_text(cleaned, encoding="utf-8")
 
-    vod5 = build_vod5()
-    VOD5.parent.mkdir(parents=True, exist_ok=True)
-    VOD5.write_text(vod5, encoding="utf-8")
-    VOD5_COMPAT.write_text(vod5, encoding="utf-8")
     FREEWIFI_SPECIALS.write_text(
         "#EXTM3U\n\n" + ("\n".join(block) + "\n" if long_entries else ""),
         encoding="utf-8",
