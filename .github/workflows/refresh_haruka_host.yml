@@ -82,7 +82,7 @@ jobs:
             fi
 
             git add tv/playlist.m3u freewifi
-            git commit -m "Auto-refresh HARUKA host"
+            git commit -m "Auto-refresh HARUKA host [skip render]"
             if git push origin HEAD:main; then
               echo "HARUKA host update pushed"
               exit 0
