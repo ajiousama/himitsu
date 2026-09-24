@@ -2,10 +2,10 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-25",
-  "generated_at": "2026-09-25T04:11:52.971370+09:00",
+  "generated_at": "2026-09-25T06:02:52.989341+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260925.json",
-  "schedule_checked_at": "2026-09-25T04:11:52.971370+09:00",
+  "schedule_checked_at": "2026-09-25T06:02:52.989341+09:00",
   "schedule_warnings": [
     "official_cards: TimeoutError"
   ],
@@ -52,11 +52,15 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 0,
+    "requested": 1,
     "fetched": 0,
-    "failures": [],
-    "deferred": 12,
-    "reason": "stream acquisition waits until each venue 1R prefetch window"
+    "failures": [
+      {
+        "jcd": "10",
+        "name": "三国",
+        "error": "cloud and official acquisition unavailable: HTTPError"
+      }
+    ]
   },
   "epg_programmes_written": {
     "public_sports_epg_local.xml": 168,
