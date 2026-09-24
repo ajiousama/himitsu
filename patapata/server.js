@@ -24,7 +24,9 @@ function findWebRoot(dir) {
 }
 
 function prepareWeb() {
-  const parts = fs.readdirSync(__dirname).filter(name => ARCHIVE_RE.test(name)).sort();
+  const parts = fs.readdirSync(__dirname)
+    .filter(name => ARCHIVE_RE.test(name))
+    .sort((a, b) => Number(a.split('.').pop()) - Number(b.split('.').pop()));
   if (!parts.length) throw new Error('patapata archive parts missing');
   const packed = parts.map(name => fs.readFileSync(path.join(__dirname, name), 'utf8').trim()).join('');
   const bytes = Buffer.from(packed, 'base64');
@@ -102,6 +104,7 @@ async function launchPage() {
     waitUntil: 'domcontentloaded',
     timeout: 25000
   });
+  await page.addStyleTag({ content: '#update-modal{display:none!important}' });
   await new Promise(resolve => setTimeout(resolve, 1200));
   return { browser, page };
 }
