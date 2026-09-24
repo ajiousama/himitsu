@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-24",
-  "generated_at": "2026-09-24T10:06:48.293588+09:00",
+  "generated_at": "2026-09-24T10:08:48.296049+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260924.json",
   "schedule_checked_at": "2026-09-24T09:58:48.242303+09:00",
@@ -19,7 +19,7 @@
   "alert_lead_minutes": 30,
   "card_count": 13,
   "held_count": 13,
-  "visible_count": 7,
+  "visible_count": 8,
   "active_count": 5,
   "ended_kept": [],
   "seed_required": false,
@@ -36,7 +36,7 @@
     },
     "day": {
       "held": 7,
-      "acquired": 4,
+      "acquired": 5,
       "active": 2,
       "ended": 0,
       "seed_required": 0,
@@ -53,13 +53,8 @@
   },
   "cloud_acquisition": {
     "requested": 10,
-    "fetched": 7,
+    "fetched": 8,
     "failures": [
-      {
-        "jcd": "02",
-        "name": "戸田",
-        "error": "HTTPError: playback check failed"
-      },
       {
         "jcd": "06",
         "name": "浜名湖",
@@ -81,6 +76,22 @@
     "kind": "healthy"
   },
   "streams": {
+    "boat.toda": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/9136ce9a16454351ae4f3d386430de85/8f9d3e5557704a4797e1528f1fb9aef0/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MDM4ODAwMCwic3RhcnQiOjE3OTAyMTIxNDAsImlvcyI6MTgsImNwIjoiMjEyNDA3NzQwXzIxMjQ1MDkzOSIsInBwdyI6IjQwayJ9.i0rQpvhOLjfmeetYNAfPr11_frCU7HgVUZYaiyWDYcw",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-09-24T10:09:15.439475+09:00",
+      "checked_at": "2026-09-24T10:09:15.439475+09:00",
+      "first_verified_at": "2026-09-24T10:09:15.439475+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 8220303,
+        "last_segment": "/9136ce9a16454351ae4f3d386430de85/8f9d3e5557704a4797e1528f1fb9aef0/manifest_4_8220305.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
+    },
     "boat.tokoname": {
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/20c28c9920e147c0b34f6c2c9142aaa1/04433f92f8b34031a5c24adedbb4481a/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MDM4NDQwMCwic3RhcnQiOjE3OTAyMTE1NDAsImlvcyI6MTgsImNwIjoiMjEyNDA3MTQwXzIxMjQ1MDMzOSIsInBwdyI6IjQwayJ9.SKPFRFrRp5BIgC0DZSiAIpsAa7CuCQlGylV5BJW4qGI",
       "source": "automatic acquisition + audio/video decode",
@@ -289,7 +300,7 @@
       "jcd": "02",
       "name": "戸田",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
       "active": false,
       "cancelled": false,
@@ -307,9 +318,9 @@
       "guidance_switch_at": "2026-09-24T17:20:00+09:00",
       "seed_required": false,
       "reverify_due": false,
-      "playback_verified": false,
-      "first_verified_at": null,
-      "ready_before_first_race": false,
+      "playback_verified": true,
+      "first_verified_at": "2026-09-24T10:09:15.439475+09:00",
+      "ready_before_first_race": true,
       "acquire_from": "2026-09-24T08:17:00+09:00",
       "races": [
         {
@@ -373,7 +384,9 @@
           "name": "優勝戦"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/9136ce9a16454351ae4f3d386430de85/8f9d3e5557704a4797e1528f1fb9aef0/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MDM4ODAwMCwic3RhcnQiOjE3OTAyMTIxNDAsImlvcyI6MTgsImNwIjoiMjEyNDA3NzQwXzIxMjQ1MDkzOSIsInBwdyI6IjQwayJ9.i0rQpvhOLjfmeetYNAfPr11_frCU7HgVUZYaiyWDYcw",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     },
     "boat.hamanako": {
       "jcd": "06",
