@@ -113,7 +113,7 @@ function ffmpegArgs() {
   return [
     '-hide_banner', '-loglevel', 'warning',
     '-f', 'image2pipe', '-vcodec', 'mjpeg', '-framerate', String(FPS), '-i', 'pipe:0',
-    '-f', 'lavfi', '-i', 'anullsrc=channel_layout=stereo:sample_rate=48000',
+    '-re', '-f', 'lavfi', '-i', 'anullsrc=channel_layout=stereo:sample_rate=48000',
     '-map', '0:v:0', '-map', '1:a:0',
     '-c:v', 'libx264', '-preset', 'ultrafast', '-tune', 'zerolatency',
     '-profile:v', 'baseline', '-level', '3.1',
