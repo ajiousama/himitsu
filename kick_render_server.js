@@ -7,7 +7,7 @@ const { URL } = require("url");
 const channels = require("./kick_channels.json");
 const PORT = Number(process.env.PORT || 10000);
 const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/140 Safari/537.36";
-const VERSION = "2026-09-24-render-v13-fast-boundary";
+const VERSION = "2026-09-24-render-v14-frame-grid";
 
 async function getJson(url){for(let a=0;a<3;a++){try{const r=await fetch(url,{headers:{accept:"application/json, text/plain, */*","user-agent":UA,referer:"https://kick.com/","cache-control":"no-cache"},cache:"no-store"});if(r.ok){try{return await r.json()}catch{}}}catch{}if(a<2)await new Promise(r=>setTimeout(r,300*(a+1)))}return null}
 async function getJsonHeaders(url,extra={}){for(let a=0;a<3;a++){try{const r=await fetch(url,{headers:{accept:"application/json, text/plain, */*","user-agent":UA,"cache-control":"no-cache",...extra},cache:"no-store"});if(r.ok){try{return await r.json()}catch{}}}catch{}if(a<2)await new Promise(r=>setTimeout(r,300*(a+1)))}return null}
@@ -80,7 +80,19 @@ async function kickFrame(u,res){
   const source=findM3u8(data);
   if(!source)return json(res,410,{error:"KICK VOD media unavailable",vod,resolver:VERSION});
   try{
-    const jpg=await execFileBuffer("/usr/bin/ffmpeg",["-nostdin","-hide_banner","-loglevel","error","-ss",String(t),"-i",source,"-frames:v","1","-vf","scale=640:-2","-q:v","4","-f","image2pipe","-vcodec","mjpeg","pipe:1"],35000);
+    let text=await getText(source);
+    if(/#EXT-X-STREAM-INF:/i.test(text)){const lo=pickLowestVariant(text,source);if(lo){source=lo;text=await getText(source)}}
+    const clipFrom=Math.max(0,t-20),clipDur=45;
+    const clipped=rewriteHaru(text,source,clipFrom,clipDur);
+    const mm=(clipped.match(/actual_segment_start=([0-9.]+)s/)||[])[1];
+    const actualStart=Number(mm||clipFrom);
+    const rel=Math.max(0,t-actualStart);
+    const tmp=path.join(os.tmpdir(),`kick-frame-${process.pid}-${Date.now()}-${Math.random().toString(36).slice(2)}.m3u8`);
+    fs.writeFileSync(tmp,clipped,"utf8");
+    let jpg;
+    try{
+      jpg=await execFileBuffer("/usr/bin/ffmpeg",["-nostdin","-hide_banner","-loglevel","error","-protocol_whitelist","file,http,https,tcp,tls,crypto","-ss",String(rel),"-i",tmp,"-frames:v","1","-vf","scale=640:-2","-q:v","4","-f","image2pipe","-vcodec","mjpeg","pipe:1"],35000);
+    }finally{try{fs.unlinkSync(tmp)}catch{}}
     headers(res);res.statusCode=200;res.setHeader("Content-Type","image/jpeg");res.setHeader("X-Kick-Frame-Time",String(t));res.end(jpg);
   }catch(e){return json(res,502,{error:"KICK frame extraction failed",vod,time:t,detail:String(e?.message||e),resolver:VERSION})}
 }
@@ -114,5 +126,17 @@ async function kickBoundary(u,res){
   }catch(e){return json(res,502,{error:"KICK boundary analysis failed",vod,center,detail:String(e?.message||e),resolver:VERSION})}
 }
 
-async function handler(req,res){const u=new URL(req.url,"http://localhost");if(u.pathname==="/health")return json(res,200,{ok:true,resolver:VERSION,features:["kick-live","kick-vod","kick-vod-clip","kick-frame","kick-boundary","haru-clip","tver-vod"]});if(u.pathname==="/kick-boundary"||u.pathname==="/api/kick-boundary")return kickBoundary(u,res);if(u.pathname==="/kick-frame"||u.pathname==="/api/kick-frame")return kickFrame(u,res);if(u.pathname==="/tver"||u.pathname==="/api/tver")return tverVod(u,res);if(u.pathname==="/haru-clip"||u.pathname==="/api/haru-clip")return haruClip(u,res);if(u.pathname!=="/kick"&&u.pathname!=="/api/kick"&&u.pathname!=="/api/kick-replay")return json(res,404,{error:"not found",resolver:VERSION});if(u.searchParams.has("vod"))return kickVod(u,res);const aliases={gccx:"kick.gccx",gccx2:"kick.gccx2",nogizaka:"kick.nogizaka",nogi:"kick.nogizaka",kujotaizai:"kick.kujotaizai",kujo:"kick.kujotaizai",wekiukk7:"kick.kujotaizai"};const key=String(u.searchParams.get("ch")||"").toLowerCase(),id=aliases[key]||key,item=channels.find(x=>String(x.tvg_id||"").toLowerCase()===id);if(!item)return json(res,404,{error:"unknown KICK channel",resolver:VERSION});const hit=await resolveLive(item);if(!hit)return json(res,503,{error:"KICK live playback unavailable",tvg_id:item.tvg_id,slug:item.slug,resolver:VERSION});return redirect(res,hit.playback)}
+
+function escHtml(x){return String(x).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+async function kickGrid(u,res){
+  const vod=String(u.searchParams.get("vod")||"").trim();
+  if(!/^[A-Za-z0-9_-]{6,120}$/.test(vod))return json(res,400,{error:"invalid KICK VOD id",resolver:VERSION});
+  let start=Number(u.searchParams.get("start")||0),step=Number(u.searchParams.get("step")||300),count=Number(u.searchParams.get("count")||12);
+  if(!Number.isFinite(start)||start<0)start=0;if(!Number.isFinite(step)||step<30)step=300;if(!Number.isFinite(count)||count<1)count=12;
+  count=Math.min(24,Math.floor(count));step=Math.floor(step);start=Math.floor(start);
+  const cards=[];for(let i=0;i<count;i++){const t=start+i*step;const h=Math.floor(t/3600),m=Math.floor((t%3600)/60),sec=t%60;const label=[h?String(h).padStart(2,"0"):null,String(m).padStart(2,"0"),String(sec).padStart(2,"0")].filter(Boolean).join(":");cards.push(`<figure><img loading="eager" src="/kick-frame?vod=${encodeURIComponent(vod)}&time=${t}"><figcaption>${t}s — ${label}</figcaption></figure>`)}
+  headers(res);res.statusCode=200;res.setHeader("Content-Type","text/html; charset=utf-8");res.end(`<!doctype html><meta charset="utf-8"><title>KICK cue grid</title><style>body{margin:12px;background:#111;color:#fff;font:16px sans-serif}.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}figure{margin:0;background:#222;padding:6px}img{width:100%;height:auto;display:block}figcaption{padding:5px;font-weight:700}</style><h1>KICK cue grid — ${escHtml(vod)}</h1><div class="grid">${cards.join("")}</div>`);
+}
+
+async function handler(req,res){const u=new URL(req.url,"http://localhost");if(u.pathname==="/health")return json(res,200,{ok:true,resolver:VERSION,features:["kick-live","kick-vod","kick-vod-clip","kick-frame","kick-grid","kick-boundary","haru-clip","tver-vod"]});if(u.pathname==="/kick-grid"||u.pathname==="/api/kick-grid")return kickGrid(u,res);if(u.pathname==="/kick-boundary"||u.pathname==="/api/kick-boundary")return kickBoundary(u,res);if(u.pathname==="/kick-frame"||u.pathname==="/api/kick-frame")return kickFrame(u,res);if(u.pathname==="/tver"||u.pathname==="/api/tver")return tverVod(u,res);if(u.pathname==="/haru-clip"||u.pathname==="/api/haru-clip")return haruClip(u,res);if(u.pathname!=="/kick"&&u.pathname!=="/api/kick"&&u.pathname!=="/api/kick-replay")return json(res,404,{error:"not found",resolver:VERSION});if(u.searchParams.has("vod"))return kickVod(u,res);const aliases={gccx:"kick.gccx",gccx2:"kick.gccx2",nogizaka:"kick.nogizaka",nogi:"kick.nogizaka",kujotaizai:"kick.kujotaizai",kujo:"kick.kujotaizai",wekiukk7:"kick.kujotaizai"};const key=String(u.searchParams.get("ch")||"").toLowerCase(),id=aliases[key]||key,item=channels.find(x=>String(x.tvg_id||"").toLowerCase()===id);if(!item)return json(res,404,{error:"unknown KICK channel",resolver:VERSION});const hit=await resolveLive(item);if(!hit)return json(res,503,{error:"KICK live playback unavailable",tvg_id:item.tvg_id,slug:item.slug,resolver:VERSION});return redirect(res,hit.playback)}
 http.createServer((req,res)=>handler(req,res).catch(e=>json(res,500,{error:"internal error",detail:String(e?.message||e),resolver:VERSION}))).listen(PORT,"0.0.0.0",()=>console.log(`Media resolver ${VERSION} listening on ${PORT}`));
