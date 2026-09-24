@@ -721,9 +721,10 @@ def sync_freewifi(config):
         raise SystemExit("freewifi missing")
     text = FREEWIFI.read_text(encoding="utf-8-sig", errors="replace")
 
-    general_parts = [playlist_body(GENERAL_OUT), playlist_body(MANDARIN_OUT)]
-    body = "\n\n".join(x for x in general_parts if x).strip()
-    block = GENERAL_START + "\n" + body + "\n" + GENERAL_END
+    # FreeWiFi intentionally publishes only KanaTube from the YouTube system.
+    # General live cameras and Mandarin Pirates remain available in youtube/output/
+    # but must never be projected into the aggregate FreeWiFi playlist.
+    block = GENERAL_START + "\n" + GENERAL_END
     pat = re.compile(re.escape(GENERAL_START) + r".*?" + re.escape(GENERAL_END), re.S)
     if not pat.search(text):
         raise SystemExit("GENERAL_YOUTUBE managed block missing from freewifi")
@@ -847,6 +848,16 @@ def validate(config):
     kana_count = text.count(f'tvg-id="{kana_id}"')
     if kana_count > 1:
         raise SystemExit("duplicate Kana entry in freewifi")
+
+    # FreeWiFi policy: KanaTube is the only YouTube entry allowed.
+    stray_youtube = [
+        line for line in text.splitlines()
+        if line.startswith("#EXTINF:")
+        and 'tvg-id="youtube.' in line
+        and f'tvg-id="{kana_id}"' not in line
+    ]
+    if stray_youtube:
+        raise SystemExit("non-Kana YouTube entry remains in freewifi: " + stray_youtube[0])
 
     # Reservation/LIVE publication is an invariant, not best-effort. Once the
     # official channel has been resolved, FreeWiFi must contain the exact same
