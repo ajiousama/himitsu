@@ -229,5 +229,5 @@ jobs:
           cp /tmp/boat_v4_status.json.generated boat_v4_status.json
           git add epg.xml public_sports.m3u boatrace_today.json boatrace_today.m3u boat_v4_status.json
           git diff --cached --quiet && echo "No changes" && exit 0
-          git commit -m "Update ganble canonical public sports data"
+          git commit -m "Update ganble canonical public sports data [skip render]"
           git push origin HEAD:main
