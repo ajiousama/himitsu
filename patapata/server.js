@@ -206,6 +206,7 @@ async function snapshot(res) {
     });
     res.end(png);
   } catch (err) {
+    console.error('[patapata] snapshot failed', err && err.stack ? err.stack : err);
     send(res, 503, `snapshot failed: ${err.message || err}\n`);
   } finally {
     try { if (browser) await browser.close(); } catch {}
