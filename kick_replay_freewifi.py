@@ -61,15 +61,24 @@ def read_entries(path: Path) -> list[tuple[str, str]]:
     return out
 
 
-def ready_chapter_vods() -> set[str]:
+def reliable_chapter_vods() -> set[str]:
+    """Only publish per-episode splits when their boundaries are actually reliable."""
     if not GMCX_JSON.exists():
         return set()
     payload = json.loads(GMCX_JSON.read_text(encoding="utf-8"))
-    return {
-        str(item.get("vod_id"))
-        for item in payload.get("results", [])
-        if item.get("status") == "ready" and item.get("chapters")
-    }
+    reliable = set()
+    for item in payload.get("results", []):
+        chapters = item.get("chapters") or []
+        if item.get("status") != "ready" or not chapters:
+            continue
+        refinement = item.get("titlecard_refinement") or {}
+        all_high = all(
+            ch.get("kind") != "episode" or ch.get("confidence") == "high"
+            for ch in chapters
+        )
+        if refinement.get("status") == "applied" or all_high:
+            reliable.add(str(item.get("vod_id")))
+    return reliable
 
 
 def replay_vod_ids() -> dict[str, str]:
@@ -89,7 +98,7 @@ def tvg_id(extinf: str) -> str:
 
 
 def build_vod5() -> str:
-    chapter_vods = ready_chapter_vods()
+    chapter_vods = reliable_chapter_vods()
     id_to_vod = replay_vod_ids()
 
     whole: list[tuple[str, str]] = []
@@ -103,6 +112,7 @@ def build_vod5() -> str:
         (extinf, url)
         for extinf, url in read_entries(GMCX_M3U)
         if tvg_id(extinf) not in FREEWIFI_SPECIAL_IDS
+        and any(f"vod={vod_id}" in url for vod_id in chapter_vods)
     ]
     lines = ["#EXTM3U"]
     for extinf, url in whole:
