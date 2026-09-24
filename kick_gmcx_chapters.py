@@ -26,7 +26,8 @@ AI_WINDOW_SECONDS = 600
 # signature inside each VOD and place every split on the same visual cue.
 TITLECARD_WINDOW_SECONDS = 150
 TITLECARD_SAMPLE_SECONDS = 2
-TITLECARD_BOUNDARY_VERSION = 2
+TITLECARD_BOUNDARY_VERSION = 3
+TITLECARD_INTRO_SECONDS = 8
 TITLECARD_HASH_BITS = 256
 TITLECARD_MATCH_DISTANCE = 42
 TITLECARD_NEAR_BEST = 4
@@ -392,11 +393,11 @@ def refine_with_titlecard(
             **learned,
         }
 
-    # The recurring title card is not the episode start. Every regular episode begins
-    # with the same cartridge-blow intro, then reaches the title card. Measure that
-    # lead-in once from episode 1 in this VOD and subtract the same offset everywhere.
-    first_episode_start = int(episode_subset[0].get("start_seconds") or 0)
-    lead_in_seconds = max(0, int(reference["time"]) - first_episode_start)
+    # The recurring title card is not the episode start. Every regular episode uses
+    # the same cartridge-blow intro immediately before the title card. Keep that
+    # shared bumper by cutting a fixed amount before every detected title card.
+    # 8 seconds was measured on the clean #137 boundary and is reused across VODs.
+    lead_in_seconds = TITLECARD_INTRO_SECONDS
 
     starts = {}
     match_rows = []
