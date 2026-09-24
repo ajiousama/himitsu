@@ -245,7 +245,7 @@ jobs:
               echo "Local venue/CX2 state already current"
               exit 0
             fi
-            git commit -m "Update ajiousama public sports and CX2 state [skip ci]"
+            git commit -m "Update ajiousama public sports and CX2 state [skip ci] [skip render]"
             if git push origin HEAD:main; then
               echo "FreeWiFi state published without overwriting BOAT"
               exit 0
@@ -397,7 +397,7 @@ jobs:
               echo "EPG already current on latest main"
               exit 0
             fi
-            git commit -m "Update FreeWiFi local EPG [skip ci]"
+            git commit -m "Update FreeWiFi local EPG [skip ci] [skip render]"
             if git push origin HEAD:main; then
               echo "EPG overlay published successfully"
               exit 0
