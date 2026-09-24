@@ -56,6 +56,29 @@ def find_playback(value):
                 return hit
     return None
 
+def playback_alive(url):
+    if not url:
+        return False
+    headers = {
+        "User-Agent": "Mozilla/5.0",
+        "Accept": "application/vnd.apple.mpegurl, application/x-mpegURL, text/plain, */*",
+        "Referer": "https://kick.com/",
+        "Cache-Control": "no-cache",
+        "Pragma": "no-cache",
+    }
+    for attempt in range(2):
+        try:
+            req = urllib.request.Request(url, headers=headers)
+            with urllib.request.urlopen(req, timeout=12) as response:
+                head = response.read(4096).decode("utf-8", "replace")
+            if head.lstrip().startswith("#EXTM3U"):
+                return True
+        except Exception:
+            pass
+        if attempt == 0:
+            time.sleep(1)
+    return False
+
 
 def parse_entries(text):
     lines = text.splitlines()
@@ -120,10 +143,19 @@ def main():
             states[tvg_id] = {"slug": slug, "lookup_ok": False, "live": None, "preserved": tvg_id in old_entries}
             continue
         playback = find_playback(data)
-        live = bool(playback)
+        playback_detected = bool(playback)
+        # KICK can expose a playback_url even when the channel's live manifest
+        # is not actually playable. Publish only after the HLS itself responds.
+        live = playback_alive(playback)
         if live:
             active[tvg_id] = PROXIES[tvg_id]
-        states[tvg_id] = {"slug": slug, "lookup_ok": True, "live": live, "playback_detected": bool(playback)}
+        states[tvg_id] = {
+            "slug": slug,
+            "lookup_ok": True,
+            "live": live,
+            "playback_detected": playback_detected,
+            "playback_verified": live,
+        }
 
     lines = ["# === KICK_MANAGED_START ===", "## KICK"]
     for tvg_id in ORDER:
