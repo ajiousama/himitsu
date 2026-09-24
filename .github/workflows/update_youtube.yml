@@ -245,8 +245,13 @@ jobs:
 
             # Urgent/local cameras refresh first so they do not wait behind the
             # full nationwide scan.
+            volatile_ids="youtube.arashiyama_monkeypark,youtube.matsuyama_kankoko,youtube.matsuyama_kankoko_board,youtube.matsuyama_kankoko_exterior"
             if [ "$cycle" -eq 0 ]; then
-              publish_general "youtube.tsukamoto,youtube.masaki_hama,youtube.kurushima_bridge,youtube.kobe_port_shinko2_south,youtube.osaka_port_nanko" || true
+              publish_general "youtube.tsukamoto,youtube.masaki_hama,youtube.kurushima_bridge,youtube.kobe_port_shinko2_south,youtube.osaka_port_nanko,$volatile_ids" || true
+            elif [ $((cycle % 3)) -eq 0 ]; then
+              # Official Arashiyama LIVE IDs can rotate, and the three tourist-port
+              # cameras should disappear while dead and return automatically.
+              publish_general "$volatile_ids" || true
             fi
 
             publish_scope special || true
