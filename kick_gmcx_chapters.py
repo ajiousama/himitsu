@@ -689,7 +689,7 @@ def main() -> int:
         else:
             ep = int(item["episode"])
             tvg_id = f"kick.gmcx.chapter.{ep}"
-            label = f"📼 GMCX #{ep} {item['title']}"
+            label = f"📼 {item['title']} #{ep}"
         lines.append(
             '#EXTINF:-1 group-title="GMCX Replay" '
             f'tvg-id="{tvg_id}" tvg-logo="https://pbs.twimg.com/profile_images/826592912389451777/PnXfhxJD_400x400.jpg",{label}'
