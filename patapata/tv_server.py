@@ -28,7 +28,7 @@ LATEST_FRAME: bytes | None = None
 FRAME_AT = 0.0
 BROWSER_ERROR = ""
 STOP = threading.Event()
-STREAM_SEM = threading.BoundedSemaphore(2)
+STREAM_SEM = threading.BoundedSemaphore(6)
 HLS_DIR = pathlib.Path("/tmp/patapata-tv-hls")
 HLS_PLAYLIST = HLS_DIR / "index.m3u8"
 HLS_ERROR = ""
@@ -125,7 +125,7 @@ def browser_worker() -> None:
                     with FRAME_LOCK:
                         LATEST_FRAME = frame
                         FRAME_AT = time.time()
-                    page.wait_for_timeout(450)
+                    page.wait_for_timeout(120)
                 browser.close()
         except Exception as e:
             BROWSER_ERROR = f"{type(e).__name__}: {e}"
@@ -150,14 +150,14 @@ def ffmpeg_cmd() -> list[str]:
     return [
         ff,
         "-nostdin", "-hide_banner", "-loglevel", "warning",
-        "-f", "image2pipe", "-framerate", "2", "-vcodec", "mjpeg", "-i", "pipe:0",
+        "-f", "image2pipe", "-framerate", "8", "-vcodec", "mjpeg", "-i", "pipe:0",
         "-f", "lavfi", "-i", "anullsrc=r=48000:cl=stereo",
         "-map", "0:v:0", "-map", "1:a:0",
-        "-vf", "fps=10",
+        "-vf", "fps=8",
         "-c:v", "libx264", "-preset", "ultrafast", "-tune", "zerolatency",
         "-profile:v", "baseline", "-level", "3.1",
-        "-crf", "28", "-pix_fmt", "yuv420p", "-r", "10", "-g", "20",
-        "-keyint_min", "20", "-sc_threshold", "0",
+        "-crf", "28", "-pix_fmt", "yuv420p", "-r", "8", "-g", "16",
+        "-keyint_min", "16", "-sc_threshold", "0",
         "-c:a", "aac", "-b:a", "64k", "-ar", "48000", "-ac", "2",
         "-muxdelay", "0", "-muxpreload", "0", "-flush_packets", "1",
         "-mpegts_flags", "resend_headers",
@@ -183,7 +183,8 @@ def ffmpeg_hls_cmd() -> list[str]:
         "-c:a", "aac", "-b:a", "64k", "-ar", "48000", "-ac", "2",
         "-f", "hls",
         "-hls_time", "2",
-        "-hls_list_size", "6",
+        "-hls_list_size", "12",
+        "-hls_delete_threshold", "18",
         "-hls_allow_cache", "0",
         "-hls_flags", "delete_segments+omit_endlist+independent_segments+program_date_time",
         "-hls_segment_filename", str(HLS_DIR / "seg_%06d.ts"),
@@ -227,7 +228,7 @@ def hls_worker() -> None:
                                 last = LATEST_FRAME
                         proc.stdin.write(last)
                         proc.stdin.flush()
-                        time.sleep(0.5)
+                        time.sleep(0.125)
                 except (BrokenPipeError, OSError, ValueError):
                     pass
                 finally:
@@ -303,7 +304,7 @@ def stream_tv(handler: "Handler") -> None:
                             last = LATEST_FRAME
                     proc.stdin.write(last)
                     proc.stdin.flush()
-                    time.sleep(0.5)
+                    time.sleep(0.125)
             except (BrokenPipeError, OSError, ValueError):
                 pass
             finally:
@@ -428,7 +429,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 200,
                 "Patapata TV\n"
                 "source=FINAL-v5-JR-DEADHEAD\n"
-                "video=1280x720 10fps H.264 baseline\n"
+                "video=1280x720 8fps real-capture H.264 baseline\n"
                 "audio=AAC 48kHz stereo silence\n"
                 "stream=/tv\n"
                 "hls=/live.m3u8\n",
