@@ -41,6 +41,6 @@ jobs:
             echo "No new source version"
             exit 0
           fi
-          git commit -m "Archive ganble source version [skip ci]"
+          git commit -m "Archive ganble source version [skip ci] [skip render]"
           git pull --rebase origin main
           git push origin HEAD:main
