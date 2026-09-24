@@ -55,11 +55,10 @@ def main():
         return
     rows=[]
     for cid,name,stream,logo,source in CHANNELS:
-        # LOCAL/WEB5 exists only when the Hokkaido/local source is actually active.
-        if source == 'jra.hokkaido' and source not in active:
-            continue
-        # GCH/EAST/WEST are exposed on a JRA active day; LOCAL remains conditional.
-        if source != 'jra.gch' and source not in active and source not in ('jra.east','jra.west'):
+        # Every quality pair follows today_jra_status exactly.
+        # In particular, GCH is active only when the actual Green Channel guide
+        # contains an overseas-racing or local-racing broadcast trigger.
+        if source not in active:
             continue
         rows += [f'#EXTINF:-1 tvg-id="{cid}" tvg-name="{name}" tvg-logo="{LOGO}/{logo}" group-title="今日の開催場",{name}', f'{RAW}/{stream}', '']
     block=START+'\n## JRA / GCH HQ・LQ（earphone正本）\n'+'\n'.join(rows).rstrip()+'\n'+END+'\n'
