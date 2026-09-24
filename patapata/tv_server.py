@@ -34,7 +34,12 @@ HLS_PLAYLIST = HLS_DIR / "index.m3u8"
 HLS_ERROR = ""
 
 TV_CSS = """
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700;800;900&display=swap');
 html, body { width:100% !important; height:100% !important; margin:0 !important; overflow:hidden !important; background:#071019 !important; }
+html, body, body * {
+  font-family:'Noto Sans JP', sans-serif !important;
+  font-variant-numeric: tabular-nums;
+}
 #wall {
   left:50% !important; right:auto !important; top:50% !important;
   transform-origin:center center !important;
@@ -103,7 +108,12 @@ def browser_worker() -> None:
                     timeout=45000,
                 )
                 page.add_style_tag(content=TV_CSS)
-                page.wait_for_timeout(1500)
+                try:
+                    page.evaluate("document.fonts.ready.then(() => true)")
+                    page.wait_for_function("document.fonts && document.fonts.status === 'loaded'", timeout=15000)
+                except Exception as e:
+                    print(f"[patapata] webfont wait warning: {e}", flush=True)
+                page.wait_for_timeout(1200)
                 BROWSER_ERROR = ""
                 while not STOP.is_set():
                     frame = page.screenshot(type="jpeg", quality=76, animations="allow")
