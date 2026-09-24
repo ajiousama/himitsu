@@ -26,7 +26,7 @@ AI_WINDOW_SECONDS = 600
 # signature inside each VOD and place every split on the same visual cue.
 TITLECARD_WINDOW_SECONDS = 150
 TITLECARD_SAMPLE_SECONDS = 2
-TITLECARD_PREROLL_SECONDS = 2
+TITLECARD_BOUNDARY_VERSION = 2
 TITLECARD_HASH_BITS = 256
 TITLECARD_MATCH_DISTANCE = 42
 TITLECARD_NEAR_BEST = 4
@@ -359,7 +359,7 @@ def refine_with_titlecard(
     if previous_result and int(previous_result.get("duration_seconds") or 0) == duration:
         prev = previous_result.get("titlecard_refinement") or {}
         cached = prev.get("episode_starts") or {}
-        if prev.get("status") == "applied" and cached:
+        if prev.get("status") == "applied" and prev.get("boundary_version") == TITLECARD_BOUNDARY_VERSION and cached:
             starts = {int(k): int(v) for k, v in cached.items()}
             rebuilt = _apply_refined_episode_starts(
                 [{**x, "vod_id": vod_id} for x in chapters], starts, duration
@@ -392,6 +392,12 @@ def refine_with_titlecard(
             **learned,
         }
 
+    # The recurring title card is not the episode start. Every regular episode begins
+    # with the same cartridge-blow intro, then reaches the title card. Measure that
+    # lead-in once from episode 1 in this VOD and subtract the same offset everywhere.
+    first_episode_start = int(episode_subset[0].get("start_seconds") or 0)
+    lead_in_seconds = max(0, int(reference["time"]) - first_episode_start)
+
     starts = {}
     match_rows = []
     for ep, frames, item in zip(window_eps, windows, episode_subset):
@@ -400,10 +406,10 @@ def refine_with_titlecard(
         if t is None:
             match_rows.append({"episode": ep, "matched": False, "distance": dist, "original": original})
             continue
-        refined = max(0, int(t) - TITLECARD_PREROLL_SECONDS)
-        # First episode remains 0 to preserve VOD head footage.
-        if original == 0:
-            refined = 0
+        refined = max(0, int(t) - lead_in_seconds)
+        # Preserve the exact first-episode boundary; it is the source of the intro offset.
+        if ep == window_eps[0]:
+            refined = original
         starts[ep] = refined
         match_rows.append({
             "episode": ep,
@@ -444,7 +450,8 @@ def refine_with_titlecard(
         "method": "repeated-titlecard-dhash",
         "window_seconds": TITLECARD_WINDOW_SECONDS,
         "sample_seconds": TITLECARD_SAMPLE_SECONDS,
-        "preroll_seconds": TITLECARD_PREROLL_SECONDS,
+        "boundary_version": TITLECARD_BOUNDARY_VERSION,
+        "lead_in_seconds": lead_in_seconds,
         **learned,
         "episode_starts": {str(k): v for k, v in starts.items()},
         "matches": match_rows,
