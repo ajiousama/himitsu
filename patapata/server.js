@@ -24,9 +24,7 @@ function findWebRoot(dir) {
 }
 
 function prepareWeb() {
-  const parts = fs.readdirSync(__dirname)
-    .filter(name => ARCHIVE_RE.test(name))
-    .sort((a, b) => Number(a.split('.').pop()) - Number(b.split('.').pop()));
+  const parts = fs.readdirSync(__dirname).filter(name => ARCHIVE_RE.test(name)).sort();
   if (!parts.length) throw new Error('patapata archive parts missing');
   const packed = parts.map(name => fs.readFileSync(path.join(__dirname, name), 'utf8').trim()).join('');
   const bytes = Buffer.from(packed, 'base64');
