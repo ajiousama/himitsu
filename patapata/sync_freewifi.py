@@ -22,10 +22,8 @@ def main() -> None:
     pos = text.find(ANCHOR)
     if pos < 0:
         raise SystemExit("YouTube anchor missing for Patapata TV insertion")
-    line_end = text.find("\n", pos)
-    line_end = len(text) if line_end < 0 else line_end + 1
     block = managed_block()
-    text = text[:line_end] + "\n" + block + "\n\n" + text[line_end:]
+    text = text[:pos].rstrip() + "\n\n" + block + "\n\n" + text[pos:].lstrip()
     FREEWIFI.write_text(text.rstrip() + "\n", encoding="utf-8")
     print("Patapata TV projection synced")
 
