@@ -46,7 +46,7 @@ jobs:
           if git diff --cached --quiet; then
             echo "Council visibility already current"
           else
-            git commit -m "Update council live visibility [skip ci]"
+            git commit -m "Update council live visibility [skip ci] [skip render]"
             git pull --rebase origin main
             git push origin HEAD:main
           fi
