@@ -1,10 +1,13 @@
 const http = require("http");
 const { execFile } = require("child_process");
+const fs = require("fs");
+const os = require("os");
+const path = require("path");
 const { URL } = require("url");
 const channels = require("./kick_channels.json");
 const PORT = Number(process.env.PORT || 10000);
 const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/140 Safari/537.36";
-const VERSION = "2026-09-24-render-v12-kick-boundary";
+const VERSION = "2026-09-24-render-v13-fast-boundary";
 
 async function getJson(url){for(let a=0;a<3;a++){try{const r=await fetch(url,{headers:{accept:"application/json, text/plain, */*","user-agent":UA,referer:"https://kick.com/","cache-control":"no-cache"},cache:"no-store"});if(r.ok){try{return await r.json()}catch{}}}catch{}if(a<2)await new Promise(r=>setTimeout(r,300*(a+1)))}return null}
 async function getJsonHeaders(url,extra={}){for(let a=0;a<3;a++){try{const r=await fetch(url,{headers:{accept:"application/json, text/plain, */*","user-agent":UA,"cache-control":"no-cache",...extra},cache:"no-store"});if(r.ok){try{return await r.json()}catch{}}}catch{}if(a<2)await new Promise(r=>setTimeout(r,300*(a+1)))}return null}
@@ -93,12 +96,18 @@ async function kickBoundary(u,res){
   if(!data)return json(res,404,{error:"KICK VOD metadata unavailable",vod,resolver:VERSION});
   let source=findM3u8(data);if(!source)return json(res,410,{error:"KICK VOD media unavailable",vod,resolver:VERSION});
   try{
-    let text=await getText(source);if(/#EXT-X-STREAM-INF:/i.test(text)){const lo=pickLowestVariant(text,source);if(lo)source=lo}
+    let text=await getText(source);if(/#EXT-X-STREAM-INF:/i.test(text)){const lo=pickLowestVariant(text,source);if(lo){source=lo;text=await getText(source)}}
     const from=Math.max(0,Math.floor(center-span)),dur=Math.max(60,Math.floor(span*2));
-    const args=["-nostdin","-hide_banner","-ss",String(from),"-t",String(dur),"-i",source,
+    const clipped=rewriteHaru(text,source,from,dur);
+    const tmp=path.join(os.tmpdir(),`kick-boundary-${process.pid}-${Date.now()}.m3u8`);
+    fs.writeFileSync(tmp,clipped,"utf8");
+    const args=["-nostdin","-hide_banner","-protocol_whitelist","file,http,https,tcp,tls,crypto","-i",tmp,
       "-vf","blackdetect=d=0.20:pic_th=0.96:pix_th=0.10",
       "-af","silencedetect=noise=-35dB:d=0.50","-f","null","-"];
-    const out=await new Promise((resolve,reject)=>{execFile("/usr/bin/ffmpeg",args,{encoding:"utf8",maxBuffer:8*1024*1024,timeout:90000},(err,stdout,stderr)=>{if(err&&!(stderr||"").includes("black_"))return reject(new Error((stderr||err.message).slice(-3000)));resolve(stderr||"")})});
+    let out="";
+    try{
+      out=await new Promise((resolve,reject)=>{execFile("/usr/bin/ffmpeg",args,{encoding:"utf8",maxBuffer:12*1024*1024,timeout:90000},(err,stdout,stderr)=>{if(err&&!(stderr||"").includes("black_")&&!(stderr||"").includes("silence_"))return reject(new Error((stderr||err.message).slice(-3000)));resolve(stderr||"")})});
+    }finally{try{fs.unlinkSync(tmp)}catch{}}
     const blacks=[];for(const m of out.matchAll(/black_start:([0-9.]+)\s+black_end:([0-9.]+)\s+black_duration:([0-9.]+)/g)){blacks.push({start:from+Number(m[1]),end:from+Number(m[2]),duration:Number(m[3])})}
     const silences=[];const starts=[];for(const line of out.split("\n")){let m=line.match(/silence_start:\s*([0-9.]+)/);if(m)starts.push(Number(m[1]));m=line.match(/silence_end:\s*([0-9.]+)\s*\|\s*silence_duration:\s*([0-9.]+)/);if(m){const st=starts.length?starts.shift():Number(m[1])-Number(m[2]);silences.push({start:from+st,end:from+Number(m[1]),duration:Number(m[2])})}}
     return json(res,200,{vod,center,from,duration:dur,source,black:blacks,silence:silences,resolver:VERSION});
