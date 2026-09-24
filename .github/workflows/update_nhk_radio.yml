@@ -71,8 +71,8 @@ jobs:
           grep -q 'NHK-FM（松山）' radio/nhk.m3u
           grep -q 'RNB南海放送（ラジオ）' radio/nationwide.m3u
           grep -q 'FM愛媛（ラジオ）' radio/nationwide.m3u
-          grep -Fq 'https://ajiousama-radiko.onrender.com/radio-tv/nhk_r1_matsuyama' radio/nhk.m3u
-          grep -Fq 'https://ajiousama-radiko.onrender.com/radio-tv/nhk_fm_matsuyama' radio/nhk.m3u
+          grep -Fq 'https://himitsu-six.vercel.app/api/radio-tv?station=nhk_r1_matsuyama' radio/nhk.m3u
+          grep -Fq 'https://himitsu-six.vercel.app/api/radio-tv?station=nhk_fm_matsuyama' radio/nhk.m3u
           ! grep -Fq 'radio-ts-assets/' radio/nationwide.m3u
           ! grep -Fq 'radio-ts-assets/' radio/nhk.m3u
           RADIO_COUNT=$(grep -c 'tvg-id="radiko\.' radio/nationwide.m3u || true)
