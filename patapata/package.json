@@ -6,7 +6,8 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "check": "node --check server.js"
+    "check": "node --check server.js",
+    "postinstall": "puppeteer browsers install chrome"
   },
   "engines": {
     "node": ">=20"
