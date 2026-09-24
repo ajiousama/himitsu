@@ -59,7 +59,7 @@ jobs:
               exit 0
             fi
 
-            git commit -m "Normalize race EPG to +3 minute switching [skip ci]"
+            git commit -m "Normalize race EPG to +3 minute switching [skip ci] [skip render]"
             if git push origin HEAD:main; then
               echo "Race EPG +3 minute switching published"
               exit 0
