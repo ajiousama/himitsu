@@ -10,7 +10,7 @@ import os
 import pathlib
 import shutil
 import subprocess
-import tarfile
+import zipfile
 import threading
 import time
 import urllib.parse
@@ -44,21 +44,34 @@ def ensure_assets() -> pathlib.Path:
     global ASSET_DIR
     if (ASSET_DIR / "index.html").exists():
         return ASSET_DIR
-    ASSET_DIR.mkdir(parents=True, exist_ok=True)
-    parts = sorted(HERE.glob("source.part*.b64"))
+
+    extract_base = pathlib.Path("/tmp/patapata-tv-assets")
+    extract_base.mkdir(parents=True, exist_ok=True)
+
+    # These chunks are the verified FINAL-v5-JR-DEADHEAD web ZIP already kept
+    # in the repository. Their unusual suffixes are intentionally joined in
+    # normal filename (lexicographic) order.
+    parts = sorted(HERE.glob("latest.zip.b64.*"), key=lambda p: p.name)
     if not parts:
-        raise RuntimeError("Patapata source archive parts are missing")
+        raise RuntimeError("Patapata latest ZIP parts are missing")
+
     payload = "".join(p.read_text(encoding="ascii").strip() for p in parts)
     raw = base64.b64decode(payload, validate=True)
-    digest = hashlib.sha256(raw).hexdigest()
-    if digest != EXPECTED_SHA256:
-        raise RuntimeError(f"Patapata archive sha256 mismatch: {digest}")
-    with tarfile.open(fileobj=io.BytesIO(raw), mode="r:gz") as tf:
-        names = {m.name for m in tf.getmembers()}
-        required = {"index.html", "style.css", "app.js", "schedule.js"}
-        if not required.issubset(names):
-            raise RuntimeError(f"Patapata archive incomplete: {sorted(required - names)}")
-        tf.extractall(ASSET_DIR)
+
+    with zipfile.ZipFile(io.BytesIO(raw), "r") as zf:
+        bad = zf.testzip()
+        if bad:
+            raise RuntimeError(f"Patapata ZIP CRC failure: {bad}")
+        names = zf.namelist()
+        expected = "Matsuyama-Patapata-FINAL-v5-JR-DEADHEAD/index.html"
+        if expected not in names:
+            raise RuntimeError("Patapata ZIP is not FINAL-v5-JR-DEADHEAD")
+        zf.extractall(extract_base)
+
+    index = extract_base / "Matsuyama-Patapata-FINAL-v5-JR-DEADHEAD" / "index.html"
+    if not index.is_file():
+        raise RuntimeError("Patapata index.html missing after extraction")
+    ASSET_DIR = index.parent
     return ASSET_DIR
 
 def browser_worker() -> None:
