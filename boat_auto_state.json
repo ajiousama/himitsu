@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-25",
-  "generated_at": "2026-09-25T14:21:21.911624+09:00",
+  "generated_at": "2026-09-25T14:23:21.863287+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260925.json",
   "schedule_checked_at": "2026-09-25T14:11:21.910945+09:00",
@@ -20,9 +20,10 @@
   "card_count": 12,
   "held_count": 12,
   "visible_count": 10,
-  "active_count": 8,
+  "active_count": 7,
   "ended_kept": [
-    "三国"
+    "三国",
+    "徳山"
   ],
   "seed_required": false,
   "seed_required_venues": [],
@@ -31,8 +32,8 @@
     "morning": {
       "held": 3,
       "acquired": 3,
-      "active": 2,
-      "ended": 1,
+      "active": 1,
+      "ended": 2,
       "seed_required": 0,
       "cancelled": 0
     },
@@ -54,8 +55,8 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 11,
-    "fetched": 9,
+    "requested": 10,
+    "fetched": 8,
     "failures": [
       {
         "jcd": "01",
@@ -884,8 +885,8 @@
       "name": "徳山",
       "held": true,
       "visible": true,
-      "ended": false,
-      "active": true,
+      "ended": true,
+      "active": false,
       "cancelled": false,
       "mode": "morning",
       "mode_label": "モーニング",
@@ -893,11 +894,11 @@
       "last_race": "14:20",
       "alert_from": "2026-09-25T08:10:00+09:00",
       "next_race": null,
-      "stream_window": "live_or_prestart",
+      "stream_window": "ended_kept",
       "intermission": null,
       "guidance_switch_at": "2026-09-25T15:05:00+09:00",
       "seed_required": false,
-      "reverify_due": true,
+      "reverify_due": false,
       "playback_verified": true,
       "first_verified_at": "2026-09-25T08:05:18.524994+09:00",
       "ready_before_first_race": true,
