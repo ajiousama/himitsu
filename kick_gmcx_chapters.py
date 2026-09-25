@@ -21,6 +21,13 @@ REPLAY_BASE = "https://kick-resolver.onrender.com/kick?vod="
 REFERENCE_EPISODE_SECONDS = 3501
 AI_WINDOW_SECONDS = 600
 
+# Range-specific cadence measured from clean same-season KICK bundles.
+# Season 18's clean #177-196 archive is 77,992 sec / 20 ~= 3,900 sec.
+RANGE_EPISODE_SECONDS: dict[tuple[int, int], int] = {
+    (177, 196): 3900,
+    (197, 206): 3900,
+}
+
 # Real-video boundary refinement. GMCX repeats a characteristic title/opening
 # frame at the beginning of regular episodes. We learn that recurring visual
 # signature inside each VOD and place every split on the same visual cue.
@@ -108,6 +115,22 @@ KNOWN_SPECIALS: dict[tuple[int, int], list[dict]] = {
             "key": "2013-budokan",
             "title": "GMCX 有野の挑戦 in 武道館",
             "after_episode": 171,
+            "duration_seconds": None,
+            "expected_broadcast_seconds": 7200,
+        },
+    ],
+    (197, 206): [
+        {
+            "key": "2015-niconico-chokaigi",
+            "title": "GMCX in ニコニコ超会議2015",
+            "after_episode": 199,
+            "duration_seconds": 2700,
+            "expected_broadcast_seconds": 2700,
+        },
+        {
+            "key": "2015-vietnam",
+            "title": "GMCX in VIETNAM ～ベトナムのゲーム事情 徹底調査&カジノにもリベンジしちゃうよ!SP～",
+            "after_episode": 203,
             "duration_seconds": None,
             "expected_broadcast_seconds": 7200,
         },
@@ -470,6 +493,7 @@ def make_uniform_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict[st
     if count <= 0 or duration <= 0:
         return []
     unit = duration / count
+    expected_unit = RANGE_EPISODE_SECONDS.get((start_ep, end_ep), REFERENCE_EPISODE_SECONDS)
     chapters = []
     for index, ep in enumerate(range(start_ep, end_ep + 1)):
         start = int(round(index * unit))
@@ -485,7 +509,7 @@ def make_uniform_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict[st
             "duration_seconds": clip_duration,
             "replay_url": clip_url(str(vod.get("vod_id")), start, clip_duration),
             "method": "uniform-from-clean-vod",
-            "confidence": "high" if abs(unit - REFERENCE_EPISODE_SECONDS) <= 120 else "medium",
+            "confidence": "high" if abs(unit - expected_unit) <= 120 else "medium",
         })
     return chapters
 
@@ -493,7 +517,8 @@ def make_uniform_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict[st
 def make_mixed_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict[str, str]) -> list[dict]:
     count = end_ep - start_ep + 1
     duration = int(vod.get("duration_seconds") or 0)
-    regular_total = count * REFERENCE_EPISODE_SECONDS
+    episode_seconds = RANGE_EPISODE_SECONDS.get((start_ep, end_ep), REFERENCE_EPISODE_SECONDS)
+    regular_total = count * episode_seconds
     if duration < regular_total:
         return []
 
@@ -524,7 +549,7 @@ def make_mixed_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict[str,
     chapters = []
     cursor = 0
     for ep in range(start_ep, end_ep + 1):
-        stop = min(duration, cursor + REFERENCE_EPISODE_SECONDS)
+        stop = min(duration, cursor + episode_seconds)
         clip_duration = max(0, stop - cursor)
         chapters.append({
             "kind": "episode",

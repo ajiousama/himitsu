@@ -28,6 +28,8 @@ FREEWIFI_SPECIAL_IDS = {
     "kick.gmcx.special.2012-in-asia",
     "kick.gmcx.special.2012-last30s-live",
     "kick.gmcx.special.2011-usa",
+    "kick.gmcx.special.2015-niconico-chokaigi",
+    "kick.gmcx.special.2015-vietnam",
 }
 
 
