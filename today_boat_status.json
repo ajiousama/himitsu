@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-25",
-  "generated_at": "2026-09-25T16:22:21.819334+09:00",
+  "generated_at": "2026-09-25T16:23:21.927181+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260925.json",
   "schedule_checked_at": "2026-09-25T16:19:21.874396+09:00",
@@ -20,9 +20,10 @@
   "card_count": 12,
   "held_count": 12,
   "visible_count": 12,
-  "active_count": 6,
+  "active_count": 5,
   "ended_kept": [
     "常滑",
+    "津",
     "三国",
     "びわこ",
     "尼崎",
@@ -44,8 +45,8 @@
     "day": {
       "held": 6,
       "acquired": 6,
-      "active": 3,
-      "ended": 3,
+      "active": 2,
+      "ended": 4,
       "seed_required": 0,
       "cancelled": 0
     },
@@ -59,8 +60,8 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 6,
-    "fetched": 6,
+    "requested": 5,
+    "fetched": 5,
     "failures": []
   },
   "epg_programmes_written": {
@@ -544,8 +545,8 @@
       "name": "津",
       "held": true,
       "visible": true,
-      "ended": false,
-      "active": true,
+      "ended": true,
+      "active": false,
       "cancelled": false,
       "mode": "day",
       "mode_label": "デイ",
@@ -553,11 +554,11 @@
       "last_race": "16:20",
       "alert_from": "2026-09-25T10:03:00+09:00",
       "next_race": null,
-      "stream_window": "live_or_prestart",
+      "stream_window": "ended_kept",
       "intermission": null,
       "guidance_switch_at": "2026-09-25T17:05:00+09:00",
       "seed_required": false,
-      "reverify_due": true,
+      "reverify_due": false,
       "playback_verified": true,
       "first_verified_at": "2026-09-25T10:00:18.469793+09:00",
       "ready_before_first_race": true,
@@ -1271,14 +1272,14 @@
       "last_race": "17:29",
       "alert_from": "2026-09-25T11:16:00+09:00",
       "next_race": {
-        "race": 10,
-        "start": "16:23"
+        "race": 11,
+        "start": "16:50"
       },
       "stream_window": "live_or_prestart",
       "intermission": null,
       "guidance_switch_at": "2026-09-25T18:14:00+09:00",
       "seed_required": false,
-      "reverify_due": true,
+      "reverify_due": false,
       "playback_verified": true,
       "first_verified_at": "2026-09-25T11:10:18.528117+09:00",
       "ready_before_first_race": true,
