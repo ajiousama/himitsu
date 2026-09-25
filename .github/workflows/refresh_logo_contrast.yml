@@ -15,6 +15,7 @@ on:
 permissions:
   contents: write
 
+# Validator v2: tolerate transient external TV-logo provider failures while preserving local assets.
 # Share the writer mutex with the main FreeWiFi workflow so logo work never
 # races the EPG/public-sports writer. Push-time radio rollout is handled only by
 # apply_nationwide_radio_tv.yml; this job is schedule/manual refresh only.
