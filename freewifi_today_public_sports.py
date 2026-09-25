@@ -74,7 +74,7 @@ KEIRIN_LOGOS = {
 }
 
 # AUTO RACE venue logos are owned locally so FreeWiFi never depends on the
-# retired earphone1981 public-sports repository.
+# retired external public-sports repository.
 AUTO_LOGOS = {
     'auto.kawaguchi': f'{RAW_BASE}/logos/public_sports/venues/autorace_kawaguchi.png',
     'auto.isesaki': f'{RAW_BASE}/logos/public_sports/venues/autorace_isesaki.png',
