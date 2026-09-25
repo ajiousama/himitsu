@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-25",
-  "generated_at": "2026-09-25T10:31:51.127932+09:00",
+  "generated_at": "2026-09-25T10:32:51.534486+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260925.json",
   "schedule_checked_at": "2026-09-25T10:30:51.193164+09:00",
@@ -19,7 +19,7 @@
   "alert_lead_minutes": 30,
   "card_count": 12,
   "held_count": 12,
-  "visible_count": 7,
+  "visible_count": 8,
   "active_count": 7,
   "ended_kept": [],
   "seed_required": false,
@@ -36,7 +36,7 @@
     },
     "day": {
       "held": 6,
-      "acquired": 4,
+      "acquired": 5,
       "active": 4,
       "ended": 0,
       "seed_required": 0,
@@ -53,13 +53,8 @@
   },
   "cloud_acquisition": {
     "requested": 9,
-    "fetched": 7,
+    "fetched": 8,
     "failures": [
-      {
-        "jcd": "05",
-        "name": "多摩川",
-        "error": "HTTPError: playback check failed"
-      },
       {
         "jcd": "22",
         "name": "福岡",
@@ -76,6 +71,22 @@
     "kind": "healthy"
   },
   "streams": {
+    "boat.tamagawa": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/d19d2aff9c2241a2a8e6b88e8053fed1/2225e79aa9d24683884bc327ee949053/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MDQ3NDQwMCwic3RhcnQiOjE3OTAyOTk5ODAsImlvcyI6MTgsImNwIjoiMjEyNDk1NTgwXzIxMjUzODc3OSIsInBwdyI6IjQwayJ9.NuLnqW-8GK9_Ban1kknbFtu3v-JzeELPI7RtZ_W9yAA",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-09-25T10:33:18.856233+09:00",
+      "checked_at": "2026-09-25T10:33:18.856233+09:00",
+      "first_verified_at": "2026-09-25T10:33:18.856233+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 8257531,
+        "last_segment": "/d19d2aff9c2241a2a8e6b88e8053fed1/2225e79aa9d24683884bc327ee949053/manifest_1_8257533.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
+    },
     "boat.tokoname": {
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/9777839cd03245d8bd6bd151600799c9/6eb51e19b291406ba1e786d3b380938c/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MDQ3MDgwMCwic3RhcnQiOjE3OTAyOTc5NDAsImlvcyI6MTgsImNwIjoiMjEyNDkzNTQwXzIxMjUzNjczOSIsInBwdyI6IjQwayJ9.Sxkn_e-oy9pO22Z91MzBQojZs5HriPOUW_6q-GqBeZU",
       "source": "automatic acquisition + audio/video decode",
@@ -284,7 +295,7 @@
       "jcd": "05",
       "name": "多摩川",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
       "active": false,
       "cancelled": false,
@@ -302,9 +313,9 @@
       "guidance_switch_at": "2026-09-25T17:31:00+09:00",
       "seed_required": false,
       "reverify_due": false,
-      "playback_verified": false,
-      "first_verified_at": null,
-      "ready_before_first_race": false,
+      "playback_verified": true,
+      "first_verified_at": "2026-09-25T10:33:18.856233+09:00",
+      "ready_before_first_race": true,
       "acquire_from": "2026-09-25T08:37:00+09:00",
       "races": [
         {
@@ -368,7 +379,9 @@
           "name": "ドリーム戦"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/d19d2aff9c2241a2a8e6b88e8053fed1/2225e79aa9d24683884bc327ee949053/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MDQ3NDQwMCwic3RhcnQiOjE3OTAyOTk5ODAsImlvcyI6MTgsImNwIjoiMjEyNDk1NTgwXzIxMjUzODc3OSIsInBwdyI6IjQwayJ9.NuLnqW-8GK9_Ban1kknbFtu3v-JzeELPI7RtZ_W9yAA",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     },
     "boat.tokoname": {
       "jcd": "08",
