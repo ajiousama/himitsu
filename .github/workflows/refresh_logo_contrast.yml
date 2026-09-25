@@ -57,7 +57,10 @@ jobs:
           test -s logos/contrast_sources.json
           test -d logos/contrast
           ! grep -F 'tvg-logo="tvg-logo=' freewifi
-          test "$(grep -c '/logos/contrast/radiko\.' freewifi || true)" -eq 16
+          radiko_total="$(grep -c 'tvg-id="radiko\.' freewifi || true)"
+          radiko_contrast="$(grep -c '/logos/contrast/radiko\.' freewifi || true)"
+          test "$radiko_total" -gt 0
+          test "$radiko_contrast" -eq "$radiko_total"
           grep -F 'tvg-id="radiko.LFR"' freewifi | grep -F '/logos/contrast/' >/dev/null
           grep -F 'tvg-id="radiko.QRR"' freewifi | grep -F '/logos/contrast/' >/dev/null
           grep -F 'tvg-id="radiko.TBS"' freewifi | grep -F '/logos/contrast/' >/dev/null
@@ -83,7 +86,10 @@ jobs:
             python radio_tv_nationwide_freewifi.py
             python logos/tools/logo_contrast_apply.py
 
-            test "$(grep -c '/logos/contrast/radiko\.' freewifi || true)" -eq 16
+            radiko_total="$(grep -c 'tvg-id="radiko\.' freewifi || true)"
+            radiko_contrast="$(grep -c '/logos/contrast/radiko\.' freewifi || true)"
+            test "$radiko_total" -gt 0
+            test "$radiko_contrast" -eq "$radiko_total"
             grep -F 'tvg-id="radiko.LFR"' freewifi >/dev/null
             grep -F 'tvg-id="radiko.QRR"' freewifi >/dev/null
             grep -F 'tvg-id="radiko.TBS"' freewifi >/dev/null
