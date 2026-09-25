@@ -73,14 +73,14 @@ KEIRIN_LOGOS = {
     'keirin.tamano': venue_png('keirin_tamano.svg'),
 }
 
-# Restore the adopted AUTO RACE venue logos from earphone1981 instead of the
-# unintended locally regenerated motorcycle-card set.
+# AUTO RACE venue logos are owned locally so FreeWiFi never depends on the
+# retired earphone1981 public-sports repository.
 AUTO_LOGOS = {
-    'auto.kawaguchi': 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports_logos_github_43/autorace/kawaguchi.png',
-    'auto.isesaki': 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports_logos_github_43/autorace/isesaki.png',
-    'auto.hamamatsu': 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports_logos_github_43/autorace/hamamatsu.png',
-    'auto.sanyo': 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports_logos_github_43/autorace/sanyo.png',
-    'auto.iizuka': 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports_logos_github_43/autorace/iizuka.png',
+    'auto.kawaguchi': f'{RAW_BASE}/logos/public_sports/venues/autorace_kawaguchi.png',
+    'auto.isesaki': f'{RAW_BASE}/logos/public_sports/venues/autorace_isesaki.png',
+    'auto.hamamatsu': f'{RAW_BASE}/logos/public_sports/venues/autorace_hamamatsu.png',
+    'auto.sanyo': f'{RAW_BASE}/logos/public_sports/venues/autorace_sanyo.png',
+    'auto.iizuka': f'{RAW_BASE}/logos/public_sports/venues/autorace_iizuka.png',
 }
 
 def local_logo(cid):
