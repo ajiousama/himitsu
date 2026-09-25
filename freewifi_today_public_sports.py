@@ -114,15 +114,15 @@ GCH_SPECIAL_ENTRIES = (
         'id': 'jra.gch.hq',
         'name': 'グリーンチャンネル（高画質）',
         'tvg_name': 'グリーンチャンネル HQ',
-        'logo': 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports_logos_github_43/jra_quality/gch_hq.png',
-        'url': 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/gchmain.m3u8',
+        'logo': f'{RAW_BASE}/logos/public_sports/horse.svg',
+        'url': f'{RAW_BASE}/gchmain_master.m3u8',
     },
     {
         'id': 'jra.gch.lq',
         'name': 'グリーンチャンネル（低画質）',
         'tvg_name': 'グリーンチャンネル LQ',
-        'logo': 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports_logos_github_43/jra_quality/gch_lq.png',
-        'url': 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/gchmain_LQ.m3u8',
+        'logo': f'{RAW_BASE}/logos/public_sports/horse.svg',
+        'url': f'{RAW_BASE}/gchmain_LQ.m3u8',
     },
 )
 
