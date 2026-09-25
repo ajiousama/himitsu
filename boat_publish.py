@@ -10,8 +10,8 @@ import xml.etree.ElementTree as ET
 import boat_auto_system as boat
 
 BOAT_LOGO_BASE = (
-    'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/'
-    'public_sports_logos_github_43/boatrace_24_spaced_cut_1024'
+    'https://raw.githubusercontent.com/ajiousama/himitsu/main/'
+    'logos/public_sports/venues'
 )
 
 
@@ -25,12 +25,11 @@ def refresh_cx2():
 
 
 def use_canonical_boat_logos():
-    """Point BOAT entries at the single canonical 24-venue logo set in earphone."""
+    """Point BOAT entries at the canonical local 24-venue logo set."""
     path = boat.FREEWIFI
     text = path.read_text(encoding='utf-8-sig')
     for _jcd, (_name, tvg_id, filename) in boat.VENUES.items():
-        slug = filename.removeprefix('boat_').removesuffix('.png')
-        logo = f'{BOAT_LOGO_BASE}/{slug}.png'
+        logo = f'{BOAT_LOGO_BASE}/{filename}'
         pattern = re.compile(r'(^#EXTINF:.*?tvg-id="' + re.escape(tvg_id) + r'".*?tvg-logo=")[^"]+(".*$)', re.M)
         text = pattern.sub(lambda m: m.group(1) + logo + m.group(2), text)
     path.write_text(text, encoding='utf-8')
@@ -66,8 +65,8 @@ def validate(state=None, cards=None):
     if len(ids) != state.get('visible_count'):
         raise RuntimeError('BOAT playlist/status count mismatch')
     for tvg_id in ids:
-        slug = next(filename.removeprefix('boat_').removesuffix('.png') for _jcd, (_name, cid, filename) in boat.VENUES.items() if cid == tvg_id)
-        expected_logo = f'{BOAT_LOGO_BASE}/{slug}.png'
+        filename = next(filename for _jcd, (_name, cid, filename) in boat.VENUES.items() if cid == tvg_id)
+        expected_logo = f'{BOAT_LOGO_BASE}/{filename}'
         line = next((line for line in text.splitlines() if line.startswith('#EXTINF:') and f'tvg-id="{tvg_id}"' in line), '')
         if f'tvg-logo="{expected_logo}"' not in line:
             raise RuntimeError(f'non-canonical BOAT logo: {tvg_id}')
