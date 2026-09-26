@@ -17,7 +17,6 @@ SOURCES={
 QUALITY_IDS={f'{base}.{q}' if base!='jra.hokkaido' else f'jra.local.{q}' for base in SOURCES for q in ('hq','lq')}
 LEGACY_FREE_IDS={'jra.official','jra.gch.free'}
 JRA_RACE_IDS={'jra.east','jra.west','jra.hokkaido'}
-GCH_STATUS_URL='https://ajiousama-radiko.onrender.com/gch-status'
 GCH_SITEMAP_URL='https://www.greenchannel.jp/sitemap.html'
 GCH_LOCAL_URL='https://www.greenchannel.jp/program/racing-chihoukeiba-chukei.html'
 
@@ -100,16 +99,6 @@ def gch_official_fallback(now):
    continue
  return events
 
-def gch_render_status(now):
- try:
-  req=urllib.request.Request(GCH_STATUS_URL+'?refresh=1',headers={'User-Agent':'FreeWiFi-GCH-Client/1.0','Accept':'application/json'})
-  with urllib.request.urlopen(req,timeout=45) as r:
-   data=json.loads(r.read().decode('utf-8','replace'))
-  if data.get('date') != now.date().isoformat(): return {'ok':False,'reason':'date_mismatch','data':data}
-  return {'ok':True,'data':data}
- except Exception as e:
-  return {'ok':False,'reason':f'{type(e).__name__}: {e}'}
-
 def strip(text):
  text=re.sub(re.escape(START)+r'.*?'+re.escape(END)+r'\n?','',text,flags=re.S)
  lines=text.splitlines(); out=[]; i=0
@@ -130,16 +119,10 @@ def main():
  except Exception: pass
  active=[x for x in dict.fromkeys(reported) if x != 'jra.gch']
  jra_race_day=any(x in JRA_RACE_IDS for x in active)
- render_status={'ok':False,'reason':'not_needed_on_jra_race_day'}
- render_special=False; official_fallback=[]
+ official_fallback=[]
  if not jra_race_day:
-  render_status=gch_render_status(now)
-  if render_status.get('ok'):
-   rd=render_status.get('data') or {}
-   render_special=bool(rd.get('local_race_broadcast') or rd.get('overseas_race_broadcast'))
-  else:
-   official_fallback=gch_official_fallback(now)
- show_gch=jra_race_day or render_special or bool(official_fallback) or bool(gch_special)
+  official_fallback=gch_official_fallback(now)
+ show_gch=jra_race_day or bool(official_fallback) or bool(gch_special)
  if show_gch: active.insert(0,'jra.gch')
  base=strip(FREEWIFI.read_text(encoding='utf-8-sig',errors='replace')); rows=[]; exposed=[]
  for source in active:
@@ -153,6 +136,6 @@ def main():
  anchor='# === GENERAL_YOUTUBE_MANAGED_START ==='
  text=base.replace(anchor,managed+'\n\n'+anchor,1) if anchor in base else base.rstrip()+'\n\n'+managed+'\n'
  FREEWIFI.write_text(text.rstrip()+'\n',encoding='utf-8')
- STATUS.write_text(json.dumps({'generated_at':now.isoformat(),'active_count':len(active),'active_ids':active,'active_labels':[SOURCES[x][0] for x in active],'exposed_quality_ids':exposed,'gch_special_broadcasts':gch_special,'gch_render_status':render_status,'gch_official_fallback':official_fallback,'jra_race_day':jra_race_day,'gch_reason':('JRA race day' if jra_race_day else 'Render GCH official schedule: overseas/local race broadcast' if render_special else 'Direct GCH official schedule fallback' if official_fallback else 'GCH programme guide: overseas/local race broadcast' if gch_special else None),'channels':{x:{'active':x in active,'source':'earphone HQ/LQ canonical'} for x in SOURCES}},ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+ STATUS.write_text(json.dumps({'generated_at':now.isoformat(),'active_count':len(active),'active_ids':active,'active_labels':[SOURCES[x][0] for x in active],'exposed_quality_ids':exposed,'gch_special_broadcasts':gch_special,'gch_official_broadcasts':official_fallback,'jra_race_day':jra_race_day,'gch_reason':('JRA race day' if jra_race_day else 'GCH official schedule: overseas/local race broadcast' if official_fallback else 'GCH programme guide: overseas/local race broadcast' if gch_special else None),'channels':{x:{'active':x in active,'source':'earphone HQ/LQ canonical'} for x in SOURCES}},ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
  print('JRA earphone HQ/LQ active:',exposed)
 if __name__=='__main__': main()
