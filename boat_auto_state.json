@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-26",
-  "generated_at": "2026-09-26T20:30:11.708901+09:00",
+  "generated_at": "2026-09-26T20:33:11.605213+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260926.json",
   "schedule_checked_at": "2026-09-26T20:20:11.704051+09:00",
@@ -20,7 +20,7 @@
   "card_count": 13,
   "held_count": 13,
   "visible_count": 13,
-  "active_count": 3,
+  "active_count": 2,
   "ended_kept": [
     "戸田",
     "江戸川",
@@ -29,6 +29,7 @@
     "津",
     "びわこ",
     "尼崎",
+    "丸亀",
     "徳山",
     "芦屋",
     "福岡"
@@ -56,15 +57,15 @@
     "night": {
       "held": 3,
       "acquired": 3,
-      "active": 3,
-      "ended": 0,
+      "active": 2,
+      "ended": 1,
       "seed_required": 0,
       "cancelled": 0
     }
   },
   "cloud_acquisition": {
-    "requested": 3,
-    "fetched": 3,
+    "requested": 2,
+    "fetched": 2,
     "failures": []
   },
   "epg_programmes_written": {
@@ -914,8 +915,8 @@
       "name": "丸亀",
       "held": true,
       "visible": true,
-      "ended": false,
-      "active": true,
+      "ended": true,
+      "active": false,
       "cancelled": false,
       "mode": "night",
       "mode_label": "ナイター",
@@ -923,11 +924,11 @@
       "last_race": "20:30",
       "alert_from": "2026-09-26T14:47:00+09:00",
       "next_race": null,
-      "stream_window": "live_or_prestart",
+      "stream_window": "ended_kept",
       "intermission": null,
       "guidance_switch_at": "2026-09-26T21:15:00+09:00",
       "seed_required": false,
-      "reverify_due": true,
+      "reverify_due": false,
       "playback_verified": true,
       "first_verified_at": "2026-09-26T13:55:56.322769+09:00",
       "ready_before_first_race": true,
