@@ -15,6 +15,7 @@ SOURCES={
 }
 QUALITY_IDS={f'{base}.{q}' if base!='jra.hokkaido' else f'jra.local.{q}' for base in SOURCES for q in ('hq','lq')}
 LEGACY_FREE_IDS={'jra.official','jra.gch.free'}
+JRA_RACE_IDS={'jra.east','jra.west','jra.hokkaido'}
 
 
 GCH_TRIGGER_RE = re.compile(r'(?:海外競馬中継|地方競馬中継)', re.I)
@@ -69,7 +70,9 @@ def main():
   if cfg.get('date')==now.date().isoformat(): reported=[x for x in cfg.get('jra_active_ids',[]) if x in SOURCES]
  except Exception: pass
  active=[x for x in dict.fromkeys(reported) if x != 'jra.gch']
- if gch_special: active.insert(0,'jra.gch')
+ jra_race_day=any(x in JRA_RACE_IDS for x in active)
+ show_gch=jra_race_day or bool(gch_special)
+ if show_gch: active.insert(0,'jra.gch')
  base=strip(FREEWIFI.read_text(encoding='utf-8-sig',errors='replace')); rows=[]; exposed=[]
  for source in active:
   name,hq,lq,hqlogo,lqlogo=SOURCES[source]
@@ -82,6 +85,6 @@ def main():
  anchor='# === GENERAL_YOUTUBE_MANAGED_START ==='
  text=base.replace(anchor,managed+'\n\n'+anchor,1) if anchor in base else base.rstrip()+'\n\n'+managed+'\n'
  FREEWIFI.write_text(text.rstrip()+'\n',encoding='utf-8')
- STATUS.write_text(json.dumps({'generated_at':now.isoformat(),'active_count':len(active),'active_ids':active,'active_labels':[SOURCES[x][0] for x in active],'exposed_quality_ids':exposed,'gch_special_broadcasts':gch_special,'gch_reason':('GCH programme guide: overseas/local race broadcast' if gch_special else None),'channels':{x:{'active':x in active,'source':'earphone HQ/LQ canonical'} for x in SOURCES}},ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+ STATUS.write_text(json.dumps({'generated_at':now.isoformat(),'active_count':len(active),'active_ids':active,'active_labels':[SOURCES[x][0] for x in active],'exposed_quality_ids':exposed,'gch_special_broadcasts':gch_special,'jra_race_day':jra_race_day,'gch_reason':('JRA race day' if jra_race_day else 'GCH programme guide: overseas/local race broadcast' if gch_special else None),'channels':{x:{'active':x in active,'source':'earphone HQ/LQ canonical'} for x in SOURCES}},ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
  print('JRA earphone HQ/LQ active:',exposed)
 if __name__=='__main__': main()
