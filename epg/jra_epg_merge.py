@@ -49,8 +49,8 @@ def main():
   for quality,label in (('hq','HQ'),('lq','LQ')):
    cid=f'{base}.{quality}'; add_channel(root,cid,f'{display} {label}')
    for p in regional[source]: root.append(clone(p,cid))
- # GCH MAIN visibility/EPG is controlled only by the actual Green Channel
- # programme guide. Do not infer it from JRA activity or local-race grades.
+ # GCH MAIN is visible on every JRA race day, and also on non-JRA days when
+ # the Green Channel guide carries overseas/local race coverage.
  gch_ids=set()
  for ch in root.findall('channel'):
   cid=str(ch.get('id') or '')
@@ -69,10 +69,12 @@ def main():
   p for p in gch_today
   if trigger_re.search(' '.join(((p.findtext('title') or ''),(p.findtext('desc') or ''))))
  ]
- if gch_special:
+ jra_race_day=any(regional[source] for source in REGIONAL)
+ show_gch=jra_race_day or bool(gch_special)
+ if show_gch:
   for quality,label in (('hq','HQ'),('lq','LQ')):
    cid=f'jra.gch.{quality}'; add_channel(root,cid,f'グリーンチャンネル MAIN {label}')
    for p in gch_today: root.append(clone(p,cid))
  ET.indent(tree,space='  '); tree.write(GUIDES,encoding='utf-8',xml_declaration=True)
- print('JRA earphone HQ/LQ race EPG:',{k:len(v) for k,v in regional.items()},'GCH source ids=',sorted(gch_ids),'GCH trigger programmes=',len(gch_special),'GCH mirrored programmes=',len(gch_today) if gch_special else 0)
+ print('JRA earphone HQ/LQ race EPG:',{k:len(v) for k,v in regional.items()},'GCH source ids=',sorted(gch_ids),'JRA race day=',jra_race_day,'GCH trigger programmes=',len(gch_special),'GCH mirrored programmes=',len(gch_today) if show_gch else 0)
 if __name__=='__main__': main()
