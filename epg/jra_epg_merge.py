@@ -77,10 +77,19 @@ def main():
  except Exception:
   status_gch=False
  show_gch=jra_race_day or bool(gch_special) or status_gch
+ gch_programmes=gch_today
+ gch_epg_source='green-channel guide'
+ # The source guide can occasionally contain no Green Channel rows even on a
+ # valid JRA race day.  FreeWiFi still exposes GCH MAIN on JRA race days, so
+ # mirror the already verified EAST/WEST/LOCAL race grid instead of publishing
+ # HQ/LQ channels with zero programmes (which the final audit must reject).
+ if show_gch and not gch_programmes and jra_race_day:
+  gch_programmes=combined(regional)
+  gch_epg_source='combined JRA race EPG fallback'
  if show_gch:
   for quality,label in (('hq','HQ'),('lq','LQ')):
    cid=f'jra.gch.{quality}'; add_channel(root,cid,f'グリーンチャンネル MAIN {label}')
-   for p in gch_today: root.append(clone(p,cid))
+   for p in gch_programmes: root.append(clone(p,cid))
  ET.indent(tree,space='  '); tree.write(GUIDES,encoding='utf-8',xml_declaration=True)
- print('JRA earphone HQ/LQ race EPG:',{k:len(v) for k,v in regional.items()},'GCH source ids=',sorted(gch_ids),'JRA race day=',jra_race_day,'GCH status active=',status_gch,'GCH trigger programmes=',len(gch_special),'GCH mirrored programmes=',len(gch_today) if show_gch else 0)
+ print('JRA earphone HQ/LQ race EPG:',{k:len(v) for k,v in regional.items()},'GCH source ids=',sorted(gch_ids),'JRA race day=',jra_race_day,'GCH status active=',status_gch,'GCH trigger programmes=',len(gch_special),'GCH EPG source=',gch_epg_source if show_gch else 'hidden','GCH mirrored programmes=',len(gch_programmes) if show_gch else 0)
 if __name__=='__main__': main()
