@@ -1,9 +1,9 @@
 from pathlib import Path
 from datetime import datetime, timezone, timedelta
-import copy, re
+import copy, json, re
 import xml.etree.ElementTree as ET
 
-GUIDES=Path('guides.xml'); LOCAL=Path('public_sports_epg_local.xml')
+GUIDES=Path('guides.xml'); LOCAL=Path('public_sports_epg_local.xml'); STATUS=Path('today_jra_status.json')
 REGIONAL=('jra.east','jra.west','jra.hokkaido')
 QUALITY={'jra.east':('jra.east','JRA EAST WEB3'),'jra.west':('jra.west','JRA WEST WEB4'),'jra.hokkaido':('jra.local','JRA LOCAL WEB5')}
 TARGET={'jra.gch','jra.east','jra.west','jra.hokkaido','jra.local','jra.official','jra.gch.free','jra.gch.hq','jra.gch.lq'}
@@ -70,11 +70,17 @@ def main():
   if trigger_re.search(' '.join(((p.findtext('title') or ''),(p.findtext('desc') or ''))))
  ]
  jra_race_day=any(regional[source] for source in REGIONAL)
- show_gch=jra_race_day or bool(gch_special)
+ status_gch=False
+ try:
+  status=json.loads(STATUS.read_text(encoding='utf-8-sig')) if STATUS.exists() else {}
+  status_gch=bool((status.get('channels') or {}).get('jra.gch',{}).get('active'))
+ except Exception:
+  status_gch=False
+ show_gch=jra_race_day or bool(gch_special) or status_gch
  if show_gch:
   for quality,label in (('hq','HQ'),('lq','LQ')):
    cid=f'jra.gch.{quality}'; add_channel(root,cid,f'グリーンチャンネル MAIN {label}')
    for p in gch_today: root.append(clone(p,cid))
  ET.indent(tree,space='  '); tree.write(GUIDES,encoding='utf-8',xml_declaration=True)
- print('JRA earphone HQ/LQ race EPG:',{k:len(v) for k,v in regional.items()},'GCH source ids=',sorted(gch_ids),'JRA race day=',jra_race_day,'GCH trigger programmes=',len(gch_special),'GCH mirrored programmes=',len(gch_today) if show_gch else 0)
+ print('JRA earphone HQ/LQ race EPG:',{k:len(v) for k,v in regional.items()},'GCH source ids=',sorted(gch_ids),'JRA race day=',jra_race_day,'GCH status active=',status_gch,'GCH trigger programmes=',len(gch_special),'GCH mirrored programmes=',len(gch_today) if show_gch else 0)
 if __name__=='__main__': main()
