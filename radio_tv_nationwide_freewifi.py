@@ -101,7 +101,7 @@ def compact_block() -> str:
             "nhk_r1_matsuyama",
             "nhk_r1_matsuyama",
             "NHKラジオ第1（松山）",
-            "https://upload.wikimedia.org/wikipedia/commons/b/bb/NHK_logo_2020.svg",
+            "https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/contrast/nhk_r1_matsuyama_667dbb12.png",
         )
     )
 
@@ -120,7 +120,7 @@ def compact_block() -> str:
             "community.FM845",
             "FM845",
             "FM845（ラジオ）",
-            "https://radimo.s3.amazonaws.com/logo/97f3b857175c58d24de8ec54c956dff09aa4c301ab6e20150ff11d2d071f874b.jpg",
+            "https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/contrast/community.FM845_ce4a3561.png",
         )
     )
     parts.append(
@@ -128,7 +128,7 @@ def compact_block() -> str:
             "community.BARIBARI",
             "BARIBARI",
             "FMラヂオバリバリ（ラジオ）",
-            "https://radimo.s3.amazonaws.com/logo/7fef6dc58526b7a6d55560ae97dacce850edf946b5cca38e54bd68de387b0e95.jpg",
+            "https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/contrast/community.BARIBARI_c65da997.png",
         )
     )
     parts.append(
@@ -136,7 +136,7 @@ def compact_block() -> str:
             "community.NIIHAMA",
             "NIIHAMA",
             "Hello! NEW 新居浜 FM78.0（ラジオ）",
-            "https://radimo.s3.amazonaws.com/logo/373877bd84cd9bc3c9fa01f7309ef918dcbd6c805a116eee53bbf1cf9e8425aa.png",
+            "https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/contrast/community.NIIHAMA_d9a30115.png",
         )
     )
     parts.append(
@@ -144,7 +144,7 @@ def compact_block() -> str:
             "community.FMGAIYA",
             "FMGAIYA",
             "FMがいや 76.9MHz（ラジオ）",
-            "https://radimo.s3.amazonaws.com/logo/86718bf5cbe18f2b2a48206a59f6c282e7f76d1564ae693c830dde10ee1927da.png",
+            "https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/contrast/community.FMGAIYA_fb1724db.png",
         )
     )
 
