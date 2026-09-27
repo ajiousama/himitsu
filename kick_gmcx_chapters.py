@@ -38,15 +38,18 @@ EPISODE_DURATION_OVERRIDES: dict[int, int] = {
 # Real-video boundary refinement. GMCX repeats a characteristic title/opening
 # frame at the beginning of regular episodes. We learn that recurring visual
 # signature inside each VOD and place every split on the same visual cue.
-TITLECARD_WINDOW_SECONDS = 150
+TITLECARD_WINDOW_SECONDS = 420
 TITLECARD_SAMPLE_SECONDS = 2
-TITLECARD_BOUNDARY_VERSION = 3
+TITLECARD_BOUNDARY_VERSION = 4
 TITLECARD_INTRO_SECONDS = 8
 TITLECARD_HASH_BITS = 256
 TITLECARD_MATCH_DISTANCE = 42
 TITLECARD_NEAR_BEST = 4
 TITLECARD_MIN_CONTRAST = 28
 TITLECARD_MAX_ANALYZE_EPISODES = 24
+TITLECARD_STATIC_DISTANCE = 18
+TITLECARD_STATIC_TRANSITION_DISTANCE = 30
+TITLECARD_STATIC_MAX_FRAME_GAP = TITLECARD_SAMPLE_SECONDS + 1
 
 # Known mixed archive bundles. Specials are inserted in chronological order before/after episodes.
 # A single special with duration_seconds=None consumes the remaining non-regular footage.
@@ -389,35 +392,79 @@ def _best_titlecard_match(reference: dict, frames: list[dict]) -> tuple[int | No
     best_dist = min(x[0] for x in scored)
     if best_dist > TITLECARD_MATCH_DISTANCE:
         return None, best_dist
-    # Pick the first frame in the recurring title-card run, not a later frame
-    # from the same static card.
     near = [t for d, t in scored if d <= min(TITLECARD_MATCH_DISTANCE, best_dist + TITLECARD_NEAR_BEST)]
     return min(near), best_dist
 
 
-def _apply_refined_episode_starts(chapters: list[dict], starts: dict[int, int], duration: int) -> list[dict]:
+def _best_static_title_start(frames: list[dict], original: int) -> tuple[int | None, dict]:
+    """Fallback for title cards whose text/layout differs from regular episodes."""
+    if len(frames) < 2:
+        return None, {"reason": "too_few_frames"}
+
+    candidates = []
+    for i in range(len(frames) - 1):
+        cur = frames[i]
+        nxt = frames[i + 1]
+        gap = int(nxt["time"]) - int(cur["time"])
+        if gap <= 0 or gap > TITLECARD_STATIC_MAX_FRAME_GAP:
+            continue
+        stable = _hdist(cur["hash"], nxt["hash"])
+        if stable > TITLECARD_STATIC_DISTANCE:
+            continue
+
+        prev_dist = 256
+        if i > 0:
+            prev = frames[i - 1]
+            if int(cur["time"]) - int(prev["time"]) <= TITLECARD_STATIC_MAX_FRAME_GAP:
+                prev_dist = _hdist(prev["hash"], cur["hash"])
+
+        # Prefer a visible scene transition into a stable high-contrast card.
+        if prev_dist < TITLECARD_STATIC_TRANSITION_DISTANCE and i > 0:
+            continue
+        distance_from_guess = abs(int(cur["time"]) - int(original))
+        score = (
+            distance_from_guess,
+            stable,
+            -int(cur.get("contrast") or 0),
+            int(cur["time"]),
+        )
+        candidates.append((score, int(cur["time"]), stable, prev_dist))
+
+    if not candidates:
+        return None, {"reason": "no_static_card_transition"}
+    candidates.sort(key=lambda x: x[0])
+    _, start, stable, transition = candidates[0]
+    return start, {
+        "reason": "ok",
+        "stable_distance": stable,
+        "transition_distance": transition,
+        "distance_from_guess": abs(start - int(original)),
+    }
+
+
+def _apply_refined_chapter_starts(chapters: list[dict], starts: dict[int, int], duration: int) -> list[dict]:
     if not starts:
         return chapters
     out = [dict(x) for x in chapters]
 
-    # Keep VOD start at 0 so pre-roll before the first card is never discarded.
-    for item in out:
-        if item.get("kind") != "episode":
+    # VOD start remains zero; every later chapter can move to its detected title card.
+    for index, item in enumerate(out):
+        if index == 0:
+            item["start_seconds"] = 0
             continue
-        ep = int(item.get("episode") or 0)
-        if ep in starts and int(item.get("start_seconds") or 0) > 0:
-            item["start_seconds"] = max(0, min(duration - 1, int(starts[ep])))
-            item["method"] = "titlecard-consensus"
+        if index in starts:
+            item["start_seconds"] = max(1, min(duration - 1, int(starts[index])))
+            item["method"] = "titlecard-detected"
             item["confidence"] = "high"
 
-    # Guard monotonicity. A dubious match is ignored instead of corrupting VOD.
+    # A bad visual hit must never reverse chapter order or create tiny fragments.
     for i in range(1, len(out)):
-        if int(out[i]["start_seconds"]) <= int(out[i - 1]["start_seconds"]):
+        current = int(out[i]["start_seconds"])
+        previous = int(out[i - 1]["start_seconds"])
+        if current <= previous or current - previous < 120:
             return chapters
 
-    # Rebuild every stop from the next chapter boundary. This also makes a
-    # special immediately before a regular episode end exactly at the same
-    # recurring title-card cue.
+    vod_id = str(out[0].get("vod_id") or "") if out else ""
     for i, item in enumerate(out):
         start = int(item["start_seconds"])
         stop = duration if i == len(out) - 1 else int(out[i + 1]["start_seconds"])
@@ -425,9 +472,8 @@ def _apply_refined_episode_starts(chapters: list[dict], starts: dict[int, int], 
             return chapters
         item["stop_seconds"] = stop
         item["duration_seconds"] = stop - start
-        item["replay_url"] = clip_url(str(item.get("vod_id") or ""), start, stop - start)
+        item["replay_url"] = clip_url(vod_id, start, stop - start)
     return out
-
 
 def refine_with_titlecard(
     vod: dict,
@@ -437,23 +483,26 @@ def refine_with_titlecard(
     duration = int(vod.get("duration_seconds") or 0)
     vod_id = str(vod.get("vod_id") or "")
     source_url = str(vod.get("source_url") or "")
-    episodes = [x for x in chapters if x.get("kind") == "episode"]
-    if duration <= 0 or not source_url or len(episodes) < 3:
-        return chapters, {"status": "skipped", "reason": "insufficient_source_or_episodes"}
+    items = list(chapters[:TITLECARD_MAX_ANALYZE_EPISODES])
+    if duration <= 0 or not source_url or len(items) < 2:
+        return chapters, {"status": "skipped", "reason": "insufficient_source_or_chapters"}
 
-    # Reuse exact visual boundaries on unchanged VODs.
+    # Reuse exact visual boundaries only when this detector version matches.
     if previous_result and int(previous_result.get("duration_seconds") or 0) == duration:
         prev = previous_result.get("titlecard_refinement") or {}
-        cached = prev.get("episode_starts") or {}
-        if prev.get("status") == "applied" and prev.get("boundary_version") == TITLECARD_BOUNDARY_VERSION and cached:
+        cached = prev.get("chapter_starts") or {}
+        if (
+            prev.get("status") in {"applied", "partial"}
+            and prev.get("boundary_version") == TITLECARD_BOUNDARY_VERSION
+            and cached
+        ):
             starts = {int(k): int(v) for k, v in cached.items()}
-            rebuilt = _apply_refined_episode_starts(
+            rebuilt = _apply_refined_chapter_starts(
                 [{**x, "vod_id": vod_id} for x in chapters], starts, duration
             )
             for x in rebuilt:
                 x.pop("vod_id", None)
             meta = dict(prev)
-            meta["status"] = "applied"
             meta["cache_reused"] = True
             return rebuilt, meta
 
@@ -461,89 +510,113 @@ def refine_with_titlecard(
         return chapters, {"status": "skipped", "reason": "disabled"}
 
     analysis_url = _lowest_hls_variant(source_url)
-    episode_subset = episodes[:TITLECARD_MAX_ANALYZE_EPISODES]
     windows = []
-    window_eps = []
-    for item in episode_subset:
+    for item in items:
         center = int(item.get("start_seconds") or 0)
-        frames = _sample_titlecard_window(analysis_url, center, duration)
-        windows.append(frames)
-        window_eps.append(int(item.get("episode") or 0))
+        windows.append(_sample_titlecard_window(analysis_url, center, duration))
 
     reference, learned = _learn_titlecard_reference(windows)
-    if not reference:
-        return chapters, {
-            "status": "no_consensus",
-            "method": "repeated-titlecard-dhash",
-            **learned,
-        }
 
-    # The recurring title card is not the episode start. Every regular episode uses
-    # the same cartridge-blow intro immediately before the title card. Keep that
-    # shared bumper by cutting a fixed amount before every detected title card.
-    # 8 seconds was measured on the clean #137 boundary and is reused across VODs.
-    lead_in_seconds = TITLECARD_INTRO_SECONDS
-
-    starts = {}
+    starts: dict[int, int] = {}
     match_rows = []
-    for ep, frames, item in zip(window_eps, windows, episode_subset):
-        t, dist = _best_titlecard_match(reference, frames)
+    for index, (item, frames) in enumerate(zip(items, windows)):
         original = int(item.get("start_seconds") or 0)
-        if t is None:
-            match_rows.append({"episode": ep, "matched": False, "distance": dist, "original": original})
+        if index == 0:
+            starts[index] = 0
+            match_rows.append({
+                "index": index,
+                "title": item.get("title"),
+                "matched": True,
+                "method": "vod-start",
+                "original": original,
+                "refined": 0,
+            })
             continue
-        refined = max(0, int(t) - lead_in_seconds)
-        # Preserve the exact first-episode boundary; it is the source of the intro offset.
-        if ep == window_eps[0]:
-            refined = original
-        starts[ep] = refined
+
+        matched = None
+        distance = None
+        method = None
+        fallback_meta = None
+
+        if reference is not None:
+            t, distance = _best_titlecard_match(reference, frames)
+            if t is not None:
+                matched = max(0, int(t) - TITLECARD_INTRO_SECONDS)
+                method = "recurring-titlecard"
+
+        if matched is None:
+            t, fallback_meta = _best_static_title_start(frames, original)
+            if t is not None:
+                matched = max(0, int(t) - TITLECARD_INTRO_SECONDS)
+                method = "static-titlecard-transition"
+
+        if matched is None:
+            match_rows.append({
+                "index": index,
+                "title": item.get("title"),
+                "matched": False,
+                "original": original,
+                "distance": distance,
+                "fallback": fallback_meta,
+            })
+            continue
+
+        starts[index] = matched
         match_rows.append({
-            "episode": ep,
+            "index": index,
+            "title": item.get("title"),
             "matched": True,
-            "distance": dist,
+            "method": method,
             "original": original,
-            "refined": refined,
-            "shift_seconds": refined - original,
+            "refined": matched,
+            "shift_seconds": matched - original,
+            "distance": distance,
+            "fallback": fallback_meta,
         })
 
-    nonfirst = [x for x in match_rows if x["episode"] != window_eps[0]]
-    matched_nonfirst = [x for x in nonfirst if x.get("matched")]
-    required = max(2, int(round(len(nonfirst) * 0.55)))
-    if len(matched_nonfirst) < required:
+    nonfirst = max(1, len(items) - 1)
+    detected = sum(1 for x in match_rows[1:] if x.get("matched"))
+    if detected == 0:
         return chapters, {
             "status": "no_consensus",
-            "method": "repeated-titlecard-dhash",
+            "method": "all-chapter-titlecard-detection",
+            "boundary_version": TITLECARD_BOUNDARY_VERSION,
             **learned,
-            "required_matches": required,
             "matches": match_rows,
         }
 
-    rebuilt = _apply_refined_episode_starts(
+    rebuilt = _apply_refined_chapter_starts(
         [{**x, "vod_id": vod_id} for x in chapters], starts, duration
     )
-    if rebuilt == [{**x, "vod_id": vod_id} for x in chapters]:
+    unchanged = rebuilt == [{**x, "vod_id": vod_id} for x in chapters]
+    if unchanged and detected:
         return chapters, {
-            "status": "no_consensus",
-            "method": "repeated-titlecard-dhash",
-            "reason": "monotonicity_guard",
+            "status": "guarded",
+            "method": "all-chapter-titlecard-detection",
+            "boundary_version": TITLECARD_BOUNDARY_VERSION,
+            "reason": "order_or_minimum-gap-guard",
             "matches": match_rows,
         }
     for x in rebuilt:
         x.pop("vod_id", None)
 
+    coverage = detected / nonfirst
+    status = "applied" if coverage >= 0.8 else "partial"
     return rebuilt, {
-        "status": "applied",
-        "method": "repeated-titlecard-dhash",
+        "status": status,
+        "method": "all-chapter-titlecard-detection",
         "window_seconds": TITLECARD_WINDOW_SECONDS,
         "sample_seconds": TITLECARD_SAMPLE_SECONDS,
         "boundary_version": TITLECARD_BOUNDARY_VERSION,
-        "lead_in_seconds": lead_in_seconds,
+        "lead_in_seconds": TITLECARD_INTRO_SECONDS,
+        "detected_boundaries": detected,
+        "expected_boundaries": nonfirst,
+        "coverage": round(coverage, 3),
         **learned,
-        "episode_starts": {str(k): v for k, v in starts.items()},
+        "chapter_starts": {str(k): v for k, v in starts.items()},
         "matches": match_rows,
         "cache_reused": False,
     }
-
 
 def clip_url(vod_id: str, start: int, duration: int) -> str:
     return f"{REPLAY_BASE}{urllib.parse.quote(vod_id)}&start={start}&duration={duration}"
@@ -831,7 +904,7 @@ def main() -> int:
     unavailable = sum(1 for x in results if x.get("status") == "source_unavailable")
     refined = sum(
         1 for x in results
-        if (x.get("titlecard_refinement") or {}).get("status") == "applied"
+        if (x.get("titlecard_refinement") or {}).get("status") in {"applied", "partial"}
     )
     print(
         f"GMCX chapters: ready_vods={ready} chapters={len(all_chapters)} "
