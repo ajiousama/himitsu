@@ -43,8 +43,8 @@ TITLECARD_NEAR_BEST = 4
 TITLECARD_MIN_CONTRAST = 28
 TITLECARD_MAX_ANALYZE_EPISODES = 24
 
-# Known mixed archive bundles. Regular episodes are first, then the listed special(s).
-# A final special with duration_seconds=None consumes the remainder so no footage is lost.
+# Known mixed archive bundles. Specials are inserted in chronological order before/after episodes.
+# A single special with duration_seconds=None consumes the remaining non-regular footage.
 KNOWN_SPECIALS: dict[tuple[int, int], list[dict]] = {
     (107, 116): [
         {
@@ -136,7 +136,7 @@ KNOWN_SPECIALS: dict[tuple[int, int], list[dict]] = {
             "duration_seconds": None,
             "expected_broadcast_seconds": 7200,
         },
-    ],,
+    ],
     (207, 216): [
         {
             "key": "2015-mario-maker-play",
