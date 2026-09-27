@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-27",
-  "generated_at": "2026-09-27T13:53:47.015316+09:00",
+  "generated_at": "2026-09-27T13:54:47.018807+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260927.json",
   "schedule_checked_at": "2026-09-27T13:42:47.065946+09:00",
@@ -19,7 +19,7 @@
   "alert_lead_minutes": 30,
   "card_count": 13,
   "held_count": 13,
-  "visible_count": 10,
+  "visible_count": 11,
   "active_count": 10,
   "ended_kept": [],
   "seed_required": false,
@@ -44,7 +44,7 @@
     },
     "night": {
       "held": 3,
-      "acquired": 0,
+      "acquired": 1,
       "active": 0,
       "ended": 0,
       "seed_required": 0,
@@ -53,13 +53,8 @@
   },
   "cloud_acquisition": {
     "requested": 13,
-    "fetched": 10,
+    "fetched": 11,
     "failures": [
-      {
-        "jcd": "15",
-        "name": "丸亀",
-        "error": "HTTPError: playback check failed"
-      },
       {
         "jcd": "19",
         "name": "下関",
@@ -204,6 +199,22 @@
         "ok": true,
         "sequence": 8284284,
         "last_segment": "/78546a3ed2ed4cb485b529d7df290560/1b03cc8c075242b7a5eb2d6715fa19a8/manifest_1_8287825.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
+    },
+    "boat.marugame": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/f1795652a2f849c099d413e2a6543aca/9dea5aa42e87436aa782c40689eb5ae9/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MDY1ODAwMCwic3RhcnQiOjE3OTA0ODQ5MDAsImlvcyI6MTgsImNwIjoiMjEyNjgwNTAwXzIxMjcyMzY5OSIsInBwdyI6IjQwayJ9.wt77DadbtNVtQgAXTeLQ_c6X75GT4D1M97YTeu4IUt8",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-09-27T13:55:14.204493+09:00",
+      "checked_at": "2026-09-27T13:55:14.204493+09:00",
+      "first_verified_at": "2026-09-27T13:55:14.204493+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 8287903,
+        "last_segment": "/f1795652a2f849c099d413e2a6543aca/9dea5aa42e87436aa782c40689eb5ae9/manifest_4_8287905.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -908,7 +919,7 @@
       "intermission": null,
       "guidance_switch_at": "2026-09-27T14:54:00+09:00",
       "seed_required": false,
-      "reverify_due": false,
+      "reverify_due": true,
       "playback_verified": true,
       "first_verified_at": "2026-09-27T07:57:17.893941+09:00",
       "ready_before_first_race": true,
@@ -983,7 +994,7 @@
       "jcd": "15",
       "name": "丸亀",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
       "active": false,
       "cancelled": false,
@@ -1001,9 +1012,9 @@
       "guidance_switch_at": "2026-09-27T21:15:00+09:00",
       "seed_required": false,
       "reverify_due": false,
-      "playback_verified": false,
-      "first_verified_at": null,
-      "ready_before_first_race": false,
+      "playback_verified": true,
+      "first_verified_at": "2026-09-27T13:55:14.204493+09:00",
+      "ready_before_first_race": true,
       "acquire_from": "2026-09-27T12:47:00+09:00",
       "races": [
         {
@@ -1067,7 +1078,9 @@
           "name": "予選選抜"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/f1795652a2f849c099d413e2a6543aca/9dea5aa42e87436aa782c40689eb5ae9/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MDY1ODAwMCwic3RhcnQiOjE3OTA0ODQ5MDAsImlvcyI6MTgsImNwIjoiMjEyNjgwNTAwXzIxMjcyMzY5OSIsInBwdyI6IjQwayJ9.wt77DadbtNVtQgAXTeLQ_c6X75GT4D1M97YTeu4IUt8",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     },
     "boat.shimonoseki": {
       "jcd": "19",
