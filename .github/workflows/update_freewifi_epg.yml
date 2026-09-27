@@ -239,6 +239,41 @@ jobs:
               raise SystemExit(f'FreeWiFi publish blocked: BOAT mismatch entries={entries} visible={visible}')
           PY
 
+            python - <<'PY'
+          import re
+          from pathlib import Path
+
+          text = Path('freewifi').read_text(encoding='utf-8-sig', errors='replace')
+          protected = {
+              'WOWOWプラス_jp',
+              'MTV_jp',
+              'FIGHTING-TV-サムライ_jp',
+              'community.FM845',
+              'community.BARIBARI',
+              'community.NIIHAMA',
+              'community.FMGAIYA',
+          }
+          checked = 0
+          for line in text.splitlines():
+              if not line.startswith('#EXTINF:'):
+                  continue
+              m = re.search(r'tvg-id="([^"]+)"', line)
+              cid = m.group(1) if m else ''
+              if not (
+                  cid in protected
+                  or cid == 'kick.nogizaka'
+                  or cid.startswith('kick.nogizaka.replay.')
+                  or cid.startswith('keirin.')
+              ):
+                  continue
+              checked += 1
+              if '/logos/contrast/' not in line:
+                  raise SystemExit(f'Stable logo guard: contrast logo regressed: {line}')
+          if checked == 0:
+              raise SystemExit('Stable logo guard: no protected logo entries found')
+          print(f'Stable logo guard: OK protected_entries={checked}')
+          PY
+
             git add ganble/playlist.m3u ehime_catv/playlist.m3u freewifi radio/freewifi.m3u gccx2_live_state.json today_public_sports_status.json today_jra_status.json today_event_counts.json verified_daily_status.json public_sports_epg_local.xml
 
             if git diff --cached --quiet; then
