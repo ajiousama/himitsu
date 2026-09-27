@@ -9,7 +9,7 @@ ROOT = Path(__file__).resolve().parents[2]
 MANIFEST = ROOT / "logos" / "fixed_logo_manifest.json"
 
 def git_blob_sha(data: bytes) -> str:
-    header = f"blob {len(data)}\\0".encode("ascii")
+    header = b"blob " + str(len(data)).encode("ascii") + bytes([0])
     return hashlib.sha1(header + data).hexdigest()
 
 def main() -> int:
@@ -30,7 +30,7 @@ def main() -> int:
             bad.append(f"CHANGED {rel}: expected={expected} actual={actual}")
 
     if bad:
-        raise SystemExit("Pinned sports logo validation failed:\\n" + "\\n".join(bad))
+        raise SystemExit("Pinned sports logo validation failed:" + chr(10) + chr(10).join(bad))
 
     print(f"Pinned sports logos OK: {len(assets)} assets")
     return 0
