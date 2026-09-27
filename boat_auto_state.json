@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-28",
-  "generated_at": "2026-09-28T08:14:39.181556+09:00",
+  "generated_at": "2026-09-28T08:17:39.179073+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260928.json",
   "schedule_checked_at": "2026-09-28T08:11:39.379800+09:00",
@@ -52,9 +52,14 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 5,
+    "requested": 6,
     "fetched": 2,
     "failures": [
+      {
+        "jcd": "02",
+        "name": "戸田",
+        "error": "cloud and official acquisition unavailable: HTTPError"
+      },
       {
         "jcd": "09",
         "name": "津",
@@ -676,7 +681,7 @@
       "intermission": null,
       "guidance_switch_at": "2026-09-28T14:52:00+09:00",
       "seed_required": false,
-      "reverify_due": false,
+      "reverify_due": true,
       "playback_verified": true,
       "first_verified_at": "2026-09-28T07:57:14.527244+09:00",
       "ready_before_first_race": true,
