@@ -30,6 +30,11 @@ RANGE_EPISODE_SECONDS: dict[tuple[int, int], int] = {
     (217, 226): 3900,
 }
 
+# Numbered episodes that are actually long-form specials.
+EPISODE_DURATION_OVERRIDES: dict[int, int] = {
+    226: 7200,  # in 四国 / 奇々怪界: official 2-hour special
+}
+
 # Real-video boundary refinement. GMCX repeats a characteristic title/opening
 # frame at the beginning of regular episodes. We learn that recurring visual
 # signature inside each VOD and place every split on the same visual cue.
@@ -142,8 +147,8 @@ KNOWN_SPECIALS: dict[tuple[int, int], list[dict]] = {
             "key": "2015-mario-maker-play",
             "title": "GMCX 「スーパーマリオメーカー」を遊ぶ編",
             "before_episode": 207,
-            "duration_seconds": None,
-            "expected_broadcast_seconds": 2430,
+            "duration_seconds": 2700,
+            "expected_broadcast_seconds": 2700,
         },
         {
             "key": "2015-mario-maker-live",
@@ -156,8 +161,8 @@ KNOWN_SPECIALS: dict[tuple[int, int], list[dict]] = {
             "key": "2015-link-newyear",
             "title": "GMCX 年越しSP 今年のリベンジ、今年のうちに",
             "after_episode": 210,
-            "duration_seconds": 900,
-            "expected_broadcast_seconds": 900,
+            "duration_seconds": None,
+            "expected_broadcast_seconds": 600,
         },
     ],
     (217, 226): [
@@ -165,36 +170,31 @@ KNOWN_SPECIALS: dict[tuple[int, int], list[dict]] = {
             "key": "2016-pokemon-1",
             "title": "GMCX 特別篇 ポケットモンスター赤・緑 #1",
             "after_episode": 219,
-            "duration_seconds": 1980,
-            "expected_broadcast_seconds": 1980,
+            "duration_group": "pokemon-2016",
         },
         {
             "key": "2016-pokemon-2",
             "title": "GMCX 特別篇 ポケットモンスター赤・緑 #2",
             "after_episode": 222,
-            "duration_seconds": 2220,
-            "expected_broadcast_seconds": 2220,
+            "duration_group": "pokemon-2016",
         },
         {
             "key": "2016-pokemon-3",
             "title": "GMCX 特別篇 ポケットモンスター赤・緑 #3",
             "after_episode": 224,
-            "duration_seconds": 2220,
-            "expected_broadcast_seconds": 2220,
+            "duration_group": "pokemon-2016",
         },
         {
             "key": "2016-pokemon-4",
             "title": "GMCX 特別篇 ポケットモンスター赤・緑 #4",
             "after_episode": 225,
-            "duration_seconds": 2100,
-            "expected_broadcast_seconds": 2100,
+            "duration_group": "pokemon-2016",
         },
         {
             "key": "2016-pokemon-5",
             "title": "GMCX 特別篇 ポケットモンスター赤・緑 #5",
             "after_episode": 226,
-            "duration_seconds": None,
-            "expected_broadcast_seconds": 2580,
+            "duration_group": "pokemon-2016",
         },
     ],
 }
@@ -580,26 +580,53 @@ def make_mixed_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict[str,
     count = end_ep - start_ep + 1
     duration = int(vod.get("duration_seconds") or 0)
     episode_seconds = RANGE_EPISODE_SECONDS.get((start_ep, end_ep), REFERENCE_EPISODE_SECONDS)
-    regular_total = count * episode_seconds
+    regular_total = sum(
+        EPISODE_DURATION_OVERRIDES.get(ep, episode_seconds)
+        for ep in range(start_ep, end_ep + 1)
+    )
     if duration < regular_total:
         return []
 
     specs = [dict(x) for x in KNOWN_SPECIALS.get((start_ep, end_ep), [])]
     extra_total = duration - regular_total
     fixed_extra = sum(int(x.get("duration_seconds") or 0) for x in specs)
-    flexible = [x for x in specs if x.get("duration_seconds") is None]
+    flexible = [
+        x for x in specs
+        if x.get("duration_seconds") is None and not x.get("duration_group")
+    ]
+    grouped: dict[str, list[dict]] = {}
+    for spec in specs:
+        group = spec.get("duration_group")
+        if group:
+            grouped.setdefault(str(group), []).append(spec)
 
-    # The KICK bundle duration tells us exactly how much non-regular footage
-    # exists. Known broadcast lengths are hints, but the archive remainder is
-    # authoritative for the final flexible special.
     if fixed_extra > extra_total:
         return []
-    flexible_total = extra_total - fixed_extra
+    remaining = extra_total - fixed_extra
+
+    # A single explicitly flexible mini-special may consume the small remainder.
     if len(flexible) > 1:
         return []
     if flexible:
-        flexible[0]["duration_seconds"] = flexible_total
-    elif fixed_extra != extra_total:
+        flexible[0]["duration_seconds"] = remaining
+        remaining = 0
+
+    # Same-format short specials (e.g. Pokémon #1-#5) share the remaining
+    # footage evenly. This is safer than inventing different runtimes.
+    if grouped:
+        if len(grouped) > 1 or flexible:
+            return []
+        members = next(iter(grouped.values()))
+        if not members:
+            return []
+        base, remainder = divmod(remaining, len(members))
+        if base <= 0:
+            return []
+        for idx, spec in enumerate(members):
+            spec["duration_seconds"] = base + (1 if idx < remainder else 0)
+        remaining = 0
+
+    if remaining != 0:
         return []
 
     vod_id = str(vod.get("vod_id"))
@@ -641,7 +668,8 @@ def make_mixed_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict[str,
         for spec in by_before.get(ep, []):
             append_special(spec)
 
-        stop = min(duration, cursor + episode_seconds)
+        this_episode_seconds = EPISODE_DURATION_OVERRIDES.get(ep, episode_seconds)
+        stop = min(duration, cursor + this_episode_seconds)
         clip_duration = max(0, stop - cursor)
         chapters.append({
             "kind": "episode",
