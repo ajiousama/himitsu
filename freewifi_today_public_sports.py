@@ -20,6 +20,13 @@ GENERAL_YOUTUBE_START = '# === GENERAL_YOUTUBE_MANAGED_START ==='
 KANA_TVG_ID = 'youtube.kana_tube'
 RAW_BASE = 'https://raw.githubusercontent.com/ajiousama/himitsu/main'
 LOGO_PROXY = 'https://images.weserv.nl/?url=raw.githubusercontent.com/ajiousama/himitsu/main'
+CONTRAST_DB_PATH = Path('logos/contrast_sources.json')
+
+try:
+    CONTRAST_DB = json.loads(CONTRAST_DB_PATH.read_text(encoding='utf-8')) if CONTRAST_DB_PATH.exists() else {}
+except Exception:
+    CONTRAST_DB = {}
+
 
 def venue_png(name):
     return f'{LOGO_PROXY}/logos/public_sports/venues/{name}&output=png'
@@ -83,13 +90,24 @@ AUTO_LOGOS = {
     'auto.iizuka': f'{RAW_BASE}/logos/public_sports/venues/autorace_iizuka.png',
 }
 
+def known_contrast(source):
+    if not source:
+        return source
+    meta = CONTRAST_DB.get(source) if isinstance(CONTRAST_DB, dict) else None
+    if isinstance(meta, dict):
+        relpath = meta.get('path')
+        if isinstance(relpath, str) and relpath and Path(relpath).is_file():
+            return f'{RAW_BASE}/{relpath}'
+    return source
+
+
 def local_logo(cid):
     if cid.startswith('chihou.'):
         slug = cid.split('.', 1)[1]
         slug = {'kawasaki_keiba': 'kawasaki', 'nagoya_keiba': 'nagoya', 'kochi_keiba': 'kochi'}.get(slug, slug)
         return f'{RAW_BASE}/logos/public_sports/venues/localrace_{slug}.png'
     if cid.startswith('keirin.'):
-        return KEIRIN_LOGOS.get(cid)
+        return known_contrast(KEIRIN_LOGOS.get(cid))
     if cid.startswith('auto.'):
         return AUTO_LOGOS.get(cid)
     return None
