@@ -25,7 +25,7 @@ AI_WINDOW_SECONDS = 600
 # Season 18's clean #177-196 archive is 77,992 sec / 20 ~= 3,900 sec.
 RANGE_EPISODE_SECONDS: dict[tuple[int, int], int] = {
     (177, 196): 3900,
-    (197, 206): 3900,
+    (197, 206): 3871,
     (207, 216): 3900,
     (217, 226): 3900,
 }
@@ -133,7 +133,7 @@ KNOWN_SPECIALS: dict[tuple[int, int], list[dict]] = {
             "key": "2015-vietnam",
             "title": "GMCX in VIETNAM ～ベトナムのゲーム事情 徹底調査&カジノにもリベンジしちゃうよ!SP～",
             "after_episode": 203,
-            "duration_seconds": None,
+            "duration_seconds": 7200,
             "expected_broadcast_seconds": 7200,
         },
     ],
