@@ -26,6 +26,8 @@ AI_WINDOW_SECONDS = 600
 RANGE_EPISODE_SECONDS: dict[tuple[int, int], int] = {
     (177, 196): 3900,
     (197, 206): 3900,
+    (207, 216): 3900,
+    (217, 226): 3900,
 }
 
 # Real-video boundary refinement. GMCX repeats a characteristic title/opening
@@ -133,6 +135,66 @@ KNOWN_SPECIALS: dict[tuple[int, int], list[dict]] = {
             "after_episode": 203,
             "duration_seconds": None,
             "expected_broadcast_seconds": 7200,
+        },
+    ],,
+    (207, 216): [
+        {
+            "key": "2015-mario-maker-play",
+            "title": "GMCX 「スーパーマリオメーカー」を遊ぶ編",
+            "before_episode": 207,
+            "duration_seconds": None,
+            "expected_broadcast_seconds": 2430,
+        },
+        {
+            "key": "2015-mario-maker-live",
+            "title": "GMCX スーパーマリオメーカーに生挑戦SP ～有野課長VS10000人のクリエーター～",
+            "after_episode": 210,
+            "duration_seconds": 7200,
+            "expected_broadcast_seconds": 7200,
+        },
+        {
+            "key": "2015-link-newyear",
+            "title": "GMCX 年越しSP 今年のリベンジ、今年のうちに",
+            "after_episode": 210,
+            "duration_seconds": 900,
+            "expected_broadcast_seconds": 900,
+        },
+    ],
+    (217, 226): [
+        {
+            "key": "2016-pokemon-1",
+            "title": "GMCX 特別篇 ポケットモンスター赤・緑 #1",
+            "after_episode": 219,
+            "duration_seconds": 1980,
+            "expected_broadcast_seconds": 1980,
+        },
+        {
+            "key": "2016-pokemon-2",
+            "title": "GMCX 特別篇 ポケットモンスター赤・緑 #2",
+            "after_episode": 222,
+            "duration_seconds": 2220,
+            "expected_broadcast_seconds": 2220,
+        },
+        {
+            "key": "2016-pokemon-3",
+            "title": "GMCX 特別篇 ポケットモンスター赤・緑 #3",
+            "after_episode": 224,
+            "duration_seconds": 2220,
+            "expected_broadcast_seconds": 2220,
+        },
+        {
+            "key": "2016-pokemon-4",
+            "title": "GMCX 特別篇 ポケットモンスター赤・緑 #4",
+            "after_episode": 225,
+            "duration_seconds": 2100,
+            "expected_broadcast_seconds": 2100,
+        },
+        {
+            "key": "2016-pokemon-5",
+            "title": "GMCX 特別篇 ポケットモンスター赤・緑 #5",
+            "after_episode": 226,
+            "duration_seconds": None,
+            "expected_broadcast_seconds": 2580,
         },
     ],
 }
@@ -541,14 +603,44 @@ def make_mixed_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict[str,
         return []
 
     vod_id = str(vod.get("vod_id"))
+    by_before: dict[int, list[dict]] = {}
     by_after: dict[int, list[dict]] = {}
     for spec in specs:
-        after_ep = int(spec.get("after_episode") or end_ep)
-        by_after.setdefault(after_ep, []).append(spec)
+        if spec.get("before_episode") is not None:
+            before_ep = int(spec["before_episode"])
+            by_before.setdefault(before_ep, []).append(spec)
+        else:
+            after_ep = int(spec.get("after_episode") or end_ep)
+            by_after.setdefault(after_ep, []).append(spec)
 
     chapters = []
     cursor = 0
+
+    def append_special(spec: dict) -> None:
+        nonlocal cursor
+        requested = int(spec.get("duration_seconds") or 0)
+        if requested <= 0 or cursor >= duration:
+            return
+        stop = min(duration, cursor + requested)
+        clip_duration = max(0, stop - cursor)
+        chapters.append({
+            "kind": "special",
+            "special_key": spec["key"],
+            "title": spec["title"],
+            "start_seconds": cursor,
+            "stop_seconds": stop,
+            "duration_seconds": clip_duration,
+            "expected_broadcast_seconds": spec.get("expected_broadcast_seconds"),
+            "replay_url": clip_url(vod_id, cursor, clip_duration),
+            "method": "chronological-known-program-order",
+            "confidence": "high",
+        })
+        cursor = stop
+
     for ep in range(start_ep, end_ep + 1):
+        for spec in by_before.get(ep, []):
+            append_special(spec)
+
         stop = min(duration, cursor + episode_seconds)
         clip_duration = max(0, stop - cursor)
         chapters.append({
@@ -565,24 +657,7 @@ def make_mixed_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict[str,
         cursor = stop
 
         for spec in by_after.get(ep, []):
-            requested = int(spec.get("duration_seconds") or 0)
-            if requested <= 0 or cursor >= duration:
-                continue
-            stop = min(duration, cursor + requested)
-            clip_duration = max(0, stop - cursor)
-            chapters.append({
-                "kind": "special",
-                "special_key": spec["key"],
-                "title": spec["title"],
-                "start_seconds": cursor,
-                "stop_seconds": stop,
-                "duration_seconds": clip_duration,
-                "expected_broadcast_seconds": spec.get("expected_broadcast_seconds"),
-                "replay_url": clip_url(vod_id, cursor, clip_duration),
-                "method": "chronological-known-program-order",
-                "confidence": "high",
-            })
-            cursor = stop
+            append_special(spec)
 
     if cursor < duration:
         clip_duration = duration - cursor
