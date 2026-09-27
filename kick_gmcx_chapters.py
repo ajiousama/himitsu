@@ -538,13 +538,24 @@ def refine_with_titlecard(
         method = None
         fallback_meta = None
 
-        if reference is not None:
+        is_special = item.get("kind") == "special"
+
+        # Specials often use a different title design. For those, prefer the
+        # actual transition into a stable title card before trying the regular
+        # recurring GMCX title template.
+        if is_special:
+            t, fallback_meta = _best_static_title_start(frames, original)
+            if t is not None:
+                matched = max(0, int(t) - TITLECARD_INTRO_SECONDS)
+                method = "static-titlecard-transition"
+
+        if matched is None and reference is not None:
             t, distance = _best_titlecard_match(reference, frames)
             if t is not None:
                 matched = max(0, int(t) - TITLECARD_INTRO_SECONDS)
                 method = "recurring-titlecard"
 
-        if matched is None:
+        if matched is None and not is_special:
             t, fallback_meta = _best_static_title_start(frames, original)
             if t is not None:
                 matched = max(0, int(t) - TITLECARD_INTRO_SECONDS)
