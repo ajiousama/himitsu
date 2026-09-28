@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-28T15:29:33.212259+09:00",
+  "generated_at": "2026-09-28T15:36:39.085188+09:00",
   "reference_episode_seconds": 3501,
   "results": [
     {
@@ -201,21 +201,22 @@
         }
       ],
       "titlecard_refinement": {
-        "status": "partial",
-        "method": "blue-room-boundary-detection",
+        "status": "no_consensus",
+        "method": "yellow-gmcx-title-logo",
+        "boundary_version": 10,
         "window_seconds": 240,
         "sample_seconds": 2,
-        "boundary_version": 9,
-        "lead_in_seconds": 8,
-        "detected_boundaries": 6,
-        "expected_boundaries": 14,
-        "coverage": 0.429,
-        "reason": "no_recurring_opening_sequence",
-        "usable_windows": 15,
-        "blue_room": {
-          "reason": "no_recurring_blue_room",
-          "usable_windows": 8
+        "reference": {
+          "reason": "ok",
+          "title_time": 30,
+          "offset_seconds": 30,
+          "run_frames": 2,
+          "yellow_ratio": 0.0833
         },
+        "title_offset_seconds": 30,
+        "detected_regular_boundaries": 0,
+        "expected_regular_boundaries": 8,
+        "coverage": 0.0,
         "chapter_starts": {
           "0": 0,
           "3": 11700,
@@ -239,16 +240,20 @@
             "title": "サルゲッチュ（後編）",
             "matched": false,
             "original": 3900,
-            "distance": null,
-            "fallback": null
+            "expected_title": 3930,
+            "logo": {
+              "reason": "no_matching_title_logo"
+            }
           },
           {
             "index": 2,
             "title": "アルゴスの戦士 はちゃめちゃ大進撃",
             "matched": false,
             "original": 7800,
-            "distance": null,
-            "fallback": null
+            "expected_title": 7830,
+            "logo": {
+              "reason": "no_matching_title_logo"
+            }
           },
           {
             "index": 3,
@@ -257,33 +262,37 @@
             "method": "structured-special-boundary",
             "original": 11700,
             "refined": 11700,
-            "shift_seconds": 0,
-            "distance": null,
-            "fallback": null
+            "shift_seconds": 0
           },
           {
             "index": 4,
             "title": "超兄貴（前編）",
             "matched": false,
             "original": 13274,
-            "distance": null,
-            "fallback": null
+            "expected_title": 13304,
+            "logo": {
+              "reason": "no_matching_title_logo"
+            }
           },
           {
             "index": 5,
             "title": "超兄貴（後編）",
             "matched": false,
             "original": 17174,
-            "distance": null,
-            "fallback": null
+            "expected_title": 17204,
+            "logo": {
+              "reason": "no_matching_title_logo"
+            }
           },
           {
             "index": 6,
             "title": "ワギャンランド2",
             "matched": false,
             "original": 21074,
-            "distance": null,
-            "fallback": null
+            "expected_title": 21104,
+            "logo": {
+              "reason": "no_matching_title_logo"
+            }
           },
           {
             "index": 7,
@@ -292,25 +301,27 @@
             "method": "structured-special-boundary",
             "original": 24974,
             "refined": 24974,
-            "shift_seconds": 0,
-            "distance": null,
-            "fallback": null
+            "shift_seconds": 0
           },
           {
             "index": 8,
             "title": "おそ松くん はちゃめちゃ劇場",
             "matched": false,
             "original": 26548,
-            "distance": null,
-            "fallback": null
+            "expected_title": 26578,
+            "logo": {
+              "reason": "no_matching_title_logo"
+            }
           },
           {
             "index": 9,
             "title": "地底戦空バゾルダー",
             "matched": false,
             "original": 30448,
-            "distance": null,
-            "fallback": null
+            "expected_title": 30478,
+            "logo": {
+              "reason": "no_matching_title_logo"
+            }
           },
           {
             "index": 10,
@@ -319,17 +330,17 @@
             "method": "structured-special-boundary",
             "original": 34348,
             "refined": 34348,
-            "shift_seconds": 0,
-            "distance": null,
-            "fallback": null
+            "shift_seconds": 0
           },
           {
             "index": 11,
             "title": "獣王記",
             "matched": false,
             "original": 35922,
-            "distance": null,
-            "fallback": null
+            "expected_title": 35952,
+            "logo": {
+              "reason": "no_matching_title_logo"
+            }
           },
           {
             "index": 12,
@@ -338,9 +349,7 @@
             "method": "structured-special-boundary",
             "original": 39822,
             "refined": 39822,
-            "shift_seconds": 0,
-            "distance": null,
-            "fallback": null
+            "shift_seconds": 0
           },
           {
             "index": 13,
@@ -349,9 +358,7 @@
             "method": "structured-special-boundary",
             "original": 41396,
             "refined": 41396,
-            "shift_seconds": 0,
-            "distance": null,
-            "fallback": null
+            "shift_seconds": 0
           },
           {
             "index": 14,
@@ -360,9 +367,7 @@
             "method": "structured-special-boundary",
             "original": 48596,
             "refined": 48596,
-            "shift_seconds": 0,
-            "distance": null,
-            "fallback": null
+            "shift_seconds": 0
           }
         ],
         "cache_reused": false
@@ -445,7 +450,7 @@
           "duration_seconds": 7200,
           "expected_broadcast_seconds": 7200,
           "replay_url": "https://kick-resolver.onrender.com/kick?vod=5b8b16f7-10d6-475e-99bf-dceef94c4c11&start=18300&duration=7200",
-          "method": "titlecard-detected",
+          "method": "chronological-known-program-order",
           "confidence": "high"
         },
         {
@@ -457,7 +462,7 @@
           "duration_seconds": 630,
           "expected_broadcast_seconds": 600,
           "replay_url": "https://kick-resolver.onrender.com/kick?vod=5b8b16f7-10d6-475e-99bf-dceef94c4c11&start=25500&duration=630",
-          "method": "titlecard-detected",
+          "method": "chronological-known-program-order",
           "confidence": "high"
         },
         {
@@ -528,139 +533,13 @@
         }
       ],
       "titlecard_refinement": {
-        "status": "partial",
-        "method": "blue-room-boundary-detection",
-        "window_seconds": 240,
-        "sample_seconds": 2,
-        "boundary_version": 9,
-        "lead_in_seconds": 8,
-        "detected_boundaries": 2,
-        "expected_boundaries": 12,
-        "coverage": 0.167,
-        "reason": "no_recurring_opening_sequence",
-        "usable_windows": 13,
-        "blue_room": {
-          "reason": "no_recurring_blue_room",
-          "usable_windows": 10
+        "status": "no_consensus",
+        "method": "yellow-gmcx-title-logo",
+        "boundary_version": 10,
+        "reference": {
+          "reason": "no_title_logo_near_reference_start"
         },
-        "chapter_starts": {
-          "0": 0,
-          "5": 18300,
-          "6": 25500
-        },
-        "matches": [
-          {
-            "index": 0,
-            "title": "GMCX 「スーパーマリオメーカー」を遊ぶ編",
-            "matched": true,
-            "method": "vod-start",
-            "original": 0,
-            "refined": 0
-          },
-          {
-            "index": 1,
-            "title": "ESWAT",
-            "matched": false,
-            "original": 2700,
-            "distance": null,
-            "fallback": null
-          },
-          {
-            "index": 2,
-            "title": "改造町人シュビビンマン",
-            "matched": false,
-            "original": 6600,
-            "distance": null,
-            "fallback": null
-          },
-          {
-            "index": 3,
-            "title": "リンクの冒険（前編）",
-            "matched": false,
-            "original": 10500,
-            "distance": null,
-            "fallback": null
-          },
-          {
-            "index": 4,
-            "title": "リンクの冒険（後編）",
-            "matched": false,
-            "original": 14400,
-            "distance": null,
-            "fallback": null
-          },
-          {
-            "index": 5,
-            "title": "GMCX スーパーマリオメーカーに生挑戦SP ～有野課長VS10000人のクリエーター～",
-            "matched": true,
-            "method": "structured-special-boundary",
-            "original": 18300,
-            "refined": 18300,
-            "shift_seconds": 0,
-            "distance": null,
-            "fallback": null
-          },
-          {
-            "index": 6,
-            "title": "GMCX 年越しSP 今年のリベンジ、今年のうちに",
-            "matched": true,
-            "method": "structured-special-boundary",
-            "original": 25500,
-            "refined": 25500,
-            "shift_seconds": 0,
-            "distance": null,
-            "fallback": null
-          },
-          {
-            "index": 7,
-            "title": "TAITO CHASE H.Q.",
-            "matched": false,
-            "original": 26130,
-            "distance": null,
-            "fallback": null
-          },
-          {
-            "index": 8,
-            "title": "オリビアのミステリー",
-            "matched": false,
-            "original": 30030,
-            "distance": null,
-            "fallback": null
-          },
-          {
-            "index": 9,
-            "title": "THE 功夫",
-            "matched": false,
-            "original": 33930,
-            "distance": null,
-            "fallback": null
-          },
-          {
-            "index": 10,
-            "title": "夢ペンギン物語",
-            "matched": false,
-            "original": 37830,
-            "distance": null,
-            "fallback": null
-          },
-          {
-            "index": 11,
-            "title": "セクロス",
-            "matched": false,
-            "original": 41730,
-            "distance": null,
-            "fallback": null
-          },
-          {
-            "index": 12,
-            "title": "スーパーマリオランド2 6つの金貨",
-            "matched": false,
-            "original": 45630,
-            "distance": null,
-            "fallback": null
-          }
-        ],
-        "cache_reused": false
+        "matches": []
       },
       "ai_windows": []
     },
@@ -781,9 +660,9 @@
           "episode": 204,
           "title": "山村美紗サスペンス 京都龍の寺殺人事件",
           "start_seconds": 36997,
-          "stop_seconds": 40868,
-          "duration_seconds": 3871,
-          "replay_url": "https://kick-resolver.onrender.com/kick?vod=04f0dc3a-5255-4137-bbae-bcca467ec5c0&start=36997&duration=3871",
+          "stop_seconds": 40884,
+          "duration_seconds": 3887,
+          "replay_url": "https://kick-resolver.onrender.com/kick?vod=04f0dc3a-5255-4137-bbae-bcca467ec5c0&start=36997&duration=3887",
           "method": "chronological-reference-cadence",
           "confidence": "high"
         },
@@ -791,11 +670,11 @@
           "kind": "episode",
           "episode": 205,
           "title": "モグラ〜ニャ",
-          "start_seconds": 40868,
+          "start_seconds": 40884,
           "stop_seconds": 44739,
-          "duration_seconds": 3871,
-          "replay_url": "https://kick-resolver.onrender.com/kick?vod=04f0dc3a-5255-4137-bbae-bcca467ec5c0&start=40868&duration=3871",
-          "method": "chronological-reference-cadence",
+          "duration_seconds": 3855,
+          "replay_url": "https://kick-resolver.onrender.com/kick?vod=04f0dc3a-5255-4137-bbae-bcca467ec5c0&start=40884&duration=3855",
+          "method": "titlecard-detected",
           "confidence": "high"
         },
         {
@@ -812,24 +691,26 @@
       ],
       "titlecard_refinement": {
         "status": "partial",
-        "method": "blue-room-boundary-detection",
+        "method": "yellow-gmcx-title-logo",
+        "boundary_version": 10,
         "window_seconds": 240,
         "sample_seconds": 2,
-        "boundary_version": 9,
-        "lead_in_seconds": 8,
-        "detected_boundaries": 2,
-        "expected_boundaries": 11,
-        "coverage": 0.182,
-        "reason": "no_recurring_opening_sequence",
-        "usable_windows": 12,
-        "blue_room": {
-          "reason": "no_recurring_blue_room",
-          "usable_windows": 9
+        "reference": {
+          "reason": "ok",
+          "title_time": 28,
+          "offset_seconds": 28,
+          "run_frames": 3,
+          "yellow_ratio": 0.0714
         },
+        "title_offset_seconds": 28,
+        "detected_regular_boundaries": 1,
+        "expected_regular_boundaries": 9,
+        "coverage": 0.111,
         "chapter_starts": {
           "0": 0,
           "3": 11613,
-          "8": 29797
+          "8": 29797,
+          "10": 40884
         },
         "matches": [
           {
@@ -845,16 +726,20 @@
             "title": "I.Q Intelligent Qube（後編）",
             "matched": false,
             "original": 3871,
-            "distance": null,
-            "fallback": null
+            "expected_title": 3899,
+            "logo": {
+              "reason": "no_matching_title_logo"
+            }
           },
           {
             "index": 2,
             "title": "クイズなないろDREAMS 虹色町の奇跡",
             "matched": false,
             "original": 7742,
-            "distance": null,
-            "fallback": null
+            "expected_title": 7770,
+            "logo": {
+              "reason": "no_matching_title_logo"
+            }
           },
           {
             "index": 3,
@@ -863,41 +748,47 @@
             "method": "structured-special-boundary",
             "original": 11613,
             "refined": 11613,
-            "shift_seconds": 0,
-            "distance": null,
-            "fallback": null
+            "shift_seconds": 0
           },
           {
             "index": 4,
             "title": "全日本プロレス",
             "matched": false,
             "original": 14313,
-            "distance": null,
-            "fallback": null
+            "expected_title": 14341,
+            "logo": {
+              "reason": "no_matching_title_logo"
+            }
           },
           {
             "index": 5,
             "title": "ダブルドラゴン 双截龍",
             "matched": false,
             "original": 18184,
-            "distance": null,
-            "fallback": null
+            "expected_title": 18212,
+            "logo": {
+              "reason": "no_matching_title_logo"
+            }
           },
           {
             "index": 6,
             "title": "忍者くん 阿修羅ノ章（前編）",
             "matched": false,
             "original": 22055,
-            "distance": null,
-            "fallback": null
+            "expected_title": 22083,
+            "logo": {
+              "reason": "no_matching_title_logo"
+            }
           },
           {
             "index": 7,
             "title": "忍者くん 阿修羅ノ章（後編）",
             "matched": false,
             "original": 25926,
-            "distance": null,
-            "fallback": null
+            "expected_title": 25954,
+            "logo": {
+              "reason": "no_matching_title_logo"
+            }
           },
           {
             "index": 8,
@@ -906,33 +797,45 @@
             "method": "structured-special-boundary",
             "original": 29797,
             "refined": 29797,
-            "shift_seconds": 0,
-            "distance": null,
-            "fallback": null
+            "shift_seconds": 0
           },
           {
             "index": 9,
             "title": "山村美紗サスペンス 京都龍の寺殺人事件",
             "matched": false,
             "original": 36997,
-            "distance": null,
-            "fallback": null
+            "expected_title": 37025,
+            "logo": {
+              "reason": "no_matching_title_logo"
+            }
           },
           {
             "index": 10,
             "title": "モグラ〜ニャ",
-            "matched": false,
+            "matched": true,
+            "method": "yellow-gmcx-title-logo",
             "original": 40868,
-            "distance": null,
-            "fallback": null
+            "title_time": 40912,
+            "title_offset": 28,
+            "refined": 40884,
+            "shift_seconds": 16,
+            "logo": {
+              "reason": "ok",
+              "jaccard": 0.4545,
+              "run_frames": 2,
+              "expected_title_time": 40896,
+              "distance_from_expected": 16
+            }
           },
           {
             "index": 11,
             "title": "闘いの挽歌",
             "matched": false,
             "original": 44739,
-            "distance": null,
-            "fallback": null
+            "expected_title": 44767,
+            "logo": {
+              "reason": "no_matching_title_logo"
+            }
           }
         ],
         "cache_reused": false
@@ -1173,176 +1076,12 @@
       ],
       "titlecard_refinement": {
         "status": "no_consensus",
-        "method": "blue-room-boundary-detection",
-        "boundary_version": 9,
-        "reason": "no_recurring_opening_sequence",
-        "usable_windows": 20,
-        "blue_room": {
-          "reason": "no_recurring_blue_room",
-          "usable_windows": 16
+        "method": "yellow-gmcx-title-logo",
+        "boundary_version": 10,
+        "reference": {
+          "reason": "no_title_logo_near_reference_start"
         },
-        "matches": [
-          {
-            "index": 0,
-            "title": "竜の子ファイター",
-            "matched": true,
-            "method": "vod-start",
-            "original": 0,
-            "refined": 0
-          },
-          {
-            "index": 1,
-            "title": "ロックマンX（前編）",
-            "matched": false,
-            "original": 3900,
-            "distance": null,
-            "fallback": null
-          },
-          {
-            "index": 2,
-            "title": "ロックマンX（後編）",
-            "matched": false,
-            "original": 7799,
-            "distance": null,
-            "fallback": null
-          },
-          {
-            "index": 3,
-            "title": "殺意の階層 ソフトハウス連続殺人事件",
-            "matched": false,
-            "original": 11699,
-            "distance": null,
-            "fallback": null
-          },
-          {
-            "index": 4,
-            "title": "ガンスターヒーローズ",
-            "matched": false,
-            "original": 15598,
-            "distance": null,
-            "fallback": null
-          },
-          {
-            "index": 5,
-            "title": "ケルナグール",
-            "matched": false,
-            "original": 19498,
-            "distance": null,
-            "fallback": null
-          },
-          {
-            "index": 6,
-            "title": "超ゴジラ",
-            "matched": false,
-            "original": 23398,
-            "distance": null,
-            "fallback": null
-          },
-          {
-            "index": 7,
-            "title": "スーパーマリオランド",
-            "matched": false,
-            "original": 27297,
-            "distance": null,
-            "fallback": null
-          },
-          {
-            "index": 8,
-            "title": "ファミリージョッキー（前編）",
-            "matched": false,
-            "original": 31197,
-            "distance": null,
-            "fallback": null
-          },
-          {
-            "index": 9,
-            "title": "ファミリージョッキー（後編）",
-            "matched": false,
-            "original": 35096,
-            "distance": null,
-            "fallback": null
-          },
-          {
-            "index": 10,
-            "title": "シャドー・ダンサー",
-            "matched": false,
-            "original": 38996,
-            "distance": null,
-            "fallback": null
-          },
-          {
-            "index": 11,
-            "title": "平成天才バカボン",
-            "matched": false,
-            "original": 42896,
-            "distance": null,
-            "fallback": null
-          },
-          {
-            "index": 12,
-            "title": "マジックソード",
-            "matched": false,
-            "original": 46795,
-            "distance": null,
-            "fallback": null
-          },
-          {
-            "index": 13,
-            "title": "Dの食卓",
-            "matched": false,
-            "original": 50695,
-            "distance": null,
-            "fallback": null
-          },
-          {
-            "index": 14,
-            "title": "クレイジー・クライマー",
-            "matched": false,
-            "original": 54594,
-            "distance": null,
-            "fallback": null
-          },
-          {
-            "index": 15,
-            "title": "超絶倫人ベラボーマン",
-            "matched": false,
-            "original": 58494,
-            "distance": null,
-            "fallback": null
-          },
-          {
-            "index": 16,
-            "title": "R-TYPE I / R-TYPE II",
-            "matched": false,
-            "original": 62394,
-            "distance": null,
-            "fallback": null
-          },
-          {
-            "index": 17,
-            "title": "伝説の騎士エルロンド",
-            "matched": false,
-            "original": 66293,
-            "distance": null,
-            "fallback": null
-          },
-          {
-            "index": 18,
-            "title": "戦場の狼",
-            "matched": false,
-            "original": 70193,
-            "distance": null,
-            "fallback": null
-          },
-          {
-            "index": 19,
-            "title": "謎の村雨城",
-            "matched": false,
-            "original": 74092,
-            "distance": null,
-            "fallback": null
-          }
-        ]
+        "matches": []
       },
       "ai_windows": []
     }
