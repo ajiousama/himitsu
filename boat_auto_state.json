@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-28",
-  "generated_at": "2026-09-28T12:46:48.595647+09:00",
+  "generated_at": "2026-09-28T12:47:48.645339+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260928.json",
   "schedule_checked_at": "2026-09-28T12:40:48.013560+09:00",
@@ -52,9 +52,15 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 9,
+    "requested": 10,
     "fetched": 9,
-    "failures": []
+    "failures": [
+      {
+        "jcd": "15",
+        "name": "丸亀",
+        "error": "cloud and official acquisition unavailable: HTTPError"
+      }
+    ]
   },
   "epg_programmes_written": {
     "public_sports_epg_local.xml": 168,
