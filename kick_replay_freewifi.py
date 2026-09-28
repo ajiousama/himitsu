@@ -48,9 +48,9 @@ def assert_recent_gmcx_generation() -> None:
             raise RuntimeError(f"Recent GMCX bundle #{start_ep}+ is not ready")
         refinement = item.get("titlecard_refinement") or {}
         version = int(refinement.get("boundary_version") or 0)
-        if version < 6:
+        if version < 8:
             raise RuntimeError(
-                f"Refusing stale GMCX detector v{version} for #{start_ep}+; v6+ required"
+                f"Refusing stale GMCX detector v{version} for #{start_ep}+; v8+ required"
             )
 
 
