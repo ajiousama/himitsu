@@ -40,7 +40,7 @@ EPISODE_DURATION_OVERRIDES: dict[int, int] = {
 # signature inside each VOD and place every split on the same visual cue.
 TITLECARD_WINDOW_SECONDS = 240
 TITLECARD_SAMPLE_SECONDS = 2
-TITLECARD_BOUNDARY_VERSION = 24
+TITLECARD_BOUNDARY_VERSION = 25
 TITLECARD_INTRO_SECONDS = 8
 TITLECARD_HASH_BITS = 256
 TITLECARD_MATCH_DISTANCE = 42
@@ -114,8 +114,8 @@ KNOWN_SPECIALS: dict[tuple[int, int], list[dict]] = {
             "key": "2014-gccx-the-movie-prefix",
             "title": "ゲームセンターCX THE MOVIE",
             "before_episode": 177,
-            "duration_seconds": 3207,
-            "expected_broadcast_seconds": 3207,
+            "duration_seconds": 3235,
+            "expected_broadcast_seconds": 3235,
         },
         {
             "key": "2014-2015-newyear-15min",
