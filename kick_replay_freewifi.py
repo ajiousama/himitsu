@@ -33,6 +33,27 @@ FREEWIFI_SPECIAL_IDS = {
 }
 
 
+def assert_recent_gmcx_generation() -> None:
+    """Never let an obsolete title detector overwrite the current VOD5 catalog."""
+    if not GMCX_JSON.exists():
+        raise RuntimeError("GMCX chapter metadata missing")
+    payload = json.loads(GMCX_JSON.read_text(encoding="utf-8"))
+    by_start = {
+        int(item.get("episode_start") or 0): item
+        for item in payload.get("results", [])
+    }
+    for start_ep in (197, 217):
+        item = by_start.get(start_ep)
+        if not item or item.get("status") != "ready" or not item.get("chapters"):
+            raise RuntimeError(f"Recent GMCX bundle #{start_ep}+ is not ready")
+        refinement = item.get("titlecard_refinement") or {}
+        version = int(refinement.get("boundary_version") or 0)
+        if version < 6:
+            raise RuntimeError(
+                f"Refusing stale GMCX detector v{version} for #{start_ep}+; v6+ required"
+            )
+
+
 def remove_old(text: str) -> str:
     text = re.sub(
         r"\n?" + re.escape(START) + r".*?" + re.escape(END) + r"\n?",
@@ -139,6 +160,8 @@ def main() -> int:
         raise RuntimeError("KICK replay outputs missing")
     if not GMCX_M3U.exists() or not GMCX_JSON.exists():
         raise RuntimeError("GMCX chapter outputs missing")
+
+    assert_recent_gmcx_generation()
 
     text = FREEWIFI.read_text(encoding="utf-8-sig", errors="replace")
     cleaned = remove_old(text).rstrip() + "\n"
