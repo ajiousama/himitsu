@@ -21,8 +21,8 @@ HOST = "0.0.0.0"
 DISPLAY = os.environ.get("DISPLAY", ":99")
 SCREEN_W = 1366
 SCREEN_H = 768
-OUT_W = 1280
-OUT_H = 720
+OUT_W = 1600
+OUT_H = 900
 FPS = int(os.environ.get("PATAPATA_FPS", "24"))
 EXPECTED_SHA256 = "9f4beff9bc368b194f43635d9553829d46f5656476c76ec5088e7f38ce865783"
 ASSET_DIR = pathlib.Path("/tmp/patapata-r14")
@@ -37,7 +37,7 @@ TV_STYLE = """
 <style id="freewifi-tv-style">
 html,body{overflow:hidden!important}
 body{
-  zoom:1.15!important;
+  zoom:1.20!important;
 }
 #update-modal{display:none!important}
 </style>
