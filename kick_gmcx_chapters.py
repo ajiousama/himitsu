@@ -885,11 +885,24 @@ def main() -> int:
             chapters = []
 
         titlecard_refinement = {"status": "not_applicable"}
-        if status == "ready" and chapters:
+        previous_result = previous_results.get(str(vod.get("vod_id")))
+        if (
+            status == "ready"
+            and chapters
+            and start_ep < 197
+            and previous_result
+            and previous_result.get("status") == "ready"
+            and previous_result.get("chapters")
+        ):
+            chapters = previous_result["chapters"]
+            titlecard_refinement = previous_result.get("titlecard_refinement") or {
+                "status": "reused"
+            }
+        elif status == "ready" and chapters:
             chapters, titlecard_refinement = refine_with_titlecard(
                 vod,
                 chapters,
-                previous_results.get(str(vod.get("vod_id"))),
+                previous_result,
             )
 
         all_chapters.extend([
