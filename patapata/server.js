@@ -39,7 +39,8 @@ function prepareWeb() {
 const WEB = prepareWeb();
 const WIDTH = Number(process.env.PATAPATA_WIDTH || 1280);
 const HEIGHT = Number(process.env.PATAPATA_HEIGHT || 720);
-const FPS = Math.max(1, Math.min(8, Number(process.env.PATAPATA_FPS || 4)));
+// Match the Python HLS renderer: ten real frames per second by default.
+const FPS = Math.max(4, Math.min(15, Number(process.env.PATAPATA_FPS || 10)));
 const MAX_STREAMS = Math.max(1, Math.min(2, Number(process.env.PATAPATA_MAX_STREAMS || 1)));
 let activeStreams = 0;
 
