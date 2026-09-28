@@ -40,7 +40,7 @@ EPISODE_DURATION_OVERRIDES: dict[int, int] = {
 # signature inside each VOD and place every split on the same visual cue.
 TITLECARD_WINDOW_SECONDS = 240
 TITLECARD_SAMPLE_SECONDS = 2
-TITLECARD_BOUNDARY_VERSION = 13
+TITLECARD_BOUNDARY_VERSION = 14
 TITLECARD_INTRO_SECONDS = 8
 TITLECARD_HASH_BITS = 256
 TITLECARD_MATCH_DISTANCE = 42
@@ -60,7 +60,7 @@ BLUE_ROOM_BLUE_RED_GAP = 24
 BLUE_ROOM_BLUE_GREEN_GAP = 10
 BLUE_ROOM_HASH_DISTANCE = 46
 BLUE_ROOM_SAMPLE_SECONDS = 2
-TITLE_LOGO_SAMPLE_SECONDS = 2
+TITLE_LOGO_SAMPLE_SECONDS = 1
 TITLE_LOGO_MIN_YELLOW_RATIO = 0.055
 TITLE_LOGO_MIN_DARK_RATIO = 0.55
 TITLE_LOGO_MIN_COLUMN_COVERAGE = 0.50
@@ -70,10 +70,11 @@ TITLE_LOGO_TEMPLATE_WIDTH = 48
 TITLE_LOGO_TEMPLATE_HEIGHT = 12
 TITLE_LOGO_TEMPLATE_JACCARD_MIN = 0.24
 TITLE_LOGO_EXPECTED_OFFSET_SECONDS = 30
-TITLE_LOGO_COMPONENT_MIN_WIDTH_RATIO = 0.62
-TITLE_LOGO_COMPONENT_MIN_HEIGHT_RATIO = 0.24
-TITLE_LOGO_COMPONENT_MIN_ASPECT = 2.4
-TITLE_LOGO_COMPONENT_MAX_ASPECT = 5.8
+TITLE_LOGO_MAX_EXPECTED_DISTANCE_SECONDS = 150
+TITLE_LOGO_COMPONENT_MIN_WIDTH_RATIO = 0.50
+TITLE_LOGO_COMPONENT_MIN_HEIGHT_RATIO = 0.18
+TITLE_LOGO_COMPONENT_MIN_ASPECT = 2.6
+TITLE_LOGO_COMPONENT_MAX_ASPECT = 6.2
 TITLE_LOGO_COMPONENT_CENTER_TOLERANCE = 0.22
 TITLE_LOGO_TEMPLATE_ROWS = (
     "000000000000000000000000000000000000000000000000",
@@ -607,7 +608,7 @@ def _normalise_yellow_logo(frame: bytes, width: int, height: int) -> dict | None
             continue
         if abs(c["cx"] - 0.5) > TITLE_LOGO_COMPONENT_CENTER_TOLERANCE:
             continue
-        if not (0.25 <= c["cy"] <= 0.72):
+        if not (0.30 <= c["cy"] <= 0.62):
             continue
 
         # Count actual yellow pixels inside the connected component's box.
@@ -788,6 +789,11 @@ def _match_title_logo(reference: dict, frames: list[dict], expected_time: int) -
         return None, {"reason": "no_matching_title_logo"}
     candidates.sort(key=lambda x: x[0])
     _, start, best, run_frames = candidates[0]
+    if abs(start - int(expected_time)) > TITLE_LOGO_MAX_EXPECTED_DISTANCE_SECONDS:
+        return None, {
+            "reason": "nearest_title_logo_too_far",
+            "distance_from_expected": start - int(expected_time),
+        }
     return start, {
         "reason": "ok",
         "run_frames": run_frames,
