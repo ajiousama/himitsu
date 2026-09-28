@@ -40,7 +40,7 @@ EPISODE_DURATION_OVERRIDES: dict[int, int] = {
 # signature inside each VOD and place every split on the same visual cue.
 TITLECARD_WINDOW_SECONDS = 240
 TITLECARD_SAMPLE_SECONDS = 2
-TITLECARD_BOUNDARY_VERSION = 26
+TITLECARD_BOUNDARY_VERSION = 27
 TITLECARD_INTRO_SECONDS = 8
 TITLECARD_HASH_BITS = 256
 TITLECARD_MATCH_DISTANCE = 42
@@ -224,11 +224,11 @@ KNOWN_SPECIALS: dict[tuple[int, int], list[dict]] = {
     ],
     (207, 216): [
         {
-            "key": "2015-mario-maker-play",
-            "title": "GMCX 「スーパーマリオメーカー」を遊ぶ編",
-            "before_episode": 207,
-            "duration_seconds": 2700,
-            "expected_broadcast_seconds": 2700,
+            "key": "2015-mario-maker-prelive",
+            "title": "GMCX 生放送直前SP",
+            "after_episode": 210,
+            "duration_seconds": 300,
+            "expected_broadcast_seconds": 300,
         },
         {
             "key": "2015-mario-maker-live",
@@ -241,8 +241,15 @@ KNOWN_SPECIALS: dict[tuple[int, int], list[dict]] = {
             "key": "2015-link-newyear",
             "title": "GMCX 年越しSP 今年のリベンジ、今年のうちに",
             "after_episode": 210,
+            "duration_seconds": 900,
+            "expected_broadcast_seconds": 900,
+        },
+        {
+            "key": "2015-season19-unclassified-extra",
+            "title": "GMCX 未分類映像（#207〜216 ファイル一覧確認待ち）",
+            "after_episode": 210,
             "duration_seconds": None,
-            "expected_broadcast_seconds": 600,
+            "expected_broadcast_seconds": None,
         },
     ],
     (217, 226): [
@@ -1554,9 +1561,9 @@ def make_exact_197_206_chapters(vod: dict, titles: dict[str, str]) -> list[dict]
         ("special", None, "2015-vietnam", 7170, "GMCX in VIETNAM ～ベトナムのゲーム事情 徹底調査&カジノにもリベンジしちゃうよ!SP～"),
         ("episode", 204, None, 3450, None),
         ("episode", 205, None, 3480, None),
-        ("special", None, "2015-mario-maker-extra-1", 1771, "GMCX スーパーマリオメーカー関連映像①"),
-        ("special", None, "2015-mario-maker-extra-2", 206, "GMCX スーパーマリオメーカー関連映像②"),
-        ("special", None, "2015-mario-maker-extra-3", 2229, "GMCX スーパーマリオメーカー関連映像③"),
+        ("special", None, "2015-mario-maker-course-build", 1771, "GMCX 「スーパーマリオメーカー」コース制作編"),
+        ("special", None, "2015-mario-maker-character", 206, "GMCX 「スーパーマリオメーカー」キャラマリオ編"),
+        ("special", None, "2015-mario-maker-play", 2229, "GMCX 「スーパーマリオメーカー」を遊ぶ編"),
         ("episode", 206, None, 3480, None),
     ]
 
@@ -1832,11 +1839,15 @@ def main() -> int:
                     "status": "legacy-structured",
                     "reason": "image-refinement-limited-to-177-plus",
                 }
-        elif status == "ready" and chapters and (start_ep, end_ep) in {(177, 196), (197, 206)}:
+        elif status == "ready" and chapters and (start_ep, end_ep) in {(177, 196), (197, 206), (207, 216)}:
             reason = (
                 "source-player-list-shows-prefix-53m27s-episodes-58m-newyear-15m"
                 if (start_ep, end_ep) == (177, 196)
-                else "source-player-list-exact-29s-preroll-and-15-file-runtimes"
+                else (
+                    "source-player-list-exact-29s-preroll-and-15-file-runtimes"
+                    if (start_ep, end_ep) == (197, 206)
+                    else "provisional-order-corrected-mario-maker-play-belongs-before-206"
+                )
             )
             titlecard_refinement = {
                 "status": "structured-from-source-filelist",
