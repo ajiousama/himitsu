@@ -40,7 +40,7 @@ EPISODE_DURATION_OVERRIDES: dict[int, int] = {
 # signature inside each VOD and place every split on the same visual cue.
 TITLECARD_WINDOW_SECONDS = 240
 TITLECARD_SAMPLE_SECONDS = 2
-TITLECARD_BOUNDARY_VERSION = 7
+TITLECARD_BOUNDARY_VERSION = 8
 TITLECARD_INTRO_SECONDS = 8
 TITLECARD_HASH_BITS = 256
 TITLECARD_MATCH_DISTANCE = 42
@@ -54,7 +54,7 @@ TITLECARD_REFERENCE_MAX_SECONDS = 30
 TITLECARD_SEQUENCE_FRAMES = 3
 TITLECARD_SEQUENCE_MATCH_DISTANCE = 34
 TITLECARD_SPECIAL_MAX_SHIFT_SECONDS = 150
-TITLECARD_REGULAR_MAX_SHIFT_SECONDS = 900
+TITLECARD_REGULAR_MAX_SHIFT_SECONDS = 180
 
 # Known mixed archive bundles. Specials are inserted in chronological order before/after episodes.
 # A single special with duration_seconds=None consumes the remaining non-regular footage.
@@ -554,7 +554,7 @@ def refine_with_titlecard(
         previous_version = int(prev.get("boundary_version") or 0)
         previous_matches = prev.get("matches") or []
         safe_previous = (
-            previous_version in {5, TITLECARD_BOUNDARY_VERSION}
+            previous_version == TITLECARD_BOUNDARY_VERSION
             and all(
                 not row.get("matched")
                 or abs(int(row.get("shift_seconds") or 0)) <= TITLECARD_REGULAR_MAX_SHIFT_SECONDS
@@ -633,25 +633,18 @@ def refine_with_titlecard(
                     matched = candidate
                     method = "recurring-opening-sequence"
 
-        # Regular episodes sometimes use a title design that does not match the
-        # recurring visual reference. In that case, scan a wider region for a
-        # hard scene change into a title card that remains static for several
-        # seconds. This is the primary escape hatch from wrong 3900-second cuts.
+        # If the common opening is not found, use a guarded title-card
+        # transition from the already sampled nearby window. Never widen the
+        # search beyond the normal +/-3 minute boundary guard.
         if matched is None and not is_special:
-            wide_frames = _sample_titlecard_window(
-                analysis_url,
-                original,
-                duration,
-                TITLECARD_REGULAR_MAX_SHIFT_SECONDS,
-            )
             t, fallback_meta = _best_static_title_start(
-                wide_frames,
+                frames,
                 original,
                 TITLECARD_REGULAR_MAX_SHIFT_SECONDS,
             )
             if t is not None:
                 matched = max(0, int(t) - TITLECARD_INTRO_SECONDS)
-                method = "regular-static-title-transition"
+                method = "guarded-regular-title-transition"
 
         if matched is None:
             match_rows.append({
