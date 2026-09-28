@@ -45,7 +45,7 @@ EPISODE_DURATION_OVERRIDES: dict[int, int] = {
 # signature inside each VOD and place every split on the same visual cue.
 TITLECARD_WINDOW_SECONDS = 240
 TITLECARD_SAMPLE_SECONDS = 2
-TITLECARD_BOUNDARY_VERSION = 29
+TITLECARD_BOUNDARY_VERSION = 30
 TITLECARD_INTRO_SECONDS = 8
 TITLECARD_HASH_BITS = 256
 TITLECARD_MATCH_DISTANCE = 42
@@ -1889,7 +1889,7 @@ def main() -> int:
                     "status": "legacy-structured",
                     "reason": "image-refinement-limited-to-177-plus",
                 }
-        elif status == "ready" and chapters and (start_ep, end_ep) in {(177, 196), (197, 206), (207, 216)}:
+        elif status == "ready" and chapters and (start_ep, end_ep) in {(177, 196), (197, 206)}:
             reason = (
                 "source-player-list-shows-prefix-53m27s-episodes-58m-newyear-15m"
                 if (start_ep, end_ep) == (177, 196)
