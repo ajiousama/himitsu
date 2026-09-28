@@ -40,7 +40,7 @@ EPISODE_DURATION_OVERRIDES: dict[int, int] = {
 # signature inside each VOD and place every split on the same visual cue.
 TITLECARD_WINDOW_SECONDS = 420
 TITLECARD_SAMPLE_SECONDS = 2
-TITLECARD_BOUNDARY_VERSION = 4
+TITLECARD_BOUNDARY_VERSION = 5
 TITLECARD_INTRO_SECONDS = 8
 TITLECARD_HASH_BITS = 256
 TITLECARD_MATCH_DISTANCE = 42
@@ -50,6 +50,10 @@ TITLECARD_MAX_ANALYZE_EPISODES = 24
 TITLECARD_STATIC_DISTANCE = 18
 TITLECARD_STATIC_TRANSITION_DISTANCE = 30
 TITLECARD_STATIC_MAX_FRAME_GAP = TITLECARD_SAMPLE_SECONDS + 1
+TITLECARD_REFERENCE_MAX_SECONDS = 30
+TITLECARD_SEQUENCE_FRAMES = 3
+TITLECARD_SEQUENCE_MATCH_DISTANCE = 34
+TITLECARD_SPECIAL_MAX_SHIFT_SECONDS = 150
 
 # Known mixed archive bundles. Specials are inserted in chronological order before/after episodes.
 # A single special with duration_seconds=None consumes the remaining non-regular footage.
@@ -348,90 +352,117 @@ def _hdist(a: int, b: int) -> int:
     return (a ^ b).bit_count()
 
 
+def _sequence_windows(frames: list[dict], count: int = TITLECARD_SEQUENCE_FRAMES) -> list[dict]:
+    out = []
+    for i in range(max(0, len(frames) - count + 1)):
+        seq = frames[i:i + count]
+        if len(seq) != count:
+            continue
+        if any(
+            int(y["time"]) - int(x["time"]) <= 0
+            or int(y["time"]) - int(x["time"]) > TITLECARD_STATIC_MAX_FRAME_GAP
+            for x, y in zip(seq, seq[1:])
+        ):
+            continue
+        out.append({
+            "time": int(seq[0]["time"]),
+            "hashes": [int(x["hash"]) for x in seq],
+        })
+    return out
+
+
+def _sequence_distance(a: list[int], b: list[int]) -> float:
+    if len(a) != len(b) or not a:
+        return 999.0
+    return statistics.mean(_hdist(x, y) for x, y in zip(a, b))
+
+
 def _learn_titlecard_reference(windows: list[list[dict]]) -> tuple[dict | None, dict]:
     usable = [w for w in windows if w]
     if len(usable) < 3:
         return None, {"reason": "too_few_windows", "usable_windows": len(usable)}
 
-    anchor = usable[0]
+    first_start = min(int(x["time"]) for x in usable[0])
+    anchor = [
+        x for x in usable[0]
+        if int(x["time"]) <= first_start + TITLECARD_REFERENCE_MAX_SECONDS
+    ]
+    anchor_sequences = _sequence_windows(anchor)
+    if not anchor_sequences:
+        return None, {"reason": "no_opening_sequence", "usable_windows": len(usable)}
+
+    others = [_sequence_windows(w) for w in usable[1:]]
     best = None
-    for frame in anchor:
+    for ref in anchor_sequences:
         distances = []
         matches = 0
-        for w in usable[1:]:
-            d = min((_hdist(frame["hash"], x["hash"]) for x in w), default=999)
+        for seqs in others:
+            d = min(
+                (_sequence_distance(ref["hashes"], x["hashes"]) for x in seqs),
+                default=999.0,
+            )
             distances.append(d)
-            if d <= TITLECARD_MATCH_DISTANCE:
+            if d <= TITLECARD_SEQUENCE_MATCH_DISTANCE:
                 matches += 1
-        if not distances:
-            continue
-        # Require the visual cue to recur in a majority of episode windows.
-        required = max(2, int(round((len(usable) - 1) * 0.55)))
+        required = max(2, int(round((len(usable) - 1) * 0.45)))
         if matches < required:
             continue
         score = statistics.median(distances)
-        candidate = (score, -matches, frame["time"], frame)
+        candidate = (score, -matches, ref["time"], ref)
         if best is None or candidate[:3] < best[:3]:
             best = candidate
 
     if best is None:
-        return None, {"reason": "no_recurring_visual", "usable_windows": len(usable)}
+        return None, {"reason": "no_recurring_opening_sequence", "usable_windows": len(usable)}
     return best[3], {
         "reason": "ok",
         "usable_windows": len(usable),
-        "reference_time_seconds": best[3]["time"],
-        "median_distance": best[0],
+        "reference_time_seconds": int(best[3]["time"]) - first_start,
+        "median_distance": round(float(best[0]), 3),
         "matching_windows": -best[1],
     }
 
 
-def _best_titlecard_match(reference: dict, frames: list[dict]) -> tuple[int | None, int | None]:
-    if not frames:
+def _best_titlecard_match(reference: dict, frames: list[dict]) -> tuple[int | None, float | None]:
+    seqs = _sequence_windows(frames)
+    if not seqs:
         return None, None
-    scored = [(_hdist(reference["hash"], x["hash"]), x["time"]) for x in frames]
+    scored = [
+        (_sequence_distance(reference["hashes"], x["hashes"]), int(x["time"]))
+        for x in seqs
+    ]
     best_dist = min(x[0] for x in scored)
-    if best_dist > TITLECARD_MATCH_DISTANCE:
+    if best_dist > TITLECARD_SEQUENCE_MATCH_DISTANCE:
         return None, best_dist
-    near = [t for d, t in scored if d <= min(TITLECARD_MATCH_DISTANCE, best_dist + TITLECARD_NEAR_BEST)]
+    near = [t for d, t in scored if d <= min(TITLECARD_SEQUENCE_MATCH_DISTANCE, best_dist + 3)]
     return min(near), best_dist
 
 
 def _best_static_title_start(frames: list[dict], original: int) -> tuple[int | None, dict]:
-    """Fallback for title cards whose text/layout differs from regular episodes."""
     if len(frames) < 2:
         return None, {"reason": "too_few_frames"}
-
     candidates = []
     for i in range(len(frames) - 1):
-        cur = frames[i]
-        nxt = frames[i + 1]
+        cur, nxt = frames[i], frames[i + 1]
         gap = int(nxt["time"]) - int(cur["time"])
         if gap <= 0 or gap > TITLECARD_STATIC_MAX_FRAME_GAP:
             continue
         stable = _hdist(cur["hash"], nxt["hash"])
         if stable > TITLECARD_STATIC_DISTANCE:
             continue
-
         prev_dist = 256
         if i > 0:
             prev = frames[i - 1]
             if int(cur["time"]) - int(prev["time"]) <= TITLECARD_STATIC_MAX_FRAME_GAP:
                 prev_dist = _hdist(prev["hash"], cur["hash"])
-
-        # Prefer a visible scene transition into a stable high-contrast card.
-        if prev_dist < TITLECARD_STATIC_TRANSITION_DISTANCE and i > 0:
+        if i > 0 and prev_dist < TITLECARD_STATIC_TRANSITION_DISTANCE:
             continue
-        distance_from_guess = abs(int(cur["time"]) - int(original))
-        score = (
-            distance_from_guess,
-            stable,
-            -int(cur.get("contrast") or 0),
-            int(cur["time"]),
-        )
-        candidates.append((score, int(cur["time"]), stable, prev_dist))
-
+        shift = abs(int(cur["time"]) - int(original))
+        if shift > TITLECARD_SPECIAL_MAX_SHIFT_SECONDS:
+            continue
+        candidates.append(((shift, stable, int(cur["time"])), int(cur["time"]), stable, prev_dist))
     if not candidates:
-        return None, {"reason": "no_static_card_transition"}
+        return None, {"reason": "no_guarded_static_card_transition"}
     candidates.sort(key=lambda x: x[0])
     _, start, stable, transition = candidates[0]
     return start, {
@@ -483,6 +514,8 @@ def refine_with_titlecard(
     duration = int(vod.get("duration_seconds") or 0)
     vod_id = str(vod.get("vod_id") or "")
     source_url = str(vod.get("source_url") or "")
+    if not vod.get("playable") and vod_id:
+        source_url = f"{REPLAY_BASE}{urllib.parse.quote(vod_id)}"
     items = list(chapters[:TITLECARD_MAX_ANALYZE_EPISODES])
     if duration <= 0 or not source_url or len(items) < 2:
         return chapters, {"status": "skipped", "reason": "insufficient_source_or_chapters"}
@@ -538,28 +571,23 @@ def refine_with_titlecard(
         method = None
         fallback_meta = None
 
-        is_special = item.get("kind") == "special"
+        is_long_numbered_special = (
+            item.get("kind") == "episode"
+            and int(item.get("episode") or 0) in EPISODE_DURATION_OVERRIDES
+        )
+        is_special = item.get("kind") == "special" or is_long_numbered_special
 
-        # Specials often use a different title design. For those, prefer the
-        # actual transition into a stable title card before trying the regular
-        # recurring GMCX title template.
         if is_special:
             t, fallback_meta = _best_static_title_start(frames, original)
             if t is not None:
                 matched = max(0, int(t) - TITLECARD_INTRO_SECONDS)
-                method = "static-titlecard-transition"
-
-        if matched is None and reference is not None:
+                method = "guarded-special-title-transition"
+        elif reference is not None:
             t, distance = _best_titlecard_match(reference, frames)
             if t is not None:
-                matched = max(0, int(t) - TITLECARD_INTRO_SECONDS)
-                method = "recurring-titlecard"
-
-        if matched is None and not is_special:
-            t, fallback_meta = _best_static_title_start(frames, original)
-            if t is not None:
-                matched = max(0, int(t) - TITLECARD_INTRO_SECONDS)
-                method = "static-titlecard-transition"
+                reference_offset = int(learned.get("reference_time_seconds") or 0)
+                matched = max(0, int(t) - reference_offset)
+                method = "recurring-opening-sequence"
 
         if matched is None:
             match_rows.append({
@@ -829,7 +857,7 @@ def main() -> int:
         if duration <= 0:
             status = "waiting_live_end"
             chapters = []
-        elif not vod.get("ready_for_publish"):
+        elif not vod.get("vod_id"):
             status = "source_unavailable"
             chapters = []
         elif known_mixed:
