@@ -525,9 +525,20 @@ def refine_with_titlecard(
     if previous_result and int(previous_result.get("duration_seconds") or 0) == duration:
         prev = previous_result.get("titlecard_refinement") or {}
         cached = prev.get("chapter_starts") or {}
+        previous_version = int(prev.get("boundary_version") or 0)
+        previous_matches = prev.get("matches") or []
+        safe_previous = (
+            previous_version in {5, TITLECARD_BOUNDARY_VERSION}
+            and all(
+                not row.get("matched")
+                or abs(int(row.get("shift_seconds") or 0)) <= TITLECARD_REGULAR_MAX_SHIFT_SECONDS
+                for row in previous_matches
+                if int(row.get("index") or 0) > 0
+            )
+        )
         if (
             prev.get("status") in {"applied", "partial"}
-            and prev.get("boundary_version") == TITLECARD_BOUNDARY_VERSION
+            and safe_previous
             and cached
         ):
             starts = {int(k): int(v) for k, v in cached.items()}
