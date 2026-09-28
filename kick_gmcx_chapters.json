@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-28T16:35:12.340629+09:00",
+  "generated_at": "2026-09-28T16:45:18.800280+09:00",
   "reference_episode_seconds": 3501,
   "results": [
     {
@@ -124,9 +124,9 @@
           "episode": 223,
           "title": "おそ松くん はちゃめちゃ劇場",
           "start_seconds": 26548,
-          "stop_seconds": 30448,
-          "duration_seconds": 3900,
-          "replay_url": "https://kick-resolver.onrender.com/kick?vod=5c00e78e-b92c-4bea-bd7f-10136a81b09e&start=26548&duration=3900",
+          "stop_seconds": 30318,
+          "duration_seconds": 3770,
+          "replay_url": "https://kick-resolver.onrender.com/kick?vod=5c00e78e-b92c-4bea-bd7f-10136a81b09e&start=26548&duration=3770",
           "method": "chronological-reference-cadence",
           "confidence": "high"
         },
@@ -134,11 +134,11 @@
           "kind": "episode",
           "episode": 224,
           "title": "地底戦空バゾルダー",
-          "start_seconds": 30448,
+          "start_seconds": 30318,
           "stop_seconds": 34348,
-          "duration_seconds": 3900,
-          "replay_url": "https://kick-resolver.onrender.com/kick?vod=5c00e78e-b92c-4bea-bd7f-10136a81b09e&start=30448&duration=3900",
-          "method": "chronological-reference-cadence",
+          "duration_seconds": 4030,
+          "replay_url": "https://kick-resolver.onrender.com/kick?vod=5c00e78e-b92c-4bea-bd7f-10136a81b09e&start=30318&duration=4030",
+          "method": "titlecard-detected",
           "confidence": "high"
         },
         {
@@ -201,9 +201,9 @@
         }
       ],
       "titlecard_refinement": {
-        "status": "no_consensus",
+        "status": "partial",
         "method": "yellow-gmcx-title-logo",
-        "boundary_version": 11,
+        "boundary_version": 12,
         "window_seconds": 240,
         "sample_seconds": 2,
         "reference": {
@@ -211,16 +211,17 @@
           "title_time": 30,
           "offset_seconds": 30,
           "run_frames": 2,
-          "yellow_ratio": 0.0833
+          "template_jaccard": 0.3456
         },
         "title_offset_seconds": 30,
-        "detected_regular_boundaries": 0,
+        "detected_regular_boundaries": 1,
         "expected_regular_boundaries": 8,
-        "coverage": 0.0,
+        "coverage": 0.125,
         "chapter_starts": {
           "0": 0,
           "3": 11700,
           "7": 24974,
+          "9": 30318,
           "10": 34348,
           "12": 39822,
           "13": 41396,
@@ -316,11 +317,22 @@
           {
             "index": 9,
             "title": "地底戦空バゾルダー",
-            "matched": false,
+            "matched": true,
+            "method": "yellow-gmcx-title-logo",
             "original": 30448,
-            "expected_title": 30478,
+            "title_time": 30348,
+            "title_offset": 30,
+            "refined": 30318,
+            "shift_seconds": -130,
             "logo": {
-              "reason": "no_matching_title_logo"
+              "reason": "ok",
+              "run_frames": 2,
+              "expected_title_time": 30478,
+              "distance_from_expected": -130,
+              "template_jaccard": 0.2571,
+              "bbox_width": 38,
+              "bbox_height": 7,
+              "aspect": 5.429
             }
           },
           {
@@ -535,7 +547,7 @@
       "titlecard_refinement": {
         "status": "no_consensus",
         "method": "yellow-gmcx-title-logo",
-        "boundary_version": 11,
+        "boundary_version": 12,
         "reference": {
           "reason": "no_title_logo_near_reference_start"
         },
@@ -559,9 +571,9 @@
           "episode": 197,
           "title": "I.Q Intelligent Qube（前編）",
           "start_seconds": 0,
-          "stop_seconds": 3871,
-          "duration_seconds": 3871,
-          "replay_url": "https://kick-resolver.onrender.com/kick?vod=04f0dc3a-5255-4137-bbae-bcca467ec5c0&start=0&duration=3871",
+          "stop_seconds": 3903,
+          "duration_seconds": 3903,
+          "replay_url": "https://kick-resolver.onrender.com/kick?vod=04f0dc3a-5255-4137-bbae-bcca467ec5c0&start=0&duration=3903",
           "method": "chronological-reference-cadence",
           "confidence": "high"
         },
@@ -569,11 +581,11 @@
           "kind": "episode",
           "episode": 198,
           "title": "I.Q Intelligent Qube（後編）",
-          "start_seconds": 3871,
+          "start_seconds": 3903,
           "stop_seconds": 7742,
-          "duration_seconds": 3871,
-          "replay_url": "https://kick-resolver.onrender.com/kick?vod=04f0dc3a-5255-4137-bbae-bcca467ec5c0&start=3871&duration=3871",
-          "method": "chronological-reference-cadence",
+          "duration_seconds": 3839,
+          "replay_url": "https://kick-resolver.onrender.com/kick?vod=04f0dc3a-5255-4137-bbae-bcca467ec5c0&start=3903&duration=3839",
+          "method": "titlecard-detected",
           "confidence": "high"
         },
         {
@@ -615,9 +627,9 @@
           "episode": 201,
           "title": "ダブルドラゴン 双截龍",
           "start_seconds": 18184,
-          "stop_seconds": 22055,
-          "duration_seconds": 3871,
-          "replay_url": "https://kick-resolver.onrender.com/kick?vod=04f0dc3a-5255-4137-bbae-bcca467ec5c0&start=18184&duration=3871",
+          "stop_seconds": 22155,
+          "duration_seconds": 3971,
+          "replay_url": "https://kick-resolver.onrender.com/kick?vod=04f0dc3a-5255-4137-bbae-bcca467ec5c0&start=18184&duration=3971",
           "method": "chronological-reference-cadence",
           "confidence": "high"
         },
@@ -625,11 +637,11 @@
           "kind": "episode",
           "episode": 202,
           "title": "忍者くん 阿修羅ノ章（前編）",
-          "start_seconds": 22055,
+          "start_seconds": 22155,
           "stop_seconds": 25926,
-          "duration_seconds": 3871,
-          "replay_url": "https://kick-resolver.onrender.com/kick?vod=04f0dc3a-5255-4137-bbae-bcca467ec5c0&start=22055&duration=3871",
-          "method": "chronological-reference-cadence",
+          "duration_seconds": 3771,
+          "replay_url": "https://kick-resolver.onrender.com/kick?vod=04f0dc3a-5255-4137-bbae-bcca467ec5c0&start=22155&duration=3771",
+          "method": "titlecard-detected",
           "confidence": "high"
         },
         {
@@ -660,9 +672,9 @@
           "episode": 204,
           "title": "山村美紗サスペンス 京都龍の寺殺人事件",
           "start_seconds": 36997,
-          "stop_seconds": 40868,
-          "duration_seconds": 3871,
-          "replay_url": "https://kick-resolver.onrender.com/kick?vod=04f0dc3a-5255-4137-bbae-bcca467ec5c0&start=36997&duration=3871",
+          "stop_seconds": 40882,
+          "duration_seconds": 3885,
+          "replay_url": "https://kick-resolver.onrender.com/kick?vod=04f0dc3a-5255-4137-bbae-bcca467ec5c0&start=36997&duration=3885",
           "method": "chronological-reference-cadence",
           "confidence": "high"
         },
@@ -670,46 +682,50 @@
           "kind": "episode",
           "episode": 205,
           "title": "モグラ〜ニャ",
-          "start_seconds": 40868,
-          "stop_seconds": 44739,
-          "duration_seconds": 3871,
-          "replay_url": "https://kick-resolver.onrender.com/kick?vod=04f0dc3a-5255-4137-bbae-bcca467ec5c0&start=40868&duration=3871",
-          "method": "chronological-reference-cadence",
+          "start_seconds": 40882,
+          "stop_seconds": 44903,
+          "duration_seconds": 4021,
+          "replay_url": "https://kick-resolver.onrender.com/kick?vod=04f0dc3a-5255-4137-bbae-bcca467ec5c0&start=40882&duration=4021",
+          "method": "titlecard-detected",
           "confidence": "high"
         },
         {
           "kind": "episode",
           "episode": 206,
           "title": "闘いの挽歌",
-          "start_seconds": 44739,
+          "start_seconds": 44903,
           "stop_seconds": 48610,
-          "duration_seconds": 3871,
-          "replay_url": "https://kick-resolver.onrender.com/kick?vod=04f0dc3a-5255-4137-bbae-bcca467ec5c0&start=44739&duration=3871",
-          "method": "chronological-reference-cadence",
+          "duration_seconds": 3707,
+          "replay_url": "https://kick-resolver.onrender.com/kick?vod=04f0dc3a-5255-4137-bbae-bcca467ec5c0&start=44903&duration=3707",
+          "method": "titlecard-detected",
           "confidence": "high"
         }
       ],
       "titlecard_refinement": {
-        "status": "no_consensus",
+        "status": "partial",
         "method": "yellow-gmcx-title-logo",
-        "boundary_version": 11,
+        "boundary_version": 12,
         "window_seconds": 240,
         "sample_seconds": 2,
         "reference": {
           "reason": "ok",
-          "title_time": 28,
-          "offset_seconds": 28,
-          "run_frames": 3,
-          "yellow_ratio": 0.0714
+          "title_time": 30,
+          "offset_seconds": 30,
+          "run_frames": 2,
+          "template_jaccard": 0.2534
         },
-        "title_offset_seconds": 28,
-        "detected_regular_boundaries": 0,
+        "title_offset_seconds": 30,
+        "detected_regular_boundaries": 4,
         "expected_regular_boundaries": 9,
-        "coverage": 0.0,
+        "coverage": 0.444,
         "chapter_starts": {
           "0": 0,
+          "1": 3903,
           "3": 11613,
-          "8": 29797
+          "6": 22155,
+          "8": 29797,
+          "10": 40882,
+          "11": 44903
         },
         "matches": [
           {
@@ -723,11 +739,22 @@
           {
             "index": 1,
             "title": "I.Q Intelligent Qube（後編）",
-            "matched": false,
+            "matched": true,
+            "method": "yellow-gmcx-title-logo",
             "original": 3871,
-            "expected_title": 3899,
+            "title_time": 3933,
+            "title_offset": 30,
+            "refined": 3903,
+            "shift_seconds": 32,
             "logo": {
-              "reason": "no_matching_title_logo"
+              "reason": "ok",
+              "run_frames": 2,
+              "expected_title_time": 3901,
+              "distance_from_expected": 32,
+              "template_jaccard": 0.373,
+              "bbox_width": 30,
+              "bbox_height": 8,
+              "aspect": 3.75
             }
           },
           {
@@ -735,7 +762,7 @@
             "title": "クイズなないろDREAMS 虹色町の奇跡",
             "matched": false,
             "original": 7742,
-            "expected_title": 7770,
+            "expected_title": 7772,
             "logo": {
               "reason": "no_matching_title_logo"
             }
@@ -754,7 +781,7 @@
             "title": "全日本プロレス",
             "matched": false,
             "original": 14313,
-            "expected_title": 14341,
+            "expected_title": 14343,
             "logo": {
               "reason": "no_matching_title_logo"
             }
@@ -764,7 +791,7 @@
             "title": "ダブルドラゴン 双截龍",
             "matched": false,
             "original": 18184,
-            "expected_title": 18212,
+            "expected_title": 18214,
             "logo": {
               "reason": "no_matching_title_logo"
             }
@@ -772,11 +799,22 @@
           {
             "index": 6,
             "title": "忍者くん 阿修羅ノ章（前編）",
-            "matched": false,
+            "matched": true,
+            "method": "yellow-gmcx-title-logo",
             "original": 22055,
-            "expected_title": 22083,
+            "title_time": 22185,
+            "title_offset": 30,
+            "refined": 22155,
+            "shift_seconds": 100,
             "logo": {
-              "reason": "no_matching_title_logo"
+              "reason": "ok",
+              "run_frames": 4,
+              "expected_title_time": 22085,
+              "distance_from_expected": 100,
+              "template_jaccard": 0.4004,
+              "bbox_width": 42,
+              "bbox_height": 15,
+              "aspect": 2.8
             }
           },
           {
@@ -784,7 +822,7 @@
             "title": "忍者くん 阿修羅ノ章（後編）",
             "matched": false,
             "original": 25926,
-            "expected_title": 25954,
+            "expected_title": 25956,
             "logo": {
               "reason": "no_matching_title_logo"
             }
@@ -803,7 +841,7 @@
             "title": "山村美紗サスペンス 京都龍の寺殺人事件",
             "matched": false,
             "original": 36997,
-            "expected_title": 37025,
+            "expected_title": 37027,
             "logo": {
               "reason": "no_matching_title_logo"
             }
@@ -811,21 +849,43 @@
           {
             "index": 10,
             "title": "モグラ〜ニャ",
-            "matched": false,
+            "matched": true,
+            "method": "yellow-gmcx-title-logo",
             "original": 40868,
-            "expected_title": 40896,
+            "title_time": 40912,
+            "title_offset": 30,
+            "refined": 40882,
+            "shift_seconds": 14,
             "logo": {
-              "reason": "no_matching_title_logo"
+              "reason": "ok",
+              "run_frames": 4,
+              "expected_title_time": 40898,
+              "distance_from_expected": 14,
+              "template_jaccard": 0.2917,
+              "bbox_width": 29,
+              "bbox_height": 9,
+              "aspect": 3.222
             }
           },
           {
             "index": 11,
             "title": "闘いの挽歌",
-            "matched": false,
+            "matched": true,
+            "method": "yellow-gmcx-title-logo",
             "original": 44739,
-            "expected_title": 44767,
+            "title_time": 44933,
+            "title_offset": 30,
+            "refined": 44903,
+            "shift_seconds": 164,
             "logo": {
-              "reason": "no_matching_title_logo"
+              "reason": "ok",
+              "run_frames": 2,
+              "expected_title_time": 44769,
+              "distance_from_expected": 164,
+              "template_jaccard": 0.3547,
+              "bbox_width": 60,
+              "bbox_height": 17,
+              "aspect": 3.529
             }
           }
         ],
@@ -1068,7 +1128,7 @@
       "titlecard_refinement": {
         "status": "no_consensus",
         "method": "yellow-gmcx-title-logo",
-        "boundary_version": 11,
+        "boundary_version": 12,
         "reference": {
           "reason": "no_title_logo_near_reference_start"
         },
