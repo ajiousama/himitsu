@@ -38,7 +38,7 @@ EPISODE_DURATION_OVERRIDES: dict[int, int] = {
 # Real-video boundary refinement. GMCX repeats a characteristic title/opening
 # frame at the beginning of regular episodes. We learn that recurring visual
 # signature inside each VOD and place every split on the same visual cue.
-TITLECARD_WINDOW_SECONDS = 420
+TITLECARD_WINDOW_SECONDS = 240
 TITLECARD_SAMPLE_SECONDS = 2
 TITLECARD_BOUNDARY_VERSION = 6
 TITLECARD_INTRO_SECONDS = 8
