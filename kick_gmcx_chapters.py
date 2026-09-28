@@ -40,7 +40,7 @@ EPISODE_DURATION_OVERRIDES: dict[int, int] = {
 # signature inside each VOD and place every split on the same visual cue.
 TITLECARD_WINDOW_SECONDS = 240
 TITLECARD_SAMPLE_SECONDS = 2
-TITLECARD_BOUNDARY_VERSION = 11
+TITLECARD_BOUNDARY_VERSION = 12
 TITLECARD_INTRO_SECONDS = 8
 TITLECARD_HASH_BITS = 256
 TITLECARD_MATCH_DISTANCE = 42
@@ -66,6 +66,24 @@ TITLE_LOGO_MIN_DARK_RATIO = 0.55
 TITLE_LOGO_MIN_COLUMN_COVERAGE = 0.50
 TITLE_LOGO_MIN_ROW_COVERAGE = 0.32
 TITLE_LOGO_MIN_RUN_FRAMES = 2
+TITLE_LOGO_TEMPLATE_WIDTH = 48
+TITLE_LOGO_TEMPLATE_HEIGHT = 12
+TITLE_LOGO_TEMPLATE_JACCARD_MIN = 0.24
+TITLE_LOGO_EXPECTED_OFFSET_SECONDS = 30
+TITLE_LOGO_TEMPLATE_ROWS = (
+    "000000000000000000000000000000000000000000000000",
+    "000000001111111111111111111110000111110011001100",
+    "000100001111111111111111111110001111110011011100",
+    "000111100011000100000001000000001111110001111000",
+    "000111100010001111110101111000001000110001110000",
+    "001101011010111111000001011011011000000001100000",
+    "000001011011110111000000011111011001100011100000",
+    "000001000010000111011100001000011010100011100000",
+    "000010000000000111011000000000011111001100110000",
+    "011111111111111111111100000000011110001000110000",
+    "011111110110111111111000000000011100000000110000",
+    "000000000000000000000000000000000000000000000000",
+)
 TITLE_LOGO_REFERENCE_SEARCH_SECONDS = 120
 
 # Known mixed archive bundles. Specials are inserted in chronological order before/after episodes.
@@ -489,8 +507,93 @@ def _best_blue_room_match(reference: dict, frames: list[dict]) -> tuple[int | No
     return min(near), best_dist
 
 
+def _title_logo_template_mask() -> int:
+    bits = 0
+    bit = 0
+    for row in TITLE_LOGO_TEMPLATE_ROWS:
+        for ch in row:
+            if ch == "1":
+                bits |= 1 << bit
+            bit += 1
+    return bits
+
+
+TITLE_LOGO_TEMPLATE_MASK = _title_logo_template_mask()
+
+
+def _normalise_yellow_logo(frame: bytes, width: int, height: int) -> dict | None:
+    # Search only the broad centre band where the user-confirmed title appears.
+    x0, x1 = 2, width - 2
+    y0, y1 = 5, height - 5
+    yellow = []
+    for y in range(y0, y1):
+        for x in range(x0, x1):
+            p = (y * width + x) * 3
+            rr, gg, bb = frame[p], frame[p + 1], frame[p + 2]
+            if (
+                rr > 115 and gg > 105 and bb < 145
+                and rr - bb > 32 and gg - bb > 28
+            ):
+                yellow.append((x, y))
+
+    if len(yellow) < 45:
+        return None
+
+    min_x = min(x for x, _ in yellow)
+    max_x = max(x for x, _ in yellow)
+    min_y = min(y for _, y in yellow)
+    max_y = max(y for _, y in yellow)
+    bw = max_x - min_x + 1
+    bh = max_y - min_y + 1
+
+    # The GMCX logo is a wide horizontal object occupying much of the frame.
+    if bw < int(width * 0.45) or bh < int(height * 0.12):
+        return None
+    aspect = bw / max(1, bh)
+    if aspect < 2.4 or aspect > 7.5:
+        return None
+
+    source = [[False for _ in range(bw)] for _ in range(bh)]
+    for x, y in yellow:
+        source[y - min_y][x - min_x] = True
+
+    bits = 0
+    bit = 0
+    occupied = 0
+    for oy in range(TITLE_LOGO_TEMPLATE_HEIGHT):
+        sy0 = oy * bh // TITLE_LOGO_TEMPLATE_HEIGHT
+        sy1 = max(sy0 + 1, (oy + 1) * bh // TITLE_LOGO_TEMPLATE_HEIGHT)
+        for ox in range(TITLE_LOGO_TEMPLATE_WIDTH):
+            sx0 = ox * bw // TITLE_LOGO_TEMPLATE_WIDTH
+            sx1 = max(sx0 + 1, (ox + 1) * bw // TITLE_LOGO_TEMPLATE_WIDTH)
+            cells = 0
+            hits = 0
+            for sy in range(sy0, min(sy1, bh)):
+                for sx in range(sx0, min(sx1, bw)):
+                    cells += 1
+                    if source[sy][sx]:
+                        hits += 1
+            if cells and hits / cells >= 0.16:
+                bits |= 1 << bit
+                occupied += 1
+            bit += 1
+
+    union = (bits | TITLE_LOGO_TEMPLATE_MASK).bit_count()
+    jaccard = (
+        (bits & TITLE_LOGO_TEMPLATE_MASK).bit_count() / union
+        if union else 0.0
+    )
+    return {
+        "mask": bits,
+        "jaccard": round(jaccard, 4),
+        "bbox_width": bw,
+        "bbox_height": bh,
+        "aspect": round(aspect, 3),
+        "occupied": occupied,
+    }
+
+
 def _sample_title_logo_window(url: str, center: int, total_duration: int) -> list[dict]:
-    """Find frames containing the large yellow GAME CENTER CX title logo."""
     if total_duration <= 0:
         return []
     if center <= TITLECARD_WINDOW_SECONDS:
@@ -501,6 +604,7 @@ def _sample_title_logo_window(url: str, center: int, total_duration: int) -> lis
         stop = min(total_duration, center + TITLECARD_WINDOW_SECONDS)
         span = max(1, stop - start)
 
+    width, height = 64, 36
     cmd = [
         "ffmpeg", "-hide_banner", "-loglevel", "error",
         "-rw_timeout", "15000000",
@@ -508,7 +612,7 @@ def _sample_title_logo_window(url: str, center: int, total_duration: int) -> lis
         "-i", url,
         "-t", str(span),
         "-an",
-        "-vf", f"fps=1/{TITLE_LOGO_SAMPLE_SECONDS},scale=64:36:flags=area,format=rgb24",
+        "-vf", f"fps=1/{TITLE_LOGO_SAMPLE_SECONDS},scale={width}:{height}:flags=area,format=rgb24",
         "-pix_fmt", "rgb24",
         "-f", "rawvideo", "pipe:1",
     ]
@@ -528,63 +632,17 @@ def _sample_title_logo_window(url: str, center: int, total_duration: int) -> lis
         print(f"::warning::GMCX title-logo ffmpeg failed center={center}: {err}")
         return []
 
-    width, height = 64, 36
     frame_size = width * height * 3
     raw = proc.stdout
     out = []
     for idx in range(len(raw) // frame_size):
         frame = raw[idx * frame_size:(idx + 1) * frame_size]
-
-        # Central band: the user-confirmed title is the large yellow/gold
-        # "ゲームセンターCX" logo. Ignore the changing game footage behind it.
-        x0, x1 = 4, 60
-        y0, y1 = 8, 26
-        mask_bits = 0
-        mask_count = 0
-        dark_count = 0
-        col_hits = [0] * (x1 - x0)
-        row_hits = [0] * (y1 - y0)
-        bit = 0
-        total = (x1 - x0) * (y1 - y0)
-
-        for y in range(y0, y1):
-            for x in range(x0, x1):
-                p = (y * width + x) * 3
-                rr, gg, bb = frame[p], frame[p + 1], frame[p + 2]
-                is_yellow = (
-                    rr > 120 and gg > 110 and bb < 120
-                    and rr - bb > 40 and gg - bb > 35
-                )
-                if is_yellow:
-                    mask_bits |= 1 << bit
-                    mask_count += 1
-                    col_hits[x - x0] += 1
-                    row_hits[y - y0] += 1
-                if rr < 70 and gg < 70 and bb < 70:
-                    dark_count += 1
-                bit += 1
-
-        yellow_ratio = mask_count / total
-        dark_ratio = dark_count / total
-        column_coverage = sum(1 for n in col_hits if n / (y1 - y0) > 0.05) / len(col_hits)
-        row_coverage = sum(1 for n in row_hits if n / (x1 - x0) > 0.05) / len(row_hits)
-
-        if (
-            yellow_ratio < TITLE_LOGO_MIN_YELLOW_RATIO
-            or dark_ratio < TITLE_LOGO_MIN_DARK_RATIO
-            or column_coverage < TITLE_LOGO_MIN_COLUMN_COVERAGE
-            or row_coverage < TITLE_LOGO_MIN_ROW_COVERAGE
-        ):
+        logo = _normalise_yellow_logo(frame, width, height)
+        if not logo or float(logo["jaccard"]) < TITLE_LOGO_TEMPLATE_JACCARD_MIN:
             continue
-
         out.append({
             "time": min(total_duration - 1, start + idx * TITLE_LOGO_SAMPLE_SECONDS),
-            "mask": mask_bits,
-            "mask_count": mask_count,
-            "yellow_ratio": round(yellow_ratio, 4),
-            "dark_ratio": round(dark_ratio, 4),
-            "column_coverage": round(column_coverage, 4),
-            "row_coverage": round(row_coverage, 4),
+            **logo,
         })
     return out
 
@@ -622,10 +680,12 @@ def _pick_anchor_title_logo(frames: list[dict], chapter_start: int) -> tuple[dic
         offset = start - int(chapter_start)
         if offset < 0 or offset > TITLE_LOGO_REFERENCE_SEARCH_SECONDS:
             continue
-        best = max(run, key=lambda x: (float(x["yellow_ratio"]), int(x["mask_count"])))
-        # Prefer the earliest persistent title-sized yellow logo after the
-        # programme start; persistence avoids picking a one-frame game graphic.
-        score = (offset, -len(run), -float(best["yellow_ratio"]))
+        best = max(run, key=lambda x: float(x.get("jaccard") or 0))
+        score = (
+            abs(offset - TITLE_LOGO_EXPECTED_OFFSET_SECONDS),
+            -float(best.get("jaccard") or 0),
+            -len(run),
+        )
         candidates.append((score, start, best, run))
     if not candidates:
         return None, {"reason": "no_title_logo_near_reference_start"}
@@ -638,63 +698,26 @@ def _pick_anchor_title_logo(frames: list[dict], chapter_start: int) -> tuple[dic
         "title_time": start,
         "offset_seconds": start - int(chapter_start),
         "run_frames": len(run),
-        "yellow_ratio": best["yellow_ratio"],
+        "template_jaccard": best.get("jaccard"),
     }
-
 
 def _match_title_logo(reference: dict, frames: list[dict], expected_time: int) -> tuple[int | None, dict]:
     candidates = []
-    ref_yellow = float(reference.get("yellow_ratio") or 0)
-    ref_cols = float(reference.get("column_coverage") or 0)
-    ref_rows = float(reference.get("row_coverage") or 0)
-    ref_dark = float(reference.get("dark_ratio") or 0)
-
     for run in _title_logo_runs(frames):
         start = int(run[0]["time"])
-        # Use the strongest title-looking frame in the persistent run.
-        best = max(
-            run,
-            key=lambda x: (
-                float(x.get("column_coverage") or 0)
-                + float(x.get("row_coverage") or 0)
-                + float(x.get("yellow_ratio") or 0)
-            ),
-        )
-        yellow = float(best.get("yellow_ratio") or 0)
-        cols = float(best.get("column_coverage") or 0)
-        rows = float(best.get("row_coverage") or 0)
-        dark = float(best.get("dark_ratio") or 0)
-
-        # The user-confirmed title is a broad, persistent yellow/gold logo on
-        # a mostly dark background. Allow scale/background variation.
-        if (
-            yellow < TITLE_LOGO_MIN_YELLOW_RATIO
-            or cols < TITLE_LOGO_MIN_COLUMN_COVERAGE
-            or rows < TITLE_LOGO_MIN_ROW_COVERAGE
-            or dark < TITLE_LOGO_MIN_DARK_RATIO
-        ):
+        best = max(run, key=lambda x: float(x.get("jaccard") or 0))
+        jaccard = float(best.get("jaccard") or 0)
+        if jaccard < TITLE_LOGO_TEMPLATE_JACCARD_MIN:
             continue
-
-        feature_delta = (
-            abs(yellow - ref_yellow) * 120
-            + abs(cols - ref_cols) * 30
-            + abs(rows - ref_rows) * 30
-            + abs(dark - ref_dark) * 20
-        )
-        time_delta = abs(start - int(expected_time))
-
-        # Time is primary. Feature similarity only breaks close candidates.
         score = (
-            time_delta,
-            round(feature_delta, 3),
+            abs(start - int(expected_time)),
+            -jaccard,
             -len(run),
-            -yellow,
         )
         candidates.append((score, start, best, len(run)))
 
     if not candidates:
         return None, {"reason": "no_matching_title_logo"}
-
     candidates.sort(key=lambda x: x[0])
     _, start, best, run_frames = candidates[0]
     return start, {
@@ -702,13 +725,11 @@ def _match_title_logo(reference: dict, frames: list[dict], expected_time: int) -
         "run_frames": run_frames,
         "expected_title_time": int(expected_time),
         "distance_from_expected": start - int(expected_time),
-        "yellow_ratio": best.get("yellow_ratio"),
-        "dark_ratio": best.get("dark_ratio"),
-        "column_coverage": best.get("column_coverage"),
-        "row_coverage": best.get("row_coverage"),
+        "template_jaccard": best.get("jaccard"),
+        "bbox_width": best.get("bbox_width"),
+        "bbox_height": best.get("bbox_height"),
+        "aspect": best.get("aspect"),
     }
-
-
 def _hdist(a: int, b: int) -> int:
     return (a ^ b).bit_count()
 
