@@ -31,6 +31,11 @@ RANGE_EPISODE_SECONDS: dict[tuple[int, int], int] = {
 }
 
 # Numbered episodes that are actually long-form specials.
+FILELIST_CONFIRMED_RANGES = {
+    (177, 196),
+    (197, 206),
+}
+
 EPISODE_DURATION_OVERRIDES: dict[int, int] = {
     226: 7200,  # in 四国 / 奇々怪界: official 2-hour special
 }
@@ -1874,6 +1879,28 @@ def make_mixed_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict[str,
     return chapters
 
 
+def _mark_provisional_titles(
+    chapters: list[dict],
+    start_ep: int,
+    end_ep: int,
+) -> list[dict]:
+    confirmed = (start_ep, end_ep) in FILELIST_CONFIRMED_RANGES
+    out = []
+    for chapter in chapters:
+        row = dict(chapter)
+        if confirmed:
+            row["title_status"] = "confirmed-filelist"
+            row["title_source"] = "source-player-filelist"
+        else:
+            title = str(row.get("title") or "")
+            if title and not title.endswith("（仮）"):
+                row["title"] = f"{title}（仮）"
+            row["title_status"] = "provisional"
+            row["title_source"] = "pending-user-check"
+        out.append(row)
+    return out
+
+
 def main() -> int:
     payload = json.loads(SRC.read_text(encoding="utf-8"))
     titles = json.loads(TITLE_MAP.read_text(encoding="utf-8"))
@@ -1975,6 +2002,7 @@ def main() -> int:
 
         if status == "ready" and chapters:
             chapters = _annotate_hls_diagnostics(vod, chapters)
+            chapters = _mark_provisional_titles(chapters, start_ep, end_ep)
 
         all_chapters.extend([
             {
