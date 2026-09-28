@@ -45,7 +45,7 @@ EPISODE_DURATION_OVERRIDES: dict[int, int] = {
 # signature inside each VOD and place every split on the same visual cue.
 TITLECARD_WINDOW_SECONDS = 240
 TITLECARD_SAMPLE_SECONDS = 2
-TITLECARD_BOUNDARY_VERSION = 28
+TITLECARD_BOUNDARY_VERSION = 29
 TITLECARD_INTRO_SECONDS = 8
 TITLECARD_HASH_BITS = 256
 TITLECARD_MATCH_DISTANCE = 42
@@ -1407,6 +1407,12 @@ def refine_with_titlecard(
     chapters: list[dict],
     previous_result: dict | None = None,
 ) -> tuple[list[dict], dict]:
+    """Align regular episode clips to the recurring blue-room opening frame.
+
+    VOD5 thumbnails are taken from the beginning of each clip, so a successful
+    refinement must make regular episodes begin on the same blue-room cue,
+    rather than merely finding the later yellow title logo.
+    """
     duration = int(vod.get("duration_seconds") or 0)
     vod_id = str(vod.get("vod_id") or "")
     source_url = str(vod.get("source_url") or "")
@@ -1438,184 +1444,94 @@ def refine_with_titlecard(
         return chapters, {"status": "skipped", "reason": "disabled"}
 
     analysis_url = _lowest_hls_variant(source_url)
-
     regular_indices = [
         i for i, item in enumerate(items)
         if item.get("kind") == "episode"
         and int(item.get("episode") or 0) not in EPISODE_DURATION_OVERRIDES
     ]
-    if not regular_indices:
-        return chapters, {"status": "skipped", "reason": "no_regular_episode_reference"}
+    if len(regular_indices) < 3:
+        return chapters, {"status": "skipped", "reason": "too_few_regular_episodes"}
 
-    opening_frames = _sample_access_frame_signatures(
-        analysis_url,
-        0,
-        max(60, ACCESS_FRAME_TO_SECONDS + 5),
-        duration,
-    )
-    reference, anchor_meta = _pick_access_reference(opening_frames)
+    # Sample around each cadence estimate. The first regular episode is vital:
+    # its blue-room frame becomes a real clip start too (not forced to VOD 0).
+    windows = []
+    index_windows: dict[int, list[dict]] = {}
+    for index in regular_indices:
+        original = int(items[index].get("start_seconds") or 0)
+        frames = _sample_blue_room_window(analysis_url, original, duration)
+        index_windows[index] = frames
+        windows.append(frames)
+
+    reference, ref_meta = _learn_blue_room_reference(windows)
     if reference is None:
         return chapters, {
             "status": "no_consensus",
-            "method": "vod-access-yellow-logo",
+            "method": "recurring-blue-room",
             "boundary_version": TITLECARD_BOUNDARY_VERSION,
-            "reference": anchor_meta,
+            "reference": ref_meta,
             "matches": [],
         }
 
-    title_offset = int(anchor_meta["reference_time_seconds"])
-
     starts: dict[int, int] = {}
     match_rows = []
-
+    matched_regular = 0
     for index, item in enumerate(items):
         original = int(item.get("start_seconds") or 0)
-        if index == 0:
-            starts[index] = 0
-            match_rows.append({
-                "index": index,
-                "title": item.get("title"),
-                "matched": True,
-                "method": "vod-start",
-                "original": original,
-                "refined": 0,
-            })
-            continue
-
-        is_long_numbered_special = (
-            item.get("kind") == "episode"
-            and int(item.get("episode") or 0) in EPISODE_DURATION_OVERRIDES
-        )
-        is_special = item.get("kind") == "special" or is_long_numbered_special
-        previous_is_special = False
-        if index > 0:
-            prev_item = items[index - 1]
-            previous_is_special = (
-                prev_item.get("kind") == "special"
-                or (
-                    prev_item.get("kind") == "episode"
-                    and int(prev_item.get("episode") or 0) in EPISODE_DURATION_OVERRIDES
-                )
-            )
-
-        # Specials and the chapter immediately following a special are fixed.
-        # Moving either side would silently change an official/known special runtime.
-        if is_special or previous_is_special:
+        is_regular = index in regular_indices
+        if not is_regular:
+            # Keep known specials structurally fixed.
             starts[index] = original
+            continue
+
+        hit, distance = _best_blue_room_match(reference, index_windows.get(index, []))
+        if hit is None or abs(int(hit) - original) > TITLECARD_REGULAR_MAX_SHIFT_SECONDS:
             match_rows.append({
-                "index": index,
-                "title": item.get("title"),
-                "matched": True,
-                "method": "structured-fixed-boundary",
-                "original": original,
-                "refined": original,
-                "shift_seconds": 0,
+                "index": index, "title": item.get("title"), "matched": False,
+                "original": original, "candidate": hit, "distance": distance,
+                "reason": "no_blue_room_or_shift_guard",
             })
             continue
 
-        expected_title = original + title_offset
-        search_start = max(0, expected_title - TITLE_LOGO_MAX_EXPECTED_DISTANCE_SECONDS)
-        search_span = TITLE_LOGO_MAX_EXPECTED_DISTANCE_SECONDS * 2 + 1
-        frames = _sample_access_frame_signatures(
-            analysis_url,
-            search_start,
-            search_span,
-            duration,
-        )
-        title_time, meta = _match_access_reference(reference, frames, expected_title)
-        if title_time is None:
-            match_rows.append({
-                "index": index,
-                "title": item.get("title"),
-                "matched": False,
-                "original": original,
-                "expected_reference": expected_title,
-                "yellow_logo": meta,
-            })
-            continue
-
-        refined = max(0, int(title_time) - title_offset)
-        if abs(refined - original) > TITLECARD_REGULAR_MAX_SHIFT_SECONDS:
-            match_rows.append({
-                "index": index,
-                "title": item.get("title"),
-                "matched": False,
-                "original": original,
-                "candidate": refined,
-                "reason": "shift_guard",
-                "yellow_logo": meta,
-            })
-            continue
-
-        starts[index] = refined
+        starts[index] = int(hit)
+        matched_regular += 1
         match_rows.append({
-            "index": index,
-            "title": item.get("title"),
-            "matched": True,
-            "method": "vod-access-yellow-logo",
-            "original": original,
-            "title_time": int(title_time),
-            "title_offset": title_offset,
-            "refined": refined,
-            "shift_seconds": refined - original,
-            "yellow_logo": meta,
+            "index": index, "title": item.get("title"), "matched": True,
+            "method": "recurring-blue-room", "original": original,
+            "refined": int(hit), "shift_seconds": int(hit) - original,
+            "distance": distance,
         })
 
-    regular_nonfirst = [i for i in regular_indices if i != 0]
-    matched_regular = sum(
-        1 for row in match_rows
-        if row.get("method") == "vod-access-yellow-logo"
-    )
-
-    rebuilt = _apply_refined_chapter_starts(
-        [{**x, "vod_id": vod_id} for x in chapters],
-        starts,
-        duration,
-    )
-    unchanged = rebuilt == [{**x, "vod_id": vod_id} for x in chapters]
-    if unchanged and matched_regular:
+    # Do not publish a half-recognised set: the visual point of this pass is
+    # that the VOD list thumbnails line up on the same opening screen.
+    coverage = matched_regular / max(1, len(regular_indices))
+    if coverage < 0.8:
         return chapters, {
-            "status": "guarded",
-            "method": "vod-access-yellow-logo",
+            "status": "no_consensus",
+            "method": "recurring-blue-room",
             "boundary_version": TITLECARD_BOUNDARY_VERSION,
-            "reason": "order_or_minimum-gap-guard",
-            "reference": anchor_meta,
+            "reason": "blue_room_coverage_below_80_percent",
+            "reference": ref_meta,
+            "detected_regular_boundaries": matched_regular,
+            "expected_regular_boundaries": len(regular_indices),
+            "coverage": round(coverage, 3),
             "matches": match_rows,
         }
 
+    rebuilt = _apply_refined_chapter_starts(
+        [{**x, "vod_id": vod_id} for x in chapters], starts, duration
+    )
     for x in rebuilt:
         x.pop("vod_id", None)
 
-    expected_regular = 0
-    for i in regular_indices:
-        if i == 0:
-            continue
-        prev_item = items[i - 1] if i > 0 else None
-        prev_is_special = bool(
-            prev_item
-            and (
-                prev_item.get("kind") == "special"
-                or (
-                    prev_item.get("kind") == "episode"
-                    and int(prev_item.get("episode") or 0) in EPISODE_DURATION_OVERRIDES
-                )
-            )
-        )
-        if not prev_is_special:
-            expected_regular += 1
-    expected_regular = max(1, expected_regular)
-    coverage = matched_regular / expected_regular
-    status = "applied" if coverage >= 0.8 else ("partial" if matched_regular else "no_consensus")
     return rebuilt, {
-        "status": status,
-        "method": "vod-access-yellow-logo",
+        "status": "applied" if coverage >= 0.95 else "partial",
+        "method": "recurring-blue-room",
         "boundary_version": TITLECARD_BOUNDARY_VERSION,
         "window_seconds": TITLECARD_WINDOW_SECONDS,
-        "sample_seconds": 1,
-        "reference": anchor_meta,
-        "title_offset_seconds": title_offset,
+        "sample_seconds": BLUE_ROOM_SAMPLE_SECONDS,
+        "reference": ref_meta,
         "detected_regular_boundaries": matched_regular,
-        "expected_regular_boundaries": expected_regular,
+        "expected_regular_boundaries": len(regular_indices),
         "coverage": round(coverage, 3),
         "chapter_starts": {str(k): v for k, v in starts.items()},
         "matches": match_rows,
