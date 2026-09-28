@@ -1,0 +1,51 @@
+name: Probe GCCX 197 tail
+
+on:
+  push:
+    paths:
+      - ".github/workflows/probe_gccx_197_tail.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Ensure ffmpeg
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+
+      - name: Extract probe frames
+        shell: bash
+        run: |
+          set -euo pipefail
+          URL='https://stream.kick.com/0f3cb0ebce7/ivs/v1/196233775518/59bB9isG3qqM/2026/9/24/0/58/aI3eXlu4kM3z/media/hls/master.m3u8'
+          mkdir -p debug/gccx_probe_197
+          for SEC in 0 5 10 15 20 25 29 30 35 48570 48575 48580 48581 48585 48590 48595 48600 48605; do
+            ffmpeg -hide_banner -loglevel error -ss "${SEC}" -i "${URL}" -frames:v 1 -vf 'scale=960:-2' -q:v 3 "/tmp/${SEC}.jpg" || true
+            if [ -s "/tmp/${SEC}.jpg" ]; then
+              base64 -w 0 "/tmp/${SEC}.jpg" > "debug/gccx_probe_197/${SEC}.jpg.b64"
+            fi
+          done
+          printf '%s\n' "VOD 1fdde... no; this probe is 04f0dc3a... (#197-206)" > debug/gccx_probe_197/README.txt
+          printf '%s\n' "times: 0..35 and 48570..48605" >> debug/gccx_probe_197/README.txt
+
+      - name: Commit probe
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add debug/gccx_probe_197
+          if git diff --cached --quiet; then
+            exit 0
+          fi
+          git commit -m "Add GCCX 197 tail probe [skip ci]"
+          git pull --rebase origin main || true
+          git push origin HEAD:main
