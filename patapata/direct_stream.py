@@ -36,6 +36,9 @@ LAST_ERROR = ""
 TV_STYLE = """
 <style id="freewifi-tv-style">
 html,body{overflow:hidden!important}
+body{
+  zoom:1.15!important;
+}
 #update-modal{display:none!important}
 </style>
 """
