@@ -40,7 +40,7 @@ EPISODE_DURATION_OVERRIDES: dict[int, int] = {
 # signature inside each VOD and place every split on the same visual cue.
 TITLECARD_WINDOW_SECONDS = 240
 TITLECARD_SAMPLE_SECONDS = 2
-TITLECARD_BOUNDARY_VERSION = 15
+TITLECARD_BOUNDARY_VERSION = 16
 TITLECARD_INTRO_SECONDS = 8
 TITLECARD_HASH_BITS = 256
 TITLECARD_MATCH_DISTANCE = 42
@@ -70,10 +70,10 @@ TITLE_LOGO_TEMPLATE_WIDTH = 48
 TITLE_LOGO_TEMPLATE_HEIGHT = 12
 TITLE_LOGO_TEMPLATE_JACCARD_MIN = 0.24
 TITLE_LOGO_EXPECTED_OFFSET_SECONDS = 30
-TITLE_LOGO_ANCHOR_FROM_SECONDS = 15
-TITLE_LOGO_ANCHOR_TO_SECONDS = 60
-TITLE_LOGO_FEATURE_DISTANCE_MAX = 1.35
-TITLE_LOGO_MAX_EXPECTED_DISTANCE_SECONDS = 240
+TITLE_LOGO_ANCHOR_FROM_SECONDS = 0
+TITLE_LOGO_ANCHOR_TO_SECONDS = 120
+TITLE_LOGO_FEATURE_DISTANCE_MAX = 0.65
+TITLE_LOGO_MAX_EXPECTED_DISTANCE_SECONDS = 120
 TITLE_LOGO_COMPONENT_MIN_WIDTH_RATIO = 0.42
 TITLE_LOGO_COMPONENT_MIN_HEIGHT_RATIO = 0.12
 TITLE_LOGO_COMPONENT_MIN_ASPECT = 1.8
@@ -1107,16 +1107,26 @@ def refine_with_titlecard(
             and int(item.get("episode") or 0) in EPISODE_DURATION_OVERRIDES
         )
         is_special = item.get("kind") == "special" or is_long_numbered_special
+        previous_is_special = False
+        if index > 0:
+            prev_item = items[index - 1]
+            previous_is_special = (
+                prev_item.get("kind") == "special"
+                or (
+                    prev_item.get("kind") == "episode"
+                    and int(prev_item.get("episode") or 0) in EPISODE_DURATION_OVERRIDES
+                )
+            )
 
-        # Specials use their known chronological/official boundary. They may
-        # have a different opening design, so do not force a regular title match.
-        if is_special:
+        # Specials and the chapter immediately following a special are fixed.
+        # Moving either side would silently change an official/known special runtime.
+        if is_special or previous_is_special:
             starts[index] = original
             match_rows.append({
                 "index": index,
                 "title": item.get("title"),
                 "matched": True,
-                "method": "structured-special-boundary",
+                "method": "structured-fixed-boundary",
                 "original": original,
                 "refined": original,
                 "shift_seconds": 0,
@@ -1166,7 +1176,7 @@ def refine_with_titlecard(
     regular_nonfirst = [i for i in regular_indices if i != 0]
     matched_regular = sum(
         1 for row in match_rows
-        if row.get("method") == "yellow-gmcx-title-logo"
+        if row.get("method") == "vod-opening-title-logo"
     )
 
     rebuilt = _apply_refined_chapter_starts(
@@ -1188,7 +1198,24 @@ def refine_with_titlecard(
     for x in rebuilt:
         x.pop("vod_id", None)
 
-    expected_regular = max(1, len(regular_indices) - 1)
+    expected_regular = 0
+    for i in regular_indices:
+        if i == 0:
+            continue
+        prev_item = items[i - 1] if i > 0 else None
+        prev_is_special = bool(
+            prev_item
+            and (
+                prev_item.get("kind") == "special"
+                or (
+                    prev_item.get("kind") == "episode"
+                    and int(prev_item.get("episode") or 0) in EPISODE_DURATION_OVERRIDES
+                )
+            )
+        )
+        if not prev_is_special:
+            expected_regular += 1
+    expected_regular = max(1, expected_regular)
     coverage = matched_regular / expected_regular
     status = "applied" if coverage >= 0.8 else ("partial" if matched_regular else "no_consensus")
     return rebuilt, {
