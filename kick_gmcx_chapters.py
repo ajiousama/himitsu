@@ -45,7 +45,7 @@ EPISODE_DURATION_OVERRIDES: dict[int, int] = {
 # signature inside each VOD and place every split on the same visual cue.
 TITLECARD_WINDOW_SECONDS = 240
 TITLECARD_SAMPLE_SECONDS = 2
-TITLECARD_BOUNDARY_VERSION = 32
+TITLECARD_BOUNDARY_VERSION = 33
 TITLECARD_INTRO_SECONDS = 8
 TITLECARD_HASH_BITS = 256
 TITLECARD_MATCH_DISTANCE = 42
@@ -633,17 +633,15 @@ def _learn_blue_room_reference(windows: list[list[dict]]) -> tuple[dict | None, 
     if len(usable) < 3:
         return None, {"reason": "too_few_blue_windows", "usable_windows": len(usable)}
 
-    anchor = usable[0]
-    best = None
-    for frame in anchor:
+    # Do not anchor the template to the first episode/window. Its estimated\n    # boundary may itself be wrong. Pick the frame that recurs most strongly\n    # across ALL episode windows (e.g. the common blue-room opening shot).\n    anchor = [frame for w in usable for frame in w]\n    best = None\n    for frame in anchor:
         matches = 0
         distances = []
-        for w in usable[1:]:
+        for w in usable:
             d = min((_hdist(frame["hash"], x["hash"]) for x in w), default=999)
             distances.append(d)
             if d <= BLUE_ROOM_HASH_DISTANCE:
                 matches += 1
-        required = max(2, int(round((len(usable) - 1) * 0.45)))
+        required = max(3, int(round(len(usable) * 0.55)))
         if matches < required:
             continue
         score = statistics.median(distances)
