@@ -40,7 +40,7 @@ EPISODE_DURATION_OVERRIDES: dict[int, int] = {
 # signature inside each VOD and place every split on the same visual cue.
 TITLECARD_WINDOW_SECONDS = 240
 TITLECARD_SAMPLE_SECONDS = 2
-TITLECARD_BOUNDARY_VERSION = 9
+TITLECARD_BOUNDARY_VERSION = 10
 TITLECARD_INTRO_SECONDS = 8
 TITLECARD_HASH_BITS = 256
 TITLECARD_MATCH_DISTANCE = 42
@@ -60,6 +60,14 @@ BLUE_ROOM_BLUE_RED_GAP = 24
 BLUE_ROOM_BLUE_GREEN_GAP = 10
 BLUE_ROOM_HASH_DISTANCE = 46
 BLUE_ROOM_SAMPLE_SECONDS = 2
+TITLE_LOGO_SAMPLE_SECONDS = 2
+TITLE_LOGO_MIN_YELLOW_RATIO = 0.045
+TITLE_LOGO_MIN_DARK_RATIO = 0.55
+TITLE_LOGO_MIN_COLUMN_COVERAGE = 0.40
+TITLE_LOGO_MIN_ROW_COVERAGE = 0.25
+TITLE_LOGO_MIN_RUN_FRAMES = 2
+TITLE_LOGO_REFERENCE_SEARCH_SECONDS = 120
+TITLE_LOGO_JACCARD_MIN = 0.42
 
 # Known mixed archive bundles. Specials are inserted in chronological order before/after episodes.
 # A single special with duration_seconds=None consumes the remaining non-regular footage.
@@ -482,6 +490,190 @@ def _best_blue_room_match(reference: dict, frames: list[dict]) -> tuple[int | No
     return min(near), best_dist
 
 
+def _sample_title_logo_window(url: str, center: int, total_duration: int) -> list[dict]:
+    """Find frames containing the large yellow GAME CENTER CX title logo."""
+    if total_duration <= 0:
+        return []
+    if center <= TITLECARD_WINDOW_SECONDS:
+        start = 0
+        span = min(total_duration, max(1, center + TITLECARD_WINDOW_SECONDS))
+    else:
+        start = max(0, center - TITLECARD_WINDOW_SECONDS)
+        stop = min(total_duration, center + TITLECARD_WINDOW_SECONDS)
+        span = max(1, stop - start)
+
+    cmd = [
+        "ffmpeg", "-hide_banner", "-loglevel", "error",
+        "-rw_timeout", "15000000",
+        "-ss", str(start),
+        "-i", url,
+        "-t", str(span),
+        "-an",
+        "-vf", f"fps=1/{TITLE_LOGO_SAMPLE_SECONDS},scale=64:36:flags=area,format=rgb24",
+        "-pix_fmt", "rgb24",
+        "-f", "rawvideo", "pipe:1",
+    ]
+    try:
+        proc = subprocess.run(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            timeout=55,
+            check=False,
+        )
+    except (FileNotFoundError, subprocess.TimeoutExpired) as exc:
+        print(f"::warning::GMCX title-logo sample failed center={center}: {exc}")
+        return []
+    if proc.returncode != 0:
+        err = proc.stderr.decode("utf-8", "replace")[-300:]
+        print(f"::warning::GMCX title-logo ffmpeg failed center={center}: {err}")
+        return []
+
+    width, height = 64, 36
+    frame_size = width * height * 3
+    raw = proc.stdout
+    out = []
+    for idx in range(len(raw) // frame_size):
+        frame = raw[idx * frame_size:(idx + 1) * frame_size]
+
+        # Central band: the user-confirmed title is the large yellow/gold
+        # "ゲームセンターCX" logo. Ignore the changing game footage behind it.
+        x0, x1 = 4, 60
+        y0, y1 = 8, 26
+        mask_bits = 0
+        mask_count = 0
+        dark_count = 0
+        col_hits = [0] * (x1 - x0)
+        row_hits = [0] * (y1 - y0)
+        bit = 0
+        total = (x1 - x0) * (y1 - y0)
+
+        for y in range(y0, y1):
+            for x in range(x0, x1):
+                p = (y * width + x) * 3
+                rr, gg, bb = frame[p], frame[p + 1], frame[p + 2]
+                is_yellow = (
+                    rr > 120 and gg > 110 and bb < 120
+                    and rr - bb > 40 and gg - bb > 35
+                )
+                if is_yellow:
+                    mask_bits |= 1 << bit
+                    mask_count += 1
+                    col_hits[x - x0] += 1
+                    row_hits[y - y0] += 1
+                if rr < 70 and gg < 70 and bb < 70:
+                    dark_count += 1
+                bit += 1
+
+        yellow_ratio = mask_count / total
+        dark_ratio = dark_count / total
+        column_coverage = sum(1 for n in col_hits if n / (y1 - y0) > 0.05) / len(col_hits)
+        row_coverage = sum(1 for n in row_hits if n / (x1 - x0) > 0.05) / len(row_hits)
+
+        if (
+            yellow_ratio < TITLE_LOGO_MIN_YELLOW_RATIO
+            or dark_ratio < TITLE_LOGO_MIN_DARK_RATIO
+            or column_coverage < TITLE_LOGO_MIN_COLUMN_COVERAGE
+            or row_coverage < TITLE_LOGO_MIN_ROW_COVERAGE
+        ):
+            continue
+
+        out.append({
+            "time": min(total_duration - 1, start + idx * TITLE_LOGO_SAMPLE_SECONDS),
+            "mask": mask_bits,
+            "mask_count": mask_count,
+            "yellow_ratio": round(yellow_ratio, 4),
+            "dark_ratio": round(dark_ratio, 4),
+            "column_coverage": round(column_coverage, 4),
+            "row_coverage": round(row_coverage, 4),
+        })
+    return out
+
+
+def _title_logo_runs(frames: list[dict]) -> list[list[dict]]:
+    runs = []
+    current = []
+    for frame in sorted(frames, key=lambda x: int(x["time"])):
+        if not current:
+            current = [frame]
+            continue
+        gap = int(frame["time"]) - int(current[-1]["time"])
+        if 0 < gap <= TITLE_LOGO_SAMPLE_SECONDS + 1:
+            current.append(frame)
+        else:
+            if len(current) >= TITLE_LOGO_MIN_RUN_FRAMES:
+                runs.append(current)
+            current = [frame]
+    if len(current) >= TITLE_LOGO_MIN_RUN_FRAMES:
+        runs.append(current)
+    return runs
+
+
+def _mask_jaccard(a: int, b: int) -> float:
+    union = (a | b).bit_count()
+    if union <= 0:
+        return 0.0
+    return (a & b).bit_count() / union
+
+
+def _pick_anchor_title_logo(frames: list[dict], chapter_start: int) -> tuple[dict | None, dict]:
+    candidates = []
+    for run in _title_logo_runs(frames):
+        start = int(run[0]["time"])
+        offset = start - int(chapter_start)
+        if offset < 0 or offset > TITLE_LOGO_REFERENCE_SEARCH_SECONDS:
+            continue
+        best = max(run, key=lambda x: (float(x["yellow_ratio"]), int(x["mask_count"])))
+        # Prefer the earliest persistent title-sized yellow logo after the
+        # programme start; persistence avoids picking a one-frame game graphic.
+        score = (offset, -len(run), -float(best["yellow_ratio"]))
+        candidates.append((score, start, best, run))
+    if not candidates:
+        return None, {"reason": "no_title_logo_near_reference_start"}
+    candidates.sort(key=lambda x: x[0])
+    _, start, best, run = candidates[0]
+    ref = dict(best)
+    ref["run_start"] = start
+    return ref, {
+        "reason": "ok",
+        "title_time": start,
+        "offset_seconds": start - int(chapter_start),
+        "run_frames": len(run),
+        "yellow_ratio": best["yellow_ratio"],
+    }
+
+
+def _match_title_logo(reference: dict, frames: list[dict], expected_time: int) -> tuple[int | None, dict]:
+    candidates = []
+    for run in _title_logo_runs(frames):
+        best_match = None
+        for frame in run:
+            j = _mask_jaccard(int(reference["mask"]), int(frame["mask"]))
+            if best_match is None or j > best_match[0]:
+                best_match = (j, frame)
+        if best_match is None or best_match[0] < TITLE_LOGO_JACCARD_MIN:
+            continue
+        start = int(run[0]["time"])
+        score = (
+            abs(start - int(expected_time)),
+            -best_match[0],
+            -len(run),
+        )
+        candidates.append((score, start, best_match[0], len(run)))
+
+    if not candidates:
+        return None, {"reason": "no_matching_title_logo"}
+    candidates.sort(key=lambda x: x[0])
+    _, start, jaccard, run_frames = candidates[0]
+    return start, {
+        "reason": "ok",
+        "jaccard": round(float(jaccard), 4),
+        "run_frames": run_frames,
+        "expected_title_time": int(expected_time),
+        "distance_from_expected": start - int(expected_time),
+    }
+
+
 def _hdist(a: int, b: int) -> int:
     return (a ^ b).bit_count()
 
@@ -674,24 +866,12 @@ def refine_with_titlecard(
     if duration <= 0 or not source_url or len(items) < 2:
         return chapters, {"status": "skipped", "reason": "insufficient_source_or_chapters"}
 
-    # Reuse exact visual boundaries only when this detector version matches.
     if previous_result and int(previous_result.get("duration_seconds") or 0) == duration:
         prev = previous_result.get("titlecard_refinement") or {}
         cached = prev.get("chapter_starts") or {}
-        previous_version = int(prev.get("boundary_version") or 0)
-        previous_matches = prev.get("matches") or []
-        safe_previous = (
-            previous_version == TITLECARD_BOUNDARY_VERSION
-            and all(
-                not row.get("matched")
-                or abs(int(row.get("shift_seconds") or 0)) <= TITLECARD_REGULAR_MAX_SHIFT_SECONDS
-                for row in previous_matches
-                if int(row.get("index") or 0) > 0
-            )
-        )
         if (
             prev.get("status") in {"applied", "partial"}
-            and safe_previous
+            and int(prev.get("boundary_version") or 0) == TITLECARD_BOUNDARY_VERSION
             and cached
         ):
             starts = {int(k): int(v) for k, v in cached.items()}
@@ -708,19 +888,40 @@ def refine_with_titlecard(
         return chapters, {"status": "skipped", "reason": "disabled"}
 
     analysis_url = _lowest_hls_variant(source_url)
-    windows = []
-    blue_windows = []
+    logo_windows = []
     for item in items:
         center = int(item.get("start_seconds") or 0)
-        windows.append(_sample_titlecard_window(analysis_url, center, duration))
-        blue_windows.append(_sample_blue_room_window(analysis_url, center, duration))
+        logo_windows.append(_sample_title_logo_window(analysis_url, center, duration))
 
-    reference, learned = _learn_titlecard_reference(windows)
-    blue_reference, blue_learned = _learn_blue_room_reference(blue_windows)
+    # Learn the user-confirmed yellow title logo from the first regular episode.
+    regular_indices = [
+        i for i, item in enumerate(items)
+        if item.get("kind") == "episode"
+        and int(item.get("episode") or 0) not in EPISODE_DURATION_OVERRIDES
+    ]
+    if not regular_indices:
+        return chapters, {"status": "skipped", "reason": "no_regular_episode_reference"}
 
+    anchor_index = regular_indices[0]
+    anchor_start = int(items[anchor_index].get("start_seconds") or 0)
+    reference, anchor_meta = _pick_anchor_title_logo(
+        logo_windows[anchor_index],
+        anchor_start,
+    )
+    if reference is None:
+        return chapters, {
+            "status": "no_consensus",
+            "method": "yellow-gmcx-title-logo",
+            "boundary_version": TITLECARD_BOUNDARY_VERSION,
+            "reference": anchor_meta,
+            "matches": [],
+        }
+
+    title_offset = int(anchor_meta["offset_seconds"])
     starts: dict[int, int] = {}
     match_rows = []
-    for index, (item, frames, blue_frames) in enumerate(zip(items, windows, blue_windows)):
+
+    for index, (item, frames) in enumerate(zip(items, logo_windows)):
         original = int(item.get("start_seconds") or 0)
         if index == 0:
             starts[index] = 0
@@ -734,96 +935,106 @@ def refine_with_titlecard(
             })
             continue
 
-        matched = None
-        distance = None
-        method = None
-        fallback_meta = None
-
         is_long_numbered_special = (
             item.get("kind") == "episode"
             and int(item.get("episode") or 0) in EPISODE_DURATION_OVERRIDES
         )
         is_special = item.get("kind") == "special" or is_long_numbered_special
 
+        # Specials use their known chronological/official boundary. They may
+        # have a different opening design, so do not force a regular title match.
         if is_special:
-            # Keep the structured/official programme boundary. Specials do not
-            # necessarily contain the regular blue-room opening.
-            matched = int(original)
-            method = "structured-special-boundary"
-        elif blue_reference is not None:
-            t, distance = _best_blue_room_match(blue_reference, blue_frames)
-            if t is not None:
-                reference_offset = int(blue_learned.get("reference_time_seconds") or 0)
-                candidate = max(0, int(t) - reference_offset)
-                if abs(candidate - int(original)) <= TITLECARD_REGULAR_MAX_SHIFT_SECONDS:
-                    matched = candidate
-                    method = "blue-room-opening"
+            starts[index] = original
+            match_rows.append({
+                "index": index,
+                "title": item.get("title"),
+                "matched": True,
+                "method": "structured-special-boundary",
+                "original": original,
+                "refined": original,
+                "shift_seconds": 0,
+            })
+            continue
 
-        if matched is None:
+        expected_title = original + title_offset
+        title_time, meta = _match_title_logo(reference, frames, expected_title)
+        if title_time is None:
             match_rows.append({
                 "index": index,
                 "title": item.get("title"),
                 "matched": False,
                 "original": original,
-                "distance": distance,
-                "fallback": fallback_meta,
+                "expected_title": expected_title,
+                "logo": meta,
             })
             continue
 
-        starts[index] = matched
+        refined = max(0, int(title_time) - title_offset)
+        if abs(refined - original) > TITLECARD_REGULAR_MAX_SHIFT_SECONDS:
+            match_rows.append({
+                "index": index,
+                "title": item.get("title"),
+                "matched": False,
+                "original": original,
+                "candidate": refined,
+                "reason": "shift_guard",
+                "logo": meta,
+            })
+            continue
+
+        starts[index] = refined
         match_rows.append({
             "index": index,
             "title": item.get("title"),
             "matched": True,
-            "method": method,
+            "method": "yellow-gmcx-title-logo",
             "original": original,
-            "refined": matched,
-            "shift_seconds": matched - original,
-            "distance": distance,
-            "fallback": fallback_meta,
+            "title_time": int(title_time),
+            "title_offset": title_offset,
+            "refined": refined,
+            "shift_seconds": refined - original,
+            "logo": meta,
         })
 
-    nonfirst = max(1, len(items) - 1)
-    detected = sum(1 for x in match_rows[1:] if x.get("matched"))
-    if detected == 0:
+    regular_nonfirst = [i for i in regular_indices if i != 0]
+    matched_regular = sum(
+        1 for row in match_rows
+        if row.get("method") == "yellow-gmcx-title-logo"
+    )
+
+    rebuilt = _apply_refined_chapter_starts(
+        [{**x, "vod_id": vod_id} for x in chapters],
+        starts,
+        duration,
+    )
+    unchanged = rebuilt == [{**x, "vod_id": vod_id} for x in chapters]
+    if unchanged and matched_regular:
         return chapters, {
-            "status": "no_consensus",
-            "method": "blue-room-boundary-detection",
+            "status": "guarded",
+            "method": "yellow-gmcx-title-logo",
             "boundary_version": TITLECARD_BOUNDARY_VERSION,
-            **learned,
-            "blue_room": blue_learned,
+            "reason": "order_or_minimum-gap-guard",
+            "reference": anchor_meta,
             "matches": match_rows,
         }
 
-    rebuilt = _apply_refined_chapter_starts(
-        [{**x, "vod_id": vod_id} for x in chapters], starts, duration
-    )
-    unchanged = rebuilt == [{**x, "vod_id": vod_id} for x in chapters]
-    if unchanged and detected:
-        return chapters, {
-            "status": "guarded",
-            "method": "blue-room-boundary-detection",
-            "boundary_version": TITLECARD_BOUNDARY_VERSION,
-            "reason": "order_or_minimum-gap-guard",
-            "matches": match_rows,
-        }
     for x in rebuilt:
         x.pop("vod_id", None)
 
-    coverage = detected / nonfirst
-    status = "applied" if coverage >= 0.8 else "partial"
+    expected_regular = max(1, len(regular_indices) - 1)
+    coverage = matched_regular / expected_regular
+    status = "applied" if coverage >= 0.8 else ("partial" if matched_regular else "no_consensus")
     return rebuilt, {
         "status": status,
-        "method": "blue-room-boundary-detection",
-        "window_seconds": TITLECARD_WINDOW_SECONDS,
-        "sample_seconds": TITLECARD_SAMPLE_SECONDS,
+        "method": "yellow-gmcx-title-logo",
         "boundary_version": TITLECARD_BOUNDARY_VERSION,
-        "lead_in_seconds": TITLECARD_INTRO_SECONDS,
-        "detected_boundaries": detected,
-        "expected_boundaries": nonfirst,
+        "window_seconds": TITLECARD_WINDOW_SECONDS,
+        "sample_seconds": TITLE_LOGO_SAMPLE_SECONDS,
+        "reference": anchor_meta,
+        "title_offset_seconds": title_offset,
+        "detected_regular_boundaries": matched_regular,
+        "expected_regular_boundaries": expected_regular,
         "coverage": round(coverage, 3),
-        **learned,
-        "blue_room": blue_learned,
         "chapter_starts": {str(k): v for k, v in starts.items()},
         "matches": match_rows,
         "cache_reused": False,
