@@ -40,7 +40,7 @@ EPISODE_DURATION_OVERRIDES: dict[int, int] = {
 # signature inside each VOD and place every split on the same visual cue.
 TITLECARD_WINDOW_SECONDS = 240
 TITLECARD_SAMPLE_SECONDS = 2
-TITLECARD_BOUNDARY_VERSION = 22
+TITLECARD_BOUNDARY_VERSION = 23
 TITLECARD_INTRO_SECONDS = 8
 TITLECARD_HASH_BITS = 256
 TITLECARD_MATCH_DISTANCE = 42
@@ -54,7 +54,7 @@ TITLECARD_REFERENCE_MAX_SECONDS = 30
 TITLECARD_SEQUENCE_FRAMES = 3
 TITLECARD_SEQUENCE_MATCH_DISTANCE = 34
 TITLECARD_SPECIAL_MAX_SHIFT_SECONDS = 150
-TITLECARD_REGULAR_MAX_SHIFT_SECONDS = 240
+TITLECARD_REGULAR_MAX_SHIFT_SECONDS = 75
 BLUE_ROOM_MIN_BLUE = 70
 BLUE_ROOM_BLUE_RED_GAP = 24
 BLUE_ROOM_BLUE_GREEN_GAP = 10
@@ -82,8 +82,9 @@ ACCESS_YELLOW_MASK_MIN_PIXELS = 18
 ACCESS_YELLOW_JACCARD_MIN = 0.32
 ACCESS_YELLOW_MIN_WIDTH_RATIO = 0.38
 ACCESS_YELLOW_MIN_HEIGHT_RATIO = 0.18
+ACCESS_YELLOW_MIN_RUN_FRAMES = 3
 TITLE_LOGO_FEATURE_DISTANCE_MAX = 0.65
-TITLE_LOGO_MAX_EXPECTED_DISTANCE_SECONDS = 120
+TITLE_LOGO_MAX_EXPECTED_DISTANCE_SECONDS = 60
 TITLE_LOGO_COMPONENT_MIN_WIDTH_RATIO = 0.42
 TITLE_LOGO_COMPONENT_MIN_HEIGHT_RATIO = 0.12
 TITLE_LOGO_COMPONENT_MIN_ASPECT = 1.8
@@ -826,8 +827,8 @@ def _match_access_reference(reference: dict, frames: list[dict], expected_time: 
         return None, {"reason": "no_access_frames"}
 
     ref_mask = int(reference.get("yellow_mask") or 0)
-    scored = []
-    for x in frames:
+    matched = []
+    for x in sorted(frames, key=lambda row: int(row["time"])):
         time_distance = abs(int(x["time"]) - expected_time)
         if time_distance > TITLE_LOGO_MAX_EXPECTED_DISTANCE_SECONDS:
             continue
@@ -837,23 +838,54 @@ def _match_access_reference(reference: dict, frames: list[dict], expected_time: 
         )
         if similarity < ACCESS_YELLOW_JACCARD_MIN:
             continue
-        # Shape similarity is primary. Time only breaks close matches.
-        score = (
-            -round(similarity, 5),
-            time_distance,
-            -int(x.get("yellow_pixels") or 0),
-            int(x["time"]),
-        )
-        scored.append((score, similarity, time_distance, int(x["time"])))
+        matched.append({
+            "time": int(x["time"]),
+            "similarity": float(similarity),
+            "yellow_pixels": int(x.get("yellow_pixels") or 0),
+        })
 
-    if not scored:
-        return None, {"reason": "yellow_logo_no_match"}
+    runs = []
+    current = []
+    for row in matched:
+        if not current or row["time"] - current[-1]["time"] <= 1:
+            current.append(row)
+        else:
+            if len(current) >= ACCESS_YELLOW_MIN_RUN_FRAMES:
+                runs.append(current)
+            current = [row]
+    if len(current) >= ACCESS_YELLOW_MIN_RUN_FRAMES:
+        runs.append(current)
 
-    scored.sort(key=lambda x: x[0])
-    _, similarity, time_distance, best_time = scored[0]
+    if not runs:
+        return None, {
+            "reason": "yellow_logo_no_stable_run",
+            "candidate_frames": len(matched),
+        }
+
+    candidates = []
+    for run in runs:
+        run_start = int(run[0]["time"])
+        best_similarity = max(x["similarity"] for x in run)
+        avg_similarity = sum(x["similarity"] for x in run) / len(run)
+        distance = abs(run_start - expected_time)
+        candidates.append((
+            distance,
+            -round(avg_similarity, 5),
+            -len(run),
+            run_start,
+            best_similarity,
+            avg_similarity,
+        ))
+
+    # Stay close to the expected chronological boundary first. The visual
+    # match must be stable, but a gameplay lookalike far away must never win.
+    candidates.sort()
+    distance, _, run_len_neg, best_time, best_sim, avg_sim = candidates[0]
     return best_time, {
         "reason": "ok",
-        "yellow_jaccard": round(float(similarity), 4),
+        "yellow_jaccard": round(float(best_sim), 4),
+        "yellow_jaccard_avg": round(float(avg_sim), 4),
+        "run_frames": -run_len_neg,
         "expected_time": expected_time,
         "distance_from_expected": best_time - expected_time,
     }
