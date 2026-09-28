@@ -40,7 +40,7 @@ EPISODE_DURATION_OVERRIDES: dict[int, int] = {
 # signature inside each VOD and place every split on the same visual cue.
 TITLECARD_WINDOW_SECONDS = 240
 TITLECARD_SAMPLE_SECONDS = 2
-TITLECARD_BOUNDARY_VERSION = 25
+TITLECARD_BOUNDARY_VERSION = 26
 TITLECARD_INTRO_SECONDS = 8
 TITLECARD_HASH_BITS = 256
 TITLECARD_MATCH_DISTANCE = 42
@@ -1534,9 +1534,76 @@ def make_uniform_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict[st
     return chapters
 
 
+def make_exact_197_206_chapters(vod: dict, titles: dict[str, str]) -> list[dict]:
+    duration = int(vod.get("duration_seconds") or 0)
+    vod_id = str(vod.get("vod_id") or "")
+    if duration < 48610 or not vod_id:
+        return []
+
+    # Source player file list from the actual archive:
+    # 29 s pre-roll, then exact file runtimes in playback order.
+    layout = [
+        ("episode", 197, None, 3480, None),
+        ("episode", 198, None, 3480, None),
+        ("episode", 199, None, 3450, None),
+        ("special", None, "2015-niconico-chokaigi", 2525, "GMCX in ニコニコ超会議2015"),
+        ("episode", 200, None, 3450, None),
+        ("episode", 201, None, 3480, None),
+        ("episode", 202, None, 3450, None),
+        ("episode", 203, None, 3480, None),
+        ("special", None, "2015-vietnam", 7170, "GMCX in VIETNAM ～ベトナムのゲーム事情 徹底調査&カジノにもリベンジしちゃうよ!SP～"),
+        ("episode", 204, None, 3450, None),
+        ("episode", 205, None, 3480, None),
+        ("special", None, "2015-mario-maker-extra-1", 1771, "GMCX スーパーマリオメーカー関連映像①"),
+        ("special", None, "2015-mario-maker-extra-2", 206, "GMCX スーパーマリオメーカー関連映像②"),
+        ("special", None, "2015-mario-maker-extra-3", 2229, "GMCX スーパーマリオメーカー関連映像③"),
+        ("episode", 206, None, 3480, None),
+    ]
+
+    chapters = []
+    cursor = 29
+    for kind, ep, key, length, special_title in layout:
+        stop = cursor + int(length)
+        if stop > duration:
+            return []
+        if kind == "episode":
+            title = titles.get(str(ep), f"第{ep}回")
+            chapters.append({
+                "kind": "episode",
+                "episode": ep,
+                "title": title,
+                "start_seconds": cursor,
+                "stop_seconds": stop,
+                "duration_seconds": int(length),
+                "replay_url": clip_url(vod_id, cursor, int(length)),
+                "method": "source-filelist-exact",
+                "confidence": "high",
+            })
+        else:
+            chapters.append({
+                "kind": "special",
+                "special_key": key,
+                "title": special_title,
+                "start_seconds": cursor,
+                "stop_seconds": stop,
+                "duration_seconds": int(length),
+                "expected_broadcast_seconds": int(length),
+                "replay_url": clip_url(vod_id, cursor, int(length)),
+                "method": "source-filelist-exact",
+                "confidence": "high",
+            })
+        cursor = stop
+
+    if cursor != duration:
+        return []
+    return chapters
+
+
 def make_mixed_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict[str, str]) -> list[dict]:
     count = end_ep - start_ep + 1
     duration = int(vod.get("duration_seconds") or 0)
+    if (start_ep, end_ep) == (197, 206):
+        return make_exact_197_206_chapters(vod, titles)
     episode_seconds = RANGE_EPISODE_SECONDS.get((start_ep, end_ep), REFERENCE_EPISODE_SECONDS)
     specs = [dict(x) for x in KNOWN_SPECIALS.get((start_ep, end_ep), [])]
 
@@ -1765,10 +1832,15 @@ def main() -> int:
                     "status": "legacy-structured",
                     "reason": "image-refinement-limited-to-177-plus",
                 }
-        elif status == "ready" and chapters and (start_ep, end_ep) == (177, 196):
+        elif status == "ready" and chapters and (start_ep, end_ep) in {(177, 196), (197, 206)}:
+            reason = (
+                "source-player-list-shows-prefix-53m27s-episodes-58m-newyear-15m"
+                if (start_ep, end_ep) == (177, 196)
+                else "source-player-list-exact-29s-preroll-and-15-file-runtimes"
+            )
             titlecard_refinement = {
                 "status": "structured-from-source-filelist",
-                "reason": "source-player-list-shows-prefix-53m27s-episodes-58m-newyear-15m",
+                "reason": reason,
                 "boundary_version": TITLECARD_BOUNDARY_VERSION,
             }
         elif status == "ready" and chapters and vod.get("playable"):
