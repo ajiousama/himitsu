@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-28T16:45:18.800280+09:00",
+  "generated_at": "2026-09-28T16:54:06.782045+09:00",
   "reference_episode_seconds": 3501,
   "results": [
     {
@@ -71,7 +71,7 @@
           "duration_seconds": 1574,
           "expected_broadcast_seconds": null,
           "replay_url": "https://kick-resolver.onrender.com/kick?vod=5c00e78e-b92c-4bea-bd7f-10136a81b09e&start=11700&duration=1574",
-          "method": "titlecard-detected",
+          "method": "chronological-known-program-order",
           "confidence": "high"
         },
         {
@@ -116,7 +116,7 @@
           "duration_seconds": 1574,
           "expected_broadcast_seconds": null,
           "replay_url": "https://kick-resolver.onrender.com/kick?vod=5c00e78e-b92c-4bea-bd7f-10136a81b09e&start=24974&duration=1574",
-          "method": "titlecard-detected",
+          "method": "chronological-known-program-order",
           "confidence": "high"
         },
         {
@@ -124,9 +124,9 @@
           "episode": 223,
           "title": "おそ松くん はちゃめちゃ劇場",
           "start_seconds": 26548,
-          "stop_seconds": 30318,
-          "duration_seconds": 3770,
-          "replay_url": "https://kick-resolver.onrender.com/kick?vod=5c00e78e-b92c-4bea-bd7f-10136a81b09e&start=26548&duration=3770",
+          "stop_seconds": 30448,
+          "duration_seconds": 3900,
+          "replay_url": "https://kick-resolver.onrender.com/kick?vod=5c00e78e-b92c-4bea-bd7f-10136a81b09e&start=26548&duration=3900",
           "method": "chronological-reference-cadence",
           "confidence": "high"
         },
@@ -134,11 +134,11 @@
           "kind": "episode",
           "episode": 224,
           "title": "地底戦空バゾルダー",
-          "start_seconds": 30318,
+          "start_seconds": 30448,
           "stop_seconds": 34348,
-          "duration_seconds": 4030,
-          "replay_url": "https://kick-resolver.onrender.com/kick?vod=5c00e78e-b92c-4bea-bd7f-10136a81b09e&start=30318&duration=4030",
-          "method": "titlecard-detected",
+          "duration_seconds": 3900,
+          "replay_url": "https://kick-resolver.onrender.com/kick?vod=5c00e78e-b92c-4bea-bd7f-10136a81b09e&start=30448&duration=3900",
+          "method": "chronological-reference-cadence",
           "confidence": "high"
         },
         {
@@ -150,7 +150,7 @@
           "duration_seconds": 1574,
           "expected_broadcast_seconds": null,
           "replay_url": "https://kick-resolver.onrender.com/kick?vod=5c00e78e-b92c-4bea-bd7f-10136a81b09e&start=34348&duration=1574",
-          "method": "titlecard-detected",
+          "method": "chronological-known-program-order",
           "confidence": "high"
         },
         {
@@ -173,7 +173,7 @@
           "duration_seconds": 1574,
           "expected_broadcast_seconds": null,
           "replay_url": "https://kick-resolver.onrender.com/kick?vod=5c00e78e-b92c-4bea-bd7f-10136a81b09e&start=39822&duration=1574",
-          "method": "titlecard-detected",
+          "method": "chronological-known-program-order",
           "confidence": "high"
         },
         {
@@ -184,7 +184,7 @@
           "stop_seconds": 48596,
           "duration_seconds": 7200,
           "replay_url": "https://kick-resolver.onrender.com/kick?vod=5c00e78e-b92c-4bea-bd7f-10136a81b09e&start=41396&duration=7200",
-          "method": "titlecard-detected",
+          "method": "chronological-reference-cadence",
           "confidence": "high"
         },
         {
@@ -196,193 +196,18 @@
           "duration_seconds": 1574,
           "expected_broadcast_seconds": null,
           "replay_url": "https://kick-resolver.onrender.com/kick?vod=5c00e78e-b92c-4bea-bd7f-10136a81b09e&start=48596&duration=1574",
-          "method": "titlecard-detected",
+          "method": "chronological-known-program-order",
           "confidence": "high"
         }
       ],
       "titlecard_refinement": {
-        "status": "partial",
+        "status": "no_consensus",
         "method": "yellow-gmcx-title-logo",
-        "boundary_version": 12,
-        "window_seconds": 240,
-        "sample_seconds": 2,
+        "boundary_version": 13,
         "reference": {
-          "reason": "ok",
-          "title_time": 30,
-          "offset_seconds": 30,
-          "run_frames": 2,
-          "template_jaccard": 0.3456
+          "reason": "no_title_logo_near_reference_start"
         },
-        "title_offset_seconds": 30,
-        "detected_regular_boundaries": 1,
-        "expected_regular_boundaries": 8,
-        "coverage": 0.125,
-        "chapter_starts": {
-          "0": 0,
-          "3": 11700,
-          "7": 24974,
-          "9": 30318,
-          "10": 34348,
-          "12": 39822,
-          "13": 41396,
-          "14": 48596
-        },
-        "matches": [
-          {
-            "index": 0,
-            "title": "サルゲッチュ（前編）",
-            "matched": true,
-            "method": "vod-start",
-            "original": 0,
-            "refined": 0
-          },
-          {
-            "index": 1,
-            "title": "サルゲッチュ（後編）",
-            "matched": false,
-            "original": 3900,
-            "expected_title": 3930,
-            "logo": {
-              "reason": "no_matching_title_logo"
-            }
-          },
-          {
-            "index": 2,
-            "title": "アルゴスの戦士 はちゃめちゃ大進撃",
-            "matched": false,
-            "original": 7800,
-            "expected_title": 7830,
-            "logo": {
-              "reason": "no_matching_title_logo"
-            }
-          },
-          {
-            "index": 3,
-            "title": "GMCX 特別篇 ポケットモンスター赤・緑 #1",
-            "matched": true,
-            "method": "structured-special-boundary",
-            "original": 11700,
-            "refined": 11700,
-            "shift_seconds": 0
-          },
-          {
-            "index": 4,
-            "title": "超兄貴（前編）",
-            "matched": false,
-            "original": 13274,
-            "expected_title": 13304,
-            "logo": {
-              "reason": "no_matching_title_logo"
-            }
-          },
-          {
-            "index": 5,
-            "title": "超兄貴（後編）",
-            "matched": false,
-            "original": 17174,
-            "expected_title": 17204,
-            "logo": {
-              "reason": "no_matching_title_logo"
-            }
-          },
-          {
-            "index": 6,
-            "title": "ワギャンランド2",
-            "matched": false,
-            "original": 21074,
-            "expected_title": 21104,
-            "logo": {
-              "reason": "no_matching_title_logo"
-            }
-          },
-          {
-            "index": 7,
-            "title": "GMCX 特別篇 ポケットモンスター赤・緑 #2",
-            "matched": true,
-            "method": "structured-special-boundary",
-            "original": 24974,
-            "refined": 24974,
-            "shift_seconds": 0
-          },
-          {
-            "index": 8,
-            "title": "おそ松くん はちゃめちゃ劇場",
-            "matched": false,
-            "original": 26548,
-            "expected_title": 26578,
-            "logo": {
-              "reason": "no_matching_title_logo"
-            }
-          },
-          {
-            "index": 9,
-            "title": "地底戦空バゾルダー",
-            "matched": true,
-            "method": "yellow-gmcx-title-logo",
-            "original": 30448,
-            "title_time": 30348,
-            "title_offset": 30,
-            "refined": 30318,
-            "shift_seconds": -130,
-            "logo": {
-              "reason": "ok",
-              "run_frames": 2,
-              "expected_title_time": 30478,
-              "distance_from_expected": -130,
-              "template_jaccard": 0.2571,
-              "bbox_width": 38,
-              "bbox_height": 7,
-              "aspect": 5.429
-            }
-          },
-          {
-            "index": 10,
-            "title": "GMCX 特別篇 ポケットモンスター赤・緑 #3",
-            "matched": true,
-            "method": "structured-special-boundary",
-            "original": 34348,
-            "refined": 34348,
-            "shift_seconds": 0
-          },
-          {
-            "index": 11,
-            "title": "獣王記",
-            "matched": false,
-            "original": 35922,
-            "expected_title": 35952,
-            "logo": {
-              "reason": "no_matching_title_logo"
-            }
-          },
-          {
-            "index": 12,
-            "title": "GMCX 特別篇 ポケットモンスター赤・緑 #4",
-            "matched": true,
-            "method": "structured-special-boundary",
-            "original": 39822,
-            "refined": 39822,
-            "shift_seconds": 0
-          },
-          {
-            "index": 13,
-            "title": "ゲームセンターCX in 四国／奇々怪界",
-            "matched": true,
-            "method": "structured-special-boundary",
-            "original": 41396,
-            "refined": 41396,
-            "shift_seconds": 0
-          },
-          {
-            "index": 14,
-            "title": "GMCX 特別篇 ポケットモンスター赤・緑 #5",
-            "matched": true,
-            "method": "structured-special-boundary",
-            "original": 48596,
-            "refined": 48596,
-            "shift_seconds": 0
-          }
-        ],
-        "cache_reused": false
+        "matches": []
       },
       "ai_windows": []
     },
@@ -547,7 +372,7 @@
       "titlecard_refinement": {
         "status": "no_consensus",
         "method": "yellow-gmcx-title-logo",
-        "boundary_version": 12,
+        "boundary_version": 13,
         "reference": {
           "reason": "no_title_logo_near_reference_start"
         },
@@ -571,9 +396,9 @@
           "episode": 197,
           "title": "I.Q Intelligent Qube（前編）",
           "start_seconds": 0,
-          "stop_seconds": 3903,
-          "duration_seconds": 3903,
-          "replay_url": "https://kick-resolver.onrender.com/kick?vod=04f0dc3a-5255-4137-bbae-bcca467ec5c0&start=0&duration=3903",
+          "stop_seconds": 3871,
+          "duration_seconds": 3871,
+          "replay_url": "https://kick-resolver.onrender.com/kick?vod=04f0dc3a-5255-4137-bbae-bcca467ec5c0&start=0&duration=3871",
           "method": "chronological-reference-cadence",
           "confidence": "high"
         },
@@ -581,11 +406,11 @@
           "kind": "episode",
           "episode": 198,
           "title": "I.Q Intelligent Qube（後編）",
-          "start_seconds": 3903,
+          "start_seconds": 3871,
           "stop_seconds": 7742,
-          "duration_seconds": 3839,
-          "replay_url": "https://kick-resolver.onrender.com/kick?vod=04f0dc3a-5255-4137-bbae-bcca467ec5c0&start=3903&duration=3839",
-          "method": "titlecard-detected",
+          "duration_seconds": 3871,
+          "replay_url": "https://kick-resolver.onrender.com/kick?vod=04f0dc3a-5255-4137-bbae-bcca467ec5c0&start=3871&duration=3871",
+          "method": "chronological-reference-cadence",
           "confidence": "high"
         },
         {
@@ -608,7 +433,7 @@
           "duration_seconds": 2700,
           "expected_broadcast_seconds": 2700,
           "replay_url": "https://kick-resolver.onrender.com/kick?vod=04f0dc3a-5255-4137-bbae-bcca467ec5c0&start=11613&duration=2700",
-          "method": "titlecard-detected",
+          "method": "chronological-known-program-order",
           "confidence": "high"
         },
         {
@@ -627,9 +452,9 @@
           "episode": 201,
           "title": "ダブルドラゴン 双截龍",
           "start_seconds": 18184,
-          "stop_seconds": 22155,
-          "duration_seconds": 3971,
-          "replay_url": "https://kick-resolver.onrender.com/kick?vod=04f0dc3a-5255-4137-bbae-bcca467ec5c0&start=18184&duration=3971",
+          "stop_seconds": 22055,
+          "duration_seconds": 3871,
+          "replay_url": "https://kick-resolver.onrender.com/kick?vod=04f0dc3a-5255-4137-bbae-bcca467ec5c0&start=18184&duration=3871",
           "method": "chronological-reference-cadence",
           "confidence": "high"
         },
@@ -637,11 +462,11 @@
           "kind": "episode",
           "episode": 202,
           "title": "忍者くん 阿修羅ノ章（前編）",
-          "start_seconds": 22155,
+          "start_seconds": 22055,
           "stop_seconds": 25926,
-          "duration_seconds": 3771,
-          "replay_url": "https://kick-resolver.onrender.com/kick?vod=04f0dc3a-5255-4137-bbae-bcca467ec5c0&start=22155&duration=3771",
-          "method": "titlecard-detected",
+          "duration_seconds": 3871,
+          "replay_url": "https://kick-resolver.onrender.com/kick?vod=04f0dc3a-5255-4137-bbae-bcca467ec5c0&start=22055&duration=3871",
+          "method": "chronological-reference-cadence",
           "confidence": "high"
         },
         {
@@ -664,7 +489,7 @@
           "duration_seconds": 7200,
           "expected_broadcast_seconds": 7200,
           "replay_url": "https://kick-resolver.onrender.com/kick?vod=04f0dc3a-5255-4137-bbae-bcca467ec5c0&start=29797&duration=7200",
-          "method": "titlecard-detected",
+          "method": "chronological-known-program-order",
           "confidence": "high"
         },
         {
@@ -672,9 +497,9 @@
           "episode": 204,
           "title": "山村美紗サスペンス 京都龍の寺殺人事件",
           "start_seconds": 36997,
-          "stop_seconds": 40882,
-          "duration_seconds": 3885,
-          "replay_url": "https://kick-resolver.onrender.com/kick?vod=04f0dc3a-5255-4137-bbae-bcca467ec5c0&start=36997&duration=3885",
+          "stop_seconds": 40868,
+          "duration_seconds": 3871,
+          "replay_url": "https://kick-resolver.onrender.com/kick?vod=04f0dc3a-5255-4137-bbae-bcca467ec5c0&start=36997&duration=3871",
           "method": "chronological-reference-cadence",
           "confidence": "high"
         },
@@ -682,214 +507,33 @@
           "kind": "episode",
           "episode": 205,
           "title": "モグラ〜ニャ",
-          "start_seconds": 40882,
-          "stop_seconds": 44903,
-          "duration_seconds": 4021,
-          "replay_url": "https://kick-resolver.onrender.com/kick?vod=04f0dc3a-5255-4137-bbae-bcca467ec5c0&start=40882&duration=4021",
-          "method": "titlecard-detected",
+          "start_seconds": 40868,
+          "stop_seconds": 44739,
+          "duration_seconds": 3871,
+          "replay_url": "https://kick-resolver.onrender.com/kick?vod=04f0dc3a-5255-4137-bbae-bcca467ec5c0&start=40868&duration=3871",
+          "method": "chronological-reference-cadence",
           "confidence": "high"
         },
         {
           "kind": "episode",
           "episode": 206,
           "title": "闘いの挽歌",
-          "start_seconds": 44903,
+          "start_seconds": 44739,
           "stop_seconds": 48610,
-          "duration_seconds": 3707,
-          "replay_url": "https://kick-resolver.onrender.com/kick?vod=04f0dc3a-5255-4137-bbae-bcca467ec5c0&start=44903&duration=3707",
-          "method": "titlecard-detected",
+          "duration_seconds": 3871,
+          "replay_url": "https://kick-resolver.onrender.com/kick?vod=04f0dc3a-5255-4137-bbae-bcca467ec5c0&start=44739&duration=3871",
+          "method": "chronological-reference-cadence",
           "confidence": "high"
         }
       ],
       "titlecard_refinement": {
-        "status": "partial",
+        "status": "no_consensus",
         "method": "yellow-gmcx-title-logo",
-        "boundary_version": 12,
-        "window_seconds": 240,
-        "sample_seconds": 2,
+        "boundary_version": 13,
         "reference": {
-          "reason": "ok",
-          "title_time": 30,
-          "offset_seconds": 30,
-          "run_frames": 2,
-          "template_jaccard": 0.2534
+          "reason": "no_title_logo_near_reference_start"
         },
-        "title_offset_seconds": 30,
-        "detected_regular_boundaries": 4,
-        "expected_regular_boundaries": 9,
-        "coverage": 0.444,
-        "chapter_starts": {
-          "0": 0,
-          "1": 3903,
-          "3": 11613,
-          "6": 22155,
-          "8": 29797,
-          "10": 40882,
-          "11": 44903
-        },
-        "matches": [
-          {
-            "index": 0,
-            "title": "I.Q Intelligent Qube（前編）",
-            "matched": true,
-            "method": "vod-start",
-            "original": 0,
-            "refined": 0
-          },
-          {
-            "index": 1,
-            "title": "I.Q Intelligent Qube（後編）",
-            "matched": true,
-            "method": "yellow-gmcx-title-logo",
-            "original": 3871,
-            "title_time": 3933,
-            "title_offset": 30,
-            "refined": 3903,
-            "shift_seconds": 32,
-            "logo": {
-              "reason": "ok",
-              "run_frames": 2,
-              "expected_title_time": 3901,
-              "distance_from_expected": 32,
-              "template_jaccard": 0.373,
-              "bbox_width": 30,
-              "bbox_height": 8,
-              "aspect": 3.75
-            }
-          },
-          {
-            "index": 2,
-            "title": "クイズなないろDREAMS 虹色町の奇跡",
-            "matched": false,
-            "original": 7742,
-            "expected_title": 7772,
-            "logo": {
-              "reason": "no_matching_title_logo"
-            }
-          },
-          {
-            "index": 3,
-            "title": "GMCX in ニコニコ超会議2015",
-            "matched": true,
-            "method": "structured-special-boundary",
-            "original": 11613,
-            "refined": 11613,
-            "shift_seconds": 0
-          },
-          {
-            "index": 4,
-            "title": "全日本プロレス",
-            "matched": false,
-            "original": 14313,
-            "expected_title": 14343,
-            "logo": {
-              "reason": "no_matching_title_logo"
-            }
-          },
-          {
-            "index": 5,
-            "title": "ダブルドラゴン 双截龍",
-            "matched": false,
-            "original": 18184,
-            "expected_title": 18214,
-            "logo": {
-              "reason": "no_matching_title_logo"
-            }
-          },
-          {
-            "index": 6,
-            "title": "忍者くん 阿修羅ノ章（前編）",
-            "matched": true,
-            "method": "yellow-gmcx-title-logo",
-            "original": 22055,
-            "title_time": 22185,
-            "title_offset": 30,
-            "refined": 22155,
-            "shift_seconds": 100,
-            "logo": {
-              "reason": "ok",
-              "run_frames": 4,
-              "expected_title_time": 22085,
-              "distance_from_expected": 100,
-              "template_jaccard": 0.4004,
-              "bbox_width": 42,
-              "bbox_height": 15,
-              "aspect": 2.8
-            }
-          },
-          {
-            "index": 7,
-            "title": "忍者くん 阿修羅ノ章（後編）",
-            "matched": false,
-            "original": 25926,
-            "expected_title": 25956,
-            "logo": {
-              "reason": "no_matching_title_logo"
-            }
-          },
-          {
-            "index": 8,
-            "title": "GMCX in VIETNAM ～ベトナムのゲーム事情 徹底調査&カジノにもリベンジしちゃうよ!SP～",
-            "matched": true,
-            "method": "structured-special-boundary",
-            "original": 29797,
-            "refined": 29797,
-            "shift_seconds": 0
-          },
-          {
-            "index": 9,
-            "title": "山村美紗サスペンス 京都龍の寺殺人事件",
-            "matched": false,
-            "original": 36997,
-            "expected_title": 37027,
-            "logo": {
-              "reason": "no_matching_title_logo"
-            }
-          },
-          {
-            "index": 10,
-            "title": "モグラ〜ニャ",
-            "matched": true,
-            "method": "yellow-gmcx-title-logo",
-            "original": 40868,
-            "title_time": 40912,
-            "title_offset": 30,
-            "refined": 40882,
-            "shift_seconds": 14,
-            "logo": {
-              "reason": "ok",
-              "run_frames": 4,
-              "expected_title_time": 40898,
-              "distance_from_expected": 14,
-              "template_jaccard": 0.2917,
-              "bbox_width": 29,
-              "bbox_height": 9,
-              "aspect": 3.222
-            }
-          },
-          {
-            "index": 11,
-            "title": "闘いの挽歌",
-            "matched": true,
-            "method": "yellow-gmcx-title-logo",
-            "original": 44739,
-            "title_time": 44933,
-            "title_offset": 30,
-            "refined": 44903,
-            "shift_seconds": 164,
-            "logo": {
-              "reason": "ok",
-              "run_frames": 2,
-              "expected_title_time": 44769,
-              "distance_from_expected": 164,
-              "template_jaccard": 0.3547,
-              "bbox_width": 60,
-              "bbox_height": 17,
-              "aspect": 3.529
-            }
-          }
-        ],
-        "cache_reused": false
+        "matches": []
       },
       "ai_windows": []
     },
@@ -1128,7 +772,7 @@
       "titlecard_refinement": {
         "status": "no_consensus",
         "method": "yellow-gmcx-title-logo",
-        "boundary_version": 12,
+        "boundary_version": 13,
         "reference": {
           "reason": "no_title_logo_near_reference_start"
         },
