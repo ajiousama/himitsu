@@ -40,7 +40,7 @@ EPISODE_DURATION_OVERRIDES: dict[int, int] = {
 # signature inside each VOD and place every split on the same visual cue.
 TITLECARD_WINDOW_SECONDS = 240
 TITLECARD_SAMPLE_SECONDS = 2
-TITLECARD_BOUNDARY_VERSION = 27
+TITLECARD_BOUNDARY_VERSION = 28
 TITLECARD_INTRO_SECONDS = 8
 TITLECARD_HASH_BITS = 256
 TITLECARD_MATCH_DISTANCE = 42
@@ -355,6 +355,113 @@ def _lowest_hls_variant(url: str) -> str:
     except Exception as exc:
         print(f"::warning::GMCX title-card master inspect failed: {exc}")
     return url
+
+
+def _fetch_hls_segment_timeline(url: str) -> list[dict]:
+    """Fetch one media playlist and build the same segment timeline used by the resolver."""
+    media = _lowest_hls_variant(url)
+    try:
+        req = urllib.request.Request(
+            media,
+            headers={
+                "User-Agent": "Mozilla/5.0 GMCX-hls-diagnostics/1.0",
+                "Cache-Control": "no-cache",
+            },
+        )
+        with urllib.request.urlopen(req, timeout=25) as res:
+            text = res.read(4 * 1024 * 1024).decode("utf-8", "replace")
+    except Exception as exc:
+        print(f"::warning::GMCX HLS diagnostic fetch failed: {exc}")
+        return []
+
+    if "#EXT-X-STREAM-INF" in text:
+        media2 = _lowest_hls_variant(media)
+        if media2 != media:
+            try:
+                req = urllib.request.Request(
+                    media2,
+                    headers={
+                        "User-Agent": "Mozilla/5.0 GMCX-hls-diagnostics/1.0",
+                        "Cache-Control": "no-cache",
+                    },
+                )
+                with urllib.request.urlopen(req, timeout=25) as res:
+                    text = res.read(4 * 1024 * 1024).decode("utf-8", "replace")
+                media = media2
+            except Exception:
+                pass
+
+    timeline = []
+    cursor = 0.0
+    pending = None
+    for raw in text.replace("\r", "").split("\n"):
+        line = raw.strip()
+        if line.startswith("#EXTINF:"):
+            try:
+                pending = float(line.split(":", 1)[1].split(",", 1)[0])
+            except Exception:
+                pending = None
+            continue
+        if not line or line.startswith("#") or pending is None:
+            continue
+        start = cursor
+        stop = cursor + max(0.0, pending)
+        timeline.append({
+            "start": start,
+            "stop": stop,
+            "duration": max(0.0, pending),
+        })
+        cursor = stop
+        pending = None
+    return timeline
+
+
+def _segment_aligned_clip(timeline: list[dict], start: int, duration: int) -> dict | None:
+    """Mirror services/kick/handler.js clipPlaylist segment selection."""
+    if not timeline or duration <= 0:
+        return None
+    requested_stop = start + duration
+    selected = []
+    for seg in timeline:
+        if float(seg["stop"]) <= start + 0.001:
+            continue
+        if float(seg["start"]) >= requested_stop - 0.001:
+            break
+        selected.append(seg)
+    if not selected:
+        return None
+    actual_start = float(selected[0]["start"])
+    actual_stop = float(selected[-1]["stop"])
+    return {
+        "requested_start_seconds": start,
+        "requested_duration_seconds": duration,
+        "actual_segment_start_seconds": round(actual_start, 3),
+        "actual_segment_stop_seconds": round(actual_stop, 3),
+        "actual_hls_duration_seconds": round(actual_stop - actual_start, 3),
+        "lead_overlap_seconds": round(max(0.0, start - actual_start), 3),
+        "tail_overlap_seconds": round(max(0.0, actual_stop - requested_stop), 3),
+    }
+
+
+def _annotate_hls_diagnostics(vod: dict, chapters: list[dict]) -> list[dict]:
+    source_url = str(vod.get("source_url") or "")
+    if not source_url or not vod.get("playable") or not chapters:
+        return chapters
+    timeline = _fetch_hls_segment_timeline(source_url)
+    if not timeline:
+        return chapters
+    out = []
+    for chapter in chapters:
+        row = dict(chapter)
+        diag = _segment_aligned_clip(
+            timeline,
+            int(chapter.get("start_seconds") or 0),
+            int(chapter.get("duration_seconds") or 0),
+        )
+        if diag:
+            row["hls_diagnostics"] = diag
+        out.append(row)
+    return out
 
 
 def _frame_signature(frame: bytes) -> tuple[int, float, int] | None:
@@ -1865,6 +1972,9 @@ def main() -> int:
                 "status": "skipped",
                 "reason": "direct-source-unavailable-kept-structured-split",
             }
+
+        if status == "ready" and chapters:
+            chapters = _annotate_hls_diagnostics(vod, chapters)
 
         all_chapters.extend([
             {
