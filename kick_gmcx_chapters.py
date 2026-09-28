@@ -40,7 +40,7 @@ EPISODE_DURATION_OVERRIDES: dict[int, int] = {
 # signature inside each VOD and place every split on the same visual cue.
 TITLECARD_WINDOW_SECONDS = 240
 TITLECARD_SAMPLE_SECONDS = 2
-TITLECARD_BOUNDARY_VERSION = 17
+TITLECARD_BOUNDARY_VERSION = 18
 TITLECARD_INTRO_SECONDS = 8
 TITLECARD_HASH_BITS = 256
 TITLECARD_MATCH_DISTANCE = 42
@@ -674,7 +674,7 @@ def _sample_access_frame_signatures(
         "-t", str(span),
         "-an",
         "-vf",
-        f"fps=1,{{ACCESS_FRAME_CROP}},scale=17:16:flags=area,format=gray",
+        f"fps=1,{ACCESS_FRAME_CROP},scale=17:16:flags=area,format=gray",
         "-pix_fmt", "gray",
         "-f", "rawvideo", "pipe:1",
     ]
