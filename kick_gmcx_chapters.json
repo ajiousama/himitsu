@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-28T16:04:54.942711+09:00",
+  "generated_at": "2026-09-28T16:35:12.340629+09:00",
   "reference_episode_seconds": 3501,
   "results": [
     {
@@ -203,7 +203,7 @@
       "titlecard_refinement": {
         "status": "no_consensus",
         "method": "yellow-gmcx-title-logo",
-        "boundary_version": 10,
+        "boundary_version": 11,
         "window_seconds": 240,
         "sample_seconds": 2,
         "reference": {
@@ -535,7 +535,7 @@
       "titlecard_refinement": {
         "status": "no_consensus",
         "method": "yellow-gmcx-title-logo",
-        "boundary_version": 10,
+        "boundary_version": 11,
         "reference": {
           "reason": "no_title_logo_near_reference_start"
         },
@@ -660,9 +660,9 @@
           "episode": 204,
           "title": "山村美紗サスペンス 京都龍の寺殺人事件",
           "start_seconds": 36997,
-          "stop_seconds": 40884,
-          "duration_seconds": 3887,
-          "replay_url": "https://kick-resolver.onrender.com/kick?vod=04f0dc3a-5255-4137-bbae-bcca467ec5c0&start=36997&duration=3887",
+          "stop_seconds": 40868,
+          "duration_seconds": 3871,
+          "replay_url": "https://kick-resolver.onrender.com/kick?vod=04f0dc3a-5255-4137-bbae-bcca467ec5c0&start=36997&duration=3871",
           "method": "chronological-reference-cadence",
           "confidence": "high"
         },
@@ -670,11 +670,11 @@
           "kind": "episode",
           "episode": 205,
           "title": "モグラ〜ニャ",
-          "start_seconds": 40884,
+          "start_seconds": 40868,
           "stop_seconds": 44739,
-          "duration_seconds": 3855,
-          "replay_url": "https://kick-resolver.onrender.com/kick?vod=04f0dc3a-5255-4137-bbae-bcca467ec5c0&start=40884&duration=3855",
-          "method": "titlecard-detected",
+          "duration_seconds": 3871,
+          "replay_url": "https://kick-resolver.onrender.com/kick?vod=04f0dc3a-5255-4137-bbae-bcca467ec5c0&start=40868&duration=3871",
+          "method": "chronological-reference-cadence",
           "confidence": "high"
         },
         {
@@ -690,9 +690,9 @@
         }
       ],
       "titlecard_refinement": {
-        "status": "partial",
+        "status": "no_consensus",
         "method": "yellow-gmcx-title-logo",
-        "boundary_version": 10,
+        "boundary_version": 11,
         "window_seconds": 240,
         "sample_seconds": 2,
         "reference": {
@@ -703,14 +703,13 @@
           "yellow_ratio": 0.0714
         },
         "title_offset_seconds": 28,
-        "detected_regular_boundaries": 1,
+        "detected_regular_boundaries": 0,
         "expected_regular_boundaries": 9,
-        "coverage": 0.111,
+        "coverage": 0.0,
         "chapter_starts": {
           "0": 0,
           "3": 11613,
-          "8": 29797,
-          "10": 40884
+          "8": 29797
         },
         "matches": [
           {
@@ -812,19 +811,11 @@
           {
             "index": 10,
             "title": "モグラ〜ニャ",
-            "matched": true,
-            "method": "yellow-gmcx-title-logo",
+            "matched": false,
             "original": 40868,
-            "title_time": 40912,
-            "title_offset": 28,
-            "refined": 40884,
-            "shift_seconds": 16,
+            "expected_title": 40896,
             "logo": {
-              "reason": "ok",
-              "jaccard": 0.4545,
-              "run_frames": 2,
-              "expected_title_time": 40896,
-              "distance_from_expected": 16
+              "reason": "no_matching_title_logo"
             }
           },
           {
@@ -838,7 +829,7 @@
             }
           }
         ],
-        "cache_reused": true
+        "cache_reused": false
       },
       "ai_windows": []
     },
@@ -1077,7 +1068,7 @@
       "titlecard_refinement": {
         "status": "no_consensus",
         "method": "yellow-gmcx-title-logo",
-        "boundary_version": 10,
+        "boundary_version": 11,
         "reference": {
           "reason": "no_title_logo_near_reference_start"
         },
