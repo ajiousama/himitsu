@@ -24,7 +24,9 @@ permissions:
 # the main VOD5/EPG writer. That prevents replay updates from overwriting a
 # newer BOAT/public-sports/KICK LIVE state.
 concurrency:
-  group: himitsu-freewifi-state-writer
+  # Emergency GMCX repair commits may run beside an obsolete analyser.
+  # Normal scheduled/push runs still share the repository-wide writer mutex.
+  group: ${{ contains(github.event.head_commit.message, '[gmcx-fix]') && 'himitsu-gmcx-fix' || 'himitsu-freewifi-state-writer' }}
   cancel-in-progress: false
 
 jobs:
