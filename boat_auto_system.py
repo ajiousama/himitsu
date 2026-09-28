@@ -4,8 +4,9 @@ from __future__ import annotations
 """BOAT Auto v4 (v3 status schema retained for existing consumers).
 
 One self-contained updater owns today's BOAT schedule, current-day stream cache,
-FreeWiFi playlist block, BOAT EPG overlay and alert state.  A venue that has
-appeared never disappears before the JST date changes.
+FreeWiFi playlist block, BOAT EPG overlay and alert state.  A venue is removed
+from FreeWiFi after its final race has finished, while its same-day stream/cache
+and EPG state are retained internally.
 """
 
 import argparse
@@ -575,13 +576,15 @@ def build_venue_state(cards: dict[str, list[dict]], streams: dict[str, dict], no
         intermission = intermission_window(races, now) if not is_cancelled else None
         ended = now >= finish and not is_cancelled
         active = alert_from <= now < finish and not is_cancelled and not intermission
-        # A schedule change should not make an already-published venue disappear.
-        # Preserve any same-day stream URL; only new acquisition is suppressed below.
+        # Keep the verified same-day stream cached, but stop publishing the
+        # channel after the final race transition.  BOAT feeds can go blank
+        # after racing ends, so leaving a stale channel in FreeWiFi is worse
+        # than temporarily hiding it until the next meeting/day.
         stream = streams.get(tvg_id) or {}
         url = str(stream.get("url") or "")
         current_url = current_day_stream(url, now.date())
         expired = token_expired(url) if current_url else False
-        visible = bool(current_url)
+        visible = bool(current_url and not ended)
         source_ready = bool(current_url and not expired and stream.get('playback_verified'))
         upcoming = next((race for race in races if race["start"] >= now), None)
         ever_verified = bool(stream.get('first_verified_at'))
@@ -612,7 +615,7 @@ def build_venue_state(cards: dict[str, list[dict]], streams: dict[str, dict], no
             "last_race": last.strftime("%H:%M"),
             "alert_from": alert_from.isoformat(),
             "next_race": next_race(races, now),
-            "stream_window": "ended_kept" if ended else ("intermission" if intermission else ("live_or_prestart" if active else "scheduled")),
+            "stream_window": "ended_hidden" if ended else ("intermission" if intermission else ("live_or_prestart" if active else "scheduled")),
             "intermission": intermission,
             "guidance_switch_at": guidance_switch.isoformat(),
             "seed_required": seed_required,
@@ -660,7 +663,7 @@ def update_playlist(rows: list[dict]) -> None:
     payload = "\n".join(body).rstrip()
     managed = (
         START
-        + "\n## 今日の開催場 / BOAT AUTO v4（終了場も当日中保持）\n"
+        + "\n## 今日の開催場 / BOAT AUTO v4（終了場は自動非表示）\n"
         + payload
         + ("\n" if payload else "")
         + END
