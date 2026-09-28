@@ -31,7 +31,7 @@ class BoatAutoSystemTests(unittest.TestCase):
         self.assertTrue(boat.schedule_not_published_error(RuntimeError("HTTPError: HTTP Error 404: Not Found")))
         self.assertFalse(boat.schedule_not_published_error(RuntimeError("HTTP Error 500: Server Error")))
 
-    def test_finished_venue_is_kept_until_date_change(self):
+    def test_finished_venue_is_hidden_from_freewifi(self):
         day = date(2026, 9, 8)
         races = card(day, 8, 30)
         now = datetime(2026, 9, 8, 20, 0, tzinfo=boat.JST)
@@ -43,9 +43,9 @@ class BoatAutoSystemTests(unittest.TestCase):
         )
         item = venues["boat.mikuni"]
         self.assertTrue(item["ended"])
-        self.assertTrue(item["visible"])
-        self.assertEqual(item["stream_window"], "ended_kept")
-        self.assertEqual(len(rows), 1)
+        self.assertFalse(item["visible"])
+        self.assertEqual(item["stream_window"], "ended_hidden")
+        self.assertEqual(len(rows), 0)
         self.assertEqual(phases["morning"]["ended"], 1)
 
     def test_schedule_change_keeps_existing_stream_visible(self):
