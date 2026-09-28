@@ -40,7 +40,7 @@ EPISODE_DURATION_OVERRIDES: dict[int, int] = {
 # signature inside each VOD and place every split on the same visual cue.
 TITLECARD_WINDOW_SECONDS = 240
 TITLECARD_SAMPLE_SECONDS = 2
-TITLECARD_BOUNDARY_VERSION = 12
+TITLECARD_BOUNDARY_VERSION = 13
 TITLECARD_INTRO_SECONDS = 8
 TITLECARD_HASH_BITS = 256
 TITLECARD_MATCH_DISTANCE = 42
@@ -70,6 +70,11 @@ TITLE_LOGO_TEMPLATE_WIDTH = 48
 TITLE_LOGO_TEMPLATE_HEIGHT = 12
 TITLE_LOGO_TEMPLATE_JACCARD_MIN = 0.24
 TITLE_LOGO_EXPECTED_OFFSET_SECONDS = 30
+TITLE_LOGO_COMPONENT_MIN_WIDTH_RATIO = 0.62
+TITLE_LOGO_COMPONENT_MIN_HEIGHT_RATIO = 0.24
+TITLE_LOGO_COMPONENT_MIN_ASPECT = 2.4
+TITLE_LOGO_COMPONENT_MAX_ASPECT = 5.8
+TITLE_LOGO_COMPONENT_CENTER_TOLERANCE = 0.22
 TITLE_LOGO_TEMPLATE_ROWS = (
     "000000000000000000000000000000000000000000000000",
     "000000001111111111111111111110000111110011001100",
@@ -522,77 +527,127 @@ TITLE_LOGO_TEMPLATE_MASK = _title_logo_template_mask()
 
 
 def _normalise_yellow_logo(frame: bytes, width: int, height: int) -> dict | None:
-    # Search only the broad centre band where the user-confirmed title appears.
-    x0, x1 = 2, width - 2
-    y0, y1 = 5, height - 5
-    yellow = []
-    for y in range(y0, y1):
-        for x in range(x0, x1):
+    yellow = [[False for _ in range(width)] for _ in range(height)]
+    dark_count = 0
+    for y in range(height):
+        for x in range(width):
             p = (y * width + x) * 3
             rr, gg, bb = frame[p], frame[p + 1], frame[p + 2]
-            if (
-                rr > 115 and gg > 105 and bb < 145
-                and rr - bb > 32 and gg - bb > 28
-            ):
-                yellow.append((x, y))
+            yellow[y][x] = (
+                rr > 110 and gg > 100 and bb < 155
+                and rr - bb > 30 and gg - bb > 25
+            )
+            if rr < 75 and gg < 75 and bb < 75:
+                dark_count += 1
 
-    if len(yellow) < 45:
+    # One-pixel dilation connects the border and letters of the large GMCX logo.
+    dilated = [[False for _ in range(width)] for _ in range(height)]
+    for y in range(height):
+        for x in range(width):
+            if not yellow[y][x]:
+                continue
+            for dy in (-1, 0, 1):
+                yy = y + dy
+                if yy < 0 or yy >= height:
+                    continue
+                for dx in (-1, 0, 1):
+                    xx = x + dx
+                    if 0 <= xx < width:
+                        dilated[yy][xx] = True
+
+    seen = [[False for _ in range(width)] for _ in range(height)]
+    components = []
+    for sy in range(height):
+        for sx in range(width):
+            if not dilated[sy][sx] or seen[sy][sx]:
+                continue
+            stack = [(sx, sy)]
+            seen[sy][sx] = True
+            min_x = max_x = sx
+            min_y = max_y = sy
+            pixels = 0
+            while stack:
+                x, y = stack.pop()
+                pixels += 1
+                min_x = min(min_x, x)
+                max_x = max(max_x, x)
+                min_y = min(min_y, y)
+                max_y = max(max_y, y)
+                for dx, dy in ((1,0),(-1,0),(0,1),(0,-1)):
+                    xx, yy = x + dx, y + dy
+                    if (
+                        0 <= xx < width and 0 <= yy < height
+                        and dilated[yy][xx] and not seen[yy][xx]
+                    ):
+                        seen[yy][xx] = True
+                        stack.append((xx, yy))
+            bw = max_x - min_x + 1
+            bh = max_y - min_y + 1
+            aspect = bw / max(1, bh)
+            cx = (min_x + max_x) / 2 / width
+            cy = (min_y + max_y) / 2 / height
+            components.append({
+                "pixels": pixels,
+                "min_x": min_x, "max_x": max_x,
+                "min_y": min_y, "max_y": max_y,
+                "width": bw, "height": bh,
+                "aspect": aspect,
+                "cx": cx, "cy": cy,
+            })
+
+    candidates = []
+    for c in components:
+        width_ratio = c["width"] / width
+        height_ratio = c["height"] / height
+        if width_ratio < TITLE_LOGO_COMPONENT_MIN_WIDTH_RATIO:
+            continue
+        if height_ratio < TITLE_LOGO_COMPONENT_MIN_HEIGHT_RATIO:
+            continue
+        if not (TITLE_LOGO_COMPONENT_MIN_ASPECT <= c["aspect"] <= TITLE_LOGO_COMPONENT_MAX_ASPECT):
+            continue
+        if abs(c["cx"] - 0.5) > TITLE_LOGO_COMPONENT_CENTER_TOLERANCE:
+            continue
+        if not (0.25 <= c["cy"] <= 0.72):
+            continue
+
+        # Count actual yellow pixels inside the connected component's box.
+        yellow_count = 0
+        total = c["width"] * c["height"]
+        for y in range(c["min_y"], c["max_y"] + 1):
+            for x in range(c["min_x"], c["max_x"] + 1):
+                if yellow[y][x]:
+                    yellow_count += 1
+        yellow_fill = yellow_count / max(1, total)
+        if yellow_fill < 0.10:
+            continue
+
+        score = (
+            -width_ratio,
+            abs(c["cx"] - 0.5),
+            abs(c["cy"] - 0.49),
+            -yellow_fill,
+        )
+        candidates.append((score, c, yellow_fill))
+
+    if not candidates:
         return None
 
-    min_x = min(x for x, _ in yellow)
-    max_x = max(x for x, _ in yellow)
-    min_y = min(y for _, y in yellow)
-    max_y = max(y for _, y in yellow)
-    bw = max_x - min_x + 1
-    bh = max_y - min_y + 1
-
-    # The GMCX logo is a wide horizontal object occupying much of the frame.
-    if bw < int(width * 0.45) or bh < int(height * 0.12):
-        return None
-    aspect = bw / max(1, bh)
-    if aspect < 2.4 or aspect > 7.5:
-        return None
-
-    source = [[False for _ in range(bw)] for _ in range(bh)]
-    for x, y in yellow:
-        source[y - min_y][x - min_x] = True
-
-    bits = 0
-    bit = 0
-    occupied = 0
-    for oy in range(TITLE_LOGO_TEMPLATE_HEIGHT):
-        sy0 = oy * bh // TITLE_LOGO_TEMPLATE_HEIGHT
-        sy1 = max(sy0 + 1, (oy + 1) * bh // TITLE_LOGO_TEMPLATE_HEIGHT)
-        for ox in range(TITLE_LOGO_TEMPLATE_WIDTH):
-            sx0 = ox * bw // TITLE_LOGO_TEMPLATE_WIDTH
-            sx1 = max(sx0 + 1, (ox + 1) * bw // TITLE_LOGO_TEMPLATE_WIDTH)
-            cells = 0
-            hits = 0
-            for sy in range(sy0, min(sy1, bh)):
-                for sx in range(sx0, min(sx1, bw)):
-                    cells += 1
-                    if source[sy][sx]:
-                        hits += 1
-            if cells and hits / cells >= 0.16:
-                bits |= 1 << bit
-                occupied += 1
-            bit += 1
-
-    union = (bits | TITLE_LOGO_TEMPLATE_MASK).bit_count()
-    jaccard = (
-        (bits & TITLE_LOGO_TEMPLATE_MASK).bit_count() / union
-        if union else 0.0
-    )
+    candidates.sort(key=lambda x: x[0])
+    _, c, yellow_fill = candidates[0]
+    dark_ratio = dark_count / (width * height)
     return {
-        "mask": bits,
-        "jaccard": round(jaccard, 4),
-        "bbox_width": bw,
-        "bbox_height": bh,
-        "aspect": round(aspect, 3),
-        "occupied": occupied,
+        "mask": 0,
+        "jaccard": 1.0,
+        "bbox_width": c["width"],
+        "bbox_height": c["height"],
+        "width_ratio": round(c["width"] / width, 4),
+        "height_ratio": round(c["height"] / height, 4),
+        "aspect": round(c["aspect"], 3),
+        "center_x": round(c["cx"], 4),
+        "center_y": round(c["cy"], 4),
+        "yellow_fill": round(yellow_fill, 4),
+        "dark_ratio": round(dark_ratio, 4),
     }
-
-
 def _sample_title_logo_window(url: str, center: int, total_duration: int) -> list[dict]:
     if total_duration <= 0:
         return []
@@ -638,7 +693,7 @@ def _sample_title_logo_window(url: str, center: int, total_duration: int) -> lis
     for idx in range(len(raw) // frame_size):
         frame = raw[idx * frame_size:(idx + 1) * frame_size]
         logo = _normalise_yellow_logo(frame, width, height)
-        if not logo or float(logo["jaccard"]) < TITLE_LOGO_TEMPLATE_JACCARD_MIN:
+        if not logo:
             continue
         out.append({
             "time": min(total_duration - 1, start + idx * TITLE_LOGO_SAMPLE_SECONDS),
@@ -680,11 +735,17 @@ def _pick_anchor_title_logo(frames: list[dict], chapter_start: int) -> tuple[dic
         offset = start - int(chapter_start)
         if offset < 0 or offset > TITLE_LOGO_REFERENCE_SEARCH_SECONDS:
             continue
-        best = max(run, key=lambda x: float(x.get("jaccard") or 0))
+        best = max(
+            run,
+            key=lambda x: (
+                float(x.get("width_ratio") or 0),
+                float(x.get("yellow_fill") or 0),
+            ),
+        )
         score = (
             abs(offset - TITLE_LOGO_EXPECTED_OFFSET_SECONDS),
-            -float(best.get("jaccard") or 0),
             -len(run),
+            -float(best.get("width_ratio") or 0),
         )
         candidates.append((score, start, best, run))
     if not candidates:
@@ -698,21 +759,28 @@ def _pick_anchor_title_logo(frames: list[dict], chapter_start: int) -> tuple[dic
         "title_time": start,
         "offset_seconds": start - int(chapter_start),
         "run_frames": len(run),
-        "template_jaccard": best.get("jaccard"),
+        "width_ratio": best.get("width_ratio"),
+        "height_ratio": best.get("height_ratio"),
+        "aspect": best.get("aspect"),
+        "yellow_fill": best.get("yellow_fill"),
     }
 
 def _match_title_logo(reference: dict, frames: list[dict], expected_time: int) -> tuple[int | None, dict]:
     candidates = []
     for run in _title_logo_runs(frames):
         start = int(run[0]["time"])
-        best = max(run, key=lambda x: float(x.get("jaccard") or 0))
-        jaccard = float(best.get("jaccard") or 0)
-        if jaccard < TITLE_LOGO_TEMPLATE_JACCARD_MIN:
-            continue
+        best = max(
+            run,
+            key=lambda x: (
+                float(x.get("width_ratio") or 0),
+                float(x.get("yellow_fill") or 0),
+            ),
+        )
         score = (
             abs(start - int(expected_time)),
-            -jaccard,
             -len(run),
+            -float(best.get("width_ratio") or 0),
+            -float(best.get("yellow_fill") or 0),
         )
         candidates.append((score, start, best, len(run)))
 
@@ -725,10 +793,12 @@ def _match_title_logo(reference: dict, frames: list[dict], expected_time: int) -
         "run_frames": run_frames,
         "expected_title_time": int(expected_time),
         "distance_from_expected": start - int(expected_time),
-        "template_jaccard": best.get("jaccard"),
         "bbox_width": best.get("bbox_width"),
         "bbox_height": best.get("bbox_height"),
+        "width_ratio": best.get("width_ratio"),
+        "height_ratio": best.get("height_ratio"),
         "aspect": best.get("aspect"),
+        "yellow_fill": best.get("yellow_fill"),
     }
 def _hdist(a: int, b: int) -> int:
     return (a ^ b).bit_count()
