@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-29T07:17:51.287010+09:00",
+  "generated_at": "2026-09-29T07:31:19.182279+09:00",
   "reference_episode_seconds": 3501,
   "results": [
     {
@@ -236,132 +236,13 @@
       ],
       "titlecard_refinement": {
         "status": "no_consensus",
-        "method": "vod-access-yellow-logo",
-        "boundary_version": 28,
-        "window_seconds": 240,
-        "sample_seconds": 1,
+        "method": "recurring-blue-room",
+        "boundary_version": 29,
         "reference": {
-          "reason": "ok",
-          "reference_time_seconds": 31,
-          "yellow_pixels": 96,
-          "source": "vod-access-yellow-logo-20-45s"
+          "reason": "no_recurring_blue_room",
+          "usable_windows": 8
         },
-        "title_offset_seconds": 31,
-        "detected_regular_boundaries": 0,
-        "expected_regular_boundaries": 9,
-        "coverage": 0.0,
-        "chapter_starts": {
-          "0": 0
-        },
-        "matches": [
-          {
-            "index": 0,
-            "title": "第227回",
-            "matched": true,
-            "method": "vod-start",
-            "original": 0,
-            "refined": 0
-          },
-          {
-            "index": 1,
-            "title": "第228回",
-            "matched": false,
-            "original": 4462,
-            "expected_reference": 4493,
-            "yellow_logo": {
-              "reason": "yellow_logo_no_stable_run",
-              "candidate_frames": 0
-            }
-          },
-          {
-            "index": 2,
-            "title": "第229回",
-            "matched": false,
-            "original": 8924,
-            "expected_reference": 8955,
-            "yellow_logo": {
-              "reason": "yellow_logo_no_stable_run",
-              "candidate_frames": 0
-            }
-          },
-          {
-            "index": 3,
-            "title": "第230回",
-            "matched": false,
-            "original": 13386,
-            "expected_reference": 13417,
-            "yellow_logo": {
-              "reason": "yellow_logo_no_stable_run",
-              "candidate_frames": 0
-            }
-          },
-          {
-            "index": 4,
-            "title": "第231回",
-            "matched": false,
-            "original": 17848,
-            "expected_reference": 17879,
-            "yellow_logo": {
-              "reason": "yellow_logo_no_stable_run",
-              "candidate_frames": 0
-            }
-          },
-          {
-            "index": 5,
-            "title": "第232回",
-            "matched": false,
-            "original": 22310,
-            "expected_reference": 22341,
-            "yellow_logo": {
-              "reason": "yellow_logo_no_stable_run",
-              "candidate_frames": 0
-            }
-          },
-          {
-            "index": 6,
-            "title": "第233回",
-            "matched": false,
-            "original": 26771,
-            "expected_reference": 26802,
-            "yellow_logo": {
-              "reason": "yellow_logo_no_stable_run",
-              "candidate_frames": 0
-            }
-          },
-          {
-            "index": 7,
-            "title": "第234回",
-            "matched": false,
-            "original": 31233,
-            "expected_reference": 31264,
-            "yellow_logo": {
-              "reason": "no_access_frames"
-            }
-          },
-          {
-            "index": 8,
-            "title": "第235回",
-            "matched": false,
-            "original": 35695,
-            "expected_reference": 35726,
-            "yellow_logo": {
-              "reason": "yellow_logo_no_stable_run",
-              "candidate_frames": 0
-            }
-          },
-          {
-            "index": 9,
-            "title": "第236回",
-            "matched": false,
-            "original": 40157,
-            "expected_reference": 40188,
-            "yellow_logo": {
-              "reason": "yellow_logo_no_stable_run",
-              "candidate_frames": 0
-            }
-          }
-        ],
-        "cache_reused": false
+        "matches": []
       },
       "ai_windows": []
     },
@@ -451,7 +332,7 @@
           "duration_seconds": 1980,
           "expected_broadcast_seconds": 1980,
           "replay_url": "https://kick-resolver.onrender.com/kick?vod=5c00e78e-b92c-4bea-bd7f-10136a81b09e&start=10624&duration=1980",
-          "method": "titlecard-detected",
+          "method": "chronological-known-program-order",
           "confidence": "high",
           "hls_diagnostics": {
             "requested_start_seconds": 10624,
@@ -473,7 +354,7 @@
           "stop_seconds": 16145,
           "duration_seconds": 3541,
           "replay_url": "https://kick-resolver.onrender.com/kick?vod=5c00e78e-b92c-4bea-bd7f-10136a81b09e&start=12604&duration=3541",
-          "method": "titlecard-detected",
+          "method": "chronological-reference-cadence",
           "confidence": "high",
           "hls_diagnostics": {
             "requested_start_seconds": 12604,
@@ -540,7 +421,7 @@
           "duration_seconds": 2220,
           "expected_broadcast_seconds": 2220,
           "replay_url": "https://kick-resolver.onrender.com/kick?vod=5c00e78e-b92c-4bea-bd7f-10136a81b09e&start=23227&duration=2220",
-          "method": "titlecard-detected",
+          "method": "chronological-known-program-order",
           "confidence": "high",
           "hls_diagnostics": {
             "requested_start_seconds": 23227,
@@ -562,7 +443,7 @@
           "stop_seconds": 28988,
           "duration_seconds": 3541,
           "replay_url": "https://kick-resolver.onrender.com/kick?vod=5c00e78e-b92c-4bea-bd7f-10136a81b09e&start=25447&duration=3541",
-          "method": "titlecard-detected",
+          "method": "chronological-reference-cadence",
           "confidence": "high",
           "hls_diagnostics": {
             "requested_start_seconds": 25447,
@@ -607,7 +488,7 @@
           "duration_seconds": 2220,
           "expected_broadcast_seconds": 2220,
           "replay_url": "https://kick-resolver.onrender.com/kick?vod=5c00e78e-b92c-4bea-bd7f-10136a81b09e&start=32529&duration=2220",
-          "method": "titlecard-detected",
+          "method": "chronological-known-program-order",
           "confidence": "high",
           "hls_diagnostics": {
             "requested_start_seconds": 32529,
@@ -629,7 +510,7 @@
           "stop_seconds": 38290,
           "duration_seconds": 3541,
           "replay_url": "https://kick-resolver.onrender.com/kick?vod=5c00e78e-b92c-4bea-bd7f-10136a81b09e&start=34749&duration=3541",
-          "method": "titlecard-detected",
+          "method": "chronological-reference-cadence",
           "confidence": "high",
           "hls_diagnostics": {
             "requested_start_seconds": 34749,
@@ -652,7 +533,7 @@
           "duration_seconds": 2100,
           "expected_broadcast_seconds": 2100,
           "replay_url": "https://kick-resolver.onrender.com/kick?vod=5c00e78e-b92c-4bea-bd7f-10136a81b09e&start=38290&duration=2100",
-          "method": "titlecard-detected",
+          "method": "chronological-known-program-order",
           "confidence": "high",
           "hls_diagnostics": {
             "requested_start_seconds": 38290,
@@ -674,7 +555,7 @@
           "stop_seconds": 47590,
           "duration_seconds": 7200,
           "replay_url": "https://kick-resolver.onrender.com/kick?vod=5c00e78e-b92c-4bea-bd7f-10136a81b09e&start=40390&duration=7200",
-          "method": "titlecard-detected",
+          "method": "chronological-reference-cadence",
           "confidence": "high",
           "hls_diagnostics": {
             "requested_start_seconds": 40390,
@@ -697,7 +578,7 @@
           "duration_seconds": 2580,
           "expected_broadcast_seconds": 2580,
           "replay_url": "https://kick-resolver.onrender.com/kick?vod=5c00e78e-b92c-4bea-bd7f-10136a81b09e&start=47590&duration=2580",
-          "method": "titlecard-detected",
+          "method": "chronological-known-program-order",
           "confidence": "high",
           "hls_diagnostics": {
             "requested_start_seconds": 47590,
@@ -714,179 +595,104 @@
       ],
       "titlecard_refinement": {
         "status": "no_consensus",
-        "method": "vod-access-yellow-logo",
-        "boundary_version": 28,
-        "window_seconds": 240,
-        "sample_seconds": 1,
+        "method": "recurring-blue-room",
+        "boundary_version": 29,
+        "reason": "blue_room_coverage_below_80_percent",
         "reference": {
           "reason": "ok",
-          "reference_time_seconds": 30,
-          "yellow_pixels": 96,
-          "source": "vod-access-yellow-logo-20-45s"
+          "usable_windows": 5,
+          "reference_time_seconds": 20,
+          "median_distance": 69.0,
+          "matching_windows": 2
         },
-        "title_offset_seconds": 30,
-        "detected_regular_boundaries": 0,
-        "expected_regular_boundaries": 5,
-        "coverage": 0.0,
-        "chapter_starts": {
-          "0": 0,
-          "3": 10624,
-          "4": 12604,
-          "7": 23227,
-          "8": 25447,
-          "10": 32529,
-          "11": 34749,
-          "12": 38290,
-          "13": 40390,
-          "14": 47590
-        },
+        "detected_regular_boundaries": 2,
+        "expected_regular_boundaries": 9,
+        "coverage": 0.222,
         "matches": [
           {
             "index": 0,
             "title": "サルゲッチュ（前編）",
             "matched": true,
-            "method": "vod-start",
+            "method": "recurring-blue-room",
             "original": 0,
-            "refined": 0
+            "refined": 20,
+            "shift_seconds": 20,
+            "distance": 0
           },
           {
             "index": 1,
             "title": "サルゲッチュ（後編）",
-            "matched": false,
+            "matched": true,
+            "method": "recurring-blue-room",
             "original": 3542,
-            "expected_reference": 3572,
-            "yellow_logo": {
-              "reason": "yellow_logo_no_stable_run",
-              "candidate_frames": 2
-            }
+            "refined": 3500,
+            "shift_seconds": -42,
+            "distance": 7
           },
           {
             "index": 2,
             "title": "アルゴスの戦士 はちゃめちゃ大進撃",
             "matched": false,
             "original": 7083,
-            "expected_reference": 7113,
-            "yellow_logo": {
-              "reason": "yellow_logo_no_stable_run",
-              "candidate_frames": 0
-            }
-          },
-          {
-            "index": 3,
-            "title": "GMCX 特別篇 ポケットモンスター赤・緑 #1",
-            "matched": true,
-            "method": "structured-fixed-boundary",
-            "original": 10624,
-            "refined": 10624,
-            "shift_seconds": 0
+            "candidate": 6981,
+            "distance": 14,
+            "reason": "no_blue_room_or_shift_guard"
           },
           {
             "index": 4,
             "title": "超兄貴（前編）",
-            "matched": true,
-            "method": "structured-fixed-boundary",
+            "matched": false,
             "original": 12604,
-            "refined": 12604,
-            "shift_seconds": 0
+            "candidate": null,
+            "distance": null,
+            "reason": "no_blue_room_or_shift_guard"
           },
           {
             "index": 5,
             "title": "超兄貴（後編）",
             "matched": false,
             "original": 16145,
-            "expected_reference": 16175,
-            "yellow_logo": {
-              "reason": "yellow_logo_no_stable_run",
-              "candidate_frames": 1
-            }
+            "candidate": null,
+            "distance": null,
+            "reason": "no_blue_room_or_shift_guard"
           },
           {
             "index": 6,
             "title": "ワギャンランド2",
             "matched": false,
             "original": 19686,
-            "expected_reference": 19716,
-            "yellow_logo": {
-              "reason": "yellow_logo_no_stable_run",
-              "candidate_frames": 0
-            }
-          },
-          {
-            "index": 7,
-            "title": "GMCX 特別篇 ポケットモンスター赤・緑 #2",
-            "matched": true,
-            "method": "structured-fixed-boundary",
-            "original": 23227,
-            "refined": 23227,
-            "shift_seconds": 0
+            "candidate": null,
+            "distance": null,
+            "reason": "no_blue_room_or_shift_guard"
           },
           {
             "index": 8,
             "title": "おそ松くん はちゃめちゃ劇場",
-            "matched": true,
-            "method": "structured-fixed-boundary",
+            "matched": false,
             "original": 25447,
-            "refined": 25447,
-            "shift_seconds": 0
+            "candidate": null,
+            "distance": 154,
+            "reason": "no_blue_room_or_shift_guard"
           },
           {
             "index": 9,
             "title": "地底戦空バゾルダー",
             "matched": false,
             "original": 28988,
-            "expected_reference": 29018,
-            "yellow_logo": {
-              "reason": "yellow_logo_no_stable_run",
-              "candidate_frames": 0
-            }
-          },
-          {
-            "index": 10,
-            "title": "GMCX 特別篇 ポケットモンスター赤・緑 #3",
-            "matched": true,
-            "method": "structured-fixed-boundary",
-            "original": 32529,
-            "refined": 32529,
-            "shift_seconds": 0
+            "candidate": null,
+            "distance": 124,
+            "reason": "no_blue_room_or_shift_guard"
           },
           {
             "index": 11,
             "title": "獣王記",
-            "matched": true,
-            "method": "structured-fixed-boundary",
+            "matched": false,
             "original": 34749,
-            "refined": 34749,
-            "shift_seconds": 0
-          },
-          {
-            "index": 12,
-            "title": "GMCX 特別篇 ポケットモンスター赤・緑 #4",
-            "matched": true,
-            "method": "structured-fixed-boundary",
-            "original": 38290,
-            "refined": 38290,
-            "shift_seconds": 0
-          },
-          {
-            "index": 13,
-            "title": "ゲームセンターCX in 四国／奇々怪界",
-            "matched": true,
-            "method": "structured-fixed-boundary",
-            "original": 40390,
-            "refined": 40390,
-            "shift_seconds": 0
-          },
-          {
-            "index": 14,
-            "title": "GMCX 特別篇 ポケットモンスター赤・緑 #5",
-            "matched": true,
-            "method": "structured-fixed-boundary",
-            "original": 47590,
-            "refined": 47590,
-            "shift_seconds": 0
+            "candidate": null,
+            "distance": null,
+            "reason": "no_blue_room_or_shift_guard"
           }
-        ],
-        "cache_reused": false
+        ]
       },
       "ai_windows": []
     },
@@ -1217,7 +1023,7 @@
       "titlecard_refinement": {
         "status": "structured-from-source-filelist",
         "reason": "provisional-order-corrected-mario-maker-play-belongs-before-206",
-        "boundary_version": 28
+        "boundary_version": 29
       },
       "ai_windows": []
     },
@@ -1571,7 +1377,7 @@
       "titlecard_refinement": {
         "status": "structured-from-source-filelist",
         "reason": "source-player-list-exact-29s-preroll-and-15-file-runtimes",
-        "boundary_version": 28
+        "boundary_version": 29
       },
       "ai_windows": []
     },
@@ -2099,7 +1905,7 @@
       "titlecard_refinement": {
         "status": "structured-from-source-filelist",
         "reason": "source-player-list-shows-prefix-53m27s-episodes-58m-newyear-15m",
-        "boundary_version": 28
+        "boundary_version": 29
       },
       "ai_windows": []
     }
