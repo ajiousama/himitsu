@@ -40,7 +40,7 @@ EPISODE_DURATION_OVERRIDES: dict[int, int] = {
 # signature inside each VOD and place every split on the same visual cue.
 TITLECARD_WINDOW_SECONDS = 240
 TITLECARD_SAMPLE_SECONDS = 2
-TITLECARD_BOUNDARY_VERSION = 8
+TITLECARD_BOUNDARY_VERSION = 9
 TITLECARD_INTRO_SECONDS = 8
 TITLECARD_HASH_BITS = 256
 TITLECARD_MATCH_DISTANCE = 42
@@ -54,7 +54,12 @@ TITLECARD_REFERENCE_MAX_SECONDS = 30
 TITLECARD_SEQUENCE_FRAMES = 3
 TITLECARD_SEQUENCE_MATCH_DISTANCE = 34
 TITLECARD_SPECIAL_MAX_SHIFT_SECONDS = 150
-TITLECARD_REGULAR_MAX_SHIFT_SECONDS = 180
+TITLECARD_REGULAR_MAX_SHIFT_SECONDS = 240
+BLUE_ROOM_MIN_BLUE = 70
+BLUE_ROOM_BLUE_RED_GAP = 24
+BLUE_ROOM_BLUE_GREEN_GAP = 10
+BLUE_ROOM_HASH_DISTANCE = 46
+BLUE_ROOM_SAMPLE_SECONDS = 2
 
 # Known mixed archive bundles. Specials are inserted in chronological order before/after episodes.
 # A single special with duration_seconds=None consumes the remaining non-regular footage.
@@ -355,6 +360,128 @@ def _sample_titlecard_window(
     return frames
 
 
+def _sample_blue_room_window(url: str, center: int, total_duration: int) -> list[dict]:
+    if total_duration <= 0:
+        return []
+    if center <= TITLECARD_WINDOW_SECONDS:
+        start = 0
+        span = min(total_duration, max(1, center + TITLECARD_WINDOW_SECONDS))
+    else:
+        start = max(0, center - TITLECARD_WINDOW_SECONDS)
+        stop = min(total_duration, center + TITLECARD_WINDOW_SECONDS)
+        span = max(1, stop - start)
+
+    cmd = [
+        "ffmpeg", "-hide_banner", "-loglevel", "error",
+        "-rw_timeout", "15000000",
+        "-ss", str(start),
+        "-i", url,
+        "-t", str(span),
+        "-an",
+        "-vf", f"fps=1/{BLUE_ROOM_SAMPLE_SECONDS},scale=17:16:flags=area,format=rgb24",
+        "-pix_fmt", "rgb24",
+        "-f", "rawvideo", "pipe:1",
+    ]
+    try:
+        proc = subprocess.run(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            timeout=55,
+            check=False,
+        )
+    except (FileNotFoundError, subprocess.TimeoutExpired) as exc:
+        print(f"::warning::GMCX blue-room sample failed center={center}: {exc}")
+        return []
+    if proc.returncode != 0:
+        err = proc.stderr.decode("utf-8", "replace")[-300:]
+        print(f"::warning::GMCX blue-room ffmpeg failed center={center}: {err}")
+        return []
+
+    size = 17 * 16 * 3
+    frames = []
+    raw = proc.stdout
+    for idx in range(len(raw) // size):
+        frame = raw[idx * size:(idx + 1) * size]
+        rs = frame[0::3]
+        gs = frame[1::3]
+        bs = frame[2::3]
+        if not rs or not gs or not bs:
+            continue
+        rmean = sum(rs) / len(rs)
+        gmean = sum(gs) / len(gs)
+        bmean = sum(bs) / len(bs)
+        if (
+            bmean < BLUE_ROOM_MIN_BLUE
+            or bmean - rmean < BLUE_ROOM_BLUE_RED_GAP
+            or bmean - gmean < BLUE_ROOM_BLUE_GREEN_GAP
+        ):
+            continue
+
+        gray = bytearray(len(rs))
+        for p in range(len(rs)):
+            gray[p] = int(0.299 * rs[p] + 0.587 * gs[p] + 0.114 * bs[p])
+        sig = _frame_signature(bytes(gray))
+        if not sig:
+            continue
+        bits, mean, contrast = sig
+        frames.append({
+            "time": min(total_duration - 1, start + idx * BLUE_ROOM_SAMPLE_SECONDS),
+            "hash": bits,
+            "mean": mean,
+            "contrast": contrast,
+            "blue_mean": round(bmean, 2),
+            "blue_red_gap": round(bmean - rmean, 2),
+            "blue_green_gap": round(bmean - gmean, 2),
+        })
+    return frames
+
+
+def _learn_blue_room_reference(windows: list[list[dict]]) -> tuple[dict | None, dict]:
+    usable = [w for w in windows if w]
+    if len(usable) < 3:
+        return None, {"reason": "too_few_blue_windows", "usable_windows": len(usable)}
+
+    anchor = usable[0]
+    best = None
+    for frame in anchor:
+        matches = 0
+        distances = []
+        for w in usable[1:]:
+            d = min((_hdist(frame["hash"], x["hash"]) for x in w), default=999)
+            distances.append(d)
+            if d <= BLUE_ROOM_HASH_DISTANCE:
+                matches += 1
+        required = max(2, int(round((len(usable) - 1) * 0.45)))
+        if matches < required:
+            continue
+        score = statistics.median(distances)
+        candidate = (score, -matches, frame["time"], frame)
+        if best is None or candidate[:3] < best[:3]:
+            best = candidate
+
+    if best is None:
+        return None, {"reason": "no_recurring_blue_room", "usable_windows": len(usable)}
+    return best[3], {
+        "reason": "ok",
+        "usable_windows": len(usable),
+        "reference_time_seconds": int(best[3]["time"]),
+        "median_distance": round(float(best[0]), 3),
+        "matching_windows": -best[1],
+    }
+
+
+def _best_blue_room_match(reference: dict, frames: list[dict]) -> tuple[int | None, int | None]:
+    if not frames:
+        return None, None
+    scored = [(_hdist(reference["hash"], x["hash"]), int(x["time"])) for x in frames]
+    best_dist = min(x[0] for x in scored)
+    if best_dist > BLUE_ROOM_HASH_DISTANCE:
+        return None, best_dist
+    near = [t for d, t in scored if d <= min(BLUE_ROOM_HASH_DISTANCE, best_dist + 4)]
+    return min(near), best_dist
+
+
 def _hdist(a: int, b: int) -> int:
     return (a ^ b).bit_count()
 
@@ -582,15 +709,18 @@ def refine_with_titlecard(
 
     analysis_url = _lowest_hls_variant(source_url)
     windows = []
+    blue_windows = []
     for item in items:
         center = int(item.get("start_seconds") or 0)
         windows.append(_sample_titlecard_window(analysis_url, center, duration))
+        blue_windows.append(_sample_blue_room_window(analysis_url, center, duration))
 
     reference, learned = _learn_titlecard_reference(windows)
+    blue_reference, blue_learned = _learn_blue_room_reference(blue_windows)
 
     starts: dict[int, int] = {}
     match_rows = []
-    for index, (item, frames) in enumerate(zip(items, windows)):
+    for index, (item, frames, blue_frames) in enumerate(zip(items, windows, blue_windows)):
         original = int(item.get("start_seconds") or 0)
         if index == 0:
             starts[index] = 0
@@ -616,22 +746,18 @@ def refine_with_titlecard(
         is_special = item.get("kind") == "special" or is_long_numbered_special
 
         if is_special:
-            t, fallback_meta = _best_static_title_start(
-                frames,
-                original,
-                TITLECARD_SPECIAL_MAX_SHIFT_SECONDS,
-            )
+            # Keep the structured/official programme boundary. Specials do not
+            # necessarily contain the regular blue-room opening.
+            matched = int(original)
+            method = "structured-special-boundary"
+        elif blue_reference is not None:
+            t, distance = _best_blue_room_match(blue_reference, blue_frames)
             if t is not None:
-                matched = max(0, int(t) - TITLECARD_INTRO_SECONDS)
-                method = "guarded-special-title-transition"
-        elif reference is not None:
-            t, distance = _best_titlecard_match(reference, frames)
-            if t is not None:
-                reference_offset = int(learned.get("reference_time_seconds") or 0)
+                reference_offset = int(blue_learned.get("reference_time_seconds") or 0)
                 candidate = max(0, int(t) - reference_offset)
                 if abs(candidate - int(original)) <= TITLECARD_REGULAR_MAX_SHIFT_SECONDS:
                     matched = candidate
-                    method = "recurring-opening-sequence"
+                    method = "blue-room-opening"
 
         if matched is None:
             match_rows.append({
@@ -662,9 +788,10 @@ def refine_with_titlecard(
     if detected == 0:
         return chapters, {
             "status": "no_consensus",
-            "method": "all-chapter-titlecard-detection",
+            "method": "blue-room-boundary-detection",
             "boundary_version": TITLECARD_BOUNDARY_VERSION,
             **learned,
+            "blue_room": blue_learned,
             "matches": match_rows,
         }
 
@@ -675,7 +802,7 @@ def refine_with_titlecard(
     if unchanged and detected:
         return chapters, {
             "status": "guarded",
-            "method": "all-chapter-titlecard-detection",
+            "method": "blue-room-boundary-detection",
             "boundary_version": TITLECARD_BOUNDARY_VERSION,
             "reason": "order_or_minimum-gap-guard",
             "matches": match_rows,
@@ -687,7 +814,7 @@ def refine_with_titlecard(
     status = "applied" if coverage >= 0.8 else "partial"
     return rebuilt, {
         "status": status,
-        "method": "all-chapter-titlecard-detection",
+        "method": "blue-room-boundary-detection",
         "window_seconds": TITLECARD_WINDOW_SECONDS,
         "sample_seconds": TITLECARD_SAMPLE_SECONDS,
         "boundary_version": TITLECARD_BOUNDARY_VERSION,
@@ -696,6 +823,7 @@ def refine_with_titlecard(
         "expected_boundaries": nonfirst,
         "coverage": round(coverage, 3),
         **learned,
+        "blue_room": blue_learned,
         "chapter_starts": {str(k): v for k, v in starts.items()},
         "matches": match_rows,
         "cache_reused": False,
