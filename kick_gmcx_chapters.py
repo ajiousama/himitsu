@@ -24,7 +24,7 @@ AI_WINDOW_SECONDS = 600
 # Range-specific cadence measured from clean same-season KICK bundles.
 # Season 18's clean #177-196 archive is 77,992 sec / 20 ~= 3,900 sec.
 RANGE_EPISODE_SECONDS: dict[tuple[int, int], int] = {
-    (177, 196): 3900,
+    (177, 196): 3480,
     (197, 206): 3871,
     (207, 216): 3900,
     (217, 226): 3541,
@@ -40,7 +40,7 @@ EPISODE_DURATION_OVERRIDES: dict[int, int] = {
 # signature inside each VOD and place every split on the same visual cue.
 TITLECARD_WINDOW_SECONDS = 240
 TITLECARD_SAMPLE_SECONDS = 2
-TITLECARD_BOUNDARY_VERSION = 23
+TITLECARD_BOUNDARY_VERSION = 24
 TITLECARD_INTRO_SECONDS = 8
 TITLECARD_HASH_BITS = 256
 TITLECARD_MATCH_DISTANCE = 42
@@ -109,6 +109,28 @@ TITLE_LOGO_REFERENCE_SEARCH_SECONDS = 120
 # Known mixed archive bundles. Specials are inserted in chronological order before/after episodes.
 # A single special with duration_seconds=None consumes the remaining non-regular footage.
 KNOWN_SPECIALS: dict[tuple[int, int], list[dict]] = {
+    (177, 196): [
+        {
+            "key": "2014-gccx-the-movie-prefix",
+            "title": "ゲームセンターCX THE MOVIE",
+            "before_episode": 177,
+            "duration_seconds": 3207,
+            "expected_broadcast_seconds": 3207,
+        },
+        {
+            "key": "2014-2015-newyear-15min",
+            "title": "ゲームセンターCX 年越し15分ミニ枠",
+            "after_episode": 191,
+            "duration_seconds": 900,
+            "expected_broadcast_seconds": 900,
+        },
+        {
+            "key": "2014-dvdbox-vol11-extra",
+            "title": "ゲームセンターCX DVD-BOX VOL.11 特典映像",
+            "after_episode": 196,
+            "duration_seconds": None,
+        },
+    ],
     (107, 116): [
         {
             "key": "2010-oomisoka-gccx",
@@ -1743,6 +1765,12 @@ def main() -> int:
                     "status": "legacy-structured",
                     "reason": "image-refinement-limited-to-177-plus",
                 }
+        elif status == "ready" and chapters and (start_ep, end_ep) == (177, 196):
+            titlecard_refinement = {
+                "status": "structured-from-source-filelist",
+                "reason": "source-player-list-shows-prefix-53m27s-episodes-58m-newyear-15m",
+                "boundary_version": TITLECARD_BOUNDARY_VERSION,
+            }
         elif status == "ready" and chapters and vod.get("playable"):
             chapters, titlecard_refinement = refine_with_titlecard(
                 vod,
