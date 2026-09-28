@@ -54,6 +54,7 @@ TITLECARD_REFERENCE_MAX_SECONDS = 30
 TITLECARD_SEQUENCE_FRAMES = 3
 TITLECARD_SEQUENCE_MATCH_DISTANCE = 34
 TITLECARD_SPECIAL_MAX_SHIFT_SECONDS = 150
+TITLECARD_REGULAR_MAX_SHIFT_SECONDS = 180
 
 # Known mixed archive bundles. Specials are inserted in chronological order before/after episodes.
 # A single special with duration_seconds=None consumes the remaining non-regular footage.
@@ -588,6 +589,19 @@ def refine_with_titlecard(
                 reference_offset = int(learned.get("reference_time_seconds") or 0)
                 matched = max(0, int(t) - reference_offset)
                 method = "recurring-opening-sequence"
+
+        if (
+            matched is not None
+            and not is_special
+            and abs(int(matched) - int(original)) > TITLECARD_REGULAR_MAX_SHIFT_SECONDS
+        ):
+            distance = distance
+            matched = None
+            method = None
+            fallback_meta = {
+                "reason": "regular_shift_guard",
+                "max_shift_seconds": TITLECARD_REGULAR_MAX_SHIFT_SECONDS,
+            }
 
         if matched is None:
             match_rows.append({
