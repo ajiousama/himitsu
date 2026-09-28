@@ -23,9 +23,16 @@ def main() -> None:
     if pos < 0:
         raise SystemExit("YouTube anchor missing for Patapata TV insertion")
     block = managed_block()
-    text = text[:pos].rstrip() + "\n\n" + block + "\n\n" + text[pos:].lstrip()
+    # If Patapata has no active EXTINF entry, keep it completely out of
+    # FreeWiFi.  This prevents the retired Render URL from being reinserted.
+    if "#EXTINF:" in block:
+        text = text[:pos].rstrip() + "\n\n" + block + "\n\n" + text[pos:].lstrip()
+        message = "Patapata TV projection synced"
+    else:
+        text = text[:pos].rstrip() + "\n\n" + text[pos:].lstrip()
+        message = "Patapata TV disabled; no channel projected"
     FREEWIFI.write_text(text.rstrip() + "\n", encoding="utf-8")
-    print("Patapata TV projection synced")
+    print(message)
 
 
 if __name__ == "__main__":
