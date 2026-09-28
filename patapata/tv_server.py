@@ -33,6 +33,14 @@ HLS_DIR = pathlib.Path("/tmp/patapata-tv-hls")
 HLS_PLAYLIST = HLS_DIR / "index.m3u8"
 HLS_ERROR = ""
 
+# Keep capture, encoder input and output on one real cadence.  The old HLS
+# pipeline advertised 2 fps input while feeding ~8 fps screenshots and then
+# duplicated them to 10 fps; visually that meant only about two genuinely new
+# frames per second.  Ten real captures per second is still light enough for
+# the 1280x720 Render worker and makes scrolling/flip animation much smoother.
+CAPTURE_FPS = 10
+FRAME_INTERVAL = 1.0 / CAPTURE_FPS
+
 TV_CSS = """
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700;800;900&display=swap');
 html, body { width:100% !important; height:100% !important; margin:0 !important; overflow:hidden !important; background:#071019 !important; }
@@ -121,11 +129,16 @@ def browser_worker() -> None:
                     print(f"[patapata] font check warning: {e}", flush=True)
                 BROWSER_ERROR = ""
                 while not STOP.is_set():
+                    started = time.monotonic()
                     frame = page.screenshot(type="jpeg", quality=76, animations="allow")
                     with FRAME_LOCK:
                         LATEST_FRAME = frame
                         FRAME_AT = time.time()
-                    page.wait_for_timeout(120)
+                    # Do not add a fixed 120 ms *after* screenshot work.  Pace
+                    # the whole capture cycle to the target frame interval.
+                    delay = FRAME_INTERVAL - (time.monotonic() - started)
+                    if delay > 0:
+                        time.sleep(delay)
                 browser.close()
         except Exception as e:
             BROWSER_ERROR = f"{type(e).__name__}: {e}"
@@ -150,14 +163,14 @@ def ffmpeg_cmd() -> list[str]:
     return [
         ff,
         "-nostdin", "-hide_banner", "-loglevel", "warning",
-        "-f", "image2pipe", "-framerate", "8", "-vcodec", "mjpeg", "-i", "pipe:0",
+        "-f", "image2pipe", "-framerate", str(CAPTURE_FPS), "-vcodec", "mjpeg", "-i", "pipe:0",
         "-f", "lavfi", "-i", "anullsrc=r=48000:cl=stereo",
         "-map", "0:v:0", "-map", "1:a:0",
-        "-vf", "fps=8",
+        "-vf", f"fps={CAPTURE_FPS}",
         "-c:v", "libx264", "-preset", "ultrafast", "-tune", "zerolatency",
         "-profile:v", "baseline", "-level", "3.1",
-        "-crf", "28", "-pix_fmt", "yuv420p", "-r", "8", "-g", "16",
-        "-keyint_min", "16", "-sc_threshold", "0",
+        "-crf", "28", "-pix_fmt", "yuv420p", "-r", str(CAPTURE_FPS), "-g", str(CAPTURE_FPS * 2),
+        "-keyint_min", str(CAPTURE_FPS * 2), "-sc_threshold", "0",
         "-c:a", "aac", "-b:a", "64k", "-ar", "48000", "-ac", "2",
         "-muxdelay", "0", "-muxpreload", "0", "-flush_packets", "1",
         "-mpegts_flags", "resend_headers",
@@ -172,14 +185,14 @@ def ffmpeg_hls_cmd() -> list[str]:
     return [
         ff,
         "-nostdin", "-hide_banner", "-loglevel", "warning",
-        "-f", "image2pipe", "-framerate", "2", "-vcodec", "mjpeg", "-i", "pipe:0",
+        "-f", "image2pipe", "-framerate", str(CAPTURE_FPS), "-vcodec", "mjpeg", "-i", "pipe:0",
         "-f", "lavfi", "-i", "anullsrc=r=48000:cl=stereo",
         "-map", "0:v:0", "-map", "1:a:0",
-        "-vf", "fps=10",
+        "-vf", f"fps={CAPTURE_FPS}",
         "-c:v", "libx264", "-preset", "ultrafast", "-tune", "zerolatency",
         "-profile:v", "baseline", "-level", "3.1",
-        "-crf", "28", "-pix_fmt", "yuv420p", "-r", "10", "-g", "20",
-        "-keyint_min", "20", "-sc_threshold", "0",
+        "-crf", "28", "-pix_fmt", "yuv420p", "-r", str(CAPTURE_FPS), "-g", str(CAPTURE_FPS * 2),
+        "-keyint_min", str(CAPTURE_FPS * 2), "-sc_threshold", "0",
         "-c:a", "aac", "-b:a", "64k", "-ar", "48000", "-ac", "2",
         "-f", "hls",
         "-hls_time", "2",
@@ -228,7 +241,7 @@ def hls_worker() -> None:
                                 last = LATEST_FRAME
                         proc.stdin.write(last)
                         proc.stdin.flush()
-                        time.sleep(0.125)
+                        time.sleep(FRAME_INTERVAL)
                 except (BrokenPipeError, OSError, ValueError):
                     pass
                 finally:
@@ -304,7 +317,7 @@ def stream_tv(handler: "Handler") -> None:
                             last = LATEST_FRAME
                     proc.stdin.write(last)
                     proc.stdin.flush()
-                    time.sleep(0.125)
+                    time.sleep(FRAME_INTERVAL)
             except (BrokenPipeError, OSError, ValueError):
                 pass
             finally:
@@ -432,7 +445,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 200,
                 "Patapata TV\n"
                 "source=FINAL-v5-JR-DEADHEAD\n"
-                "video=1280x720 8fps real-capture H.264 baseline\n"
+                f"video=1280x720 {CAPTURE_FPS}fps real-capture H.264 baseline\n"
                 "audio=AAC 48kHz stereo silence\n"
                 "stream=/tv\n"
                 "hls=/live.m3u8\n",
