@@ -139,11 +139,13 @@ def build_vod5() -> str:
             continue
         whole.append((extinf, url))
 
+    # VOD5 is the complete split catalog. Specials such as Vietnam and
+    # NicoNico must stay here too; otherwise suppressing the original long VOD
+    # makes those programmes disappear entirely.
     chapters = [
         (extinf, url)
         for extinf, url in read_entries(GMCX_M3U)
-        if tvg_id(extinf) not in FREEWIFI_SPECIAL_IDS
-        and any(f"vod={vod_id}" in url for vod_id in chapter_vods)
+        if any(f"vod={vod_id}" in url for vod_id in chapter_vods)
     ]
     lines = ["#EXTM3U"]
     for extinf, url in whole:
@@ -192,7 +194,9 @@ def main() -> int:
                 url,
             ])
         block.append(LONG_END)
-        cleaned += "\n" + "\n".join(block) + "\n"
+        # Do not append this block to FreeWiFi again: the complete VOD5 catalog
+        # is already projected above. Keep freewifi_specials.m3u as a standalone
+        # specials-only view without duplicating entries in the main playlist.
 
     if cleaned != text:
         FREEWIFI.write_text(cleaned, encoding="utf-8")
