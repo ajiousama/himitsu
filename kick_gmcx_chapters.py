@@ -40,7 +40,7 @@ EPISODE_DURATION_OVERRIDES: dict[int, int] = {
 # signature inside each VOD and place every split on the same visual cue.
 TITLECARD_WINDOW_SECONDS = 240
 TITLECARD_SAMPLE_SECONDS = 2
-TITLECARD_BOUNDARY_VERSION = 18
+TITLECARD_BOUNDARY_VERSION = 19
 TITLECARD_INTRO_SECONDS = 8
 TITLECARD_HASH_BITS = 256
 TITLECARD_MATCH_DISTANCE = 42
@@ -74,8 +74,8 @@ TITLE_LOGO_ANCHOR_FROM_SECONDS = 0
 TITLE_LOGO_ANCHOR_TO_SECONDS = 120
 ACCESS_FRAME_FROM_SECONDS = 20
 ACCESS_FRAME_TO_SECONDS = 45
-ACCESS_FRAME_MATCH_DISTANCE = 40
-ACCESS_FRAME_CROP = "crop=iw*0.84:ih*0.70:iw*0.08:ih*0.14"
+ACCESS_FRAME_MATCH_DISTANCE = 72
+ACCESS_FRAME_CROP = "crop=iw*0.82:ih*0.46:iw*0.09:ih*0.25"
 TITLE_LOGO_FEATURE_DISTANCE_MAX = 0.65
 TITLE_LOGO_MAX_EXPECTED_DISTANCE_SECONDS = 120
 TITLE_LOGO_COMPONENT_MIN_WIDTH_RATIO = 0.42
@@ -656,6 +656,33 @@ def _normalise_yellow_logo(frame: bytes, width: int, height: int) -> dict | None
         "yellow_fill": round(yellow_fill, 4),
         "dark_ratio": round(dark_ratio, 4),
     }
+def _access_frame_signature(frame: bytes) -> tuple[int, float, int] | None:
+    if len(frame) != 17 * 16:
+        return None
+    lo, hi = min(frame), max(frame)
+    contrast = hi - lo
+    mean = sum(frame) / len(frame)
+    if contrast < 30:
+        return None
+
+    # Normalise each frame and compare bright/dark structure in the tight
+    # title-logo crop. The logo is bright over a mostly dark game background.
+    sorted_px = sorted(frame)
+    threshold = sorted_px[int(len(sorted_px) * 0.62)]
+    bits = 0
+    bit = 0
+    for y in range(16):
+        row = y * 17
+        for x in range(16):
+            a = frame[row + x]
+            b = frame[row + x + 1]
+            local = (a + b) / 2
+            if (a > b and local >= threshold) or (a >= threshold + 10 and b < threshold):
+                bits |= 1 << bit
+            bit += 1
+    return bits, mean, contrast
+
+
 def _sample_access_frame_signatures(
     url: str,
     start: int,
@@ -699,7 +726,7 @@ def _sample_access_frame_signatures(
     out = []
     for idx in range(len(raw) // frame_size):
         frame = raw[idx * frame_size:(idx + 1) * frame_size]
-        sig = _frame_signature(frame)
+        sig = _access_frame_signature(frame)
         if not sig:
             continue
         bits, mean, contrast = sig
@@ -740,17 +767,30 @@ def _pick_access_reference(frames: list[dict]) -> tuple[dict | None, dict]:
 def _match_access_reference(reference: dict, frames: list[dict], expected_time: int) -> tuple[int | None, dict]:
     if not frames:
         return None, {"reason": "no_access_frames"}
-    scored = [
-        (_hdist(int(reference["hash"]), int(x["hash"])), int(x["time"]))
-        for x in frames
-    ]
-    scored.sort(key=lambda x: (x[0], abs(x[1] - expected_time), x[1]))
-    best_dist, best_time = scored[0]
+
+    scored = []
+    for x in frames:
+        time_distance = abs(int(x["time"]) - expected_time)
+        if time_distance > TITLE_LOGO_MAX_EXPECTED_DISTANCE_SECONDS:
+            continue
+        hash_distance = _hdist(int(reference["hash"]), int(x["hash"]))
+        # Similarity remains primary, but among plausible matches stay near
+        # the expected chapter boundary to avoid game-screen lookalikes.
+        score = hash_distance + min(24.0, time_distance / 8.0)
+        scored.append((score, hash_distance, time_distance, int(x["time"])))
+
+    if not scored:
+        return None, {"reason": "no_access_frames_in_window"}
+
+    scored.sort(key=lambda x: (x[0], x[1], x[2], x[3]))
+    _, best_dist, time_distance, best_time = scored[0]
     if best_dist > ACCESS_FRAME_MATCH_DISTANCE:
         return None, {
             "reason": "access_frame_no_match",
             "best_distance": best_dist,
+            "time_distance": time_distance,
         }
+
     return best_time, {
         "reason": "ok",
         "distance": best_dist,
