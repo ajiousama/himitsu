@@ -633,19 +633,6 @@ def refine_with_titlecard(
                     matched = candidate
                     method = "recurring-opening-sequence"
 
-        # If the common opening is not found, use a guarded title-card
-        # transition from the already sampled nearby window. Never widen the
-        # search beyond the normal +/-3 minute boundary guard.
-        if matched is None and not is_special:
-            t, fallback_meta = _best_static_title_start(
-                frames,
-                original,
-                TITLECARD_REGULAR_MAX_SHIFT_SECONDS,
-            )
-            if t is not None:
-                matched = max(0, int(t) - TITLECARD_INTRO_SECONDS)
-                method = "guarded-regular-title-transition"
-
         if matched is None:
             match_rows.append({
                 "index": index,
@@ -929,7 +916,7 @@ def main() -> int:
 
         titlecard_refinement = {"status": "not_applicable"}
         previous_result = previous_results.get(str(vod.get("vod_id")))
-        if status == "ready" and chapters and start_ep < 197:
+        if status == "ready" and chapters and start_ep < 177:
             if (
                 previous_result
                 and previous_result.get("status") == "ready"
@@ -942,14 +929,19 @@ def main() -> int:
             else:
                 titlecard_refinement = {
                     "status": "legacy-structured",
-                    "reason": "image-refinement-limited-to-197-plus",
+                    "reason": "image-refinement-limited-to-177-plus",
                 }
-        elif status == "ready" and chapters:
+        elif status == "ready" and chapters and vod.get("playable"):
             chapters, titlecard_refinement = refine_with_titlecard(
                 vod,
                 chapters,
                 previous_result,
             )
+        elif status == "ready" and chapters:
+            titlecard_refinement = {
+                "status": "skipped",
+                "reason": "direct-source-unavailable-kept-structured-split",
+            }
 
         all_chapters.extend([
             {
