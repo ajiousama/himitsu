@@ -40,7 +40,7 @@ EPISODE_DURATION_OVERRIDES: dict[int, int] = {
 # signature inside each VOD and place every split on the same visual cue.
 TITLECARD_WINDOW_SECONDS = 240
 TITLECARD_SAMPLE_SECONDS = 2
-TITLECARD_BOUNDARY_VERSION = 16
+TITLECARD_BOUNDARY_VERSION = 17
 TITLECARD_INTRO_SECONDS = 8
 TITLECARD_HASH_BITS = 256
 TITLECARD_MATCH_DISTANCE = 42
@@ -72,6 +72,10 @@ TITLE_LOGO_TEMPLATE_JACCARD_MIN = 0.24
 TITLE_LOGO_EXPECTED_OFFSET_SECONDS = 30
 TITLE_LOGO_ANCHOR_FROM_SECONDS = 0
 TITLE_LOGO_ANCHOR_TO_SECONDS = 120
+ACCESS_FRAME_FROM_SECONDS = 20
+ACCESS_FRAME_TO_SECONDS = 45
+ACCESS_FRAME_MATCH_DISTANCE = 40
+ACCESS_FRAME_CROP = "crop=iw*0.84:ih*0.70:iw*0.08:ih*0.14"
 TITLE_LOGO_FEATURE_DISTANCE_MAX = 0.65
 TITLE_LOGO_MAX_EXPECTED_DISTANCE_SECONDS = 120
 TITLE_LOGO_COMPONENT_MIN_WIDTH_RATIO = 0.42
@@ -652,6 +656,109 @@ def _normalise_yellow_logo(frame: bytes, width: int, height: int) -> dict | None
         "yellow_fill": round(yellow_fill, 4),
         "dark_ratio": round(dark_ratio, 4),
     }
+def _sample_access_frame_signatures(
+    url: str,
+    start: int,
+    span: int,
+    total_duration: int,
+) -> list[dict]:
+    if total_duration <= 0 or span <= 0:
+        return []
+    start = max(0, min(start, total_duration - 1))
+    span = min(span, max(1, total_duration - start))
+    cmd = [
+        "ffmpeg", "-hide_banner", "-loglevel", "error",
+        "-rw_timeout", "15000000",
+        "-ss", str(start),
+        "-i", url,
+        "-t", str(span),
+        "-an",
+        "-vf",
+        f"fps=1,{{ACCESS_FRAME_CROP}},scale=17:16:flags=area,format=gray",
+        "-pix_fmt", "gray",
+        "-f", "rawvideo", "pipe:1",
+    ]
+    try:
+        proc = subprocess.run(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            timeout=45,
+            check=False,
+        )
+    except (FileNotFoundError, subprocess.TimeoutExpired) as exc:
+        print(f"::warning::GMCX access-frame sample failed start={start}: {exc}")
+        return []
+    if proc.returncode != 0:
+        err = proc.stderr.decode("utf-8", "replace")[-300:]
+        print(f"::warning::GMCX access-frame ffmpeg failed start={start}: {err}")
+        return []
+
+    frame_size = 17 * 16
+    raw = proc.stdout
+    out = []
+    for idx in range(len(raw) // frame_size):
+        frame = raw[idx * frame_size:(idx + 1) * frame_size]
+        sig = _frame_signature(frame)
+        if not sig:
+            continue
+        bits, mean, contrast = sig
+        out.append({
+            "time": start + idx,
+            "hash": bits,
+            "mean": mean,
+            "contrast": contrast,
+        })
+    return out
+
+
+def _pick_access_reference(frames: list[dict]) -> tuple[dict | None, dict]:
+    candidates = [
+        x for x in frames
+        if ACCESS_FRAME_FROM_SECONDS <= int(x["time"]) <= ACCESS_FRAME_TO_SECONDS
+        and int(x.get("contrast") or 0) >= TITLECARD_MIN_CONTRAST
+    ]
+    if not candidates:
+        return None, {"reason": "no_access_frame_reference"}
+
+    # Prefer a stable-looking frame nearest 30 sec, matching the user's observed access screen.
+    candidates.sort(
+        key=lambda x: (
+            abs(int(x["time"]) - 30),
+            -int(x.get("contrast") or 0),
+        )
+    )
+    ref = candidates[0]
+    return ref, {
+        "reason": "ok",
+        "reference_time_seconds": int(ref["time"]),
+        "contrast": int(ref.get("contrast") or 0),
+        "source": "vod-access-frame-20-45s",
+    }
+
+
+def _match_access_reference(reference: dict, frames: list[dict], expected_time: int) -> tuple[int | None, dict]:
+    if not frames:
+        return None, {"reason": "no_access_frames"}
+    scored = [
+        (_hdist(int(reference["hash"]), int(x["hash"])), int(x["time"]))
+        for x in frames
+    ]
+    scored.sort(key=lambda x: (x[0], abs(x[1] - expected_time), x[1]))
+    best_dist, best_time = scored[0]
+    if best_dist > ACCESS_FRAME_MATCH_DISTANCE:
+        return None, {
+            "reason": "access_frame_no_match",
+            "best_distance": best_dist,
+        }
+    return best_time, {
+        "reason": "ok",
+        "distance": best_dist,
+        "expected_time": expected_time,
+        "distance_from_expected": best_time - expected_time,
+    }
+
+
 def _sample_title_logo_window(url: str, center: int, total_duration: int) -> list[dict]:
     if total_duration <= 0:
         return []
@@ -1058,10 +1165,6 @@ def refine_with_titlecard(
         return chapters, {"status": "skipped", "reason": "disabled"}
 
     analysis_url = _lowest_hls_variant(source_url)
-    logo_windows = []
-    for item in items:
-        center = int(item.get("start_seconds") or 0)
-        logo_windows.append(_sample_title_logo_window(analysis_url, center, duration))
 
     regular_indices = [
         i for i, item in enumerate(items)
@@ -1071,24 +1174,28 @@ def refine_with_titlecard(
     if not regular_indices:
         return chapters, {"status": "skipped", "reason": "no_regular_episode_reference"}
 
-    # User-confirmed behavior: opening the VOD shows the generic GMCX title
-    # around 30 seconds. Learn the VOD-specific title directly from 0-60 sec.
-    opening_logo_frames = _sample_title_logo_window(analysis_url, 0, duration)
-    reference, anchor_meta = _pick_anchor_title_logo(opening_logo_frames, 0)
+    opening_frames = _sample_access_frame_signatures(
+        analysis_url,
+        0,
+        max(60, ACCESS_FRAME_TO_SECONDS + 5),
+        duration,
+    )
+    reference, anchor_meta = _pick_access_reference(opening_frames)
     if reference is None:
         return chapters, {
             "status": "no_consensus",
-            "method": "vod-opening-title-logo",
+            "method": "vod-access-frame",
             "boundary_version": TITLECARD_BOUNDARY_VERSION,
             "reference": anchor_meta,
             "matches": [],
         }
 
-    title_offset = int(anchor_meta["offset_seconds"])
+    title_offset = int(anchor_meta["reference_time_seconds"])
+
     starts: dict[int, int] = {}
     match_rows = []
 
-    for index, (item, frames) in enumerate(zip(items, logo_windows)):
+    for index, item in enumerate(items):
         original = int(item.get("start_seconds") or 0)
         if index == 0:
             starts[index] = 0
@@ -1134,15 +1241,23 @@ def refine_with_titlecard(
             continue
 
         expected_title = original + title_offset
-        title_time, meta = _match_title_logo(reference, frames, expected_title)
+        search_start = max(0, expected_title - TITLE_LOGO_MAX_EXPECTED_DISTANCE_SECONDS)
+        search_span = TITLE_LOGO_MAX_EXPECTED_DISTANCE_SECONDS * 2 + 1
+        frames = _sample_access_frame_signatures(
+            analysis_url,
+            search_start,
+            search_span,
+            duration,
+        )
+        title_time, meta = _match_access_reference(reference, frames, expected_title)
         if title_time is None:
             match_rows.append({
                 "index": index,
                 "title": item.get("title"),
                 "matched": False,
                 "original": original,
-                "expected_title": expected_title,
-                "logo": meta,
+                "expected_reference": expected_title,
+                "access_frame": meta,
             })
             continue
 
@@ -1155,7 +1270,7 @@ def refine_with_titlecard(
                 "original": original,
                 "candidate": refined,
                 "reason": "shift_guard",
-                "logo": meta,
+                "access_frame": meta,
             })
             continue
 
@@ -1164,19 +1279,19 @@ def refine_with_titlecard(
             "index": index,
             "title": item.get("title"),
             "matched": True,
-            "method": "vod-opening-title-logo",
+            "method": "vod-access-frame",
             "original": original,
             "title_time": int(title_time),
             "title_offset": title_offset,
             "refined": refined,
             "shift_seconds": refined - original,
-            "logo": meta,
+            "access_frame": meta,
         })
 
     regular_nonfirst = [i for i in regular_indices if i != 0]
     matched_regular = sum(
         1 for row in match_rows
-        if row.get("method") == "vod-opening-title-logo"
+        if row.get("method") == "vod-access-frame"
     )
 
     rebuilt = _apply_refined_chapter_starts(
@@ -1188,7 +1303,7 @@ def refine_with_titlecard(
     if unchanged and matched_regular:
         return chapters, {
             "status": "guarded",
-            "method": "vod-opening-title-logo",
+            "method": "vod-access-frame",
             "boundary_version": TITLECARD_BOUNDARY_VERSION,
             "reason": "order_or_minimum-gap-guard",
             "reference": anchor_meta,
@@ -1220,10 +1335,10 @@ def refine_with_titlecard(
     status = "applied" if coverage >= 0.8 else ("partial" if matched_regular else "no_consensus")
     return rebuilt, {
         "status": status,
-        "method": "vod-opening-title-logo",
+        "method": "vod-access-frame",
         "boundary_version": TITLECARD_BOUNDARY_VERSION,
         "window_seconds": TITLECARD_WINDOW_SECONDS,
-        "sample_seconds": TITLE_LOGO_SAMPLE_SECONDS,
+        "sample_seconds": 1,
         "reference": anchor_meta,
         "title_offset_seconds": title_offset,
         "detected_regular_boundaries": matched_regular,
