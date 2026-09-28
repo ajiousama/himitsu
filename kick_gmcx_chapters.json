@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-29T07:47:50.635862+09:00",
+  "generated_at": "2026-09-29T07:53:40.530013+09:00",
   "reference_episode_seconds": 3501,
   "results": [
     {
@@ -237,12 +237,110 @@
       "titlecard_refinement": {
         "status": "no_consensus",
         "method": "recurring-blue-room",
-        "boundary_version": 30,
+        "boundary_version": 31,
+        "reason": "blue_room_coverage_below_80_percent",
         "reference": {
-          "reason": "no_recurring_blue_room",
-          "usable_windows": 8
+          "reason": "ok",
+          "usable_windows": 8,
+          "reference_time_seconds": 220,
+          "median_distance": 63.0,
+          "matching_windows": 4
         },
-        "matches": []
+        "detected_regular_boundaries": 0,
+        "expected_regular_boundaries": 10,
+        "coverage": 0.0,
+        "matches": [
+          {
+            "index": 0,
+            "title": "第227回",
+            "matched": false,
+            "original": 0,
+            "candidate": 220,
+            "distance": 0,
+            "reason": "no_blue_room_or_shift_guard"
+          },
+          {
+            "index": 1,
+            "title": "第228回",
+            "matched": false,
+            "original": 4462,
+            "candidate": null,
+            "distance": 108,
+            "reason": "no_blue_room_or_shift_guard"
+          },
+          {
+            "index": 2,
+            "title": "第229回",
+            "matched": false,
+            "original": 8924,
+            "candidate": null,
+            "distance": 86,
+            "reason": "no_blue_room_or_shift_guard"
+          },
+          {
+            "index": 3,
+            "title": "第230回",
+            "matched": false,
+            "original": 13386,
+            "candidate": null,
+            "distance": null,
+            "reason": "no_blue_room_or_shift_guard"
+          },
+          {
+            "index": 4,
+            "title": "第231回",
+            "matched": false,
+            "original": 17848,
+            "candidate": null,
+            "distance": null,
+            "reason": "no_blue_room_or_shift_guard"
+          },
+          {
+            "index": 5,
+            "title": "第232回",
+            "matched": false,
+            "original": 22310,
+            "candidate": 22494,
+            "distance": 63,
+            "reason": "no_blue_room_or_shift_guard"
+          },
+          {
+            "index": 6,
+            "title": "第233回",
+            "matched": false,
+            "original": 26771,
+            "candidate": 26921,
+            "distance": 63,
+            "reason": "no_blue_room_or_shift_guard"
+          },
+          {
+            "index": 7,
+            "title": "第234回",
+            "matched": false,
+            "original": 31233,
+            "candidate": null,
+            "distance": 112,
+            "reason": "no_blue_room_or_shift_guard"
+          },
+          {
+            "index": 8,
+            "title": "第235回",
+            "matched": false,
+            "original": 35695,
+            "candidate": 35465,
+            "distance": 58,
+            "reason": "no_blue_room_or_shift_guard"
+          },
+          {
+            "index": 9,
+            "title": "第236回",
+            "matched": false,
+            "original": 40157,
+            "candidate": 39949,
+            "distance": 58,
+            "reason": "no_blue_room_or_shift_guard"
+          }
+        ]
       },
       "ai_windows": []
     },
@@ -596,13 +694,13 @@
       "titlecard_refinement": {
         "status": "no_consensus",
         "method": "recurring-blue-room",
-        "boundary_version": 30,
+        "boundary_version": 31,
         "reason": "blue_room_coverage_below_80_percent",
         "reference": {
           "reason": "ok",
           "usable_windows": 5,
           "reference_time_seconds": 20,
-          "median_distance": 69.0,
+          "median_distance": 63.0,
           "matching_windows": 2
         },
         "detected_regular_boundaries": 2,
@@ -671,7 +769,7 @@
             "matched": false,
             "original": 25447,
             "candidate": null,
-            "distance": 154,
+            "distance": 121,
             "reason": "no_blue_room_or_shift_guard"
           },
           {
@@ -680,7 +778,7 @@
             "matched": false,
             "original": 28988,
             "candidate": null,
-            "distance": 124,
+            "distance": 112,
             "reason": "no_blue_room_or_shift_guard"
           },
           {
@@ -1023,12 +1121,112 @@
       "titlecard_refinement": {
         "status": "no_consensus",
         "method": "recurring-blue-room",
-        "boundary_version": 30,
+        "boundary_version": 31,
+        "reason": "blue_room_coverage_below_80_percent",
         "reference": {
-          "reason": "no_recurring_blue_room",
-          "usable_windows": 9
+          "reason": "ok",
+          "usable_windows": 9,
+          "reference_time_seconds": 126,
+          "median_distance": 70.0,
+          "matching_windows": 5
         },
-        "matches": []
+        "detected_regular_boundaries": 2,
+        "expected_regular_boundaries": 10,
+        "coverage": 0.2,
+        "matches": [
+          {
+            "index": 0,
+            "title": "ESWAT",
+            "matched": false,
+            "original": 0,
+            "candidate": 126,
+            "distance": 0,
+            "reason": "no_blue_room_or_shift_guard"
+          },
+          {
+            "index": 1,
+            "title": "改造町人シュビビンマン",
+            "matched": true,
+            "method": "recurring-blue-room",
+            "original": 3900,
+            "refined": 3846,
+            "shift_seconds": -54,
+            "distance": 66
+          },
+          {
+            "index": 2,
+            "title": "リンクの冒険（前編）",
+            "matched": false,
+            "original": 7800,
+            "candidate": 7568,
+            "distance": 74,
+            "reason": "no_blue_room_or_shift_guard"
+          },
+          {
+            "index": 3,
+            "title": "リンクの冒険（後編）",
+            "matched": false,
+            "original": 11700,
+            "candidate": null,
+            "distance": 81,
+            "reason": "no_blue_room_or_shift_guard"
+          },
+          {
+            "index": 8,
+            "title": "TAITO CHASE H.Q.",
+            "matched": false,
+            "original": 26130,
+            "candidate": 26354,
+            "distance": 60,
+            "reason": "no_blue_room_or_shift_guard"
+          },
+          {
+            "index": 9,
+            "title": "オリビアのミステリー",
+            "matched": false,
+            "original": 30030,
+            "candidate": 29858,
+            "distance": 64,
+            "reason": "no_blue_room_or_shift_guard"
+          },
+          {
+            "index": 10,
+            "title": "THE 功夫",
+            "matched": true,
+            "method": "recurring-blue-room",
+            "original": 33930,
+            "refined": 33968,
+            "shift_seconds": 38,
+            "distance": 64
+          },
+          {
+            "index": 11,
+            "title": "夢ペンギン物語",
+            "matched": false,
+            "original": 37830,
+            "candidate": null,
+            "distance": 102,
+            "reason": "no_blue_room_or_shift_guard"
+          },
+          {
+            "index": 12,
+            "title": "セクロス",
+            "matched": false,
+            "original": 41730,
+            "candidate": null,
+            "distance": 107,
+            "reason": "no_blue_room_or_shift_guard"
+          },
+          {
+            "index": 13,
+            "title": "スーパーマリオランド2 6つの金貨",
+            "matched": false,
+            "original": 45630,
+            "candidate": null,
+            "distance": null,
+            "reason": "no_blue_room_or_shift_guard"
+          }
+        ]
       },
       "ai_windows": []
     },
@@ -1382,7 +1580,7 @@
       "titlecard_refinement": {
         "status": "structured-from-source-filelist",
         "reason": "source-player-list-exact-29s-preroll-and-15-file-runtimes",
-        "boundary_version": 30
+        "boundary_version": 31
       },
       "ai_windows": []
     },
@@ -1910,7 +2108,7 @@
       "titlecard_refinement": {
         "status": "structured-from-source-filelist",
         "reason": "source-player-list-shows-prefix-53m27s-episodes-58m-newyear-15m",
-        "boundary_version": 30
+        "boundary_version": 31
       },
       "ai_windows": []
     }
