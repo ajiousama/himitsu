@@ -40,7 +40,7 @@ EPISODE_DURATION_OVERRIDES: dict[int, int] = {
 # signature inside each VOD and place every split on the same visual cue.
 TITLECARD_WINDOW_SECONDS = 240
 TITLECARD_SAMPLE_SECONDS = 2
-TITLECARD_BOUNDARY_VERSION = 6
+TITLECARD_BOUNDARY_VERSION = 7
 TITLECARD_INTRO_SECONDS = 8
 TITLECARD_HASH_BITS = 256
 TITLECARD_MATCH_DISTANCE = 42
@@ -54,7 +54,7 @@ TITLECARD_REFERENCE_MAX_SECONDS = 30
 TITLECARD_SEQUENCE_FRAMES = 3
 TITLECARD_SEQUENCE_MATCH_DISTANCE = 34
 TITLECARD_SPECIAL_MAX_SHIFT_SECONDS = 150
-TITLECARD_REGULAR_MAX_SHIFT_SECONDS = 180
+TITLECARD_REGULAR_MAX_SHIFT_SECONDS = 900
 
 # Known mixed archive bundles. Specials are inserted in chronological order before/after episodes.
 # A single special with duration_seconds=None consumes the remaining non-regular footage.
@@ -294,15 +294,21 @@ def _frame_signature(frame: bytes) -> tuple[int, float, int] | None:
     return bits, mean, contrast
 
 
-def _sample_titlecard_window(url: str, center: int, total_duration: int) -> list[dict]:
+def _sample_titlecard_window(
+    url: str,
+    center: int,
+    total_duration: int,
+    window_seconds: int | None = None,
+) -> list[dict]:
     if total_duration <= 0:
         return []
-    if center <= TITLECARD_WINDOW_SECONDS:
+    radius = int(window_seconds or TITLECARD_WINDOW_SECONDS)
+    if center <= radius:
         start = 0
-        span = min(total_duration, max(1, center + TITLECARD_WINDOW_SECONDS))
+        span = min(total_duration, max(1, center + radius))
     else:
-        start = max(0, center - TITLECARD_WINDOW_SECONDS)
-        stop = min(total_duration, center + TITLECARD_WINDOW_SECONDS)
+        start = max(0, center - radius)
+        stop = min(total_duration, center + radius)
         span = max(1, stop - start)
 
     cmd = [
@@ -439,18 +445,28 @@ def _best_titlecard_match(reference: dict, frames: list[dict]) -> tuple[int | No
     return min(near), best_dist
 
 
-def _best_static_title_start(frames: list[dict], original: int) -> tuple[int | None, dict]:
-    if len(frames) < 2:
+def _best_static_title_start(
+    frames: list[dict],
+    original: int,
+    max_shift_seconds: int,
+) -> tuple[int | None, dict]:
+    if len(frames) < 3:
         return None, {"reason": "too_few_frames"}
     candidates = []
-    for i in range(len(frames) - 1):
-        cur, nxt = frames[i], frames[i + 1]
-        gap = int(nxt["time"]) - int(cur["time"])
-        if gap <= 0 or gap > TITLECARD_STATIC_MAX_FRAME_GAP:
+    for i in range(len(frames) - 2):
+        cur, nxt, nxt2 = frames[i], frames[i + 1], frames[i + 2]
+        gap1 = int(nxt["time"]) - int(cur["time"])
+        gap2 = int(nxt2["time"]) - int(nxt["time"])
+        if (
+            gap1 <= 0 or gap1 > TITLECARD_STATIC_MAX_FRAME_GAP
+            or gap2 <= 0 or gap2 > TITLECARD_STATIC_MAX_FRAME_GAP
+        ):
             continue
-        stable = _hdist(cur["hash"], nxt["hash"])
-        if stable > TITLECARD_STATIC_DISTANCE:
+        stable1 = _hdist(cur["hash"], nxt["hash"])
+        stable2 = _hdist(nxt["hash"], nxt2["hash"])
+        if stable1 > TITLECARD_STATIC_DISTANCE or stable2 > TITLECARD_STATIC_DISTANCE:
             continue
+
         prev_dist = 256
         if i > 0:
             prev = frames[i - 1]
@@ -458,17 +474,27 @@ def _best_static_title_start(frames: list[dict], original: int) -> tuple[int | N
                 prev_dist = _hdist(prev["hash"], cur["hash"])
         if i > 0 and prev_dist < TITLECARD_STATIC_TRANSITION_DISTANCE:
             continue
+
         shift = abs(int(cur["time"]) - int(original))
-        if shift > TITLECARD_SPECIAL_MAX_SHIFT_SECONDS:
+        if shift > max_shift_seconds:
             continue
-        candidates.append(((shift, stable, int(cur["time"])), int(cur["time"]), stable, prev_dist))
+
+        # Prefer the nearest high-contrast transition into a card that stays
+        # visually stable for at least two sampling intervals.
+        stability = stable1 + stable2
+        candidates.append(
+            ((shift, stability, -int(cur.get("contrast") or 0), int(cur["time"])),
+             int(cur["time"]), stable1, stable2, prev_dist)
+        )
+
     if not candidates:
         return None, {"reason": "no_guarded_static_card_transition"}
     candidates.sort(key=lambda x: x[0])
-    _, start, stable, transition = candidates[0]
+    _, start, stable1, stable2, transition = candidates[0]
     return start, {
         "reason": "ok",
-        "stable_distance": stable,
+        "stable_distance_1": stable1,
+        "stable_distance_2": stable2,
         "transition_distance": transition,
         "distance_from_guess": abs(start - int(original)),
     }
@@ -590,7 +616,11 @@ def refine_with_titlecard(
         is_special = item.get("kind") == "special" or is_long_numbered_special
 
         if is_special:
-            t, fallback_meta = _best_static_title_start(frames, original)
+            t, fallback_meta = _best_static_title_start(
+                frames,
+                original,
+                TITLECARD_SPECIAL_MAX_SHIFT_SECONDS,
+            )
             if t is not None:
                 matched = max(0, int(t) - TITLECARD_INTRO_SECONDS)
                 method = "guarded-special-title-transition"
@@ -598,21 +628,30 @@ def refine_with_titlecard(
             t, distance = _best_titlecard_match(reference, frames)
             if t is not None:
                 reference_offset = int(learned.get("reference_time_seconds") or 0)
-                matched = max(0, int(t) - reference_offset)
-                method = "recurring-opening-sequence"
+                candidate = max(0, int(t) - reference_offset)
+                if abs(candidate - int(original)) <= TITLECARD_REGULAR_MAX_SHIFT_SECONDS:
+                    matched = candidate
+                    method = "recurring-opening-sequence"
 
-        if (
-            matched is not None
-            and not is_special
-            and abs(int(matched) - int(original)) > TITLECARD_REGULAR_MAX_SHIFT_SECONDS
-        ):
-            distance = distance
-            matched = None
-            method = None
-            fallback_meta = {
-                "reason": "regular_shift_guard",
-                "max_shift_seconds": TITLECARD_REGULAR_MAX_SHIFT_SECONDS,
-            }
+        # Regular episodes sometimes use a title design that does not match the
+        # recurring visual reference. In that case, scan a wider region for a
+        # hard scene change into a title card that remains static for several
+        # seconds. This is the primary escape hatch from wrong 3900-second cuts.
+        if matched is None and not is_special:
+            wide_frames = _sample_titlecard_window(
+                analysis_url,
+                original,
+                duration,
+                TITLECARD_REGULAR_MAX_SHIFT_SECONDS,
+            )
+            t, fallback_meta = _best_static_title_start(
+                wide_frames,
+                original,
+                TITLECARD_REGULAR_MAX_SHIFT_SECONDS,
+            )
+            if t is not None:
+                matched = max(0, int(t) - TITLECARD_INTRO_SECONDS)
+                method = "regular-static-title-transition"
 
         if matched is None:
             match_rows.append({
