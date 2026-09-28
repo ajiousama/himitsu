@@ -633,7 +633,10 @@ def _learn_blue_room_reference(windows: list[list[dict]]) -> tuple[dict | None, 
     if len(usable) < 3:
         return None, {"reason": "too_few_blue_windows", "usable_windows": len(usable)}
 
-    # Do not anchor the template to the first episode/window. Its estimated\n    # boundary may itself be wrong. Pick the frame that recurs most strongly\n    # across ALL episode windows (e.g. the common blue-room opening shot).\n    anchor = [frame for w in usable for frame in w]\n    best = None\n    for frame in anchor:
+    # Learn the recurring opening from every usable episode window.
+    anchor = [frame for w in usable for frame in w]
+    best = None
+    for frame in anchor:
         matches = 0
         distances = []
         for w in usable:
