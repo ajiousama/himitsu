@@ -40,7 +40,7 @@ EPISODE_DURATION_OVERRIDES: dict[int, int] = {
 # signature inside each VOD and place every split on the same visual cue.
 TITLECARD_WINDOW_SECONDS = 240
 TITLECARD_SAMPLE_SECONDS = 2
-TITLECARD_BOUNDARY_VERSION = 10
+TITLECARD_BOUNDARY_VERSION = 11
 TITLECARD_INTRO_SECONDS = 8
 TITLECARD_HASH_BITS = 256
 TITLECARD_MATCH_DISTANCE = 42
@@ -61,13 +61,12 @@ BLUE_ROOM_BLUE_GREEN_GAP = 10
 BLUE_ROOM_HASH_DISTANCE = 46
 BLUE_ROOM_SAMPLE_SECONDS = 2
 TITLE_LOGO_SAMPLE_SECONDS = 2
-TITLE_LOGO_MIN_YELLOW_RATIO = 0.045
+TITLE_LOGO_MIN_YELLOW_RATIO = 0.055
 TITLE_LOGO_MIN_DARK_RATIO = 0.55
-TITLE_LOGO_MIN_COLUMN_COVERAGE = 0.40
-TITLE_LOGO_MIN_ROW_COVERAGE = 0.25
+TITLE_LOGO_MIN_COLUMN_COVERAGE = 0.50
+TITLE_LOGO_MIN_ROW_COVERAGE = 0.32
 TITLE_LOGO_MIN_RUN_FRAMES = 2
 TITLE_LOGO_REFERENCE_SEARCH_SECONDS = 120
-TITLE_LOGO_JACCARD_MIN = 0.42
 
 # Known mixed archive bundles. Specials are inserted in chronological order before/after episodes.
 # A single special with duration_seconds=None consumes the remaining non-regular footage.
@@ -645,32 +644,68 @@ def _pick_anchor_title_logo(frames: list[dict], chapter_start: int) -> tuple[dic
 
 def _match_title_logo(reference: dict, frames: list[dict], expected_time: int) -> tuple[int | None, dict]:
     candidates = []
+    ref_yellow = float(reference.get("yellow_ratio") or 0)
+    ref_cols = float(reference.get("column_coverage") or 0)
+    ref_rows = float(reference.get("row_coverage") or 0)
+    ref_dark = float(reference.get("dark_ratio") or 0)
+
     for run in _title_logo_runs(frames):
-        best_match = None
-        for frame in run:
-            j = _mask_jaccard(int(reference["mask"]), int(frame["mask"]))
-            if best_match is None or j > best_match[0]:
-                best_match = (j, frame)
-        if best_match is None or best_match[0] < TITLE_LOGO_JACCARD_MIN:
-            continue
         start = int(run[0]["time"])
-        score = (
-            abs(start - int(expected_time)),
-            -best_match[0],
-            -len(run),
+        # Use the strongest title-looking frame in the persistent run.
+        best = max(
+            run,
+            key=lambda x: (
+                float(x.get("column_coverage") or 0)
+                + float(x.get("row_coverage") or 0)
+                + float(x.get("yellow_ratio") or 0)
+            ),
         )
-        candidates.append((score, start, best_match[0], len(run)))
+        yellow = float(best.get("yellow_ratio") or 0)
+        cols = float(best.get("column_coverage") or 0)
+        rows = float(best.get("row_coverage") or 0)
+        dark = float(best.get("dark_ratio") or 0)
+
+        # The user-confirmed title is a broad, persistent yellow/gold logo on
+        # a mostly dark background. Allow scale/background variation.
+        if (
+            yellow < TITLE_LOGO_MIN_YELLOW_RATIO
+            or cols < TITLE_LOGO_MIN_COLUMN_COVERAGE
+            or rows < TITLE_LOGO_MIN_ROW_COVERAGE
+            or dark < TITLE_LOGO_MIN_DARK_RATIO
+        ):
+            continue
+
+        feature_delta = (
+            abs(yellow - ref_yellow) * 120
+            + abs(cols - ref_cols) * 30
+            + abs(rows - ref_rows) * 30
+            + abs(dark - ref_dark) * 20
+        )
+        time_delta = abs(start - int(expected_time))
+
+        # Time is primary. Feature similarity only breaks close candidates.
+        score = (
+            time_delta,
+            round(feature_delta, 3),
+            -len(run),
+            -yellow,
+        )
+        candidates.append((score, start, best, len(run)))
 
     if not candidates:
         return None, {"reason": "no_matching_title_logo"}
+
     candidates.sort(key=lambda x: x[0])
-    _, start, jaccard, run_frames = candidates[0]
+    _, start, best, run_frames = candidates[0]
     return start, {
         "reason": "ok",
-        "jaccard": round(float(jaccard), 4),
         "run_frames": run_frames,
         "expected_title_time": int(expected_time),
         "distance_from_expected": start - int(expected_time),
+        "yellow_ratio": best.get("yellow_ratio"),
+        "dark_ratio": best.get("dark_ratio"),
+        "column_coverage": best.get("column_coverage"),
+        "row_coverage": best.get("row_coverage"),
     }
 
 
