@@ -40,7 +40,7 @@ EPISODE_DURATION_OVERRIDES: dict[int, int] = {
 # signature inside each VOD and place every split on the same visual cue.
 TITLECARD_WINDOW_SECONDS = 240
 TITLECARD_SAMPLE_SECONDS = 2
-TITLECARD_BOUNDARY_VERSION = 21
+TITLECARD_BOUNDARY_VERSION = 22
 TITLECARD_INTRO_SECONDS = 8
 TITLECARD_HASH_BITS = 256
 TITLECARD_MATCH_DISTANCE = 42
@@ -75,11 +75,13 @@ TITLE_LOGO_ANCHOR_TO_SECONDS = 120
 ACCESS_FRAME_FROM_SECONDS = 20
 ACCESS_FRAME_TO_SECONDS = 45
 ACCESS_FRAME_MATCH_DISTANCE = 72
-ACCESS_FRAME_CROP = "crop=iw*0.82:ih*0.46:iw*0.09:ih*0.25"
+ACCESS_FRAME_CROP = "crop=iw*0.72:ih*0.34:iw*0.14:ih*0.28"
 ACCESS_RGB_WIDTH = 32
 ACCESS_RGB_HEIGHT = 16
 ACCESS_YELLOW_MASK_MIN_PIXELS = 18
 ACCESS_YELLOW_JACCARD_MIN = 0.32
+ACCESS_YELLOW_MIN_WIDTH_RATIO = 0.38
+ACCESS_YELLOW_MIN_HEIGHT_RATIO = 0.18
 TITLE_LOGO_FEATURE_DISTANCE_MAX = 0.65
 TITLE_LOGO_MAX_EXPECTED_DISTANCE_SECONDS = 120
 TITLE_LOGO_COMPONENT_MIN_WIDTH_RATIO = 0.42
@@ -668,6 +670,7 @@ def _normalise_yellow_logo(frame: bytes, width: int, height: int) -> dict | None
 def _yellow_mask_signature(frame: bytes, width: int, height: int) -> tuple[int, int] | None:
     if len(frame) != width * height * 3:
         return None
+    yellow_points = []
     bits = 0
     bit = 0
     count = 0
@@ -683,9 +686,30 @@ def _yellow_mask_signature(frame: bytes, width: int, height: int) -> tuple[int, 
             if is_yellow:
                 bits |= 1 << bit
                 count += 1
+                yellow_points.append((x, y))
             bit += 1
-    if count < ACCESS_YELLOW_MASK_MIN_PIXELS:
+
+    if count < ACCESS_YELLOW_MASK_MIN_PIXELS or not yellow_points:
         return None
+
+    min_x = min(x for x, _ in yellow_points)
+    max_x = max(x for x, _ in yellow_points)
+    min_y = min(y for _, y in yellow_points)
+    max_y = max(y for _, y in yellow_points)
+    width_ratio = (max_x - min_x + 1) / width
+    height_ratio = (max_y - min_y + 1) / height
+    center_x = ((min_x + max_x) / 2) / width
+    center_y = ((min_y + max_y) / 2) / height
+
+    # Reject small persistent corner bugs/watermarks. The real title is a
+    # large object centered in the frame.
+    if width_ratio < ACCESS_YELLOW_MIN_WIDTH_RATIO:
+        return None
+    if height_ratio < ACCESS_YELLOW_MIN_HEIGHT_RATIO:
+        return None
+    if abs(center_x - 0.5) > 0.24 or abs(center_y - 0.5) > 0.30:
+        return None
+
     return bits, count
 
 
