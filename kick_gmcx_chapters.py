@@ -27,7 +27,7 @@ RANGE_EPISODE_SECONDS: dict[tuple[int, int], int] = {
     (177, 196): 3900,
     (197, 206): 3871,
     (207, 216): 3900,
-    (217, 226): 3900,
+    (217, 226): 3541,
 }
 
 # Numbered episodes that are actually long-form specials.
@@ -40,7 +40,7 @@ EPISODE_DURATION_OVERRIDES: dict[int, int] = {
 # signature inside each VOD and place every split on the same visual cue.
 TITLECARD_WINDOW_SECONDS = 240
 TITLECARD_SAMPLE_SECONDS = 2
-TITLECARD_BOUNDARY_VERSION = 19
+TITLECARD_BOUNDARY_VERSION = 20
 TITLECARD_INTRO_SECONDS = 8
 TITLECARD_HASH_BITS = 256
 TITLECARD_MATCH_DISTANCE = 42
@@ -221,31 +221,36 @@ KNOWN_SPECIALS: dict[tuple[int, int], list[dict]] = {
             "key": "2016-pokemon-1",
             "title": "GMCX 特別篇 ポケットモンスター赤・緑 #1",
             "after_episode": 219,
-            "duration_group": "pokemon-2016",
+            "duration_seconds": 1980,
+            "expected_broadcast_seconds": 1980,
         },
         {
             "key": "2016-pokemon-2",
             "title": "GMCX 特別篇 ポケットモンスター赤・緑 #2",
             "after_episode": 222,
-            "duration_group": "pokemon-2016",
+            "duration_seconds": 2220,
+            "expected_broadcast_seconds": 2220,
         },
         {
             "key": "2016-pokemon-3",
             "title": "GMCX 特別篇 ポケットモンスター赤・緑 #3",
             "after_episode": 224,
-            "duration_group": "pokemon-2016",
+            "duration_seconds": 2220,
+            "expected_broadcast_seconds": 2220,
         },
         {
             "key": "2016-pokemon-4",
             "title": "GMCX 特別篇 ポケットモンスター赤・緑 #4",
             "after_episode": 225,
-            "duration_group": "pokemon-2016",
+            "duration_seconds": 2100,
+            "expected_broadcast_seconds": 2100,
         },
         {
             "key": "2016-pokemon-5",
             "title": "GMCX 特別篇 ポケットモンスター赤・緑 #5",
             "after_episode": 226,
-            "duration_group": "pokemon-2016",
+            "duration_seconds": 2580,
+            "expected_broadcast_seconds": 2580,
         },
     ],
 }
@@ -1424,14 +1429,43 @@ def make_mixed_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict[str,
     count = end_ep - start_ep + 1
     duration = int(vod.get("duration_seconds") or 0)
     episode_seconds = RANGE_EPISODE_SECONDS.get((start_ep, end_ep), REFERENCE_EPISODE_SECONDS)
-    regular_total = sum(
-        EPISODE_DURATION_OVERRIDES.get(ep, episode_seconds)
-        for ep in range(start_ep, end_ep + 1)
-    )
+    specs = [dict(x) for x in KNOWN_SPECIALS.get((start_ep, end_ep), [])]
+
+    regular_duration_map: dict[int, int] = {}
+    if (start_ep, end_ep) == (217, 226):
+        # 2016 chronology: five Pokemon specials have known year-end replay
+        # blocks of 33/37/37/35/43 minutes. #226 is a 120-minute special.
+        # Distribute the exact remaining archive time across #217-225.
+        fixed_special_total = sum(int(x.get("duration_seconds") or 0) for x in specs)
+        override_total = sum(
+            int(EPISODE_DURATION_OVERRIDES.get(ep) or 0)
+            for ep in range(start_ep, end_ep + 1)
+            if ep in EPISODE_DURATION_OVERRIDES
+        )
+        regular_eps = [
+            ep for ep in range(start_ep, end_ep + 1)
+            if ep not in EPISODE_DURATION_OVERRIDES
+        ]
+        pool = duration - fixed_special_total - override_total
+        if pool <= 0 or not regular_eps:
+            return []
+        base, remainder = divmod(pool, len(regular_eps))
+        if base <= 0:
+            return []
+        regular_duration_map = {
+            ep: base + (1 if idx < remainder else 0)
+            for idx, ep in enumerate(regular_eps)
+        }
+        regular_total = override_total + sum(regular_duration_map.values())
+    else:
+        regular_total = sum(
+            EPISODE_DURATION_OVERRIDES.get(ep, episode_seconds)
+            for ep in range(start_ep, end_ep + 1)
+        )
+
     if duration < regular_total:
         return []
 
-    specs = [dict(x) for x in KNOWN_SPECIALS.get((start_ep, end_ep), [])]
     extra_total = duration - regular_total
     fixed_extra = sum(int(x.get("duration_seconds") or 0) for x in specs)
     flexible = [
@@ -1512,7 +1546,10 @@ def make_mixed_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict[str,
         for spec in by_before.get(ep, []):
             append_special(spec)
 
-        this_episode_seconds = EPISODE_DURATION_OVERRIDES.get(ep, episode_seconds)
+        this_episode_seconds = EPISODE_DURATION_OVERRIDES.get(
+            ep,
+            regular_duration_map.get(ep, episode_seconds),
+        )
         stop = min(duration, cursor + this_episode_seconds)
         clip_duration = max(0, stop - cursor)
         chapters.append({
