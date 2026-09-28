@@ -40,7 +40,7 @@ EPISODE_DURATION_OVERRIDES: dict[int, int] = {
 # signature inside each VOD and place every split on the same visual cue.
 TITLECARD_WINDOW_SECONDS = 240
 TITLECARD_SAMPLE_SECONDS = 2
-TITLECARD_BOUNDARY_VERSION = 14
+TITLECARD_BOUNDARY_VERSION = 15
 TITLECARD_INTRO_SECONDS = 8
 TITLECARD_HASH_BITS = 256
 TITLECARD_MATCH_DISTANCE = 42
@@ -70,12 +70,15 @@ TITLE_LOGO_TEMPLATE_WIDTH = 48
 TITLE_LOGO_TEMPLATE_HEIGHT = 12
 TITLE_LOGO_TEMPLATE_JACCARD_MIN = 0.24
 TITLE_LOGO_EXPECTED_OFFSET_SECONDS = 30
-TITLE_LOGO_MAX_EXPECTED_DISTANCE_SECONDS = 150
-TITLE_LOGO_COMPONENT_MIN_WIDTH_RATIO = 0.50
-TITLE_LOGO_COMPONENT_MIN_HEIGHT_RATIO = 0.18
-TITLE_LOGO_COMPONENT_MIN_ASPECT = 2.6
-TITLE_LOGO_COMPONENT_MAX_ASPECT = 6.2
-TITLE_LOGO_COMPONENT_CENTER_TOLERANCE = 0.22
+TITLE_LOGO_ANCHOR_FROM_SECONDS = 15
+TITLE_LOGO_ANCHOR_TO_SECONDS = 60
+TITLE_LOGO_FEATURE_DISTANCE_MAX = 1.35
+TITLE_LOGO_MAX_EXPECTED_DISTANCE_SECONDS = 240
+TITLE_LOGO_COMPONENT_MIN_WIDTH_RATIO = 0.42
+TITLE_LOGO_COMPONENT_MIN_HEIGHT_RATIO = 0.12
+TITLE_LOGO_COMPONENT_MIN_ASPECT = 1.8
+TITLE_LOGO_COMPONENT_MAX_ASPECT = 7.5
+TITLE_LOGO_COMPONENT_CENTER_TOLERANCE = 0.28
 TITLE_LOGO_TEMPLATE_ROWS = (
     "000000000000000000000000000000000000000000000000",
     "000000001111111111111111111110000111110011001100",
@@ -729,12 +732,11 @@ def _mask_jaccard(a: int, b: int) -> float:
     return (a & b).bit_count() / union
 
 
-def _pick_anchor_title_logo(frames: list[dict], chapter_start: int) -> tuple[dict | None, dict]:
+def _pick_anchor_title_logo(frames: list[dict], chapter_start: int = 0) -> tuple[dict | None, dict]:
     candidates = []
     for run in _title_logo_runs(frames):
         start = int(run[0]["time"])
-        offset = start - int(chapter_start)
-        if offset < 0 or offset > TITLE_LOGO_REFERENCE_SEARCH_SECONDS:
+        if start < TITLE_LOGO_ANCHOR_FROM_SECONDS or start > TITLE_LOGO_ANCHOR_TO_SECONDS:
             continue
         best = max(
             run,
@@ -744,13 +746,16 @@ def _pick_anchor_title_logo(frames: list[dict], chapter_start: int) -> tuple[dic
             ),
         )
         score = (
-            abs(offset - TITLE_LOGO_EXPECTED_OFFSET_SECONDS),
+            abs(start - TITLE_LOGO_EXPECTED_OFFSET_SECONDS),
             -len(run),
             -float(best.get("width_ratio") or 0),
+            -float(best.get("yellow_fill") or 0),
         )
         candidates.append((score, start, best, run))
+
     if not candidates:
-        return None, {"reason": "no_title_logo_near_reference_start"}
+        return None, {"reason": "no_title_logo_in_vod_opening"}
+
     candidates.sort(key=lambda x: x[0])
     _, start, best, run = candidates[0]
     ref = dict(best)
@@ -758,16 +763,26 @@ def _pick_anchor_title_logo(frames: list[dict], chapter_start: int) -> tuple[dic
     return ref, {
         "reason": "ok",
         "title_time": start,
-        "offset_seconds": start - int(chapter_start),
+        "offset_seconds": start,
         "run_frames": len(run),
         "width_ratio": best.get("width_ratio"),
         "height_ratio": best.get("height_ratio"),
         "aspect": best.get("aspect"),
+        "center_x": best.get("center_x"),
+        "center_y": best.get("center_y"),
         "yellow_fill": best.get("yellow_fill"),
+        "source": "vod-opening-15-60s",
     }
 
 def _match_title_logo(reference: dict, frames: list[dict], expected_time: int) -> tuple[int | None, dict]:
     candidates = []
+    ref_w = float(reference.get("width_ratio") or 0)
+    ref_h = float(reference.get("height_ratio") or 0)
+    ref_a = float(reference.get("aspect") or 0)
+    ref_x = float(reference.get("center_x") or 0.5)
+    ref_y = float(reference.get("center_y") or 0.5)
+    ref_fill = float(reference.get("yellow_fill") or 0)
+
     for run in _title_logo_runs(frames):
         start = int(run[0]["time"])
         best = max(
@@ -777,33 +792,56 @@ def _match_title_logo(reference: dict, frames: list[dict], expected_time: int) -
                 float(x.get("yellow_fill") or 0),
             ),
         )
+
+        w = float(best.get("width_ratio") or 0)
+        h = float(best.get("height_ratio") or 0)
+        a = float(best.get("aspect") or 0)
+        cx = float(best.get("center_x") or 0.5)
+        cy = float(best.get("center_y") or 0.5)
+        fill = float(best.get("yellow_fill") or 0)
+
+        feature_distance = (
+            abs(w - ref_w) / 0.30
+            + abs(h - ref_h) / 0.22
+            + abs(a - ref_a) / 3.0
+            + abs(cx - ref_x) / 0.22
+            + abs(cy - ref_y) / 0.20
+            + abs(fill - ref_fill) / 0.35
+        ) / 6.0
+
+        if feature_distance > TITLE_LOGO_FEATURE_DISTANCE_MAX:
+            continue
+
+        time_distance = abs(start - int(expected_time))
+        if time_distance > TITLE_LOGO_MAX_EXPECTED_DISTANCE_SECONDS:
+            continue
+
         score = (
-            abs(start - int(expected_time)),
+            time_distance,
+            round(feature_distance, 4),
             -len(run),
-            -float(best.get("width_ratio") or 0),
-            -float(best.get("yellow_fill") or 0),
+            -w,
         )
-        candidates.append((score, start, best, len(run)))
+        candidates.append((score, start, best, len(run), feature_distance))
 
     if not candidates:
-        return None, {"reason": "no_matching_title_logo"}
+        return None, {"reason": "no_matching_vod_title_logo"}
+
     candidates.sort(key=lambda x: x[0])
-    _, start, best, run_frames = candidates[0]
-    if abs(start - int(expected_time)) > TITLE_LOGO_MAX_EXPECTED_DISTANCE_SECONDS:
-        return None, {
-            "reason": "nearest_title_logo_too_far",
-            "distance_from_expected": start - int(expected_time),
-        }
+    _, start, best, run_frames, feature_distance = candidates[0]
     return start, {
         "reason": "ok",
         "run_frames": run_frames,
         "expected_title_time": int(expected_time),
         "distance_from_expected": start - int(expected_time),
+        "feature_distance": round(float(feature_distance), 4),
         "bbox_width": best.get("bbox_width"),
         "bbox_height": best.get("bbox_height"),
         "width_ratio": best.get("width_ratio"),
         "height_ratio": best.get("height_ratio"),
         "aspect": best.get("aspect"),
+        "center_x": best.get("center_x"),
+        "center_y": best.get("center_y"),
         "yellow_fill": best.get("yellow_fill"),
     }
 def _hdist(a: int, b: int) -> int:
@@ -1025,7 +1063,6 @@ def refine_with_titlecard(
         center = int(item.get("start_seconds") or 0)
         logo_windows.append(_sample_title_logo_window(analysis_url, center, duration))
 
-    # Learn the user-confirmed yellow title logo from the first regular episode.
     regular_indices = [
         i for i, item in enumerate(items)
         if item.get("kind") == "episode"
@@ -1034,16 +1071,14 @@ def refine_with_titlecard(
     if not regular_indices:
         return chapters, {"status": "skipped", "reason": "no_regular_episode_reference"}
 
-    anchor_index = regular_indices[0]
-    anchor_start = int(items[anchor_index].get("start_seconds") or 0)
-    reference, anchor_meta = _pick_anchor_title_logo(
-        logo_windows[anchor_index],
-        anchor_start,
-    )
+    # User-confirmed behavior: opening the VOD shows the generic GMCX title
+    # around 30 seconds. Learn the VOD-specific title directly from 0-60 sec.
+    opening_logo_frames = _sample_title_logo_window(analysis_url, 0, duration)
+    reference, anchor_meta = _pick_anchor_title_logo(opening_logo_frames, 0)
     if reference is None:
         return chapters, {
             "status": "no_consensus",
-            "method": "yellow-gmcx-title-logo",
+            "method": "vod-opening-title-logo",
             "boundary_version": TITLECARD_BOUNDARY_VERSION,
             "reference": anchor_meta,
             "matches": [],
@@ -1119,7 +1154,7 @@ def refine_with_titlecard(
             "index": index,
             "title": item.get("title"),
             "matched": True,
-            "method": "yellow-gmcx-title-logo",
+            "method": "vod-opening-title-logo",
             "original": original,
             "title_time": int(title_time),
             "title_offset": title_offset,
@@ -1143,7 +1178,7 @@ def refine_with_titlecard(
     if unchanged and matched_regular:
         return chapters, {
             "status": "guarded",
-            "method": "yellow-gmcx-title-logo",
+            "method": "vod-opening-title-logo",
             "boundary_version": TITLECARD_BOUNDARY_VERSION,
             "reason": "order_or_minimum-gap-guard",
             "reference": anchor_meta,
@@ -1158,7 +1193,7 @@ def refine_with_titlecard(
     status = "applied" if coverage >= 0.8 else ("partial" if matched_regular else "no_consensus")
     return rebuilt, {
         "status": status,
-        "method": "yellow-gmcx-title-logo",
+        "method": "vod-opening-title-logo",
         "boundary_version": TITLECARD_BOUNDARY_VERSION,
         "window_seconds": TITLECARD_WINDOW_SECONDS,
         "sample_seconds": TITLE_LOGO_SAMPLE_SECONDS,
