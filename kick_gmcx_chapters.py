@@ -40,7 +40,7 @@ EPISODE_DURATION_OVERRIDES: dict[int, int] = {
 # signature inside each VOD and place every split on the same visual cue.
 TITLECARD_WINDOW_SECONDS = 240
 TITLECARD_SAMPLE_SECONDS = 2
-TITLECARD_BOUNDARY_VERSION = 20
+TITLECARD_BOUNDARY_VERSION = 21
 TITLECARD_INTRO_SECONDS = 8
 TITLECARD_HASH_BITS = 256
 TITLECARD_MATCH_DISTANCE = 42
@@ -76,6 +76,10 @@ ACCESS_FRAME_FROM_SECONDS = 20
 ACCESS_FRAME_TO_SECONDS = 45
 ACCESS_FRAME_MATCH_DISTANCE = 72
 ACCESS_FRAME_CROP = "crop=iw*0.82:ih*0.46:iw*0.09:ih*0.25"
+ACCESS_RGB_WIDTH = 32
+ACCESS_RGB_HEIGHT = 16
+ACCESS_YELLOW_MASK_MIN_PIXELS = 18
+ACCESS_YELLOW_JACCARD_MIN = 0.32
 TITLE_LOGO_FEATURE_DISTANCE_MAX = 0.65
 TITLE_LOGO_MAX_EXPECTED_DISTANCE_SECONDS = 120
 TITLE_LOGO_COMPONENT_MIN_WIDTH_RATIO = 0.42
@@ -661,31 +665,58 @@ def _normalise_yellow_logo(frame: bytes, width: int, height: int) -> dict | None
         "yellow_fill": round(yellow_fill, 4),
         "dark_ratio": round(dark_ratio, 4),
     }
-def _access_frame_signature(frame: bytes) -> tuple[int, float, int] | None:
-    if len(frame) != 17 * 16:
+def _yellow_mask_signature(frame: bytes, width: int, height: int) -> tuple[int, int] | None:
+    if len(frame) != width * height * 3:
         return None
-    lo, hi = min(frame), max(frame)
-    contrast = hi - lo
-    mean = sum(frame) / len(frame)
-    if contrast < 30:
-        return None
-
-    # Normalise each frame and compare bright/dark structure in the tight
-    # title-logo crop. The logo is bright over a mostly dark game background.
-    sorted_px = sorted(frame)
-    threshold = sorted_px[int(len(sorted_px) * 0.62)]
     bits = 0
     bit = 0
-    for y in range(16):
-        row = y * 17
-        for x in range(16):
-            a = frame[row + x]
-            b = frame[row + x + 1]
-            local = (a + b) / 2
-            if (a > b and local >= threshold) or (a >= threshold + 10 and b < threshold):
+    count = 0
+    for y in range(height):
+        for x in range(width):
+            p = (y * width + x) * 3
+            r, g, b = frame[p], frame[p + 1], frame[p + 2]
+            is_yellow = (
+                r >= 105 and g >= 95 and b <= 150
+                and r - b >= 28 and g - b >= 22
+                and abs(int(r) - int(g)) <= 95
+            )
+            if is_yellow:
                 bits |= 1 << bit
+                count += 1
             bit += 1
-    return bits, mean, contrast
+    if count < ACCESS_YELLOW_MASK_MIN_PIXELS:
+        return None
+    return bits, count
+
+
+def _shift_mask(bits: int, width: int, height: int, dx: int, dy: int) -> int:
+    out = 0
+    for y in range(height):
+        yy = y + dy
+        if yy < 0 or yy >= height:
+            continue
+        for x in range(width):
+            xx = x + dx
+            if xx < 0 or xx >= width:
+                continue
+            src = y * width + x
+            if bits & (1 << src):
+                out |= 1 << (yy * width + xx)
+    return out
+
+
+def _yellow_mask_similarity(a: int, b: int) -> float:
+    best = 0.0
+    for dy in (-1, 0, 1):
+        for dx in (-2, -1, 0, 1, 2):
+            shifted = _shift_mask(b, ACCESS_RGB_WIDTH, ACCESS_RGB_HEIGHT, dx, dy)
+            union = (a | shifted).bit_count()
+            if not union:
+                continue
+            score = (a & shifted).bit_count() / union
+            if score > best:
+                best = score
+    return best
 
 
 def _sample_access_frame_signatures(
@@ -706,8 +737,8 @@ def _sample_access_frame_signatures(
         "-t", str(span),
         "-an",
         "-vf",
-        f"fps=1,{ACCESS_FRAME_CROP},scale=17:16:flags=area,format=gray",
-        "-pix_fmt", "gray",
+        f"fps=1,{ACCESS_FRAME_CROP},scale={ACCESS_RGB_WIDTH}:{ACCESS_RGB_HEIGHT}:flags=area,format=rgb24",
+        "-pix_fmt", "rgb24",
         "-f", "rawvideo", "pipe:1",
     ]
     try:
@@ -726,20 +757,19 @@ def _sample_access_frame_signatures(
         print(f"::warning::GMCX access-frame ffmpeg failed start={start}: {err}")
         return []
 
-    frame_size = 17 * 16
+    frame_size = ACCESS_RGB_WIDTH * ACCESS_RGB_HEIGHT * 3
     raw = proc.stdout
     out = []
     for idx in range(len(raw) // frame_size):
         frame = raw[idx * frame_size:(idx + 1) * frame_size]
-        sig = _access_frame_signature(frame)
+        sig = _yellow_mask_signature(frame, ACCESS_RGB_WIDTH, ACCESS_RGB_HEIGHT)
         if not sig:
             continue
-        bits, mean, contrast = sig
+        mask, yellow_pixels = sig
         out.append({
             "time": start + idx,
-            "hash": bits,
-            "mean": mean,
-            "contrast": contrast,
+            "yellow_mask": mask,
+            "yellow_pixels": yellow_pixels,
         })
     return out
 
@@ -748,57 +778,58 @@ def _pick_access_reference(frames: list[dict]) -> tuple[dict | None, dict]:
     candidates = [
         x for x in frames
         if ACCESS_FRAME_FROM_SECONDS <= int(x["time"]) <= ACCESS_FRAME_TO_SECONDS
-        and int(x.get("contrast") or 0) >= TITLECARD_MIN_CONTRAST
+        and int(x.get("yellow_pixels") or 0) >= ACCESS_YELLOW_MASK_MIN_PIXELS
     ]
     if not candidates:
-        return None, {"reason": "no_access_frame_reference"}
+        return None, {"reason": "no_access_yellow_logo_reference"}
 
-    # Prefer a stable-looking frame nearest 30 sec, matching the user's observed access screen.
     candidates.sort(
         key=lambda x: (
             abs(int(x["time"]) - 30),
-            -int(x.get("contrast") or 0),
+            -int(x.get("yellow_pixels") or 0),
         )
     )
     ref = candidates[0]
     return ref, {
         "reason": "ok",
         "reference_time_seconds": int(ref["time"]),
-        "contrast": int(ref.get("contrast") or 0),
-        "source": "vod-access-frame-20-45s",
+        "yellow_pixels": int(ref.get("yellow_pixels") or 0),
+        "source": "vod-access-yellow-logo-20-45s",
     }
-
 
 def _match_access_reference(reference: dict, frames: list[dict], expected_time: int) -> tuple[int | None, dict]:
     if not frames:
         return None, {"reason": "no_access_frames"}
 
+    ref_mask = int(reference.get("yellow_mask") or 0)
     scored = []
     for x in frames:
         time_distance = abs(int(x["time"]) - expected_time)
         if time_distance > TITLE_LOGO_MAX_EXPECTED_DISTANCE_SECONDS:
             continue
-        hash_distance = _hdist(int(reference["hash"]), int(x["hash"]))
-        # Similarity remains primary, but among plausible matches stay near
-        # the expected chapter boundary to avoid game-screen lookalikes.
-        score = hash_distance + min(24.0, time_distance / 8.0)
-        scored.append((score, hash_distance, time_distance, int(x["time"])))
+        similarity = _yellow_mask_similarity(
+            ref_mask,
+            int(x.get("yellow_mask") or 0),
+        )
+        if similarity < ACCESS_YELLOW_JACCARD_MIN:
+            continue
+        # Shape similarity is primary. Time only breaks close matches.
+        score = (
+            -round(similarity, 5),
+            time_distance,
+            -int(x.get("yellow_pixels") or 0),
+            int(x["time"]),
+        )
+        scored.append((score, similarity, time_distance, int(x["time"])))
 
     if not scored:
-        return None, {"reason": "no_access_frames_in_window"}
+        return None, {"reason": "yellow_logo_no_match"}
 
-    scored.sort(key=lambda x: (x[0], x[1], x[2], x[3]))
-    _, best_dist, time_distance, best_time = scored[0]
-    if best_dist > ACCESS_FRAME_MATCH_DISTANCE:
-        return None, {
-            "reason": "access_frame_no_match",
-            "best_distance": best_dist,
-            "time_distance": time_distance,
-        }
-
+    scored.sort(key=lambda x: x[0])
+    _, similarity, time_distance, best_time = scored[0]
     return best_time, {
         "reason": "ok",
-        "distance": best_dist,
+        "yellow_jaccard": round(float(similarity), 4),
         "expected_time": expected_time,
         "distance_from_expected": best_time - expected_time,
     }
@@ -1229,7 +1260,7 @@ def refine_with_titlecard(
     if reference is None:
         return chapters, {
             "status": "no_consensus",
-            "method": "vod-access-frame",
+            "method": "vod-access-yellow-logo",
             "boundary_version": TITLECARD_BOUNDARY_VERSION,
             "reference": anchor_meta,
             "matches": [],
@@ -1302,7 +1333,7 @@ def refine_with_titlecard(
                 "matched": False,
                 "original": original,
                 "expected_reference": expected_title,
-                "access_frame": meta,
+                "yellow_logo": meta,
             })
             continue
 
@@ -1315,7 +1346,7 @@ def refine_with_titlecard(
                 "original": original,
                 "candidate": refined,
                 "reason": "shift_guard",
-                "access_frame": meta,
+                "yellow_logo": meta,
             })
             continue
 
@@ -1324,19 +1355,19 @@ def refine_with_titlecard(
             "index": index,
             "title": item.get("title"),
             "matched": True,
-            "method": "vod-access-frame",
+            "method": "vod-access-yellow-logo",
             "original": original,
             "title_time": int(title_time),
             "title_offset": title_offset,
             "refined": refined,
             "shift_seconds": refined - original,
-            "access_frame": meta,
+            "yellow_logo": meta,
         })
 
     regular_nonfirst = [i for i in regular_indices if i != 0]
     matched_regular = sum(
         1 for row in match_rows
-        if row.get("method") == "vod-access-frame"
+        if row.get("method") == "vod-access-yellow-logo"
     )
 
     rebuilt = _apply_refined_chapter_starts(
@@ -1348,7 +1379,7 @@ def refine_with_titlecard(
     if unchanged and matched_regular:
         return chapters, {
             "status": "guarded",
-            "method": "vod-access-frame",
+            "method": "vod-access-yellow-logo",
             "boundary_version": TITLECARD_BOUNDARY_VERSION,
             "reason": "order_or_minimum-gap-guard",
             "reference": anchor_meta,
@@ -1380,7 +1411,7 @@ def refine_with_titlecard(
     status = "applied" if coverage >= 0.8 else ("partial" if matched_regular else "no_consensus")
     return rebuilt, {
         "status": status,
-        "method": "vod-access-frame",
+        "method": "vod-access-yellow-logo",
         "boundary_version": TITLECARD_BOUNDARY_VERSION,
         "window_seconds": TITLECARD_WINDOW_SECONDS,
         "sample_seconds": 1,
