@@ -936,18 +936,21 @@ def main() -> int:
 
         titlecard_refinement = {"status": "not_applicable"}
         previous_result = previous_results.get(str(vod.get("vod_id")))
-        if (
-            status == "ready"
-            and chapters
-            and start_ep < 197
-            and previous_result
-            and previous_result.get("status") == "ready"
-            and previous_result.get("chapters")
-        ):
-            chapters = previous_result["chapters"]
-            titlecard_refinement = previous_result.get("titlecard_refinement") or {
-                "status": "reused"
-            }
+        if status == "ready" and chapters and start_ep < 197:
+            if (
+                previous_result
+                and previous_result.get("status") == "ready"
+                and previous_result.get("chapters")
+            ):
+                chapters = previous_result["chapters"]
+                titlecard_refinement = previous_result.get("titlecard_refinement") or {
+                    "status": "reused"
+                }
+            else:
+                titlecard_refinement = {
+                    "status": "legacy-structured",
+                    "reason": "image-refinement-limited-to-197-plus",
+                }
         elif status == "ready" and chapters:
             chapters, titlecard_refinement = refine_with_titlecard(
                 vod,
