@@ -1,0 +1,52 @@
+name: Probe GCCX 207 217 head
+
+on:
+  push:
+    paths:
+      - ".github/workflows/probe_gccx_207_217_head.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Ensure ffmpeg
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+
+      - name: Extract head frames
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p debug/gccx_probe_heads/207 debug/gccx_probe_heads/217
+          URL207='https://stream.kick.com/0f3cb0ebce7/ivs/v1/196233775518/59bB9isG3qqM/2026/9/26/0/38/NeTE7S2KvoCh/media/hls/master.m3u8'
+          URL217='https://stream.kick.com/0f3cb0ebce7/ivs/v1/196233775518/59bB9isG3qqM/2026/9/26/23/55/uHeZrR7oeD30/media/hls/master.m3u8'
+          for SEC in 0 2 5 10 20 30; do
+            ffmpeg -hide_banner -loglevel error -ss "${SEC}" -i "${URL207}" -frames:v 1 -vf 'scale=1280:-2' -q:v 2 "/tmp/207_${SEC}.jpg" || true
+            if [ -s "/tmp/207_${SEC}.jpg" ]; then
+              base64 -w 0 "/tmp/207_${SEC}.jpg" > "debug/gccx_probe_heads/207/${SEC}.jpg.b64"
+            fi
+            ffmpeg -hide_banner -loglevel error -ss "${SEC}" -i "${URL217}" -frames:v 1 -vf 'scale=1280:-2' -q:v 2 "/tmp/217_${SEC}.jpg" || true
+            if [ -s "/tmp/217_${SEC}.jpg" ]; then
+              base64 -w 0 "/tmp/217_${SEC}.jpg" > "debug/gccx_probe_heads/217/${SEC}.jpg.b64"
+            fi
+          done
+
+      - name: Commit probes
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add debug/gccx_probe_heads
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Add GCCX 207 217 head probes [skip ci]"
+          git pull --rebase origin main || true
+          git push origin HEAD:main
