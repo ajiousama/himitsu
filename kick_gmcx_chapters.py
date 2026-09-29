@@ -1833,32 +1833,105 @@ def _probe_known_35s_op(url: str, chapters: list[dict], total_duration: int) -> 
     }
 
 
-def _probe_global_op_logo_starts(url: str, total_duration: int, episode_count: int) -> dict:
-    """Find OPs globally: use the confirmed 35s OP only to learn logo offset, then scan the whole VOD."""
+def _probe_global_op_logo_starts(url: str, total_duration: int, episode_count: int, chapters: list[dict] | None = None) -> dict:
+    """Find OP logos in wide +/-10 minute windows around rough chapter estimates."""
     template_logo_frames = _scan_title_logo_timeline(KNOWN_OP_TEMPLATE_URL, KNOWN_OP_TEMPLATE_SECONDS, KNOWN_OP_TEMPLATE_SECONDS)
     reference, ref_meta = _pick_anchor_title_logo(template_logo_frames, 0)
     if reference is None:
         return {"status": "skipped", "reason": "template_logo_not_found", "reference": ref_meta}
     logo_offset = int(reference.get("run_start") or 0)
-    timeline = _scan_title_logo_timeline(url, int(total_duration))
-    logo_times = _global_regular_logo_starts(timeline, int(episode_count))
-    if len(logo_times) != int(episode_count):
+    ref_w = float(reference.get("width_ratio") or 0)
+    ref_h = float(reference.get("height_ratio") or 0)
+    ref_a = float(reference.get("aspect") or 0)
+    ref_x = float(reference.get("center_x") or 0.5)
+    ref_y = float(reference.get("center_y") or 0.5)
+    ref_fill = float(reference.get("yellow_fill") or 0)
+    episodes = [x for x in (chapters or []) if x.get("kind") == "episode"][:int(episode_count)]
+    if len(episodes) != int(episode_count):
+        return {"status": "skipped", "reason": "episode_estimates_missing", "template_logo_offset": logo_offset}
+
+    def sample_wide(item: dict) -> dict:
+        ep = int(item.get("episode") or 0)
+        center = int(item.get("start_seconds") or 0)
+        radius = 600
+        start = max(0, center - radius)
+        stop = min(int(total_duration), center + radius)
+        if center <= radius:
+            start = 0
+            stop = min(int(total_duration), center + radius)
+        span = max(1, stop - start)
+        width, height = 64, 36
+        cmd = [
+            "ffmpeg", "-hide_banner", "-loglevel", "error",
+            "-rw_timeout", "15000000", "-ss", str(start), "-i", url,
+            "-t", str(span), "-an",
+            "-vf", f"fps=1/{TITLE_LOGO_SAMPLE_SECONDS},scale={width}:{height}:flags=area,format=rgb24",
+            "-pix_fmt", "rgb24", "-f", "rawvideo", "pipe:1",
+        ]
+        try:
+            proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=150, check=False)
+        except (FileNotFoundError, subprocess.TimeoutExpired) as exc:
+            return {"episode": ep, "chapter_start": center, "matched": False, "reason": str(exc)}
+        if proc.returncode != 0:
+            return {"episode": ep, "chapter_start": center, "matched": False, "reason": "ffmpeg_failed"}
+        frame_size = width * height * 3
+        frames = []
+        for idx in range(len(proc.stdout) // frame_size):
+            frame = proc.stdout[idx * frame_size:(idx + 1) * frame_size]
+            logo = _normalise_yellow_logo(frame, width, height)
+            if logo:
+                frames.append({"time": start + idx * TITLE_LOGO_SAMPLE_SECONDS, **logo})
+        candidates = []
+        expected_logo = center + logo_offset
+        for run in _title_logo_runs(frames):
+            run_start = int(run[0]["time"])
+            best = max(run, key=lambda x: (float(x.get("width_ratio") or 0), float(x.get("yellow_fill") or 0)))
+            w = float(best.get("width_ratio") or 0)
+            h = float(best.get("height_ratio") or 0)
+            aa = float(best.get("aspect") or 0)
+            cx = float(best.get("center_x") or 0.5)
+            cy = float(best.get("center_y") or 0.5)
+            fill = float(best.get("yellow_fill") or 0)
+            fd = (
+                abs(w - ref_w) / 0.30 + abs(h - ref_h) / 0.22 + abs(aa - ref_a) / 3.0
+                + abs(cx - ref_x) / 0.22 + abs(cy - ref_y) / 0.20 + abs(fill - ref_fill) / 0.35
+            ) / 6.0
+            if fd > 0.40:
+                continue
+            candidates.append((round(fd, 4), abs(run_start - expected_logo), -len(run), run_start, len(run)))
+        if not candidates:
+            return {
+                "episode": ep, "chapter_start": center, "matched": False,
+                "reason": "no_logo_in_wide_window", "detected_logo_frames": len(frames),
+                "window_start": start, "window_stop": stop,
+            }
+        candidates.sort()
+        fd, distance, neg_len, logo_time, run_frames = candidates[0]
+        op_start = max(0, int(logo_time) - logo_offset)
         return {
-            "status": "no_consensus",
-            "reason": "global_logo_sequence_not_found",
-            "template_logo_offset": logo_offset,
-            "detected_logo_frames": len(timeline),
-            "picked_logo_times": logo_times,
+            "episode": ep, "chapter_start": center, "matched": True,
+            "window_start": start, "window_stop": stop,
+            "logo_time": int(logo_time), "op_start": op_start,
+            "shift_seconds": op_start - center,
+            "feature_distance": fd, "run_frames": int(run_frames),
+            "distance_from_estimated_logo": int(distance),
+            "detected_logo_frames": len(frames),
         }
-    op_starts = [max(0, int(t) - logo_offset) for t in logo_times]
+
+    rows = []
+    with ThreadPoolExecutor(max_workers=min(4, len(episodes))) as pool:
+        futures = [pool.submit(sample_wide, item) for item in episodes]
+        for future in as_completed(futures):
+            rows.append(future.result())
+    rows.sort(key=lambda x: int(x.get("episode") or 0))
+    matched_rows = [x for x in rows if x.get("matched")]
     return {
-        "status": "diagnostic",
-        "method": "global-op-logo-scan",
+        "status": "diagnostic" if len(matched_rows) >= max(1, int(episode_count) - 1) else "partial",
+        "method": "wide-local-op-logo-scan",
         "template_logo_offset": logo_offset,
-        "detected_logo_frames": len(timeline),
-        "logo_times": logo_times,
-        "op_starts": op_starts,
-        "gaps": [op_starts[i] - op_starts[i-1] for i in range(1, len(op_starts))],
+        "matched": len(matched_rows),
+        "episode_count": int(episode_count),
+        "rows": rows,
     }
 
 
@@ -2390,7 +2463,7 @@ def main() -> int:
         if status == "ready" and chapters:
             if start_ep == 227 and vod.get("source_url"):
                 known_op_probe = _probe_known_35s_op(str(vod.get("source_url")), chapters, duration)
-                global_op_probe = _probe_global_op_logo_starts(str(vod.get("source_url")), duration, count)
+                global_op_probe = _probe_global_op_logo_starts(str(vod.get("source_url")), duration, count, chapters)
             if start_ep == 177 and vod.get("source_url"):
                 hls_join_markers = _fetch_hls_join_markers(str(vod.get("source_url")))
                 packet_join_probe = _probe_selected_episode_joins(str(vod.get("source_url")), chapters)
