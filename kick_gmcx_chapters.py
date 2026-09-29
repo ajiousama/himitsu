@@ -1851,9 +1851,98 @@ def _probe_global_op_logo_starts(url: str, total_duration: int, episode_count: i
     if len(episodes) != test_count:
         return {"status": "skipped", "reason": "episode_estimates_missing", "template_logo_offset": logo_offset}
 
+    analysis_url = _lowest_hls_variant(url)
+
     def sample_wide(item: dict) -> dict:
         ep = int(item.get("episode") or 0)
         rough_center = int(item.get("start_seconds") or 0)
+        width, height = 64, 36
+
+        def scan_window(start: int, stop: int) -> dict:
+            span = max(1, stop - start)
+            cmd = [
+                "ffmpeg", "-hide_banner", "-loglevel", "error",
+                "-rw_timeout", "15000000", "-ss", str(start), "-i", analysis_url,
+                "-t", str(span), "-an",
+                "-vf", f"fps=1/{TITLE_LOGO_SAMPLE_SECONDS},scale={width}:{height}:flags=area,format=rgb24",
+                "-pix_fmt", "rgb24", "-f", "rawvideo", "pipe:1",
+            ]
+            try:
+                proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=90, check=False)
+            except (FileNotFoundError, subprocess.TimeoutExpired) as exc:
+                return {"start": start, "stop": stop, "frames": 0, "candidates": [], "reason": str(exc)}
+            if proc.returncode != 0:
+                return {"start": start, "stop": stop, "frames": 0, "candidates": [], "reason": "ffmpeg_failed"}
+            frame_size = width * height * 3
+            frames = []
+            for idx in range(len(proc.stdout) // frame_size):
+                frame = proc.stdout[idx * frame_size:(idx + 1) * frame_size]
+                logo = _normalise_yellow_logo(frame, width, height)
+                if logo:
+                    frames.append({"time": start + idx * TITLE_LOGO_SAMPLE_SECONDS, **logo})
+            candidates = []
+            for run in _title_logo_runs(frames):
+                run_start = int(run[0]["time"])
+                best = max(run, key=lambda x: (float(x.get("width_ratio") or 0), float(x.get("yellow_fill") or 0)))
+                w = float(best.get("width_ratio") or 0)
+                h = float(best.get("height_ratio") or 0)
+                aa = float(best.get("aspect") or 0)
+                cx = float(best.get("center_x") or 0.5)
+                cy = float(best.get("center_y") or 0.5)
+                fill = float(best.get("yellow_fill") or 0)
+                fd = (
+                    abs(w - ref_w) / 0.30 + abs(h - ref_h) / 0.22 + abs(aa - ref_a) / 3.0
+                    + abs(cx - ref_x) / 0.22 + abs(cy - ref_y) / 0.20 + abs(fill - ref_fill) / 0.35
+                ) / 6.0
+                if fd <= 0.40:
+                    candidates.append((round(fd, 4), -len(run), run_start, len(run)))
+            return {"start": start, "stop": stop, "frames": len(frames), "candidates": candidates}
+
+        if ep == 229:
+            broad_start = max(0, rough_center - 1724)
+            broad_stop = min(int(total_duration), rough_center + 1876)
+            tile_starts = list(range(broad_start, broad_stop, 120))
+            tile_rows = []
+            with ThreadPoolExecutor(max_workers=min(8, len(tile_starts))) as tile_pool:
+                tile_futures = [
+                    tile_pool.submit(scan_window, t, min(broad_stop, t + 150))
+                    for t in tile_starts
+                ]
+                for future in as_completed(tile_futures):
+                    tile_rows.append(future.result())
+            detected_frames = sum(int(x.get("frames") or 0) for x in tile_rows)
+            merged = {}
+            for row in tile_rows:
+                for fd, neg_len, run_start, run_frames in row.get("candidates") or []:
+                    prev = merged.get(int(run_start))
+                    cand = (fd, neg_len, run_start, run_frames)
+                    if prev is None or cand < prev:
+                        merged[int(run_start)] = cand
+            candidates = sorted(merged.values())
+            if not candidates:
+                return {
+                    "episode": ep, "chapter_start": rough_center, "search_center": rough_center,
+                    "matched": False, "reason": "no_logo_in_tiled_window",
+                    "scan_mode": "tiled-lowest-hls", "tile_count": len(tile_starts),
+                    "detected_logo_frames": detected_frames,
+                    "window_start": broad_start, "window_stop": broad_stop,
+                }
+            fd, neg_len, logo_time, run_frames = candidates[0]
+            op_start = max(0, int(logo_time) - logo_offset)
+            return {
+                "episode": ep, "chapter_start": rough_center, "search_center": rough_center,
+                "matched": True, "scan_mode": "tiled-lowest-hls",
+                "tile_count": len(tile_starts), "window_start": broad_start, "window_stop": broad_stop,
+                "logo_time": int(logo_time), "op_start": op_start,
+                "shift_seconds": op_start - rough_center,
+                "feature_distance": fd, "run_frames": int(run_frames),
+                "detected_logo_frames": detected_frames,
+                "top_candidates": [
+                    {"logo_time": int(c[2]), "op_start": max(0, int(c[2]) - logo_offset), "feature_distance": c[0], "run_frames": int(c[3])}
+                    for c in candidates[:5]
+                ],
+            }
+
         center = rough_center + (262 if ep >= 228 else 0)
         radius = 240
         start = max(0, center - radius)
@@ -1861,54 +1950,21 @@ def _probe_global_op_logo_starts(url: str, total_duration: int, episode_count: i
         if center <= radius:
             start = 0
             stop = min(int(total_duration), 90)
-        span = max(1, stop - start)
-        width, height = 64, 36
-        cmd = [
-            "ffmpeg", "-hide_banner", "-loglevel", "error",
-            "-rw_timeout", "15000000", "-ss", str(start), "-i", url,
-            "-t", str(span), "-an",
-            "-vf", f"fps=1/{TITLE_LOGO_SAMPLE_SECONDS},scale={width}:{height}:flags=area,format=rgb24",
-            "-pix_fmt", "rgb24", "-f", "rawvideo", "pipe:1",
-        ]
-        try:
-            proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=220, check=False)
-        except (FileNotFoundError, subprocess.TimeoutExpired) as exc:
-            return {"episode": ep, "chapter_start": rough_center, "search_center": center, "matched": False, "reason": str(exc)}
-        if proc.returncode != 0:
-            return {"episode": ep, "chapter_start": rough_center, "search_center": center, "matched": False, "reason": "ffmpeg_failed"}
-        frame_size = width * height * 3
-        frames = []
-        for idx in range(len(proc.stdout) // frame_size):
-            frame = proc.stdout[idx * frame_size:(idx + 1) * frame_size]
-            logo = _normalise_yellow_logo(frame, width, height)
-            if logo:
-                frames.append({"time": start + idx * TITLE_LOGO_SAMPLE_SECONDS, **logo})
-        candidates = []
-        expected_logo = center + logo_offset
-        for run in _title_logo_runs(frames):
-            run_start = int(run[0]["time"])
-            best = max(run, key=lambda x: (float(x.get("width_ratio") or 0), float(x.get("yellow_fill") or 0)))
-            w = float(best.get("width_ratio") or 0)
-            h = float(best.get("height_ratio") or 0)
-            aa = float(best.get("aspect") or 0)
-            cx = float(best.get("center_x") or 0.5)
-            cy = float(best.get("center_y") or 0.5)
-            fill = float(best.get("yellow_fill") or 0)
-            fd = (
-                abs(w - ref_w) / 0.30 + abs(h - ref_h) / 0.22 + abs(aa - ref_a) / 3.0
-                + abs(cx - ref_x) / 0.22 + abs(cy - ref_y) / 0.20 + abs(fill - ref_fill) / 0.35
-            ) / 6.0
-            if fd > 0.40:
-                continue
-            candidates.append((round(fd, 4), abs(run_start - expected_logo), -len(run), run_start, len(run)))
+        row = scan_window(start, stop)
+        candidates = list(row.get("candidates") or [])
         if not candidates:
             return {
                 "episode": ep, "chapter_start": rough_center, "search_center": center, "matched": False,
-                "reason": "no_logo_in_wide_window", "detected_logo_frames": len(frames),
+                "reason": row.get("reason") or "no_logo_in_wide_window",
+                "detected_logo_frames": int(row.get("frames") or 0),
                 "window_start": start, "window_stop": stop,
             }
-        candidates.sort()
-        fd, distance, neg_len, logo_time, run_frames = candidates[0]
+        expected_logo = center + logo_offset
+        ranked = sorted(
+            (fd, abs(int(run_start) - expected_logo), neg_len, int(run_start), int(run_frames))
+            for fd, neg_len, run_start, run_frames in candidates
+        )
+        fd, distance, neg_len, logo_time, run_frames = ranked[0]
         op_start = max(0, int(logo_time) - logo_offset)
         return {
             "episode": ep, "chapter_start": rough_center, "search_center": center, "matched": True,
@@ -1917,7 +1973,7 @@ def _probe_global_op_logo_starts(url: str, total_duration: int, episode_count: i
             "shift_seconds": op_start - rough_center,
             "feature_distance": fd, "run_frames": int(run_frames),
             "distance_from_estimated_logo": int(distance),
-            "detected_logo_frames": len(frames),
+            "detected_logo_frames": int(row.get("frames") or 0),
         }
 
     rows = []
