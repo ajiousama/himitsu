@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-29T17:50:45.013029+09:00",
+  "generated_at": "2026-09-29T18:07:18.847713+09:00",
   "reference_episode_seconds": 3501,
   "results": [
     {
@@ -448,7 +448,7 @@
         "status": "diagnostic",
         "method": "wide-local-op-logo-scan",
         "template_logo_offset": 31,
-        "matched": 2,
+        "matched": 3,
         "episode_count": 3,
         "rows": [
           {
@@ -461,7 +461,7 @@
             "logo_time": 31,
             "op_start": 0,
             "shift_seconds": 0,
-            "feature_distance": 0.0,
+            "feature_distance": 0.0238,
             "run_frames": 5,
             "distance_from_estimated_logo": 0,
             "detected_logo_frames": 21
@@ -473,23 +473,55 @@
             "matched": true,
             "window_start": 4484,
             "window_stop": 4964,
-            "logo_time": 4755,
-            "op_start": 4724,
-            "shift_seconds": 262,
-            "feature_distance": 0.1604,
-            "run_frames": 7,
-            "distance_from_estimated_logo": 0,
-            "detected_logo_frames": 65
+            "logo_time": 4753,
+            "op_start": 4722,
+            "shift_seconds": 260,
+            "feature_distance": 0.1462,
+            "run_frames": 9,
+            "distance_from_estimated_logo": 2,
+            "detected_logo_frames": 62
           },
           {
             "episode": 229,
             "chapter_start": 8924,
-            "search_center": 9186,
-            "matched": false,
-            "reason": "no_logo_in_wide_window",
-            "detected_logo_frames": 5,
-            "window_start": 8946,
-            "window_stop": 9426
+            "search_center": 8924,
+            "matched": true,
+            "scan_mode": "tiled-lowest-hls",
+            "tile_count": 30,
+            "window_start": 7200,
+            "window_stop": 10800,
+            "logo_time": 10542,
+            "op_start": 10511,
+            "shift_seconds": 1587,
+            "feature_distance": 0.0238,
+            "run_frames": 5,
+            "detected_logo_frames": 149,
+            "top_candidates": [
+              {
+                "logo_time": 10542,
+                "op_start": 10511,
+                "feature_distance": 0.0238,
+                "run_frames": 5
+              },
+              {
+                "logo_time": 9899,
+                "op_start": 9868,
+                "feature_distance": 0.1283,
+                "run_frames": 7
+              },
+              {
+                "logo_time": 9909,
+                "op_start": 9878,
+                "feature_distance": 0.1316,
+                "run_frames": 21
+              },
+              {
+                "logo_time": 9724,
+                "op_start": 9693,
+                "feature_distance": 0.1343,
+                "run_frames": 11
+              }
+            ]
           }
         ]
       },
