@@ -33,7 +33,7 @@ EXPECTED_VERCEL_ROUTE_COUNT = 1
 
 def radio_url(sid: str) -> str:
     if sid in VERCEL_RADIKO_SIDS or sid in VERCEL_NHK_SIDS:
-        return f"{RADIO_VERCEL_BASE}{quote(sid, safe='')}"
+        return f"{RADIO_VERCEL_BASE}{quote(sid, safe='')}&v={RADIO_BUILD}"
     return f"{RADIO_RAILWAY_BASE}/{quote(sid, safe='')}?v={RADIO_BUILD}"
 
 
