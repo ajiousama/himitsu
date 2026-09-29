@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-29",
-  "generated_at": "2026-09-29T15:10:17.539815+09:00",
+  "generated_at": "2026-09-29T15:11:17.491621+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260929.json",
   "schedule_checked_at": "2026-09-29T15:07:17.589951+09:00",
@@ -52,10 +52,16 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 9,
+    "requested": 10,
     "fetched": 9,
     "failures": [],
-    "deferred": []
+    "deferred": [
+      {
+        "jcd": "24",
+        "name": "大村",
+        "start": "2026-09-29T17:05:00+09:00"
+      }
+    ]
   },
   "epg_programmes_written": {
     "public_sports_epg_local.xml": 168,
@@ -1302,7 +1308,8 @@
           "name": "予選特選"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "provider_stream_start": "2026-09-29T17:05:00+09:00",
+      "source": "公式BR配信開始待ち 17:05"
     }
   }
 }
