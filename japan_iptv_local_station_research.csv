@@ -1,16 +1,16 @@
-station_name,region,category,primary_system,secondary_system,slug_or_id_hint,epg_id_hint,priority,decision,current_status,next_action,notes
-チバテレ,千葉,地方局,DTV2/vthanhtivi,ra1n test,chibatv,chiba_tv,高,A_本命候補,要再確認,複数Git出現確認,地方局探索の本命。DTV2系を優先しra1n系は参考扱い。
-tvk,神奈川,地方局,DTV2/vthanhtivi,,tvk,tvk,高,A_本命候補,要再確認,複数Git出現確認,チバテレと同じDTV2系の並びで確認。
-テレ玉,埼玉,地方局,DTV2/vthanhtivi,,tvs,teletama,高,A_本命候補,要再確認,複数Git出現確認,DTV2系で優先確認。
-TOKYO MX2,東京,地方局,DTV2/vthanhtivi,,mx2,tokyo_mx2,高,A_本命候補,要再確認,複数Git出現確認,MX1とは分けて管理。
-テレビ新広島,広島,地方局,DTV2/vthanhtivi,,tss,tss,中,A_本命候補,要再確認,複数Git出現確認,地方局束の拡張候補。
-KBS京都,京都,地方局,utako/luong/vthanh,haru blog,kbs,kbs_kyoto,高,A_本命候補,要再確認,複数Git出現確認,関西独立局として優先。
-サンテレビ,兵庫,地方局,utako/luong/vthanh,haru blog,sun,sun_tv,高,A_本命候補,要再確認,複数Git出現確認,関西独立局として優先。
-MBS,大阪,広域局,utako/luong/vthanh,,mbs,mbs,中,A_本命候補,要再確認,複数Git出現確認,関西広域局。権利面のためURLなし台帳で管理。
-ABC,大阪,広域局,utako/luong/vthanh,,abc,abc,中,A_本命候補,要再確認,複数Git出現確認,関西広域局。URLなし台帳で管理。
-YTV,大阪,広域局,utako/luong/vthanh,,ytv,ytv,中,A_本命候補,要再確認,複数Git出現確認,読売テレビ系。表記ゆれに注意。
-関西テレビ,大阪,広域局,utako/luong/vthanh,,kansai_tv,kansai_tv,中,B_保留候補,追加調査,出現元追加確認,表記ゆれが多いので追加検索対象。
-テレビ大阪,大阪,広域局,utako/luong/vthanh,,tv_osaka,tv_osaka,中,B_保留候補,追加調査,出現元追加確認,表記ゆれと局名略称に注意。
-テレビ東京,東京,キー局,utako/luong/vthanh,,tvtokyo,tv_tokyo,低,B_保留候補,追加調査,断片確認,地方局調査の副産物として管理。
-NHK G 大阪,大阪,NHK地域,akariko/sankuria,haru blog,nhk_g_osaka,nhk_g_osaka,低,B_保留候補,追加調査,断片確認,NHK地域系は別枠で扱う。
-NHK G サブ,全国,NHKサブ,akariko/sankuria,,nhk_g_subch,nhk_g_subch,低,C_資料,資料のみ,参考,NHKサブチャンネルは通常採用対象外。
+station_name,region,category,primary_system,secondary_system,slug_or_id_hint,epg_id_hint,priority,decision,current_status,next_action,evidence_level,evidence_refs,last_researched,notes
+チバテレ,千葉,地方局,DTV2/vthanhtivi,ra1n test,chibatv,chiba_tv,高,A_本命候補,一次確認済み,DTV2系を優先確認,複数Git/同系統,rloim024/IPTV-jp jp.11系; KJW5487/iptv test系,2026-09-29,DTV2/vthanhtivi側を本命。ra1n test系は参考・保留扱い。
+tvk,神奈川,地方局,DTV2/vthanhtivi,,tvk,tvk,高,A_本命候補,一次確認済み,DTV2系を優先確認,複数Git/同系統,rloim024/IPTV-jp jp.11系,2026-09-29,チバテレと同じDTV2/vthanhtiviの並びで確認。
+テレ玉,埼玉,地方局,DTV2/vthanhtivi,,tvs,teletama,高,A_本命候補,一次確認済み,DTV2系を優先確認,複数Git/同系統,rloim024/IPTV-jp jp.11系,2026-09-29,teletama/tvs表記の揺れを管理。DTV2系で優先確認。
+TOKYO MX2,東京,地方局,DTV2/vthanhtivi,utako系断片,mx2,tokyo_mx2,高,A_本命候補,一次確認済み,DTV2系と表記揺れを追加確認,複数Git/同系統,rloim024/IPTV-jp jp.11系,2026-09-29,MX1とは分けて管理。mx2/mx2_testsignalの表記揺れあり。
+テレビ新広島,広島,地方局,DTV2/vthanhtivi,,tss,tss,中,A_本命候補,一次確認済み,DTV2系を追加確認,複数Git/同系統,rloim024/IPTV-jp jp.11系,2026-09-29,地方局束の拡張候補。TSS/tss表記で管理。
+KBS京都,京都,地方局,utako/luong/vthanh,DTV2内混在,kbs,kbs_kyoto,高,A_本命候補,一次確認済み,関西束として優先確認,複数Git/同系統,Sh4h4r/jellyfin_tv; antun-nyc/Japan-Live-TV; rloim024/IPTV-jp,2026-09-29,関西独立局として優先。KBS/KBS京都表記ゆれあり。
+サンテレビ,兵庫,地方局,utako/luong/vthanh,DTV2内混在,sun/suntv,sun_tv,高,A_本命候補,一次確認済み,関西束として優先確認,複数Git/同系統,Sh4h4r/jellyfin_tv; antun-nyc/Japan-Live-TV; xiaoxin3242/JPTV-Android,2026-09-29,SUN/sun_tv/suntv表記の揺れに注意。
+MBS,大阪,広域局,utako/luong/vthanh,DTV2内混在,mbs,mbs,中,A_本命候補,一次確認済み,関西広域束で追加確認,複数Git/同系統,axivigo/testiptv; Sh4h4r/jellyfin_tv; rloim024/IPTV-jp,2026-09-29,関西広域局。権利面のためURLなし台帳で管理。
+ABC,大阪,広域局,utako/luong/vthanh,DTV2内混在,abc,abc,中,A_本命候補,一次確認済み,関西広域束で追加確認,複数Git/同系統,axivigo/testiptv; Sh4h4r/jellyfin_tv; rloim024/IPTV-jp,2026-09-29,関西広域局。ABC/ABCテレビ表記ゆれあり。
+YTV,大阪,広域局,utako/luong/vthanh,DTV2内混在,ytv,ytv,中,A_本命候補,一次確認済み,関西広域束で追加確認,複数Git/同系統,Sh4h4r/jellyfin_tv; antun-nyc/Japan-Live-TV; xiaoxin3242/jptv-m3u,2026-09-29,読売テレビ系。YTV/ytv/読売テレビ表記ゆれに注意。
+関西テレビ,大阪,広域局,utako/luong/vthanh,DTV2内混在,kansai_tv/kansaitv,kansai_tv,中,B_保留候補,一次確認済み,表記揺れをさらに確認,断片確認,rloim024/IPTV-jp jp.12系,2026-09-29,kansai_tv/kansaitv/Kansai TVの表記揺れが多いのでB保留継続。
+テレビ大阪,大阪,広域局,utako/luong/vthanh,DTV2内混在,tv_osaka/tvo,tv_osaka,中,B_保留候補,一次確認済み,表記揺れをさらに確認,断片確認,axivigo/testiptv; rloim024/IPTV-jp,2026-09-29,TV Osaka/tv_osaka/tvoの表記揺れあり。B保留継続。
+テレビ東京,東京,キー局,utako/luong/vthanh,,tvtokyo/TV_Tokyo,tv_tokyo,低,B_保留候補,一次確認済み,地方局調査の副産物として管理,断片確認,rloim024/IPTV-jp; ajcries/nekostream,2026-09-29,地方局台帳の副産物。キー局扱いなので優先度は低め。
+NHK G 大阪,大阪,NHK地域,utako/luong/vthanh,akariko/sankuria,nhk_g_osaka,nhk_g_osaka,低,B_保留候補,追加調査,NHK地域系は別枠で追加確認,断片確認,randomacces259/kicun,2026-09-29,NHK地域系は本線ではなく別枠扱い。
+NHK G サブ,全国,NHKサブ,akariko/sankuria,,nhk_g_subch,nhk_g_subch,低,C_資料,資料のみ,参考管理,参考,akariko/sankuria系メモ,2026-09-29,NHKサブチャンネルは通常採用対象外。
