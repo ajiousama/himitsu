@@ -10,7 +10,8 @@ CONFIG = "https://www.nhk.or.jp/radio/config/config_web.xml"
 ROOT = Path("radio")
 OUT = ROOT / "nhk.m3u"
 MAP = ROOT / "nhk_stations.json"
-LOGO = "https://upload.wikimedia.org/wikipedia/commons/b/bb/NHK_logo_2020.svg"
+LOGO_R1 = "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/77/NHK_Radio_1_2024.svg/500px-NHK_Radio_1_2024.svg.png"
+LOGO_FM = "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c8/NHK_FM_2024.svg/500px-NHK_FM_2024.svg.png"
 VIDEO_BASE = os.environ.get("RADIO_VIDEO_BASE", "https://ajiousama-radiko.onrender.com/radio-tv").rstrip("/")
 VERCEL_VIDEO_BASE = os.environ.get("RADIO_VIDEO_BASE_VERCEL", "https://himitsu-six.vercel.app/api/radio-tv").rstrip("/")
 VERCEL_STATIONS = {"nhk_r1_matsuyama", "nhk_fm_matsuyama"}
@@ -84,9 +85,11 @@ def main():
             if kind == "r1":
                 name = f"NHKラジオ第1（{wanted}）"
                 display = f"NHK RADIO 1 {DISPLAY[wanted]}"
+                logo = LOGO_R1
             else:
                 name = f"NHK-FM（{wanted}）"
                 display = f"NHK FM {DISPLAY[wanted]}"
+                logo = LOGO_FM
             stations.append({
                 "id": tvgid, "kind": kind, "slug": slug, "name": name,
                 "display": display, "url": source,
@@ -96,7 +99,7 @@ def main():
             else:
                 video = f"{VIDEO_BASE}/{urllib.parse.quote(tvgid, safe='')}"
             m3u.append(
-                f'#EXTINF:-1 tvg-id="{tvgid}" tvg-logo="{LOGO}" '
+                f'#EXTINF:-1 tvg-id="{tvgid}" tvg-logo="{logo}" '
                 f'group-title="NHKラジオ",{name}'
             )
             m3u.append(video)
