@@ -274,7 +274,22 @@ jobs:
                   raise SystemExit(f'Stable logo guard: contrast logo regressed: {line}')
           if checked == 0:
               raise SystemExit('Stable logo guard: no protected logo entries found')
-          print(f'Stable logo guard: OK protected_entries={checked}')
+
+          # These providers have repeatedly restored dark/non-white artwork.
+          # FreeWiFi must only publish their local 512x512 white-card copies.
+          forbidden_logo_hosts = (
+              'statics.tver.jp',
+              'pbs.twimg.com',
+              'i.imgur.com',
+              'image-origin.hikaritv.net',
+              'channel.rakuten.co.jp',
+              'www.simulradio.info/data/161.jpg',
+          )
+          leaked = [host for host in forbidden_logo_hosts if host in text]
+          if leaked:
+              raise SystemExit('Stable logo guard: external non-white logo returned: ' + ', '.join(leaked))
+
+          print(f'Stable logo guard: OK protected_entries={checked} white-card-hosts=OK')
           PY
 
             git add ganble/playlist.m3u ehime_catv/playlist.m3u freewifi radio/freewifi.m3u gccx2_live_state.json today_public_sports_status.json today_jra_status.json today_event_counts.json verified_daily_status.json public_sports_epg_local.xml
