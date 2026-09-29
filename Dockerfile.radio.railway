@@ -1,0 +1,29 @@
+FROM python:3.12-slim
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    PYTHONUNBUFFERED=1 \
+    RADIO_AUDIO_BASE=https://himitsu-six.vercel.app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ffmpeg \
+    fonts-dejavu-core \
+    fonts-noto-cjk \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+COPY requirements.txt /app/requirements.txt
+RUN pip install --no-cache-dir -r /app/requirements.txt
+
+COPY radio_railway_server.py /app/radio_railway_server.py
+COPY radio_tv.py /app/radio_tv.py
+COPY radio_tv_nationwide.py /app/radio_tv_nationwide.py
+COPY radio_tv_community.py /app/radio_tv_community.py
+COPY radio_tv_filemux.py /app/radio_tv_filemux.py
+COPY radiko_proxy_core.py /app/radiko_proxy_core.py
+COPY radiko_epg.py /app/radiko_epg.py
+COPY radio/nhk_stations.json /app/radio/nhk_stations.json
+
+EXPOSE 8080
+CMD ["python", "/app/radio_railway_server.py"]
