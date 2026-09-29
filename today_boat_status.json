@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-29",
-  "generated_at": "2026-09-29T13:54:17.324413+09:00",
+  "generated_at": "2026-09-29T13:55:17.325289+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260929.json",
   "schedule_checked_at": "2026-09-29T13:49:17.273908+09:00",
@@ -19,7 +19,7 @@
   "alert_lead_minutes": 30,
   "card_count": 12,
   "held_count": 12,
-  "visible_count": 8,
+  "visible_count": 9,
   "active_count": 8,
   "ended_kept": [],
   "seed_required": false,
@@ -44,7 +44,7 @@
     },
     "night": {
       "held": 4,
-      "acquired": 0,
+      "acquired": 1,
       "active": 0,
       "ended": 0,
       "seed_required": 0,
@@ -53,18 +53,13 @@
   },
   "cloud_acquisition": {
     "requested": 11,
-    "fetched": 8,
+    "fetched": 9,
     "failures": [],
     "deferred": [
       {
         "jcd": "07",
         "name": "蒲郡",
         "start": "2026-09-29T14:10:00+09:00"
-      },
-      {
-        "jcd": "15",
-        "name": "丸亀",
-        "start": "2026-09-29T13:55:00+09:00"
       },
       {
         "jcd": "19",
@@ -173,6 +168,22 @@
         "ok": true,
         "sequence": 8313084,
         "last_segment": "/bd5f03124fba4d578849909ca10c6008/ab3932122d15401a938f3d1d72b28505/manifest_1_8316630.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
+    },
+    "boat.marugame": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/2cf43e914bb54152a726f26de8d66083/33717c5816a049bfa3985cbf45a3b8d2/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MDgzMDgwMCwic3RhcnQiOjE3OTA2NTc3MDAsImlvcyI6MTgsImNwIjoiMjEyODUzMzAwXzIxMjg5NjQ5OSIsInBwdyI6IjQwayJ9.l2B-BI1sLSAcJRsAFI-gB2Nu49IN8FfVUj_VTZmTts4",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-09-29T13:55:44.478758+09:00",
+      "checked_at": "2026-09-29T13:55:44.478758+09:00",
+      "first_verified_at": "2026-09-29T13:55:44.478758+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 8316703,
+        "last_segment": "/2cf43e914bb54152a726f26de8d66083/33717c5816a049bfa3985cbf45a3b8d2/manifest_4_8316710.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -859,7 +870,7 @@
       "jcd": "15",
       "name": "丸亀",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
       "active": false,
       "cancelled": false,
@@ -877,9 +888,9 @@
       "guidance_switch_at": "2026-09-29T21:16:00+09:00",
       "seed_required": false,
       "reverify_due": false,
-      "playback_verified": false,
-      "first_verified_at": null,
-      "ready_before_first_race": false,
+      "playback_verified": true,
+      "first_verified_at": "2026-09-29T13:55:44.478758+09:00",
+      "ready_before_first_race": true,
       "acquire_from": "2026-09-29T12:47:00+09:00",
       "races": [
         {
@@ -943,8 +954,9 @@
           "name": "一般選抜"
         }
       ],
-      "provider_stream_start": "2026-09-29T13:55:00+09:00",
-      "source": "公式BR配信開始待ち 13:55"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/2cf43e914bb54152a726f26de8d66083/33717c5816a049bfa3985cbf45a3b8d2/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MDgzMDgwMCwic3RhcnQiOjE3OTA2NTc3MDAsImlvcyI6MTgsImNwIjoiMjEyODUzMzAwXzIxMjg5NjQ5OSIsInBwdyI6IjQwayJ9.l2B-BI1sLSAcJRsAFI-gB2Nu49IN8FfVUj_VTZmTts4",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     },
     "boat.kojima": {
       "jcd": "16",
