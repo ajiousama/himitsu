@@ -1861,6 +1861,7 @@ def _probe_global_op_logo_starts(url: str, total_duration: int, episode_count: i
         if center <= radius:
             start = 0
             stop = min(int(total_duration), 90)
+        span = max(1, stop - start)
         width, height = 64, 36
         cmd = [
             "ffmpeg", "-hide_banner", "-loglevel", "error",
