@@ -12,21 +12,23 @@ RADIO_PROJECTION = Path("radio/freewifi.m3u")
 RADIO_AUDIO_BASE = "https://himitsu-six.vercel.app/api/radiko"
 RADIO_VERCEL_BASE = "https://himitsu-six.vercel.app/api/radio-tv?station="
 RADIO_RAILWAY_BASE = "https://freewifi-radio-production.up.railway.app/radio-tv"
-RADIO_BUILD = "20260929c"
-VERCEL_RADIKO_SIDS = {
+RADIO_BUILD = "20260929d"
+# All Radiko stations in FreeWiFi now use Railway's on-demand MPEG-TS card.
+# The old Vercel route used radio-ts-assets cards that were generated without
+# Japanese fonts and displayed kanji/kana as tofu squares.
+VERCEL_RADIKO_SIDS = set()
+RAILWAY_RADIKO_SIDS = {
     "JOEU-FM", "RNB", "LFR", "QRR", "TBS", "FMT",
     "ABC", "CCL", "802", "FMO", "MBS", "OBC", "KBS",
     "ALPHA-STATION", "E-RADIO", "CRK",
+    "HBC", "TBC", "CBC", "RCC", "RKB", "KBC",
 }
-# These nationwide stations use the Railway image+audio mux immediately. Their
-# stable station-art TS assets already exist, while Vercel is currently rate-limited.
-RAILWAY_RADIKO_SIDS = {"HBC", "TBC", "CBC", "RCC", "RKB", "KBC"}
 VERCEL_NHK_SIDS = {"nhk_r1_matsuyama"}
 ALL_RADIKO_SIDS = VERCEL_RADIKO_SIDS | RAILWAY_RADIKO_SIDS
 LOGO_RAW_BASE = "https://raw.githubusercontent.com/ajiousama/himitsu/main"
 EXPECTED_RADIO_COUNT = 28
 EXPECTED_RADIKO_COUNT = 22
-EXPECTED_VERCEL_ROUTE_COUNT = 17
+EXPECTED_VERCEL_ROUTE_COUNT = 1
 
 
 def radio_url(sid: str) -> str:
