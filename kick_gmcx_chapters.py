@@ -469,6 +469,41 @@ def _annotate_hls_diagnostics(vod: dict, chapters: list[dict]) -> list[dict]:
     return out
 
 
+def _fetch_hls_join_markers(url: str) -> dict:
+    """Inspect the media playlist for hard joins and unusual segment durations."""
+    media = _lowest_hls_variant(url)
+    try:
+        req = urllib.request.Request(media, headers={"User-Agent": "Mozilla/5.0 GMCX-hls-joins/1.0", "Cache-Control": "no-cache"})
+        with urllib.request.urlopen(req, timeout=25) as res:
+            text = res.read(8 * 1024 * 1024).decode("utf-8", "replace")
+    except Exception as exc:
+        return {"error": str(exc), "discontinuities": [], "duration_outliers": []}
+    durations = []
+    discontinuities = []
+    cursor = 0.0
+    pending = None
+    for raw in text.replace("\r", "").split("\n"):
+        line = raw.strip()
+        if line == "#EXT-X-DISCONTINUITY":
+            discontinuities.append(round(cursor, 3))
+            continue
+        if line.startswith("#EXTINF:"):
+            try:
+                pending = float(line.split(":", 1)[1].split(",", 1)[0])
+            except Exception:
+                pending = None
+            continue
+        if not line or line.startswith("#") or pending is None:
+            continue
+        durations.append((round(cursor, 3), pending))
+        cursor += max(0.0, pending)
+        pending = None
+    vals = sorted(d for _, d in durations if d > 0)
+    median = vals[len(vals)//2] if vals else 0.0
+    outliers = [{"time": t, "duration": round(d, 6)} for t, d in durations if median and abs(d-median) >= 0.05][:200]
+    return {"media_url": media, "segment_count": len(durations), "median_segment_duration": round(median, 6), "discontinuities": discontinuities, "duration_outliers": outliers}
+
+
 def _frame_signature(frame: bytes) -> tuple[int, float, int] | None:
     # ffmpeg supplies 17x16 grayscale. dHash => 16 comparisons x 16 rows.
     if len(frame) != 17 * 16:
@@ -2009,7 +2044,7 @@ def main() -> int:
             "extra_label": tail or None,
             "status": status,
             "chapters": chapters,
-            "titlecard_refinement": titlecard_refinement,
+            "titlecard_refinement": titlecard_refinement,\n            "hls_join_markers": hls_join_markers if start_ep == 177 else None,
             "ai_windows": build_ai_windows(start_ep, end_ep, duration) if status == "ai_required" else [],
         })
 
