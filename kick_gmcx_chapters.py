@@ -1780,7 +1780,7 @@ def _probe_known_35s_op(url: str, chapters: list[dict], total_duration: int) -> 
         return {"status": "skipped", "reason": "template_incomplete", "frames": len(template_frames)}
     template_frames = template_frames[:KNOWN_OP_TEMPLATE_SECONDS]
     rows = []
-    episodes = [x for x in chapters if x.get("kind") == "episode"]
+    episodes = [x for x in chapters if x.get("kind") == "episode"][:3]
     for item in episodes:
         ep = int(item.get("episode") or 0)
         center = int(item.get("start_seconds") or 0)
@@ -1846,8 +1846,9 @@ def _probe_global_op_logo_starts(url: str, total_duration: int, episode_count: i
     ref_x = float(reference.get("center_x") or 0.5)
     ref_y = float(reference.get("center_y") or 0.5)
     ref_fill = float(reference.get("yellow_fill") or 0)
-    episodes = [x for x in (chapters or []) if x.get("kind") == "episode"][:int(episode_count)]
-    if len(episodes) != int(episode_count):
+    test_count = min(3, int(episode_count))
+    episodes = [x for x in (chapters or []) if x.get("kind") == "episode"][:test_count]
+    if len(episodes) != test_count:
         return {"status": "skipped", "reason": "episode_estimates_missing", "template_logo_offset": logo_offset}
 
     def sample_wide(item: dict) -> dict:
@@ -1926,11 +1927,11 @@ def _probe_global_op_logo_starts(url: str, total_duration: int, episode_count: i
     rows.sort(key=lambda x: int(x.get("episode") or 0))
     matched_rows = [x for x in rows if x.get("matched")]
     return {
-        "status": "diagnostic" if len(matched_rows) >= max(1, int(episode_count) - 1) else "partial",
+        "status": "diagnostic" if len(matched_rows) >= max(1, test_count - 1) else "partial",
         "method": "wide-local-op-logo-scan",
         "template_logo_offset": logo_offset,
         "matched": len(matched_rows),
-        "episode_count": int(episode_count),
+        "episode_count": test_count,
         "rows": rows,
     }
 
