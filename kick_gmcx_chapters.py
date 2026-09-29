@@ -45,7 +45,7 @@ EPISODE_DURATION_OVERRIDES: dict[int, int] = {
 # signature inside each VOD and place every split on the same visual cue.
 TITLECARD_WINDOW_SECONDS = 240
 TITLECARD_SAMPLE_SECONDS = 2
-TITLECARD_BOUNDARY_VERSION = 34
+TITLECARD_BOUNDARY_VERSION = 35
 TITLECARD_INTRO_SECONDS = 8
 TITLECARD_HASH_BITS = 256
 TITLECARD_MATCH_DISTANCE = 42
@@ -1453,69 +1453,69 @@ def refine_with_titlecard(
     if len(regular_indices) < 3:
         return chapters, {"status": "skipped", "reason": "too_few_regular_episodes"}
 
-    # Sample around each cadence estimate. The first regular episode is vital:
-    # its blue-room frame becomes a real clip start too (not forced to VOD 0).
-    windows = []
-    index_windows: dict[int, list[dict]] = {}
+    # Detect the recurring large yellow GMCX title logo.  This is a much
+    # stronger cue than merely looking for a blue-ish studio frame.  Once the
+    # logo time is known, move the clip start back by the opening offset learned
+    # from the first regular episode.
+    logo_windows: dict[int, list[dict]] = {}
     for index in regular_indices:
         original = int(items[index].get("start_seconds") or 0)
-        frames = _sample_blue_room_window(analysis_url, original, duration)
-        index_windows[index] = frames
-        windows.append(frames)
+        logo_windows[index] = _sample_title_logo_window(analysis_url, original, duration)
 
-    reference, ref_meta = _learn_blue_room_reference(windows)
+    anchor_index = regular_indices[0]
+    reference, ref_meta = _pick_anchor_title_logo(logo_windows.get(anchor_index, []))
     if reference is None:
         return chapters, {
-            "status": "no_consensus",
-            "method": "recurring-blue-room",
+            "status": "no_consensus", "method": "recurring-title-logo",
             "boundary_version": TITLECARD_BOUNDARY_VERSION,
-            "reference": ref_meta,
-            "matches": [],
+            "reference": ref_meta, "matches": [],
         }
 
+    anchor_original = int(items[anchor_index].get("start_seconds") or 0)
+    opening_offset = int(reference.get("run_start") or 0) - anchor_original
     starts: dict[int, int] = {}
     match_rows = []
     matched_regular = 0
     for index, item in enumerate(items):
         original = int(item.get("start_seconds") or 0)
-        is_regular = index in regular_indices
-        if not is_regular:
-            # Keep known specials structurally fixed.
+        if index not in regular_indices:
             starts[index] = original
             continue
-
-        hit, distance = _best_blue_room_match(reference, index_windows.get(index, []))
-        if hit is None or abs(int(hit) - original) > TITLECARD_REGULAR_MAX_SHIFT_SECONDS:
+        expected_logo = original + opening_offset
+        hit, detail = _match_title_logo(reference, logo_windows.get(index, []), expected_logo)
+        if hit is None:
             match_rows.append({
                 "index": index, "title": item.get("title"), "matched": False,
-                "original": original, "candidate": hit, "distance": distance,
-                "reason": "no_blue_room_or_shift_guard",
+                "original": original, "reason": detail.get("reason"), "detail": detail,
             })
             continue
-
-        starts[index] = int(hit)
+        refined = int(hit) - opening_offset
+        if abs(refined - original) > TITLECARD_REGULAR_MAX_SHIFT_SECONDS:
+            match_rows.append({
+                "index": index, "title": item.get("title"), "matched": False,
+                "original": original, "candidate": refined, "reason": "shift_guard",
+                "detail": detail,
+            })
+            continue
+        starts[index] = refined
         matched_regular += 1
         match_rows.append({
             "index": index, "title": item.get("title"), "matched": True,
-            "method": "recurring-blue-room", "original": original,
-            "refined": int(hit), "shift_seconds": int(hit) - original,
-            "distance": distance,
+            "method": "recurring-title-logo", "original": original,
+            "logo_time": int(hit), "refined": refined,
+            "shift_seconds": refined - original, "detail": detail,
         })
 
-    # Do not publish a half-recognised set: the visual point of this pass is
-    # that the VOD list thumbnails line up on the same opening screen.
     coverage = matched_regular / max(1, len(regular_indices))
     if coverage < 0.8:
         return chapters, {
-            "status": "no_consensus",
-            "method": "recurring-blue-room",
+            "status": "no_consensus", "method": "recurring-title-logo",
             "boundary_version": TITLECARD_BOUNDARY_VERSION,
-            "reason": "blue_room_coverage_below_80_percent",
-            "reference": ref_meta,
+            "reason": "title_logo_coverage_below_80_percent",
+            "reference": ref_meta, "opening_offset_seconds": opening_offset,
             "detected_regular_boundaries": matched_regular,
             "expected_regular_boundaries": len(regular_indices),
-            "coverage": round(coverage, 3),
-            "matches": match_rows,
+            "coverage": round(coverage, 3), "matches": match_rows,
         }
 
     rebuilt = _apply_refined_chapter_starts(
@@ -1523,20 +1523,16 @@ def refine_with_titlecard(
     )
     for x in rebuilt:
         x.pop("vod_id", None)
-
     return rebuilt, {
         "status": "applied" if coverage >= 0.95 else "partial",
-        "method": "recurring-blue-room",
+        "method": "recurring-title-logo",
         "boundary_version": TITLECARD_BOUNDARY_VERSION,
-        "window_seconds": TITLECARD_WINDOW_SECONDS,
-        "sample_seconds": BLUE_ROOM_SAMPLE_SECONDS,
-        "reference": ref_meta,
+        "reference": ref_meta, "opening_offset_seconds": opening_offset,
         "detected_regular_boundaries": matched_regular,
         "expected_regular_boundaries": len(regular_indices),
         "coverage": round(coverage, 3),
         "chapter_starts": {str(k): v for k, v in starts.items()},
-        "matches": match_rows,
-        "cache_reused": False,
+        "matches": match_rows, "cache_reused": False,
     }
 
 def clip_url(vod_id: str, start: int, duration: int) -> str:
