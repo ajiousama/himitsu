@@ -12,7 +12,7 @@ RADIO_PROJECTION = Path("radio/freewifi.m3u")
 RADIO_AUDIO_BASE = "https://himitsu-six.vercel.app/api/radiko"
 RADIO_VERCEL_BASE = "https://himitsu-six.vercel.app/api/radio-tv?station="
 RADIO_RAILWAY_BASE = "https://freewifi-radio-production.up.railway.app/radio-tv"
-RADIO_BUILD = "20260908a"
+RADIO_BUILD = "20260929c"
 VERCEL_RADIKO_SIDS = {
     "JOEU-FM", "RNB", "LFR", "QRR", "TBS", "FMT",
     "ABC", "CCL", "802", "FMO", "MBS", "OBC", "KBS",
