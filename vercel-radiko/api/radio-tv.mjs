@@ -22,6 +22,12 @@ const STATIONS = {
   'ALPHA-STATION': { radiko: 'ALPHA-STATION' },
   'E-RADIO': { radiko: 'E-RADIO' },
   CRK: { radiko: 'CRK' },
+  HBC: { radiko: 'HBC' },
+  TBC: { radiko: 'TBC' },
+  CBC: { radiko: 'CBC' },
+  RCC: { radiko: 'RCC' },
+  RKB: { radiko: 'RKB' },
+  KBC: { radiko: 'KBC' },
 };
 
 function selfBase(req) {
