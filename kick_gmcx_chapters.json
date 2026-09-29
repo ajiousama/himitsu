@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-29T16:18:59.865736+09:00",
+  "generated_at": "2026-09-29T16:49:36.894431+09:00",
   "reference_episode_seconds": 3501,
   "results": [
     {
@@ -525,68 +525,125 @@
         "status": "partial",
         "method": "wide-local-op-logo-scan",
         "template_logo_offset": 31,
-        "matched": 0,
+        "matched": 6,
         "episode_count": 10,
         "rows": [
           {
             "episode": 227,
             "chapter_start": 0,
-            "matched": false,
-            "reason": "Command '['ffmpeg', '-hide_banner', '-loglevel', 'error', '-rw_timeout', '15000000', '-ss', '0', '-i', 'https://stream.kick.com/0f3cb0ebce7/ivs/v1/196233775518/59bB9isG3qqM/2026/9/27/23/54/mGizRKSX3j3d/media/hls/master.m3u8', '-t', '600', '-an', '-vf', 'fps=1/1,scale=64:36:flags=area,format=rgb24', '-pix_fmt', 'rgb24', '-f', 'rawvideo', 'pipe:1']' timed out after 150 seconds"
+            "matched": true,
+            "window_start": 0,
+            "window_stop": 300,
+            "logo_time": 31,
+            "op_start": 0,
+            "shift_seconds": 0,
+            "feature_distance": 0.0,
+            "run_frames": 5,
+            "distance_from_estimated_logo": 0,
+            "detected_logo_frames": 42
           },
           {
             "episode": 228,
             "chapter_start": 4462,
-            "matched": false,
-            "reason": "Command '['ffmpeg', '-hide_banner', '-loglevel', 'error', '-rw_timeout', '15000000', '-ss', '3862', '-i', 'https://stream.kick.com/0f3cb0ebce7/ivs/v1/196233775518/59bB9isG3qqM/2026/9/27/23/54/mGizRKSX3j3d/media/hls/master.m3u8', '-t', '1200', '-an', '-vf', 'fps=1/1,scale=64:36:flags=area,format=rgb24', '-pix_fmt', 'rgb24', '-f', 'rawvideo', 'pipe:1']' timed out after 150 seconds"
+            "matched": true,
+            "window_start": 4162,
+            "window_stop": 4762,
+            "logo_time": 4755,
+            "op_start": 4724,
+            "shift_seconds": 262,
+            "feature_distance": 0.1604,
+            "run_frames": 7,
+            "distance_from_estimated_logo": 262,
+            "detected_logo_frames": 47
           },
           {
             "episode": 229,
             "chapter_start": 8924,
             "matched": false,
-            "reason": "Command '['ffmpeg', '-hide_banner', '-loglevel', 'error', '-rw_timeout', '15000000', '-ss', '8324', '-i', 'https://stream.kick.com/0f3cb0ebce7/ivs/v1/196233775518/59bB9isG3qqM/2026/9/27/23/54/mGizRKSX3j3d/media/hls/master.m3u8', '-t', '1200', '-an', '-vf', 'fps=1/1,scale=64:36:flags=area,format=rgb24', '-pix_fmt', 'rgb24', '-f', 'rawvideo', 'pipe:1']' timed out after 150 seconds"
+            "reason": "no_logo_in_wide_window",
+            "detected_logo_frames": 1,
+            "window_start": 8624,
+            "window_stop": 9224
           },
           {
             "episode": 230,
             "chapter_start": 13386,
             "matched": false,
-            "reason": "Command '['ffmpeg', '-hide_banner', '-loglevel', 'error', '-rw_timeout', '15000000', '-ss', '12786', '-i', 'https://stream.kick.com/0f3cb0ebce7/ivs/v1/196233775518/59bB9isG3qqM/2026/9/27/23/54/mGizRKSX3j3d/media/hls/master.m3u8', '-t', '1200', '-an', '-vf', 'fps=1/1,scale=64:36:flags=area,format=rgb24', '-pix_fmt', 'rgb24', '-f', 'rawvideo', 'pipe:1']' timed out after 150 seconds"
+            "reason": "Command '['ffmpeg', '-hide_banner', '-loglevel', 'error', '-rw_timeout', '15000000', '-ss', '13086', '-i', 'https://stream.kick.com/0f3cb0ebce7/ivs/v1/196233775518/59bB9isG3qqM/2026/9/27/23/54/mGizRKSX3j3d/media/hls/master.m3u8', '-t', '600', '-an', '-vf', 'fps=1/1,scale=64:36:flags=area,format=rgb24', '-pix_fmt', 'rgb24', '-f', 'rawvideo', 'pipe:1']' timed out after 220 seconds"
           },
           {
             "episode": 231,
             "chapter_start": 17848,
             "matched": false,
-            "reason": "Command '['ffmpeg', '-hide_banner', '-loglevel', 'error', '-rw_timeout', '15000000', '-ss', '17248', '-i', 'https://stream.kick.com/0f3cb0ebce7/ivs/v1/196233775518/59bB9isG3qqM/2026/9/27/23/54/mGizRKSX3j3d/media/hls/master.m3u8', '-t', '1200', '-an', '-vf', 'fps=1/1,scale=64:36:flags=area,format=rgb24', '-pix_fmt', 'rgb24', '-f', 'rawvideo', 'pipe:1']' timed out after 150 seconds"
+            "reason": "no_logo_in_wide_window",
+            "detected_logo_frames": 0,
+            "window_start": 17548,
+            "window_stop": 18148
           },
           {
             "episode": 232,
             "chapter_start": 22310,
-            "matched": false,
-            "reason": "Command '['ffmpeg', '-hide_banner', '-loglevel', 'error', '-rw_timeout', '15000000', '-ss', '21710', '-i', 'https://stream.kick.com/0f3cb0ebce7/ivs/v1/196233775518/59bB9isG3qqM/2026/9/27/23/54/mGizRKSX3j3d/media/hls/master.m3u8', '-t', '1200', '-an', '-vf', 'fps=1/1,scale=64:36:flags=area,format=rgb24', '-pix_fmt', 'rgb24', '-f', 'rawvideo', 'pipe:1']' timed out after 150 seconds"
+            "matched": true,
+            "window_start": 22010,
+            "window_stop": 22610,
+            "logo_time": 22577,
+            "op_start": 22546,
+            "shift_seconds": 236,
+            "feature_distance": 0.1621,
+            "run_frames": 13,
+            "distance_from_estimated_logo": 236,
+            "detected_logo_frames": 39
           },
           {
             "episode": 233,
             "chapter_start": 26771,
-            "matched": false,
-            "reason": "Command '['ffmpeg', '-hide_banner', '-loglevel', 'error', '-rw_timeout', '15000000', '-ss', '26171', '-i', 'https://stream.kick.com/0f3cb0ebce7/ivs/v1/196233775518/59bB9isG3qqM/2026/9/27/23/54/mGizRKSX3j3d/media/hls/master.m3u8', '-t', '1200', '-an', '-vf', 'fps=1/1,scale=64:36:flags=area,format=rgb24', '-pix_fmt', 'rgb24', '-f', 'rawvideo', 'pipe:1']' timed out after 150 seconds"
+            "matched": true,
+            "window_start": 26471,
+            "window_stop": 27071,
+            "logo_time": 26773,
+            "op_start": 26742,
+            "shift_seconds": -29,
+            "feature_distance": 0.2986,
+            "run_frames": 6,
+            "distance_from_estimated_logo": 29,
+            "detected_logo_frames": 14
           },
           {
             "episode": 234,
             "chapter_start": 31233,
             "matched": false,
-            "reason": "Command '['ffmpeg', '-hide_banner', '-loglevel', 'error', '-rw_timeout', '15000000', '-ss', '30633', '-i', 'https://stream.kick.com/0f3cb0ebce7/ivs/v1/196233775518/59bB9isG3qqM/2026/9/27/23/54/mGizRKSX3j3d/media/hls/master.m3u8', '-t', '1200', '-an', '-vf', 'fps=1/1,scale=64:36:flags=area,format=rgb24', '-pix_fmt', 'rgb24', '-f', 'rawvideo', 'pipe:1']' timed out after 150 seconds"
+            "reason": "no_logo_in_wide_window",
+            "detected_logo_frames": 3,
+            "window_start": 30933,
+            "window_stop": 31533
           },
           {
             "episode": 235,
             "chapter_start": 35695,
-            "matched": false,
-            "reason": "Command '['ffmpeg', '-hide_banner', '-loglevel', 'error', '-rw_timeout', '15000000', '-ss', '35095', '-i', 'https://stream.kick.com/0f3cb0ebce7/ivs/v1/196233775518/59bB9isG3qqM/2026/9/27/23/54/mGizRKSX3j3d/media/hls/master.m3u8', '-t', '1200', '-an', '-vf', 'fps=1/1,scale=64:36:flags=area,format=rgb24', '-pix_fmt', 'rgb24', '-f', 'rawvideo', 'pipe:1']' timed out after 150 seconds"
+            "matched": true,
+            "window_start": 35395,
+            "window_stop": 35995,
+            "logo_time": 35926,
+            "op_start": 35895,
+            "shift_seconds": 200,
+            "feature_distance": 0.2526,
+            "run_frames": 3,
+            "distance_from_estimated_logo": 200,
+            "detected_logo_frames": 17
           },
           {
             "episode": 236,
             "chapter_start": 40157,
-            "matched": false,
-            "reason": "Command '['ffmpeg', '-hide_banner', '-loglevel', 'error', '-rw_timeout', '15000000', '-ss', '39557', '-i', 'https://stream.kick.com/0f3cb0ebce7/ivs/v1/196233775518/59bB9isG3qqM/2026/9/27/23/54/mGizRKSX3j3d/media/hls/master.m3u8', '-t', '1200', '-an', '-vf', 'fps=1/1,scale=64:36:flags=area,format=rgb24', '-pix_fmt', 'rgb24', '-f', 'rawvideo', 'pipe:1']' timed out after 150 seconds"
+            "matched": true,
+            "window_start": 39857,
+            "window_stop": 40457,
+            "logo_time": 40151,
+            "op_start": 40120,
+            "shift_seconds": -37,
+            "feature_distance": 0.3394,
+            "run_frames": 2,
+            "distance_from_estimated_logo": 37,
+            "detected_logo_frames": 30
           }
         ]
       },
