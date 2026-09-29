@@ -11,18 +11,18 @@ FREEWIFI = Path("freewifi")
 RADIO_PROJECTION = Path("radio/freewifi.m3u")
 RADIO_AUDIO_BASE = "https://himitsu-six.vercel.app/api/radiko"
 RADIO_VERCEL_BASE = "https://himitsu-six.vercel.app/api/radio-tv?station="
-RADIO_RENDER_BASE = "https://ajiousama-radiko.onrender.com/radio-tv"
+RADIO_RAILWAY_BASE = "https://freewifi-radio-production.up.railway.app/radio-tv"
 RADIO_BUILD = "20260908a"
 VERCEL_RADIKO_SIDS = {
     "JOEU-FM", "RNB", "LFR", "QRR", "TBS", "FMT",
     "ABC", "CCL", "802", "FMO", "MBS", "OBC", "KBS",
     "ALPHA-STATION", "E-RADIO", "CRK",
 }
-# These nationwide stations use the Render image+audio mux immediately. Their
+# These nationwide stations use the Railway image+audio mux immediately. Their
 # stable station-art TS assets already exist, while Vercel is currently rate-limited.
-RENDER_RADIKO_SIDS = {"HBC", "TBC", "CBC", "RCC", "RKB", "KBC"}
+RAILWAY_RADIKO_SIDS = {"HBC", "TBC", "CBC", "RCC", "RKB", "KBC"}
 VERCEL_NHK_SIDS = {"nhk_r1_matsuyama"}
-ALL_RADIKO_SIDS = VERCEL_RADIKO_SIDS | RENDER_RADIKO_SIDS
+ALL_RADIKO_SIDS = VERCEL_RADIKO_SIDS | RAILWAY_RADIKO_SIDS
 LOGO_RAW_BASE = "https://raw.githubusercontent.com/ajiousama/himitsu/main"
 EXPECTED_RADIO_COUNT = 28
 EXPECTED_RADIKO_COUNT = 22
@@ -32,7 +32,7 @@ EXPECTED_VERCEL_ROUTE_COUNT = 17
 def radio_url(sid: str) -> str:
     if sid in VERCEL_RADIKO_SIDS or sid in VERCEL_NHK_SIDS:
         return f"{RADIO_VERCEL_BASE}{quote(sid, safe='')}"
-    return f"{RADIO_RENDER_BASE}/{quote(sid, safe='')}?v={RADIO_BUILD}"
+    return f"{RADIO_RAILWAY_BASE}/{quote(sid, safe='')}?v={RADIO_BUILD}"
 
 
 def source_logo_url(sid: str) -> str:
@@ -105,7 +105,7 @@ def compact_block() -> str:
         )
     )
 
-    # Community FM: same Render image+audio route and same ラジオ group as the
+    # Community FM: same Railway image+audio route and same ラジオ group as the
     # existing stations, but their public simulcast audio does not use Radiko.
     parts.append(
         radio_entry(
@@ -168,10 +168,10 @@ def main() -> int:
 
     radio_section = updated[start:updated.find("## 愛媛CATV", start)]
     vercel_count = radio_section.count(RADIO_VERCEL_BASE)
-    render_count = radio_section.count(RADIO_RENDER_BASE + "/")
+    render_count = radio_section.count(RADIO_RAILWAY_BASE + "/")
     if vercel_count != EXPECTED_VERCEL_ROUTE_COUNT or render_count != EXPECTED_RADIO_COUNT - EXPECTED_VERCEL_ROUTE_COUNT:
         raise RuntimeError(
-            f"compact FreeWiFi radio routing unexpected: vercel={vercel_count} render={render_count}"
+            f"compact FreeWiFi radio routing unexpected: vercel={vercel_count} railway={render_count}"
         )
     if RADIO_AUDIO_BASE + "?station=" in radio_section:
         raise RuntimeError("audio-only route leaked into FreeWiFi radio section")
@@ -190,13 +190,13 @@ def main() -> int:
             raise RuntimeError(f"required Vercel Radiko station missing: {sid}")
     for sid in ("HBC", "TBC", "CBC", "RCC", "RKB", "KBC",
                 "FMOTOKUNI", "FM845", "BARIBARI", "NIIHAMA", "FMGAIYA"):
-        if f'{RADIO_RENDER_BASE}/{sid}' not in radio_section:
-            raise RuntimeError(f"required Render radio station missing: {sid}")
+        if f'{RADIO_RAILWAY_BASE}/{sid}' not in radio_section:
+            raise RuntimeError(f"required Railway radio station missing: {sid}")
 
     FREEWIFI.write_text(updated, encoding="utf-8")
     print(
         f"FreeWiFi compact radio restored: {vercel_count} Vercel + "
-        f"{render_count} Render image+audio stations"
+        f"{render_count} Railway image+audio stations"
     )
     return 0
 
