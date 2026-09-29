@@ -269,7 +269,7 @@ def start_ffmpeg() -> subprocess.Popen:
         "-i", f"{DISPLAY}.0+0,0",
         "-f", "lavfi", "-i", "anullsrc=r=48000:cl=stereo",
         "-map", "0:v:0", "-map", "1:a:0",
-        "-vf", f"scale={OUT_W}:{OUT_H}:flags=fast_bilinear",
+        "-vf", f"crop=1408:{SCREEN_H}:144:0,scale={OUT_W}:{OUT_H}:flags=fast_bilinear",
         "-c:v", "libx264", "-preset", "ultrafast", "-tune", "zerolatency",
         "-profile:v", "baseline", "-level", "3.1",
         "-crf", "27", "-pix_fmt", "yuv420p",
