@@ -104,9 +104,9 @@ jobs:
           echo "Combined Render static-video count=$combined_render_count"
 
           test "$free_direct_count" -eq 0
-          test "$free_vercel_count" -eq 0
+          test "$free_vercel_count" -eq 1
           test "$free_render_count" -eq 0
-          test "$free_railway_count" -eq 28
+          test "$free_railway_count" -eq 27
           test "$free_ts_count" -eq 0
           test "$nationwide_render_count" -ge 100
           test "$nhk_render_count" -eq 16
@@ -142,7 +142,7 @@ jobs:
           grep -Fq "${railway}RCC" /tmp/freewifi-radio.txt
           grep -Fq "${railway}RKB" /tmp/freewifi-radio.txt
           grep -Fq "${railway}KBC" /tmp/freewifi-radio.txt
-          grep -Fq "${railway}nhk_r1_matsuyama" /tmp/freewifi-radio.txt
+          grep -Fq "${vercel}nhk_r1_matsuyama" /tmp/freewifi-radio.txt
           grep -Fq "${railway}BARIBARI" /tmp/freewifi-radio.txt
           grep -Fq "${railway}NIIHAMA" /tmp/freewifi-radio.txt
           grep -Fq "${railway}FMGAIYA" /tmp/freewifi-radio.txt
