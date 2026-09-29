@@ -9,6 +9,7 @@ import subprocess
 import urllib.parse
 import urllib.request
 from datetime import datetime, timezone, timedelta
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 SRC = Path("kick_replay.json")
@@ -1559,9 +1560,9 @@ def _apply_refined_chapter_starts(chapters: list[dict], starts: dict[int, int], 
 
 def _scan_title_logo_timeline(url: str, total_duration: int, chunk_seconds: int = 1800) -> list[dict]:
     """Scan the whole VOD for title-logo occurrences without trusting chapter starts."""
-    found = []
     width, height = 64, 36
-    for start in range(0, total_duration, chunk_seconds):
+
+    def scan_chunk(start: int) -> list[dict]:
         span = min(chunk_seconds, total_duration - start)
         cmd = [
             "ffmpeg", "-hide_banner", "-loglevel", "error",
@@ -1571,17 +1572,31 @@ def _scan_title_logo_timeline(url: str, total_duration: int, chunk_seconds: int 
             "-pix_fmt", "rgb24", "-f", "rawvideo", "pipe:1",
         ]
         try:
-            proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=90, check=False)
+            proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=120, check=False)
         except (FileNotFoundError, subprocess.TimeoutExpired):
-            continue
+            return []
         if proc.returncode != 0:
-            continue
+            return []
         frame_size = width * height * 3
+        rows = []
         for idx in range(len(proc.stdout) // frame_size):
             frame = proc.stdout[idx * frame_size:(idx + 1) * frame_size]
             logo = _normalise_yellow_logo(frame, width, height)
             if logo:
-                found.append({"time": start + idx * TITLE_LOGO_SAMPLE_SECONDS, **logo})
+                rows.append({"time": start + idx * TITLE_LOGO_SAMPLE_SECONDS, **logo})
+        return rows
+
+    starts = list(range(0, total_duration, chunk_seconds))
+    found = []
+    # Four parallel HLS decoders cut wall time sharply while keeping memory modest.
+    with ThreadPoolExecutor(max_workers=min(4, max(1, len(starts)))) as pool:
+        futures = [pool.submit(scan_chunk, start) for start in starts]
+        for future in as_completed(futures):
+            try:
+                found.extend(future.result())
+            except Exception:
+                continue
+    found.sort(key=lambda x: int(x["time"]))
     return found
 
 
