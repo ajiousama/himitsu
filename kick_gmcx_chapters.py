@@ -544,15 +544,72 @@ def _probe_audio_packet_gaps(url: str, center: int, radius: int = 4) -> dict:
     return {"center": center, "start": start, "span": span, "gap_count": len(gaps), "gaps": gaps[:12]}
 
 
+def _probe_video_packet_joins(url: str, center: int, radius: int = 6) -> dict:
+    """Probe video DTS continuity and keyframe layout around a suspected join."""
+    start = max(0, int(center) - int(radius))
+    span = max(2, int(radius) * 2)
+    cmd = [
+        "ffprobe", "-v", "error",
+        "-rw_timeout", "15000000",
+        "-read_intervals", f"{start}%+{span}",
+        "-select_streams", "v:0",
+        "-show_entries", "packet=pts_time,dts_time,duration_time,flags",
+        "-of", "json",
+        url,
+    ]
+    try:
+        proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=35, check=False)
+    except (FileNotFoundError, subprocess.TimeoutExpired) as exc:
+        return {"center": center, "error": str(exc), "dts_gaps": [], "keyframes": []}
+    if proc.returncode != 0:
+        return {"center": center, "error": proc.stderr.decode("utf-8", "replace")[-300:], "dts_gaps": [], "keyframes": []}
+    try:
+        payload = json.loads(proc.stdout.decode("utf-8", "replace"))
+    except Exception as exc:
+        return {"center": center, "error": f"json: {exc}", "dts_gaps": [], "keyframes": []}
+    gaps = []
+    keyframes = []
+    prev_end = None
+    for packet in payload.get("packets") or []:
+        try:
+            dts = float(packet.get("dts_time"))
+            pts = float(packet.get("pts_time") or dts)
+            dur = float(packet.get("duration_time") or 0.0)
+        except Exception:
+            continue
+        flags = str(packet.get("flags") or "")
+        if "K" in flags:
+            keyframes.append(round(pts, 6))
+        if prev_end is not None:
+            gap = dts - prev_end
+            if abs(gap) >= 0.002:
+                gaps.append({"time": round(dts, 6), "gap_seconds": round(gap, 6)})
+        prev_end = dts + dur
+    gaps.sort(key=lambda x: abs(float(x["gap_seconds"])), reverse=True)
+    return {
+        "center": center,
+        "start": start,
+        "span": span,
+        "dts_gap_count": len(gaps),
+        "dts_gaps": gaps[:12],
+        "keyframes": keyframes[:20],
+        "nearest_keyframe_offset": round(min((k - center for k in keyframes), key=lambda x: abs(x)), 6) if keyframes else None,
+    }
+
+
 def _probe_selected_episode_joins(url: str, chapters: list[dict]) -> list[dict]:
     out = []
     for chapter in chapters:
         ep = chapter.get("episode")
         if ep not in {184, 185, 186, 187, 188}:
             continue
-        row = _probe_audio_packet_gaps(url, int(chapter.get("start_seconds") or 0))
-        row["episode"] = ep
-        out.append(row)
+        center = int(chapter.get("start_seconds") or 0)
+        out.append({
+            "episode": ep,
+            "center": center,
+            "audio": _probe_audio_packet_gaps(url, center),
+            "video": _probe_video_packet_joins(url, center),
+        })
     return out
 
 
