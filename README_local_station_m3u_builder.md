@@ -19,8 +19,26 @@ Use it like this:
 
 1. Copy the template locally.
 2. Fill `stream_url` on your own device only.
-3. Run the builder script.
-4. Use the generated M3U privately.
+3. Optionally change `input_status` from `未入力` to `入力済み` for your own tracking.
+4. Run the builder script.
+5. Use the generated M3U privately.
+
+## Template columns
+
+The template is designed so only one column needs private input:
+
+- `fill_order`: recommended order for checking candidates.
+- `channel_key`: stable local station key.
+- `display_name`: display name used in the generated M3U.
+- `alias_hint`: common naming variations to help identify the channel.
+- `group_title`: M3U group title.
+- `tvg_id`: M3U `tvg-id` value.
+- `tvg_name`: M3U `tvg-name` value.
+- `priority`: research priority.
+- `system_family`: candidate system family, stored as metadata only.
+- `input_status`: local tracking field, such as `未入力` or `入力済み`.
+- `input_note`: local reminder notes.
+- `stream_url`: blank by design; fill locally only.
 
 ## Example
 
