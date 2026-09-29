@@ -1614,6 +1614,98 @@ def _global_regular_logo_starts(frames: list[dict], count: int) -> list[int]:
         return []
     return min(finals, key=lambda x: x[0])[1]
 
+def _sample_opening_hash_window(url: str, center: int, total_duration: int, radius: int = 8) -> list[dict]:
+    """Sample a small grayscale window for recurring-opening-frame diagnostics."""
+    start = max(0, int(center) - int(radius))
+    stop = min(int(total_duration), int(center) + int(radius) + 1)
+    span = max(1, stop - start)
+    cmd = [
+        "ffmpeg", "-hide_banner", "-loglevel", "error",
+        "-rw_timeout", "15000000",
+        "-ss", str(start),
+        "-i", url,
+        "-t", str(span),
+        "-an",
+        "-vf", "fps=1,scale=17:16:flags=area,format=gray",
+        "-pix_fmt", "gray",
+        "-f", "rawvideo", "pipe:1",
+    ]
+    try:
+        proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=35, check=False)
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        return []
+    if proc.returncode != 0:
+        return []
+    size = 17 * 16
+    out = []
+    raw = proc.stdout
+    for idx in range(len(raw) // size):
+        sig = _frame_signature(raw[idx * size:(idx + 1) * size])
+        if not sig:
+            continue
+        bits, mean, contrast = sig
+        out.append({"time": start + idx, "hash": bits, "mean": mean, "contrast": contrast})
+    return out
+
+
+def _probe_recurring_opening_frame(url: str, chapters: list[dict], total_duration: int, reference_episode: int = 186) -> dict:
+    """Test whether the visually-correct opening frame repeats near other episode starts."""
+    episodes = [x for x in chapters if x.get("kind") == "episode" and 177 <= int(x.get("episode") or 0) <= 196]
+    ref_item = next((x for x in episodes if int(x.get("episode") or 0) == reference_episode), None)
+    if not ref_item:
+        return {"status": "skipped", "reason": "reference_episode_missing"}
+    windows = {}
+    for item in episodes:
+        ep = int(item.get("episode") or 0)
+        windows[ep] = _sample_opening_hash_window(url, int(item.get("start_seconds") or 0), total_duration)
+    ref_center = int(ref_item.get("start_seconds") or 0)
+    ref_frames = windows.get(reference_episode) or []
+    if not ref_frames:
+        return {"status": "skipped", "reason": "reference_window_empty"}
+    ref = min(ref_frames, key=lambda x: abs(int(x["time"]) - ref_center))
+    rows = []
+    strong = 0
+    for item in episodes:
+        ep = int(item.get("episode") or 0)
+        center = int(item.get("start_seconds") or 0)
+        candidates = windows.get(ep) or []
+        if not candidates:
+            rows.append({"episode": ep, "matched": False, "reason": "window_empty"})
+            continue
+        scored = []
+        for frame in candidates:
+            hamming = (int(frame["hash"]) ^ int(ref["hash"])).bit_count()
+            mean_delta = abs(float(frame["mean"]) - float(ref["mean"]))
+            contrast_delta = abs(float(frame["contrast"]) - float(ref["contrast"]))
+            score = hamming + mean_delta / 3.0 + contrast_delta / 5.0
+            scored.append((score, hamming, mean_delta, contrast_delta, frame))
+        scored.sort(key=lambda x: x[0])
+        score, hamming, mean_delta, contrast_delta, best = scored[0]
+        matched = hamming <= 48 and mean_delta <= 38
+        if matched:
+            strong += 1
+        rows.append({
+            "episode": ep,
+            "matched": matched,
+            "center": center,
+            "best_time": int(best["time"]),
+            "shift_seconds": int(best["time"]) - center,
+            "hamming": int(hamming),
+            "mean_delta": round(mean_delta, 2),
+            "contrast_delta": round(contrast_delta, 2),
+            "score": round(score, 2),
+        })
+    return {
+        "status": "diagnostic",
+        "reference_episode": reference_episode,
+        "reference_time": int(ref["time"]),
+        "matched": strong,
+        "episode_count": len(episodes),
+        "coverage": round(strong / max(1, len(episodes)), 3),
+        "rows": rows,
+    }
+
+
 def refine_with_titlecard(
     vod: dict,
     chapters: list[dict],
@@ -2135,11 +2227,13 @@ def main() -> int:
             }
 
         hls_join_markers = None
+        opening_frame_probe = None
         packet_join_probe = None
         if status == "ready" and chapters:
             if start_ep == 177 and vod.get("source_url"):
                 hls_join_markers = _fetch_hls_join_markers(str(vod.get("source_url")))
                 packet_join_probe = _probe_selected_episode_joins(str(vod.get("source_url")), chapters)
+                opening_frame_probe = _probe_recurring_opening_frame(str(vod.get("source_url")), chapters, duration)
             chapters = _annotate_hls_diagnostics(vod, chapters)
             chapters = _mark_provisional_titles(chapters, start_ep, end_ep)
 
@@ -2167,6 +2261,7 @@ def main() -> int:
             "titlecard_refinement": titlecard_refinement,
             "hls_join_markers": hls_join_markers if start_ep == 177 else None,
             "packet_join_probe": packet_join_probe if start_ep == 177 else None,
+            "opening_frame_probe": opening_frame_probe if start_ep == 177 else None,
             "ai_windows": build_ai_windows(start_ep, end_ep, duration) if status == "ai_required" else [],
         })
 
