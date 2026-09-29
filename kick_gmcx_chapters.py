@@ -45,7 +45,7 @@ EPISODE_DURATION_OVERRIDES: dict[int, int] = {
 # signature inside each VOD and place every split on the same visual cue.
 TITLECARD_WINDOW_SECONDS = 240
 TITLECARD_SAMPLE_SECONDS = 2
-TITLECARD_BOUNDARY_VERSION = 37
+TITLECARD_BOUNDARY_VERSION = 38
 TITLECARD_INTRO_SECONDS = 8
 TITLECARD_HASH_BITS = 256
 TITLECARD_MATCH_DISTANCE = 42
@@ -1402,6 +1402,66 @@ def _apply_refined_chapter_starts(chapters: list[dict], starts: dict[int, int], 
         item["duration_seconds"] = stop - start
         item["replay_url"] = clip_url(vod_id, start, stop - start)
     return out
+
+
+def _scan_title_logo_timeline(url: str, total_duration: int, chunk_seconds: int = 1800) -> list[dict]:
+    """Scan the whole VOD for title-logo occurrences without trusting chapter starts."""
+    found = []
+    width, height = 64, 36
+    for start in range(0, total_duration, chunk_seconds):
+        span = min(chunk_seconds, total_duration - start)
+        cmd = [
+            "ffmpeg", "-hide_banner", "-loglevel", "error",
+            "-rw_timeout", "15000000", "-ss", str(start), "-i", url,
+            "-t", str(span), "-an",
+            "-vf", f"fps=1/{TITLE_LOGO_SAMPLE_SECONDS},scale={width}:{height}:flags=area,format=rgb24",
+            "-pix_fmt", "rgb24", "-f", "rawvideo", "pipe:1",
+        ]
+        try:
+            proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=90, check=False)
+        except (FileNotFoundError, subprocess.TimeoutExpired):
+            continue
+        if proc.returncode != 0:
+            continue
+        frame_size = width * height * 3
+        for idx in range(len(proc.stdout) // frame_size):
+            frame = proc.stdout[idx * frame_size:(idx + 1) * frame_size]
+            logo = _normalise_yellow_logo(frame, width, height)
+            if logo:
+                found.append({"time": start + idx * TITLE_LOGO_SAMPLE_SECONDS, **logo})
+    return found
+
+
+def _global_regular_logo_starts(frames: list[dict], count: int) -> list[int]:
+    """Pick a chronological sequence of roughly hour-spaced recurring openings."""
+    runs = _title_logo_runs(frames)
+    candidates = [int(run[0]["time"]) for run in runs]
+    if not candidates or count <= 0:
+        return []
+    # Dynamic programming: reward a full chronological sequence with regular
+    # episode gaps, but do not require any pre-existing chapter boundary.
+    states = {(i, 1): (0, [candidates[i]]) for i in range(len(candidates))}
+    for length in range(2, count + 1):
+        next_states = {}
+        for j, t in enumerate(candidates):
+            best = None
+            for i in range(j):
+                prev = states.get((i, length - 1))
+                if not prev:
+                    continue
+                gap = t - candidates[i]
+                if gap < 2400 or gap > 4800:
+                    continue
+                penalty = prev[0] + abs(gap - REFERENCE_EPISODE_SECONDS)
+                if best is None or penalty < best[0]:
+                    best = (penalty, prev[1] + [t])
+            if best:
+                next_states[(j, length)] = best
+        states.update(next_states)
+    finals = [v for (i, n), v in states.items() if n == count]
+    if not finals:
+        return []
+    return min(finals, key=lambda x: x[0])[1]
 
 def refine_with_titlecard(
     vod: dict,
