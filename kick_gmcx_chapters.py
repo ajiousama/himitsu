@@ -2044,7 +2044,8 @@ def main() -> int:
             "extra_label": tail or None,
             "status": status,
             "chapters": chapters,
-            "titlecard_refinement": titlecard_refinement,\n            "hls_join_markers": hls_join_markers if start_ep == 177 else None,
+            "titlecard_refinement": titlecard_refinement,
+            "hls_join_markers": hls_join_markers if start_ep == 177 else None,
             "ai_windows": build_ai_windows(start_ep, end_ep, duration) if status == "ai_required" else [],
         })
 
