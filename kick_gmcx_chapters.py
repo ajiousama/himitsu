@@ -1116,7 +1116,8 @@ def _mask_jaccard(a: int, b: int) -> float:
 def _pick_anchor_title_logo(frames: list[dict], chapter_start: int = 0) -> tuple[dict | None, dict]:
     candidates = []
     for run in _title_logo_runs(frames):
-        start = int(run[0]["time"])\n        offset = start - int(chapter_start)
+        start = int(run[0]["time"])
+        offset = start - int(chapter_start)
         if offset < TITLE_LOGO_ANCHOR_FROM_SECONDS or offset > TITLE_LOGO_ANCHOR_TO_SECONDS:
             continue
         best = max(
