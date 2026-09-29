@@ -1853,7 +1853,7 @@ def _probe_global_op_logo_starts(url: str, total_duration: int, episode_count: i
     def sample_wide(item: dict) -> dict:
         ep = int(item.get("episode") or 0)
         center = int(item.get("start_seconds") or 0)
-        radius = 600
+        radius = 300
         start = max(0, center - radius)
         stop = min(int(total_duration), center + radius)
         if center <= radius:
@@ -1869,7 +1869,7 @@ def _probe_global_op_logo_starts(url: str, total_duration: int, episode_count: i
             "-pix_fmt", "rgb24", "-f", "rawvideo", "pipe:1",
         ]
         try:
-            proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=150, check=False)
+            proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=220, check=False)
         except (FileNotFoundError, subprocess.TimeoutExpired) as exc:
             return {"episode": ep, "chapter_start": center, "matched": False, "reason": str(exc)}
         if proc.returncode != 0:
