@@ -546,8 +546,12 @@ def _probe_audio_packet_gaps(url: str, center: int, radius: int = 4) -> dict:
 
 def _probe_video_packet_joins(url: str, center: int, radius: int = 6) -> dict:
     """Probe video DTS continuity and keyframe layout around a suspected join."""
-    start = max(0, int(center) - int(radius))
-    span = max(2, int(radius) * 2)
+    # HLS seeks may land well before the requested timestamp. Read a wider span,
+    # then filter packets back to the real +/- radius window around the join.
+    start = max(0, int(center) - 18)
+    span = 36
+    window_lo = float(center - radius)
+    window_hi = float(center + radius)
     cmd = [
         "ffprobe", "-v", "error",
         "-rw_timeout", "15000000",
@@ -558,7 +562,7 @@ def _probe_video_packet_joins(url: str, center: int, radius: int = 6) -> dict:
         url,
     ]
     try:
-        proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=35, check=False)
+        proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=45, check=False)
     except (FileNotFoundError, subprocess.TimeoutExpired) as exc:
         return {"center": center, "error": str(exc), "dts_gaps": [], "keyframes": []}
     if proc.returncode != 0:
@@ -578,9 +582,9 @@ def _probe_video_packet_joins(url: str, center: int, radius: int = 6) -> dict:
         except Exception:
             continue
         flags = str(packet.get("flags") or "")
-        if "K" in flags:
+        if "K" in flags and window_lo <= pts <= window_hi:
             keyframes.append(round(pts, 6))
-        if prev_end is not None:
+        if prev_end is not None and window_lo <= dts <= window_hi:
             gap = dts - prev_end
             if abs(gap) >= 0.002:
                 gaps.append({"time": round(dts, 6), "gap_seconds": round(gap, 6)})
@@ -590,9 +594,11 @@ def _probe_video_packet_joins(url: str, center: int, radius: int = 6) -> dict:
         "center": center,
         "start": start,
         "span": span,
+        "window_lo": window_lo,
+        "window_hi": window_hi,
         "dts_gap_count": len(gaps),
         "dts_gaps": gaps[:12],
-        "keyframes": keyframes[:20],
+        "keyframes": keyframes,
         "nearest_keyframe_offset": round(min((k - center for k in keyframes), key=lambda x: abs(x)), 6) if keyframes else None,
     }
 
