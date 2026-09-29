@@ -10,7 +10,9 @@ import radio_tv_filemux as radio_tv
 HOST = "0.0.0.0"
 PORT = int(os.environ.get("PORT", "8080"))
 BUILD = "20260929-railway-radio-v3"
- class Handler(http.server.BaseHTTPRequestHandler):
+
+
+class Handler(http.server.BaseHTTPRequestHandler):
     protocol_version = "HTTP/1.1"
 
     def log_message(self, fmt, *args):
