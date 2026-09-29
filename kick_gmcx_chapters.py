@@ -1818,6 +1818,35 @@ def _probe_known_35s_op(url: str, chapters: list[dict], total_duration: int) -> 
     }
 
 
+def _probe_global_op_logo_starts(url: str, total_duration: int, episode_count: int) -> dict:
+    """Find OPs globally: use the confirmed 35s OP only to learn logo offset, then scan the whole VOD."""
+    template_logo_frames = _scan_title_logo_timeline(KNOWN_OP_TEMPLATE_URL, KNOWN_OP_TEMPLATE_SECONDS, KNOWN_OP_TEMPLATE_SECONDS)
+    reference, ref_meta = _pick_anchor_title_logo(template_logo_frames, 0)
+    if reference is None:
+        return {"status": "skipped", "reason": "template_logo_not_found", "reference": ref_meta}
+    logo_offset = int(reference.get("run_start") or 0)
+    timeline = _scan_title_logo_timeline(url, int(total_duration))
+    logo_times = _global_regular_logo_starts(timeline, int(episode_count))
+    if len(logo_times) != int(episode_count):
+        return {
+            "status": "no_consensus",
+            "reason": "global_logo_sequence_not_found",
+            "template_logo_offset": logo_offset,
+            "detected_logo_frames": len(timeline),
+            "picked_logo_times": logo_times,
+        }
+    op_starts = [max(0, int(t) - logo_offset) for t in logo_times]
+    return {
+        "status": "diagnostic",
+        "method": "global-op-logo-scan",
+        "template_logo_offset": logo_offset,
+        "detected_logo_frames": len(timeline),
+        "logo_times": logo_times,
+        "op_starts": op_starts,
+        "gaps": [op_starts[i] - op_starts[i-1] for i in range(1, len(op_starts))],
+    }
+
+
 def refine_with_titlecard(
     vod: dict,
     chapters: list[dict],
@@ -2339,12 +2368,14 @@ def main() -> int:
             }
 
         known_op_probe = None
+        global_op_probe = None
         hls_join_markers = None
         opening_sequence_probe = None
         packet_join_probe = None
         if status == "ready" and chapters:
             if start_ep == 227 and vod.get("source_url"):
                 known_op_probe = _probe_known_35s_op(str(vod.get("source_url")), chapters, duration)
+                global_op_probe = _probe_global_op_logo_starts(str(vod.get("source_url")), duration, count)
             if start_ep == 177 and vod.get("source_url"):
                 hls_join_markers = _fetch_hls_join_markers(str(vod.get("source_url")))
                 packet_join_probe = _probe_selected_episode_joins(str(vod.get("source_url")), chapters)
@@ -2378,6 +2409,7 @@ def main() -> int:
             "packet_join_probe": packet_join_probe if start_ep == 177 else None,
             "opening_sequence_probe": opening_sequence_probe if start_ep == 177 else None,
             "known_op_probe": known_op_probe if start_ep == 227 else None,
+            "global_op_probe": global_op_probe if start_ep == 227 else None,
             "ai_windows": build_ai_windows(start_ep, end_ep, duration) if status == "ai_required" else [],
         })
 
