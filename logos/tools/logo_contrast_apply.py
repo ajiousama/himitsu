@@ -35,6 +35,15 @@ TARGET_HOSTS = {
     "www.lyngsat-logo.com",
     "lyngsat-logo.com",
     "radimo.s3.amazonaws.com",
+    # Sources that have repeatedly reintroduced dark/non-white artwork into
+    # FreeWiFi when their canonical subsystem playlists are refreshed.
+    "statics.tver.jp",
+    "i.imgur.com",
+    "image-origin.hikaritv.net",
+    "www.simulradio.info",
+    "simulradio.info",
+    "channel.rakuten.co.jp",
+    "pbs.twimg.com",
 }
 
 RADIO_SIDS = [
