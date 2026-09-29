@@ -504,6 +504,58 @@ def _fetch_hls_join_markers(url: str) -> dict:
     return {"media_url": media, "segment_count": len(durations), "median_segment_duration": round(median, 6), "discontinuities": discontinuities, "duration_outliers": outliers}
 
 
+def _probe_audio_packet_gaps(url: str, center: int, radius: int = 4) -> dict:
+    """Probe audio packet timestamp continuity around a suspected episode join."""
+    start = max(0, int(center) - int(radius))
+    span = max(2, int(radius) * 2)
+    cmd = [
+        "ffprobe", "-v", "error",
+        "-rw_timeout", "15000000",
+        "-read_intervals", f"{start}%+{span}",
+        "-select_streams", "a:0",
+        "-show_entries", "packet=pts_time,duration_time",
+        "-of", "json",
+        url,
+    ]
+    try:
+        proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=35, check=False)
+    except (FileNotFoundError, subprocess.TimeoutExpired) as exc:
+        return {"center": center, "error": str(exc), "gaps": []}
+    if proc.returncode != 0:
+        return {"center": center, "error": proc.stderr.decode("utf-8", "replace")[-300:], "gaps": []}
+    try:
+        payload = json.loads(proc.stdout.decode("utf-8", "replace"))
+    except Exception as exc:
+        return {"center": center, "error": f"json: {exc}", "gaps": []}
+    gaps = []
+    prev_end = None
+    for packet in payload.get("packets") or []:
+        try:
+            pts = float(packet.get("pts_time"))
+            dur = float(packet.get("duration_time") or 0.0)
+        except Exception:
+            continue
+        if prev_end is not None:
+            gap = pts - prev_end
+            if abs(gap) >= 0.004:
+                gaps.append({"time": round(pts, 6), "gap_seconds": round(gap, 6)})
+        prev_end = pts + dur
+    gaps.sort(key=lambda x: abs(float(x["gap_seconds"])), reverse=True)
+    return {"center": center, "start": start, "span": span, "gap_count": len(gaps), "gaps": gaps[:12]}
+
+
+def _probe_selected_episode_joins(url: str, chapters: list[dict]) -> list[dict]:
+    out = []
+    for chapter in chapters:
+        ep = chapter.get("episode")
+        if ep not in {184, 185, 186, 187, 188}:
+            continue
+        row = _probe_audio_packet_gaps(url, int(chapter.get("start_seconds") or 0))
+        row["episode"] = ep
+        out.append(row)
+    return out
+
+
 def _frame_signature(frame: bytes) -> tuple[int, float, int] | None:
     # ffmpeg supplies 17x16 grayscale. dHash => 16 comparisons x 16 rows.
     if len(frame) != 17 * 16:
@@ -2020,9 +2072,11 @@ def main() -> int:
             }
 
         hls_join_markers = None
+        packet_join_probe = None
         if status == "ready" and chapters:
             if start_ep == 177 and vod.get("source_url"):
                 hls_join_markers = _fetch_hls_join_markers(str(vod.get("source_url")))
+                packet_join_probe = _probe_selected_episode_joins(str(vod.get("source_url")), chapters)
             chapters = _annotate_hls_diagnostics(vod, chapters)
             chapters = _mark_provisional_titles(chapters, start_ep, end_ep)
 
@@ -2049,6 +2103,7 @@ def main() -> int:
             "chapters": chapters,
             "titlecard_refinement": titlecard_refinement,
             "hls_join_markers": hls_join_markers if start_ep == 177 else None,
+            "packet_join_probe": packet_join_probe if start_ep == 177 else None,
             "ai_windows": build_ai_windows(start_ep, end_ep, duration) if status == "ai_required" else [],
         })
 
