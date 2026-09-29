@@ -22,6 +22,10 @@ STATIONS = {
     "nhk_fm_matsuyama": ("NHK-FM（松山）", "FM 87.7MHz", (73, 145, 48), None),
     "JOEU-FM": ("FM愛媛", "FM 79.7MHz", (239, 112, 30), "JOEU-FM"),
     "RNB": ("RNB南海放送", "AM 1116kHz / FM 91.7MHz", (32, 99, 184), "RNB"),
+    "LFR": ("ニッポン放送", "AM 1242kHz / FM 93.0MHz", (224, 73, 52), "LFR"),
+    "QRR": ("文化放送", "AM 1134kHz / FM 91.6MHz", (57, 118, 183), "QRR"),
+    "TBS": ("TBSラジオ", "AM 954kHz / FM 90.5MHz", (33, 68, 124), "TBS"),
+    "FMT": ("TOKYO FM", "FM 80.0MHz", (44, 83, 159), "FMT"),
     "ABC": ("ABCラジオ", "AM 1008kHz / FM 93.3MHz", (232, 81, 28), "ABC"),
     "CCL": ("FM COCOLO", "FM 76.5MHz", (104, 67, 146), "CCL"),
     "802": ("FM802", "FM 80.2MHz", (38, 76, 175), "802"),
@@ -99,8 +103,13 @@ def make_card(key, display, freq, accent, logo_sid, path):
         logo.thumbnail((430, 105), Image.Resampling.LANCZOS)
         im.paste(logo, ((W-logo.width)//2, 78 + (95-logo.height)//2), logo)
     else:
-        main = "NHK ラジオ第1" if "r1" in key else "NHK FM"
-        centered(dr, main, 87, font(56, True), accent)
+        if key.startswith("nhk_r1_"):
+            main = "NHK ラジオ第1"
+        elif key.startswith("nhk_fm_"):
+            main = "NHK FM"
+        else:
+            main = display
+        centered(dr, main, 87, font(48 if len(main) > 8 else 56, True), accent)
 
     centered(dr, freq, 176, font(22, True), mix(accent, (0,0,0), 0.35))
 
