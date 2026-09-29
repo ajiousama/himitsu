@@ -37,7 +37,7 @@ jobs:
           set -euo pipefail
           if ! command -v ffmpeg >/dev/null 2>&1; then
             sudo apt-get update
-            sudo apt-get install -y ffmpeg
+            sudo apt-get install -y ffmpeg fonts-noto-cjk
           fi
           ffmpeg -version | head -n 1
           ffprobe -version | head -n 1
@@ -62,7 +62,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          REV='radio-ts-320x180-1fps-baseline-v2'
+          REV='radio-ts-320x180-1fps-baseline-v3-cjk'
           MARKER="$RADIO_TS_ASSETS/.radio_ts_build_rev"
           OLD=''
           test -f "$MARKER" && OLD="$(cat "$MARKER")"
