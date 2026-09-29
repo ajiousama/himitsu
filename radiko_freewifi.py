@@ -14,7 +14,7 @@ GUIDES = Path("guides.xml")
 UA = {"User-Agent": "Mozilla/5.0"}
 RADIO_TV_BASE = os.environ.get(
     "RADIO_TV_BASE",
-    "https://ajiousama-radiko.onrender.com/radio-tv",
+    "https://freewifi-radio-production.up.railway.app/radio-tv",
 ).rstrip("/")
 
 
