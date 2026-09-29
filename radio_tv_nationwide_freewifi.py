@@ -190,11 +190,15 @@ def main() -> int:
     if radio_section.count("/logos/contrast/radiko.") != EXPECTED_RADIKO_COUNT:
         raise RuntimeError("contrast-safe compact Radiko logos are not complete")
 
-    for sid in ("JOEU-FM", "RNB", "LFR", "QRR", "TBS", "FMT", "OBC", "KBS", "nhk_r1_matsuyama"):
-        if f'{RADIO_VERCEL_BASE}{sid}' not in radio_section:
-            raise RuntimeError(f"required Vercel Radiko station missing: {sid}")
-    for sid in ("HBC", "TBC", "CBC", "RCC", "RKB", "KBC",
-                "FMOTOKUNI", "FM845", "BARIBARI", "NIIHAMA", "FMGAIYA"):
+    if f'{RADIO_VERCEL_BASE}nhk_r1_matsuyama' not in radio_section:
+        raise RuntimeError("required Vercel NHK station missing: nhk_r1_matsuyama")
+    for sid in (
+        "JOEU-FM", "RNB", "LFR", "QRR", "TBS", "FMT",
+        "ABC", "CCL", "802", "FMO", "MBS", "OBC", "KBS",
+        "ALPHA-STATION", "E-RADIO", "CRK",
+        "HBC", "TBC", "CBC", "RCC", "RKB", "KBC",
+        "FMOTOKUNI", "FM845", "BARIBARI", "NIIHAMA", "FMGAIYA",
+    ):
         if f'{RADIO_RAILWAY_BASE}/{sid}' not in radio_section:
             raise RuntimeError(f"required Railway radio station missing: {sid}")
 
