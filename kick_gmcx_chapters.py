@@ -1872,9 +1872,9 @@ def _probe_global_op_logo_starts(url: str, total_duration: int, episode_count: i
         try:
             proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=220, check=False)
         except (FileNotFoundError, subprocess.TimeoutExpired) as exc:
-            return {"episode": ep, "chapter_start": center, "matched": False, "reason": str(exc)}
+            return {"episode": ep, "chapter_start": rough_center, "search_center": center, "matched": False, "reason": str(exc)}
         if proc.returncode != 0:
-            return {"episode": ep, "chapter_start": center, "matched": False, "reason": "ffmpeg_failed"}
+            return {"episode": ep, "chapter_start": rough_center, "search_center": center, "matched": False, "reason": "ffmpeg_failed"}
         frame_size = width * height * 3
         frames = []
         for idx in range(len(proc.stdout) // frame_size):
@@ -1902,7 +1902,7 @@ def _probe_global_op_logo_starts(url: str, total_duration: int, episode_count: i
             candidates.append((round(fd, 4), abs(run_start - expected_logo), -len(run), run_start, len(run)))
         if not candidates:
             return {
-                "episode": ep, "chapter_start": center, "matched": False,
+                "episode": ep, "chapter_start": rough_center, "search_center": center, "matched": False,
                 "reason": "no_logo_in_wide_window", "detected_logo_frames": len(frames),
                 "window_start": start, "window_stop": stop,
             }
@@ -1910,10 +1910,10 @@ def _probe_global_op_logo_starts(url: str, total_duration: int, episode_count: i
         fd, distance, neg_len, logo_time, run_frames = candidates[0]
         op_start = max(0, int(logo_time) - logo_offset)
         return {
-            "episode": ep, "chapter_start": center, "matched": True,
+            "episode": ep, "chapter_start": rough_center, "search_center": center, "matched": True,
             "window_start": start, "window_stop": stop,
             "logo_time": int(logo_time), "op_start": op_start,
-            "shift_seconds": op_start - center,
+            "shift_seconds": op_start - rough_center,
             "feature_distance": fd, "run_frames": int(run_frames),
             "distance_from_estimated_logo": int(distance),
             "detected_logo_frames": len(frames),
