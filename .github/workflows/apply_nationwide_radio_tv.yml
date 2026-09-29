@@ -6,6 +6,8 @@ on:
     branches: [main]
     paths:
       - 'radio_tv_nationwide.py'
+      - 'build_radio_tv_assets.py'
+      - 'vercel-radiko/api/radio-tv.mjs'
       - 'radio_tv_community.py'
       - 'radio_tv_filemux.py'
       - 'test_radio_continuity.py'
@@ -58,6 +60,9 @@ jobs:
 
       - name: Build contrast-safe station images
         run: python logos/tools/logo_contrast_apply.py
+
+      - name: Build CJK-safe Vercel radio video cards
+        run: python build_radio_tv_assets.py
 
       - name: Build nationwide and NHK static-video radio playlists
         run: |
@@ -156,7 +161,7 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           cp radio/playlist.m3u radio.m3u
-          git add freewifi radio/nationwide.m3u radio/nhk.m3u radio/nhk_stations.json radio/playlist.m3u radio/freewifi.m3u radio.m3u logos/contrast_sources.json logos/contrast
+          git add freewifi radio/nationwide.m3u radio/nhk.m3u radio/nhk_stations.json radio/playlist.m3u radio/freewifi.m3u radio.m3u logos/contrast_sources.json logos/contrast vercel-radiko/radio-video-assets
           if git diff --cached --quiet; then
             echo 'Radio playlists and station images already current'
             exit 0
