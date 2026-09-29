@@ -34,11 +34,23 @@ STATIONS = {
     "ALPHA-STATION": ("ALPHA-STATION FM KYOTO", "FM 89.4 MHz", (154, 66, 169), "ALPHA-STATION", None),
     "E-RADIO": ("E-RADIO FM SHIGA", "FM 77.0 MHz", (27, 135, 200), "E-RADIO", None),
     "CRK": ("RADIO KANSAI", "AM 558 kHz / FM 91.1 MHz", (41, 91, 174), "CRK", None),
+    # FreeWiFi Railway stations: keep their Japanese display names because the
+    # container ships Noto CJK and can render them correctly on the playback card.
+    "HBC": ("HBCラジオ", "RADIKO LIVE", (80, 177, 195), "HBC", None),
+    "TBC": ("tbcラジオ", "RADIKO LIVE", (188, 81, 128), "TBC", None),
+    "CBC": ("CBCラジオ", "RADIKO LIVE", (145, 135, 115), "CBC", None),
+    "RCC": ("RCCラジオ", "RADIKO LIVE", (140, 138, 187), "RCC", None),
+    "RKB": ("RKBラジオ", "RADIKO LIVE", (80, 119, 190), "RKB", None),
+    "KBC": ("KBCラジオ", "RADIKO LIVE", (80, 119, 190), "KBC", None),
 }
 
 
 def _font(size: int, bold: bool = False):
+    # Noto CJK must come first. DejaVu/Liberation render Japanese station names
+    # as tofu squares on the IPTV playback card even when the source text is UTF-8.
     paths = [
+        "/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc" if bold else "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
+        "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
         "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf" if bold else "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
         "/usr/share/fonts/truetype/liberation2/LiberationSans-Bold.ttf" if bold else "/usr/share/fonts/truetype/liberation2/LiberationSans-Regular.ttf",
     ]
