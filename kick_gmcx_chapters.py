@@ -45,7 +45,7 @@ EPISODE_DURATION_OVERRIDES: dict[int, int] = {
 # signature inside each VOD and place every split on the same visual cue.
 TITLECARD_WINDOW_SECONDS = 240
 TITLECARD_SAMPLE_SECONDS = 2
-TITLECARD_BOUNDARY_VERSION = 35
+TITLECARD_BOUNDARY_VERSION = 36
 TITLECARD_INTRO_SECONDS = 8
 TITLECARD_HASH_BITS = 256
 TITLECARD_MATCH_DISTANCE = 42
@@ -1462,17 +1462,42 @@ def refine_with_titlecard(
         original = int(items[index].get("start_seconds") or 0)
         logo_windows[index] = _sample_title_logo_window(analysis_url, original, duration)
 
-    anchor_index = regular_indices[0]
-    reference, ref_meta = _pick_anchor_title_logo(logo_windows.get(anchor_index, []))
-    if reference is None:
+    # The first episode can have a shorter/different intro (e.g. #177 has the
+    # large GMCX logo around 10s).  Try every regular episode and use the
+    # strongest detected logo as the reference instead of requiring episode 1.
+    anchor_candidates = []
+    for candidate_index in regular_indices:
+        candidate_original = int(items[candidate_index].get("start_seconds") or 0)
+        candidate_ref, candidate_meta = _pick_anchor_title_logo(
+            logo_windows.get(candidate_index, []), candidate_original
+        )
+        if candidate_ref is None:
+            continue
+        candidate_time = int(candidate_ref.get("run_start") or 0)
+        candidate_offset = candidate_time - candidate_original
+        # Prefer a stable, large logo and a plausible opening offset (5-60s).
+        if not (5 <= candidate_offset <= 60):
+            continue
+        score = (
+            -int(candidate_meta.get("run_frames") or 0),
+            -float(candidate_meta.get("width_ratio") or 0),
+            abs(candidate_offset - 20),
+        )
+        anchor_candidates.append(
+            (score, candidate_index, candidate_ref, candidate_meta, candidate_offset)
+        )
+    if not anchor_candidates:
         return chapters, {
             "status": "no_consensus", "method": "recurring-title-logo",
             "boundary_version": TITLECARD_BOUNDARY_VERSION,
-            "reference": ref_meta, "matches": [],
+            "reference": {"reason": "no_title_logo_anchor_in_any_episode"},
+            "matches": [],
         }
-
-    anchor_original = int(items[anchor_index].get("start_seconds") or 0)
-    opening_offset = int(reference.get("run_start") or 0) - anchor_original
+    anchor_candidates.sort(key=lambda x: x[0])
+    _, anchor_index, reference, ref_meta, opening_offset = anchor_candidates[0]
+    ref_meta = dict(ref_meta)
+    ref_meta["anchor_episode"] = int(items[anchor_index].get("episode") or 0)
+    ref_meta["opening_offset_seconds"] = opening_offset
     starts: dict[int, int] = {}
     match_rows = []
     matched_regular = 0
