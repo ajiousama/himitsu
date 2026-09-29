@@ -136,6 +136,12 @@ def _file_cmd(station: str, source: str, path: pathlib.Path) -> list[str]:
     # Repair timestamp discontinuities for Radiko and community FM alike.
     cmd += AUDIO_OUTPUT_ARGS
     cmd += [
+        # Do not leak upstream programme/service metadata into MPEG-TS. Some
+        # IPTV clients decode Japanese service strings with the wrong charset
+        # and show mojibake on the playback screen.
+        "-map_metadata", "-1", "-map_chapters", "-1",
+        "-metadata", "service_provider=FreeWiFi",
+        "-metadata", f"service_name={station}",
         "-muxdelay", "0", "-muxpreload", "0", "-flush_packets", "1",
         "-max_delay", "0",
         "-mpegts_flags", "resend_headers",
