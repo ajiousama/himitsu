@@ -1853,14 +1853,14 @@ def _probe_global_op_logo_starts(url: str, total_duration: int, episode_count: i
 
     def sample_wide(item: dict) -> dict:
         ep = int(item.get("episode") or 0)
-        center = int(item.get("start_seconds") or 0)
-        radius = 300
+        rough_center = int(item.get("start_seconds") or 0)
+        center = rough_center + max(0, ep - 227) * 262
+        radius = 240
         start = max(0, center - radius)
         stop = min(int(total_duration), center + radius)
         if center <= radius:
             start = 0
-            stop = min(int(total_duration), center + radius)
-        span = max(1, stop - start)
+            stop = min(int(total_duration), 90)
         width, height = 64, 36
         cmd = [
             "ffmpeg", "-hide_banner", "-loglevel", "error",
