@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-29",
-  "generated_at": "2026-09-29T12:52:17.259484+09:00",
+  "generated_at": "2026-09-29T12:54:17.266897+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260929.json",
   "schedule_checked_at": "2026-09-29T12:46:17.316212+09:00",
@@ -52,10 +52,15 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 9,
+    "requested": 10,
     "fetched": 8,
     "failures": [],
     "deferred": [
+      {
+        "jcd": "07",
+        "name": "蒲郡",
+        "start": "2026-09-29T14:10:00+09:00"
+      },
       {
         "jcd": "15",
         "name": "丸亀",
@@ -658,7 +663,8 @@
           "name": "ドリーム戦"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "provider_stream_start": "2026-09-29T14:10:00+09:00",
+      "source": "公式BR配信開始待ち 14:10"
     },
     "boat.amagasaki": {
       "jcd": "13",
