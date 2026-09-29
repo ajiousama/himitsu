@@ -44,11 +44,14 @@ def safe_slug(value: str) -> str:
     return value.strip("._-") or "logo"
 
 
-def contrast_logo_url(tvgid: str, sid: str) -> str:
-    source = source_logo_url(sid)
+def contrast_logo_from_source(tvgid: str, source: str) -> str:
     digest = hashlib.sha1(source.encode("utf-8")).hexdigest()[:8]
     relpath = f"logos/contrast/{safe_slug(tvgid)}_{digest}.png"
     return f"{LOGO_RAW_BASE}/{urllib.parse.quote(relpath, safe='/._-')}"
+
+
+def contrast_logo_url(tvgid: str, sid: str) -> str:
+    return contrast_logo_from_source(tvgid, source_logo_url(sid))
 
 
 def radio_entry(tvgid: str, station: str, name: str, logo: str) -> str:
@@ -112,7 +115,7 @@ def compact_block() -> str:
             "community.FMOTOKUNI",
             "FMOTOKUNI",
             "FMおとくに（ラジオ）",
-            "https://www.simulradio.info/data/161.jpg",
+            contrast_logo_from_source("community.FMOTOKUNI", "https://www.simulradio.info/data/161.jpg"),
         )
     )
     parts.append(
