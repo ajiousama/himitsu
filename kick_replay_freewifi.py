@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 import re
 from pathlib import Path
+from urllib.parse import quote
 
 FREEWIFI = Path("freewifi")
 VOD5 = Path("vod5/playlist.m3u")
@@ -13,6 +14,8 @@ REPLAY_M3U = Path("kick_replay.m3u")
 REPLAY_JSON = Path("kick_replay.json")
 GMCX_M3U = Path("kick_gmcx_chapters.m3u")
 GMCX_JSON = Path("kick_gmcx_chapters.json")
+CONTRAST_DB = Path("logos/contrast_sources.json")
+RAW_BASE = "https://raw.githubusercontent.com/ajiousama/himitsu/main"
 
 START = "# === KICK_REPLAY_START ==="
 END = "# === KICK_REPLAY_END ==="
@@ -31,6 +34,29 @@ FREEWIFI_SPECIAL_IDS = {
     "kick.gmcx.special.2015-niconico-chokaigi",
     "kick.gmcx.special.2015-vietnam",
 }
+
+
+def reuse_known_contrast_logos(text: str) -> tuple[str, int]:
+    """Keep VOD logos on local white cards after every hourly KICK refresh."""
+    if not CONTRAST_DB.exists():
+        return text, 0
+    try:
+        db = json.loads(CONTRAST_DB.read_text(encoding="utf-8"))
+    except Exception:
+        return text, 0
+    replaced = 0
+    for source, meta in db.items():
+        if not isinstance(source, str) or not isinstance(meta, dict):
+            continue
+        relpath = meta.get("path")
+        if not isinstance(relpath, str) or not relpath or not Path(relpath).is_file():
+            continue
+        count = text.count(source)
+        if not count:
+            continue
+        text = text.replace(source, f"{RAW_BASE}/{quote(relpath, safe='/._-')}")
+        replaced += count
+    return text, replaced
 
 
 def assert_recent_gmcx_generation() -> None:
@@ -169,6 +195,7 @@ def main() -> int:
     cleaned = remove_old(text).rstrip() + "\n"
 
     vod5 = build_vod5()
+    vod5, reused_logos = reuse_known_contrast_logos(vod5)
     VOD5.parent.mkdir(parents=True, exist_ok=True)
     VOD5.write_text(vod5, encoding="utf-8")
     VOD5_COMPAT.write_text(vod5, encoding="utf-8")
@@ -206,7 +233,7 @@ def main() -> int:
         encoding="utf-8",
     )
     vod_count = vod5.count('group-title="VOD"')
-    print(f"KICK VOD published to VOD5: {vod_count} entries")
+    print(f"KICK VOD published to VOD5: {vod_count} entries; reused white-card logos={reused_logos}")
     return 0
 
 
