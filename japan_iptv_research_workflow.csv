@@ -1,0 +1,8 @@
+step,phase,task,output,notes
+1,prepare,Open safe registry,japan_iptv_research_groups.csv,Start from group-level rows only
+2,prioritize,Pick high-priority regional/local groups,local_station_research.csv,Do not add direct stream URLs
+3,verify,Check whether the same group appears in multiple public sources,evidence_count/source_family,Record source family and freshness only
+4,classify,Assign system family and decision rank,decision_rank,Use A/B/C/X-style values
+5,split,Separate local/BS/CS/sensitive groups,separate research CSVs,Keep sensitive groups at category level
+6,review,Confirm no playback URLs or tokens are committed,manual review,Do this before every commit
+7,advance,Only later create local-only private URL mapping,not in repo,Keep private URL data outside GitHub
