@@ -269,7 +269,10 @@ function videoPlaylist(req, station, anchorMs = Date.now()) {
 function master(req, station, cfg) {
   if (cfg.radiko) {
     const audio = `${selfBase(req)}/api/radiko?station=${encodeURIComponent(cfg.radiko)}&stage=media`;
-    const video = `https://raw.githubusercontent.com/ajiousama/himitsu/radio-ts-assets/${encodeURIComponent(station)}/video.m3u8`;
+    // Use the CJK-safe video cards bundled with this Vercel project.
+    // The old radio-ts-assets branch was generated without Japanese fonts and
+    // rendered station names as tofu squares.
+    const video = selfUrl(req, station, { stage: 'video' });
     return [
       '#EXTM3U',
       '#EXT-X-VERSION:6',
