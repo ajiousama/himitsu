@@ -7,11 +7,11 @@ import urllib.parse
 from pathlib import Path
 
 FREEWIFI = Path("freewifi")
-BASE = os.environ.get("RADIO_TV_BASE", "https://ajiousama-radiko.onrender.com").rstrip("/")
+BASE = os.environ.get("RADIO_TV_BASE", "https://freewifi-radio-production.up.railway.app").rstrip("/")
 
-# Render A/V mux has been verified with ABC. Apply it only to the 12 radiko
+# Railway A/V mux has been verified with ABC. Apply it only to the 12 radiko
 # stations here; keep the four NHK stations on their current direct URLs until
-# Render->NHK muxing is verified separately.
+# Railway->NHK muxing is verified separately.
 # 2026-09-02: force rollout after Vercel fMP4 playback proved unstable on iOS.
 TARGETS = {
     "radiko.JOEU-FM": "JOEU-FM",
@@ -59,7 +59,7 @@ def main():
         raise SystemExit("radio entries missing from freewifi: " + ", ".join(missing))
 
     FREEWIFI.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
-    print(f"FreeWiFi Render radio TV URLs updated: {len(changed)} stations")
+    print(f"FreeWiFi Railway radio TV URLs updated: {len(changed)} stations")
 
 
 if __name__ == "__main__":
