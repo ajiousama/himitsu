@@ -106,7 +106,7 @@ def compact_block() -> str:
             "nhk_r1_matsuyama",
             "nhk_r1_matsuyama",
             "NHKラジオ第1（松山）",
-            "https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/contrast/nhk_r1_matsuyama_667dbb12.png",
+            "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/77/NHK_Radio_1_2024.svg/500px-NHK_Radio_1_2024.svg.png",
         )
     )
 
