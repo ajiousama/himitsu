@@ -9,27 +9,8 @@ import radio_tv_filemux as radio_tv
 
 HOST = "0.0.0.0"
 PORT = int(os.environ.get("PORT", "8080"))
-BUILD = "20260929-railway-radio-v2"
-FAST_RADIKO = {"HBC", "TBC", "CBC", "RCC", "RKB", "KBC"}
-RADIKO_AUDIO_BASE = "https://himitsu-six.vercel.app/api/radiko"
-RADIO_VIDEO_BASE = "https://raw.githubusercontent.com/ajiousama/himitsu/radio-ts-assets"
-
-
-def fast_radiko_master(station: str) -> bytes:
-    audio = f"{RADIKO_AUDIO_BASE}?station={urllib.parse.quote(station, safe='')}&stage=media"
-    video = f"{RADIO_VIDEO_BASE}/{urllib.parse.quote(station, safe='')}/video.m3u8"
-    return ("\n".join([
-        "#EXTM3U",
-        "#EXT-X-VERSION:6",
-        "#EXT-X-INDEPENDENT-SEGMENTS",
-        f'#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="radio",NAME="{station} radio",DEFAULT=YES,AUTOSELECT=YES,CHANNELS="2",URI="{audio}"',
-        '#EXT-X-STREAM-INF:BANDWIDTH=180000,AVERAGE-BANDWIDTH=120000,RESOLUTION=320x180,FRAME-RATE=1.000,CODECS="avc1.42e01e,mp4a.40.5",AUDIO="radio",CLOSED-CAPTIONS=NONE',
-        video,
-        "",
-    ])).encode()
-
-
-class Handler(http.server.BaseHTTPRequestHandler):
+BUILD = "20260929-railway-radio-v3"
+ class Handler(http.server.BaseHTTPRequestHandler):
     protocol_version = "HTTP/1.1"
 
     def log_message(self, fmt, *args):
@@ -53,9 +34,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
             self._send(200, b"", "text/plain; charset=utf-8")
             return
         if path.startswith("/radio-tv/"):
-            station = urllib.parse.unquote(path.split("/", 2)[2]).strip()
-            ctype = "application/vnd.apple.mpegurl; charset=utf-8" if station in FAST_RADIKO else "video/mp2t"
-            self._send(200, b"", ctype)
+            self._send(200, b"", "video/mp2t")
             return
         self._send(404, b"", "text/plain; charset=utf-8")
 
@@ -70,17 +49,12 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 (
                     f"FreeWiFi Radio Railway\n"
                     f"build={BUILD}\n"
-                    f"radiko6=direct HLS master (no FFmpeg startup)\n"
-                    f"community=ListenRadio/JCBA + FFmpeg MPEG-TS static-image video\n"
+                    f"radio=Railway MPEG-TS static-image video with Noto CJK\n"
+                    f"metadata=upstream text stripped to prevent mojibake\n"
                 ).encode(),
                 "text/plain; charset=utf-8",
             )
             return
-        if path.startswith("/radio-tv/"):
-            station = urllib.parse.unquote(path.split("/", 2)[2]).strip()
-            if station in FAST_RADIKO:
-                self._send(200, fast_radiko_master(station), "application/vnd.apple.mpegurl; charset=utf-8")
-                return
         if radio_tv.handle_request(self):
             return
         self._send(404, b"not found\n", "text/plain; charset=utf-8")
