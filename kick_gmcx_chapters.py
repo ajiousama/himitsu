@@ -45,7 +45,7 @@ EPISODE_DURATION_OVERRIDES: dict[int, int] = {
 # signature inside each VOD and place every split on the same visual cue.
 TITLECARD_WINDOW_SECONDS = 240
 TITLECARD_SAMPLE_SECONDS = 2
-TITLECARD_BOUNDARY_VERSION = 36
+TITLECARD_BOUNDARY_VERSION = 37
 TITLECARD_INTRO_SECONDS = 8
 TITLECARD_HASH_BITS = 256
 TITLECARD_MATCH_DISTANCE = 42
@@ -1116,8 +1116,8 @@ def _mask_jaccard(a: int, b: int) -> float:
 def _pick_anchor_title_logo(frames: list[dict], chapter_start: int = 0) -> tuple[dict | None, dict]:
     candidates = []
     for run in _title_logo_runs(frames):
-        start = int(run[0]["time"])
-        if start < TITLE_LOGO_ANCHOR_FROM_SECONDS or start > TITLE_LOGO_ANCHOR_TO_SECONDS:
+        start = int(run[0]["time"])\n        offset = start - int(chapter_start)
+        if offset < TITLE_LOGO_ANCHOR_FROM_SECONDS or offset > TITLE_LOGO_ANCHOR_TO_SECONDS:
             continue
         best = max(
             run,
@@ -1127,24 +1127,24 @@ def _pick_anchor_title_logo(frames: list[dict], chapter_start: int = 0) -> tuple
             ),
         )
         score = (
-            abs(start - TITLE_LOGO_EXPECTED_OFFSET_SECONDS),
+            abs(offset - TITLE_LOGO_EXPECTED_OFFSET_SECONDS),
             -len(run),
             -float(best.get("width_ratio") or 0),
             -float(best.get("yellow_fill") or 0),
         )
-        candidates.append((score, start, best, run))
+        candidates.append((score, start, offset, best, run))
 
     if not candidates:
         return None, {"reason": "no_title_logo_in_vod_opening"}
 
     candidates.sort(key=lambda x: x[0])
-    _, start, best, run = candidates[0]
+    _, start, offset, best, run = candidates[0]
     ref = dict(best)
     ref["run_start"] = start
     return ref, {
         "reason": "ok",
         "title_time": start,
-        "offset_seconds": start,
+        "offset_seconds": offset,
         "run_frames": len(run),
         "width_ratio": best.get("width_ratio"),
         "height_ratio": best.get("height_ratio"),
@@ -1152,7 +1152,7 @@ def _pick_anchor_title_logo(frames: list[dict], chapter_start: int = 0) -> tuple
         "center_x": best.get("center_x"),
         "center_y": best.get("center_y"),
         "yellow_fill": best.get("yellow_fill"),
-        "source": "vod-opening-15-60s",
+        "source": "episode-opening-title-logo",
     }
 
 def _match_title_logo(reference: dict, frames: list[dict], expected_time: int) -> tuple[int | None, dict]:
