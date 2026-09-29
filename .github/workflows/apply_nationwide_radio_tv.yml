@@ -96,17 +96,17 @@ jobs:
           nhk_render_count="$(grep -Fc "$render" radio/nhk.m3u || true)"
           combined_render_count="$(grep -Fc "$render" radio/playlist.m3u || true)"
 
-          echo "FreeWiFi Vercel Radiko image+audio count=$free_vercel_count"
+          echo "FreeWiFi Vercel image+audio count=$free_vercel_count"
           echo "FreeWiFi old Render count=$free_render_count"
-          echo "FreeWiFi Railway image+audio count=$free_railway_count"
+          echo "FreeWiFi Railway CJK-safe image+audio count=$free_railway_count"
           echo "Nationwide Render static-video count=$nationwide_render_count"
           echo "NHK Render static-video count=$nhk_render_count"
           echo "Combined Render static-video count=$combined_render_count"
 
           test "$free_direct_count" -eq 0
-          test "$free_vercel_count" -eq 17
+          test "$free_vercel_count" -eq 0
           test "$free_render_count" -eq 0
-          test "$free_railway_count" -eq 11
+          test "$free_railway_count" -eq 28
           test "$free_ts_count" -eq 0
           test "$nationwide_render_count" -ge 100
           test "$nhk_render_count" -eq 16
@@ -126,14 +126,14 @@ jobs:
 
           grep -Fq "${render}nhk_r1_matsuyama" radio/nhk.m3u
           grep -Fq "${render}nhk_fm_matsuyama" radio/nhk.m3u
-          grep -Fq "${vercel}JOEU-FM" /tmp/freewifi-radio.txt
-          grep -Fq "${vercel}RNB" /tmp/freewifi-radio.txt
-          grep -Fq "${vercel}LFR" /tmp/freewifi-radio.txt
-          grep -Fq "${vercel}QRR" /tmp/freewifi-radio.txt
-          grep -Fq "${vercel}TBS" /tmp/freewifi-radio.txt
-          grep -Fq "${vercel}FMT" /tmp/freewifi-radio.txt
-          grep -Fq "${vercel}OBC" /tmp/freewifi-radio.txt
-          grep -Fq "${vercel}KBS" /tmp/freewifi-radio.txt
+          grep -Fq "${railway}JOEU-FM" /tmp/freewifi-radio.txt
+          grep -Fq "${railway}RNB" /tmp/freewifi-radio.txt
+          grep -Fq "${railway}LFR" /tmp/freewifi-radio.txt
+          grep -Fq "${railway}QRR" /tmp/freewifi-radio.txt
+          grep -Fq "${railway}TBS" /tmp/freewifi-radio.txt
+          grep -Fq "${railway}FMT" /tmp/freewifi-radio.txt
+          grep -Fq "${railway}OBC" /tmp/freewifi-radio.txt
+          grep -Fq "${railway}KBS" /tmp/freewifi-radio.txt
           grep -Fq "${railway}FMOTOKUNI" /tmp/freewifi-radio.txt
           grep -Fq "${railway}FM845" /tmp/freewifi-radio.txt
           grep -Fq "${railway}HBC" /tmp/freewifi-radio.txt
@@ -142,7 +142,7 @@ jobs:
           grep -Fq "${railway}RCC" /tmp/freewifi-radio.txt
           grep -Fq "${railway}RKB" /tmp/freewifi-radio.txt
           grep -Fq "${railway}KBC" /tmp/freewifi-radio.txt
-          grep -Fq "${vercel}nhk_r1_matsuyama" /tmp/freewifi-radio.txt
+          grep -Fq "${railway}nhk_r1_matsuyama" /tmp/freewifi-radio.txt
           grep -Fq "${railway}BARIBARI" /tmp/freewifi-radio.txt
           grep -Fq "${railway}NIIHAMA" /tmp/freewifi-radio.txt
           grep -Fq "${railway}FMGAIYA" /tmp/freewifi-radio.txt
