@@ -166,7 +166,7 @@ try:
     for item in payload.get("stations", []):
         station = str(item.get("id") or "").strip()
         source = str(item.get("url") or "").strip()
-        display = str(item.get("display") or station).strip()
+        display = str(item.get("name") or item.get("display") or station).strip()
         kind = str(item.get("kind") or "").lower()
         if not station or not source.startswith("http"):
             continue
