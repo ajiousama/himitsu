@@ -49,6 +49,7 @@ REVERIFY_ALERT_LEAD_MINUTES = 15
 SCHEDULE_API = "https://boatraceopenapi.github.io/api/v1/{year}/{ymd}.json"
 SCHEDULE_TODAY_API = "https://boatraceopenapi.github.io/api/v1/today.json"
 SEED_API = "https://himitsu-six.vercel.app/api/boat-seed?venue={jcd}"
+STREAM_SETTING_API = "https://front.player.boatrace-cdn.jp/setting/live/{code}/setting.json"
 UA = "Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) AppleWebKit/605.1.15 Version/18.0 Mobile/15E148 Safari/604.1"
 RAW_BASE = "https://raw.githubusercontent.com/ajiousama/himitsu/main"
 LOGO_PROXY = "https://images.weserv.nl/?url=raw.githubusercontent.com/ajiousama/himitsu/main"
@@ -299,6 +300,32 @@ def current_day_stream(url: object, day: date) -> bool:
     )
 
 
+def official_stream_start(jcd: str, day: date) -> datetime | None:
+    """Return the broadcaster's published BR stream start for this venue/day.
+
+    The Playback API can return a signed URL before the HLS media itself is
+    scheduled to start.  Treat that interval as an expected wait instead of a
+    playback failure so day venues are not falsely reported as broken.
+    """
+    try:
+        slug = VENUES[jcd][1].split(".")[1]
+        code = f"{jcd}{slug}"
+        raw = boat_playback.read_url(STREAM_SETTING_API.format(code=code)).decode("utf-8", "replace")
+        data = json.loads(raw)
+        item = data.get("br_dvr") or data.get("br_live") or {}
+        value = str(item.get("start_at") or "").strip()
+        if not value:
+            return None
+        start = datetime.fromisoformat(value.replace("Z", "+00:00"))
+        if start.tzinfo is None:
+            start = start.replace(tzinfo=JST)
+        else:
+            start = start.astimezone(JST)
+        return start if start.date() == day else None
+    except Exception:
+        return None
+
+
 def detect_cancelled_venues(day: date, cards: dict[str, list[dict]]) -> set[str]:
     """Detect official same-day whole-venue cancellation/postponement."""
     day_label = f'{day.month}月{day.day}日'
@@ -392,6 +419,9 @@ def load_current_streams(day: date) -> dict[str, dict]:
 
 
 def fetch_seed(jcd: str, day: date) -> tuple[str, str, str]:
+    provider_start = official_stream_start(jcd, day)
+    if provider_start and now_jst() < provider_start:
+        return jcd, "", f"official stream scheduled {provider_start.isoformat()}"
     try:
         data = request_json(SEED_API.format(jcd=jcd), timeout=12, attempts=2)
         url = str(data.get('url') or '') if data.get('ok') is True else ''
@@ -450,6 +480,7 @@ def maintain_stream(jcd, stream, day, now):
 
 def refresh_cloud_streams(cards: dict[str, list[dict]], streams: dict[str, dict], day: date) -> dict:
     failures = []
+    deferred = []
     fetched = 0
     workers = min(8, max(1, len(cards)))
     with ThreadPoolExecutor(max_workers=workers) as pool:
@@ -469,11 +500,16 @@ def refresh_cloud_streams(cards: dict[str, list[dict]], streams: dict[str, dict]
             if not error and candidate.get('playback_verified'):
                 fetched += 1
                 print(f"BOAT AUTO {name}: audio/video verified; retained")
+            elif str(error or "").startswith("official stream scheduled "):
+                start = str(error).removeprefix("official stream scheduled ").strip()
+                deferred.append({"jcd": jcd, "name": name, "start": start})
+                print(f"BOAT AUTO {name}: official BR stream waiting until {start}")
             else:
                 failures.append({"jcd": jcd, "name": name, "error": error})
                 print(f"BOAT AUTO {name}: cloud SEED pending: {error}")
     failures.sort(key=lambda item: (str(item.get("jcd") or ""), str(item.get("error") or "")))
-    return {"requested": len(cards), "fetched": fetched, "failures": failures}
+    deferred.sort(key=lambda item: str(item.get("jcd") or ""))
+    return {"requested": len(cards), "fetched": fetched, "failures": failures, "deferred": deferred}
 
 
 def mode_for(races: list[dict]) -> str:
@@ -556,8 +592,15 @@ def replace_boat_block(text: str, payload: str) -> str:
     return text.rstrip() + "\n\n" + payload + "\n"
 
 
-def build_venue_state(cards: dict[str, list[dict]], streams: dict[str, dict], now: datetime, cancelled: set[str] | None = None) -> tuple[dict, list[dict], dict]:
+def build_venue_state(
+    cards: dict[str, list[dict]],
+    streams: dict[str, dict],
+    now: datetime,
+    cancelled: set[str] | None = None,
+    provider_deferred: dict[str, str] | None = None,
+) -> tuple[dict, list[dict], dict]:
     cancelled = set(cancelled or ())
+    provider_deferred = dict(provider_deferred or {})
     venues = {}
     rows = []
     phase_counts = {
@@ -626,6 +669,9 @@ def build_venue_state(cards: dict[str, list[dict]], streams: dict[str, dict], no
             "acquire_from": (first - timedelta(minutes=ACQUIRE_LEAD_MINUTES)).isoformat(),
             "races": race_rows,
         }
+        wait_until = provider_deferred.get(jcd)
+        if wait_until:
+            item["provider_stream_start"] = wait_until
         if visible:
             item.update({"url": url, "source": stream.get("source") or "current-day cache", "token_expired": expired})
             rows.append({
@@ -635,7 +681,16 @@ def build_venue_state(cards: dict[str, list[dict]], streams: dict[str, dict], no
                 "block": make_entry(name, tvg_id, logo_url(logo), url),
             })
         else:
-            item["source"] = "official schedule change" if is_cancelled else "automatic cloud SEED pending"
+            if is_cancelled:
+                item["source"] = "official schedule change"
+            elif wait_until:
+                try:
+                    label = datetime.fromisoformat(wait_until).astimezone(JST).strftime("%H:%M")
+                except Exception:
+                    label = wait_until
+                item["source"] = f"公式BR配信開始待ち {label}"
+            else:
+                item["source"] = "automatic cloud SEED pending"
         venues[tvg_id] = item
         phase_counts[mode]["held"] += 1
         phase_counts[mode]["acquired"] += int(visible)
@@ -957,12 +1012,17 @@ def main() -> int:
         and not intermission_window(races, now)
     }
     cloud = refresh_cloud_streams(due_cards, streams, day) if due_cards else {
-        "requested": 0, "fetched": 0, "failures": [], "deferred": len(cards),
+        "requested": 0, "fetched": 0, "failures": [], "deferred": [], "deferred_count": len(cards),
         "reason": "stream acquisition waits until each venue 1R prefetch window",
     }
     held_ids = {VENUES[jcd][1] for jcd in cards}
     streams = {tvg_id: item for tvg_id, item in streams.items() if tvg_id in held_ids}
-    venues, rows, phase_counts = build_venue_state(cards, streams, now, cancelled_jcd)
+    provider_deferred = {
+        str(item.get("jcd") or ""): str(item.get("start") or "")
+        for item in (cloud.get("deferred") or [])
+        if item.get("jcd") and item.get("start")
+    }
+    venues, rows, phase_counts = build_venue_state(cards, streams, now, cancelled_jcd, provider_deferred)
     update_playlist(rows)
 
     epg_counts = {"public_sports_epg_local.xml": overlay_epg_file(LOCAL_EPG, cards, day, cancelled_jcd)}
@@ -1002,7 +1062,7 @@ def main() -> int:
         "cancelled_jcd": sorted(cancelled_jcd),
         "cancelled_venues": [VENUES[jcd][0] for jcd in sorted(cancelled_jcd)],
         "stream_source": "cloud + official Playback API; audio/video decoded before acceptance",
-        "stream_acquisition_policy": "1R150分前から毎分取得。再生確認済みURLは保持し5分ごとに異常のみ確認。失敗場だけ自動復旧。",
+        "stream_acquisition_policy": "1R150分前から監視。公式BR配信開始前は待機扱い、開始後は毎分取得。再生確認済みURLは保持し5分ごとに異常のみ確認。失敗場だけ自動復旧。",
         "retention_policy": "開催場はJST日付変更まで保持。終了しても削除しない。",
         "epg_finished_title": "本日の開催は終了しました",
         "acquire_lead_minutes": ACQUIRE_LEAD_MINUTES,
