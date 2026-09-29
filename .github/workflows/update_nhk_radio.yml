@@ -82,17 +82,49 @@ jobs:
           [ "$NHK_COUNT" -eq 16 ]
           [ "$COMBINED_COUNT" -ge 116 ]
 
-      - name: Commit updated radio catalog and EPG
+      - name: Publish updated radio catalog safely
         shell: bash
         run: |
+          set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+
+          # EPG merge steps above are validation-only here. guides.xml is owned by
+          # the FreeWiFi EPG workflow, so never publish this job's local EPG copy.
           cp radio/playlist.m3u radio.m3u
-          git add radio/nationwide.m3u radio/nhk.m3u radio/nhk_stations.json radio/playlist.m3u radio.m3u
-          if git diff --cached --quiet; then
-            echo 'No radio changes'
-            exit 0
-          fi
-          git commit -m 'Update radio catalog [skip render]'
-          git pull --rebase origin main
-          git push origin main
+          snapshot="$(mktemp -d)"
+          cp radio/nationwide.m3u "$snapshot/nationwide.m3u"
+          cp radio/nhk.m3u "$snapshot/nhk.m3u"
+          cp radio/nhk_stations.json "$snapshot/nhk_stations.json"
+          cp radio/playlist.m3u "$snapshot/playlist.m3u"
+          cp radio.m3u "$snapshot/radio.m3u"
+
+          for attempt in 1 2 3 4 5; do
+            echo "Radio publish attempt $attempt/5"
+            git fetch origin main
+            git reset --hard origin/main
+
+            cp "$snapshot/nationwide.m3u" radio/nationwide.m3u
+            cp "$snapshot/nhk.m3u" radio/nhk.m3u
+            cp "$snapshot/nhk_stations.json" radio/nhk_stations.json
+            cp "$snapshot/playlist.m3u" radio/playlist.m3u
+            cp "$snapshot/radio.m3u" radio.m3u
+
+            git add radio/nationwide.m3u radio/nhk.m3u radio/nhk_stations.json radio/playlist.m3u radio.m3u
+            if git diff --cached --quiet; then
+              echo 'Radio catalog already current on latest main'
+              exit 0
+            fi
+
+            git commit -m 'Update radio catalog [skip render]'
+            if git push origin HEAD:main; then
+              echo 'Radio catalog published successfully'
+              exit 0
+            fi
+
+            echo "::warning::main moved during radio publish; retrying on newest main"
+            sleep 1
+          done
+
+          echo "::error::Radio publish failed after 5 attempts"
+          exit 1
