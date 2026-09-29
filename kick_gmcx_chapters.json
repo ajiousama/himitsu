@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-29T16:49:36.894431+09:00",
+  "generated_at": "2026-09-29T16:59:04.312433+09:00",
   "reference_episode_seconds": 3501,
   "results": [
     {
@@ -441,92 +441,15 @@
             "avg_hamming": 119.29,
             "avg_mean_delta": 52.39,
             "max_hamming": 143
-          },
-          {
-            "episode": 230,
-            "chapter_start": 13386,
-            "best_op_start": 13405,
-            "shift_seconds": 19,
-            "score": 114.68,
-            "core_hamming": 104.43,
-            "avg_hamming": 112.74,
-            "avg_mean_delta": 40.98,
-            "max_hamming": 137
-          },
-          {
-            "episode": 231,
-            "chapter_start": 17848,
-            "best_op_start": 17856,
-            "shift_seconds": 8,
-            "score": 129.95,
-            "core_hamming": 118.3,
-            "avg_hamming": 122.59,
-            "avg_mean_delta": 46.59,
-            "max_hamming": 138
-          },
-          {
-            "episode": 232,
-            "chapter_start": 22310,
-            "best_op_start": 22319,
-            "shift_seconds": 9,
-            "score": 121.04,
-            "core_hamming": 113.65,
-            "avg_hamming": 119.12,
-            "avg_mean_delta": 29.57,
-            "max_hamming": 137
-          },
-          {
-            "episode": 233,
-            "chapter_start": 26771,
-            "best_op_start": 26787,
-            "shift_seconds": 16,
-            "score": 147.45,
-            "core_hamming": 122.26,
-            "avg_hamming": 127.44,
-            "avg_mean_delta": 100.74,
-            "max_hamming": 145
-          },
-          {
-            "episode": 234,
-            "chapter_start": 31233,
-            "best_op_start": 31247,
-            "shift_seconds": 14,
-            "score": 125.72,
-            "core_hamming": 116.87,
-            "avg_hamming": 122.53,
-            "avg_mean_delta": 35.4,
-            "max_hamming": 146
-          },
-          {
-            "episode": 235,
-            "chapter_start": 35695,
-            "best_op_start": 35694,
-            "shift_seconds": -1,
-            "score": 130.06,
-            "core_hamming": 117.87,
-            "avg_hamming": 122.53,
-            "avg_mean_delta": 48.77,
-            "max_hamming": 138
-          },
-          {
-            "episode": 236,
-            "chapter_start": 40157,
-            "best_op_start": 40171,
-            "shift_seconds": 14,
-            "score": 124.2,
-            "core_hamming": 112.78,
-            "avg_hamming": 119.12,
-            "avg_mean_delta": 45.68,
-            "max_hamming": 142
           }
         ]
       },
       "global_op_probe": {
-        "status": "partial",
+        "status": "diagnostic",
         "method": "wide-local-op-logo-scan",
         "template_logo_offset": 31,
-        "matched": 6,
-        "episode_count": 10,
+        "matched": 2,
+        "episode_count": 3,
         "rows": [
           {
             "episode": 227,
@@ -564,86 +487,6 @@
             "detected_logo_frames": 1,
             "window_start": 8624,
             "window_stop": 9224
-          },
-          {
-            "episode": 230,
-            "chapter_start": 13386,
-            "matched": false,
-            "reason": "Command '['ffmpeg', '-hide_banner', '-loglevel', 'error', '-rw_timeout', '15000000', '-ss', '13086', '-i', 'https://stream.kick.com/0f3cb0ebce7/ivs/v1/196233775518/59bB9isG3qqM/2026/9/27/23/54/mGizRKSX3j3d/media/hls/master.m3u8', '-t', '600', '-an', '-vf', 'fps=1/1,scale=64:36:flags=area,format=rgb24', '-pix_fmt', 'rgb24', '-f', 'rawvideo', 'pipe:1']' timed out after 220 seconds"
-          },
-          {
-            "episode": 231,
-            "chapter_start": 17848,
-            "matched": false,
-            "reason": "no_logo_in_wide_window",
-            "detected_logo_frames": 0,
-            "window_start": 17548,
-            "window_stop": 18148
-          },
-          {
-            "episode": 232,
-            "chapter_start": 22310,
-            "matched": true,
-            "window_start": 22010,
-            "window_stop": 22610,
-            "logo_time": 22577,
-            "op_start": 22546,
-            "shift_seconds": 236,
-            "feature_distance": 0.1621,
-            "run_frames": 13,
-            "distance_from_estimated_logo": 236,
-            "detected_logo_frames": 39
-          },
-          {
-            "episode": 233,
-            "chapter_start": 26771,
-            "matched": true,
-            "window_start": 26471,
-            "window_stop": 27071,
-            "logo_time": 26773,
-            "op_start": 26742,
-            "shift_seconds": -29,
-            "feature_distance": 0.2986,
-            "run_frames": 6,
-            "distance_from_estimated_logo": 29,
-            "detected_logo_frames": 14
-          },
-          {
-            "episode": 234,
-            "chapter_start": 31233,
-            "matched": false,
-            "reason": "no_logo_in_wide_window",
-            "detected_logo_frames": 3,
-            "window_start": 30933,
-            "window_stop": 31533
-          },
-          {
-            "episode": 235,
-            "chapter_start": 35695,
-            "matched": true,
-            "window_start": 35395,
-            "window_stop": 35995,
-            "logo_time": 35926,
-            "op_start": 35895,
-            "shift_seconds": 200,
-            "feature_distance": 0.2526,
-            "run_frames": 3,
-            "distance_from_estimated_logo": 200,
-            "detected_logo_frames": 17
-          },
-          {
-            "episode": 236,
-            "chapter_start": 40157,
-            "matched": true,
-            "window_start": 39857,
-            "window_stop": 40457,
-            "logo_time": 40151,
-            "op_start": 40120,
-            "shift_seconds": -37,
-            "feature_distance": 0.3394,
-            "run_frames": 2,
-            "distance_from_estimated_logo": 37,
-            "detected_logo_frames": 30
           }
         ]
       },
