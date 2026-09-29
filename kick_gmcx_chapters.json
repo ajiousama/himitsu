@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-29T09:43:23.255956+09:00",
+  "generated_at": "2026-09-29T09:57:52.718766+09:00",
   "reference_episode_seconds": 3501,
   "results": [
     {
@@ -236,115 +236,171 @@
       ],
       "titlecard_refinement": {
         "status": "no_consensus",
-        "method": "recurring-blue-room",
-        "boundary_version": 34,
-        "reason": "blue_room_coverage_below_80_percent",
+        "method": "recurring-title-logo",
+        "boundary_version": 35,
+        "reason": "title_logo_coverage_below_80_percent",
         "reference": {
           "reason": "ok",
-          "usable_windows": 8,
-          "reference_time_seconds": 35929,
-          "median_distance": 51.5,
-          "matching_windows": 6
+          "title_time": 31,
+          "offset_seconds": 31,
+          "run_frames": 5,
+          "width_ratio": 0.5938,
+          "height_ratio": 0.25,
+          "aspect": 4.222,
+          "center_x": 0.4922,
+          "center_y": 0.4167,
+          "yellow_fill": 0.3655,
+          "source": "vod-opening-15-60s"
         },
-        "detected_regular_boundaries": 6,
+        "opening_offset_seconds": 31,
+        "detected_regular_boundaries": 3,
         "expected_regular_boundaries": 10,
-        "coverage": 0.6,
+        "coverage": 0.3,
         "matches": [
           {
             "index": 0,
             "title": "第227回",
             "matched": true,
-            "method": "recurring-blue-room",
+            "method": "recurring-title-logo",
             "original": 0,
-            "refined": 190,
-            "shift_seconds": 190,
-            "distance": 55
+            "logo_time": 31,
+            "refined": 0,
+            "shift_seconds": 0,
+            "detail": {
+              "reason": "ok",
+              "run_frames": 5,
+              "expected_title_time": 31,
+              "distance_from_expected": 0,
+              "feature_distance": 0.0,
+              "bbox_width": 38,
+              "bbox_height": 9,
+              "width_ratio": 0.5938,
+              "height_ratio": 0.25,
+              "aspect": 4.222,
+              "center_x": 0.4922,
+              "center_y": 0.4167,
+              "yellow_fill": 0.3655
+            }
           },
           {
             "index": 1,
             "title": "第228回",
-            "matched": true,
-            "method": "recurring-blue-room",
+            "matched": false,
             "original": 4462,
-            "refined": 4510,
-            "shift_seconds": 48,
-            "distance": 70
+            "reason": "no_matching_vod_title_logo",
+            "detail": {
+              "reason": "no_matching_vod_title_logo"
+            }
           },
           {
             "index": 2,
             "title": "第229回",
             "matched": false,
             "original": 8924,
-            "candidate": null,
-            "distance": 79,
-            "reason": "no_blue_room_or_shift_guard"
+            "reason": "no_matching_vod_title_logo",
+            "detail": {
+              "reason": "no_matching_vod_title_logo"
+            }
           },
           {
             "index": 3,
             "title": "第230回",
             "matched": false,
             "original": 13386,
-            "candidate": null,
-            "distance": null,
-            "reason": "no_blue_room_or_shift_guard"
+            "reason": "no_matching_vod_title_logo",
+            "detail": {
+              "reason": "no_matching_vod_title_logo"
+            }
           },
           {
             "index": 4,
             "title": "第231回",
             "matched": false,
             "original": 17848,
-            "candidate": null,
-            "distance": null,
-            "reason": "no_blue_room_or_shift_guard"
+            "reason": "no_matching_vod_title_logo",
+            "detail": {
+              "reason": "no_matching_vod_title_logo"
+            }
           },
           {
             "index": 5,
             "title": "第232回",
-            "matched": true,
-            "method": "recurring-blue-room",
+            "matched": false,
             "original": 22310,
-            "refined": 22496,
-            "shift_seconds": 186,
-            "distance": 46
+            "reason": "no_matching_vod_title_logo",
+            "detail": {
+              "reason": "no_matching_vod_title_logo"
+            }
           },
           {
             "index": 6,
             "title": "第233回",
             "matched": true,
-            "method": "recurring-blue-room",
+            "method": "recurring-title-logo",
             "original": 26771,
-            "refined": 26949,
-            "shift_seconds": 178,
-            "distance": 48
+            "logo_time": 26775,
+            "refined": 26744,
+            "shift_seconds": -27,
+            "detail": {
+              "reason": "ok",
+              "run_frames": 3,
+              "expected_title_time": 26802,
+              "distance_from_expected": -27,
+              "feature_distance": 0.3117,
+              "bbox_width": 36,
+              "bbox_height": 6,
+              "width_ratio": 0.5625,
+              "height_ratio": 0.1667,
+              "aspect": 6.0,
+              "center_x": 0.4766,
+              "center_y": 0.375,
+              "yellow_fill": 0.1852
+            }
           },
           {
             "index": 7,
             "title": "第234回",
             "matched": false,
             "original": 31233,
-            "candidate": null,
-            "distance": 108,
-            "reason": "no_blue_room_or_shift_guard"
+            "reason": "no_matching_vod_title_logo",
+            "detail": {
+              "reason": "no_matching_vod_title_logo"
+            }
           },
           {
             "index": 8,
             "title": "第235回",
-            "matched": true,
-            "method": "recurring-blue-room",
+            "matched": false,
             "original": 35695,
-            "refined": 35929,
-            "shift_seconds": 234,
-            "distance": 0
+            "reason": "no_matching_vod_title_logo",
+            "detail": {
+              "reason": "no_matching_vod_title_logo"
+            }
           },
           {
             "index": 9,
             "title": "第236回",
             "matched": true,
-            "method": "recurring-blue-room",
+            "method": "recurring-title-logo",
             "original": 40157,
-            "refined": 40257,
-            "shift_seconds": 100,
-            "distance": 47
+            "logo_time": 40194,
+            "refined": 40163,
+            "shift_seconds": 6,
+            "detail": {
+              "reason": "ok",
+              "run_frames": 2,
+              "expected_title_time": 40188,
+              "distance_from_expected": 6,
+              "feature_distance": 0.4785,
+              "bbox_width": 44,
+              "bbox_height": 15,
+              "width_ratio": 0.6875,
+              "height_ratio": 0.4167,
+              "aspect": 2.933,
+              "center_x": 0.4922,
+              "center_y": 0.6111,
+              "yellow_fill": 0.2258
+            }
           }
         ]
       },
@@ -699,103 +755,176 @@
       ],
       "titlecard_refinement": {
         "status": "no_consensus",
-        "method": "recurring-blue-room",
-        "boundary_version": 34,
-        "reason": "blue_room_coverage_below_80_percent",
+        "method": "recurring-title-logo",
+        "boundary_version": 35,
+        "reason": "title_logo_coverage_below_80_percent",
         "reference": {
           "reason": "ok",
-          "usable_windows": 5,
-          "reference_time_seconds": 3500,
-          "median_distance": 11.0,
-          "matching_windows": 3
+          "title_time": 29,
+          "offset_seconds": 29,
+          "run_frames": 5,
+          "width_ratio": 0.5938,
+          "height_ratio": 0.25,
+          "aspect": 4.222,
+          "center_x": 0.4922,
+          "center_y": 0.4167,
+          "yellow_fill": 0.3772,
+          "source": "vod-opening-15-60s"
         },
-        "detected_regular_boundaries": 3,
+        "opening_offset_seconds": 29,
+        "detected_regular_boundaries": 4,
         "expected_regular_boundaries": 9,
-        "coverage": 0.333,
+        "coverage": 0.444,
         "matches": [
           {
             "index": 0,
             "title": "サルゲッチュ（前編）",
             "matched": true,
-            "method": "recurring-blue-room",
+            "method": "recurring-title-logo",
             "original": 0,
-            "refined": 20,
-            "shift_seconds": 20,
-            "distance": 7
+            "logo_time": 29,
+            "refined": 0,
+            "shift_seconds": 0,
+            "detail": {
+              "reason": "ok",
+              "run_frames": 5,
+              "expected_title_time": 29,
+              "distance_from_expected": 0,
+              "feature_distance": 0.0,
+              "bbox_width": 38,
+              "bbox_height": 9,
+              "width_ratio": 0.5938,
+              "height_ratio": 0.25,
+              "aspect": 4.222,
+              "center_x": 0.4922,
+              "center_y": 0.4167,
+              "yellow_fill": 0.3772
+            }
           },
           {
             "index": 1,
             "title": "サルゲッチュ（後編）",
             "matched": true,
-            "method": "recurring-blue-room",
+            "method": "recurring-title-logo",
             "original": 3542,
-            "refined": 3500,
-            "shift_seconds": -42,
-            "distance": 0
+            "logo_time": 3559,
+            "refined": 3530,
+            "shift_seconds": -12,
+            "detail": {
+              "reason": "ok",
+              "run_frames": 5,
+              "expected_title_time": 3571,
+              "distance_from_expected": -12,
+              "feature_distance": 0.4966,
+              "bbox_width": 37,
+              "bbox_height": 18,
+              "width_ratio": 0.5781,
+              "height_ratio": 0.5,
+              "aspect": 2.056,
+              "center_x": 0.4844,
+              "center_y": 0.5417,
+              "yellow_fill": 0.2342
+            }
           },
           {
             "index": 2,
             "title": "アルゴスの戦士 はちゃめちゃ大進撃",
-            "matched": true,
-            "method": "recurring-blue-room",
+            "matched": false,
             "original": 7083,
-            "refined": 6981,
-            "shift_seconds": -102,
-            "distance": 11
+            "reason": "no_matching_vod_title_logo",
+            "detail": {
+              "reason": "no_matching_vod_title_logo"
+            }
           },
           {
             "index": 4,
             "title": "超兄貴（前編）",
             "matched": false,
             "original": 12604,
-            "candidate": null,
-            "distance": null,
-            "reason": "no_blue_room_or_shift_guard"
+            "reason": "no_matching_vod_title_logo",
+            "detail": {
+              "reason": "no_matching_vod_title_logo"
+            }
           },
           {
             "index": 5,
             "title": "超兄貴（後編）",
             "matched": false,
             "original": 16145,
-            "candidate": null,
-            "distance": null,
-            "reason": "no_blue_room_or_shift_guard"
+            "reason": "no_matching_vod_title_logo",
+            "detail": {
+              "reason": "no_matching_vod_title_logo"
+            }
           },
           {
             "index": 6,
             "title": "ワギャンランド2",
             "matched": false,
             "original": 19686,
-            "candidate": null,
-            "distance": null,
-            "reason": "no_blue_room_or_shift_guard"
+            "reason": "no_matching_vod_title_logo",
+            "detail": {
+              "reason": "no_matching_vod_title_logo"
+            }
           },
           {
             "index": 8,
             "title": "おそ松くん はちゃめちゃ劇場",
-            "matched": false,
+            "matched": true,
+            "method": "recurring-title-logo",
             "original": 25447,
-            "candidate": null,
-            "distance": 124,
-            "reason": "no_blue_room_or_shift_guard"
+            "logo_time": 25531,
+            "refined": 25502,
+            "shift_seconds": 55,
+            "detail": {
+              "reason": "ok",
+              "run_frames": 5,
+              "expected_title_time": 25476,
+              "distance_from_expected": 55,
+              "feature_distance": 0.498,
+              "bbox_width": 37,
+              "bbox_height": 18,
+              "width_ratio": 0.5781,
+              "height_ratio": 0.5,
+              "aspect": 2.056,
+              "center_x": 0.4844,
+              "center_y": 0.5417,
+              "yellow_fill": 0.2312
+            }
           },
           {
             "index": 9,
             "title": "地底戦空バゾルダー",
             "matched": false,
             "original": 28988,
-            "candidate": null,
-            "distance": 117,
-            "reason": "no_blue_room_or_shift_guard"
+            "reason": "no_matching_vod_title_logo",
+            "detail": {
+              "reason": "no_matching_vod_title_logo"
+            }
           },
           {
             "index": 11,
             "title": "獣王記",
-            "matched": false,
+            "matched": true,
+            "method": "recurring-title-logo",
             "original": 34749,
-            "candidate": null,
-            "distance": null,
-            "reason": "no_blue_room_or_shift_guard"
+            "logo_time": 34729,
+            "refined": 34700,
+            "shift_seconds": -49,
+            "detail": {
+              "reason": "ok",
+              "run_frames": 3,
+              "expected_title_time": 34778,
+              "distance_from_expected": -49,
+              "feature_distance": 0.4104,
+              "bbox_width": 42,
+              "bbox_height": 16,
+              "width_ratio": 0.6562,
+              "height_ratio": 0.4444,
+              "aspect": 2.625,
+              "center_x": 0.4922,
+              "center_y": 0.3472,
+              "yellow_fill": 0.2054
+            }
           }
         ]
       },
@@ -1127,116 +1256,186 @@
       ],
       "titlecard_refinement": {
         "status": "no_consensus",
-        "method": "recurring-blue-room",
-        "boundary_version": 34,
-        "reason": "blue_room_coverage_below_80_percent",
+        "method": "recurring-title-logo",
+        "boundary_version": 35,
+        "reason": "title_logo_coverage_below_80_percent",
         "reference": {
           "reason": "ok",
-          "usable_windows": 9,
-          "reference_time_seconds": 29856,
-          "median_distance": 57.0,
-          "matching_windows": 7
+          "title_time": 28,
+          "offset_seconds": 28,
+          "run_frames": 4,
+          "width_ratio": 0.5938,
+          "height_ratio": 0.25,
+          "aspect": 4.222,
+          "center_x": 0.4922,
+          "center_y": 0.4167,
+          "yellow_fill": 0.3684,
+          "source": "vod-opening-15-60s"
         },
-        "detected_regular_boundaries": 7,
+        "opening_offset_seconds": 28,
+        "detected_regular_boundaries": 4,
         "expected_regular_boundaries": 10,
-        "coverage": 0.7,
+        "coverage": 0.4,
         "matches": [
           {
             "index": 0,
             "title": "ESWAT",
             "matched": true,
-            "method": "recurring-blue-room",
+            "method": "recurring-title-logo",
             "original": 0,
-            "refined": 124,
-            "shift_seconds": 124,
-            "distance": 74
+            "logo_time": 28,
+            "refined": 0,
+            "shift_seconds": 0,
+            "detail": {
+              "reason": "ok",
+              "run_frames": 4,
+              "expected_title_time": 28,
+              "distance_from_expected": 0,
+              "feature_distance": 0.0,
+              "bbox_width": 38,
+              "bbox_height": 9,
+              "width_ratio": 0.5938,
+              "height_ratio": 0.25,
+              "aspect": 4.222,
+              "center_x": 0.4922,
+              "center_y": 0.4167,
+              "yellow_fill": 0.3684
+            }
           },
           {
             "index": 1,
             "title": "改造町人シュビビンマン",
-            "matched": true,
-            "method": "recurring-blue-room",
+            "matched": false,
             "original": 3900,
-            "refined": 3812,
-            "shift_seconds": -88,
-            "distance": 55
+            "reason": "no_matching_vod_title_logo",
+            "detail": {
+              "reason": "no_matching_vod_title_logo"
+            }
           },
           {
             "index": 2,
             "title": "リンクの冒険（前編）",
             "matched": true,
-            "method": "recurring-blue-room",
+            "method": "recurring-title-logo",
             "original": 7800,
-            "refined": 7804,
-            "shift_seconds": 4,
-            "distance": 54
+            "logo_time": 7881,
+            "refined": 7853,
+            "shift_seconds": 53,
+            "detail": {
+              "reason": "ok",
+              "run_frames": 5,
+              "expected_title_time": 7828,
+              "distance_from_expected": 53,
+              "feature_distance": 0.496,
+              "bbox_width": 37,
+              "bbox_height": 18,
+              "width_ratio": 0.5781,
+              "height_ratio": 0.5,
+              "aspect": 2.056,
+              "center_x": 0.4844,
+              "center_y": 0.5417,
+              "yellow_fill": 0.2267
+            }
           },
           {
             "index": 3,
             "title": "リンクの冒険（後編）",
-            "matched": true,
-            "method": "recurring-blue-room",
+            "matched": false,
             "original": 11700,
-            "refined": 11904,
-            "shift_seconds": 204,
-            "distance": 55
+            "reason": "no_matching_vod_title_logo",
+            "detail": {
+              "reason": "no_matching_vod_title_logo"
+            }
           },
           {
             "index": 8,
             "title": "TAITO CHASE H.Q.",
             "matched": true,
-            "method": "recurring-blue-room",
+            "method": "recurring-title-logo",
             "original": 26130,
-            "refined": 26100,
-            "shift_seconds": -30,
-            "distance": 71
+            "logo_time": 26160,
+            "refined": 26132,
+            "shift_seconds": 2,
+            "detail": {
+              "reason": "ok",
+              "run_frames": 3,
+              "expected_title_time": 26158,
+              "distance_from_expected": 2,
+              "feature_distance": 0.3616,
+              "bbox_width": 38,
+              "bbox_height": 19,
+              "width_ratio": 0.5938,
+              "height_ratio": 0.5278,
+              "aspect": 2.0,
+              "center_x": 0.4922,
+              "center_y": 0.4444,
+              "yellow_fill": 0.3587
+            }
           },
           {
             "index": 9,
             "title": "オリビアのミステリー",
-            "matched": true,
-            "method": "recurring-blue-room",
+            "matched": false,
             "original": 30030,
-            "refined": 29856,
-            "shift_seconds": -174,
-            "distance": 0
+            "reason": "no_matching_vod_title_logo",
+            "detail": {
+              "reason": "no_matching_vod_title_logo"
+            }
           },
           {
             "index": 10,
             "title": "THE 功夫",
-            "matched": true,
-            "method": "recurring-blue-room",
+            "matched": false,
             "original": 33930,
-            "refined": 33934,
-            "shift_seconds": 4,
-            "distance": 57
+            "reason": "no_matching_vod_title_logo",
+            "detail": {
+              "reason": "no_matching_vod_title_logo"
+            }
           },
           {
             "index": 11,
             "title": "夢ペンギン物語",
             "matched": false,
             "original": 37830,
-            "candidate": null,
-            "distance": 84,
-            "reason": "no_blue_room_or_shift_guard"
+            "reason": "no_matching_vod_title_logo",
+            "detail": {
+              "reason": "no_matching_vod_title_logo"
+            }
           },
           {
             "index": 12,
             "title": "セクロス",
-            "matched": false,
+            "matched": true,
+            "method": "recurring-title-logo",
             "original": 41730,
-            "candidate": null,
-            "distance": 102,
-            "reason": "no_blue_room_or_shift_guard"
+            "logo_time": 41797,
+            "refined": 41769,
+            "shift_seconds": 39,
+            "detail": {
+              "reason": "ok",
+              "run_frames": 5,
+              "expected_title_time": 41758,
+              "distance_from_expected": 39,
+              "feature_distance": 0.4953,
+              "bbox_width": 37,
+              "bbox_height": 18,
+              "width_ratio": 0.5781,
+              "height_ratio": 0.5,
+              "aspect": 2.056,
+              "center_x": 0.4844,
+              "center_y": 0.5417,
+              "yellow_fill": 0.2282
+            }
           },
           {
             "index": 13,
             "title": "スーパーマリオランド2 6つの金貨",
             "matched": false,
             "original": 45630,
-            "candidate": null,
-            "distance": null,
-            "reason": "no_blue_room_or_shift_guard"
+            "reason": "no_matching_vod_title_logo",
+            "detail": {
+              "reason": "no_matching_vod_title_logo"
+            }
           }
         ]
       },
@@ -1258,19 +1457,19 @@
           "episode": 197,
           "title": "I.Q Intelligent Qube（前編）",
           "start_seconds": 0,
-          "stop_seconds": 3503,
-          "duration_seconds": 3503,
-          "replay_url": "https://kick-resolver.onrender.com/kick?vod=04f0dc3a-5255-4137-bbae-bcca467ec5c0&start=0&duration=3503",
+          "stop_seconds": 3512,
+          "duration_seconds": 3512,
+          "replay_url": "https://kick-resolver.onrender.com/kick?vod=04f0dc3a-5255-4137-bbae-bcca467ec5c0&start=0&duration=3512",
           "method": "source-filelist-exact",
           "confidence": "high",
           "hls_diagnostics": {
             "requested_start_seconds": 0,
-            "requested_duration_seconds": 3503,
+            "requested_duration_seconds": 3512,
             "actual_segment_start_seconds": 0.0,
-            "actual_segment_stop_seconds": 3508.533,
-            "actual_hls_duration_seconds": 3508.533,
+            "actual_segment_stop_seconds": 3519.116,
+            "actual_hls_duration_seconds": 3519.116,
             "lead_overlap_seconds": 0.0,
-            "tail_overlap_seconds": 5.533
+            "tail_overlap_seconds": 7.116
           },
           "title_status": "confirmed-filelist",
           "title_source": "source-player-filelist"
@@ -1279,20 +1478,20 @@
           "kind": "episode",
           "episode": 198,
           "title": "I.Q Intelligent Qube（後編）",
-          "start_seconds": 3503,
-          "stop_seconds": 6985,
-          "duration_seconds": 3482,
-          "replay_url": "https://kick-resolver.onrender.com/kick?vod=04f0dc3a-5255-4137-bbae-bcca467ec5c0&start=3503&duration=3482",
+          "start_seconds": 3512,
+          "stop_seconds": 6993,
+          "duration_seconds": 3481,
+          "replay_url": "https://kick-resolver.onrender.com/kick?vod=04f0dc3a-5255-4137-bbae-bcca467ec5c0&start=3512&duration=3481",
           "method": "titlecard-detected",
           "confidence": "high",
           "hls_diagnostics": {
-            "requested_start_seconds": 3503,
-            "requested_duration_seconds": 3482,
-            "actual_segment_start_seconds": 3497.95,
-            "actual_segment_stop_seconds": 6986.583,
-            "actual_hls_duration_seconds": 3488.633,
-            "lead_overlap_seconds": 5.05,
-            "tail_overlap_seconds": 1.583
+            "requested_start_seconds": 3512,
+            "requested_duration_seconds": 3481,
+            "actual_segment_start_seconds": 3508.533,
+            "actual_segment_stop_seconds": 6997.1,
+            "actual_hls_duration_seconds": 3488.567,
+            "lead_overlap_seconds": 3.467,
+            "tail_overlap_seconds": 4.1
           },
           "title_status": "confirmed-filelist",
           "title_source": "source-player-filelist"
@@ -1301,19 +1500,19 @@
           "kind": "episode",
           "episode": 199,
           "title": "クイズなないろDREAMS 虹色町の奇跡",
-          "start_seconds": 6985,
+          "start_seconds": 6993,
           "stop_seconds": 10439,
-          "duration_seconds": 3454,
-          "replay_url": "https://kick-resolver.onrender.com/kick?vod=04f0dc3a-5255-4137-bbae-bcca467ec5c0&start=6985&duration=3454",
+          "duration_seconds": 3446,
+          "replay_url": "https://kick-resolver.onrender.com/kick?vod=04f0dc3a-5255-4137-bbae-bcca467ec5c0&start=6993&duration=3446",
           "method": "titlecard-detected",
           "confidence": "high",
           "hls_diagnostics": {
-            "requested_start_seconds": 6985,
-            "requested_duration_seconds": 3454,
-            "actual_segment_start_seconds": 6976.033,
+            "requested_start_seconds": 6993,
+            "requested_duration_seconds": 3446,
+            "actual_segment_start_seconds": 6986.583,
             "actual_segment_stop_seconds": 10442.5,
-            "actual_hls_duration_seconds": 3466.467,
-            "lead_overlap_seconds": 8.967,
+            "actual_hls_duration_seconds": 3455.917,
+            "lead_overlap_seconds": 6.417,
             "tail_overlap_seconds": 3.5
           },
           "title_status": "confirmed-filelist",
@@ -1324,20 +1523,20 @@
           "special_key": "2015-niconico-chokaigi",
           "title": "GMCX in ニコニコ超会議2015",
           "start_seconds": 10439,
-          "stop_seconds": 12956,
-          "duration_seconds": 2517,
+          "stop_seconds": 12965,
+          "duration_seconds": 2526,
           "expected_broadcast_seconds": 2525,
-          "replay_url": "https://kick-resolver.onrender.com/kick?vod=04f0dc3a-5255-4137-bbae-bcca467ec5c0&start=10439&duration=2517",
+          "replay_url": "https://kick-resolver.onrender.com/kick?vod=04f0dc3a-5255-4137-bbae-bcca467ec5c0&start=10439&duration=2526",
           "method": "titlecard-detected",
           "confidence": "high",
           "hls_diagnostics": {
             "requested_start_seconds": 10439,
-            "requested_duration_seconds": 2517,
+            "requested_duration_seconds": 2526,
             "actual_segment_start_seconds": 10431.65,
-            "actual_segment_stop_seconds": 12961.883,
-            "actual_hls_duration_seconds": 2530.233,
+            "actual_segment_stop_seconds": 12972.866,
+            "actual_hls_duration_seconds": 2541.216,
             "lead_overlap_seconds": 7.35,
-            "tail_overlap_seconds": 5.883
+            "tail_overlap_seconds": 7.866
           },
           "title_status": "confirmed-filelist",
           "title_source": "source-player-filelist"
@@ -1346,20 +1545,20 @@
           "kind": "episode",
           "episode": 200,
           "title": "全日本プロレス",
-          "start_seconds": 12956,
-          "stop_seconds": 16414,
-          "duration_seconds": 3458,
-          "replay_url": "https://kick-resolver.onrender.com/kick?vod=04f0dc3a-5255-4137-bbae-bcca467ec5c0&start=12956&duration=3458",
+          "start_seconds": 12965,
+          "stop_seconds": 16416,
+          "duration_seconds": 3451,
+          "replay_url": "https://kick-resolver.onrender.com/kick?vod=04f0dc3a-5255-4137-bbae-bcca467ec5c0&start=12965&duration=3451",
           "method": "titlecard-detected",
           "confidence": "high",
           "hls_diagnostics": {
-            "requested_start_seconds": 12956,
-            "requested_duration_seconds": 3458,
-            "actual_segment_start_seconds": 12950.85,
-            "actual_segment_stop_seconds": 16414.133,
-            "actual_hls_duration_seconds": 3463.283,
-            "lead_overlap_seconds": 5.15,
-            "tail_overlap_seconds": 0.133
+            "requested_start_seconds": 12965,
+            "requested_duration_seconds": 3451,
+            "actual_segment_start_seconds": 12961.883,
+            "actual_segment_stop_seconds": 16424.833,
+            "actual_hls_duration_seconds": 3462.95,
+            "lead_overlap_seconds": 3.117,
+            "tail_overlap_seconds": 8.833
           },
           "title_status": "confirmed-filelist",
           "title_source": "source-player-filelist"
@@ -1368,20 +1567,20 @@
           "kind": "episode",
           "episode": 201,
           "title": "ダブルドラゴン 双截龍",
-          "start_seconds": 16414,
-          "stop_seconds": 19888,
-          "duration_seconds": 3474,
-          "replay_url": "https://kick-resolver.onrender.com/kick?vod=04f0dc3a-5255-4137-bbae-bcca467ec5c0&start=16414&duration=3474",
-          "method": "source-filelist-exact",
+          "start_seconds": 16416,
+          "stop_seconds": 19897,
+          "duration_seconds": 3481,
+          "replay_url": "https://kick-resolver.onrender.com/kick?vod=04f0dc3a-5255-4137-bbae-bcca467ec5c0&start=16416&duration=3481",
+          "method": "titlecard-detected",
           "confidence": "high",
           "hls_diagnostics": {
-            "requested_start_seconds": 16414,
-            "requested_duration_seconds": 3474,
-            "actual_segment_start_seconds": 16403.35,
-            "actual_segment_stop_seconds": 19896.05,
+            "requested_start_seconds": 16416,
+            "requested_duration_seconds": 3481,
+            "actual_segment_start_seconds": 16414.133,
+            "actual_segment_stop_seconds": 19906.833,
             "actual_hls_duration_seconds": 3492.7,
-            "lead_overlap_seconds": 10.65,
-            "tail_overlap_seconds": 8.05
+            "lead_overlap_seconds": 1.867,
+            "tail_overlap_seconds": 9.833
           },
           "title_status": "confirmed-filelist",
           "title_source": "source-player-filelist"
@@ -1390,20 +1589,20 @@
           "kind": "episode",
           "episode": 202,
           "title": "忍者くん 阿修羅ノ章（前編）",
-          "start_seconds": 19888,
-          "stop_seconds": 23344,
-          "duration_seconds": 3456,
-          "replay_url": "https://kick-resolver.onrender.com/kick?vod=04f0dc3a-5255-4137-bbae-bcca467ec5c0&start=19888&duration=3456",
+          "start_seconds": 19897,
+          "stop_seconds": 23348,
+          "duration_seconds": 3451,
+          "replay_url": "https://kick-resolver.onrender.com/kick?vod=04f0dc3a-5255-4137-bbae-bcca467ec5c0&start=19897&duration=3451",
           "method": "titlecard-detected",
           "confidence": "high",
           "hls_diagnostics": {
-            "requested_start_seconds": 19888,
-            "requested_duration_seconds": 3456,
-            "actual_segment_start_seconds": 19885.35,
+            "requested_start_seconds": 19897,
+            "requested_duration_seconds": 3451,
+            "actual_segment_start_seconds": 19896.05,
             "actual_segment_stop_seconds": 23351.85,
-            "actual_hls_duration_seconds": 3466.5,
-            "lead_overlap_seconds": 2.65,
-            "tail_overlap_seconds": 7.85
+            "actual_hls_duration_seconds": 3455.8,
+            "lead_overlap_seconds": 0.95,
+            "tail_overlap_seconds": 3.85
           },
           "title_status": "confirmed-filelist",
           "title_source": "source-player-filelist"
@@ -1412,19 +1611,19 @@
           "kind": "episode",
           "episode": 203,
           "title": "忍者くん 阿修羅ノ章（後編）",
-          "start_seconds": 23344,
+          "start_seconds": 23348,
           "stop_seconds": 26824,
-          "duration_seconds": 3480,
-          "replay_url": "https://kick-resolver.onrender.com/kick?vod=04f0dc3a-5255-4137-bbae-bcca467ec5c0&start=23344&duration=3480",
-          "method": "source-filelist-exact",
+          "duration_seconds": 3476,
+          "replay_url": "https://kick-resolver.onrender.com/kick?vod=04f0dc3a-5255-4137-bbae-bcca467ec5c0&start=23348&duration=3476",
+          "method": "titlecard-detected",
           "confidence": "high",
           "hls_diagnostics": {
-            "requested_start_seconds": 23344,
-            "requested_duration_seconds": 3480,
+            "requested_start_seconds": 23348,
+            "requested_duration_seconds": 3476,
             "actual_segment_start_seconds": 23341.35,
             "actual_segment_stop_seconds": 26828.683,
             "actual_hls_duration_seconds": 3487.333,
-            "lead_overlap_seconds": 2.65,
+            "lead_overlap_seconds": 6.65,
             "tail_overlap_seconds": 4.683
           },
           "title_status": "confirmed-filelist",
@@ -1435,20 +1634,20 @@
           "special_key": "2015-vietnam",
           "title": "GMCX in VIETNAM ～ベトナムのゲーム事情 徹底調査&カジノにもリベンジしちゃうよ!SP～",
           "start_seconds": 26824,
-          "stop_seconds": 33994,
-          "duration_seconds": 7170,
+          "stop_seconds": 34003,
+          "duration_seconds": 7179,
           "expected_broadcast_seconds": 7170,
-          "replay_url": "https://kick-resolver.onrender.com/kick?vod=04f0dc3a-5255-4137-bbae-bcca467ec5c0&start=26824&duration=7170",
+          "replay_url": "https://kick-resolver.onrender.com/kick?vod=04f0dc3a-5255-4137-bbae-bcca467ec5c0&start=26824&duration=7179",
           "method": "titlecard-detected",
           "confidence": "high",
           "hls_diagnostics": {
             "requested_start_seconds": 26824,
-            "requested_duration_seconds": 7170,
+            "requested_duration_seconds": 7179,
             "actual_segment_start_seconds": 26817.8,
-            "actual_segment_stop_seconds": 33995.75,
-            "actual_hls_duration_seconds": 7177.95,
+            "actual_segment_stop_seconds": 34006.25,
+            "actual_hls_duration_seconds": 7188.45,
             "lead_overlap_seconds": 6.2,
-            "tail_overlap_seconds": 1.75
+            "tail_overlap_seconds": 3.25
           },
           "title_status": "confirmed-filelist",
           "title_source": "source-player-filelist"
@@ -1457,20 +1656,20 @@
           "kind": "episode",
           "episode": 204,
           "title": "山村美紗サスペンス 京都龍の寺殺人事件",
-          "start_seconds": 33994,
-          "stop_seconds": 37456,
-          "duration_seconds": 3462,
-          "replay_url": "https://kick-resolver.onrender.com/kick?vod=04f0dc3a-5255-4137-bbae-bcca467ec5c0&start=33994&duration=3462",
+          "start_seconds": 34003,
+          "stop_seconds": 37435,
+          "duration_seconds": 3432,
+          "replay_url": "https://kick-resolver.onrender.com/kick?vod=04f0dc3a-5255-4137-bbae-bcca467ec5c0&start=34003&duration=3432",
           "method": "titlecard-detected",
           "confidence": "high",
           "hls_diagnostics": {
-            "requested_start_seconds": 33994,
-            "requested_duration_seconds": 3462,
-            "actual_segment_start_seconds": 33985.166,
-            "actual_segment_stop_seconds": 37462.2,
-            "actual_hls_duration_seconds": 3477.034,
-            "lead_overlap_seconds": 8.834,
-            "tail_overlap_seconds": 6.2
+            "requested_start_seconds": 34003,
+            "requested_duration_seconds": 3432,
+            "actual_segment_start_seconds": 33995.75,
+            "actual_segment_stop_seconds": 37440.166,
+            "actual_hls_duration_seconds": 3444.416,
+            "lead_overlap_seconds": 7.25,
+            "tail_overlap_seconds": 5.166
           },
           "title_status": "confirmed-filelist",
           "title_source": "source-player-filelist"
@@ -1479,19 +1678,19 @@
           "kind": "episode",
           "episode": 205,
           "title": "モグラ〜ニャ",
-          "start_seconds": 37456,
+          "start_seconds": 37435,
           "stop_seconds": 40924,
-          "duration_seconds": 3468,
-          "replay_url": "https://kick-resolver.onrender.com/kick?vod=04f0dc3a-5255-4137-bbae-bcca467ec5c0&start=37456&duration=3468",
+          "duration_seconds": 3489,
+          "replay_url": "https://kick-resolver.onrender.com/kick?vod=04f0dc3a-5255-4137-bbae-bcca467ec5c0&start=37435&duration=3489",
           "method": "titlecard-detected",
           "confidence": "high",
           "hls_diagnostics": {
-            "requested_start_seconds": 37456,
-            "requested_duration_seconds": 3468,
-            "actual_segment_start_seconds": 37451.25,
+            "requested_start_seconds": 37435,
+            "requested_duration_seconds": 3489,
+            "actual_segment_start_seconds": 37429.45,
             "actual_segment_stop_seconds": 40924.25,
-            "actual_hls_duration_seconds": 3473.0,
-            "lead_overlap_seconds": 4.75,
+            "actual_hls_duration_seconds": 3494.8,
+            "lead_overlap_seconds": 5.55,
             "tail_overlap_seconds": 0.25
           },
           "title_status": "confirmed-filelist",
@@ -1548,20 +1747,20 @@
           "special_key": "2015-mario-maker-play",
           "title": "GMCX 「スーパーマリオメーカー」を遊ぶ編",
           "start_seconds": 42901,
-          "stop_seconds": 45136,
-          "duration_seconds": 2235,
+          "stop_seconds": 45119,
+          "duration_seconds": 2218,
           "expected_broadcast_seconds": 2229,
-          "replay_url": "https://kick-resolver.onrender.com/kick?vod=04f0dc3a-5255-4137-bbae-bcca467ec5c0&start=42901&duration=2235",
+          "replay_url": "https://kick-resolver.onrender.com/kick?vod=04f0dc3a-5255-4137-bbae-bcca467ec5c0&start=42901&duration=2218",
           "method": "titlecard-detected",
           "confidence": "high",
           "hls_diagnostics": {
             "requested_start_seconds": 42901,
-            "requested_duration_seconds": 2235,
+            "requested_duration_seconds": 2218,
             "actual_segment_start_seconds": 42895.166,
-            "actual_segment_stop_seconds": 45146.6,
-            "actual_hls_duration_seconds": 2251.434,
+            "actual_segment_stop_seconds": 45125.533,
+            "actual_hls_duration_seconds": 2230.367,
             "lead_overlap_seconds": 5.834,
-            "tail_overlap_seconds": 10.6
+            "tail_overlap_seconds": 6.533
           },
           "title_status": "confirmed-filelist",
           "title_source": "source-player-filelist"
@@ -1570,19 +1769,19 @@
           "kind": "episode",
           "episode": 206,
           "title": "闘いの挽歌",
-          "start_seconds": 45136,
+          "start_seconds": 45119,
           "stop_seconds": 48610,
-          "duration_seconds": 3474,
-          "replay_url": "https://kick-resolver.onrender.com/kick?vod=04f0dc3a-5255-4137-bbae-bcca467ec5c0&start=45136&duration=3474",
+          "duration_seconds": 3491,
+          "replay_url": "https://kick-resolver.onrender.com/kick?vod=04f0dc3a-5255-4137-bbae-bcca467ec5c0&start=45119&duration=3491",
           "method": "titlecard-detected",
           "confidence": "high",
           "hls_diagnostics": {
-            "requested_start_seconds": 45136,
-            "requested_duration_seconds": 3474,
-            "actual_segment_start_seconds": 45135.716,
+            "requested_start_seconds": 45119,
+            "requested_duration_seconds": 3491,
+            "actual_segment_start_seconds": 45114.816,
             "actual_segment_stop_seconds": 48609.475,
-            "actual_hls_duration_seconds": 3473.759,
-            "lead_overlap_seconds": 0.284,
+            "actual_hls_duration_seconds": 3494.659,
+            "lead_overlap_seconds": 4.184,
             "tail_overlap_seconds": 0.0
           },
           "title_status": "confirmed-filelist",
@@ -1590,134 +1789,293 @@
         }
       ],
       "titlecard_refinement": {
-        "status": "partial",
-        "method": "recurring-blue-room",
-        "boundary_version": 34,
-        "window_seconds": 240,
-        "sample_seconds": 2,
+        "status": "applied",
+        "method": "recurring-title-logo",
+        "boundary_version": 35,
         "reference": {
           "reason": "ok",
-          "usable_windows": 10,
-          "reference_time_seconds": 37456,
-          "median_distance": 8.5,
-          "matching_windows": 8
+          "title_time": 29,
+          "offset_seconds": 29,
+          "run_frames": 4,
+          "width_ratio": 0.5781,
+          "height_ratio": 0.25,
+          "aspect": 4.111,
+          "center_x": 0.4844,
+          "center_y": 0.4167,
+          "yellow_fill": 0.3393,
+          "source": "vod-opening-15-60s"
         },
-        "detected_regular_boundaries": 8,
+        "opening_offset_seconds": 0,
+        "detected_regular_boundaries": 10,
         "expected_regular_boundaries": 10,
-        "coverage": 0.8,
+        "coverage": 1.0,
         "chapter_starts": {
-          "0": 20,
-          "1": 3503,
-          "2": 6985,
+          "0": 29,
+          "1": 3512,
+          "2": 6993,
           "3": 10439,
-          "4": 12956,
-          "6": 19888,
+          "4": 12965,
+          "5": 16416,
+          "6": 19897,
+          "7": 23348,
           "8": 26824,
-          "9": 33994,
-          "10": 37456,
+          "9": 34003,
+          "10": 37435,
           "11": 40924,
           "12": 42695,
           "13": 42901,
-          "14": 45136
+          "14": 45119
         },
         "matches": [
           {
             "index": 0,
             "title": "I.Q Intelligent Qube（前編）",
             "matched": true,
-            "method": "recurring-blue-room",
+            "method": "recurring-title-logo",
             "original": 29,
-            "refined": 20,
-            "shift_seconds": -9,
-            "distance": 9
+            "logo_time": 29,
+            "refined": 29,
+            "shift_seconds": 0,
+            "detail": {
+              "reason": "ok",
+              "run_frames": 4,
+              "expected_title_time": 29,
+              "distance_from_expected": 0,
+              "feature_distance": 0.0,
+              "bbox_width": 37,
+              "bbox_height": 9,
+              "width_ratio": 0.5781,
+              "height_ratio": 0.25,
+              "aspect": 4.111,
+              "center_x": 0.4844,
+              "center_y": 0.4167,
+              "yellow_fill": 0.3393
+            }
           },
           {
             "index": 1,
             "title": "I.Q Intelligent Qube（後編）",
             "matched": true,
-            "method": "recurring-blue-room",
+            "method": "recurring-title-logo",
             "original": 3509,
-            "refined": 3503,
-            "shift_seconds": -6,
-            "distance": 8
+            "logo_time": 3512,
+            "refined": 3512,
+            "shift_seconds": 3,
+            "detail": {
+              "reason": "ok",
+              "run_frames": 5,
+              "expected_title_time": 3509,
+              "distance_from_expected": 3,
+              "feature_distance": 0.0529,
+              "bbox_width": 38,
+              "bbox_height": 9,
+              "width_ratio": 0.5938,
+              "height_ratio": 0.25,
+              "aspect": 4.222,
+              "center_x": 0.4922,
+              "center_y": 0.4167,
+              "yellow_fill": 0.2719
+            }
           },
           {
             "index": 2,
             "title": "クイズなないろDREAMS 虹色町の奇跡",
             "matched": true,
-            "method": "recurring-blue-room",
+            "method": "recurring-title-logo",
             "original": 6989,
-            "refined": 6985,
-            "shift_seconds": -4,
-            "distance": 28
+            "logo_time": 6993,
+            "refined": 6993,
+            "shift_seconds": 4,
+            "detail": {
+              "reason": "ok",
+              "run_frames": 5,
+              "expected_title_time": 6989,
+              "distance_from_expected": 4,
+              "feature_distance": 0.0043,
+              "bbox_width": 37,
+              "bbox_height": 9,
+              "width_ratio": 0.5781,
+              "height_ratio": 0.25,
+              "aspect": 4.111,
+              "center_x": 0.4844,
+              "center_y": 0.4167,
+              "yellow_fill": 0.3483
+            }
           },
           {
             "index": 4,
             "title": "全日本プロレス",
             "matched": true,
-            "method": "recurring-blue-room",
+            "method": "recurring-title-logo",
             "original": 12964,
-            "refined": 12956,
-            "shift_seconds": -8,
-            "distance": 7
+            "logo_time": 12965,
+            "refined": 12965,
+            "shift_seconds": 1,
+            "detail": {
+              "reason": "ok",
+              "run_frames": 5,
+              "expected_title_time": 12964,
+              "distance_from_expected": 1,
+              "feature_distance": 0.0014,
+              "bbox_width": 37,
+              "bbox_height": 9,
+              "width_ratio": 0.5781,
+              "height_ratio": 0.25,
+              "aspect": 4.111,
+              "center_x": 0.4844,
+              "center_y": 0.4167,
+              "yellow_fill": 0.3423
+            }
           },
           {
             "index": 5,
             "title": "ダブルドラゴン 双截龍",
-            "matched": false,
+            "matched": true,
+            "method": "recurring-title-logo",
             "original": 16414,
-            "candidate": null,
-            "distance": 96,
-            "reason": "no_blue_room_or_shift_guard"
+            "logo_time": 16416,
+            "refined": 16416,
+            "shift_seconds": 2,
+            "detail": {
+              "reason": "ok",
+              "run_frames": 5,
+              "expected_title_time": 16414,
+              "distance_from_expected": 2,
+              "feature_distance": 0.0,
+              "bbox_width": 37,
+              "bbox_height": 9,
+              "width_ratio": 0.5781,
+              "height_ratio": 0.25,
+              "aspect": 4.111,
+              "center_x": 0.4844,
+              "center_y": 0.4167,
+              "yellow_fill": 0.3393
+            }
           },
           {
             "index": 6,
             "title": "忍者くん 阿修羅ノ章（前編）",
             "matched": true,
-            "method": "recurring-blue-room",
+            "method": "recurring-title-logo",
             "original": 19894,
-            "refined": 19888,
-            "shift_seconds": -6,
-            "distance": 8
+            "logo_time": 19897,
+            "refined": 19897,
+            "shift_seconds": 3,
+            "detail": {
+              "reason": "ok",
+              "run_frames": 5,
+              "expected_title_time": 19894,
+              "distance_from_expected": 3,
+              "feature_distance": 0.0362,
+              "bbox_width": 38,
+              "bbox_height": 9,
+              "width_ratio": 0.5938,
+              "height_ratio": 0.25,
+              "aspect": 4.222,
+              "center_x": 0.4922,
+              "center_y": 0.4167,
+              "yellow_fill": 0.307
+            }
           },
           {
             "index": 7,
             "title": "忍者くん 阿修羅ノ章（後編）",
-            "matched": false,
+            "matched": true,
+            "method": "recurring-title-logo",
             "original": 23344,
-            "candidate": null,
-            "distance": 111,
-            "reason": "no_blue_room_or_shift_guard"
+            "logo_time": 23348,
+            "refined": 23348,
+            "shift_seconds": 4,
+            "detail": {
+              "reason": "ok",
+              "run_frames": 4,
+              "expected_title_time": 23344,
+              "distance_from_expected": 4,
+              "feature_distance": 0.0014,
+              "bbox_width": 37,
+              "bbox_height": 9,
+              "width_ratio": 0.5781,
+              "height_ratio": 0.25,
+              "aspect": 4.111,
+              "center_x": 0.4844,
+              "center_y": 0.4167,
+              "yellow_fill": 0.3363
+            }
           },
           {
             "index": 9,
             "title": "山村美紗サスペンス 京都龍の寺殺人事件",
             "matched": true,
-            "method": "recurring-blue-room",
+            "method": "recurring-title-logo",
             "original": 33994,
-            "refined": 33994,
-            "shift_seconds": 0,
-            "distance": 11
+            "logo_time": 34003,
+            "refined": 34003,
+            "shift_seconds": 9,
+            "detail": {
+              "reason": "ok",
+              "run_frames": 5,
+              "expected_title_time": 33994,
+              "distance_from_expected": 9,
+              "feature_distance": 0.0,
+              "bbox_width": 37,
+              "bbox_height": 9,
+              "width_ratio": 0.5781,
+              "height_ratio": 0.25,
+              "aspect": 4.111,
+              "center_x": 0.4844,
+              "center_y": 0.4167,
+              "yellow_fill": 0.3393
+            }
           },
           {
             "index": 10,
             "title": "モグラ〜ニャ",
             "matched": true,
-            "method": "recurring-blue-room",
+            "method": "recurring-title-logo",
             "original": 37444,
-            "refined": 37456,
-            "shift_seconds": 12,
-            "distance": 0
+            "logo_time": 37435,
+            "refined": 37435,
+            "shift_seconds": -9,
+            "detail": {
+              "reason": "ok",
+              "run_frames": 10,
+              "expected_title_time": 37444,
+              "distance_from_expected": -9,
+              "feature_distance": 0.5204,
+              "bbox_width": 42,
+              "bbox_height": 18,
+              "width_ratio": 0.6562,
+              "height_ratio": 0.5,
+              "aspect": 2.333,
+              "center_x": 0.5234,
+              "center_y": 0.5417,
+              "yellow_fill": 0.2235
+            }
           },
           {
             "index": 14,
             "title": "闘いの挽歌",
             "matched": true,
-            "method": "recurring-blue-room",
+            "method": "recurring-title-logo",
             "original": 45130,
-            "refined": 45136,
-            "shift_seconds": 6,
-            "distance": 4
+            "logo_time": 45119,
+            "refined": 45119,
+            "shift_seconds": -11,
+            "detail": {
+              "reason": "ok",
+              "run_frames": 6,
+              "expected_title_time": 45130,
+              "distance_from_expected": -11,
+              "feature_distance": 0.4908,
+              "bbox_width": 40,
+              "bbox_height": 18,
+              "width_ratio": 0.625,
+              "height_ratio": 0.5,
+              "aspect": 2.222,
+              "center_x": 0.5078,
+              "center_y": 0.5417,
+              "yellow_fill": 0.2375
+            }
           }
         ],
         "cache_reused": false
@@ -2247,215 +2605,12 @@
       ],
       "titlecard_refinement": {
         "status": "no_consensus",
-        "method": "recurring-blue-room",
-        "boundary_version": 34,
-        "reason": "blue_room_coverage_below_80_percent",
+        "method": "recurring-title-logo",
+        "boundary_version": 35,
         "reference": {
-          "reason": "ok",
-          "usable_windows": 20,
-          "reference_time_seconds": 17157,
-          "median_distance": 8.0,
-          "matching_windows": 14
+          "reason": "no_title_logo_in_vod_opening"
         },
-        "detected_regular_boundaries": 14,
-        "expected_regular_boundaries": 20,
-        "coverage": 0.7,
-        "matches": [
-          {
-            "index": 1,
-            "title": "竜の子ファイター",
-            "matched": true,
-            "method": "recurring-blue-room",
-            "original": 3235,
-            "refined": 3233,
-            "shift_seconds": -2,
-            "distance": 9
-          },
-          {
-            "index": 2,
-            "title": "ロックマンX（前編）",
-            "matched": true,
-            "method": "recurring-blue-room",
-            "original": 6715,
-            "refined": 6713,
-            "shift_seconds": -2,
-            "distance": 6
-          },
-          {
-            "index": 3,
-            "title": "ロックマンX（後編）",
-            "matched": true,
-            "method": "recurring-blue-room",
-            "original": 10195,
-            "refined": 10195,
-            "shift_seconds": 0,
-            "distance": 8
-          },
-          {
-            "index": 4,
-            "title": "殺意の階層 ソフトハウス連続殺人事件",
-            "matched": true,
-            "method": "recurring-blue-room",
-            "original": 13675,
-            "refined": 13675,
-            "shift_seconds": 0,
-            "distance": 8
-          },
-          {
-            "index": 5,
-            "title": "ガンスターヒーローズ",
-            "matched": true,
-            "method": "recurring-blue-room",
-            "original": 17155,
-            "refined": 17157,
-            "shift_seconds": 2,
-            "distance": 0
-          },
-          {
-            "index": 6,
-            "title": "ケルナグール",
-            "matched": false,
-            "original": 20635,
-            "candidate": null,
-            "distance": 110,
-            "reason": "no_blue_room_or_shift_guard"
-          },
-          {
-            "index": 7,
-            "title": "超ゴジラ",
-            "matched": true,
-            "method": "recurring-blue-room",
-            "original": 24115,
-            "refined": 24119,
-            "shift_seconds": 4,
-            "distance": 3
-          },
-          {
-            "index": 8,
-            "title": "スーパーマリオランド",
-            "matched": false,
-            "original": 27595,
-            "candidate": null,
-            "distance": 115,
-            "reason": "no_blue_room_or_shift_guard"
-          },
-          {
-            "index": 9,
-            "title": "ファミリージョッキー（前編）",
-            "matched": true,
-            "method": "recurring-blue-room",
-            "original": 31075,
-            "refined": 31081,
-            "shift_seconds": 6,
-            "distance": 5
-          },
-          {
-            "index": 10,
-            "title": "ファミリージョッキー（後編）",
-            "matched": false,
-            "original": 34555,
-            "candidate": null,
-            "distance": 96,
-            "reason": "no_blue_room_or_shift_guard"
-          },
-          {
-            "index": 11,
-            "title": "シャドー・ダンサー",
-            "matched": true,
-            "method": "recurring-blue-room",
-            "original": 38035,
-            "refined": 38043,
-            "shift_seconds": 8,
-            "distance": 7
-          },
-          {
-            "index": 12,
-            "title": "平成天才バカボン",
-            "matched": true,
-            "method": "recurring-blue-room",
-            "original": 41515,
-            "refined": 41525,
-            "shift_seconds": 10,
-            "distance": 0
-          },
-          {
-            "index": 13,
-            "title": "マジックソード",
-            "matched": false,
-            "original": 44995,
-            "candidate": null,
-            "distance": 122,
-            "reason": "no_blue_room_or_shift_guard"
-          },
-          {
-            "index": 14,
-            "title": "Dの食卓",
-            "matched": true,
-            "method": "recurring-blue-room",
-            "original": 48475,
-            "refined": 48489,
-            "shift_seconds": 14,
-            "distance": 62
-          },
-          {
-            "index": 15,
-            "title": "クレイジー・クライマー",
-            "matched": true,
-            "method": "recurring-blue-room",
-            "original": 51955,
-            "refined": 51969,
-            "shift_seconds": 14,
-            "distance": 1
-          },
-          {
-            "index": 17,
-            "title": "超絶倫人ベラボーマン",
-            "matched": true,
-            "method": "recurring-blue-room",
-            "original": 56335,
-            "refined": 56359,
-            "shift_seconds": 24,
-            "distance": 6
-          },
-          {
-            "index": 18,
-            "title": "R-TYPE I / R-TYPE II",
-            "matched": true,
-            "method": "recurring-blue-room",
-            "original": 59815,
-            "refined": 59835,
-            "shift_seconds": 20,
-            "distance": 10
-          },
-          {
-            "index": 19,
-            "title": "伝説の騎士エルロンド",
-            "matched": false,
-            "original": 63295,
-            "candidate": null,
-            "distance": 119,
-            "reason": "no_blue_room_or_shift_guard"
-          },
-          {
-            "index": 20,
-            "title": "戦場の狼",
-            "matched": true,
-            "method": "recurring-blue-room",
-            "original": 66775,
-            "refined": 66803,
-            "shift_seconds": 28,
-            "distance": 7
-          },
-          {
-            "index": 21,
-            "title": "謎の村雨城",
-            "matched": false,
-            "original": 70255,
-            "candidate": null,
-            "distance": 111,
-            "reason": "no_blue_room_or_shift_guard"
-          }
-        ]
+        "matches": []
       },
       "ai_windows": []
     }
