@@ -23,12 +23,12 @@ RAILWAY_RADIKO_SIDS = {
     "ALPHA-STATION", "E-RADIO", "CRK",
     "HBC", "TBC", "CBC", "RCC", "RKB", "KBC",
 }
-VERCEL_NHK_SIDS = {"nhk_r1_matsuyama"}
+VERCEL_NHK_SIDS = {"nhk_r1_matsuyama", "nhk_fm_matsuyama"}
 ALL_RADIKO_SIDS = VERCEL_RADIKO_SIDS | RAILWAY_RADIKO_SIDS
 LOGO_RAW_BASE = "https://raw.githubusercontent.com/ajiousama/himitsu/main"
-EXPECTED_RADIO_COUNT = 28
+EXPECTED_RADIO_COUNT = 29
 EXPECTED_RADIKO_COUNT = 22
-EXPECTED_VERCEL_ROUTE_COUNT = 1
+EXPECTED_VERCEL_ROUTE_COUNT = 2
 
 
 def radio_url(sid: str) -> str:
@@ -107,6 +107,15 @@ def compact_block() -> str:
             "nhk_r1_matsuyama",
             "NHKラジオ第1（松山）",
             "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/77/NHK_Radio_1_2024.svg/500px-NHK_Radio_1_2024.svg.png",
+        )
+    )
+
+    parts.append(
+        radio_entry(
+            "nhk_fm_matsuyama",
+            "nhk_fm_matsuyama",
+            "NHK-FM（松山）",
+            "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c8/NHK_FM_2024.svg/500px-NHK_FM_2024.svg.png",
         )
     )
 
@@ -190,8 +199,9 @@ def main() -> int:
     if radio_section.count("/logos/contrast/radiko.") != EXPECTED_RADIKO_COUNT:
         raise RuntimeError("contrast-safe compact Radiko logos are not complete")
 
-    if f'{RADIO_VERCEL_BASE}nhk_r1_matsuyama' not in radio_section:
-        raise RuntimeError("required Vercel NHK station missing: nhk_r1_matsuyama")
+    for sid in ("nhk_r1_matsuyama", "nhk_fm_matsuyama"):
+        if f'{RADIO_VERCEL_BASE}{sid}' not in radio_section:
+            raise RuntimeError(f"required Vercel NHK station missing: {sid}")
     for sid in (
         "JOEU-FM", "RNB", "LFR", "QRR", "TBS", "FMT",
         "ABC", "CCL", "802", "FMO", "MBS", "OBC", "KBS",
