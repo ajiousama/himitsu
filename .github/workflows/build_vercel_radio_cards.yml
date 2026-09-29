@@ -1,0 +1,60 @@
+name: Build Vercel radio CJK cards
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'build_radio_tv_assets.py'
+      - '.github/workflows/build_vercel_radio_cards.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-vercel-radio-cjk-cards
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install image and CJK dependencies
+        run: |
+          python -m pip install --disable-pip-version-check -r requirements.txt
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg fonts-noto-cjk
+
+      - name: Build CJK-safe Vercel radio cards
+        run: python build_radio_tv_assets.py
+
+      - name: Verify Japanese font rendered into cards
+        run: |
+          test -s vercel-radiko/radio-video-assets/cards/LFR.jpg
+          test -s vercel-radiko/radio-video-assets/cards/QRR.jpg
+          test -s vercel-radiko/radio-video-assets/cards/TBS.jpg
+          test -s vercel-radiko/radio-video-assets/cards/FMT.jpg
+
+      - name: Publish radio card assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add vercel-radiko/radio-video-assets
+          if git diff --cached --quiet; then
+            echo 'Vercel radio cards already current'
+            exit 0
+          fi
+          git commit -m 'Refresh CJK-safe Vercel radio cards [skip ci]'
+          git pull --rebase origin main
+          git push origin HEAD:main
