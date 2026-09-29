@@ -37,7 +37,7 @@ TV_STYLE = """
 <style id="freewifi-tv-style">
 html,body{overflow:hidden!important}
 body{
-  zoom:1.20!important;
+  zoom:1.35!important;
 }
 #update-modal{display:none!important}
 </style>
