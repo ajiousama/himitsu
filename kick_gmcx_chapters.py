@@ -1614,10 +1614,10 @@ def _global_regular_logo_starts(frames: list[dict], count: int) -> list[int]:
         return []
     return min(finals, key=lambda x: x[0])[1]
 
-def _sample_opening_hash_window(url: str, center: int, total_duration: int, radius: int = 8) -> list[dict]:
-    """Sample a small grayscale window for recurring-opening-frame diagnostics."""
-    start = max(0, int(center) - int(radius))
-    stop = min(int(total_duration), int(center) + int(radius) + 1)
+def _sample_opening_hash_window(url: str, center: int, total_duration: int, before: int = 12, after: int = 22) -> list[dict]:
+    """Sample grayscale hashes around an episode opening for sequence matching."""
+    start = max(0, int(center) - int(before))
+    stop = min(int(total_duration), int(center) + int(after) + 1)
     span = max(1, stop - start)
     cmd = [
         "ffmpeg", "-hide_banner", "-loglevel", "error",
@@ -1631,7 +1631,7 @@ def _sample_opening_hash_window(url: str, center: int, total_duration: int, radi
         "-f", "rawvideo", "pipe:1",
     ]
     try:
-        proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=35, check=False)
+        proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=45, check=False)
     except (FileNotFoundError, subprocess.TimeoutExpired):
         return []
     if proc.returncode != 0:
@@ -1648,8 +1648,8 @@ def _sample_opening_hash_window(url: str, center: int, total_duration: int, radi
     return out
 
 
-def _probe_recurring_opening_frame(url: str, chapters: list[dict], total_duration: int, reference_episode: int = 186) -> dict:
-    """Test whether the visually-correct opening frame repeats near other episode starts."""
+def _probe_recurring_opening_sequence(url: str, chapters: list[dict], total_duration: int, reference_episode: int = 186, sequence_seconds: int = 10) -> dict:
+    """Match a 10-second opening sequence, allowing a small timing shift per episode."""
     episodes = [x for x in chapters if x.get("kind") == "episode" and 177 <= int(x.get("episode") or 0) <= 196]
     ref_item = next((x for x in episodes if int(x.get("episode") or 0) == reference_episode), None)
     if not ref_item:
@@ -1659,46 +1659,61 @@ def _probe_recurring_opening_frame(url: str, chapters: list[dict], total_duratio
         ep = int(item.get("episode") or 0)
         windows[ep] = _sample_opening_hash_window(url, int(item.get("start_seconds") or 0), total_duration)
     ref_center = int(ref_item.get("start_seconds") or 0)
-    ref_frames = windows.get(reference_episode) or []
-    if not ref_frames:
-        return {"status": "skipped", "reason": "reference_window_empty"}
-    ref = min(ref_frames, key=lambda x: abs(int(x["time"]) - ref_center))
+    ref_map = {int(x["time"]): x for x in (windows.get(reference_episode) or [])}
+    ref_seq = [ref_map.get(ref_center + i) for i in range(sequence_seconds)]
+    if any(x is None for x in ref_seq):
+        return {"status": "skipped", "reason": "reference_sequence_incomplete"}
+    ref_seq = [x for x in ref_seq if x is not None]
     rows = []
     strong = 0
     for item in episodes:
         ep = int(item.get("episode") or 0)
         center = int(item.get("start_seconds") or 0)
-        candidates = windows.get(ep) or []
-        if not candidates:
-            rows.append({"episode": ep, "matched": False, "reason": "window_empty"})
-            continue
+        cmap = {int(x["time"]): x for x in (windows.get(ep) or [])}
         scored = []
-        for frame in candidates:
-            hamming = (int(frame["hash"]) ^ int(ref["hash"])).bit_count()
-            mean_delta = abs(float(frame["mean"]) - float(ref["mean"]))
-            contrast_delta = abs(float(frame["contrast"]) - float(ref["contrast"]))
-            score = hamming + mean_delta / 3.0 + contrast_delta / 5.0
-            scored.append((score, hamming, mean_delta, contrast_delta, frame))
+        for shift in range(-12, 13):
+            cand = [cmap.get(center + shift + i) for i in range(sequence_seconds)]
+            if any(x is None for x in cand):
+                continue
+            cand = [x for x in cand if x is not None]
+            hammings = [(int(r["hash"]) ^ int(c["hash"])).bit_count() for r, c in zip(ref_seq, cand)]
+            mean_deltas = [abs(float(r["mean"]) - float(c["mean"])) for r, c in zip(ref_seq, cand)]
+            transition_deltas = []
+            for i in range(1, sequence_seconds):
+                rt = (int(ref_seq[i-1]["hash"]) ^ int(ref_seq[i]["hash"])).bit_count()
+                ct = (int(cand[i-1]["hash"]) ^ int(cand[i]["hash"])).bit_count()
+                transition_deltas.append(abs(rt - ct))
+            avg_hamming = sum(hammings) / len(hammings)
+            avg_mean = sum(mean_deltas) / len(mean_deltas)
+            avg_transition = sum(transition_deltas) / max(1, len(transition_deltas))
+            score = avg_hamming + avg_mean / 3.0 + avg_transition / 2.0
+            scored.append((score, shift, avg_hamming, avg_mean, avg_transition, max(hammings)))
+        if not scored:
+            rows.append({"episode": ep, "matched": False, "reason": "sequence_window_incomplete"})
+            continue
         scored.sort(key=lambda x: x[0])
-        score, hamming, mean_delta, contrast_delta, best = scored[0]
-        matched = hamming <= 48 and mean_delta <= 38
+        score, shift, avg_hamming, avg_mean, avg_transition, max_hamming = scored[0]
+        matched = avg_hamming <= 52 and avg_transition <= 22
         if matched:
             strong += 1
         rows.append({
             "episode": ep,
             "matched": matched,
             "center": center,
-            "best_time": int(best["time"]),
-            "shift_seconds": int(best["time"]) - center,
-            "hamming": int(hamming),
-            "mean_delta": round(mean_delta, 2),
-            "contrast_delta": round(contrast_delta, 2),
+            "best_shift_seconds": int(shift),
+            "candidate_start": center + int(shift),
+            "avg_hamming": round(avg_hamming, 2),
+            "max_hamming": int(max_hamming),
+            "avg_mean_delta": round(avg_mean, 2),
+            "avg_transition_delta": round(avg_transition, 2),
             "score": round(score, 2),
         })
     return {
         "status": "diagnostic",
+        "method": "10s-opening-sequence",
         "reference_episode": reference_episode,
-        "reference_time": int(ref["time"]),
+        "reference_start": ref_center,
+        "sequence_seconds": sequence_seconds,
         "matched": strong,
         "episode_count": len(episodes),
         "coverage": round(strong / max(1, len(episodes)), 3),
@@ -2227,13 +2242,13 @@ def main() -> int:
             }
 
         hls_join_markers = None
-        opening_frame_probe = None
+        opening_sequence_probe = None
         packet_join_probe = None
         if status == "ready" and chapters:
             if start_ep == 177 and vod.get("source_url"):
                 hls_join_markers = _fetch_hls_join_markers(str(vod.get("source_url")))
                 packet_join_probe = _probe_selected_episode_joins(str(vod.get("source_url")), chapters)
-                opening_frame_probe = _probe_recurring_opening_frame(str(vod.get("source_url")), chapters, duration)
+                opening_sequence_probe = _probe_recurring_opening_sequence(str(vod.get("source_url")), chapters, duration)
             chapters = _annotate_hls_diagnostics(vod, chapters)
             chapters = _mark_provisional_titles(chapters, start_ep, end_ep)
 
@@ -2261,7 +2276,7 @@ def main() -> int:
             "titlecard_refinement": titlecard_refinement,
             "hls_join_markers": hls_join_markers if start_ep == 177 else None,
             "packet_join_probe": packet_join_probe if start_ep == 177 else None,
-            "opening_frame_probe": opening_frame_probe if start_ep == 177 else None,
+            "opening_sequence_probe": opening_sequence_probe if start_ep == 177 else None,
             "ai_windows": build_ai_windows(start_ep, end_ep, duration) if status == "ai_required" else [],
         })
 
