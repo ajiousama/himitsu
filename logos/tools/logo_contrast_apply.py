@@ -54,6 +54,21 @@ RADIO_SIDS = [
 ]
 EXPECTED_RADIO_COUNT = len(RADIO_SIDS)
 
+# Canonical subsystems can already point at the local white-card URL before a
+# refresh runs. Seed these sources explicitly so their assets remain
+# regeneratable and cannot disappear from the contrast database.
+EXPLICIT_SOURCES = {
+    "community.FMOTOKUNI": "https://www.simulradio.info/data/161.jpg",
+    "tver_tbs": "https://statics.tver.jp/images/icon/tbs.jpg?v=2",
+    "tver_ex": "https://statics.tver.jp/images/icon/ex.jpg?v=2",
+    "tver_tx": "https://statics.tver.jp/images/icon/tx.jpg?v=2",
+    "tver_cx": "https://statics.tver.jp/images/icon/cx.jpg?v=2",
+    "tver_ntv": "https://statics.tver.jp/images/icon/ntv.jpg?v=2",
+    "tver.news24": "https://statics.tver.jp/images/content/thumbnail/series/small/srp4vygpgh.jpg?v=7",
+    "tver.tbs_newsdig": "https://statics.tver.jp/images/content/thumbnail/live/small/ler9m2le9k1.jpg?v=2",
+    "kick.gccx.logo": "https://pbs.twimg.com/profile_images/826592912389451777/PnXfhxJD_400x400.jpg",
+}
+
 # These logos have large blank/light margins in their source artwork.
 ZOOM_IDS = {
     "MTV_jp",
@@ -174,6 +189,9 @@ def main() -> int:
     for sid in RADIO_SIDS:
         src = source_radio_logo(sid)
         tvgid = f"radiko.{sid}"
+        db.setdefault(src, {"tvg_id": tvgid, "path": local_relpath(tvgid, src)})
+
+    for tvgid, src in EXPLICIT_SOURCES.items():
         db.setdefault(src, {"tvg_id": tvgid, "path": local_relpath(tvgid, src)})
 
     # Discover target external logos still present in FreeWiFi.
