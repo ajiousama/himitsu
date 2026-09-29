@@ -20,6 +20,8 @@ REPLAY_BASE = "https://kick-resolver.onrender.com/kick?vod="
 # Clean archive #90-106 is 59,517 sec / 17 = 3,501 sec per regular episode.
 REFERENCE_EPISODE_SECONDS = 3501
 AI_WINDOW_SECONDS = 600
+KNOWN_OP_TEMPLATE_URL = "https://stream.kick.com/0f3cb0ebce7/ivs/v1/196233775518/59bB9isG3qqM/2026/9/27/23/54/mGizRKSX3j3d/media/hls/master.m3u8"
+KNOWN_OP_TEMPLATE_SECONDS = 35
 
 # Range-specific cadence measured from clean same-season KICK bundles.
 # Season 18's clean #177-196 archive is 77,992 sec / 20 ~= 3,900 sec.
@@ -1721,6 +1723,101 @@ def _probe_recurring_opening_sequence(url: str, chapters: list[dict], total_dura
     }
 
 
+def _sample_hash_range(url: str, start: int, span: int, total_duration: int = 0) -> list[dict]:
+    """Sample 1 fps grayscale perceptual hashes from an exact interval."""
+    start = max(0, int(start))
+    span = max(1, int(span))
+    if total_duration > 0:
+        span = min(span, max(1, int(total_duration) - start))
+    cmd = [
+        "ffmpeg", "-hide_banner", "-loglevel", "error",
+        "-rw_timeout", "15000000",
+        "-ss", str(start),
+        "-i", url,
+        "-t", str(span),
+        "-an",
+        "-vf", "fps=1,scale=17:16:flags=area,format=gray",
+        "-pix_fmt", "gray",
+        "-f", "rawvideo", "pipe:1",
+    ]
+    try:
+        proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=55, check=False)
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        return []
+    if proc.returncode != 0:
+        return []
+    size = 17 * 16
+    out = []
+    raw = proc.stdout
+    for idx in range(len(raw) // size):
+        sig = _frame_signature(raw[idx * size:(idx + 1) * size])
+        if not sig:
+            continue
+        bits, mean, contrast = sig
+        out.append({"time": start + idx, "hash": bits, "mean": mean, "contrast": contrast})
+    return out
+
+
+def _probe_known_35s_op(url: str, chapters: list[dict], total_duration: int) -> dict:
+    """Use the user-confirmed first 35 seconds of #227 as a full OP template."""
+    template_frames = _sample_hash_range(KNOWN_OP_TEMPLATE_URL, 0, KNOWN_OP_TEMPLATE_SECONDS)
+    if len(template_frames) < KNOWN_OP_TEMPLATE_SECONDS - 2:
+        return {"status": "skipped", "reason": "template_incomplete", "frames": len(template_frames)}
+    template_frames = template_frames[:KNOWN_OP_TEMPLATE_SECONDS]
+    rows = []
+    episodes = [x for x in chapters if x.get("kind") == "episode"]
+    for item in episodes:
+        ep = int(item.get("episode") or 0)
+        center = int(item.get("start_seconds") or 0)
+        search_before = 20
+        search_after = 20
+        sample_start = max(0, center - search_before)
+        sample_stop = min(int(total_duration), center + search_after + KNOWN_OP_TEMPLATE_SECONDS)
+        frames = _sample_hash_range(url, sample_start, max(1, sample_stop - sample_start), total_duration)
+        fmap = {int(x["time"]): x for x in frames}
+        scored = []
+        for shift in range(-search_before, search_after + 1):
+            cand_start = center + shift
+            if cand_start < 0:
+                continue
+            cand = [fmap.get(cand_start + i) for i in range(KNOWN_OP_TEMPLATE_SECONDS)]
+            if any(x is None for x in cand):
+                continue
+            cand = [x for x in cand if x is not None]
+            hammings = [(int(r["hash"]) ^ int(c["hash"])).bit_count() for r, c in zip(template_frames, cand)]
+            means = [abs(float(r["mean"]) - float(c["mean"])) for r, c in zip(template_frames, cand)]
+            # Ignore the worst ~30% of frames so episode-specific title overlays do not dominate.
+            core_n = max(1, int(len(hammings) * 0.70))
+            core_hamming = sum(sorted(hammings)[:core_n]) / core_n
+            avg_hamming = sum(hammings) / len(hammings)
+            avg_mean = sum(means) / len(means)
+            score = core_hamming + avg_mean / 4.0
+            scored.append((score, shift, core_hamming, avg_hamming, avg_mean, max(hammings)))
+        if not scored:
+            rows.append({"episode": ep, "matched": False, "reason": "search_window_incomplete"})
+            continue
+        scored.sort(key=lambda x: x[0])
+        score, shift, core_hamming, avg_hamming, avg_mean, max_hamming = scored[0]
+        rows.append({
+            "episode": ep,
+            "chapter_start": center,
+            "best_op_start": center + int(shift),
+            "shift_seconds": int(shift),
+            "score": round(score, 2),
+            "core_hamming": round(core_hamming, 2),
+            "avg_hamming": round(avg_hamming, 2),
+            "avg_mean_delta": round(avg_mean, 2),
+            "max_hamming": int(max_hamming),
+        })
+    return {
+        "status": "diagnostic",
+        "method": "user-confirmed-35s-op-template",
+        "template_seconds": KNOWN_OP_TEMPLATE_SECONDS,
+        "template_url": KNOWN_OP_TEMPLATE_URL,
+        "rows": rows,
+    }
+
+
 def refine_with_titlecard(
     vod: dict,
     chapters: list[dict],
@@ -2241,10 +2338,13 @@ def main() -> int:
                 "reason": "direct-source-unavailable-kept-structured-split",
             }
 
+        known_op_probe = None
         hls_join_markers = None
         opening_sequence_probe = None
         packet_join_probe = None
         if status == "ready" and chapters:
+            if start_ep == 227 and vod.get("source_url"):
+                known_op_probe = _probe_known_35s_op(str(vod.get("source_url")), chapters, duration)
             if start_ep == 177 and vod.get("source_url"):
                 hls_join_markers = _fetch_hls_join_markers(str(vod.get("source_url")))
                 packet_join_probe = _probe_selected_episode_joins(str(vod.get("source_url")), chapters)
@@ -2277,6 +2377,7 @@ def main() -> int:
             "hls_join_markers": hls_join_markers if start_ep == 177 else None,
             "packet_join_probe": packet_join_probe if start_ep == 177 else None,
             "opening_sequence_probe": opening_sequence_probe if start_ep == 177 else None,
+            "known_op_probe": known_op_probe if start_ep == 227 else None,
             "ai_windows": build_ai_windows(start_ep, end_ep, duration) if status == "ai_required" else [],
         })
 
