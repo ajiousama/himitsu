@@ -2559,6 +2559,7 @@ def main() -> int:
             titlecard_refinement = {
                 "status": "skipped",
                 "reason": "source-filelist-exact",
+                "boundary_version": TITLECARD_BOUNDARY_VERSION,
             }
         elif status == "ready" and chapters and start_ep < 177:
             if (
