@@ -122,8 +122,8 @@ KNOWN_SPECIALS: dict[tuple[int, int], list[dict]] = {
             "key": "2014-gccx-the-movie-prefix",
             "title": "ゲームセンターCX THE MOVIE",
             "before_episode": 177,
-            "duration_seconds": 3235,
-            "expected_broadcast_seconds": 3235,
+            "duration_seconds": 3207,
+            "expected_broadcast_seconds": 3207,
         },
         {
             "key": "2014-2015-newyear-15min",
@@ -2181,6 +2181,73 @@ def make_uniform_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict[st
     return chapters
 
 
+def make_exact_177_196_chapters(vod: dict, titles: dict[str, str]) -> list[dict]:
+    """Build the #177-196 archive from the source-player file list screenshot."""
+    duration = int(vod.get("duration_seconds") or 0)
+    vod_id = str(vod.get("vod_id") or "")
+    if duration <= 0 or not vod_id:
+        return []
+
+    # Screenshot order: THE MOVIE 53:27, #177-191 at 58:00 each,
+    # a 15:00 year-end mini programme, then #192-196 at 58:00 each.
+    # The final DVD-BOX VOL.11 extra consumes the exact VOD remainder.
+    chapters = []
+    cursor = 0
+
+    def append_special(key: str, title: str, length: int) -> None:
+        nonlocal cursor
+        stop = min(duration, cursor + int(length))
+        clip_duration = max(0, stop - cursor)
+        chapters.append({
+            "kind": "special",
+            "special_key": key,
+            "title": title,
+            "start_seconds": cursor,
+            "stop_seconds": stop,
+            "duration_seconds": clip_duration,
+            "expected_broadcast_seconds": int(length),
+            "replay_url": clip_url(vod_id, cursor, clip_duration),
+            "method": "source-filelist-exact",
+            "confidence": "high",
+        })
+        cursor = stop
+
+    def append_episode(ep: int, length: int = 3480) -> None:
+        nonlocal cursor
+        stop = min(duration, cursor + int(length))
+        clip_duration = max(0, stop - cursor)
+        chapters.append({
+            "kind": "episode",
+            "episode": ep,
+            "title": titles.get(str(ep), f"第{ep}回"),
+            "start_seconds": cursor,
+            "stop_seconds": stop,
+            "duration_seconds": clip_duration,
+            "replay_url": clip_url(vod_id, cursor, clip_duration),
+            "method": "source-filelist-exact",
+            "confidence": "high",
+        })
+        cursor = stop
+
+    append_special("2014-gccx-the-movie-prefix", "ゲームセンターCX THE MOVIE", 3207)
+    for ep in range(177, 192):
+        append_episode(ep)
+    append_special("2014-2015-newyear-15min", "ゲームセンターCX 年越し15分ミニ枠", 900)
+    for ep in range(192, 197):
+        append_episode(ep)
+
+    if cursor >= duration:
+        return [] if cursor != duration else chapters
+
+    tail = duration - cursor
+    append_special(
+        "2014-dvdbox-vol11-extra",
+        "ゲームセンターCX DVD-BOX VOL.11 特典映像",
+        tail,
+    )
+    return chapters if cursor == duration else []
+
+
 def make_exact_197_206_chapters(vod: dict, titles: dict[str, str]) -> list[dict]:
     duration = int(vod.get("duration_seconds") or 0)
     vod_id = str(vod.get("vod_id") or "")
@@ -2188,12 +2255,12 @@ def make_exact_197_206_chapters(vod: dict, titles: dict[str, str]) -> list[dict]
         return []
 
     # Source player file list from the actual archive:
-    # 29 s pre-roll, then exact file runtimes in playback order.
+    # 34 s pre-roll, then exact screenshot file runtimes in playback order.
     layout = [
         ("episode", 197, None, 3480, None),
         ("episode", 198, None, 3480, None),
         ("episode", 199, None, 3450, None),
-        ("special", None, "2015-niconico-chokaigi", 2525, "GMCX in ニコニコ超会議2015"),
+        ("special", None, "2015-niconico-chokaigi", 2520, "GMCX in ニコニコ超会議2015"),
         ("episode", 200, None, 3450, None),
         ("episode", 201, None, 3480, None),
         ("episode", 202, None, 3450, None),
@@ -2208,7 +2275,7 @@ def make_exact_197_206_chapters(vod: dict, titles: dict[str, str]) -> list[dict]
     ]
 
     chapters = []
-    cursor = 29
+    cursor = 34
     for kind, ep, key, length, special_title in layout:
         stop = cursor + int(length)
         if stop > duration:
@@ -2249,6 +2316,8 @@ def make_exact_197_206_chapters(vod: dict, titles: dict[str, str]) -> list[dict]
 def make_mixed_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict[str, str]) -> list[dict]:
     count = end_ep - start_ep + 1
     duration = int(vod.get("duration_seconds") or 0)
+    if (start_ep, end_ep) == (177, 196):
+        return make_exact_177_196_chapters(vod, titles)
     if (start_ep, end_ep) == (197, 206):
         return make_exact_197_206_chapters(vod, titles)
     episode_seconds = RANGE_EPISODE_SECONDS.get((start_ep, end_ep), REFERENCE_EPISODE_SECONDS)
@@ -2486,7 +2555,12 @@ def main() -> int:
 
         titlecard_refinement = {"status": "not_applicable"}
         previous_result = previous_results.get(str(vod.get("vod_id")))
-        if status == "ready" and chapters and start_ep < 177:
+        if status == "ready" and chapters and (start_ep, end_ep) in FILELIST_CONFIRMED_RANGES:
+            titlecard_refinement = {
+                "status": "skipped",
+                "reason": "source-filelist-exact",
+            }
+        elif status == "ready" and chapters and start_ep < 177:
             if (
                 previous_result
                 and previous_result.get("status") == "ready"
