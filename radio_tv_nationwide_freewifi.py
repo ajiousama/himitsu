@@ -12,26 +12,26 @@ RADIO_PROJECTION = Path("radio/freewifi.m3u")
 RADIO_AUDIO_BASE = "https://himitsu-six.vercel.app/api/radiko"
 RADIO_VERCEL_BASE = "https://himitsu-six.vercel.app/api/radio-tv?station="
 RADIO_RAILWAY_BASE = "https://freewifi-radio-production.up.railway.app/radio-tv"
-RADIO_BUILD = "20260929d"
-# Keep the low-load split: Vercel serves its bundled CJK-safe 640x360 cards,
-# while the six nationwide fallback stations use Railway's on-demand MPEG-TS.
-VERCEL_RADIKO_SIDS = {
+RADIO_BUILD = "20260929e"
+# FreeWiFi playback is unified on Railway so every visible station card is
+# rendered by the same Noto CJK-capable stack. This removes the legacy
+# Vercel/radio-ts-assets cards that showed Japanese text as tofu squares.
+VERCEL_RADIKO_SIDS = set()
+RAILWAY_RADIKO_SIDS = {
     "JOEU-FM", "RNB", "LFR", "QRR", "TBS", "FMT",
     "ABC", "CCL", "802", "FMO", "MBS", "OBC", "KBS",
     "ALPHA-STATION", "E-RADIO", "CRK",
+    "HBC", "TBC", "CBC", "RCC", "RKB", "KBC",
 }
-RAILWAY_RADIKO_SIDS = {"HBC", "TBC", "CBC", "RCC", "RKB", "KBC"}
-VERCEL_NHK_SIDS = {"nhk_r1_matsuyama"}
+VERCEL_NHK_SIDS = set()
 ALL_RADIKO_SIDS = VERCEL_RADIKO_SIDS | RAILWAY_RADIKO_SIDS
 LOGO_RAW_BASE = "https://raw.githubusercontent.com/ajiousama/himitsu/main"
 EXPECTED_RADIO_COUNT = 28
 EXPECTED_RADIKO_COUNT = 22
-EXPECTED_VERCEL_ROUTE_COUNT = 17
+EXPECTED_VERCEL_ROUTE_COUNT = 0
 
 
 def radio_url(sid: str) -> str:
-    if sid in VERCEL_RADIKO_SIDS or sid in VERCEL_NHK_SIDS:
-        return f"{RADIO_VERCEL_BASE}{quote(sid, safe='')}&v={RADIO_BUILD}"
     return f"{RADIO_RAILWAY_BASE}/{quote(sid, safe='')}?v={RADIO_BUILD}"
 
 
@@ -188,13 +188,14 @@ def main() -> int:
     if radio_section.count("/logos/contrast/radiko.") != EXPECTED_RADIKO_COUNT:
         raise RuntimeError("contrast-safe compact Radiko logos are not complete")
 
-    if f'{RADIO_VERCEL_BASE}nhk_r1_matsuyama' not in radio_section:
-        raise RuntimeError("required Vercel NHK station missing: nhk_r1_matsuyama")
+    if f'{RADIO_RAILWAY_BASE}/nhk_r1_matsuyama' not in radio_section:
+        raise RuntimeError("required Railway NHK station missing: nhk_r1_matsuyama")
     for sid in (
         "JOEU-FM", "RNB", "LFR", "QRR", "TBS", "FMT",
         "ABC", "CCL", "802", "FMO", "MBS", "OBC", "KBS",
         "ALPHA-STATION", "E-RADIO", "CRK",
         "HBC", "TBC", "CBC", "RCC", "RKB", "KBC",
+        "nhk_r1_matsuyama",
         "FMOTOKUNI", "FM845", "BARIBARI", "NIIHAMA", "FMGAIYA",
     ):
         if f'{RADIO_RAILWAY_BASE}/{sid}' not in radio_section:
@@ -203,7 +204,7 @@ def main() -> int:
     FREEWIFI.write_text(updated, encoding="utf-8")
     print(
         f"FreeWiFi compact radio restored: {vercel_count} Vercel + "
-        f"{render_count} Railway image+audio stations"
+        f"{render_count} Railway CJK-safe image+audio stations"
     )
     return 0
 
