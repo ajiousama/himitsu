@@ -2019,7 +2019,10 @@ def main() -> int:
                 "reason": "direct-source-unavailable-kept-structured-split",
             }
 
+        hls_join_markers = None
         if status == "ready" and chapters:
+            if start_ep == 177 and vod.get("source_url"):
+                hls_join_markers = _fetch_hls_join_markers(str(vod.get("source_url")))
             chapters = _annotate_hls_diagnostics(vod, chapters)
             chapters = _mark_provisional_titles(chapters, start_ep, end_ep)
 
