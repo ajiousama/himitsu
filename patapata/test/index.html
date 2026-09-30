@@ -8,36 +8,43 @@
 *{box-sizing:border-box}
 :root{
   --safe:300px;
-  --case:#25292c;
-  --case2:#121516;
-  --led:#030504;
-  --grid:rgba(190,190,170,.055);
-  --white:#f1f1ea;
-  --amber:#ffd94b;
-  --orange:#ff9b28;
-  --red:#ff3b36;
-  --green:#8ee67c;
-  --lime:#d6ff6a;
-  --dim:#9c9d93;
+  --case:#444;
+  --case2:#222;
+  --led:#000;
+  --grid:rgba(255,255,255,.035);
+  --white:#fff;
+  --yellow:#ff0;
+  --red:#f00;
+  --green:#0f9;
+  --green2:#0f0;
+  --blue:#4af;
+  --orange:#f80;
+  --brown:#fc0;
+  --dim:#aaa;
 }
 html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#00151b;color:#fff;font-family:"Yu Gothic UI","Meiryo",sans-serif}
 .lang-en{display:none!important}
-body.lang-en .lang-ja{display:none!important}
-body.lang-en .lang-en{display:inline!important}
+body.show-en .lang-ja{display:none!important}
+body.show-en .lang-en{display:inline!important}
+.soon-ja{display:none!important}
+body.phase-soon:not(.show-en) .normal-ja{display:none!important}
+body.phase-soon:not(.show-en) .soon-ja{display:inline!important}
+body.phase-soon:not(.show-en) .train.is-soon .time,
+body.phase-soon:not(.show-en) .train.is-soon .dest{color:#f00!important}
 body:before{
   content:"";position:fixed;left:0;top:0;width:var(--safe);height:100vh;
   background:linear-gradient(180deg,#07303b 0%,#00151b 100%);opacity:.33
 }
 #stage{position:fixed;left:311px;right:14px;top:64px;bottom:22px;display:flex;align-items:center;justify-content:center}
 #sign{
-  width:100%;height:100%;background:linear-gradient(#323638,#202426);
-  border:2px solid #555b5d;border-radius:3px;padding:10px 11px 12px;
-  box-shadow:0 8px 24px #0009,inset 0 1px 0 #7778,inset 0 -2px 0 #050505;
+  width:100%;height:100%;background:#444;
+  border:1px solid #fff;border-radius:0;padding:10px 11px 12px;
+  box-shadow:0 8px 24px #000a;
   display:grid;grid-template-rows:68px 1fr 34px;gap:5px;
 }
 #topbar{
   display:grid;grid-template-columns:120px 1fr 190px;align-items:center;
-  background:#1e2122;border:1px solid #0d0e0f;padding:4px 10px;color:#ededed
+  background:#111;border:1px solid #222;padding:4px 10px;color:#fff
 }
 .side-arrow{display:flex;align-items:center;justify-content:flex-start;color:#f2f2ed;font:900 48px/1 Arial,sans-serif}
 .side-arrow span{display:block;text-shadow:0 0 4px #fff5}
@@ -49,42 +56,42 @@ body:before{
 .mode-en{font:700 10px Arial,sans-serif;color:#bbb;margin-top:3px}
 
 #rows{
-  min-height:0;display:flex;flex-direction:column;background:#050707;border:1px solid #000;
+  min-height:0;display:flex;flex-direction:column;background:#000;border:1px solid #222;
   padding:3px 4px;gap:3px;overflow:hidden
 }
 .train{
   min-height:0;flex:1 1 0;background:
-    radial-gradient(circle at 1px 1px,var(--grid) 1px,transparent 1.2px) 0 0/4px 4px,
-    linear-gradient(#020403,#050806);
+    radial-gradient(circle at 1px 1px,var(--grid) 1px,transparent 1.15px) 0 0/4px 4px,
+    #000;
   border-bottom:1px solid #151815;display:grid;grid-template-rows:minmax(38px,1fr) 22px;overflow:hidden
 }
 .train:last-child{border-bottom:0}
 .mainline{
-  display:grid;grid-template-columns:2.35fr .72fr 1.42fr .42fr;min-width:0;
+  display:grid;grid-template-columns:7fr 4fr 4fr 1fr;min-width:0;
   align-items:center
 }
 .cell{
   min-width:0;height:100%;display:flex;align-items:center;padding:0 10px;overflow:hidden;white-space:nowrap;
   border-right:1px solid rgba(255,255,255,.025)
 }
-.service{font-family:"MS Gothic","Yu Gothic UI","Meiryo",sans-serif;font-size:20px;font-weight:900;letter-spacing:.8px}
-.service.local{color:#f1e86b;text-shadow:0 0 5px #fff04b66}
-.service.limited{color:#ff493f;text-shadow:0 0 6px #ff2b2299}
+.service{font-family:"MS Gothic","Yu Gothic UI","Meiryo",sans-serif;font-size:20px;font-weight:900;letter-spacing:0}
+.service.local{color:#ff0;text-shadow:none}
+.service.limited{color:#f00;text-shadow:none}
 .time{
-  justify-content:center;color:#f3f3ee;font:900 25px/1 "MS Gothic",Consolas,monospace;
-  letter-spacing:1px;text-shadow:0 0 5px #fff8
+  justify-content:center;color:#fff;font:900 25px/1 "MS Gothic",Consolas,monospace;
+  letter-spacing:0;text-shadow:none
 }
 .dest{
-  color:#f3dc57;font-family:"MS Gothic","Yu Gothic UI","Meiryo",sans-serif;
-  font-size:22px;font-weight:900;letter-spacing:1px;text-shadow:0 0 6px #ffd43b77
+  color:#ff0;font-family:"MS Gothic","Yu Gothic UI","Meiryo",sans-serif;
+  font-size:22px;font-weight:900;letter-spacing:0;text-shadow:none
 }
 .platform{
-  justify-content:center;color:#f4f4ef;font:900 23px/1 "MS Gothic",Arial,sans-serif;text-shadow:0 0 4px #fff7
+  justify-content:center;color:#fff;font:900 23px/1 "MS Gothic",Arial,sans-serif;text-shadow:none
 }
 .subline{
   position:relative;overflow:hidden;white-space:nowrap;
-  border-top:1px solid #131613;color:#e8e275;font-family:"MS Gothic","Yu Gothic UI","Meiryo",sans-serif;
-  font-size:13px;font-weight:900;line-height:22px;text-shadow:0 0 5px #ffe85a55
+  border-top:1px solid #222;color:#fff;font-family:"MS Gothic","Yu Gothic UI","Meiryo",sans-serif;
+  font-size:13px;font-weight:900;line-height:22px;text-shadow:none
 }
 .subtrack{
   position:absolute;left:0;top:0;display:flex;width:max-content;
@@ -103,8 +110,8 @@ body:before{
 }
 #tickertrack{
   height:100%;display:flex;align-items:center;width:max-content;
-  color:var(--amber);font-size:16px;font-weight:900;
-  text-shadow:0 0 6px #ffd43b88;animation:tickscroll 22s linear infinite
+  color:#fff;font-size:16px;font-weight:900;
+  text-shadow:none;animation:tickscroll 22s linear infinite
 }
 #tickertrack span{padding-right:90px}
 @keyframes tickscroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
@@ -160,7 +167,7 @@ body:before{
 <script>
 (function(){
 'use strict';
-var SWITCH=20, LANG_SWITCH=5, MAX=7, direction='north', language='ja', data=null, started=Date.now(), pageSignature='', currentRows=[];
+var SWITCH=20, PHASE_MS=3000, MAX=7, direction='north', language='ja', displayPhase=0, data=null, started=Date.now(), pageSignature='', currentRows=[];
 
 function $(id){return document.getElementById(id)}
 function pad(n){return String(n).padStart(2,'0')}
@@ -325,8 +332,10 @@ function render(n){
     var dur=Math.max(18,Math.min(48,Math.round(Math.max(ja.length,en.length)*.25)));
     var delay=-(idx*2.15);
     var cls=r.kind==='limited'?'limited':'local';
-    return '<div class="train"><div class="mainline">'+
-      '<div class="cell service '+cls+'"><span class="lang-ja">'+esc(serviceText(r))+'</span><span class="lang-en">'+esc(serviceEn(r))+'</span></div>'+
+    var diff=min(r.time)-n.minutes;
+    var soon=(diff>=0&&diff<=4);
+    return '<div class="train'+(soon?' is-soon':'')+'"><div class="mainline">'+
+      '<div class="cell service '+cls+'"><span class="lang-ja normal-ja">'+esc(serviceText(r))+'</span><span class="lang-ja soon-ja">'+(soon?'まもなく発車です':esc(serviceText(r)))+'</span><span class="lang-en">'+esc(serviceEn(r))+'</span></div>'+
       '<div class="cell time">'+(r.nextDay?'<span style="font-size:9px;color:#aaa;margin-right:4px">翌</span>':'')+esc(r.time)+'</div>'+
       '<div class="cell dest"><span class="lang-ja">'+esc(r.dest)+'</span><span class="lang-en">'+esc(stationEn(r.dest))+'</span></div>'+
       '<div class="cell platform">'+esc(platform(r))+'</div>'+
@@ -349,13 +358,16 @@ function updateTicker(){
   $('tick1').textContent=language==='ja'?ja:en;$('tick2').textContent=language==='ja'?ja:en
 }
 function applyLanguage(){
-  document.body.classList.toggle('lang-en',language==='en');
+  document.body.classList.toggle('show-en',displayPhase===2);
+  document.body.classList.toggle('phase-soon',displayPhase===1);
+  language=displayPhase===2?'en':'ja';
   updateTicker()
 }
 function tickClock(){
   var n=now();$('hm').textContent=n.hh+':'+n.mm;$('sec').textContent=':'+n.ss;
   var e=Math.floor((Date.now()-started)/1000)%SWITCH,remain=SWITCH-e;
-  $('count').textContent=remain+' sec / '+(language==='ja'?'日本語':'English');
+  var phaseLabel=displayPhase===2?'English':(displayPhase===1?'日本語 / まもなく':'日本語');
+  $('count').textContent=remain+' sec / '+phaseLabel;
   return n
 }
 function load(src){
@@ -393,10 +405,10 @@ async function boot(){
     }
   },1000);
   setInterval(function(){
-    language=language==='ja'?'en':'ja';
+    displayPhase=(displayPhase+1)%3;
     applyLanguage();
     tickClock();
-  },LANG_SWITCH*1000);
+  },PHASE_MS);
   setInterval(function(){
     direction=direction==='north'?'south':'north';
     started=Date.now();
