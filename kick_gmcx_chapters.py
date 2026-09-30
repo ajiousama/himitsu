@@ -2658,8 +2658,8 @@ def make_mixed_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict[str,
             # User playback check confirmed the old "unclassified" block
             # actually begins with episode #211 immediately after the 15-minute slot.
             211: 22416,
-            212: 25931,
-            213: 29400,
+            212: 25904,
+            213: 29367,
             214: 32915,
             215: 36462,
             216: 39945,
