@@ -2669,14 +2669,9 @@ def make_mixed_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict[str,
                 # accidentally count that whole gap as episode #210 itself.
                 regular_duration_map[ep] = FIXED_TEST_EPISODE_SECONDS
             elif ep == 216:
-                # Last regular episode runs to the physical end of this bundle
-                # after accounting for the specials inserted after #210.
-                regular_duration_map[ep] = (
-                    duration
-                    - provisional_starts[216]
-                    - (300 + 7200 + 900)
-                    - 6022
-                )
+                # provisional_starts are absolute offsets in the whole VOD, so
+                # the final episode simply runs from its detected start to EOF.
+                regular_duration_map[ep] = duration - provisional_starts[216]
             elif ep + 1 in provisional_starts:
                 regular_duration_map[ep] = provisional_starts[ep + 1] - provisional_starts[ep]
             else:
