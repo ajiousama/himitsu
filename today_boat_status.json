@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-30",
-  "generated_at": "2026-09-30T09:10:35.516922+09:00",
+  "generated_at": "2026-09-30T09:14:35.566085+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260930.json",
   "schedule_checked_at": "2026-09-30T09:09:35.614348+09:00",
@@ -54,7 +54,13 @@
   "cloud_acquisition": {
     "requested": 9,
     "fetched": 2,
-    "failures": [],
+    "failures": [
+      {
+        "jcd": "16",
+        "name": "児島",
+        "error": "HTTPError: playback check failed"
+      }
+    ],
     "deferred": [
       {
         "jcd": "02",
@@ -85,11 +91,6 @@
         "jcd": "09",
         "name": "津",
         "start": "2026-09-30T09:55:00+09:00"
-      },
-      {
-        "jcd": "16",
-        "name": "児島",
-        "start": "2026-09-30T09:15:00+09:00"
       }
     ]
   },
@@ -1042,8 +1043,7 @@
           "name": "予選"
         }
       ],
-      "provider_stream_start": "2026-09-30T09:15:00+09:00",
-      "source": "公式BR配信開始待ち 09:15"
+      "source": "automatic cloud SEED pending"
     },
     "boat.karatsu": {
       "jcd": "23",
