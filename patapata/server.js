@@ -37,6 +37,7 @@ function prepareWeb() {
 }
 
 const WEB = prepareWeb();
+const TEST_WEB = path.join(__dirname, 'test');
 const WIDTH = Number(process.env.PATAPATA_WIDTH || 1280);
 const HEIGHT = Number(process.env.PATAPATA_HEIGHT || 720);
 // Match the Python HLS renderer: ten real frames per second by default.
@@ -78,6 +79,29 @@ function serveStatic(req, res, pathname) {
       'Content-Type': MIME[ext] || 'application/octet-stream',
       'Content-Length': data.length,
       'Cache-Control': ext === '.json' || ext === '.js' ? 'no-cache' : 'public, max-age=300',
+      'Access-Control-Allow-Origin': '*'
+    });
+    if (req.method === 'HEAD') return res.end();
+    res.end(data);
+  });
+}
+
+
+function serveTestStatic(req, res, pathname) {
+  let rel = pathname.replace(/^\/test\/?/, '');
+  if (!rel || rel.endsWith('/')) rel += 'index.html';
+  let decoded;
+  try { decoded = decodeURIComponent(rel); } catch { return send(res, 400, 'bad path\n'); }
+  const full = path.resolve(TEST_WEB, decoded);
+  if (!full.startsWith(path.resolve(TEST_WEB) + path.sep)) return send(res, 403, 'forbidden\n');
+  fs.readFile(full, (err, data) => {
+    if (err) return send(res, err.code === 'ENOENT' ? 404 : 500, 'not found\n');
+    const ext = path.extname(full).toLowerCase();
+    res.writeHead(200, {
+      'Content-Type': MIME[ext] || 'application/octet-stream',
+      'Content-Length': data.length,
+      'Cache-Control': 'no-store, no-cache, must-revalidate',
+      'Pragma': 'no-cache',
       'Access-Control-Allow-Origin': '*'
     });
     if (req.method === 'HEAD') return res.end();
@@ -223,6 +247,11 @@ const server = http.createServer(async (req, res) => {
     res.writeHead(302, { Location: '/view/' });
     return res.end();
   }
+  if (url.pathname === '/test') {
+    res.writeHead(302, { Location: '/test/' });
+    return res.end();
+  }
+  if (url.pathname.startsWith('/test/')) return serveTestStatic(req, res, url.pathname);
   if (url.pathname.startsWith('/view/')) return serveStatic(req, res, url.pathname);
   return send(res, 404, 'not found\n');
 });
