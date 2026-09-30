@@ -21,6 +21,9 @@
   --dim:#9c9d93;
 }
 html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#00151b;color:#fff;font-family:"Yu Gothic UI","Meiryo",sans-serif}
+.lang-en{display:none!important}
+body.lang-en .lang-ja{display:none!important}
+body.lang-en .lang-en{display:inline!important}
 body:before{
   content:"";position:fixed;left:0;top:0;width:var(--safe);height:100vh;
   background:linear-gradient(180deg,#07303b 0%,#00151b 100%);opacity:.33
@@ -85,11 +88,12 @@ body:before{
 }
 .subtrack{
   position:absolute;left:0;top:0;display:flex;width:max-content;
-  animation:subscroll var(--dur,28s) linear infinite;will-change:transform
+  animation-name:subscroll;animation-duration:var(--dur,28s);animation-delay:var(--delay,0s);
+  animation-timing-function:linear;animation-iteration-count:infinite;will-change:transform
 }
-.subtrack span{padding-right:70px}
+.subtrack>span{display:inline-block;padding-right:90px}
 .subtrack .label{color:var(--amber)}
-@keyframes subscroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@keyframes subscroll{from{transform:translate3d(0,0,0)}to{transform:translate3d(-50%,0,0)}}
 
 #ticker{
   background:
@@ -138,12 +142,12 @@ body:before{
     <div id="topbar">
       <div class="side-arrow"><span id="leftArrow">←</span></div>
       <div class="next-title">
-        <div class="jp">今度の発車は</div>
-        <div class="en">Next Train</div>
+        <div class="jp lang-ja">今度の発車は</div>
+        <div class="en lang-en">Next Train</div>
       </div>
       <div class="mode-box">
-        <div class="mode-pill" id="modePill">今治方面</div>
-        <div class="mode-en" id="count">20 sec</div>
+        <div class="mode-pill" id="modePill"><span class="lang-ja">今治方面</span><span class="lang-en">for Imabari</span></div>
+        <div class="mode-en" id="count">20 sec / 日本語</div>
       </div>
     </div>
 
@@ -156,7 +160,7 @@ body:before{
 <script>
 (function(){
 'use strict';
-var SWITCH=20, MAX=7, direction='north', data=null, started=Date.now(), pageSignature='';
+var SWITCH=20, LANG_SWITCH=5, MAX=7, direction='north', language='ja', data=null, started=Date.now(), pageSignature='', currentRows=[];
 
 function $(id){return document.getElementById(id)}
 function pad(n){return String(n).padStart(2,'0')}
@@ -198,6 +202,57 @@ function serviceText(r){
   if(/^普通$/.test(s)) return '普通';
   return s
 }
+function stationEn(name){
+  var map={
+    '今治':'Imabari','壬生川':'Nyugawa','伊予西条':'Iyo-Saijo','新居浜':'Niihama',
+    '観音寺':'Kan-onji','丸亀':'Marugame','高松':'Takamatsu','岡山':'Okayama',
+    '岡山・高松':'Okayama / Takamatsu','伊予北条':'Iyo-Hojo','伊予市':'Iyo-shi',
+    '内子':'Uchiko','伊予大洲':'Iyo-Ozu','八幡浜':'Yawatahama','卯之町':'Unomachi',
+    '宇和島':'Uwajima','松山':'Matsuyama'
+  };
+  return map[name]||name;
+}
+function serviceEn(r){
+  var s=String(r.service||'普通');
+  if(/^普通$/.test(s)) return 'Local';
+  s=s.replace(/しおかぜ/g,'Shiokaze').replace(/いしづち/g,'Ishizuchi').replace(/宇和海/g,'Uwakai')
+     .replace(/伊予灘ものがたり/g,'Iyonada Monogatari').replace(/号/g,'');
+  if(r.kind==='limited') return 'Limited Express '+s;
+  if(r.kind==='sightseeing') return 'Sightseeing '+s;
+  return s;
+}
+function remarkEn(r){
+  var x=remark(r);
+  if(!x||x==='各駅停車') return '';
+  x=x.replace(/伊予長浜経由/g,'via Iyo-Nagahama').replace(/内子経由/g,'via Uchiko')
+     .replace(/いしづち(\d+)号/g,'coupled with Ishizuchi $1')
+     .replace(/しおかぜ(\d+)号/g,'coupled with Shiokaze $1');
+  return x;
+}
+function timedStopsEn(r){
+  var s=String(r.service||''),a=[];
+  if(/宇和海/.test(s))a=[['伊予市',14],['内子',43],['八幡浜',80],['卯之町',107],['宇和島',136]];
+  else if(/しおかぜ/.test(s))a=[['今治',37],['壬生川',58],['伊予西条',79],['新居浜',98],['丸亀',132],['高松',159],['岡山',185]];
+  else if(/いしづち/.test(s))a=[['今治',37],['壬生川',58],['伊予西条',79],['新居浜',98],['丸亀',132],['高松',159]];
+  return a.map(function(x){return stationEn(x[0])+' ('+add(r.time,x[1])+')'});
+}
+function terminalTextEn(r){
+  var a=terminals(r);return a.length?a.map(function(x){return stationEn(x[0])+' '+x[1]}).join(' / '):'—';
+}
+function detailEn(r){
+  var a=timedStopsEn(r),parts=[];
+  if(a.length) parts.push('Stops: '+a.join(' → '));
+  else{
+    parts.push('Local train');
+    if(/伊予長浜経由/.test(String(r.info||'')))parts.push('via Iyo-Nagahama');
+    else if(/内子経由/.test(String(r.info||'')))parts.push('via Uchiko');
+    if(r.dest)parts.push('Terminus: '+stationEn(r.dest));
+  }
+  var rem=remarkEn(r);if(rem)parts.push(rem);
+  var term=terminalTextEn(r);if(term!=='—')parts.push('Arrival '+term);
+  return parts.join('  ◆  ');
+}
+
 function terminals(r){
   var d=String(r.dest||''),s=String(r.service||''),i=String(r.info||''),t=r.time;
   if(/宇和海/.test(s))return[['宇和島',add(t,136)]];
@@ -251,31 +306,56 @@ function getRows(n){
 }
 function setModeText(){
   var north=direction==='north';
-  $('modePill').textContent=north?'今治方面':'宇和島方面';
+  $('modePill').innerHTML=north
+    ? '<span class="lang-ja">今治方面</span><span class="lang-en">for Imabari</span>'
+    : '<span class="lang-ja">宇和島方面</span><span class="lang-en">for Uwajima</span>';
   $('leftArrow').textContent=north?'→':'←'
 }
 function render(n){
   setModeText();
   var a=getRows(n),h=$('rows');
-  if(!a.length){h.innerHTML='<div class="empty">本日の表示対象列車はありません</div>';return}
+  currentRows=a;
+  if(!a.length){
+    h.innerHTML='<div class="empty"><span class="lang-ja">本日の表示対象列車はありません</span><span class="lang-en">No more trains are shown for today.</span></div>';
+    updateTicker();
+    return
+  }
   h.innerHTML=a.map(function(r,idx){
-    var d=detail(r),dur=Math.max(18,Math.min(48,Math.round(d.length*.25)));
+    var ja=detail(r),en=detailEn(r);
+    var dur=Math.max(18,Math.min(48,Math.round(Math.max(ja.length,en.length)*.25)));
     var delay=-(idx*2.15);
     var cls=r.kind==='limited'?'limited':'local';
     return '<div class="train"><div class="mainline">'+
-      '<div class="cell service '+cls+'">'+esc(serviceText(r))+'</div>'+
+      '<div class="cell service '+cls+'"><span class="lang-ja">'+esc(serviceText(r))+'</span><span class="lang-en">'+esc(serviceEn(r))+'</span></div>'+
       '<div class="cell time">'+(r.nextDay?'<span style="font-size:9px;color:#aaa;margin-right:4px">翌</span>':'')+esc(r.time)+'</div>'+
-      '<div class="cell dest">'+esc(r.dest)+'</div>'+
+      '<div class="cell dest"><span class="lang-ja">'+esc(r.dest)+'</span><span class="lang-en">'+esc(stationEn(r.dest))+'</span></div>'+
       '<div class="cell platform">'+esc(platform(r))+'</div>'+
-      '</div><div class="subline"><div class="subtrack" style="--dur:'+dur+'s;--delay:'+delay+'s"><span>'+esc(d)+'</span><span aria-hidden="true">'+esc(d)+'</span></div></div></div>'
+      '</div><div class="subline"><div class="subtrack" style="--dur:'+dur+'s;--delay:'+delay+'s">'+
+        '<span><span class="lang-ja">'+esc(ja)+'</span><span class="lang-en">'+esc(en)+'</span></span>'+
+        '<span aria-hidden="true"><span class="lang-ja">'+esc(ja)+'</span><span class="lang-en">'+esc(en)+'</span></span>'+
+      '</div></div></div>'
   }).join('');
-  var lead=a[0],msg='ご案内　'+lead.time+'発 '+serviceText(lead)+' '+lead.dest+'行　◆　'+detail(lead);
-  $('tick1').textContent=msg;$('tick2').textContent=msg
+  updateTicker()
+}
+function updateTicker(){
+  var lead=currentRows[0];
+  if(!lead){
+    var emptyJa='JR松山駅 発車案内',emptyEn='JR Matsuyama Departure Information';
+    $('tick1').textContent=language==='ja'?emptyJa:emptyEn;$('tick2').textContent=language==='ja'?emptyJa:emptyEn;
+    return
+  }
+  var ja='ご案内　'+lead.time+'発 '+serviceText(lead)+' '+lead.dest+'行　◆　'+detail(lead);
+  var en='Information  '+lead.time+'  '+serviceEn(lead)+' for '+stationEn(lead.dest)+'  ◆  '+detailEn(lead);
+  $('tick1').textContent=language==='ja'?ja:en;$('tick2').textContent=language==='ja'?ja:en
+}
+function applyLanguage(){
+  document.body.classList.toggle('lang-en',language==='en');
+  updateTicker()
 }
 function tickClock(){
   var n=now();$('hm').textContent=n.hh+':'+n.mm;$('sec').textContent=':'+n.ss;
   var e=Math.floor((Date.now()-started)/1000)%SWITCH,remain=SWITCH-e;
-  $('count').textContent=remain+' sec';
+  $('count').textContent=remain+' sec / '+(language==='ja'?'日本語':'English');
   return n
 }
 function load(src){
@@ -313,12 +393,19 @@ async function boot(){
     }
   },1000);
   setInterval(function(){
+    language=language==='ja'?'en':'ja';
+    applyLanguage();
+    tickClock();
+  },LANG_SWITCH*1000);
+  setInterval(function(){
     direction=direction==='north'?'south':'north';
     started=Date.now();
     var n=now();
     lastMinute=n.minutes;
     render(n);
+    applyLanguage();
   },SWITCH*1000);
+  applyLanguage();
   watch();setInterval(watch,10000)
 }
 boot();
