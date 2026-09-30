@@ -2104,6 +2104,97 @@ def _probe_oldest_range_audio_starts(url: str, total_duration: int, chapters: li
         "rows": rows,
     }
 
+
+def _probe_bottom_seekbar_flash(url: str, total_duration: int, chapters: list[dict], max_boundaries: int = 6) -> dict:
+    """Look for a one-frame player/timeline overlay at episode joins."""
+    analysis_url = _lowest_hls_variant(url)
+    episode_starts = [
+        (int(x.get("episode") or 0), int(x.get("start_seconds") or 0))
+        for x in chapters
+        if x.get("kind") == "episode" and int(x.get("start_seconds") or 0) > 0
+    ][:max_boundaries]
+    if not episode_starts:
+        return {"status": "skipped", "reason": "no_episode_boundaries"}
+
+    width, height = 96, 54
+    fps = 10
+    rows = []
+    for ep, center in episode_starts:
+        start = max(0, center - 3)
+        stop = min(int(total_duration), center + 3)
+        span = max(1, stop - start)
+        cmd = [
+            "ffmpeg", "-hide_banner", "-loglevel", "error",
+            "-rw_timeout", "15000000", "-ss", str(start), "-i", analysis_url,
+            "-t", str(span), "-an",
+            "-vf", f"fps={fps},scale={width}:{height}:flags=area,format=rgb24",
+            "-pix_fmt", "rgb24", "-f", "rawvideo", "pipe:1",
+        ]
+        try:
+            proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=60, check=False)
+        except (FileNotFoundError, subprocess.TimeoutExpired) as exc:
+            rows.append({"episode": ep, "expected_start": center, "reason": str(exc), "frames": []})
+            continue
+        if proc.returncode != 0:
+            rows.append({"episode": ep, "expected_start": center, "reason": "ffmpeg_failed", "frames": []})
+            continue
+
+        frame_size = width * height * 3
+        scored = []
+        for idx in range(len(proc.stdout) // frame_size):
+            frame = proc.stdout[idx * frame_size:(idx + 1) * frame_size]
+            best_run = 0
+            best_row_ratio = 0.0
+            bottom_from = int(height * 0.68)
+            for y in range(bottom_from, height):
+                run = 0
+                row_hits = 0
+                for x in range(width):
+                    off = (y * width + x) * 3
+                    r, g, b = frame[off], frame[off + 1], frame[off + 2]
+                    hi, lo = max(r, g, b), min(r, g, b)
+                    lum = (int(r) + int(g) + int(b)) / 3.0
+                    # Seek/timeline bars are usually long, bright and nearly neutral.
+                    hit = lum >= 115 and (hi - lo) <= 55
+                    if hit:
+                        row_hits += 1
+                        run += 1
+                        if run > best_run:
+                            best_run = run
+                    else:
+                        run = 0
+                best_row_ratio = max(best_row_ratio, row_hits / width)
+            run_ratio = best_run / width
+            score = run_ratio * 0.75 + best_row_ratio * 0.25
+            t = start + idx / fps
+            scored.append({
+                "time": round(t, 1),
+                "offset": round(t - center, 1),
+                "score": round(score, 4),
+                "longest_horizontal_ratio": round(run_ratio, 4),
+                "bright_row_ratio": round(best_row_ratio, 4),
+            })
+        scored.sort(key=lambda x: (-float(x["score"]), abs(float(x["offset"]))))
+        rows.append({
+            "episode": ep,
+            "expected_start": center,
+            "best": scored[0] if scored else None,
+            "top_frames": scored[:5],
+        })
+
+    good = [
+        x for x in rows
+        if x.get("best") and float((x.get("best") or {}).get("score") or 0) >= 0.45
+    ]
+    return {
+        "status": "diagnostic",
+        "method": "bottom-horizontal-seekbar-flash",
+        "fps": fps,
+        "boundaries_checked": len(rows),
+        "strong_candidates": len(good),
+        "rows": rows,
+    }
+
 def refine_with_titlecard(
     vod: dict,
     chapters: list[dict],
@@ -2704,10 +2795,15 @@ def main() -> int:
         known_op_probe = None
         global_op_probe = None
         oldest_range_probe = None
+        seekbar_probe = None
         hls_join_markers = None
         opening_sequence_probe = None
         packet_join_probe = None
         if status == "ready" and chapters:
+            if start_ep in {197, 207} and vod.get("source_url"):
+                seekbar_probe = _probe_bottom_seekbar_flash(
+                    str(vod.get("source_url")), duration, chapters, max_boundaries=6
+                )
             if start_ep == 207 and vod.get("source_url") and False:
                 oldest_range_probe = _probe_oldest_range_audio_starts(str(vod.get("source_url")), duration, chapters)
             if start_ep == 227 and vod.get("source_url"):
@@ -2748,6 +2844,7 @@ def main() -> int:
             "known_op_probe": known_op_probe if start_ep == 227 else None,
             "global_op_probe": global_op_probe if start_ep == 227 else None,
             "oldest_range_probe": oldest_range_probe if start_ep == 207 else None,
+            "seekbar_probe": seekbar_probe if start_ep in {197, 207} else None,
             "ai_windows": build_ai_windows(start_ep, end_ep, duration) if status == "ai_required" else [],
         })
 
