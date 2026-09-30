@@ -17,6 +17,7 @@ import io
 import json
 
 HERE = pathlib.Path(__file__).resolve().parent
+TEST_DIR = HERE / "test"
 PORT = int(os.environ.get("PORT", "8080"))
 HOST = "0.0.0.0"
 DISPLAY = os.environ.get("DISPLAY", ":99")
@@ -222,6 +223,24 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 self.send_error(404)
                 return
             self.send_bytes(200, target.read_bytes(), "video/mp2t")
+            return
+        if path in ("/test", "/test/"):
+            path = "/test/index.html"
+        if path.startswith("/test/"):
+            rel = path[len("/test/"):] or "index.html"
+            target = (TEST_DIR / rel).resolve()
+            root = TEST_DIR.resolve()
+            if target != root and root not in target.parents:
+                self.send_error(403)
+                return
+            if not target.is_file():
+                self.send_error(404)
+                return
+            data = target.read_bytes()
+            ctype = mimetypes.guess_type(target.name)[0] or "application/octet-stream"
+            if ctype.startswith("text/") or ctype in ("application/javascript", "application/json"):
+                ctype += "; charset=utf-8"
+            self.send_bytes(200, data, ctype, "no-store")
             return
         if path.startswith("/patapata/"):
             rel = path[len("/patapata/"):] or "index.html"
