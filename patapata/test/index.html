@@ -206,7 +206,7 @@ function remark(r){
 function serviceText(r){
   var s=String(r.service||'普通');
   if(r.kind==='limited'&&!/^特急/.test(s)) return '特急 '+s;
-  if(/^普通$/.test(s)) return '普通';
+  if(/^普通$/.test(s)) return '各駅停車';
   return s
 }
 function stationEn(name){
