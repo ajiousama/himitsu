@@ -2974,6 +2974,10 @@ def main() -> int:
                 seekbar_probe = _probe_bottom_seekbar_flash(
                     str(vod.get("source_url")), duration, chapters, max_boundaries=9, search_radius=120
                 )
+            if start_ep == 217 and vod.get("source_url"):
+                seekbar_probe = _probe_bottom_seekbar_flash(
+                    str(vod.get("source_url")), duration, chapters, max_boundaries=9, search_radius=120
+                )
             if start_ep == 207 and vod.get("source_url") and False:
                 oldest_range_probe = _probe_oldest_range_audio_starts(str(vod.get("source_url")), duration, chapters)
             if start_ep == 227 and vod.get("source_url"):
@@ -3014,7 +3018,7 @@ def main() -> int:
             "known_op_probe": known_op_probe if start_ep == 227 else None,
             "global_op_probe": global_op_probe if start_ep == 227 else None,
             "oldest_range_probe": oldest_range_probe if start_ep == 207 else None,
-            "seekbar_probe": seekbar_probe if start_ep in {197, 207} else None,
+            "seekbar_probe": seekbar_probe if start_ep in {197, 207, 217} else None,
             "ai_windows": build_ai_windows(start_ep, end_ep, duration) if status == "ai_required" else [],
         })
 
