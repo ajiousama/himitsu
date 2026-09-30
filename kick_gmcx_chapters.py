@@ -2701,6 +2701,7 @@ def make_mixed_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict[str,
         }
         regular_duration_map[217] = 3483
         regular_duration_map[218] = 3487
+        regular_duration_map[219] = 3476
         override_total = sum(
             int(EPISODE_DURATION_OVERRIDES.get(ep) or 0)
             for ep in range(start_ep, end_ep + 1)
