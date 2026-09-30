@@ -2105,8 +2105,14 @@ def _probe_oldest_range_audio_starts(url: str, total_duration: int, chapters: li
     }
 
 
-def _probe_bottom_seekbar_flash(url: str, total_duration: int, chapters: list[dict], max_boundaries: int = 6) -> dict:
-    """Look for a one-frame player/timeline overlay at episode joins."""
+def _probe_bottom_seekbar_flash(
+    url: str,
+    total_duration: int,
+    chapters: list[dict],
+    max_boundaries: int = 3,
+    search_radius: int = 90,
+) -> dict:
+    """Find the brief bottom seek/timeline overlay the user spotted at source-file joins."""
     analysis_url = _lowest_hls_variant(url)
     episode_starts = [
         (int(x.get("episode") or 0), int(x.get("start_seconds") or 0))
@@ -2117,11 +2123,36 @@ def _probe_bottom_seekbar_flash(url: str, total_duration: int, chapters: list[di
         return {"status": "skipped", "reason": "no_episode_boundaries"}
 
     width, height = 96, 54
-    fps = 10
+    fps = 5
     rows = []
+
+    def frame_bar_score(frame: bytes) -> tuple[float, float, float]:
+        best_run = 0
+        best_row_ratio = 0.0
+        bottom_from = int(height * 0.68)
+        for y in range(bottom_from, height):
+            run = 0
+            row_hits = 0
+            for x in range(width):
+                off = (y * width + x) * 3
+                r, g, b = frame[off], frame[off + 1], frame[off + 2]
+                hi, lo = max(r, g, b), min(r, g, b)
+                lum = (int(r) + int(g) + int(b)) / 3.0
+                hit = lum >= 115 and (hi - lo) <= 55
+                if hit:
+                    row_hits += 1
+                    run += 1
+                    best_run = max(best_run, run)
+                else:
+                    run = 0
+            best_row_ratio = max(best_row_ratio, row_hits / width)
+        run_ratio = best_run / width
+        raw = run_ratio * 0.75 + best_row_ratio * 0.25
+        return raw, run_ratio, best_row_ratio
+
     for ep, center in episode_starts:
-        start = max(0, center - 3)
-        stop = min(int(total_duration), center + 3)
+        start = max(0, center - int(search_radius))
+        stop = min(int(total_duration), center + int(search_radius))
         span = max(1, stop - start)
         cmd = [
             "ffmpeg", "-hide_banner", "-loglevel", "error",
@@ -2131,69 +2162,73 @@ def _probe_bottom_seekbar_flash(url: str, total_duration: int, chapters: list[di
             "-pix_fmt", "rgb24", "-f", "rawvideo", "pipe:1",
         ]
         try:
-            proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=60, check=False)
+            proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=120, check=False)
         except (FileNotFoundError, subprocess.TimeoutExpired) as exc:
-            rows.append({"episode": ep, "expected_start": center, "reason": str(exc), "frames": []})
+            rows.append({"episode": ep, "expected_start": center, "reason": str(exc), "top_frames": []})
             continue
         if proc.returncode != 0:
-            rows.append({"episode": ep, "expected_start": center, "reason": "ffmpeg_failed", "frames": []})
+            rows.append({"episode": ep, "expected_start": center, "reason": "ffmpeg_failed", "top_frames": []})
             continue
 
         frame_size = width * height * 3
-        scored = []
+        samples = []
         for idx in range(len(proc.stdout) // frame_size):
             frame = proc.stdout[idx * frame_size:(idx + 1) * frame_size]
-            best_run = 0
-            best_row_ratio = 0.0
-            bottom_from = int(height * 0.68)
-            for y in range(bottom_from, height):
-                run = 0
-                row_hits = 0
-                for x in range(width):
-                    off = (y * width + x) * 3
-                    r, g, b = frame[off], frame[off + 1], frame[off + 2]
-                    hi, lo = max(r, g, b), min(r, g, b)
-                    lum = (int(r) + int(g) + int(b)) / 3.0
-                    # Seek/timeline bars are usually long, bright and nearly neutral.
-                    hit = lum >= 115 and (hi - lo) <= 55
-                    if hit:
-                        row_hits += 1
-                        run += 1
-                        if run > best_run:
-                            best_run = run
-                    else:
-                        run = 0
-                best_row_ratio = max(best_row_ratio, row_hits / width)
-            run_ratio = best_run / width
-            score = run_ratio * 0.75 + best_row_ratio * 0.25
+            raw, run_ratio, row_ratio = frame_bar_score(frame)
+            samples.append((raw, run_ratio, row_ratio))
+
+        scored = []
+        baseline_radius = fps * 3
+        exclusion = fps
+        for idx, (raw, run_ratio, row_ratio) in enumerate(samples):
+            around = []
+            left = max(0, idx - baseline_radius)
+            right = min(len(samples), idx + baseline_radius + 1)
+            for j in range(left, right):
+                if abs(j - idx) <= exclusion:
+                    continue
+                around.append(samples[j][0])
+            baseline = statistics.median(around) if around else 0.0
+            flash_delta = max(0.0, raw - baseline)
+            rank = raw + 1.5 * flash_delta
             t = start + idx / fps
             scored.append({
                 "time": round(t, 1),
                 "offset": round(t - center, 1),
-                "score": round(score, 4),
+                "score": round(raw, 4),
+                "flash_delta": round(flash_delta, 4),
+                "rank": round(rank, 4),
                 "longest_horizontal_ratio": round(run_ratio, 4),
-                "bright_row_ratio": round(best_row_ratio, 4),
+                "bright_row_ratio": round(row_ratio, 4),
             })
-        scored.sort(key=lambda x: (-float(x["score"]), abs(float(x["offset"]))))
+
+        scored.sort(key=lambda x: (-float(x["rank"]), -float(x["flash_delta"]), abs(float(x["offset"]))))
+        top = []
+        for cand in scored:
+            if any(abs(float(cand["time"]) - float(x["time"])) < 2.0 for x in top):
+                continue
+            top.append(cand)
+            if len(top) >= 6:
+                break
+        best = top[0] if top else None
         rows.append({
             "episode": ep,
             "expected_start": center,
-            "best": scored[0] if scored else None,
-            "top_frames": scored[:5],
+            "window_start": start,
+            "window_stop": stop,
+            "best": best,
+            "top_frames": top,
         })
 
-    good = [
-        x for x in rows
-        if x.get("best") and float((x.get("best") or {}).get("score") or 0) >= 0.45
-    ]
     return {
         "status": "diagnostic",
-        "method": "bottom-horizontal-seekbar-flash",
+        "method": "bottom-seekbar-flash-wide-search",
         "fps": fps,
+        "search_radius_seconds": int(search_radius),
         "boundaries_checked": len(rows),
-        "strong_candidates": len(good),
         "rows": rows,
     }
+
 
 def refine_with_titlecard(
     vod: dict,
@@ -2800,9 +2835,13 @@ def main() -> int:
         opening_sequence_probe = None
         packet_join_probe = None
         if status == "ready" and chapters:
-            if start_ep in {197, 207} and vod.get("source_url"):
+            if start_ep == 197 and vod.get("source_url"):
                 seekbar_probe = _probe_bottom_seekbar_flash(
-                    str(vod.get("source_url")), duration, chapters, max_boundaries=6
+                    str(vod.get("source_url")), duration, chapters, max_boundaries=2, search_radius=90
+                )
+            if start_ep == 207 and vod.get("source_url"):
+                seekbar_probe = _probe_bottom_seekbar_flash(
+                    str(vod.get("source_url")), duration, chapters, max_boundaries=3, search_radius=90
                 )
             if start_ep == 207 and vod.get("source_url") and False:
                 oldest_range_probe = _probe_oldest_range_audio_starts(str(vod.get("source_url")), duration, chapters)
