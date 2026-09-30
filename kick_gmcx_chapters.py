@@ -262,6 +262,13 @@ KNOWN_SPECIALS: dict[tuple[int, int], list[dict]] = {
             "duration_seconds": None,
             "expected_broadcast_seconds": None,
         },
+        {
+            "key": "2016-game-on-special",
+            "title": "GMCX たまに行くならこんな GAME ON",
+            "after_episode": 216,
+            "duration_seconds": 6241,
+            "expected_broadcast_seconds": 6241,
+        },
     ],
     (217, 226): [
         {
@@ -2671,9 +2678,8 @@ def make_mixed_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict[str,
                 # accidentally count that whole gap as episode #210 itself.
                 regular_duration_map[ep] = FIXED_TEST_EPISODE_SECONDS
             elif ep == 216:
-                # provisional_starts are absolute offsets in the whole VOD, so
-                # the final episode simply runs from its detected start to EOF.
-                regular_duration_map[ep] = duration - provisional_starts[216]
+                # User playback check: #216 ends at 58:06 and GAME ON begins.
+                regular_duration_map[ep] = 3486
             elif ep + 1 in provisional_starts:
                 regular_duration_map[ep] = provisional_starts[ep + 1] - provisional_starts[ep]
             else:
