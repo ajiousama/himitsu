@@ -1948,11 +1948,19 @@ def _probe_global_op_logo_starts(url: str, total_duration: int, episode_count: i
                 candidates.append((round(fd, 4), -len(run), run_start, len(run)))
         return {"start": start, "stop": stop, "frames": len(frames), "candidates": candidates}
 
-    # Wide enough to catch inserted specials, but split into short HLS reads so seeking remains fast.
+    # First prove three episodes using chronology instead of equal division.
+    # #227 is user-confirmed at 0. Regular files are nominally 58:00; between
+    # #228 and #229 sits Pokemon special #5 (43:00), so #229's expected start
+    # is 2*58:00 + 43:00 = 9540s. Search only around those expected joins.
+    expected_starts = {
+        227: 0,
+        228: 3480,
+        229: 9540,
+    }
     search_ranges = {
         227: (0, 300),
-        228: (2500, 7000),
-        229: (6500, 12500),
+        228: (2780, 4180),
+        229: (8840, 10240),
     }
 
     def scan_episode(item: dict) -> dict:
@@ -1978,9 +1986,16 @@ def _probe_global_op_logo_starts(url: str, total_duration: int, episode_count: i
                 if prev is None or cand < prev:
                     merged[int(run_start)] = cand
 
-        logo_candidates = sorted(merged.values())
+        expected_start = int(expected_starts.get(ep, rough))
+        logo_candidates = sorted(
+            merged.values(),
+            key=lambda c: (
+                abs((int(c[2]) - logo_offset) - expected_start),
+                float(c[0]),
+                int(c[1]),
+            ),
+        )
         validation_rows = []
-        # Keep the exact known #227 start plus the strongest geometry candidates.
         if ep == 227:
             logo_candidates = [(0.0, -5, logo_offset, 5)] + logo_candidates
         unique_op_starts = []
@@ -1989,7 +2004,7 @@ def _probe_global_op_logo_starts(url: str, total_duration: int, episode_count: i
             if any(abs(op_start - x[0]) <= 4 for x in unique_op_starts):
                 continue
             unique_op_starts.append((op_start, fd, run_frames, logo_time))
-            if len(unique_op_starts) >= 10:
+            if len(unique_op_starts) >= 6:
                 break
 
         for op_start, fd, run_frames, logo_time in unique_op_starts:
@@ -1997,17 +2012,24 @@ def _probe_global_op_logo_starts(url: str, total_duration: int, episode_count: i
             validation_rows.append({
                 "logo_time": int(logo_time),
                 "op_start": int(op_start),
+                "expected_start": expected_start,
+                "distance_from_expected": int(op_start) - expected_start,
                 "feature_distance": fd,
                 "run_frames": int(run_frames),
                 **check,
             })
 
         valid = [x for x in validation_rows if x.get("validated")]
-        valid.sort(key=lambda x: (float(x.get("score") or 9999), float(x.get("feature_distance") or 9999)))
+        valid.sort(key=lambda x: (
+            abs(int(x.get("best_start") or x.get("op_start") or 0) - expected_start),
+            float(x.get("feature_distance") or 9999),
+            float(x.get("score") or 9999),
+        ))
         best = valid[0] if valid else None
         return {
             "episode": ep,
             "chapter_start": rough,
+            "expected_start": int(expected_starts.get(ep, rough)),
             "matched": best is not None,
             "scan_mode": "tiled-lowest-hls-plus-35s-template",
             "tile_count": len(tile_starts),
