@@ -43,7 +43,7 @@ FILELIST_CONFIRMED_RANGES = {
 }
 
 EPISODE_DURATION_OVERRIDES: dict[int, int] = {
-    226: 7200,  # in 四国 / 奇々怪界: official 2-hour special
+    226: 7232,  # playback-confirmed: content ends at 2:00:32; trailing 11:34 is silent
 }
 
 # Real-video boundary refinement. GMCX repeats a characteristic title/opening
