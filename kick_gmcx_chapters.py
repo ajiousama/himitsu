@@ -296,15 +296,15 @@ KNOWN_SPECIALS: dict[tuple[int, int], list[dict]] = {
             "key": "2016-pokemon-4",
             "title": "GMCX 特別篇 ポケットモンスター赤・緑 #4",
             "after_episode": 219,
-            "duration_seconds": 2100,
-            "expected_broadcast_seconds": 2100,
+            "duration_seconds": 2097,
+            "expected_broadcast_seconds": 2097,
         },
         {
             "key": "2016-pokemon-5",
             "title": "GMCX 特別篇 ポケットモンスター赤・緑 #5",
-            "after_episode": 226,
-            "duration_seconds": 2580,
-            "expected_broadcast_seconds": 2580,
+            "after_episode": 219,
+            "duration_seconds": 2501,
+            "expected_broadcast_seconds": 2501,
         },
         {
             "key": "2016-season20-unclassified-tail",
@@ -2642,6 +2642,69 @@ def make_exact_197_206_chapters(vod: dict, titles: dict[str, str]) -> list[dict]
     return chapters
 
 
+def make_exact_217_226_chapters(vod: dict, titles: dict[str, str]) -> list[dict]:
+    """Playback-confirmed #217-226 layout, including Pokémon #1-#5."""
+    duration = int(vod.get("duration_seconds") or 0)
+    vod_id = str(vod.get("vod_id") or "")
+    if duration < 49476 or not vod_id:
+        return []
+
+    layout = [
+        ("episode", 217, None, 3483, None),
+        ("episode", 218, None, 3487, None),
+        ("episode", 219, None, 3476, None),
+        ("special", None, "2016-pokemon-1", 1940, "GMCX 特別篇 ポケットモンスター赤・緑 #1"),
+        ("special", None, "2016-pokemon-2", 2220, "GMCX 特別篇 ポケットモンスター赤・緑 #2"),
+        ("special", None, "2016-pokemon-3", 2163, "GMCX 特別篇 ポケットモンスター赤・緑 #3"),
+        ("special", None, "2016-pokemon-4", 2097, "GMCX 特別篇 ポケットモンスター赤・緑 #4"),
+        ("special", None, "2016-pokemon-5", 2501, "GMCX 特別篇 ポケットモンスター赤・緑 #5"),
+        ("episode", 220, None, 3481, None),
+        ("episode", 221, None, 3473, None),
+        ("episode", 222, None, 3487, None),
+        ("episode", 223, None, 3477, None),
+        ("episode", 224, None, 3481, None),
+        ("episode", 225, None, 3478, None),
+        ("episode", 226, None, 7232, None),
+    ]
+
+    chapters = []
+    cursor = 0
+    for kind, ep, key, length, special_title in layout:
+        stop = cursor + int(length)
+        if stop > duration:
+            return []
+        if kind == "episode":
+            title = titles.get(str(ep), f"第{ep}回")
+            chapters.append({
+                "kind": "episode",
+                "episode": ep,
+                "title": title,
+                "start_seconds": cursor,
+                "stop_seconds": stop,
+                "duration_seconds": int(length),
+                "replay_url": clip_url(vod_id, cursor, int(length)),
+                "method": "user-playback-confirmed",
+                "confidence": "high",
+            })
+        else:
+            chapters.append({
+                "kind": "special",
+                "special_key": key,
+                "title": special_title,
+                "start_seconds": cursor,
+                "stop_seconds": stop,
+                "duration_seconds": int(length),
+                "expected_broadcast_seconds": int(length),
+                "replay_url": clip_url(vod_id, cursor, int(length)),
+                "method": "user-playback-confirmed",
+                "confidence": "high",
+            })
+        cursor = stop
+
+    # 49476-50170 is confirmed silent tail; intentionally omitted.
+    return chapters
+
+
 def make_mixed_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict[str, str]) -> list[dict]:
     count = end_ep - start_ep + 1
     duration = int(vod.get("duration_seconds") or 0)
@@ -2649,6 +2712,8 @@ def make_mixed_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict[str,
         return make_exact_177_196_chapters(vod, titles)
     if (start_ep, end_ep) == (197, 206):
         return make_exact_197_206_chapters(vod, titles)
+    if (start_ep, end_ep) == (217, 226):
+        return make_exact_217_226_chapters(vod, titles)
     episode_seconds = RANGE_EPISODE_SECONDS.get((start_ep, end_ep), REFERENCE_EPISODE_SECONDS)
     specs = [dict(x) for x in KNOWN_SPECIALS.get((start_ep, end_ep), [])]
 
