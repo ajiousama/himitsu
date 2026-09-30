@@ -2561,7 +2561,22 @@ def make_mixed_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict[str,
     specs = [dict(x) for x in KNOWN_SPECIALS.get((start_ep, end_ep), [])]
 
     regular_duration_map: dict[int, int] = {}
-    if (start_ep, end_ep) == (217, 226):
+    if (start_ep, end_ep) == (207, 216):
+        # Provisional boundaries from the brief source-player seekbar flash:
+        # #208 3539.4s, #209 7019.8s, #210 10510.0s.
+        # Keep later regular slots at 58:36 for now; the flexible block after
+        # #210 absorbs the difference so #211+ rough positions stay stable.
+        provisional_starts = {207: 0, 208: 3539, 209: 7020, 210: 10510}
+        regular_duration_map = {
+            207: provisional_starts[208] - provisional_starts[207],
+            208: provisional_starts[209] - provisional_starts[208],
+            209: provisional_starts[210] - provisional_starts[209],
+            210: FIXED_TEST_EPISODE_SECONDS,
+        }
+        for ep in range(211, 217):
+            regular_duration_map[ep] = FIXED_TEST_EPISODE_SECONDS
+        regular_total = sum(regular_duration_map.values())
+    elif (start_ep, end_ep) == (217, 226):
         # Provisional test: regular episodes only are 58:36.
         # Inserted Pokemon specials and the 2-hour #226 keep their own durations,
         # so later chapter starts shift naturally instead of staying on a flat cadence.
@@ -2679,7 +2694,11 @@ def make_mixed_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict[str,
             "stop_seconds": stop,
             "duration_seconds": clip_duration,
             "replay_url": clip_url(vod_id, cursor, clip_duration),
-            "method": "chronological-reference-cadence",
+            "method": (
+                "seekbar-flash-provisional"
+                if (start_ep, end_ep) == (207, 216) and ep in {207, 208, 209, 210}
+                else "chronological-reference-cadence"
+            ),
             "confidence": "high",
         })
         cursor = stop
@@ -2841,7 +2860,7 @@ def main() -> int:
                 )
             if start_ep == 207 and vod.get("source_url"):
                 seekbar_probe = _probe_bottom_seekbar_flash(
-                    str(vod.get("source_url")), duration, chapters, max_boundaries=3, search_radius=90
+                    str(vod.get("source_url")), duration, chapters, max_boundaries=9, search_radius=120
                 )
             if start_ep == 207 and vod.get("source_url") and False:
                 oldest_range_probe = _probe_oldest_range_audio_starts(str(vod.get("source_url")), duration, chapters)
