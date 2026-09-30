@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-01",
-  "generated_at": "2026-10-01T08:10:47.401398+09:00",
+  "generated_at": "2026-10-01T08:11:47.448135+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261001.json",
   "schedule_checked_at": "2026-10-01T07:59:47.397184+09:00",
@@ -19,7 +19,7 @@
   "alert_lead_minutes": 30,
   "card_count": 14,
   "held_count": 14,
-  "visible_count": 1,
+  "visible_count": 2,
   "active_count": 1,
   "ended_kept": [],
   "seed_required": false,
@@ -28,7 +28,7 @@
   "phase_counts": {
     "morning": {
       "held": 2,
-      "acquired": 1,
+      "acquired": 2,
       "active": 1,
       "ended": 0,
       "seed_required": 0,
@@ -53,7 +53,7 @@
   },
   "cloud_acquisition": {
     "requested": 5,
-    "fetched": 1,
+    "fetched": 2,
     "failures": [],
     "deferred": [
       {
@@ -70,11 +70,6 @@
         "jcd": "16",
         "name": "児島",
         "start": "2026-10-01T09:15:00+09:00"
-      },
-      {
-        "jcd": "23",
-        "name": "唐津",
-        "start": "2026-10-01T08:12:00+09:00"
       }
     ]
   },
@@ -91,13 +86,29 @@
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/4fca3272e3924918bda77ab3e854ddcb/5852e95941b6420fb5c0597d91289456/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MDk4NTYwMCwic3RhcnQiOjE3OTA4MDkyMDAsImlvcyI6MTgsImNwIjoiMjEzMDA0ODAwXzIxMzA0Nzk5OSIsInBwdyI6IjQwayJ9.Jux5GohZ3hAHEHuFGNqqgHJdfwBMpt8is7WIY-t6ySE",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-10-01T08:00:23.062813+09:00",
-      "checked_at": "2026-10-01T08:06:14.800696+09:00",
+      "checked_at": "2026-10-01T08:12:14.755664+09:00",
       "first_verified_at": "2026-10-01T08:00:23.062813+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
         "sequence": 8341914,
-        "last_segment": "/4fca3272e3924918bda77ab3e854ddcb/5852e95941b6420fb5c0597d91289456/manifest_1_8341975.ts",
+        "last_segment": "/4fca3272e3924918bda77ab3e854ddcb/5852e95941b6420fb5c0597d91289456/manifest_1_8342035.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
+    },
+    "boat.karatsu": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/4617d43c60d44cfb98aaa7a7897c28ef/9ccb2aac4a6249499296d30f0c743c05/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MDk4NTYwMCwic3RhcnQiOjE3OTA4MDk5MjAsImlvcyI6MTgsImNwIjoiMjEzMDA1NTIwXzIxMzA0ODcxOSIsInBwdyI6IjQwayJ9.-QftCjyBzbrecz_DI3zBAmveWBFclnXRzARZLave4Pc",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-10-01T08:12:14.756384+09:00",
+      "checked_at": "2026-10-01T08:12:14.756384+09:00",
+      "first_verified_at": "2026-10-01T08:12:14.756384+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 8322281,
+        "last_segment": "/4617d43c60d44cfb98aaa7a7897c28ef/9ccb2aac4a6249499296d30f0c743c05/manifest_4_8322283.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -1194,7 +1205,7 @@
       "jcd": "23",
       "name": "唐津",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
       "active": false,
       "cancelled": false,
@@ -1212,9 +1223,9 @@
       "guidance_switch_at": "2026-10-01T15:15:00+09:00",
       "seed_required": false,
       "reverify_due": false,
-      "playback_verified": false,
-      "first_verified_at": null,
-      "ready_before_first_race": false,
+      "playback_verified": true,
+      "first_verified_at": "2026-10-01T08:12:14.756384+09:00",
+      "ready_before_first_race": true,
       "acquire_from": "2026-10-01T06:17:00+09:00",
       "races": [
         {
@@ -1278,8 +1289,9 @@
           "name": "からっキー選抜"
         }
       ],
-      "provider_stream_start": "2026-10-01T08:12:00+09:00",
-      "source": "公式BR配信開始待ち 08:12"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/4617d43c60d44cfb98aaa7a7897c28ef/9ccb2aac4a6249499296d30f0c743c05/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MDk4NTYwMCwic3RhcnQiOjE3OTA4MDk5MjAsImlvcyI6MTgsImNwIjoiMjEzMDA1NTIwXzIxMzA0ODcxOSIsInBwdyI6IjQwayJ9.-QftCjyBzbrecz_DI3zBAmveWBFclnXRzARZLave4Pc",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     },
     "boat.omura": {
       "jcd": "24",
