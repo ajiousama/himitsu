@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>松山交通ダッシュボード TEST</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#00141a;color:#eafcff;font-family:"Yu Gothic UI","Meiryo",sans-serif}
+body:before{content:"";position:fixed;left:0;top:0;width:300px;height:100%;background:linear-gradient(#07303b,#00141a);opacity:.28}
+#app{position:fixed;left:311px;right:14px;top:64px;bottom:20px;border:1px solid #0d5661;background:#02171e;display:grid;grid-template-rows:92px 1fr 34px;box-shadow:0 0 0 1px rgba(0,255,230,.04) inset}
+header{display:grid;grid-template-columns:1.2fr .9fr 240px;align-items:center;padding:8px 14px;border-bottom:2px solid #10a99d;background:#031219}
+.kicker{font-size:10px;letter-spacing:1.5px;color:#ffb34b;font-weight:800}.title{display:flex;align-items:center;gap:16px}.title h1{margin:3px 0;font-size:34px;line-height:1}
+.dir{border:1px solid #36d1ef;border-radius:18px;padding:7px 20px;min-width:165px;text-align:center;background:#07303e;color:#76e1ff;font-weight:900}
+.meta{font-size:10px;color:#79cad6}.mid{text-align:center}.test{font-size:12px;color:#ff5d5d;font-weight:900;letter-spacing:2px}.source{margin-top:4px;font-size:11px;color:#7ef3e2;font-weight:800}.clock{text-align:right;font-family:Consolas,monospace;font-size:44px;font-weight:900}.date{font-size:11px;color:#ffbd57;font-family:"Yu Gothic UI","Meiryo",sans-serif}.clock small{font-size:22px;color:#b9dfe5}
+main{display:grid;grid-template-rows:36px 1fr;min-height:0}.head,.rowtop{display:grid;grid-template-columns:1.45fr .72fr 1.55fr .60fr 1.25fr 1.65fr}.head{align-items:center;text-align:center;color:#83d9e5;font-size:11px;font-weight:900;border-bottom:1px solid #0d4b55}.head div,.rowtop div{border-right:1px solid rgba(74,171,184,.10)}
+#rows{padding:7px 8px;display:flex;flex-direction:column;gap:5px;min-height:0}.row{flex:1 1 0;min-height:58px;max-height:80px;background:#06242c;border-left:4px solid #119cbd;border-top:1px solid #0a3942;border-bottom:1px solid #082d35;display:grid;grid-template-rows:38px 1fr;overflow:hidden}.row.limited{border-left-color:#ee8d2b}.cell{display:flex;align-items:center;min-width:0;padding:0 9px;overflow:hidden;white-space:nowrap}.svc{font-size:15px;font-weight:900}.limited .svc{color:#ffc45f}.tm{justify-content:center;font:900 22px Consolas,monospace;color:#ffd85c}.dest{font-size:18px;font-weight:900}.plat{justify-content:center;color:#b2ecf4;font-weight:800}.term{color:#7bf1db;font-size:13px;font-weight:800}.remark{font-size:11px;color:#b9d8dd}.detail{position:relative;overflow:hidden;border-top:1px solid rgba(255,255,255,.05);color:#8cdfff;font-size:10px;white-space:nowrap}.track{position:absolute;left:0;top:0;display:flex;width:max-content;line-height:20px;animation:scroll var(--dur,28s) linear infinite}.track span{padding-right:55px}@keyframes scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+footer{display:grid;grid-template-columns:1fr 120px;border-top:1px solid #0d4b55;background:#052129;min-width:0}.ticker{overflow:hidden;position:relative}.foottrack{display:flex;width:max-content;height:100%;align-items:center;animation:foot 24s linear infinite;color:#d7ac59;font-size:11px;font-weight:800}.foottrack span{padding-right:70px}@keyframes foot{from{transform:translateX(0)}to{transform:translateX(-50%)}}#count{display:flex;align-items:center;justify-content:center;border-left:1px solid #0d4b55;color:#76dff0;font-size:11px;font-weight:900}
+.empty{height:100%;display:flex;align-items:center;justify-content:center;font-size:28px;color:#7daab3;font-weight:900}
+</style>
+</head>
+<body>
+<div id="app">
+<header>
+  <div><div class="kicker">EHIME ・ MATSUYAMA ・ DEPARTURES</div><div class="title"><h1>JR 松山駅</h1><div id="dir" class="dir">今治方面</div></div><div class="meta">今治方面 ⇄ 宇和島方面　20秒切替</div></div>
+  <div class="mid"><div class="test">TEST / AUTO RELOAD</div><div id="source" class="source">データ読込中</div></div>
+  <div class="clock"><div id="date" class="date">----.--.--</div><span id="hm">--:--</span><small id="sec">:--</small></div>
+</header>
+<main>
+ <div class="head"><div>列車</div><div>発車</div><div>行先</div><div>番線</div><div>終点着</div><div>備考</div></div>
+ <div id="rows"></div>
+</main>
+<footer><div class="ticker"><div class="foottrack"><span id="foot1">JR松山駅 発車案内</span><span id="foot2">JR松山駅 発車案内</span></div></div><div id="count">次切替 20秒</div></footer>
+</div>
+<script>
+(function(){
+'use strict';
+var SWITCH=20, MAX=8, direction='north', data=null, started=Date.now(), initialHtml='';
+function $(id){return document.getElementById(id)}
+function pad(n){return String(n).padStart(2,'0')}
+function min(t){var m=String(t||'').match(/^(\d{1,2}):(\d{2})$/);return m?Number(m[1])*60+Number(m[2]):NaN}
+function add(t,d){var n=min(t);if(!Number.isFinite(n))return '';n=((n+d)%1440+1440)%1440;return pad(Math.floor(n/60))+':'+pad(n%60)}
+function now(){
+ var p={};new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Tokyo',year:'numeric',month:'2-digit',day:'2-digit',weekday:'short',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'}).formatToParts(new Date()).forEach(function(x){p[x.type]=x.value});
+ var iso=p.year+'-'+p.month+'-'+p.day;return{iso:iso,dow:new Date(iso+'T12:00:00+09:00').getDay(),minutes:Number(p.hour)*60+Number(p.minute),date:p.year+'.'+p.month+'.'+p.day+' '+p.weekday,hh:p.hour,mm:p.minute,ss:p.second}
+}
+function valid(r,n){if(r.start&&n.iso<r.start)return false;if(r.end&&n.iso>r.end)return false;if(Array.isArray(r.exclude)&&r.exclude.indexOf(n.iso)>=0)return false;if(Array.isArray(r.dates)&&r.dates.indexOf(n.iso)<0)return false;if(Array.isArray(r.days)&&r.days.indexOf(n.dow)<0)return false;return true}
+function et(r,n){return r.timeByDow&&Object.prototype.hasOwnProperty.call(r.timeByDow,String(n.dow))?r.timeByDow[String(n.dow)]:r.time}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function pr(r){var a=String(r.info||'').split('・').filter(Boolean),p='—';if(a.length&&/^\d+番$/.test(a[0]))p=a.shift();return{p:p,r:a.join('・')||'—'}}
+function terminals(r){var d=String(r.dest||''),s=String(r.service||''),i=String(r.info||''),t=r.time;if(/宇和海/.test(s))return[['宇和島',add(t,136)]];if(/しおかぜ/.test(s)&&/岡山・高松/.test(d))return[['高松',add(t,159)],['岡山',add(t,185)]];if(/いしづち/.test(s)&&/高松/.test(d))return[['高松',add(t,159)]];var n={'今治':37,'伊予西条':76,'観音寺':121,'高松':170,'伊予北条':26},q={'伊予市':19,'内子':49,'伊予大洲':/伊予長浜経由/.test(i)?102:83,'八幡浜':/伊予長浜経由/.test(i)?150:127,'宇和島':/伊予長浜経由/.test(i)?198:176},x=Object.prototype.hasOwnProperty.call(n,d)?n[d]:q[d];return Number.isFinite(x)?[[d,add(t,x)]]:[]}
+function term(r){var a=terminals(r);return a.length?a.map(function(x){return x[0]+' '+x[1]}).join(' / '):'—'}
+function detail(r){var s=String(r.service||''),a=[];if(/宇和海/.test(s))a=[['伊予市',14],['内子',43],['八幡浜',80],['卯之町',107],['宇和島',136]];else if(/しおかぜ/.test(s))a=[['今治',37],['壬生川',58],['伊予西条',79],['新居浜',98],['丸亀',132],['高松',159],['岡山',185]];if(a.length)return '停車駅：'+a.map(function(x){return x[0]+'('+add(r.time,x[1])+')'}).join(' → ')+' ◆ 終点着 '+term(r);var z=['各駅停車'],i=String(r.info||'');if(/伊予長浜経由/.test(i))z.push('愛ある伊予灘線経由');else if(/内子経由/.test(i))z.push('内子経由');z.push('終点 '+r.dest);if(term(r)!=='—')z.push('終点着 '+term(r));return z.join(' ◆ ')}
+function rows(n){if(!data||!Array.isArray(data.records))return[];return data.records.filter(function(r){return r.board==='rail'&&r.direction===direction&&valid(r,n)}).map(function(r){var x=Object.assign({},r);x.time=et(r,n);return x}).filter(function(r){return Number.isFinite(min(r.time))&&min(r.time)>=n.minutes-1}).sort(function(a,b){return min(a.time)-min(b.time)}).slice(0,MAX)}
+function render(n){$('dir').textContent=direction==='north'?'今治方面':'宇和島方面';var a=rows(n),h=$('rows');if(!a.length){h.innerHTML='<div class="empty">本日の表示対象列車はありません</div>';return}h.innerHTML=a.map(function(r){var x=pr(r),d=detail(r),dur=Math.max(22,Math.min(50,Math.round(d.length*.32))),lim=r.kind==='limited';return '<div class="row '+(lim?'limited':'')+'"><div class="rowtop"><div class="cell svc">'+esc((lim?'特急 ':'')+(r.service||'普通'))+'</div><div class="cell tm">'+esc(r.time)+'</div><div class="cell dest">'+esc(r.dest)+'行</div><div class="cell plat">'+esc(x.p)+'</div><div class="cell term">'+esc(term(r))+'</div><div class="cell remark">'+esc(x.r)+'</div></div><div class="detail"><div class="track" style="--dur:'+dur+'s"><span>'+esc(d)+'</span><span>'+esc(d)+'</span></div></div></div>'}).join('');var f='JR松山駅 '+(direction==='north'?'今治方面':'宇和島方面')+'　次列車 '+a[0].time+' '+(a[0].service||'普通')+' '+a[0].dest+'行　◆　'+detail(a[0]);$('foot1').textContent=f;$('foot2').textContent=f}
+function clock(){var n=now();$('date').textContent=n.date;$('hm').textContent=n.hh+':'+n.mm;$('sec').textContent=':'+n.ss;var e=Math.floor((Date.now()-started)/1000)%SWITCH;$('count').textContent='次切替 '+(SWITCH-e)+'秒';return n}
+function load(src){return new Promise(function(ok,ng){var s=document.createElement('script'),tm=setTimeout(function(){ng(new Error('timeout'))},5000);s.src=src+(src.indexOf('?')>=0?'&':'?')+'t='+Date.now();s.onload=function(){clearTimeout(tm);ok()};s.onerror=function(){clearTimeout(tm);ng(new Error('load'))};document.head.appendChild(s)})}
+async function watch(){try{var r=await fetch('/test/?watch='+Date.now(),{cache:'no-store'}),b=await r.text();if(!initialHtml){initialHtml=b;return}if(b&&b!==initialHtml)location.reload()}catch(e){}}
+async function boot(){try{delete window.MATSUYAMA_DATA;await load('/view/schedule.js');data=window.MATSUYAMA_DATA;if(!data||!Array.isArray(data.records))throw new Error('bad');$('source').textContent='R14実データ / GitHub→Railway同期'}catch(e){$('source').textContent='時刻表データ読込失敗';data={records:[]}}render(clock());setInterval(function(){render(clock())},1000);setInterval(function(){direction=direction==='north'?'south':'north';started=Date.now();render(now())},SWITCH*1000);watch();setInterval(watch,10000)}
+boot();
+})();
+</script>
+</body>
+</html>
