@@ -2655,12 +2655,14 @@ def make_mixed_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict[str,
             208: 3539,
             209: 7020,
             210: 10500,
-            211: 28443,
-            212: 31953,
-            213: 35422,
-            214: 38937,
-            215: 42484,
-            216: 45967,
+            # User playback check confirmed the old "unclassified" block
+            # actually begins with episode #211 immediately after the 15-minute slot.
+            211: 22416,
+            212: 25931,
+            213: 29400,
+            214: 32915,
+            215: 36462,
+            216: 39945,
         }
         regular_duration_map = {}
         for ep in range(207, 217):
@@ -2677,16 +2679,9 @@ def make_mixed_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict[str,
             else:
                 regular_duration_map[ep] = FIXED_TEST_EPISODE_SECONDS
 
-        # #210 is followed by fixed 5m / 2h / 15m blocks plus one unknown block.
-        # Size that unknown block so the next seekbar-confirmed #211 starts at 28438.
+        # #210 is followed by fixed 5m / 2h / 15m blocks, then #211 starts.
         fixed_after_210 = 300 + 7200 + 900
-        unknown_after_210 = (
-            provisional_starts[211]
-            - (provisional_starts[210] + regular_duration_map[210] + fixed_after_210)
-        )
-        for spec in specs:
-            if spec.get("key") == "2015-season19-unclassified-extra":
-                spec["duration_seconds"] = max(0, int(unknown_after_210))
+        specs = [x for x in specs if x.get("key") != "2015-season19-unclassified-extra"]
         regular_total = sum(regular_duration_map.values())
     elif (start_ep, end_ep) == (217, 226):
         # Provisional test: regular episodes only are 58:36.
