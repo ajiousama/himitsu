@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-30",
-  "generated_at": "2026-09-30T14:09:36.339289+09:00",
+  "generated_at": "2026-09-30T14:10:36.139929+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260930.json",
   "schedule_checked_at": "2026-09-30T14:02:36.138652+09:00",
@@ -19,7 +19,7 @@
   "alert_lead_minutes": 30,
   "card_count": 12,
   "held_count": 12,
-  "visible_count": 10,
+  "visible_count": 11,
   "active_count": 9,
   "ended_kept": [],
   "seed_required": false,
@@ -44,7 +44,7 @@
     },
     "night": {
       "held": 3,
-      "acquired": 1,
+      "acquired": 2,
       "active": 0,
       "ended": 0,
       "seed_required": 0,
@@ -53,14 +53,8 @@
   },
   "cloud_acquisition": {
     "requested": 11,
-    "fetched": 10,
-    "failures": [
-      {
-        "jcd": "07",
-        "name": "蒲郡",
-        "error": "HTTPError: playback check failed"
-      }
-    ],
+    "fetched": 11,
+    "failures": [],
     "deferred": []
   },
   "epg_programmes_written": {
@@ -147,6 +141,22 @@
         "ok": true,
         "sequence": 8329558,
         "last_segment": "/b954be37a92846b0a575ebb2338ac26b/6c58c7387d904840a8a802f5ec9b379d/manifest_1_8331638.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
+    },
+    "boat.gamagori": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/6a1d83c5dd4f482cba7ff518cf295516/412f47be5c184896a2238efcbe37a5e0/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MDkyMDgwMCwic3RhcnQiOjE3OTA3NDUwMDAsImlvcyI6MTgsImNwIjoiMjEyOTQwNjAwXzIxMjk4MzE5OSIsInBwdyI6IjQwayJ9.QCbgKiDmUgfSIemVG7Mf1-iQjCjNh_UMCGNi36AVoHY",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-09-30T14:11:03.247973+09:00",
+      "checked_at": "2026-09-30T14:11:03.247973+09:00",
+      "first_verified_at": "2026-09-30T14:11:03.247973+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 8307506,
+        "last_segment": "/6a1d83c5dd4f482cba7ff518cf295516/412f47be5c184896a2238efcbe37a5e0/manifest_4_8307516.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -698,7 +708,7 @@
       "jcd": "07",
       "name": "蒲郡",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
       "active": false,
       "cancelled": false,
@@ -716,9 +726,9 @@
       "guidance_switch_at": "2026-09-30T21:30:00+09:00",
       "seed_required": false,
       "reverify_due": false,
-      "playback_verified": false,
-      "first_verified_at": null,
-      "ready_before_first_race": false,
+      "playback_verified": true,
+      "first_verified_at": "2026-09-30T14:11:03.247973+09:00",
+      "ready_before_first_race": true,
       "acquire_from": "2026-09-30T12:55:00+09:00",
       "races": [
         {
@@ -782,7 +792,9 @@
           "name": "予選記者特選"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/6a1d83c5dd4f482cba7ff518cf295516/412f47be5c184896a2238efcbe37a5e0/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MDkyMDgwMCwic3RhcnQiOjE3OTA3NDUwMDAsImlvcyI6MTgsImNwIjoiMjEyOTQwNjAwXzIxMjk4MzE5OSIsInBwdyI6IjQwayJ9.QCbgKiDmUgfSIemVG7Mf1-iQjCjNh_UMCGNi36AVoHY",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     },
     "boat.tsu": {
       "jcd": "09",
@@ -889,10 +901,7 @@
       "first_race": "08:32",
       "last_race": "14:10",
       "alert_from": "2026-09-30T08:02:00+09:00",
-      "next_race": {
-        "race": 12,
-        "start": "14:10"
-      },
+      "next_race": null,
       "stream_window": "live_or_prestart",
       "intermission": null,
       "guidance_switch_at": "2026-09-30T14:55:00+09:00",
