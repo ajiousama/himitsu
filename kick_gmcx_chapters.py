@@ -2112,11 +2112,8 @@ def _probe_bottom_seekbar_flash(
     max_boundaries: int = 3,
     search_radius: int = 90,
 ) -> dict:
-    """Match the embedded source-player seekbar UI, not just any horizontal game graphic."""
+    """Find the transient source-player seekbar by its brief bottom-screen appearance."""
     analysis_url = _lowest_hls_variant(url)
-    calibration_url = _lowest_hls_variant(
-        "https://stream.kick.com/0f3cb0ebce7/ivs/v1/196233775518/59bB9isG3qqM/2026/9/24/0/58/aI3eXlu4kM3z/media/hls/master.m3u8"
-    )
     episode_starts = [
         (int(x.get("episode") or 0), int(x.get("start_seconds") or 0))
         for x in chapters
@@ -2125,12 +2122,13 @@ def _probe_bottom_seekbar_flash(
     if not episode_starts:
         return {"status": "skipped", "reason": "no_episode_boundaries"}
 
-    width, height = 96, 54
+    width, height = 128, 72
     fps = 5
     frame_size = width * height * 3
-    bottom_from = int(height * 0.80)
+    y0 = int(height * 0.82)
+    side_w = int(width * 0.18)
 
-    def decode(source: str, start: float, stop: float, timeout: int = 120) -> list[tuple[float, bytes]]:
+    def decode(source: str, start: float, stop: float, timeout: int = 140) -> list[tuple[float, bytes]]:
         span = max(1.0, float(stop) - float(start))
         cmd = [
             "ffmpeg", "-hide_banner", "-loglevel", "error",
@@ -2145,91 +2143,63 @@ def _probe_bottom_seekbar_flash(
             return []
         if proc.returncode != 0:
             return []
-        out = []
         raw = proc.stdout
-        for idx in range(len(raw) // frame_size):
-            out.append((float(start) + idx / fps, raw[idx * frame_size:(idx + 1) * frame_size]))
-        return out
+        return [
+            (float(start) + idx / fps, raw[idx * frame_size:(idx + 1) * frame_size])
+            for idx in range(len(raw) // frame_size)
+        ]
 
-    def ui_mask(frame: bytes) -> set[int]:
-        mask = set()
-        for y in range(bottom_from, height):
-            for x in range(width):
-                off = (y * width + x) * 3
-                r, g, b = frame[off], frame[off + 1], frame[off + 2]
-                hi, lo = max(r, g, b), min(r, g, b)
-                lum = (int(r) + int(g) + int(b)) / 3.0
-                neutral = lum >= 105 and (hi - lo) <= 60
-                warm_bar = int(r) >= 95 and int(r) >= int(g) * 1.18 and int(r) >= int(b) * 1.18
-                if neutral or warm_bar:
-                    mask.add((y - bottom_from) * width + x)
-        return mask
-
-    def coarse_line_score(frame: bytes) -> float:
-        best_run = 0
-        best_ratio = 0.0
-        for y in range(bottom_from, height):
+    def bottom_features(frame: bytes) -> tuple[float, float]:
+        # Thin warm/red progress line plus tiny pale time labels at both edges.
+        best_warm_run = 0
+        best_warm_ratio = 0.0
+        left_bright = 0
+        right_bright = 0
+        side_total = max(1, (height - y0) * side_w)
+        for y in range(y0, height):
             run = 0
             hits = 0
             for x in range(width):
                 off = (y * width + x) * 3
                 r, g, b = frame[off], frame[off + 1], frame[off + 2]
-                hi, lo = max(r, g, b), min(r, g, b)
-                lum = (int(r) + int(g) + int(b)) / 3.0
-                hit = (lum >= 105 and (hi - lo) <= 60) or (
-                    int(r) >= 95 and int(r) >= int(g) * 1.18 and int(r) >= int(b) * 1.18
-                )
-                if hit:
+                warm = int(r) >= 85 and int(r) >= int(g) * 1.18 and int(r) >= int(b) * 1.18
+                if warm:
                     hits += 1
                     run += 1
-                    best_run = max(best_run, run)
+                    best_warm_run = max(best_warm_run, run)
                 else:
                     run = 0
-            best_ratio = max(best_ratio, hits / width)
-        return (best_run / width) * 0.75 + best_ratio * 0.25
+                hi, lo = max(r, g, b), min(r, g, b)
+                pale = ((int(r) + int(g) + int(b)) / 3.0) >= 145 and (hi - lo) <= 55
+                if pale and x < side_w:
+                    left_bright += 1
+                elif pale and x >= width - side_w:
+                    right_bright += 1
+            best_warm_ratio = max(best_warm_ratio, hits / width)
+        warm_score = max(best_warm_run / width, best_warm_ratio)
+        side_text = min(left_bright / side_total, right_bright / side_total)
+        return warm_score, side_text
 
-    # Learn the actual seekbar mask from screenshot-confirmed #197-206 joins.
-    calibration_centers = [3514, 6994, 16414, 19894]
-    calibration_masks = []
-    calibration_rows = []
-    for center in calibration_centers:
-        frames = decode(calibration_url, center - 4, center + 4, timeout=70)
-        if not frames:
-            continue
-        scored = sorted(
-            ((coarse_line_score(frame), t, frame) for t, frame in frames),
-            key=lambda x: (-x[0], abs(x[1] - center)),
-        )
-        score, t, frame = scored[0]
-        calibration_masks.append(ui_mask(frame))
-        calibration_rows.append({"expected": center, "template_time": round(t, 1), "coarse_score": round(score, 4)})
-
-    if len(calibration_masks) < 2:
-        return {
-            "status": "skipped",
-            "reason": "seekbar_template_unavailable",
-            "calibration": calibration_rows,
-        }
-
-    counts = {}
-    for mask in calibration_masks:
-        for p in mask:
-            counts[p] = counts.get(p, 0) + 1
-    threshold = max(2, (len(calibration_masks) + 1) // 2)
-    template_mask = {p for p, count in counts.items() if count >= threshold}
-    if len(template_mask) < 12:
-        return {
-            "status": "skipped",
-            "reason": "seekbar_template_too_small",
-            "template_pixels": len(template_mask),
-            "calibration": calibration_rows,
-        }
+    def bottom_delta(a: bytes, b: bytes) -> float:
+        total = 0
+        count = 0
+        for y in range(y0, height):
+            for x in range(width):
+                off = (y * width + x) * 3
+                total += (
+                    abs(int(a[off]) - int(b[off]))
+                    + abs(int(a[off + 1]) - int(b[off + 1]))
+                    + abs(int(a[off + 2]) - int(b[off + 2]))
+                )
+                count += 3
+        return (total / max(1, count)) / 255.0
 
     rows = []
+    gap = int(1.6 * fps)
     for ep, center in episode_starts:
         start = max(0, center - int(search_radius))
         stop = min(int(total_duration), center + int(search_radius))
-        frames = decode(analysis_url, start, stop, timeout=140)
+        frames = decode(analysis_url, start, stop)
         if not frames:
             rows.append({
                 "episode": ep, "expected_start": center,
@@ -2238,35 +2208,34 @@ def _probe_bottom_seekbar_flash(
             })
             continue
 
-        raw_scores = []
-        for t, frame in frames:
-            mask = ui_mask(frame)
-            intersection = len(template_mask & mask)
-            recall = intersection / max(1, len(template_mask))
-            union = len(template_mask | mask)
-            jaccard = intersection / max(1, union)
-            line_score = coarse_line_score(frame)
-            # Recall of the stable player UI is primary; a line score alone
-            # cannot win because game graphics often contain long bright rows.
-            score = recall * 0.68 + jaccard * 0.22 + line_score * 0.10
-            raw_scores.append((score, recall, jaccard, line_score, t))
+        scored = []
+        for idx, (t, frame) in enumerate(frames):
+            if idx < gap or idx + gap >= len(frames):
+                continue
+            warm, side_text = bottom_features(frame)
+            dprev = bottom_delta(frame, frames[idx - gap][1])
+            dnext = bottom_delta(frame, frames[idx + gap][1])
+            # A true brief overlay differs from BOTH its earlier and later
+            # neighbours. A normal scene cut usually differs strongly on only one side.
+            transient = min(dprev, dnext)
+            rank = transient * 2.2 + warm * 0.9 + side_text * 0.8
+            scored.append((rank, transient, warm, side_text, t))
 
-        ranked = sorted(raw_scores, key=lambda x: (-x[0], -x[1], abs(x[4] - center)))
+        scored.sort(key=lambda x: (-x[0], -x[1], abs(x[4] - center)))
         top = []
-        for score, recall, jaccard, line_score, t in ranked:
+        for rank, transient, warm, side_text, t in scored:
             if any(abs(t - float(x["time"])) < 2.0 for x in top):
                 continue
             top.append({
                 "time": round(t, 1),
                 "offset": round(t - center, 1),
-                "template_score": round(score, 4),
-                "template_recall": round(recall, 4),
-                "template_jaccard": round(jaccard, 4),
-                "line_score": round(line_score, 4),
+                "rank": round(rank, 4),
+                "transient_delta": round(transient, 4),
+                "warm_line_score": round(warm, 4),
+                "side_time_score": round(side_text, 4),
             })
             if len(top) >= 6:
                 break
-
         rows.append({
             "episode": ep,
             "expected_start": center,
@@ -2278,11 +2247,9 @@ def _probe_bottom_seekbar_flash(
 
     return {
         "status": "diagnostic",
-        "method": "source-player-seekbar-template-match",
+        "method": "transient-bottom-seekbar-flash",
         "fps": fps,
         "search_radius_seconds": int(search_radius),
-        "template_pixels": len(template_mask),
-        "calibration": calibration_rows,
         "boundaries_checked": len(rows),
         "rows": rows,
     }
