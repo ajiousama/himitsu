@@ -2961,6 +2961,21 @@ def main() -> int:
         opening_sequence_probe = None
         packet_join_probe = None
         if status == "ready" and chapters:
+            if start_ep == 207 and vod.get("source_url"):
+                # #211 is known from playback testing to be somewhere between the
+                # end of the 15-minute special and the old provisional 28443 mark.
+                # Probe the entire disputed region in overlapping 10-minute windows
+                # instead of trusting a single guessed boundary.
+                wide_probe_chapters = [
+                    {"kind": "episode", "episode": 211000 + i, "start_seconds": t}
+                    for i, t in enumerate(range(23000, 28401, 600))
+                ]
+                wide_211_probe = _probe_bottom_seekbar_flash(
+                    str(vod.get("source_url")), duration, wide_probe_chapters,
+                    max_boundaries=len(wide_probe_chapters), search_radius=360
+                )
+            else:
+                wide_211_probe = None
             if start_ep == 197 and vod.get("source_url"):
                 seekbar_probe = _probe_bottom_seekbar_flash(
                     str(vod.get("source_url")), duration, chapters, max_boundaries=2, search_radius=90
@@ -3014,6 +3029,7 @@ def main() -> int:
             "global_op_probe": global_op_probe if start_ep == 227 else None,
             "oldest_range_probe": oldest_range_probe if start_ep == 207 else None,
             "seekbar_probe": seekbar_probe if start_ep in {197, 207, 217} else None,
+            "wide_211_probe": wide_211_probe if start_ep == 207 else None,
             "ai_windows": build_ai_windows(start_ep, end_ep, duration) if status == "ai_required" else [],
         })
 
