@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-30T09:38:41.322320+09:00",
+  "generated_at": "2026-09-30T11:05:24.464877+09:00",
   "reference_episode_seconds": 3501,
   "results": [
     {
@@ -256,176 +256,9 @@
         }
       ],
       "titlecard_refinement": {
-        "status": "no_consensus",
-        "method": "recurring-title-logo",
-        "boundary_version": 38,
-        "reason": "title_logo_coverage_below_80_percent",
-        "reference": {
-          "reason": "ok",
-          "title_time": 31,
-          "offset_seconds": 31,
-          "run_frames": 5,
-          "width_ratio": 0.5938,
-          "height_ratio": 0.25,
-          "aspect": 4.222,
-          "center_x": 0.4922,
-          "center_y": 0.4167,
-          "yellow_fill": 0.3655,
-          "source": "episode-opening-title-logo",
-          "anchor_episode": 227,
-          "opening_offset_seconds": 31
-        },
-        "opening_offset_seconds": 31,
-        "detected_regular_boundaries": 3,
-        "expected_regular_boundaries": 10,
-        "coverage": 0.3,
-        "matches": [
-          {
-            "index": 0,
-            "title": "第227回",
-            "matched": true,
-            "method": "recurring-title-logo",
-            "original": 0,
-            "logo_time": 31,
-            "refined": 0,
-            "shift_seconds": 0,
-            "detail": {
-              "reason": "ok",
-              "run_frames": 5,
-              "expected_title_time": 31,
-              "distance_from_expected": 0,
-              "feature_distance": 0.0,
-              "bbox_width": 38,
-              "bbox_height": 9,
-              "width_ratio": 0.5938,
-              "height_ratio": 0.25,
-              "aspect": 4.222,
-              "center_x": 0.4922,
-              "center_y": 0.4167,
-              "yellow_fill": 0.3655
-            }
-          },
-          {
-            "index": 1,
-            "title": "第228回",
-            "matched": false,
-            "original": 4462,
-            "reason": "no_matching_vod_title_logo",
-            "detail": {
-              "reason": "no_matching_vod_title_logo"
-            }
-          },
-          {
-            "index": 2,
-            "title": "第229回",
-            "matched": false,
-            "original": 8924,
-            "reason": "no_matching_vod_title_logo",
-            "detail": {
-              "reason": "no_matching_vod_title_logo"
-            }
-          },
-          {
-            "index": 3,
-            "title": "第230回",
-            "matched": false,
-            "original": 13386,
-            "reason": "no_matching_vod_title_logo",
-            "detail": {
-              "reason": "no_matching_vod_title_logo"
-            }
-          },
-          {
-            "index": 4,
-            "title": "第231回",
-            "matched": false,
-            "original": 17848,
-            "reason": "no_matching_vod_title_logo",
-            "detail": {
-              "reason": "no_matching_vod_title_logo"
-            }
-          },
-          {
-            "index": 5,
-            "title": "第232回",
-            "matched": false,
-            "original": 22310,
-            "reason": "no_matching_vod_title_logo",
-            "detail": {
-              "reason": "no_matching_vod_title_logo"
-            }
-          },
-          {
-            "index": 6,
-            "title": "第233回",
-            "matched": true,
-            "method": "recurring-title-logo",
-            "original": 26771,
-            "logo_time": 26775,
-            "refined": 26744,
-            "shift_seconds": -27,
-            "detail": {
-              "reason": "ok",
-              "run_frames": 3,
-              "expected_title_time": 26802,
-              "distance_from_expected": -27,
-              "feature_distance": 0.3117,
-              "bbox_width": 36,
-              "bbox_height": 6,
-              "width_ratio": 0.5625,
-              "height_ratio": 0.1667,
-              "aspect": 6.0,
-              "center_x": 0.4766,
-              "center_y": 0.375,
-              "yellow_fill": 0.1852
-            }
-          },
-          {
-            "index": 7,
-            "title": "第234回",
-            "matched": false,
-            "original": 31233,
-            "reason": "no_matching_vod_title_logo",
-            "detail": {
-              "reason": "no_matching_vod_title_logo"
-            }
-          },
-          {
-            "index": 8,
-            "title": "第235回",
-            "matched": false,
-            "original": 35695,
-            "reason": "no_matching_vod_title_logo",
-            "detail": {
-              "reason": "no_matching_vod_title_logo"
-            }
-          },
-          {
-            "index": 9,
-            "title": "第236回",
-            "matched": true,
-            "method": "recurring-title-logo",
-            "original": 40157,
-            "logo_time": 40194,
-            "refined": 40163,
-            "shift_seconds": 6,
-            "detail": {
-              "reason": "ok",
-              "run_frames": 2,
-              "expected_title_time": 40188,
-              "distance_from_expected": 6,
-              "feature_distance": 0.4785,
-              "bbox_width": 44,
-              "bbox_height": 15,
-              "width_ratio": 0.6875,
-              "height_ratio": 0.4167,
-              "aspect": 2.933,
-              "center_x": 0.4922,
-              "center_y": 0.6111,
-              "yellow_fill": 0.2258
-            }
-          }
-        ]
+        "status": "skipped",
+        "reason": "season20-exact-op-diagnostic",
+        "boundary_version": 38
       },
       "hls_join_markers": null,
       "packet_join_probe": null,
@@ -467,80 +300,214 @@
       },
       "global_op_probe": {
         "status": "diagnostic",
-        "method": "wide-local-op-logo-scan",
+        "method": "tiled-logo-plus-user-confirmed-35s-template",
         "template_logo_offset": 31,
-        "matched": 3,
         "episode_count": 3,
         "rows": [
           {
             "episode": 227,
             "chapter_start": 0,
-            "search_center": 0,
-            "matched": true,
+            "matched": false,
+            "scan_mode": "tiled-lowest-hls-plus-35s-template",
+            "tile_count": 2,
             "window_start": 0,
-            "window_stop": 90,
-            "logo_time": 31,
-            "op_start": 0,
-            "shift_seconds": 0,
-            "feature_distance": 0.0238,
-            "run_frames": 5,
-            "distance_from_estimated_logo": 0,
-            "detected_logo_frames": 21
+            "window_stop": 300,
+            "detected_logo_frames": 38,
+            "candidate_count": 5,
+            "best": null,
+            "candidates": []
           },
           {
             "episode": 228,
             "chapter_start": 4462,
-            "search_center": 4724,
             "matched": true,
-            "window_start": 4484,
-            "window_stop": 4964,
-            "logo_time": 4753,
-            "op_start": 4722,
-            "shift_seconds": 260,
-            "feature_distance": 0.1462,
-            "run_frames": 9,
-            "distance_from_estimated_logo": 2,
-            "detected_logo_frames": 62
+            "scan_mode": "tiled-lowest-hls-plus-35s-template",
+            "tile_count": 30,
+            "window_start": 2500,
+            "window_stop": 7000,
+            "detected_logo_frames": 431,
+            "candidate_count": 9,
+            "best": {
+              "logo_time": 4753,
+              "op_start": 4722,
+              "feature_distance": 0.1462,
+              "run_frames": 9,
+              "validated": true,
+              "best_start": 4725,
+              "adjust_seconds": 3,
+              "score": 116.79,
+              "core_hamming": 104.96,
+              "avg_hamming": 112.26,
+              "avg_mean_delta": 47.32,
+              "max_hamming": 142
+            },
+            "candidates": [
+              {
+                "logo_time": 4753,
+                "op_start": 4722,
+                "feature_distance": 0.1462,
+                "run_frames": 9,
+                "validated": true,
+                "best_start": 4725,
+                "adjust_seconds": 3,
+                "score": 116.79,
+                "core_hamming": 104.96,
+                "avg_hamming": 112.26,
+                "avg_mean_delta": 47.32,
+                "max_hamming": 142
+              },
+              {
+                "logo_time": 6867,
+                "op_start": 6836,
+                "feature_distance": 0.3599,
+                "run_frames": 11,
+                "validated": true,
+                "best_start": 6839,
+                "adjust_seconds": 3,
+                "score": 117.0,
+                "core_hamming": 110.04,
+                "avg_hamming": 116.76,
+                "avg_mean_delta": 27.84,
+                "max_hamming": 139
+              },
+              {
+                "logo_time": 4765,
+                "op_start": 4734,
+                "feature_distance": 0.3946,
+                "run_frames": 9,
+                "validated": true,
+                "best_start": 4737,
+                "adjust_seconds": 3,
+                "score": 117.3,
+                "core_hamming": 107.39,
+                "avg_hamming": 114.76,
+                "avg_mean_delta": 39.62,
+                "max_hamming": 140
+              },
+              {
+                "logo_time": 5993,
+                "op_start": 5962,
+                "feature_distance": 0.2831,
+                "run_frames": 9,
+                "validated": true,
+                "best_start": 5960,
+                "adjust_seconds": -2,
+                "score": 118.09,
+                "core_hamming": 110.57,
+                "avg_hamming": 117.65,
+                "avg_mean_delta": 30.09,
+                "max_hamming": 141
+              },
+              {
+                "logo_time": 4776,
+                "op_start": 4745,
+                "feature_distance": 0.2995,
+                "run_frames": 12,
+                "validated": true,
+                "best_start": 4748,
+                "adjust_seconds": 3,
+                "score": 121.71,
+                "core_hamming": 110.65,
+                "avg_hamming": 116.94,
+                "avg_mean_delta": 44.21,
+                "max_hamming": 137
+              },
+              {
+                "logo_time": 4799,
+                "op_start": 4768,
+                "feature_distance": 0.1583,
+                "run_frames": 10,
+                "validated": true,
+                "best_start": 4771,
+                "adjust_seconds": 3,
+                "score": 125.04,
+                "core_hamming": 109.0,
+                "avg_hamming": 115.41,
+                "avg_mean_delta": 64.14,
+                "max_hamming": 136
+              },
+              {
+                "logo_time": 5915,
+                "op_start": 5884,
+                "feature_distance": 0.3125,
+                "run_frames": 3,
+                "validated": true,
+                "best_start": 5881,
+                "adjust_seconds": -3,
+                "score": 125.87,
+                "core_hamming": 114.09,
+                "avg_hamming": 124.24,
+                "avg_mean_delta": 47.13,
+                "max_hamming": 152
+              },
+              {
+                "logo_time": 3103,
+                "op_start": 3072,
+                "feature_distance": 0.3907,
+                "run_frames": 7,
+                "validated": true,
+                "best_start": 3074,
+                "adjust_seconds": 2,
+                "score": 128.1,
+                "core_hamming": 118.04,
+                "avg_hamming": 123.41,
+                "avg_mean_delta": 40.23,
+                "max_hamming": 140
+              }
+            ]
           },
           {
             "episode": 229,
             "chapter_start": 8924,
-            "search_center": 8924,
             "matched": true,
-            "scan_mode": "tiled-lowest-hls",
-            "tile_count": 30,
-            "window_start": 7200,
-            "window_stop": 10800,
-            "logo_time": 10542,
-            "op_start": 10511,
-            "shift_seconds": 1587,
-            "feature_distance": 0.0238,
-            "run_frames": 5,
-            "detected_logo_frames": 149,
-            "top_candidates": [
+            "scan_mode": "tiled-lowest-hls-plus-35s-template",
+            "tile_count": 40,
+            "window_start": 6500,
+            "window_stop": 12500,
+            "detected_logo_frames": 219,
+            "candidate_count": 8,
+            "best": {
+              "logo_time": 6867,
+              "op_start": 6836,
+              "feature_distance": 0.3599,
+              "run_frames": 11,
+              "validated": true,
+              "best_start": 6839,
+              "adjust_seconds": 3,
+              "score": 117.0,
+              "core_hamming": 110.04,
+              "avg_hamming": 116.76,
+              "avg_mean_delta": 27.84,
+              "max_hamming": 139
+            },
+            "candidates": [
               {
-                "logo_time": 10542,
-                "op_start": 10511,
-                "feature_distance": 0.0238,
-                "run_frames": 5
+                "logo_time": 6867,
+                "op_start": 6836,
+                "feature_distance": 0.3599,
+                "run_frames": 11,
+                "validated": true,
+                "best_start": 6839,
+                "adjust_seconds": 3,
+                "score": 117.0,
+                "core_hamming": 110.04,
+                "avg_hamming": 116.76,
+                "avg_mean_delta": 27.84,
+                "max_hamming": 139
               },
               {
-                "logo_time": 9899,
-                "op_start": 9868,
-                "feature_distance": 0.1283,
-                "run_frames": 7
-              },
-              {
-                "logo_time": 9909,
-                "op_start": 9878,
-                "feature_distance": 0.1316,
-                "run_frames": 21
-              },
-              {
-                "logo_time": 9724,
-                "op_start": 9693,
-                "feature_distance": 0.1343,
-                "run_frames": 11
+                "logo_time": 11134,
+                "op_start": 11103,
+                "feature_distance": 0.3927,
+                "run_frames": 6,
+                "validated": true,
+                "best_start": 11105,
+                "adjust_seconds": 2,
+                "score": 118.94,
+                "core_hamming": 109.09,
+                "avg_hamming": 118.03,
+                "avg_mean_delta": 39.42,
+                "max_hamming": 158
               }
             ]
           }
@@ -1952,1782 +1919,6 @@
       "hls_join_markers": null,
       "packet_join_probe": null,
       "opening_sequence_probe": null,
-      "known_op_probe": null,
-      "global_op_probe": null,
-      "ai_windows": []
-    },
-    {
-      "vod_id": "1fdde094-6d26-483d-b0ea-bf3cc9e0f15b",
-      "source_title": "ゲームセンターCX 第18シーズン ＃177-196",
-      "episode_start": 177,
-      "episode_end": 196,
-      "episode_count": 20,
-      "duration_seconds": 77992,
-      "average_seconds": 3899.6,
-      "extra_label": null,
-      "status": "ready",
-      "chapters": [
-        {
-          "kind": "special",
-          "special_key": "2014-gccx-the-movie-prefix",
-          "title": "ゲームセンターCX THE MOVIE",
-          "start_seconds": 0,
-          "stop_seconds": 3207,
-          "duration_seconds": 3207,
-          "expected_broadcast_seconds": 3207,
-          "replay_url": "https://kick-resolver.onrender.com/kick?vod=1fdde094-6d26-483d-b0ea-bf3cc9e0f15b&start=0&duration=3207",
-          "method": "source-filelist-exact",
-          "confidence": "high",
-          "hls_diagnostics": {
-            "requested_start_seconds": 0,
-            "requested_duration_seconds": 3207,
-            "actual_segment_start_seconds": 0.0,
-            "actual_segment_stop_seconds": 3213.266,
-            "actual_hls_duration_seconds": 3213.266,
-            "lead_overlap_seconds": 0.0,
-            "tail_overlap_seconds": 6.266
-          },
-          "title_status": "confirmed-filelist",
-          "title_source": "source-player-filelist"
-        },
-        {
-          "kind": "episode",
-          "episode": 177,
-          "title": "竜の子ファイター",
-          "start_seconds": 3207,
-          "stop_seconds": 6687,
-          "duration_seconds": 3480,
-          "replay_url": "https://kick-resolver.onrender.com/kick?vod=1fdde094-6d26-483d-b0ea-bf3cc9e0f15b&start=3207&duration=3480",
-          "method": "source-filelist-exact",
-          "confidence": "high",
-          "hls_diagnostics": {
-            "requested_start_seconds": 3207,
-            "requested_duration_seconds": 3480,
-            "actual_segment_start_seconds": 3202.633,
-            "actual_segment_stop_seconds": 6697.933,
-            "actual_hls_duration_seconds": 3495.3,
-            "lead_overlap_seconds": 4.367,
-            "tail_overlap_seconds": 10.933
-          },
-          "title_status": "confirmed-filelist",
-          "title_source": "source-player-filelist"
-        },
-        {
-          "kind": "episode",
-          "episode": 178,
-          "title": "ロックマンX（前編）",
-          "start_seconds": 6687,
-          "stop_seconds": 10167,
-          "duration_seconds": 3480,
-          "replay_url": "https://kick-resolver.onrender.com/kick?vod=1fdde094-6d26-483d-b0ea-bf3cc9e0f15b&start=6687&duration=3480",
-          "method": "source-filelist-exact",
-          "confidence": "high",
-          "hls_diagnostics": {
-            "requested_start_seconds": 6687,
-            "requested_duration_seconds": 3480,
-            "actual_segment_start_seconds": 6686.916,
-            "actual_segment_stop_seconds": 10171.866,
-            "actual_hls_duration_seconds": 3484.95,
-            "lead_overlap_seconds": 0.084,
-            "tail_overlap_seconds": 4.866
-          },
-          "title_status": "confirmed-filelist",
-          "title_source": "source-player-filelist"
-        },
-        {
-          "kind": "episode",
-          "episode": 179,
-          "title": "ロックマンX（後編）",
-          "start_seconds": 10167,
-          "stop_seconds": 13647,
-          "duration_seconds": 3480,
-          "replay_url": "https://kick-resolver.onrender.com/kick?vod=1fdde094-6d26-483d-b0ea-bf3cc9e0f15b&start=10167&duration=3480",
-          "method": "source-filelist-exact",
-          "confidence": "high",
-          "hls_diagnostics": {
-            "requested_start_seconds": 10167,
-            "requested_duration_seconds": 3480,
-            "actual_segment_start_seconds": 10161.866,
-            "actual_segment_stop_seconds": 13652.566,
-            "actual_hls_duration_seconds": 3490.7,
-            "lead_overlap_seconds": 5.134,
-            "tail_overlap_seconds": 5.566
-          },
-          "title_status": "confirmed-filelist",
-          "title_source": "source-player-filelist"
-        },
-        {
-          "kind": "episode",
-          "episode": 180,
-          "title": "殺意の階層 ソフトハウス連続殺人事件",
-          "start_seconds": 13647,
-          "stop_seconds": 17127,
-          "duration_seconds": 3480,
-          "replay_url": "https://kick-resolver.onrender.com/kick?vod=1fdde094-6d26-483d-b0ea-bf3cc9e0f15b&start=13647&duration=3480",
-          "method": "source-filelist-exact",
-          "confidence": "high",
-          "hls_diagnostics": {
-            "requested_start_seconds": 13647,
-            "requested_duration_seconds": 3480,
-            "actual_segment_start_seconds": 13642.566,
-            "actual_segment_stop_seconds": 17137.166,
-            "actual_hls_duration_seconds": 3494.6,
-            "lead_overlap_seconds": 4.434,
-            "tail_overlap_seconds": 10.166
-          },
-          "title_status": "confirmed-filelist",
-          "title_source": "source-player-filelist"
-        },
-        {
-          "kind": "episode",
-          "episode": 181,
-          "title": "ガンスターヒーローズ",
-          "start_seconds": 17127,
-          "stop_seconds": 20607,
-          "duration_seconds": 3480,
-          "replay_url": "https://kick-resolver.onrender.com/kick?vod=1fdde094-6d26-483d-b0ea-bf3cc9e0f15b&start=17127&duration=3480",
-          "method": "source-filelist-exact",
-          "confidence": "high",
-          "hls_diagnostics": {
-            "requested_start_seconds": 17127,
-            "requested_duration_seconds": 3480,
-            "actual_segment_start_seconds": 17126.633,
-            "actual_segment_stop_seconds": 20609.15,
-            "actual_hls_duration_seconds": 3482.517,
-            "lead_overlap_seconds": 0.367,
-            "tail_overlap_seconds": 2.15
-          },
-          "title_status": "confirmed-filelist",
-          "title_source": "source-player-filelist"
-        },
-        {
-          "kind": "episode",
-          "episode": 182,
-          "title": "ケルナグール",
-          "start_seconds": 20607,
-          "stop_seconds": 24087,
-          "duration_seconds": 3480,
-          "replay_url": "https://kick-resolver.onrender.com/kick?vod=1fdde094-6d26-483d-b0ea-bf3cc9e0f15b&start=20607&duration=3480",
-          "method": "source-filelist-exact",
-          "confidence": "high",
-          "hls_diagnostics": {
-            "requested_start_seconds": 20607,
-            "requested_duration_seconds": 3480,
-            "actual_segment_start_seconds": 20598.916,
-            "actual_segment_stop_seconds": 24089.733,
-            "actual_hls_duration_seconds": 3490.817,
-            "lead_overlap_seconds": 8.084,
-            "tail_overlap_seconds": 2.733
-          },
-          "title_status": "confirmed-filelist",
-          "title_source": "source-player-filelist"
-        },
-        {
-          "kind": "episode",
-          "episode": 183,
-          "title": "超ゴジラ",
-          "start_seconds": 24087,
-          "stop_seconds": 27567,
-          "duration_seconds": 3480,
-          "replay_url": "https://kick-resolver.onrender.com/kick?vod=1fdde094-6d26-483d-b0ea-bf3cc9e0f15b&start=24087&duration=3480",
-          "method": "source-filelist-exact",
-          "confidence": "high",
-          "hls_diagnostics": {
-            "requested_start_seconds": 24087,
-            "requested_duration_seconds": 3480,
-            "actual_segment_start_seconds": 24079.2,
-            "actual_segment_stop_seconds": 27567.25,
-            "actual_hls_duration_seconds": 3488.05,
-            "lead_overlap_seconds": 7.8,
-            "tail_overlap_seconds": 0.25
-          },
-          "title_status": "confirmed-filelist",
-          "title_source": "source-player-filelist"
-        },
-        {
-          "kind": "episode",
-          "episode": 184,
-          "title": "スーパーマリオランド",
-          "start_seconds": 27567,
-          "stop_seconds": 31047,
-          "duration_seconds": 3480,
-          "replay_url": "https://kick-resolver.onrender.com/kick?vod=1fdde094-6d26-483d-b0ea-bf3cc9e0f15b&start=27567&duration=3480",
-          "method": "source-filelist-exact",
-          "confidence": "high",
-          "hls_diagnostics": {
-            "requested_start_seconds": 27567,
-            "requested_duration_seconds": 3480,
-            "actual_segment_start_seconds": 27557.25,
-            "actual_segment_stop_seconds": 31047.3,
-            "actual_hls_duration_seconds": 3490.05,
-            "lead_overlap_seconds": 9.75,
-            "tail_overlap_seconds": 0.3
-          },
-          "title_status": "confirmed-filelist",
-          "title_source": "source-player-filelist"
-        },
-        {
-          "kind": "episode",
-          "episode": 185,
-          "title": "ファミリージョッキー（前編）",
-          "start_seconds": 31047,
-          "stop_seconds": 34527,
-          "duration_seconds": 3480,
-          "replay_url": "https://kick-resolver.onrender.com/kick?vod=1fdde094-6d26-483d-b0ea-bf3cc9e0f15b&start=31047&duration=3480",
-          "method": "source-filelist-exact",
-          "confidence": "high",
-          "hls_diagnostics": {
-            "requested_start_seconds": 31047,
-            "requested_duration_seconds": 3480,
-            "actual_segment_start_seconds": 31037.283,
-            "actual_segment_stop_seconds": 34532.466,
-            "actual_hls_duration_seconds": 3495.183,
-            "lead_overlap_seconds": 9.717,
-            "tail_overlap_seconds": 5.466
-          },
-          "title_status": "confirmed-filelist",
-          "title_source": "source-player-filelist"
-        },
-        {
-          "kind": "episode",
-          "episode": 186,
-          "title": "ファミリージョッキー（後編）",
-          "start_seconds": 34527,
-          "stop_seconds": 38007,
-          "duration_seconds": 3480,
-          "replay_url": "https://kick-resolver.onrender.com/kick?vod=1fdde094-6d26-483d-b0ea-bf3cc9e0f15b&start=34527&duration=3480",
-          "method": "source-filelist-exact",
-          "confidence": "high",
-          "hls_diagnostics": {
-            "requested_start_seconds": 34527,
-            "requested_duration_seconds": 3480,
-            "actual_segment_start_seconds": 34522.466,
-            "actual_segment_stop_seconds": 38016.25,
-            "actual_hls_duration_seconds": 3493.784,
-            "lead_overlap_seconds": 4.534,
-            "tail_overlap_seconds": 9.25
-          },
-          "title_status": "confirmed-filelist",
-          "title_source": "source-player-filelist"
-        },
-        {
-          "kind": "episode",
-          "episode": 187,
-          "title": "シャドー・ダンサー",
-          "start_seconds": 38007,
-          "stop_seconds": 41487,
-          "duration_seconds": 3480,
-          "replay_url": "https://kick-resolver.onrender.com/kick?vod=1fdde094-6d26-483d-b0ea-bf3cc9e0f15b&start=38007&duration=3480",
-          "method": "source-filelist-exact",
-          "confidence": "high",
-          "hls_diagnostics": {
-            "requested_start_seconds": 38007,
-            "requested_duration_seconds": 3480,
-            "actual_segment_start_seconds": 38005.583,
-            "actual_segment_stop_seconds": 41487.6,
-            "actual_hls_duration_seconds": 3482.017,
-            "lead_overlap_seconds": 1.417,
-            "tail_overlap_seconds": 0.6
-          },
-          "title_status": "confirmed-filelist",
-          "title_source": "source-player-filelist"
-        },
-        {
-          "kind": "episode",
-          "episode": 188,
-          "title": "平成天才バカボン",
-          "start_seconds": 41487,
-          "stop_seconds": 44967,
-          "duration_seconds": 3480,
-          "replay_url": "https://kick-resolver.onrender.com/kick?vod=1fdde094-6d26-483d-b0ea-bf3cc9e0f15b&start=41487&duration=3480",
-          "method": "source-filelist-exact",
-          "confidence": "high",
-          "hls_diagnostics": {
-            "requested_start_seconds": 41487,
-            "requested_duration_seconds": 3480,
-            "actual_segment_start_seconds": 41477.6,
-            "actual_segment_stop_seconds": 44972.633,
-            "actual_hls_duration_seconds": 3495.033,
-            "lead_overlap_seconds": 9.4,
-            "tail_overlap_seconds": 5.633
-          },
-          "title_status": "confirmed-filelist",
-          "title_source": "source-player-filelist"
-        },
-        {
-          "kind": "episode",
-          "episode": 189,
-          "title": "マジックソード",
-          "start_seconds": 44967,
-          "stop_seconds": 48447,
-          "duration_seconds": 3480,
-          "replay_url": "https://kick-resolver.onrender.com/kick?vod=1fdde094-6d26-483d-b0ea-bf3cc9e0f15b&start=44967&duration=3480",
-          "method": "source-filelist-exact",
-          "confidence": "high",
-          "hls_diagnostics": {
-            "requested_start_seconds": 44967,
-            "requested_duration_seconds": 3480,
-            "actual_segment_start_seconds": 44961.716,
-            "actual_segment_stop_seconds": 48452.75,
-            "actual_hls_duration_seconds": 3491.034,
-            "lead_overlap_seconds": 5.284,
-            "tail_overlap_seconds": 5.75
-          },
-          "title_status": "confirmed-filelist",
-          "title_source": "source-player-filelist"
-        },
-        {
-          "kind": "episode",
-          "episode": 190,
-          "title": "Dの食卓",
-          "start_seconds": 48447,
-          "stop_seconds": 51927,
-          "duration_seconds": 3480,
-          "replay_url": "https://kick-resolver.onrender.com/kick?vod=1fdde094-6d26-483d-b0ea-bf3cc9e0f15b&start=48447&duration=3480",
-          "method": "source-filelist-exact",
-          "confidence": "high",
-          "hls_diagnostics": {
-            "requested_start_seconds": 48447,
-            "requested_duration_seconds": 3480,
-            "actual_segment_start_seconds": 48442.75,
-            "actual_segment_stop_seconds": 51936.883,
-            "actual_hls_duration_seconds": 3494.133,
-            "lead_overlap_seconds": 4.25,
-            "tail_overlap_seconds": 9.883
-          },
-          "title_status": "confirmed-filelist",
-          "title_source": "source-player-filelist"
-        },
-        {
-          "kind": "episode",
-          "episode": 191,
-          "title": "クレイジー・クライマー",
-          "start_seconds": 51927,
-          "stop_seconds": 55407,
-          "duration_seconds": 3480,
-          "replay_url": "https://kick-resolver.onrender.com/kick?vod=1fdde094-6d26-483d-b0ea-bf3cc9e0f15b&start=51927&duration=3480",
-          "method": "source-filelist-exact",
-          "confidence": "high",
-          "hls_diagnostics": {
-            "requested_start_seconds": 51927,
-            "requested_duration_seconds": 3480,
-            "actual_segment_start_seconds": 51926.066,
-            "actual_segment_stop_seconds": 55407.933,
-            "actual_hls_duration_seconds": 3481.867,
-            "lead_overlap_seconds": 0.934,
-            "tail_overlap_seconds": 0.933
-          },
-          "title_status": "confirmed-filelist",
-          "title_source": "source-player-filelist"
-        },
-        {
-          "kind": "special",
-          "special_key": "2014-2015-newyear-15min",
-          "title": "ゲームセンターCX 年越し15分ミニ枠",
-          "start_seconds": 55407,
-          "stop_seconds": 56307,
-          "duration_seconds": 900,
-          "expected_broadcast_seconds": 900,
-          "replay_url": "https://kick-resolver.onrender.com/kick?vod=1fdde094-6d26-483d-b0ea-bf3cc9e0f15b&start=55407&duration=900",
-          "method": "source-filelist-exact",
-          "confidence": "high",
-          "hls_diagnostics": {
-            "requested_start_seconds": 55407,
-            "requested_duration_seconds": 900,
-            "actual_segment_start_seconds": 55397.016,
-            "actual_segment_stop_seconds": 56309.333,
-            "actual_hls_duration_seconds": 912.317,
-            "lead_overlap_seconds": 9.984,
-            "tail_overlap_seconds": 2.333
-          },
-          "title_status": "confirmed-filelist",
-          "title_source": "source-player-filelist"
-        },
-        {
-          "kind": "episode",
-          "episode": 192,
-          "title": "超絶倫人ベラボーマン",
-          "start_seconds": 56307,
-          "stop_seconds": 59787,
-          "duration_seconds": 3480,
-          "replay_url": "https://kick-resolver.onrender.com/kick?vod=1fdde094-6d26-483d-b0ea-bf3cc9e0f15b&start=56307&duration=3480",
-          "method": "source-filelist-exact",
-          "confidence": "high",
-          "hls_diagnostics": {
-            "requested_start_seconds": 56307,
-            "requested_duration_seconds": 3480,
-            "actual_segment_start_seconds": 56299.333,
-            "actual_segment_stop_seconds": 59790.733,
-            "actual_hls_duration_seconds": 3491.4,
-            "lead_overlap_seconds": 7.667,
-            "tail_overlap_seconds": 3.733
-          },
-          "title_status": "confirmed-filelist",
-          "title_source": "source-player-filelist"
-        },
-        {
-          "kind": "episode",
-          "episode": 193,
-          "title": "R-TYPE I / R-TYPE II",
-          "start_seconds": 59787,
-          "stop_seconds": 63267,
-          "duration_seconds": 3480,
-          "replay_url": "https://kick-resolver.onrender.com/kick?vod=1fdde094-6d26-483d-b0ea-bf3cc9e0f15b&start=59787&duration=3480",
-          "method": "source-filelist-exact",
-          "confidence": "high",
-          "hls_diagnostics": {
-            "requested_start_seconds": 59787,
-            "requested_duration_seconds": 3480,
-            "actual_segment_start_seconds": 59780.233,
-            "actual_segment_stop_seconds": 63270.283,
-            "actual_hls_duration_seconds": 3490.05,
-            "lead_overlap_seconds": 6.767,
-            "tail_overlap_seconds": 3.283
-          },
-          "title_status": "confirmed-filelist",
-          "title_source": "source-player-filelist"
-        },
-        {
-          "kind": "episode",
-          "episode": 194,
-          "title": "伝説の騎士エルロンド",
-          "start_seconds": 63267,
-          "stop_seconds": 66747,
-          "duration_seconds": 3480,
-          "replay_url": "https://kick-resolver.onrender.com/kick?vod=1fdde094-6d26-483d-b0ea-bf3cc9e0f15b&start=63267&duration=3480",
-          "method": "source-filelist-exact",
-          "confidence": "high",
-          "hls_diagnostics": {
-            "requested_start_seconds": 63267,
-            "requested_duration_seconds": 3480,
-            "actual_segment_start_seconds": 63259.333,
-            "actual_segment_stop_seconds": 66755.35,
-            "actual_hls_duration_seconds": 3496.017,
-            "lead_overlap_seconds": 7.667,
-            "tail_overlap_seconds": 8.35
-          },
-          "title_status": "confirmed-filelist",
-          "title_source": "source-player-filelist"
-        },
-        {
-          "kind": "episode",
-          "episode": 195,
-          "title": "戦場の狼",
-          "start_seconds": 66747,
-          "stop_seconds": 70227,
-          "duration_seconds": 3480,
-          "replay_url": "https://kick-resolver.onrender.com/kick?vod=1fdde094-6d26-483d-b0ea-bf3cc9e0f15b&start=66747&duration=3480",
-          "method": "source-filelist-exact",
-          "confidence": "high",
-          "hls_diagnostics": {
-            "requested_start_seconds": 66747,
-            "requested_duration_seconds": 3480,
-            "actual_segment_start_seconds": 66744.4,
-            "actual_segment_stop_seconds": 70231.333,
-            "actual_hls_duration_seconds": 3486.933,
-            "lead_overlap_seconds": 2.6,
-            "tail_overlap_seconds": 4.333
-          },
-          "title_status": "confirmed-filelist",
-          "title_source": "source-player-filelist"
-        },
-        {
-          "kind": "episode",
-          "episode": 196,
-          "title": "謎の村雨城",
-          "start_seconds": 70227,
-          "stop_seconds": 73707,
-          "duration_seconds": 3480,
-          "replay_url": "https://kick-resolver.onrender.com/kick?vod=1fdde094-6d26-483d-b0ea-bf3cc9e0f15b&start=70227&duration=3480",
-          "method": "source-filelist-exact",
-          "confidence": "high",
-          "hls_diagnostics": {
-            "requested_start_seconds": 70227,
-            "requested_duration_seconds": 3480,
-            "actual_segment_start_seconds": 70220.366,
-            "actual_segment_stop_seconds": 73707.566,
-            "actual_hls_duration_seconds": 3487.2,
-            "lead_overlap_seconds": 6.634,
-            "tail_overlap_seconds": 0.566
-          },
-          "title_status": "confirmed-filelist",
-          "title_source": "source-player-filelist"
-        },
-        {
-          "kind": "special",
-          "special_key": "2014-dvdbox-vol11-extra",
-          "title": "ゲームセンターCX DVD-BOX VOL.11 特典映像",
-          "start_seconds": 73707,
-          "stop_seconds": 77992,
-          "duration_seconds": 4285,
-          "expected_broadcast_seconds": 4285,
-          "replay_url": "https://kick-resolver.onrender.com/kick?vod=1fdde094-6d26-483d-b0ea-bf3cc9e0f15b&start=73707&duration=4285",
-          "method": "source-filelist-exact",
-          "confidence": "high",
-          "hls_diagnostics": {
-            "requested_start_seconds": 73707,
-            "requested_duration_seconds": 4285,
-            "actual_segment_start_seconds": 73697.566,
-            "actual_segment_stop_seconds": 77992.494,
-            "actual_hls_duration_seconds": 4294.928,
-            "lead_overlap_seconds": 9.434,
-            "tail_overlap_seconds": 0.494
-          },
-          "title_status": "confirmed-filelist",
-          "title_source": "source-player-filelist"
-        }
-      ],
-      "titlecard_refinement": {
-        "status": "skipped",
-        "reason": "source-filelist-exact",
-        "boundary_version": 38
-      },
-      "hls_join_markers": {
-        "media_url": "https://stream.kick.com/0f3cb0ebce7/ivs/v1/196233775518/59bB9isG3qqM/2026/9/23/0/45/5TGUvF4oTQg2/media/hls/160p30/playlist.m3u8",
-        "segment_count": 7481,
-        "median_segment_duration": 10.383,
-        "discontinuities": [],
-        "duration_outliers": [
-          {
-            "time": 0.0,
-            "duration": 10.466
-          },
-          {
-            "time": 20.866,
-            "duration": 10.867
-          },
-          {
-            "time": 31.733,
-            "duration": 10.917
-          },
-          {
-            "time": 42.65,
-            "duration": 10.2
-          },
-          {
-            "time": 52.85,
-            "duration": 10.0
-          },
-          {
-            "time": 62.85,
-            "duration": 10.583
-          },
-          {
-            "time": 73.433,
-            "duration": 10.45
-          },
-          {
-            "time": 83.883,
-            "duration": 10.55
-          },
-          {
-            "time": 94.433,
-            "duration": 10.867
-          },
-          {
-            "time": 105.3,
-            "duration": 10.0
-          },
-          {
-            "time": 115.3,
-            "duration": 10.0
-          },
-          {
-            "time": 125.3,
-            "duration": 10.0
-          },
-          {
-            "time": 135.3,
-            "duration": 10.533
-          },
-          {
-            "time": 145.833,
-            "duration": 10.133
-          },
-          {
-            "time": 166.35,
-            "duration": 10.616
-          },
-          {
-            "time": 176.966,
-            "duration": 10.934
-          },
-          {
-            "time": 198.283,
-            "duration": 10.85
-          },
-          {
-            "time": 209.133,
-            "duration": 10.167
-          },
-          {
-            "time": 219.3,
-            "duration": 10.466
-          },
-          {
-            "time": 229.766,
-            "duration": 10.934
-          },
-          {
-            "time": 240.7,
-            "duration": 10.216
-          },
-          {
-            "time": 250.916,
-            "duration": 10.0
-          },
-          {
-            "time": 260.916,
-            "duration": 10.434
-          },
-          {
-            "time": 271.35,
-            "duration": 10.883
-          },
-          {
-            "time": 282.233,
-            "duration": 10.0
-          },
-          {
-            "time": 302.583,
-            "duration": 10.783
-          },
-          {
-            "time": 313.366,
-            "duration": 10.0
-          },
-          {
-            "time": 323.366,
-            "duration": 10.0
-          },
-          {
-            "time": 333.366,
-            "duration": 10.234
-          },
-          {
-            "time": 343.6,
-            "duration": 10.866
-          },
-          {
-            "time": 364.816,
-            "duration": 10.0
-          },
-          {
-            "time": 374.816,
-            "duration": 10.784
-          },
-          {
-            "time": 385.6,
-            "duration": 10.616
-          },
-          {
-            "time": 396.216,
-            "duration": 10.25
-          },
-          {
-            "time": 416.883,
-            "duration": 10.567
-          },
-          {
-            "time": 427.45,
-            "duration": 10.783
-          },
-          {
-            "time": 438.233,
-            "duration": 10.517
-          },
-          {
-            "time": 448.75,
-            "duration": 10.666
-          },
-          {
-            "time": 459.416,
-            "duration": 10.75
-          },
-          {
-            "time": 470.166,
-            "duration": 10.0
-          },
-          {
-            "time": 480.166,
-            "duration": 10.05
-          },
-          {
-            "time": 490.216,
-            "duration": 10.0
-          },
-          {
-            "time": 500.216,
-            "duration": 10.434
-          },
-          {
-            "time": 510.65,
-            "duration": 10.0
-          },
-          {
-            "time": 520.65,
-            "duration": 10.55
-          },
-          {
-            "time": 531.2,
-            "duration": 10.433
-          },
-          {
-            "time": 541.633,
-            "duration": 10.983
-          },
-          {
-            "time": 563.0,
-            "duration": 10.966
-          },
-          {
-            "time": 573.966,
-            "duration": 10.184
-          },
-          {
-            "time": 584.15,
-            "duration": 10.166
-          },
-          {
-            "time": 594.316,
-            "duration": 10.184
-          },
-          {
-            "time": 604.5,
-            "duration": 10.0
-          },
-          {
-            "time": 614.5,
-            "duration": 10.0
-          },
-          {
-            "time": 624.5,
-            "duration": 10.233
-          },
-          {
-            "time": 634.733,
-            "duration": 10.617
-          },
-          {
-            "time": 645.35,
-            "duration": 10.816
-          },
-          {
-            "time": 656.166,
-            "duration": 10.0
-          },
-          {
-            "time": 666.166,
-            "duration": 10.234
-          },
-          {
-            "time": 676.4,
-            "duration": 10.0
-          },
-          {
-            "time": 686.4,
-            "duration": 11.283
-          },
-          {
-            "time": 697.683,
-            "duration": 10.483
-          },
-          {
-            "time": 708.166,
-            "duration": 10.3
-          },
-          {
-            "time": 718.466,
-            "duration": 10.567
-          },
-          {
-            "time": 729.033,
-            "duration": 10.1
-          },
-          {
-            "time": 739.133,
-            "duration": 10.983
-          },
-          {
-            "time": 750.116,
-            "duration": 10.0
-          },
-          {
-            "time": 760.116,
-            "duration": 10.884
-          },
-          {
-            "time": 781.35,
-            "duration": 10.583
-          },
-          {
-            "time": 791.933,
-            "duration": 10.567
-          },
-          {
-            "time": 802.5,
-            "duration": 11.083
-          },
-          {
-            "time": 813.583,
-            "duration": 10.933
-          },
-          {
-            "time": 824.516,
-            "duration": 10.684
-          },
-          {
-            "time": 835.2,
-            "duration": 10.633
-          },
-          {
-            "time": 845.833,
-            "duration": 10.283
-          },
-          {
-            "time": 856.116,
-            "duration": 11.05
-          },
-          {
-            "time": 867.166,
-            "duration": 10.0
-          },
-          {
-            "time": 877.166,
-            "duration": 10.0
-          },
-          {
-            "time": 887.166,
-            "duration": 10.65
-          },
-          {
-            "time": 897.816,
-            "duration": 10.9
-          },
-          {
-            "time": 908.716,
-            "duration": 10.05
-          },
-          {
-            "time": 918.766,
-            "duration": 10.884
-          },
-          {
-            "time": 929.65,
-            "duration": 10.216
-          },
-          {
-            "time": 939.866,
-            "duration": 10.6
-          },
-          {
-            "time": 950.466,
-            "duration": 10.0
-          },
-          {
-            "time": 970.866,
-            "duration": 10.0
-          },
-          {
-            "time": 980.866,
-            "duration": 10.667
-          },
-          {
-            "time": 1001.866,
-            "duration": 10.6
-          },
-          {
-            "time": 1012.466,
-            "duration": 10.95
-          },
-          {
-            "time": 1023.416,
-            "duration": 10.434
-          },
-          {
-            "time": 1033.85,
-            "duration": 10.65
-          },
-          {
-            "time": 1044.5,
-            "duration": 10.8
-          },
-          {
-            "time": 1055.3,
-            "duration": 10.0
-          },
-          {
-            "time": 1065.3,
-            "duration": 10.0
-          },
-          {
-            "time": 1075.3,
-            "duration": 10.0
-          },
-          {
-            "time": 1085.3,
-            "duration": 10.3
-          },
-          {
-            "time": 1095.6,
-            "duration": 10.483
-          },
-          {
-            "time": 1106.083,
-            "duration": 10.567
-          },
-          {
-            "time": 1116.65,
-            "duration": 10.116
-          },
-          {
-            "time": 1137.133,
-            "duration": 10.0
-          },
-          {
-            "time": 1147.133,
-            "duration": 10.0
-          },
-          {
-            "time": 1157.133,
-            "duration": 10.283
-          },
-          {
-            "time": 1167.416,
-            "duration": 10.317
-          },
-          {
-            "time": 1177.733,
-            "duration": 10.0
-          },
-          {
-            "time": 1187.733,
-            "duration": 10.0
-          },
-          {
-            "time": 1197.733,
-            "duration": 10.0
-          },
-          {
-            "time": 1207.733,
-            "duration": 10.5
-          },
-          {
-            "time": 1218.233,
-            "duration": 10.233
-          },
-          {
-            "time": 1228.466,
-            "duration": 10.234
-          },
-          {
-            "time": 1238.7,
-            "duration": 10.0
-          },
-          {
-            "time": 1248.7,
-            "duration": 10.2
-          },
-          {
-            "time": 1258.9,
-            "duration": 10.733
-          },
-          {
-            "time": 1269.633,
-            "duration": 10.317
-          },
-          {
-            "time": 1279.95,
-            "duration": 10.0
-          },
-          {
-            "time": 1289.95,
-            "duration": 10.0
-          },
-          {
-            "time": 1299.95,
-            "duration": 10.233
-          },
-          {
-            "time": 1310.183,
-            "duration": 10.0
-          },
-          {
-            "time": 1320.183,
-            "duration": 10.0
-          },
-          {
-            "time": 1330.183,
-            "duration": 10.517
-          },
-          {
-            "time": 1340.7,
-            "duration": 10.866
-          },
-          {
-            "time": 1351.566,
-            "duration": 10.0
-          },
-          {
-            "time": 1361.566,
-            "duration": 10.0
-          },
-          {
-            "time": 1371.566,
-            "duration": 10.0
-          },
-          {
-            "time": 1381.566,
-            "duration": 10.15
-          },
-          {
-            "time": 1391.716,
-            "duration": 10.134
-          },
-          {
-            "time": 1401.85,
-            "duration": 10.716
-          },
-          {
-            "time": 1412.566,
-            "duration": 10.0
-          },
-          {
-            "time": 1422.566,
-            "duration": 10.0
-          },
-          {
-            "time": 1432.566,
-            "duration": 10.134
-          },
-          {
-            "time": 1442.7,
-            "duration": 10.0
-          },
-          {
-            "time": 1452.7,
-            "duration": 10.0
-          },
-          {
-            "time": 1462.7,
-            "duration": 10.25
-          },
-          {
-            "time": 1472.95,
-            "duration": 10.966
-          },
-          {
-            "time": 1483.916,
-            "duration": 10.867
-          },
-          {
-            "time": 1494.783,
-            "duration": 10.25
-          },
-          {
-            "time": 1505.033,
-            "duration": 10.633
-          },
-          {
-            "time": 1515.666,
-            "duration": 10.0
-          },
-          {
-            "time": 1525.666,
-            "duration": 10.267
-          },
-          {
-            "time": 1535.933,
-            "duration": 10.283
-          },
-          {
-            "time": 1546.216,
-            "duration": 10.134
-          },
-          {
-            "time": 1556.35,
-            "duration": 11.116
-          },
-          {
-            "time": 1567.466,
-            "duration": 10.684
-          },
-          {
-            "time": 1578.15,
-            "duration": 10.583
-          },
-          {
-            "time": 1588.733,
-            "duration": 10.0
-          },
-          {
-            "time": 1598.733,
-            "duration": 10.8
-          },
-          {
-            "time": 1609.533,
-            "duration": 10.133
-          },
-          {
-            "time": 1619.666,
-            "duration": 10.684
-          },
-          {
-            "time": 1630.35,
-            "duration": 10.0
-          },
-          {
-            "time": 1640.35,
-            "duration": 10.0
-          },
-          {
-            "time": 1650.35,
-            "duration": 10.233
-          },
-          {
-            "time": 1660.583,
-            "duration": 10.5
-          },
-          {
-            "time": 1671.083,
-            "duration": 10.567
-          },
-          {
-            "time": 1681.65,
-            "duration": 10.983
-          },
-          {
-            "time": 1692.633,
-            "duration": 11.417
-          },
-          {
-            "time": 1704.05,
-            "duration": 10.633
-          },
-          {
-            "time": 1714.683,
-            "duration": 10.0
-          },
-          {
-            "time": 1724.683,
-            "duration": 10.0
-          },
-          {
-            "time": 1734.683,
-            "duration": 10.833
-          },
-          {
-            "time": 1745.516,
-            "duration": 10.467
-          },
-          {
-            "time": 1755.983,
-            "duration": 10.533
-          },
-          {
-            "time": 1766.516,
-            "duration": 10.0
-          },
-          {
-            "time": 1776.516,
-            "duration": 10.0
-          },
-          {
-            "time": 1786.516,
-            "duration": 10.784
-          },
-          {
-            "time": 1797.3,
-            "duration": 11.083
-          },
-          {
-            "time": 1808.383,
-            "duration": 10.933
-          },
-          {
-            "time": 1819.316,
-            "duration": 10.767
-          },
-          {
-            "time": 1830.083,
-            "duration": 10.75
-          },
-          {
-            "time": 1840.833,
-            "duration": 10.3
-          },
-          {
-            "time": 1851.133,
-            "duration": 10.0
-          },
-          {
-            "time": 1861.133,
-            "duration": 10.867
-          },
-          {
-            "time": 1872.0,
-            "duration": 10.0
-          },
-          {
-            "time": 1882.0,
-            "duration": 10.316
-          },
-          {
-            "time": 1892.316,
-            "duration": 10.0
-          },
-          {
-            "time": 1902.316,
-            "duration": 10.984
-          },
-          {
-            "time": 1913.3,
-            "duration": 10.0
-          },
-          {
-            "time": 1944.116,
-            "duration": 10.0
-          },
-          {
-            "time": 1954.116,
-            "duration": 10.784
-          },
-          {
-            "time": 1975.25,
-            "duration": 10.716
-          },
-          {
-            "time": 1985.966,
-            "duration": 10.017
-          },
-          {
-            "time": 1995.983,
-            "duration": 11.083
-          },
-          {
-            "time": 2017.466,
-            "duration": 10.684
-          },
-          {
-            "time": 2028.15,
-            "duration": 10.933
-          },
-          {
-            "time": 2039.083,
-            "duration": 10.783
-          },
-          {
-            "time": 2049.866,
-            "duration": 10.55
-          },
-          {
-            "time": 2060.416,
-            "duration": 10.867
-          },
-          {
-            "time": 2071.283,
-            "duration": 10.833
-          },
-          {
-            "time": 2082.116,
-            "duration": 10.484
-          },
-          {
-            "time": 2092.6,
-            "duration": 10.8
-          },
-          {
-            "time": 2103.4,
-            "duration": 10.616
-          },
-          {
-            "time": 2114.016,
-            "duration": 10.617
-          },
-          {
-            "time": 2124.633,
-            "duration": 10.85
-          },
-          {
-            "time": 2145.866,
-            "duration": 10.934
-          },
-          {
-            "time": 2156.8,
-            "duration": 10.0
-          },
-          {
-            "time": 2166.8,
-            "duration": 10.5
-          },
-          {
-            "time": 2177.3,
-            "duration": 10.716
-          },
-          {
-            "time": 2188.016,
-            "duration": 10.3
-          },
-          {
-            "time": 2198.316,
-            "duration": 10.717
-          },
-          {
-            "time": 2209.033,
-            "duration": 10.967
-          },
-          {
-            "time": 2220.0,
-            "duration": 10.0
-          },
-          {
-            "time": 2230.0,
-            "duration": 10.0
-          },
-          {
-            "time": 2240.0,
-            "duration": 10.0
-          }
-        ]
-      },
-      "packet_join_probe": [
-        {
-          "episode": 184,
-          "center": 27567,
-          "audio": {
-            "center": 27567,
-            "start": 27563,
-            "span": 8,
-            "gap_count": 0,
-            "gaps": []
-          },
-          "video": {
-            "center": 27567,
-            "start": 27549,
-            "span": 36,
-            "window_lo": 27561.0,
-            "window_hi": 27573.0,
-            "dts_gap_count": 0,
-            "dts_gaps": [],
-            "keyframes": [
-              27561.171,
-              27562.171,
-              27563.171,
-              27564.171,
-              27565.171,
-              27566.171,
-              27567.171,
-              27568.171,
-              27569.171,
-              27570.087,
-              27570.354,
-              27571.354,
-              27572.354
-            ],
-            "nearest_keyframe_offset": 0.171
-          }
-        },
-        {
-          "episode": 185,
-          "center": 31047,
-          "audio": {
-            "center": 31047,
-            "start": 31043,
-            "span": 8,
-            "gap_count": 0,
-            "gaps": []
-          },
-          "video": {
-            "center": 31047,
-            "start": 31029,
-            "span": 36,
-            "window_lo": 31041.0,
-            "window_hi": 31053.0,
-            "dts_gap_count": 0,
-            "dts_gaps": [],
-            "keyframes": [
-              31041.254,
-              31042.254,
-              31043.254,
-              31044.254,
-              31045.254,
-              31046.254,
-              31047.254,
-              31048.254,
-              31049.254,
-              31050.254,
-              31051.254,
-              31051.404,
-              31052.404
-            ],
-            "nearest_keyframe_offset": 0.254
-          }
-        },
-        {
-          "episode": 186,
-          "center": 34527,
-          "audio": {
-            "center": 34527,
-            "start": 34523,
-            "span": 8,
-            "gap_count": 0,
-            "gaps": []
-          },
-          "video": {
-            "center": 34527,
-            "start": 34509,
-            "span": 36,
-            "window_lo": 34521.0,
-            "window_hi": 34533.0,
-            "dts_gap_count": 0,
-            "dts_gaps": [],
-            "keyframes": [
-              34521.421,
-              34522.421,
-              34523.421,
-              34524.421,
-              34525.421,
-              34526.421,
-              34527.421,
-              34528.421,
-              34529.421,
-              34530.421,
-              34531.421,
-              34532.287,
-              34532.554
-            ],
-            "nearest_keyframe_offset": 0.421
-          }
-        },
-        {
-          "episode": 187,
-          "center": 38007,
-          "audio": {
-            "center": 38007,
-            "start": 38003,
-            "span": 8,
-            "gap_count": 0,
-            "gaps": []
-          },
-          "video": {
-            "center": 38007,
-            "start": 37989,
-            "span": 36,
-            "window_lo": 38001.0,
-            "window_hi": 38013.0,
-            "dts_gap_count": 0,
-            "dts_gaps": [],
-            "keyframes": [
-              38001.504,
-              38002.504,
-              38002.821,
-              38003.821,
-              38004.821,
-              38005.821,
-              38006.821,
-              38007.821,
-              38008.821,
-              38009.821,
-              38010.821,
-              38011.821,
-              38012.571,
-              38012.771,
-              38012.804,
-              38012.837,
-              38012.854,
-              38012.871
-            ],
-            "nearest_keyframe_offset": -0.179
-          }
-        },
-        {
-          "episode": 188,
-          "center": 41487,
-          "audio": {
-            "center": 41487,
-            "start": 41483,
-            "span": 8,
-            "gap_count": 0,
-            "gaps": []
-          },
-          "video": {
-            "center": 41487,
-            "start": 41469,
-            "span": 36,
-            "window_lo": 41481.0,
-            "window_hi": 41493.0,
-            "dts_gap_count": 0,
-            "dts_gaps": [],
-            "keyframes": [
-              41481.971,
-              41482.921,
-              41483.921,
-              41484.921,
-              41485.921,
-              41486.921,
-              41487.921,
-              41488.921,
-              41489.921,
-              41490.921,
-              41491.921,
-              41492.804
-            ],
-            "nearest_keyframe_offset": -0.079
-          }
-        }
-      ],
-      "opening_sequence_probe": {
-        "status": "diagnostic",
-        "method": "10s-opening-sequence",
-        "reference_episode": 186,
-        "reference_start": 34527,
-        "sequence_seconds": 10,
-        "matched": 1,
-        "episode_count": 20,
-        "coverage": 0.05,
-        "rows": [
-          {
-            "episode": 177,
-            "matched": false,
-            "center": 3207,
-            "best_shift_seconds": 12,
-            "candidate_start": 3219,
-            "avg_hamming": 128.9,
-            "max_hamming": 138,
-            "avg_mean_delta": 54.79,
-            "avg_transition_delta": 37.33,
-            "score": 165.83
-          },
-          {
-            "episode": 178,
-            "matched": false,
-            "center": 6687,
-            "best_shift_seconds": 3,
-            "candidate_start": 6690,
-            "avg_hamming": 122.6,
-            "max_hamming": 143,
-            "avg_mean_delta": 71.43,
-            "avg_transition_delta": 34.11,
-            "score": 163.46
-          },
-          {
-            "episode": 179,
-            "matched": false,
-            "center": 10167,
-            "best_shift_seconds": 4,
-            "candidate_start": 10171,
-            "avg_hamming": 124.6,
-            "max_hamming": 149,
-            "avg_mean_delta": 62.18,
-            "avg_transition_delta": 21.11,
-            "score": 155.88
-          },
-          {
-            "episode": 180,
-            "matched": false,
-            "center": 13647,
-            "best_shift_seconds": -2,
-            "candidate_start": 13645,
-            "avg_hamming": 120.0,
-            "max_hamming": 144,
-            "avg_mean_delta": 51.93,
-            "avg_transition_delta": 29.67,
-            "score": 152.14
-          },
-          {
-            "episode": 181,
-            "matched": false,
-            "center": 17127,
-            "best_shift_seconds": -2,
-            "candidate_start": 17125,
-            "avg_hamming": 123.2,
-            "max_hamming": 138,
-            "avg_mean_delta": 48.18,
-            "avg_transition_delta": 28.78,
-            "score": 153.65
-          },
-          {
-            "episode": 182,
-            "matched": false,
-            "center": 20607,
-            "best_shift_seconds": -4,
-            "candidate_start": 20603,
-            "avg_hamming": 118.6,
-            "max_hamming": 149,
-            "avg_mean_delta": 42.72,
-            "avg_transition_delta": 38.78,
-            "score": 152.23
-          },
-          {
-            "episode": 183,
-            "matched": false,
-            "center": 24087,
-            "best_shift_seconds": -8,
-            "candidate_start": 24079,
-            "avg_hamming": 126.4,
-            "max_hamming": 146,
-            "avg_mean_delta": 25.87,
-            "avg_transition_delta": 38.89,
-            "score": 154.47
-          },
-          {
-            "episode": 184,
-            "matched": false,
-            "center": 27567,
-            "best_shift_seconds": -5,
-            "candidate_start": 27562,
-            "avg_hamming": 116.7,
-            "max_hamming": 142,
-            "avg_mean_delta": 37.17,
-            "avg_transition_delta": 40.0,
-            "score": 149.09
-          },
-          {
-            "episode": 185,
-            "matched": false,
-            "center": 31047,
-            "best_shift_seconds": -1,
-            "candidate_start": 31046,
-            "avg_hamming": 124.2,
-            "max_hamming": 132,
-            "avg_mean_delta": 54.01,
-            "avg_transition_delta": 27.78,
-            "score": 156.09
-          },
-          {
-            "episode": 186,
-            "matched": true,
-            "center": 34527,
-            "best_shift_seconds": 0,
-            "candidate_start": 34527,
-            "avg_hamming": 0.0,
-            "max_hamming": 0,
-            "avg_mean_delta": 0.0,
-            "avg_transition_delta": 0.0,
-            "score": 0.0
-          },
-          {
-            "episode": 187,
-            "matched": false,
-            "center": 38007,
-            "best_shift_seconds": 8,
-            "candidate_start": 38015,
-            "avg_hamming": 123.1,
-            "max_hamming": 129,
-            "avg_mean_delta": 34.54,
-            "avg_transition_delta": 37.56,
-            "score": 153.39
-          },
-          {
-            "episode": 188,
-            "matched": false,
-            "center": 41487,
-            "best_shift_seconds": 7,
-            "candidate_start": 41494,
-            "avg_hamming": 119.1,
-            "max_hamming": 134,
-            "avg_mean_delta": 48.48,
-            "avg_transition_delta": 35.22,
-            "score": 152.87
-          },
-          {
-            "episode": 189,
-            "matched": false,
-            "center": 44967,
-            "best_shift_seconds": -7,
-            "candidate_start": 44960,
-            "avg_hamming": 120.9,
-            "max_hamming": 137,
-            "avg_mean_delta": 64.59,
-            "avg_transition_delta": 22.33,
-            "score": 153.6
-          },
-          {
-            "episode": 190,
-            "matched": false,
-            "center": 48447,
-            "best_shift_seconds": -4,
-            "candidate_start": 48443,
-            "avg_hamming": 125.5,
-            "max_hamming": 142,
-            "avg_mean_delta": 57.53,
-            "avg_transition_delta": 15.56,
-            "score": 152.45
-          },
-          {
-            "episode": 191,
-            "matched": false,
-            "center": 51927,
-            "best_shift_seconds": 10,
-            "candidate_start": 51937,
-            "avg_hamming": 125.0,
-            "max_hamming": 136,
-            "avg_mean_delta": 59.19,
-            "avg_transition_delta": 31.67,
-            "score": 160.56
-          },
-          {
-            "episode": 192,
-            "matched": false,
-            "center": 56307,
-            "best_shift_seconds": 6,
-            "candidate_start": 56313,
-            "avg_hamming": 128.7,
-            "max_hamming": 144,
-            "avg_mean_delta": 52.1,
-            "avg_transition_delta": 39.33,
-            "score": 165.73
-          },
-          {
-            "episode": 193,
-            "matched": false,
-            "center": 59787,
-            "best_shift_seconds": 11,
-            "candidate_start": 59798,
-            "avg_hamming": 124.2,
-            "max_hamming": 155,
-            "avg_mean_delta": 57.67,
-            "avg_transition_delta": 42.89,
-            "score": 164.87
-          },
-          {
-            "episode": 194,
-            "matched": false,
-            "center": 63267,
-            "best_shift_seconds": 3,
-            "candidate_start": 63270,
-            "avg_hamming": 119.1,
-            "max_hamming": 138,
-            "avg_mean_delta": 58.78,
-            "avg_transition_delta": 33.11,
-            "score": 155.25
-          },
-          {
-            "episode": 195,
-            "matched": false,
-            "center": 66747,
-            "best_shift_seconds": 1,
-            "candidate_start": 66748,
-            "avg_hamming": 120.1,
-            "max_hamming": 130,
-            "avg_mean_delta": 54.85,
-            "avg_transition_delta": 37.44,
-            "score": 157.11
-          },
-          {
-            "episode": 196,
-            "matched": false,
-            "center": 70227,
-            "best_shift_seconds": 10,
-            "candidate_start": 70237,
-            "avg_hamming": 114.4,
-            "max_hamming": 134,
-            "avg_mean_delta": 58.37,
-            "avg_transition_delta": 37.33,
-            "score": 152.52
-          }
-        ]
-      },
       "known_op_probe": null,
       "global_op_probe": null,
       "ai_windows": []
