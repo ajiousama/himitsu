@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-30",
-  "generated_at": "2026-09-30T13:53:36.236633+09:00",
+  "generated_at": "2026-09-30T13:54:36.236695+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260930.json",
   "schedule_checked_at": "2026-09-30T13:46:36.234778+09:00",
@@ -54,17 +54,18 @@
   "cloud_acquisition": {
     "requested": 11,
     "fetched": 9,
-    "failures": [],
+    "failures": [
+      {
+        "jcd": "15",
+        "name": "丸亀",
+        "error": "HTTPError: playback check failed"
+      }
+    ],
     "deferred": [
       {
         "jcd": "07",
         "name": "蒲郡",
         "start": "2026-09-30T14:10:00+09:00"
-      },
-      {
-        "jcd": "15",
-        "name": "丸亀",
-        "start": "2026-09-30T13:55:00+09:00"
       }
     ]
   },
@@ -1046,8 +1047,7 @@
           "name": "一般"
         }
       ],
-      "provider_stream_start": "2026-09-30T13:55:00+09:00",
-      "source": "公式BR配信開始待ち 13:55"
+      "source": "automatic cloud SEED pending"
     },
     "boat.kojima": {
       "jcd": "16",
