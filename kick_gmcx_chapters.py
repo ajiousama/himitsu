@@ -1773,6 +1773,52 @@ def _sample_hash_range(url: str, start: int, span: int, total_duration: int = 0)
     return out
 
 
+def _score_known_op_candidate(url: str, op_start: int, total_duration: int, template_frames: list[dict]) -> dict:
+    """Score a short candidate against the user-confirmed #227 first-35s OP."""
+    op_start = max(0, int(op_start))
+    pad = 3
+    sample_start = max(0, op_start - pad)
+    sample_stop = min(int(total_duration), op_start + KNOWN_OP_TEMPLATE_SECONDS + pad)
+    frames = _sample_hash_range(url, sample_start, max(1, sample_stop - sample_start), total_duration)
+    fmap = {int(x["time"]): x for x in frames}
+    scored = []
+    for shift in range(-pad, pad + 1):
+        cand_start = op_start + shift
+        if cand_start < 0:
+            continue
+        cand = [fmap.get(cand_start + i) for i in range(KNOWN_OP_TEMPLATE_SECONDS)]
+        if any(x is None for x in cand):
+            continue
+        hammings = [
+            (int(r["hash"]) ^ int(c["hash"])).bit_count()
+            for r, c in zip(template_frames, cand)
+        ]
+        means = [
+            abs(float(r["mean"]) - float(c["mean"]))
+            for r, c in zip(template_frames, cand)
+        ]
+        core_n = max(1, int(len(hammings) * 0.70))
+        core_hamming = sum(sorted(hammings)[:core_n]) / core_n
+        avg_hamming = sum(hammings) / len(hammings)
+        avg_mean = sum(means) / len(means)
+        score = core_hamming + avg_mean / 4.0
+        scored.append((score, shift, core_hamming, avg_hamming, avg_mean, max(hammings)))
+    if not scored:
+        return {"validated": False, "reason": "candidate_window_incomplete"}
+    scored.sort(key=lambda x: x[0])
+    score, shift, core_hamming, avg_hamming, avg_mean, max_hamming = scored[0]
+    return {
+        "validated": True,
+        "best_start": op_start + int(shift),
+        "adjust_seconds": int(shift),
+        "score": round(score, 2),
+        "core_hamming": round(core_hamming, 2),
+        "avg_hamming": round(avg_hamming, 2),
+        "avg_mean_delta": round(avg_mean, 2),
+        "max_hamming": int(max_hamming),
+    }
+
+
 def _probe_known_35s_op(url: str, chapters: list[dict], total_duration: int) -> dict:
     """Use the user-confirmed first 35 seconds of #227 as a full OP template."""
     template_frames = _sample_hash_range(KNOWN_OP_TEMPLATE_URL, 0, KNOWN_OP_TEMPLATE_SECONDS)
@@ -1834,11 +1880,20 @@ def _probe_known_35s_op(url: str, chapters: list[dict], total_duration: int) -> 
 
 
 def _probe_global_op_logo_starts(url: str, total_duration: int, episode_count: int, chapters: list[dict] | None = None) -> dict:
-    """Find OP logos in wide +/-10 minute windows around rough chapter estimates."""
-    template_logo_frames = _scan_title_logo_timeline(KNOWN_OP_TEMPLATE_URL, KNOWN_OP_TEMPLATE_SECONDS, KNOWN_OP_TEMPLATE_SECONDS)
+    """Locate the first three Season-20 OPs without trusting uniform chapter positions."""
+    template_logo_frames = _scan_title_logo_timeline(
+        KNOWN_OP_TEMPLATE_URL, KNOWN_OP_TEMPLATE_SECONDS, KNOWN_OP_TEMPLATE_SECONDS
+    )
     reference, ref_meta = _pick_anchor_title_logo(template_logo_frames, 0)
     if reference is None:
         return {"status": "skipped", "reason": "template_logo_not_found", "reference": ref_meta}
+    template_frames = _sample_hash_range(
+        KNOWN_OP_TEMPLATE_URL, 0, KNOWN_OP_TEMPLATE_SECONDS, KNOWN_OP_TEMPLATE_SECONDS
+    )
+    if len(template_frames) < KNOWN_OP_TEMPLATE_SECONDS - 2:
+        return {"status": "skipped", "reason": "template_hash_incomplete", "frames": len(template_frames)}
+    template_frames = template_frames[:KNOWN_OP_TEMPLATE_SECONDS]
+
     logo_offset = int(reference.get("run_start") or 0)
     ref_w = float(reference.get("width_ratio") or 0)
     ref_h = float(reference.get("height_ratio") or 0)
@@ -1846,149 +1901,134 @@ def _probe_global_op_logo_starts(url: str, total_duration: int, episode_count: i
     ref_x = float(reference.get("center_x") or 0.5)
     ref_y = float(reference.get("center_y") or 0.5)
     ref_fill = float(reference.get("yellow_fill") or 0)
-    test_count = min(3, int(episode_count))
-    episodes = [x for x in (chapters or []) if x.get("kind") == "episode"][:test_count]
-    if len(episodes) != test_count:
+    episodes = [x for x in (chapters or []) if x.get("kind") == "episode"][:3]
+    if len(episodes) != 3:
         return {"status": "skipped", "reason": "episode_estimates_missing", "template_logo_offset": logo_offset}
 
     analysis_url = _lowest_hls_variant(url)
+    width, height = 64, 36
 
-    def sample_wide(item: dict) -> dict:
+    def scan_window(start: int, stop: int) -> dict:
+        span = max(1, int(stop) - int(start))
+        cmd = [
+            "ffmpeg", "-hide_banner", "-loglevel", "error",
+            "-rw_timeout", "15000000", "-ss", str(int(start)), "-i", analysis_url,
+            "-t", str(span), "-an",
+            "-vf", f"fps=1/{TITLE_LOGO_SAMPLE_SECONDS},scale={width}:{height}:flags=area,format=rgb24",
+            "-pix_fmt", "rgb24", "-f", "rawvideo", "pipe:1",
+        ]
+        try:
+            proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=80, check=False)
+        except (FileNotFoundError, subprocess.TimeoutExpired) as exc:
+            return {"start": start, "stop": stop, "frames": 0, "candidates": [], "reason": str(exc)}
+        if proc.returncode != 0:
+            return {"start": start, "stop": stop, "frames": 0, "candidates": [], "reason": "ffmpeg_failed"}
+        frame_size = width * height * 3
+        frames = []
+        for idx in range(len(proc.stdout) // frame_size):
+            frame = proc.stdout[idx * frame_size:(idx + 1) * frame_size]
+            logo = _normalise_yellow_logo(frame, width, height)
+            if logo:
+                frames.append({"time": int(start) + idx * TITLE_LOGO_SAMPLE_SECONDS, **logo})
+        candidates = []
+        for run in _title_logo_runs(frames):
+            run_start = int(run[0]["time"])
+            best = max(run, key=lambda x: (float(x.get("width_ratio") or 0), float(x.get("yellow_fill") or 0)))
+            w = float(best.get("width_ratio") or 0)
+            h = float(best.get("height_ratio") or 0)
+            aa = float(best.get("aspect") or 0)
+            cx = float(best.get("center_x") or 0.5)
+            cy = float(best.get("center_y") or 0.5)
+            fill = float(best.get("yellow_fill") or 0)
+            fd = (
+                abs(w - ref_w) / 0.30 + abs(h - ref_h) / 0.22 + abs(aa - ref_a) / 3.0
+                + abs(cx - ref_x) / 0.22 + abs(cy - ref_y) / 0.20 + abs(fill - ref_fill) / 0.35
+            ) / 6.0
+            if fd <= 0.40:
+                candidates.append((round(fd, 4), -len(run), run_start, len(run)))
+        return {"start": start, "stop": stop, "frames": len(frames), "candidates": candidates}
+
+    # Wide enough to catch inserted specials, but split into short HLS reads so seeking remains fast.
+    search_ranges = {
+        227: (0, 300),
+        228: (2500, 7000),
+        229: (6500, 12500),
+    }
+
+    def scan_episode(item: dict) -> dict:
         ep = int(item.get("episode") or 0)
-        rough_center = int(item.get("start_seconds") or 0)
-        width, height = 64, 36
-
-        def scan_window(start: int, stop: int) -> dict:
-            span = max(1, stop - start)
-            cmd = [
-                "ffmpeg", "-hide_banner", "-loglevel", "error",
-                "-rw_timeout", "15000000", "-ss", str(start), "-i", analysis_url,
-                "-t", str(span), "-an",
-                "-vf", f"fps=1/{TITLE_LOGO_SAMPLE_SECONDS},scale={width}:{height}:flags=area,format=rgb24",
-                "-pix_fmt", "rgb24", "-f", "rawvideo", "pipe:1",
+        rough = int(item.get("start_seconds") or 0)
+        broad_start, broad_stop = search_ranges.get(ep, (max(0, rough - 1800), min(int(total_duration), rough + 1800)))
+        broad_stop = min(int(total_duration), broad_stop)
+        tile_starts = list(range(int(broad_start), int(broad_stop), 150))
+        tile_rows = []
+        with ThreadPoolExecutor(max_workers=min(8, len(tile_starts))) as tile_pool:
+            futures = [
+                tile_pool.submit(scan_window, t, min(int(broad_stop), t + 180))
+                for t in tile_starts
             ]
-            try:
-                proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=90, check=False)
-            except (FileNotFoundError, subprocess.TimeoutExpired) as exc:
-                return {"start": start, "stop": stop, "frames": 0, "candidates": [], "reason": str(exc)}
-            if proc.returncode != 0:
-                return {"start": start, "stop": stop, "frames": 0, "candidates": [], "reason": "ffmpeg_failed"}
-            frame_size = width * height * 3
-            frames = []
-            for idx in range(len(proc.stdout) // frame_size):
-                frame = proc.stdout[idx * frame_size:(idx + 1) * frame_size]
-                logo = _normalise_yellow_logo(frame, width, height)
-                if logo:
-                    frames.append({"time": start + idx * TITLE_LOGO_SAMPLE_SECONDS, **logo})
-            candidates = []
-            for run in _title_logo_runs(frames):
-                run_start = int(run[0]["time"])
-                best = max(run, key=lambda x: (float(x.get("width_ratio") or 0), float(x.get("yellow_fill") or 0)))
-                w = float(best.get("width_ratio") or 0)
-                h = float(best.get("height_ratio") or 0)
-                aa = float(best.get("aspect") or 0)
-                cx = float(best.get("center_x") or 0.5)
-                cy = float(best.get("center_y") or 0.5)
-                fill = float(best.get("yellow_fill") or 0)
-                fd = (
-                    abs(w - ref_w) / 0.30 + abs(h - ref_h) / 0.22 + abs(aa - ref_a) / 3.0
-                    + abs(cx - ref_x) / 0.22 + abs(cy - ref_y) / 0.20 + abs(fill - ref_fill) / 0.35
-                ) / 6.0
-                if fd <= 0.40:
-                    candidates.append((round(fd, 4), -len(run), run_start, len(run)))
-            return {"start": start, "stop": stop, "frames": len(frames), "candidates": candidates}
+            for future in as_completed(futures):
+                tile_rows.append(future.result())
 
-        if ep == 229:
-            broad_start = max(0, rough_center - 1724)
-            broad_stop = min(int(total_duration), rough_center + 1876)
-            tile_starts = list(range(broad_start, broad_stop, 120))
-            tile_rows = []
-            with ThreadPoolExecutor(max_workers=min(8, len(tile_starts))) as tile_pool:
-                tile_futures = [
-                    tile_pool.submit(scan_window, t, min(broad_stop, t + 150))
-                    for t in tile_starts
-                ]
-                for future in as_completed(tile_futures):
-                    tile_rows.append(future.result())
-            detected_frames = sum(int(x.get("frames") or 0) for x in tile_rows)
-            merged = {}
-            for row in tile_rows:
-                for fd, neg_len, run_start, run_frames in row.get("candidates") or []:
-                    prev = merged.get(int(run_start))
-                    cand = (fd, neg_len, run_start, run_frames)
-                    if prev is None or cand < prev:
-                        merged[int(run_start)] = cand
-            candidates = sorted(merged.values())
-            if not candidates:
-                return {
-                    "episode": ep, "chapter_start": rough_center, "search_center": rough_center,
-                    "matched": False, "reason": "no_logo_in_tiled_window",
-                    "scan_mode": "tiled-lowest-hls", "tile_count": len(tile_starts),
-                    "detected_logo_frames": detected_frames,
-                    "window_start": broad_start, "window_stop": broad_stop,
-                }
-            fd, neg_len, logo_time, run_frames = candidates[0]
+        merged = {}
+        for row in tile_rows:
+            for fd, neg_len, run_start, run_frames in row.get("candidates") or []:
+                cand = (fd, neg_len, int(run_start), int(run_frames))
+                prev = merged.get(int(run_start))
+                if prev is None or cand < prev:
+                    merged[int(run_start)] = cand
+
+        logo_candidates = sorted(merged.values())
+        validation_rows = []
+        # Keep the exact known #227 start plus the strongest geometry candidates.
+        if ep == 227:
+            logo_candidates = [(0.0, -5, logo_offset, 5)] + logo_candidates
+        unique_op_starts = []
+        for fd, neg_len, logo_time, run_frames in logo_candidates:
             op_start = max(0, int(logo_time) - logo_offset)
-            return {
-                "episode": ep, "chapter_start": rough_center, "search_center": rough_center,
-                "matched": True, "scan_mode": "tiled-lowest-hls",
-                "tile_count": len(tile_starts), "window_start": broad_start, "window_stop": broad_stop,
-                "logo_time": int(logo_time), "op_start": op_start,
-                "shift_seconds": op_start - rough_center,
-                "feature_distance": fd, "run_frames": int(run_frames),
-                "detected_logo_frames": detected_frames,
-                "top_candidates": [
-                    {"logo_time": int(c[2]), "op_start": max(0, int(c[2]) - logo_offset), "feature_distance": c[0], "run_frames": int(c[3])}
-                    for c in candidates[:5]
-                ],
-            }
+            if any(abs(op_start - x[0]) <= 4 for x in unique_op_starts):
+                continue
+            unique_op_starts.append((op_start, fd, run_frames, logo_time))
+            if len(unique_op_starts) >= 10:
+                break
 
-        center = rough_center + (262 if ep >= 228 else 0)
-        radius = 240
-        start = max(0, center - radius)
-        stop = min(int(total_duration), center + radius)
-        if center <= radius:
-            start = 0
-            stop = min(int(total_duration), 90)
-        row = scan_window(start, stop)
-        candidates = list(row.get("candidates") or [])
-        if not candidates:
-            return {
-                "episode": ep, "chapter_start": rough_center, "search_center": center, "matched": False,
-                "reason": row.get("reason") or "no_logo_in_wide_window",
-                "detected_logo_frames": int(row.get("frames") or 0),
-                "window_start": start, "window_stop": stop,
-            }
-        expected_logo = center + logo_offset
-        ranked = sorted(
-            (fd, abs(int(run_start) - expected_logo), neg_len, int(run_start), int(run_frames))
-            for fd, neg_len, run_start, run_frames in candidates
-        )
-        fd, distance, neg_len, logo_time, run_frames = ranked[0]
-        op_start = max(0, int(logo_time) - logo_offset)
+        for op_start, fd, run_frames, logo_time in unique_op_starts:
+            check = _score_known_op_candidate(analysis_url, op_start, int(total_duration), template_frames)
+            validation_rows.append({
+                "logo_time": int(logo_time),
+                "op_start": int(op_start),
+                "feature_distance": fd,
+                "run_frames": int(run_frames),
+                **check,
+            })
+
+        valid = [x for x in validation_rows if x.get("validated")]
+        valid.sort(key=lambda x: (float(x.get("score") or 9999), float(x.get("feature_distance") or 9999)))
+        best = valid[0] if valid else None
         return {
-            "episode": ep, "chapter_start": rough_center, "search_center": center, "matched": True,
-            "window_start": start, "window_stop": stop,
-            "logo_time": int(logo_time), "op_start": op_start,
-            "shift_seconds": op_start - rough_center,
-            "feature_distance": fd, "run_frames": int(run_frames),
-            "distance_from_estimated_logo": int(distance),
-            "detected_logo_frames": int(row.get("frames") or 0),
+            "episode": ep,
+            "chapter_start": rough,
+            "matched": best is not None,
+            "scan_mode": "tiled-lowest-hls-plus-35s-template",
+            "tile_count": len(tile_starts),
+            "window_start": int(broad_start),
+            "window_stop": int(broad_stop),
+            "detected_logo_frames": sum(int(x.get("frames") or 0) for x in tile_rows),
+            "candidate_count": len(validation_rows),
+            "best": best,
+            "candidates": valid[:8],
         }
 
     rows = []
-    with ThreadPoolExecutor(max_workers=min(4, len(episodes))) as pool:
-        futures = [pool.submit(sample_wide, item) for item in episodes]
-        for future in as_completed(futures):
-            rows.append(future.result())
+    # Episodes are independent; parallelise only at this outer level lightly because each one also tiles.
+    for item in episodes:
+        rows.append(scan_episode(item))
     rows.sort(key=lambda x: int(x.get("episode") or 0))
-    matched_rows = [x for x in rows if x.get("matched")]
     return {
-        "status": "diagnostic" if len(matched_rows) >= max(1, test_count - 1) else "partial",
-        "method": "wide-local-op-logo-scan",
+        "status": "diagnostic",
+        "method": "tiled-logo-plus-user-confirmed-35s-template",
         "template_logo_offset": logo_offset,
-        "matched": len(matched_rows),
-        "episode_count": test_count,
+        "episode_count": len(rows),
         "rows": rows,
     }
 
@@ -2576,6 +2616,12 @@ def main() -> int:
                     "status": "legacy-structured",
                     "reason": "image-refinement-limited-to-177-plus",
                 }
+        elif status == "ready" and chapters and start_ep == 227:
+            titlecard_refinement = {
+                "status": "skipped",
+                "reason": "season20-exact-op-diagnostic",
+                "boundary_version": TITLECARD_BOUNDARY_VERSION,
+            }
         elif status == "ready" and chapters and vod.get("playable"):
             chapters, titlecard_refinement = refine_with_titlecard(
                 vod,
