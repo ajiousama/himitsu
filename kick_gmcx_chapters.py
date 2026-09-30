@@ -2003,6 +2003,99 @@ def _probe_global_op_logo_starts(url: str, total_duration: int, episode_count: i
     }
 
 
+
+def _probe_oldest_range_audio_starts(url: str, total_duration: int, chapters: list[dict]) -> dict:
+    """Rebuild the oldest unconfirmed range first: prove #207-209 from #207's opening audio."""
+    analysis_url = _lowest_hls_variant(url)
+    sample_rate = 4000
+    block_samples = 400
+    template_seconds = 35
+
+    def envelope(source: str, start: int, span: int, timeout: int = 100) -> list[float]:
+        cmd = [
+            "ffmpeg", "-hide_banner", "-loglevel", "error",
+            "-rw_timeout", "15000000", "-ss", str(max(0, int(start))), "-i", source,
+            "-t", str(max(1, int(span))), "-vn", "-ac", "1", "-ar", str(sample_rate),
+            "-f", "s16le", "pipe:1",
+        ]
+        try:
+            proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=timeout, check=False)
+        except (FileNotFoundError, subprocess.TimeoutExpired):
+            return []
+        if proc.returncode != 0 or not proc.stdout:
+            return []
+        pcm = array.array("h")
+        pcm.frombytes(proc.stdout)
+        out = []
+        for i in range(0, len(pcm) - block_samples + 1, block_samples):
+            block = pcm[i:i + block_samples]
+            out.append(sum(abs(int(x)) for x in block) / block_samples)
+        return out
+
+    template = envelope(analysis_url, 0, template_seconds, 70)
+    need = template_seconds * 10
+    if len(template) < need - 5:
+        return {"status": "skipped", "reason": "template_incomplete", "blocks": len(template)}
+    template = template[:need]
+    tm = sum(template) / len(template)
+    tc = [x - tm for x in template]
+    tn = math.sqrt(sum(x * x for x in tc))
+    if tn <= 0:
+        return {"status": "skipped", "reason": "template_flat"}
+
+    episodes = [x for x in chapters if x.get("kind") == "episode"][:3]
+    if len(episodes) < 3:
+        return {"status": "skipped", "reason": "too_few_episodes"}
+
+    rows = []
+    for item in episodes:
+        ep = int(item.get("episode") or 0)
+        rough = int(item.get("start_seconds") or 0)
+        if ep == 207:
+            rows.append({"episode": ep, "matched": True, "best_start": 0.0, "correlation": 1.0})
+            continue
+        wstart = max(0, rough - 900)
+        wstop = min(int(total_duration), rough + 900)
+        env = envelope(analysis_url, wstart, wstop - wstart, 150)
+        n = len(template)
+        scored = []
+        for i in range(0, len(env) - n + 1, 5):
+            cand = env[i:i+n]
+            cm = sum(cand) / n
+            cc = [x - cm for x in cand]
+            cn = math.sqrt(sum(x * x for x in cc))
+            if cn <= 0:
+                continue
+            corr = sum(a*b for a,b in zip(tc,cc)) / (tn * cn)
+            scored.append((corr, i))
+        scored.sort(reverse=True)
+        top = []
+        for corr, idx in scored:
+            sec = wstart + idx / 10.0
+            if any(abs(sec - x["start_seconds"]) < 4 for x in top):
+                continue
+            top.append({"start_seconds": round(sec,1), "correlation": round(float(corr),4)})
+            if len(top) >= 5:
+                break
+        best = top[0] if top else None
+        rows.append({
+            "episode": ep,
+            "rough_start": rough,
+            "matched": bool(best and float(best["correlation"]) >= 0.45),
+            "best_start": best["start_seconds"] if best else None,
+            "correlation": best["correlation"] if best else None,
+            "window_start": wstart,
+            "window_stop": wstop,
+            "top_candidates": top,
+        })
+    return {
+        "status": "diagnostic",
+        "method": "oldest-range-self-op-audio",
+        "template_episode": 207,
+        "template_seconds": template_seconds,
+        "rows": rows,
+    }
+
 def refine_with_titlecard(
     vod: dict,
     chapters: list[dict],
@@ -2606,10 +2699,13 @@ def main() -> int:
 
         known_op_probe = None
         global_op_probe = None
+        oldest_range_probe = None
         hls_join_markers = None
         opening_sequence_probe = None
         packet_join_probe = None
         if status == "ready" and chapters:
+            if start_ep == 207 and vod.get("source_url"):
+                oldest_range_probe = _probe_oldest_range_audio_starts(str(vod.get("source_url")), duration, chapters)
             if start_ep == 227 and vod.get("source_url"):
                 known_op_probe = _probe_known_35s_op(str(vod.get("source_url")), chapters, duration)
                 global_op_probe = _probe_global_op_logo_starts(str(vod.get("source_url")), duration, count, chapters)
@@ -2647,6 +2743,7 @@ def main() -> int:
             "opening_sequence_probe": opening_sequence_probe if start_ep == 177 else None,
             "known_op_probe": known_op_probe if start_ep == 227 else None,
             "global_op_probe": global_op_probe if start_ep == 227 else None,
+            "oldest_range_probe": oldest_range_probe if start_ep == 207 else None,
             "ai_windows": build_ai_windows(start_ep, end_ep, duration) if status == "ai_required" else [],
         })
 
