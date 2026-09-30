@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-30T11:59:02.522221+09:00",
+  "generated_at": "2026-09-30T13:01:34.867685+09:00",
   "reference_episode_seconds": 3501,
   "results": [
     {
@@ -21,6 +21,7 @@
       "opening_sequence_probe": null,
       "known_op_probe": null,
       "global_op_probe": null,
+      "oldest_range_probe": null,
       "ai_windows": []
     },
     {
@@ -403,6 +404,7 @@
           }
         ]
       },
+      "oldest_range_probe": null,
       "ai_windows": []
     },
     {
@@ -934,6 +936,7 @@
       "opening_sequence_probe": null,
       "known_op_probe": null,
       "global_op_probe": null,
+      "oldest_range_probe": null,
       "ai_windows": []
     },
     {
@@ -1452,6 +1455,82 @@
       "opening_sequence_probe": null,
       "known_op_probe": null,
       "global_op_probe": null,
+      "oldest_range_probe": {
+        "status": "diagnostic",
+        "method": "oldest-range-self-op-audio",
+        "template_episode": 207,
+        "template_seconds": 35,
+        "rows": [
+          {
+            "episode": 207,
+            "matched": true,
+            "best_start": 0.0,
+            "correlation": 1.0
+          },
+          {
+            "episode": 208,
+            "rough_start": 3900,
+            "matched": true,
+            "best_start": 3512.5,
+            "correlation": 0.7146,
+            "window_start": 3000,
+            "window_stop": 4800,
+            "top_candidates": [
+              {
+                "start_seconds": 3512.5,
+                "correlation": 0.7146
+              },
+              {
+                "start_seconds": 4726.0,
+                "correlation": 0.3654
+              },
+              {
+                "start_seconds": 3076.5,
+                "correlation": 0.3533
+              },
+              {
+                "start_seconds": 3771.5,
+                "correlation": 0.3398
+              },
+              {
+                "start_seconds": 3468.0,
+                "correlation": 0.3366
+              }
+            ]
+          },
+          {
+            "episode": 209,
+            "rough_start": 7800,
+            "matched": true,
+            "best_start": 6992.5,
+            "correlation": 0.8281,
+            "window_start": 6900,
+            "window_stop": 8700,
+            "top_candidates": [
+              {
+                "start_seconds": 6992.5,
+                "correlation": 0.8281
+              },
+              {
+                "start_seconds": 7847.5,
+                "correlation": 0.4237
+              },
+              {
+                "start_seconds": 8121.5,
+                "correlation": 0.4209
+              },
+              {
+                "start_seconds": 8357.0,
+                "correlation": 0.3864
+              },
+              {
+                "start_seconds": 7962.0,
+                "correlation": 0.3796
+              }
+            ]
+          }
+        ]
+      },
       "ai_windows": []
     },
     {
@@ -1811,6 +1890,7 @@
       "opening_sequence_probe": null,
       "known_op_probe": null,
       "global_op_probe": null,
+      "oldest_range_probe": null,
       "ai_windows": []
     }
   ]
