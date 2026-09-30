@@ -8,10 +8,11 @@
 *{box-sizing:border-box}
 :root{
   --safe:300px;
-  --case:#444;
-  --case2:#222;
-  --led:#000;
-  --grid:rgba(255,255,255,.035);
+  --scale:3.2;
+  --unit-w:909px;       /* 284px x 3.2 */
+  --label-h:125px;      /* 39px x 3.2 */
+  --led-w:819px;        /* 256px x 3.2 */
+  --led-h:52px;         /* 16px x 3.2 */
   --white:#fff;
   --yellow:#ff0;
   --red:#f00;
@@ -20,119 +21,64 @@
   --blue:#4af;
   --orange:#f80;
   --brown:#fc0;
-  --dim:#aaa;
 }
-html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#00151b;color:#fff;font-family:"Yu Gothic UI","Meiryo",sans-serif}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#00151b;color:#fff;font-family:"MS Gothic","Yu Gothic UI","Meiryo",sans-serif}
 .lang-en{display:none!important}
 body.show-en .lang-ja{display:none!important}
 body.show-en .lang-en{display:inline!important}
-.soon-ja{display:none!important}
-body.phase-soon:not(.show-en) .normal-ja{display:none!important}
-body.phase-soon:not(.show-en) .soon-ja{display:inline!important}
-body.phase-soon:not(.show-en) .train.is-soon .time,
-body.phase-soon:not(.show-en) .train.is-soon .dest{color:#f00!important}
-body:before{
-  content:"";position:fixed;left:0;top:0;width:var(--safe);height:100vh;
-  background:linear-gradient(180deg,#07303b 0%,#00151b 100%);opacity:.33
-}
-#stage{position:fixed;left:311px;right:14px;top:64px;bottom:22px;display:flex;align-items:center;justify-content:center}
-#sign{
-  width:100%;height:100%;background:#444;
-  border:1px solid #fff;border-radius:0;padding:10px 11px 12px;
-  box-shadow:0 8px 24px #000a;
-  display:grid;grid-template-rows:68px 1fr 34px;gap:5px;
-}
-#topbar{
-  display:grid;grid-template-columns:120px 1fr 190px;align-items:center;
-  background:#111;border:1px solid #222;padding:4px 10px;color:#fff
-}
-.side-arrow{display:flex;align-items:center;justify-content:flex-start;color:#f2f2ed;font:900 48px/1 Arial,sans-serif}
-.side-arrow span{display:block;text-shadow:0 0 4px #fff5}
-.next-title{text-align:center;line-height:1.05}
-.next-title .jp{font-size:22px;font-weight:800;letter-spacing:1px}
-.next-title .en{font:700 15px Arial,sans-serif;color:#deded8;margin-top:3px}
-.mode-box{text-align:center}
-.mode-pill{display:inline-block;padding:7px 15px;border:1px solid #aaa;background:#111;font-weight:900;font-size:15px}
-.mode-en{font:700 10px Arial,sans-serif;color:#bbb;margin-top:3px}
-
-#rows{
-  min-height:0;display:flex;flex-direction:column;background:#000;border:1px solid #222;
-  padding:3px 4px;gap:3px;overflow:hidden
-}
-.train{
-  min-height:0;flex:1 1 0;background:
-    radial-gradient(circle at 1px 1px,var(--grid) 1px,transparent 1.15px) 0 0/4px 4px,
-    #000;
-  border-bottom:1px solid #151815;display:grid;grid-template-rows:minmax(38px,1fr) 22px;overflow:hidden
-}
-.train:last-child{border-bottom:0}
-.mainline{
-  display:grid;grid-template-columns:7fr 4fr 4fr 1fr;min-width:0;
-  align-items:center
-}
-.cell{
-  min-width:0;height:100%;display:flex;align-items:center;padding:0 10px;overflow:hidden;white-space:nowrap;
-  border-right:1px solid rgba(255,255,255,.025)
-}
-.service{font-family:"MS Gothic","Yu Gothic UI","Meiryo",sans-serif;font-size:20px;font-weight:900;letter-spacing:0}
-.service.local{color:#ff0;text-shadow:none}
-.service.limited{color:#f00;text-shadow:none}
-.time{
-  justify-content:center;color:#fff;font:900 25px/1 "MS Gothic",Consolas,monospace;
-  letter-spacing:0;text-shadow:none
-}
-.dest{
-  color:#ff0;font-family:"MS Gothic","Yu Gothic UI","Meiryo",sans-serif;
-  font-size:22px;font-weight:900;letter-spacing:0;text-shadow:none
-}
-.platform{
-  justify-content:center;color:#fff;font:900 23px/1 "MS Gothic",Arial,sans-serif;text-shadow:none
-}
-.subline{
-  position:relative;overflow:hidden;white-space:nowrap;
-  border-top:1px solid #222;color:#fff;font-family:"MS Gothic","Yu Gothic UI","Meiryo",sans-serif;
-  font-size:13px;font-weight:900;line-height:22px;text-shadow:none
-}
-.subtrack{
-  position:absolute;left:0;top:0;display:flex;width:max-content;
-  animation-name:subscroll;animation-duration:var(--dur,28s);animation-delay:var(--delay,0s);
-  animation-timing-function:linear;animation-iteration-count:infinite;will-change:transform
-}
-.subtrack>span{display:inline-block;padding-right:90px}
-.subtrack .label{color:var(--amber)}
-@keyframes subscroll{from{transform:translate3d(0,0,0)}to{transform:translate3d(-50%,0,0)}}
-
-#ticker{
-  background:
-    radial-gradient(circle at 1px 1px,var(--grid) 1px,transparent 1.2px) 0 0/4px 4px,
-    #050705;
-  border:1px solid #030303;position:relative;overflow:hidden;white-space:nowrap
-}
-#tickertrack{
-  height:100%;display:flex;align-items:center;width:max-content;
-  color:#fff;font-size:16px;font-weight:900;
-  text-shadow:none;animation:tickscroll 22s linear infinite
-}
-#tickertrack span{padding-right:90px}
-@keyframes tickscroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
-
-#overlay{
-  position:fixed;left:311px;right:14px;top:16px;height:38px;display:flex;align-items:center;
-  justify-content:space-between;padding:0 4px;color:#91cdd5;font-size:10px;pointer-events:none
-}
-#overlay .brand{font-weight:800;letter-spacing:1px;color:#ffb254}
-#overlay .status{color:#79eedc;font-weight:900}
+.led-native.lang-en{display:none!important}
+body.show-en .led-native.lang-en{display:block!important}
+body.show-en .led-native.lang-ja{display:none!important}
+.soon-native{display:none!important}
+body.phase-soon:not(.show-en) .train.is-soon .soon-native{display:block!important}
+body:before{content:"";position:fixed;left:0;top:0;width:var(--safe);height:100vh;background:linear-gradient(180deg,#07303b,#00151b);opacity:.33}
+#overlay{position:fixed;left:311px;right:14px;top:14px;height:40px;display:flex;align-items:center;justify-content:space-between;color:#9ccbd1;font-size:10px;pointer-events:none}
+#overlay .brand{font-weight:900;letter-spacing:1px;color:#f80}
+#overlay .status{color:#0f9;font-weight:900}
 #overlay .clock{font:900 24px Consolas,monospace;color:#fff}
 #overlay .clock small{font-size:13px;color:#b8d8dc}
-#badge{
-  position:absolute;right:10px;top:-28px;background:#9b1111;color:#fff;border:1px solid #ff7373;
-  padding:3px 8px;font-size:9px;font-weight:900;letter-spacing:1px
+#stage{position:fixed;left:311px;right:14px;top:61px;bottom:14px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+#sign{
+  position:relative;width:min(var(--unit-w),100%);height:100%;max-height:690px;
+  background:#444;border:1px solid #fff;padding:8px 0 8px;
+  box-shadow:0 8px 24px #000b;display:grid;grid-template-rows:var(--label-h) 1fr 36px;gap:4px
 }
-.empty{height:100%;display:grid;place-items:center;color:#aaa;font-size:26px;font-weight:900}
-
+#badge{position:absolute;right:6px;top:-18px;background:#900;color:#fff;border:1px solid #f00;padding:2px 7px;font-size:9px;font-weight:900;z-index:10}
+#credit{position:absolute;left:6px;top:-18px;color:#78949a;font-size:8px;white-space:nowrap}
+#labelWrap{position:relative;width:var(--unit-w);height:var(--label-h);overflow:hidden;margin:0 auto;background:#444}
+#labelWrap img{position:absolute;left:0;top:0;width:var(--unit-w);height:var(--label-h);image-rendering:pixelated;image-rendering:crisp-edges}
+#labelTitle{z-index:1}
+#labelHeader{z-index:2}
+#rows{width:var(--led-w);margin:0 auto;min-height:0;display:flex;flex-direction:column;background:#000;overflow:hidden}
+.train{position:relative;flex:1 1 0;min-height:68px;display:grid;grid-template-rows:var(--led-h) 20px;background:#000;border-bottom:1px solid #222;overflow:hidden}
+.train:last-child{border-bottom:0}
+.native-wrap{position:relative;width:var(--led-w);height:var(--led-h);overflow:hidden;background:#000}
+.led-native{
+  position:absolute;left:0;top:0;width:256px;height:16px;transform:scale(var(--scale));transform-origin:0 0;
+  image-rendering:pixelated;image-rendering:crisp-edges
+}
+.piece{position:absolute;top:0;height:16px;overflow:hidden}
+.piece img{position:absolute;width:890px;height:753px;max-width:none;image-rendering:pixelated;image-rendering:crisp-edges}
+.native-fallback{position:absolute;top:0;height:16px;display:flex;align-items:center;overflow:hidden;white-space:nowrap;font:900 8px/16px "MS Gothic",sans-serif;letter-spacing:0}
+.fallback-service{left:0;width:112px;color:#f00}
+.fallback-dest{left:176px;width:64px;color:#ff0;justify-content:center}
+.soon-native{z-index:8}
+.subline{height:20px;position:relative;overflow:hidden;white-space:nowrap;border-top:1px solid #222;background:#000;color:#fff;font:900 13px/20px "MS Gothic",sans-serif}
+.subtrack{position:absolute;left:0;top:0;display:flex;width:max-content;animation-name:subscroll;animation-duration:var(--dur,28s);animation-delay:var(--delay,0s);animation-timing-function:linear;animation-iteration-count:infinite;will-change:transform}
+.subtrack>span{display:inline-block;padding-right:90px}
+.subtrack .stop{color:#f00}.subtrack .station{color:#ff0}.subtrack .english{color:#0f9}
+@keyframes subscroll{from{transform:translate3d(0,0,0)}to{transform:translate3d(-50%,0,0)}}
+#ticker{width:var(--led-w);margin:0 auto;background:#000;border-top:1px solid #222;position:relative;overflow:hidden;white-space:nowrap}
+#tickerTitle{position:absolute;left:0;top:0;width:88px;height:36px;overflow:hidden;background:#000;z-index:3}
+#tickerTitleNative{position:absolute;left:0;top:0;width:64px;height:16px;transform:scale(2.2);transform-origin:0 0}
+#tickerTitleNative .piece img{width:890px;height:753px}
+#tickertrack{position:absolute;left:96px;top:0;height:36px;display:flex;align-items:center;width:max-content;color:#fff;font-size:15px;font-weight:900;animation:tickscroll 22s linear infinite}
+#tickertrack span{padding-right:90px}
+@keyframes tickscroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.empty{height:100%;display:grid;place-items:center;color:#ff0;font-size:26px;font-weight:900}
 @media(max-width:1100px){
-  :root{--safe:250px}#stage,#overlay{left:260px}
-  .service{font-size:16px}.dest{font-size:18px}.time{font-size:21px}.terminal{font-size:12px}
+  :root{--safe:250px;--scale:2.75;--unit-w:781px;--label-h:107px;--led-w:704px;--led-h:44px}
+  #stage,#overlay{left:260px}
 }
 </style>
 </head>
@@ -145,22 +91,20 @@ body:before{
 
 <div id="stage">
   <div id="sign">
+    <div id="credit">表示素材参照：r113.sakura.ne.jp JR四国 松山駅 発車標シミュレーター</div>
     <div id="badge">TEST / AUTO RELOAD</div>
-    <div id="topbar">
-      <div class="side-arrow"><span id="leftArrow">←</span></div>
-      <div class="next-title">
-        <div class="jp lang-ja">今度の発車は</div>
-        <div class="en lang-en">Next Train</div>
-      </div>
-      <div class="mode-box">
-        <div class="mode-pill" id="modePill"><span class="lang-ja">今治方面</span><span class="lang-en">for Imabari</span></div>
-        <div class="mode-en" id="count">20 sec / 日本語</div>
-      </div>
+
+    <div id="labelWrap">
+      <img id="labelTitle" src="https://r113.sakura.ne.jp/p/hasshahyo/jrs-matsuyama/img/label/title-1.png" alt="">
+      <img id="labelHeader" src="https://r113.sakura.ne.jp/p/hasshahyo/jrs-matsuyama/img/label/header.png" alt="">
     </div>
 
     <div id="rows"></div>
 
-    <div id="ticker"><div id="tickertrack"><span id="tick1">JR松山駅 発車案内</span><span id="tick2">JR松山駅 発車案内</span></div></div>
+    <div id="ticker">
+      <div id="tickerTitle"><div id="tickerTitleNative"></div></div>
+      <div id="tickertrack"><span id="tick1">JR松山駅 発車案内</span><span id="tick2">JR松山駅 発車案内</span></div>
+    </div>
   </div>
 </div>
 
@@ -168,6 +112,8 @@ body:before{
 (function(){
 'use strict';
 var SWITCH=20, PHASE_MS=3000, MAX=7, direction='north', language='ja', displayPhase=0, data=null, started=Date.now(), pageSignature='', currentRows=[];
+var SPRITE='https://r113.sakura.ne.jp/p/hasshahyo/jrs-matsuyama/img/main.png';
+var LABEL_BASE='https://r113.sakura.ne.jp/p/hasshahyo/jrs-matsuyama/img/label/';
 
 function $(id){return document.getElementById(id)}
 function pad(n){return String(n).padStart(2,'0')}
@@ -311,12 +257,94 @@ function getRows(n){
   }
   return upcoming.slice(0,MAX)
 }
+
+var DEST_INDEX={
+  '岡山・高松':0,'岡山':1,'高松':2,'多度津':3,'観音寺':4,'新居浜':5,'伊予西条':6,'今治':7,
+  '伊予北条':8,'市坪':9,'伊予市':10,'伊予大洲':11,'八幡浜':12,'卯之町':13,'宇和島':14
+};
+var FINAL_DEST_INDEX={'高松':26,'新居浜':27,'今治':28,'伊予北条':29,'八幡浜':30,'宇和島':31};
+
+function spritePiece(left,width,sx,row){
+  var sy=Math.max(0,row||0)*17;
+  return '<div class="piece" style="left:'+left+'px;width:'+width+'px">'+
+    '<img referrerpolicy="no-referrer" src="'+SPRITE+'" alt="" style="left:-'+sx+'px;top:-'+sy+'px">'+
+  '</div>';
+}
+function digitRow(v,blank){
+  if(v===null||v===undefined||v==='')return blank===undefined?10:blank;
+  var n=Number(v);return Number.isFinite(n)?n:(blank===undefined?10:blank)
+}
+function timeGroup(t){
+  var p=String(t||'').split(':'),h=Number(p[0]),m=Number(p[1]);
+  if(!Number.isFinite(h)||!Number.isFinite(m))return '';
+  var h10=h>=10?Math.floor(h/10):10,h1=h%10,m10=Math.floor(m/10),m1=m%10;
+  var out='<div style="position:absolute;left:112px;top:0;width:64px;height:16px;overflow:hidden">';
+  out+='<div class="piece" style="left:0;width:64px"><img referrerpolicy="no-referrer" src="'+SPRITE+'" alt="" style="left:-338px;top:-17px"></div>';
+  [[5,10,h10],[18,10,h1],[36,10,m10],[49,10,m1]].forEach(function(x){
+    out+='<div class="piece" style="left:'+x[0]+'px;width:'+x[1]+'px"><img referrerpolicy="no-referrer" src="'+SPRITE+'" alt="" style="left:-405px;top:-'+(17*x[2])+'px"></div>';
+  });
+  return out+'</div>';
+}
+function parseTrainNum(r){
+  var m=String(r.service||'').match(/(\d+)号/);if(!m)return null;
+  var n=Number(m[1]);return Number.isFinite(n)&&n<=99?n:null
+}
+function trainNumGroup(r,lang,enabled){
+  if(!enabled)return '';
+  var n=parseTrainNum(r);if(n===null)return '';
+  var tens=n>=10?Math.floor(n/10):10,ones=n%10,baseX=lang==='en'?272:239;
+  var out='<div style="position:absolute;left:80px;top:0;width:32px;height:16px;overflow:hidden">';
+  out+='<div class="piece" style="left:0;width:32px"><img referrerpolicy="no-referrer" src="'+SPRITE+'" alt="" style="left:-'+baseX+'px;top:-17px"></div>';
+  [[2,8,tens],[11,8,ones]].forEach(function(x){
+    out+='<div class="piece" style="left:'+x[0]+'px;width:'+x[1]+'px"><img referrerpolicy="no-referrer" src="'+SPRITE+'" alt="" style="left:-305px;top:-'+(17*x[2])+'px"></div>';
+  });
+  return out+'</div>';
+}
+function trainSpriteInfo(r){
+  var svc=String(r.service||''),info=String(r.info||'');
+  if(r.kind!=='limited'&&r.kind!=='sightseeing'){
+    if(/内子経由/.test(info))return {type:4,name:3,num:false};
+    if(/伊予長浜経由/.test(info))return {type:4,name:7,num:false};
+    return {type:4,name:0,num:false};
+  }
+  if(/伊予灘ものがたり/.test(svc))return {type:4,name:22,num:false};
+  if(/いしづち102/.test(svc))return {type:0,name:12,num:false};
+  if(/いしづち104/.test(svc))return {type:0,name:13,num:false};
+  if(/いしづち106/.test(svc))return {type:0,name:14,num:false};
+  if(/しおかぜ/.test(svc))return {type:0,name:10,num:true};
+  if(/宇和海/.test(svc))return {type:0,name:11,num:true};
+  return {type:0,name:null,num:false};
+}
+function destSpriteIndex(r){
+  var d=String(r.dest||'');
+  if(r.isFinal&&Object.prototype.hasOwnProperty.call(FINAL_DEST_INDEX,d))return FINAL_DEST_INDEX[d];
+  return Object.prototype.hasOwnProperty.call(DEST_INDEX,d)?DEST_INDEX[d]:null
+}
+function nativeRow(r,lang){
+  var x=trainSpriteInfo(r),destIdx=destSpriteIndex(r),track=platform(r),trackIdx=/^[123]$/.test(track)?Number(track)-1:3;
+  var typeX=lang==='en'?33:0,nameX=lang==='en'?152:71,destX=lang==='en'?496:431;
+  var out='';
+  out+=spritePiece(0,32,typeX,x.type);
+  if(x.name!==null) out+=spritePiece(32,80,nameX,x.name);
+  else out+='<div class="native-fallback fallback-service">'+esc(lang==='en'?serviceEn(r):serviceText(r))+'</div>';
+  out+=trainNumGroup(r,lang,x.num);
+  out+=timeGroup(r.time);
+  if(destIdx!==null)out+=spritePiece(176,64,destX,destIdx);
+  else out+='<div class="native-fallback fallback-dest">'+esc(lang==='en'?stationEn(r.dest):r.dest)+'</div>';
+  out+=spritePiece(240,16,564,trackIdx);
+  return out;
+}
+function soonOverlay(){
+  return spritePiece(112,128,586,1);
+}
+function tickerTitle(){
+  return spritePiece(0,64,725,1);
+}
+
 function setModeText(){
   var north=direction==='north';
-  $('modePill').innerHTML=north
-    ? '<span class="lang-ja">今治方面</span><span class="lang-en">for Imabari</span>'
-    : '<span class="lang-ja">宇和島方面</span><span class="lang-en">for Uwajima</span>';
-  $('leftArrow').textContent=north?'→':'←'
+  var img=$('labelTitle');
+  if(img)img.src=LABEL_BASE+(north?'title-1.png':'title-0.png');
 }
 function render(n){
   setModeText();
@@ -331,19 +359,20 @@ function render(n){
     var ja=detail(r),en=detailEn(r);
     var dur=Math.max(18,Math.min(48,Math.round(Math.max(ja.length,en.length)*.25)));
     var delay=-(idx*2.15);
-    var cls=r.kind==='limited'?'limited':'local';
-    var diff=min(r.time)-n.minutes;
-    var soon=(diff>=0&&diff<=4);
-    return '<div class="train'+(soon?' is-soon':'')+'"><div class="mainline">'+
-      '<div class="cell service '+cls+'"><span class="lang-ja normal-ja">'+esc(serviceText(r))+'</span><span class="lang-ja soon-ja">'+(soon?'まもなく発車です':esc(serviceText(r)))+'</span><span class="lang-en">'+esc(serviceEn(r))+'</span></div>'+
-      '<div class="cell time">'+(r.nextDay?'<span style="font-size:9px;color:#aaa;margin-right:4px">翌</span>':'')+esc(r.time)+'</div>'+
-      '<div class="cell dest"><span class="lang-ja">'+esc(r.dest)+'</span><span class="lang-en">'+esc(stationEn(r.dest))+'</span></div>'+
-      '<div class="cell platform">'+esc(platform(r))+'</div>'+
-      '</div><div class="subline"><div class="subtrack" style="--dur:'+dur+'s;--delay:'+delay+'s">'+
-        '<span><span class="lang-ja">'+esc(ja)+'</span><span class="lang-en">'+esc(en)+'</span></span>'+
-        '<span aria-hidden="true"><span class="lang-ja">'+esc(ja)+'</span><span class="lang-en">'+esc(en)+'</span></span>'+
-      '</div></div></div>'
+    var diff=min(r.time)-n.minutes,soon=(diff>=0&&diff<=4);
+    return '<div class="train'+(soon?' is-soon':'')+'">'+
+      '<div class="native-wrap">'+
+        '<div class="led-native lang-ja">'+nativeRow(r,'ja')+'</div>'+
+        '<div class="led-native lang-en">'+nativeRow(r,'en')+'</div>'+
+        '<div class="led-native soon-native">'+soonOverlay()+'</div>'+
+      '</div>'+
+      '<div class="subline"><div class="subtrack" style="--dur:'+dur+'s;--delay:'+delay+'s">'+
+        '<span><span class="lang-ja"><span class="stop">停車駅</span>　<span class="station">'+esc(ja)+'</span></span><span class="lang-en english">'+esc(en)+'</span></span>'+
+        '<span aria-hidden="true"><span class="lang-ja"><span class="stop">停車駅</span>　<span class="station">'+esc(ja)+'</span></span><span class="lang-en english">'+esc(en)+'</span></span>'+
+      '</div></div>'+
+    '</div>'
   }).join('');
+  var tt=$('tickerTitleNative');if(tt)tt.innerHTML=tickerTitle();
   updateTicker()
 }
 function updateTicker(){
