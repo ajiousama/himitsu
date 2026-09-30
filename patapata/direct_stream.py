@@ -14,6 +14,7 @@ import time
 import urllib.parse
 import zipfile
 import io
+import json
 
 HERE = pathlib.Path(__file__).resolve().parent
 PORT = int(os.environ.get("PORT", "8080"))
@@ -32,6 +33,7 @@ STOP = threading.Event()
 PROCESS_LOCK = threading.Lock()
 PROCESSES: dict[str, subprocess.Popen] = {}
 LAST_ERROR = ""
+DEPLOYMENT_ID = os.environ.get("RAILWAY_DEPLOYMENT_ID") or EXPECTED_SHA256
 
 TV_STYLE = """
 <style id="freewifi-tv-style">
@@ -41,6 +43,26 @@ body{
 }
 #update-modal{display:none!important}
 </style>
+"""
+
+REMOTE_UPDATE_SCRIPT = f"""
+<script id="patapata-remote-update">
+(() => {{
+  const bootDeployment = {json.dumps(DEPLOYMENT_ID)};
+  async function checkRemoteUpdate() {{
+    try {{
+      const res = await fetch('/version.json?t=' + Date.now(), {{ cache: 'no-store' }});
+      if (!res.ok) return;
+      const info = await res.json();
+      if (info.deployment_id && info.deployment_id !== bootDeployment) {{
+        location.reload();
+      }}
+    }} catch (_) {{}}
+  }}
+  setTimeout(checkRemoteUpdate, 15000);
+  setInterval(checkRemoteUpdate, 30000);
+}})();
+</script>
 """
 
 def log(msg: str) -> None:
@@ -139,6 +161,23 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
     def do_GET(self):
         path = urllib.parse.unquote(urllib.parse.urlsplit(self.path).path)
+        if path in ("/wallpaper", "/wallpaper/"):
+            path = "/patapata/index.html"
+        if path == "/version.json":
+            self.send_text(
+                200,
+                json.dumps(
+                    {
+                        "deployment_id": DEPLOYMENT_ID,
+                        "source": "TRUE-FINAL-R14",
+                        "archive_sha256": EXPECTED_SHA256,
+                        "fps": FPS,
+                    },
+                    ensure_ascii=False,
+                ) + "\n",
+                "application/json; charset=utf-8",
+            )
+            return
         if path == "/health":
             ok = ready()
             self.send_text(
@@ -198,7 +237,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
             ctype = mimetypes.guess_type(target.name)[0] or "application/octet-stream"
             if target.name == "index.html":
                 html = data.decode("utf-8", "replace")
-                html = html.replace("</head>", TV_STYLE + "\n</head>")
+                html = html.replace("</head>", TV_STYLE + "\n" + REMOTE_UPDATE_SCRIPT + "\n</head>")
                 data = html.encode("utf-8")
             if ctype.startswith("text/") or ctype in ("application/javascript", "application/json"):
                 ctype += "; charset=utf-8"
