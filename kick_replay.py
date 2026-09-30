@@ -31,6 +31,7 @@ def get_json(url: str):
     return None
 
 def hls_alive(url: str | None) -> bool:
+    """Verify that the HLS is actually playable, not just that the master playlist exists."""
     if not url:
         return False
     headers = {
@@ -40,15 +41,64 @@ def hls_alive(url: str | None) -> bool:
         "Cache-Control": "no-cache",
         "Pragma": "no-cache",
     }
+
+    def fetch_text(target: str, timeout: int = 20) -> str:
+        req = urllib.request.Request(target, headers=headers)
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            return r.read(262144).decode("utf-8", "replace")
+
     for attempt in range(2):
         try:
-            req = urllib.request.Request(url, headers=headers)
-            with urllib.request.urlopen(req, timeout=20) as r:
-                head = r.read(4096).decode("utf-8", "replace")
-            if head.lstrip().startswith("#EXTM3U"):
-                return True
+            master = fetch_text(url)
+            if not master.lstrip().startswith("#EXTM3U"):
+                raise RuntimeError("master_not_m3u8")
+
+            media_url = url
+            if "#EXT-X-STREAM-INF" in master:
+                lines = [x.strip() for x in master.splitlines()]
+                variants = []
+                for i, line in enumerate(lines):
+                    if not line.startswith("#EXT-X-STREAM-INF:"):
+                        continue
+                    m = re.search(r"(?:AVERAGE-)?BANDWIDTH=(\d+)", line)
+                    bw = int(m.group(1)) if m else 10**12
+                    j = i + 1
+                    while j < len(lines) and (not lines[j] or lines[j].startswith("#")):
+                        j += 1
+                    if j < len(lines):
+                        variants.append((bw, urllib.parse.urljoin(url, lines[j])))
+                if not variants:
+                    raise RuntimeError("master_has_no_variant")
+                variants.sort(key=lambda x: x[0])
+                media_url = variants[0][1]
+
+            media = fetch_text(media_url)
+            if not media.lstrip().startswith("#EXTM3U"):
+                raise RuntimeError("media_not_m3u8")
+            segments = [
+                urllib.parse.urljoin(media_url, line.strip())
+                for line in media.splitlines()
+                if line.strip() and not line.lstrip().startswith("#")
+            ]
+            if not segments:
+                raise RuntimeError("media_has_no_segments")
+
+            # A stale KICK archive can still return both playlists while the
+            # actual media objects are already unavailable. Probe real bytes.
+            probe_targets = [segments[0]]
+            if len(segments) > 2:
+                probe_targets.append(segments[len(segments) // 2])
+            for segment_url in probe_targets:
+                seg_headers = dict(headers)
+                seg_headers["Range"] = "bytes=0-1023"
+                req = urllib.request.Request(segment_url, headers=seg_headers)
+                with urllib.request.urlopen(req, timeout=20) as r:
+                    chunk = r.read(1024)
+                    if not chunk:
+                        raise RuntimeError("empty_media_segment")
+            return True
         except Exception as exc:
-            print(f"HLS probe failed {url} attempt={attempt + 1}: {exc}")
+            print(f"HLS playable probe failed {url} attempt={attempt + 1}: {exc}")
             if attempt == 0:
                 time.sleep(1)
     return False
