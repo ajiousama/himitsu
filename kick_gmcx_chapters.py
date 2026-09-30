@@ -2708,6 +2708,21 @@ def make_mixed_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict[str,
             if ep in EPISODE_DURATION_OVERRIDES
         )
         regular_total = override_total + sum(regular_duration_map.values())
+    elif (start_ep, end_ep) == (227, 236):
+        # Provisional user-requested baseline: cut regular episodes every 58:03.
+        provisional_regular_seconds = 58 * 60 + 3
+        regular_duration_map = {
+            ep: provisional_regular_seconds
+            for ep in range(start_ep, end_ep + 1)
+        }
+        regular_total = sum(regular_duration_map.values())
+        specs.append({
+            "key": "2017-season20-unclassified-tail",
+            "title": "GMCX 未分類長編／特番候補（#227〜236）",
+            "after_episode": 236,
+            "duration_seconds": None,
+            "expected_broadcast_seconds": None,
+        })
     else:
         regular_total = sum(
             EPISODE_DURATION_OVERRIDES.get(ep, episode_seconds)
