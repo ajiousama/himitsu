@@ -2962,17 +2962,14 @@ def main() -> int:
         packet_join_probe = None
         if status == "ready" and chapters:
             if start_ep == 207 and vod.get("source_url"):
-                # #211 is known from playback testing to be somewhere between the
-                # end of the 15-minute special and the old provisional 28443 mark.
-                # Probe the entire disputed region in overlapping 10-minute windows
-                # instead of trusting a single guessed boundary.
+                # Playback check confirms #211 itself is correct; only the
+                # #211 -> #212 join is disputed. Probe tightly around that join.
                 wide_probe_chapters = [
-                    {"kind": "episode", "episode": 211000 + i, "start_seconds": t}
-                    for i, t in enumerate(range(23000, 28401, 600))
+                    {"kind": "episode", "episode": 212, "start_seconds": 25931}
                 ]
                 wide_211_probe = _probe_bottom_seekbar_flash(
                     str(vod.get("source_url")), duration, wide_probe_chapters,
-                    max_boundaries=len(wide_probe_chapters), search_radius=360
+                    max_boundaries=1, search_radius=180
                 )
             else:
                 wide_211_probe = None
