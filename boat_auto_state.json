@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-09-30",
-  "generated_at": "2026-09-30T14:07:36.188240+09:00",
+  "generated_at": "2026-09-30T14:09:36.339289+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20260930.json",
   "schedule_checked_at": "2026-09-30T14:02:36.138652+09:00",
@@ -54,14 +54,14 @@
   "cloud_acquisition": {
     "requested": 11,
     "fetched": 10,
-    "failures": [],
-    "deferred": [
+    "failures": [
       {
         "jcd": "07",
         "name": "蒲郡",
-        "start": "2026-09-30T14:10:00+09:00"
+        "error": "HTTPError: playback check failed"
       }
-    ]
+    ],
+    "deferred": []
   },
   "epg_programmes_written": {
     "public_sports_epg_local.xml": 168,
@@ -439,7 +439,7 @@
       "intermission": null,
       "guidance_switch_at": "2026-09-30T17:23:00+09:00",
       "seed_required": false,
-      "reverify_due": false,
+      "reverify_due": true,
       "playback_verified": true,
       "first_verified_at": "2026-09-30T10:01:02.937656+09:00",
       "ready_before_first_race": true,
@@ -782,8 +782,7 @@
           "name": "予選記者特選"
         }
       ],
-      "provider_stream_start": "2026-09-30T14:10:00+09:00",
-      "source": "公式BR配信開始待ち 14:10"
+      "source": "automatic cloud SEED pending"
     },
     "boat.tsu": {
       "jcd": "09",
