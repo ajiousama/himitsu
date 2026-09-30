@@ -285,8 +285,9 @@ function render(n){
   setModeText();
   var a=getRows(n),h=$('rows');
   if(!a.length){h.innerHTML='<div class="empty">本日の表示対象列車はありません</div>';return}
-  h.innerHTML=a.map(function(r){
-    var d=detail(r),dur=Math.max(20,Math.min(50,Math.round(d.length*.27)));
+  h.innerHTML=a.map(function(r,idx){
+    var d=detail(r),dur=Math.max(18,Math.min(48,Math.round(d.length*.25)));
+    var delay=-(idx*2.15);
     var cls=r.kind==='limited'?'limited':'local';
     return '<div class="train"><div class="mainline">'+
       '<div class="cell service '+cls+'">'+esc(serviceText(r))+'</div>'+
@@ -294,7 +295,7 @@ function render(n){
       '<div class="cell dest">'+esc(r.dest)+'</div>'+
       '<div class="cell platform">'+esc(platform(r))+'</div>'+
       '<div class="cell terminal">'+esc(terminalText(r))+'</div>'+
-      '</div><div class="subline"><div class="subtrack" style="--dur:'+dur+'s"><span>'+esc(d)+'</span><span aria-hidden="true">'+esc(d)+'</span></div></div></div>'
+      '</div><div class="subline"><div class="subtrack" style="--dur:'+dur+'s;--delay:'+delay+'s"><span>'+esc(d)+'</span><span aria-hidden="true">'+esc(d)+'</span></div></div></div>'
   }).join('');
   var lead=a[0],msg='まもなく '+lead.time+'発 '+serviceText(lead)+' '+lead.dest+'行が発車します。　'+detail(lead);
   $('tick1').textContent=msg;$('tick2').textContent=msg
@@ -330,9 +331,22 @@ async function boot(){
   }catch(e){
     data={records:[]};$('source').textContent='時刻表データ読込失敗'
   }
-  render(tickClock());
-  setInterval(function(){render(tickClock())},1000);
-  setInterval(function(){direction=direction==='north'?'south':'north';started=Date.now();render(now())},SWITCH*1000);
+  var firstNow=tickClock(),lastMinute=firstNow.minutes;
+  render(firstNow);
+  setInterval(function(){
+    var n=tickClock();
+    if(n.minutes!==lastMinute){
+      lastMinute=n.minutes;
+      render(n);
+    }
+  },1000);
+  setInterval(function(){
+    direction=direction==='north'?'south':'north';
+    started=Date.now();
+    var n=now();
+    lastMinute=n.minutes;
+    render(n);
+  },SWITCH*1000);
   watch();setInterval(watch,10000)
 }
 boot();
