@@ -2662,14 +2662,26 @@ def make_mixed_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict[str,
             215: 42484,
             216: 45967,
         }
-        regular_duration_map = {
-            ep: (
-                provisional_starts[ep + 1] - provisional_starts[ep]
-                if ep + 1 in provisional_starts
-                else FIXED_TEST_EPISODE_SECONDS
-            )
-            for ep in range(207, 217)
-        }
+        regular_duration_map = {}
+        for ep in range(207, 217):
+            if ep == 210:
+                # The 210->211 gap contains the inserted specials below; do not
+                # accidentally count that whole gap as episode #210 itself.
+                regular_duration_map[ep] = FIXED_TEST_EPISODE_SECONDS
+            elif ep == 216:
+                # Last regular episode runs to the physical end of this bundle
+                # after accounting for the specials inserted after #210.
+                regular_duration_map[ep] = (
+                    duration
+                    - provisional_starts[216]
+                    - (300 + 7200 + 900)
+                    - 6022
+                )
+            elif ep + 1 in provisional_starts:
+                regular_duration_map[ep] = provisional_starts[ep + 1] - provisional_starts[ep]
+            else:
+                regular_duration_map[ep] = FIXED_TEST_EPISODE_SECONDS
+
         # #210 is followed by fixed 5m / 2h / 15m blocks plus one unknown block.
         # Size that unknown block so the next seekbar-confirmed #211 starts at 28438.
         fixed_after_210 = 300 + 7200 + 900
