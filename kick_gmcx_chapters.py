@@ -281,14 +281,14 @@ KNOWN_SPECIALS: dict[tuple[int, int], list[dict]] = {
         {
             "key": "2016-pokemon-2",
             "title": "GMCX 特別篇 ポケットモンスター赤・緑 #2",
-            "after_episode": 222,
+            "after_episode": 219,
             "duration_seconds": 2220,
             "expected_broadcast_seconds": 2220,
         },
         {
             "key": "2016-pokemon-3",
             "title": "GMCX 特別篇 ポケットモンスター赤・緑 #3",
-            "after_episode": 224,
+            "after_episode": 219,
             "duration_seconds": 2220,
             "expected_broadcast_seconds": 2220,
         },
