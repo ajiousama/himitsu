@@ -25,14 +25,15 @@ REFERENCE_EPISODE_SECONDS = 3501
 AI_WINDOW_SECONDS = 600
 KNOWN_OP_TEMPLATE_URL = "https://stream.kick.com/0f3cb0ebce7/ivs/v1/196233775518/59bB9isG3qqM/2026/9/27/23/54/mGizRKSX3j3d/media/hls/master.m3u8"
 KNOWN_OP_TEMPLATE_SECONDS = 35
+FIXED_TEST_EPISODE_SECONDS = 58 * 60 + 36  # provisional regular-slot cut requested by user
 
 # Range-specific cadence measured from clean same-season KICK bundles.
 # Season 18's clean #177-196 archive is 77,992 sec / 20 ~= 3,900 sec.
 RANGE_EPISODE_SECONDS: dict[tuple[int, int], int] = {
     (177, 196): 3480,
     (197, 206): 3871,
-    (207, 216): 3900,
-    (217, 226): 3541,
+    (207, 216): FIXED_TEST_EPISODE_SECONDS,
+    (217, 226): FIXED_TEST_EPISODE_SECONDS,
 }
 
 # Numbered episodes that are actually long-form specials.
@@ -297,6 +298,13 @@ KNOWN_SPECIALS: dict[tuple[int, int], list[dict]] = {
             "after_episode": 226,
             "duration_seconds": 2580,
             "expected_broadcast_seconds": 2580,
+        },
+        {
+            "key": "2016-season20-unclassified-tail",
+            "title": "GMCX 未分類映像（#217〜226 仮調整）",
+            "after_episode": 226,
+            "duration_seconds": None,
+            "expected_broadcast_seconds": None,
         },
     ],
 }
@@ -2428,10 +2436,9 @@ def make_mixed_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict[str,
 
     regular_duration_map: dict[int, int] = {}
     if (start_ep, end_ep) == (217, 226):
-        # 2016 chronology: five Pokemon specials have known year-end replay
-        # blocks of 33/37/37/35/43 minutes. #226 is a 120-minute special.
-        # Distribute the exact remaining archive time across #217-225.
-        fixed_special_total = sum(int(x.get("duration_seconds") or 0) for x in specs)
+        # Provisional test: regular episodes only are 58:36.
+        # Inserted Pokemon specials and the 2-hour #226 keep their own durations,
+        # so later chapter starts shift naturally instead of staying on a flat cadence.
         override_total = sum(
             int(EPISODE_DURATION_OVERRIDES.get(ep) or 0)
             for ep in range(start_ep, end_ep + 1)
@@ -2441,16 +2448,7 @@ def make_mixed_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict[str,
             ep for ep in range(start_ep, end_ep + 1)
             if ep not in EPISODE_DURATION_OVERRIDES
         ]
-        pool = duration - fixed_special_total - override_total
-        if pool <= 0 or not regular_eps:
-            return []
-        base, remainder = divmod(pool, len(regular_eps))
-        if base <= 0:
-            return []
-        regular_duration_map = {
-            ep: base + (1 if idx < remainder else 0)
-            for idx, ep in enumerate(regular_eps)
-        }
+        regular_duration_map = {ep: FIXED_TEST_EPISODE_SECONDS for ep in regular_eps}
         regular_total = override_total + sum(regular_duration_map.values())
     else:
         regular_total = sum(
@@ -2664,6 +2662,12 @@ def main() -> int:
                 "reason": "source-filelist-exact",
                 "boundary_version": TITLECARD_BOUNDARY_VERSION,
             }
+        elif status == "ready" and chapters and (start_ep, end_ep) in {(207, 216), (217, 226)}:
+            titlecard_refinement = {
+                "status": "skipped",
+                "reason": "provisional-58m36-regular-slots-with-special-offsets",
+                "boundary_version": TITLECARD_BOUNDARY_VERSION,
+            }
         elif status == "ready" and chapters and start_ep < 177:
             if (
                 previous_result
@@ -2704,7 +2708,7 @@ def main() -> int:
         opening_sequence_probe = None
         packet_join_probe = None
         if status == "ready" and chapters:
-            if start_ep == 207 and vod.get("source_url"):
+            if start_ep == 207 and vod.get("source_url") and False:
                 oldest_range_probe = _probe_oldest_range_audio_starts(str(vod.get("source_url")), duration, chapters)
             if start_ep == 227 and vod.get("source_url"):
                 known_op_probe = _probe_known_35s_op(str(vod.get("source_url")), chapters, duration)
