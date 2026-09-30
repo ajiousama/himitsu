@@ -2112,8 +2112,11 @@ def _probe_bottom_seekbar_flash(
     max_boundaries: int = 3,
     search_radius: int = 90,
 ) -> dict:
-    """Find the brief bottom seek/timeline overlay the user spotted at source-file joins."""
+    """Match the embedded source-player seekbar UI, not just any horizontal game graphic."""
     analysis_url = _lowest_hls_variant(url)
+    calibration_url = _lowest_hls_variant(
+        "https://stream.kick.com/0f3cb0ebce7/ivs/v1/196233775518/59bB9isG3qqM/2026/9/24/0/58/aI3eXlu4kM3z/media/hls/master.m3u8"
+    )
     episode_starts = [
         (int(x.get("episode") or 0), int(x.get("start_seconds") or 0))
         for x in chapters
@@ -2124,107 +2127,162 @@ def _probe_bottom_seekbar_flash(
 
     width, height = 96, 54
     fps = 5
-    rows = []
+    frame_size = width * height * 3
+    bottom_from = int(height * 0.80)
 
-    def frame_bar_score(frame: bytes) -> tuple[float, float, float]:
-        best_run = 0
-        best_row_ratio = 0.0
-        bottom_from = int(height * 0.68)
-        for y in range(bottom_from, height):
-            run = 0
-            row_hits = 0
-            for x in range(width):
-                off = (y * width + x) * 3
-                r, g, b = frame[off], frame[off + 1], frame[off + 2]
-                hi, lo = max(r, g, b), min(r, g, b)
-                lum = (int(r) + int(g) + int(b)) / 3.0
-                hit = lum >= 115 and (hi - lo) <= 55
-                if hit:
-                    row_hits += 1
-                    run += 1
-                    best_run = max(best_run, run)
-                else:
-                    run = 0
-            best_row_ratio = max(best_row_ratio, row_hits / width)
-        run_ratio = best_run / width
-        raw = run_ratio * 0.75 + best_row_ratio * 0.25
-        return raw, run_ratio, best_row_ratio
-
-    for ep, center in episode_starts:
-        start = max(0, center - int(search_radius))
-        stop = min(int(total_duration), center + int(search_radius))
-        span = max(1, stop - start)
+    def decode(source: str, start: float, stop: float, timeout: int = 120) -> list[tuple[float, bytes]]:
+        span = max(1.0, float(stop) - float(start))
         cmd = [
             "ffmpeg", "-hide_banner", "-loglevel", "error",
-            "-rw_timeout", "15000000", "-ss", str(start), "-i", analysis_url,
+            "-rw_timeout", "15000000", "-ss", str(max(0.0, float(start))), "-i", source,
             "-t", str(span), "-an",
             "-vf", f"fps={fps},scale={width}:{height}:flags=area,format=rgb24",
             "-pix_fmt", "rgb24", "-f", "rawvideo", "pipe:1",
         ]
         try:
-            proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=120, check=False)
-        except (FileNotFoundError, subprocess.TimeoutExpired) as exc:
-            rows.append({"episode": ep, "expected_start": center, "reason": str(exc), "top_frames": []})
-            continue
+            proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=timeout, check=False)
+        except (FileNotFoundError, subprocess.TimeoutExpired):
+            return []
         if proc.returncode != 0:
-            rows.append({"episode": ep, "expected_start": center, "reason": "ffmpeg_failed", "top_frames": []})
+            return []
+        out = []
+        raw = proc.stdout
+        for idx in range(len(raw) // frame_size):
+            out.append((float(start) + idx / fps, raw[idx * frame_size:(idx + 1) * frame_size]))
+        return out
+
+    def ui_mask(frame: bytes) -> set[int]:
+        mask = set()
+        for y in range(bottom_from, height):
+            for x in range(width):
+                off = (y * width + x) * 3
+                r, g, b = frame[off], frame[off + 1], frame[off + 2]
+                hi, lo = max(r, g, b), min(r, g, b)
+                lum = (int(r) + int(g) + int(b)) / 3.0
+                neutral = lum >= 105 and (hi - lo) <= 60
+                warm_bar = int(r) >= 95 and int(r) >= int(g) * 1.18 and int(r) >= int(b) * 1.18
+                if neutral or warm_bar:
+                    mask.add((y - bottom_from) * width + x)
+        return mask
+
+    def coarse_line_score(frame: bytes) -> float:
+        best_run = 0
+        best_ratio = 0.0
+        for y in range(bottom_from, height):
+            run = 0
+            hits = 0
+            for x in range(width):
+                off = (y * width + x) * 3
+                r, g, b = frame[off], frame[off + 1], frame[off + 2]
+                hi, lo = max(r, g, b), min(r, g, b)
+                lum = (int(r) + int(g) + int(b)) / 3.0
+                hit = (lum >= 105 and (hi - lo) <= 60) or (
+                    int(r) >= 95 and int(r) >= int(g) * 1.18 and int(r) >= int(b) * 1.18
+                )
+                if hit:
+                    hits += 1
+                    run += 1
+                    best_run = max(best_run, run)
+                else:
+                    run = 0
+            best_ratio = max(best_ratio, hits / width)
+        return (best_run / width) * 0.75 + best_ratio * 0.25
+
+    # Learn the actual seekbar mask from screenshot-confirmed #197-206 joins.
+    calibration_centers = [3514, 6994, 16414, 19894]
+    calibration_masks = []
+    calibration_rows = []
+    for center in calibration_centers:
+        frames = decode(calibration_url, center - 4, center + 4, timeout=70)
+        if not frames:
+            continue
+        scored = sorted(
+            ((coarse_line_score(frame), t, frame) for t, frame in frames),
+            key=lambda x: (-x[0], abs(x[1] - center)),
+        )
+        score, t, frame = scored[0]
+        calibration_masks.append(ui_mask(frame))
+        calibration_rows.append({"expected": center, "template_time": round(t, 1), "coarse_score": round(score, 4)})
+
+    if len(calibration_masks) < 2:
+        return {
+            "status": "skipped",
+            "reason": "seekbar_template_unavailable",
+            "calibration": calibration_rows,
+        }
+
+    counts = {}
+    for mask in calibration_masks:
+        for p in mask:
+            counts[p] = counts.get(p, 0) + 1
+    threshold = max(2, (len(calibration_masks) + 1) // 2)
+    template_mask = {p for p, count in counts.items() if count >= threshold}
+    if len(template_mask) < 12:
+        return {
+            "status": "skipped",
+            "reason": "seekbar_template_too_small",
+            "template_pixels": len(template_mask),
+            "calibration": calibration_rows,
+        }
+
+    rows = []
+    for ep, center in episode_starts:
+        start = max(0, center - int(search_radius))
+        stop = min(int(total_duration), center + int(search_radius))
+        frames = decode(analysis_url, start, stop, timeout=140)
+        if not frames:
+            rows.append({
+                "episode": ep, "expected_start": center,
+                "window_start": start, "window_stop": stop,
+                "reason": "ffmpeg_failed", "top_frames": [],
+            })
             continue
 
-        frame_size = width * height * 3
-        samples = []
-        for idx in range(len(proc.stdout) // frame_size):
-            frame = proc.stdout[idx * frame_size:(idx + 1) * frame_size]
-            raw, run_ratio, row_ratio = frame_bar_score(frame)
-            samples.append((raw, run_ratio, row_ratio))
+        raw_scores = []
+        for t, frame in frames:
+            mask = ui_mask(frame)
+            intersection = len(template_mask & mask)
+            recall = intersection / max(1, len(template_mask))
+            union = len(template_mask | mask)
+            jaccard = intersection / max(1, union)
+            line_score = coarse_line_score(frame)
+            # Recall of the stable player UI is primary; a line score alone
+            # cannot win because game graphics often contain long bright rows.
+            score = recall * 0.68 + jaccard * 0.22 + line_score * 0.10
+            raw_scores.append((score, recall, jaccard, line_score, t))
 
-        scored = []
-        baseline_radius = fps * 3
-        exclusion = fps
-        for idx, (raw, run_ratio, row_ratio) in enumerate(samples):
-            around = []
-            left = max(0, idx - baseline_radius)
-            right = min(len(samples), idx + baseline_radius + 1)
-            for j in range(left, right):
-                if abs(j - idx) <= exclusion:
-                    continue
-                around.append(samples[j][0])
-            baseline = statistics.median(around) if around else 0.0
-            flash_delta = max(0.0, raw - baseline)
-            rank = raw + 1.5 * flash_delta
-            t = start + idx / fps
-            scored.append({
+        ranked = sorted(raw_scores, key=lambda x: (-x[0], -x[1], abs(x[4] - center)))
+        top = []
+        for score, recall, jaccard, line_score, t in ranked:
+            if any(abs(t - float(x["time"])) < 2.0 for x in top):
+                continue
+            top.append({
                 "time": round(t, 1),
                 "offset": round(t - center, 1),
-                "score": round(raw, 4),
-                "flash_delta": round(flash_delta, 4),
-                "rank": round(rank, 4),
-                "longest_horizontal_ratio": round(run_ratio, 4),
-                "bright_row_ratio": round(row_ratio, 4),
+                "template_score": round(score, 4),
+                "template_recall": round(recall, 4),
+                "template_jaccard": round(jaccard, 4),
+                "line_score": round(line_score, 4),
             })
-
-        scored.sort(key=lambda x: (-float(x["rank"]), -float(x["flash_delta"]), abs(float(x["offset"]))))
-        top = []
-        for cand in scored:
-            if any(abs(float(cand["time"]) - float(x["time"])) < 2.0 for x in top):
-                continue
-            top.append(cand)
             if len(top) >= 6:
                 break
-        best = top[0] if top else None
+
         rows.append({
             "episode": ep,
             "expected_start": center,
             "window_start": start,
             "window_stop": stop,
-            "best": best,
+            "best": top[0] if top else None,
             "top_frames": top,
         })
 
     return {
         "status": "diagnostic",
-        "method": "bottom-seekbar-flash-wide-search",
+        "method": "source-player-seekbar-template-match",
         "fps": fps,
         "search_radius_seconds": int(search_radius),
+        "template_pixels": len(template_mask),
+        "calibration": calibration_rows,
         "boundaries_checked": len(rows),
         "rows": rows,
     }
