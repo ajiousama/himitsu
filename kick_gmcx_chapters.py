@@ -2194,6 +2194,46 @@ def _probe_bottom_seekbar_flash(
                 count += 3
         return (total / max(1, count)) / 255.0
 
+    def filelist_features(frame: bytes) -> tuple[float, float, int, float]:
+        """Detect the dark blue multi-row source file browser seen between some files."""
+        blue_dark = 0
+        total = width * height
+        pale_by_row = []
+        right_pale = 0
+        right_total = max(1, int(width * 0.18) * height)
+        right_from = int(width * 0.82)
+        for y in range(height):
+            row_pale = 0
+            for x in range(width):
+                off = (y * width + x) * 3
+                r, g, b = frame[off], frame[off + 1], frame[off + 2]
+                lum = (int(r) + int(g) + int(b)) / 3.0
+                if int(b) >= int(r) + 10 and int(b) >= int(g) + 5 and lum <= 155:
+                    blue_dark += 1
+                hi, lo = max(r, g, b), min(r, g, b)
+                pale = lum >= 88 and (hi - lo) <= 48
+                if pale:
+                    row_pale += 1
+                    if x >= right_from:
+                        right_pale += 1
+            pale_by_row.append(row_pale / width)
+
+        blue_ratio = blue_dark / max(1, total)
+        # File lists have many thin text rows rather than one large bright object.
+        active = [v >= 0.035 for v in pale_by_row]
+        bands = 0
+        in_band = False
+        for flag in active:
+            if flag and not in_band:
+                bands += 1
+                in_band = True
+            elif not flag:
+                in_band = False
+        row_score = min(1.0, bands / 8.0)
+        right_ratio = min(1.0, (right_pale / right_total) / 0.16)
+        score = blue_ratio * 0.55 + row_score * 0.30 + right_ratio * 0.15
+        return score, blue_ratio, bands, right_ratio
+
     rows = []
     gap = int(1.6 * fps)
     for ep, center in episode_starts:
@@ -2209,7 +2249,10 @@ def _probe_bottom_seekbar_flash(
             continue
 
         scored = []
+        filelist_scored = []
         for idx, (t, frame) in enumerate(frames):
+            fl_score, blue_ratio, row_bands, right_ratio = filelist_features(frame)
+            filelist_scored.append((fl_score, blue_ratio, row_bands, right_ratio, t))
             if idx < gap or idx + gap >= len(frames):
                 continue
             warm, side_text = bottom_features(frame)
@@ -2236,6 +2279,21 @@ def _probe_bottom_seekbar_flash(
             })
             if len(top) >= 6:
                 break
+        filelist_scored.sort(key=lambda x: (-x[0], abs(x[4] - center)))
+        filelist_top = []
+        for fl_score, blue_ratio, row_bands, right_ratio, t in filelist_scored:
+            if any(abs(t - float(x["time"])) < 2.0 for x in filelist_top):
+                continue
+            filelist_top.append({
+                "time": round(t, 1),
+                "offset": round(t - center, 1),
+                "filelist_score": round(fl_score, 4),
+                "blue_dark_ratio": round(blue_ratio, 4),
+                "text_row_bands": int(row_bands),
+                "right_column_score": round(right_ratio, 4),
+            })
+            if len(filelist_top) >= 6:
+                break
         rows.append({
             "episode": ep,
             "expected_start": center,
@@ -2243,11 +2301,13 @@ def _probe_bottom_seekbar_flash(
             "window_stop": stop,
             "best": top[0] if top else None,
             "top_frames": top,
+            "best_filelist": filelist_top[0] if filelist_top else None,
+            "filelist_candidates": filelist_top,
         })
 
     return {
         "status": "diagnostic",
-        "method": "transient-bottom-seekbar-flash",
+        "method": "seekbar-flash-plus-filelist-fallback",
         "fps": fps,
         "search_radius_seconds": int(search_radius),
         "boundaries_checked": len(rows),
