@@ -3,59 +3,338 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>松山交通ダッシュボード TEST</title>
+<title>JR松山駅 LED発車標 TEST</title>
 <style>
-*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#00141a;color:#eafcff;font-family:"Yu Gothic UI","Meiryo",sans-serif}
-body:before{content:"";position:fixed;left:0;top:0;width:300px;height:100%;background:linear-gradient(#07303b,#00141a);opacity:.28}
-#app{position:fixed;left:311px;right:14px;top:64px;bottom:20px;border:1px solid #0d5661;background:#02171e;display:grid;grid-template-rows:92px 1fr 34px;box-shadow:0 0 0 1px rgba(0,255,230,.04) inset}
-header{display:grid;grid-template-columns:1.2fr .9fr 240px;align-items:center;padding:8px 14px;border-bottom:2px solid #10a99d;background:#031219}
-.kicker{font-size:10px;letter-spacing:1.5px;color:#ffb34b;font-weight:800}.title{display:flex;align-items:center;gap:16px}.title h1{margin:3px 0;font-size:34px;line-height:1}
-.dir{border:1px solid #36d1ef;border-radius:18px;padding:7px 20px;min-width:165px;text-align:center;background:#07303e;color:#76e1ff;font-weight:900}
-.meta{font-size:10px;color:#79cad6}.mid{text-align:center}.test{font-size:12px;color:#ff5d5d;font-weight:900;letter-spacing:2px}.source{margin-top:4px;font-size:11px;color:#7ef3e2;font-weight:800}.clock{text-align:right;font-family:Consolas,monospace;font-size:44px;font-weight:900}.date{font-size:11px;color:#ffbd57;font-family:"Yu Gothic UI","Meiryo",sans-serif}.clock small{font-size:22px;color:#b9dfe5}
-main{display:grid;grid-template-rows:36px 1fr;min-height:0}.head,.rowtop{display:grid;grid-template-columns:1.45fr .72fr 1.55fr .60fr 1.25fr 1.65fr}.head{align-items:center;text-align:center;color:#83d9e5;font-size:11px;font-weight:900;border-bottom:1px solid #0d4b55}.head div,.rowtop div{border-right:1px solid rgba(74,171,184,.10)}
-#rows{padding:7px 8px;display:flex;flex-direction:column;gap:5px;min-height:0}.row{flex:1 1 0;min-height:58px;max-height:80px;background:#06242c;border-left:4px solid #119cbd;border-top:1px solid #0a3942;border-bottom:1px solid #082d35;display:grid;grid-template-rows:38px 1fr;overflow:hidden}.row.limited{border-left-color:#ee8d2b}.cell{display:flex;align-items:center;min-width:0;padding:0 9px;overflow:hidden;white-space:nowrap}.svc{font-size:15px;font-weight:900}.limited .svc{color:#ffc45f}.tm{justify-content:center;font:900 22px Consolas,monospace;color:#ffd85c}.dest{font-size:18px;font-weight:900}.plat{justify-content:center;color:#b2ecf4;font-weight:800}.term{color:#7bf1db;font-size:13px;font-weight:800}.remark{font-size:11px;color:#b9d8dd}.detail{position:relative;overflow:hidden;border-top:1px solid rgba(255,255,255,.05);color:#8cdfff;font-size:10px;white-space:nowrap}.track{position:absolute;left:0;top:0;display:flex;width:max-content;line-height:20px;animation:scroll var(--dur,28s) linear infinite}.track span{padding-right:55px}@keyframes scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
-footer{display:grid;grid-template-columns:1fr 120px;border-top:1px solid #0d4b55;background:#052129;min-width:0}.ticker{overflow:hidden;position:relative}.foottrack{display:flex;width:max-content;height:100%;align-items:center;animation:foot 24s linear infinite;color:#d7ac59;font-size:11px;font-weight:800}.foottrack span{padding-right:70px}@keyframes foot{from{transform:translateX(0)}to{transform:translateX(-50%)}}#count{display:flex;align-items:center;justify-content:center;border-left:1px solid #0d4b55;color:#76dff0;font-size:11px;font-weight:900}
-.empty{height:100%;display:flex;align-items:center;justify-content:center;font-size:28px;color:#7daab3;font-weight:900}
+*{box-sizing:border-box}
+:root{
+  --safe:300px;
+  --case:#25292c;
+  --case2:#121516;
+  --led:#030504;
+  --grid:rgba(255,255,255,.035);
+  --white:#f1f1ea;
+  --amber:#ffd94b;
+  --orange:#ff9b28;
+  --red:#ff3b36;
+  --green:#8ee67c;
+  --lime:#d6ff6a;
+  --dim:#9c9d93;
+}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#00151b;color:#fff;font-family:"Yu Gothic UI","Meiryo",sans-serif}
+body:before{
+  content:"";position:fixed;left:0;top:0;width:var(--safe);height:100vh;
+  background:linear-gradient(180deg,#07303b 0%,#00151b 100%);opacity:.33
+}
+#stage{position:fixed;left:311px;right:14px;top:64px;bottom:22px;display:flex;align-items:center;justify-content:center}
+#sign{
+  width:100%;height:100%;background:linear-gradient(#323638,#202426);
+  border:2px solid #555b5d;border-radius:3px;padding:10px 11px 12px;
+  box-shadow:0 8px 24px #0009,inset 0 1px 0 #7778,inset 0 -2px 0 #050505;
+  display:grid;grid-template-rows:68px 30px 1fr 34px;gap:5px;
+}
+#topbar{
+  display:grid;grid-template-columns:155px 1fr 175px;align-items:center;
+  background:#1e2122;border:1px solid #0d0e0f;padding:4px 10px;color:#ededed
+}
+.platform-box{display:flex;align-items:center;gap:10px;font-weight:900}
+.arrow{font-size:38px;line-height:1}
+.platform-number{
+  width:47px;height:47px;background:#f0f0e9;color:#171717;display:grid;place-items:center;
+  border-radius:2px;font:900 34px/1 Arial,sans-serif
+}
+.next-title{text-align:center;line-height:1.05}
+.next-title .jp{font-size:22px;font-weight:800;letter-spacing:1px}
+.next-title .en{font:700 15px Arial,sans-serif;color:#deded8;margin-top:3px}
+.mode-box{text-align:center}
+.mode-pill{display:inline-block;padding:7px 15px;border:1px solid #aaa;background:#111;font-weight:900;font-size:15px}
+.mode-en{font:700 10px Arial,sans-serif;color:#bbb;margin-top:3px}
+
+#headers{
+  display:grid;grid-template-columns:1.62fr .74fr 1.46fr .55fr 1.20fr;
+  align-items:center;background:#111415;border:1px solid #060707;color:#d5d5ce;
+  font-size:11px;font-weight:800;text-align:center
+}
+#headers div+div{border-left:1px solid #3a3d3d}
+
+#rows{
+  min-height:0;display:flex;flex-direction:column;background:#050707;border:1px solid #000;
+  padding:3px 4px;gap:3px;overflow:hidden
+}
+.train{
+  min-height:0;flex:1 1 0;background:
+    radial-gradient(circle at 1px 1px,var(--grid) 1px,transparent 1.2px) 0 0/4px 4px,
+    linear-gradient(#020403,#050806);
+  border-bottom:1px solid #161916;display:grid;grid-template-rows:minmax(33px,1fr) 20px;overflow:hidden
+}
+.train:last-child{border-bottom:0}
+.mainline{
+  display:grid;grid-template-columns:1.62fr .74fr 1.46fr .55fr 1.20fr;min-width:0;
+  align-items:center
+}
+.cell{
+  min-width:0;height:100%;display:flex;align-items:center;padding:0 10px;overflow:hidden;white-space:nowrap;
+  border-right:1px solid rgba(255,255,255,.025)
+}
+.service{font-size:19px;font-weight:900;letter-spacing:.5px}
+.service.local{color:var(--green);text-shadow:0 0 5px #49ff4988}
+.service.limited{color:var(--red);text-shadow:0 0 6px #ff222299}
+.time{
+  justify-content:center;color:var(--white);font:900 24px/1 Consolas,"Courier New",monospace;
+  text-shadow:0 0 5px #fff8
+}
+.dest{
+  color:var(--amber);font-size:22px;font-weight:900;letter-spacing:1px;text-shadow:0 0 6px #ffd63a88
+}
+.platform{
+  justify-content:center;color:var(--white);font:900 23px/1 Arial,sans-serif;text-shadow:0 0 4px #fff7
+}
+.terminal{
+  color:var(--lime);font-size:14px;font-weight:900;text-shadow:0 0 5px #b7ff4c66
+}
+.subline{
+  position:relative;overflow:hidden;white-space:nowrap;
+  border-top:1px solid #121512;color:#e7e7df;font-size:12px;font-weight:700;line-height:20px
+}
+.subtrack{
+  position:absolute;left:0;top:0;display:flex;width:max-content;
+  animation:subscroll var(--dur,28s) linear infinite;will-change:transform
+}
+.subtrack span{padding-right:70px}
+.subtrack .label{color:var(--amber)}
+@keyframes subscroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+#ticker{
+  background:
+    radial-gradient(circle at 1px 1px,var(--grid) 1px,transparent 1.2px) 0 0/4px 4px,
+    #050705;
+  border:1px solid #030303;position:relative;overflow:hidden;white-space:nowrap
+}
+#tickertrack{
+  height:100%;display:flex;align-items:center;width:max-content;
+  color:var(--amber);font-size:16px;font-weight:900;
+  text-shadow:0 0 6px #ffd43b88;animation:tickscroll 22s linear infinite
+}
+#tickertrack span{padding-right:90px}
+@keyframes tickscroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+#overlay{
+  position:fixed;left:311px;right:14px;top:16px;height:38px;display:flex;align-items:center;
+  justify-content:space-between;padding:0 4px;color:#91cdd5;font-size:10px;pointer-events:none
+}
+#overlay .brand{font-weight:800;letter-spacing:1px;color:#ffb254}
+#overlay .status{color:#79eedc;font-weight:900}
+#overlay .clock{font:900 24px Consolas,monospace;color:#fff}
+#overlay .clock small{font-size:13px;color:#b8d8dc}
+#badge{
+  position:absolute;right:10px;top:-28px;background:#9b1111;color:#fff;border:1px solid #ff7373;
+  padding:3px 8px;font-size:9px;font-weight:900;letter-spacing:1px
+}
+.empty{height:100%;display:grid;place-items:center;color:#aaa;font-size:26px;font-weight:900}
+
+@media(max-width:1100px){
+  :root{--safe:250px}#stage,#overlay{left:260px}
+  .service{font-size:16px}.dest{font-size:18px}.time{font-size:21px}.terminal{font-size:12px}
+}
 </style>
 </head>
 <body>
-<div id="app">
-<header>
-  <div><div class="kicker">EHIME ・ MATSUYAMA ・ DEPARTURES</div><div class="title"><h1>JR 松山駅</h1><div id="dir" class="dir">今治方面</div></div><div class="meta">今治方面 ⇄ 宇和島方面　20秒切替</div></div>
-  <div class="mid"><div class="test">TEST / AUTO RELOAD</div><div id="source" class="source">データ読込中</div></div>
-  <div class="clock"><div id="date" class="date">----.--.--</div><span id="hm">--:--</span><small id="sec">:--</small></div>
-</header>
-<main>
- <div class="head"><div>列車</div><div>発車</div><div>行先</div><div>番線</div><div>終点着</div><div>備考</div></div>
- <div id="rows"></div>
-</main>
-<footer><div class="ticker"><div class="foottrack"><span id="foot1">JR松山駅 発車案内</span><span id="foot2">JR松山駅 発車案内</span></div></div><div id="count">次切替 20秒</div></footer>
+<div id="overlay">
+  <div class="brand">EHIME ・ MATSUYAMA ・ JR DEPARTURE BOARD</div>
+  <div class="status" id="source">R14実データ 読込中</div>
+  <div class="clock"><span id="hm">--:--</span><small id="sec">:--</small></div>
 </div>
+
+<div id="stage">
+  <div id="sign">
+    <div id="badge">TEST / AUTO RELOAD</div>
+    <div id="topbar">
+      <div class="platform-box">
+        <div class="arrow" id="leftArrow">←</div>
+        <div class="platform-number">1</div>
+      </div>
+
+      <div class="next-title">
+        <div class="jp" id="directionTitle">今治・高松・岡山方面　発車時刻</div>
+        <div class="en" id="directionEn">for Imabari, Takamatsu, Okayama</div>
+      </div>
+
+      <div class="mode-box">
+        <div class="mode-pill" id="modePill">今治方面</div>
+        <div class="mode-en" id="count">20 sec</div>
+      </div>
+    </div>
+
+    <div id="headers">
+      <div>列車 / Train</div>
+      <div>発車 / Time</div>
+      <div>行先 / Destination</div>
+      <div>のりば</div>
+      <div>終点着 / Arrival</div>
+    </div>
+
+    <div id="rows"></div>
+
+    <div id="ticker"><div id="tickertrack"><span id="tick1">JR松山駅 発車案内</span><span id="tick2">JR松山駅 発車案内</span></div></div>
+  </div>
+</div>
+
 <script>
 (function(){
 'use strict';
-var SWITCH=20, MAX=8, direction='north', data=null, started=Date.now(), initialHtml='';
+var SWITCH=20, MAX=7, direction='north', data=null, started=Date.now(), pageSignature='';
+
 function $(id){return document.getElementById(id)}
 function pad(n){return String(n).padStart(2,'0')}
 function min(t){var m=String(t||'').match(/^(\d{1,2}):(\d{2})$/);return m?Number(m[1])*60+Number(m[2]):NaN}
 function add(t,d){var n=min(t);if(!Number.isFinite(n))return '';n=((n+d)%1440+1440)%1440;return pad(Math.floor(n/60))+':'+pad(n%60)}
 function now(){
- var p={};new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Tokyo',year:'numeric',month:'2-digit',day:'2-digit',weekday:'short',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'}).formatToParts(new Date()).forEach(function(x){p[x.type]=x.value});
- var iso=p.year+'-'+p.month+'-'+p.day;return{iso:iso,dow:new Date(iso+'T12:00:00+09:00').getDay(),minutes:Number(p.hour)*60+Number(p.minute),date:p.year+'.'+p.month+'.'+p.day+' '+p.weekday,hh:p.hour,mm:p.minute,ss:p.second}
+  var p={};
+  new Intl.DateTimeFormat('ja-JP',{
+    timeZone:'Asia/Tokyo',year:'numeric',month:'2-digit',day:'2-digit',
+    weekday:'short',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'
+  }).formatToParts(new Date()).forEach(function(x){p[x.type]=x.value});
+  var iso=p.year+'-'+p.month+'-'+p.day;
+  return {iso:iso,dow:new Date(iso+'T12:00:00+09:00').getDay(),
+    minutes:Number(p.hour)*60+Number(p.minute),hh:p.hour,mm:p.minute,ss:p.second};
 }
-function valid(r,n){if(r.start&&n.iso<r.start)return false;if(r.end&&n.iso>r.end)return false;if(Array.isArray(r.exclude)&&r.exclude.indexOf(n.iso)>=0)return false;if(Array.isArray(r.dates)&&r.dates.indexOf(n.iso)<0)return false;if(Array.isArray(r.days)&&r.days.indexOf(n.dow)<0)return false;return true}
+function shiftIso(iso,days){
+  var a=iso.split('-').map(Number),d=new Date(Date.UTC(a[0],a[1]-1,a[2]+days));
+  return d.getUTCFullYear()+'-'+pad(d.getUTCMonth()+1)+'-'+pad(d.getUTCDate())
+}
+function valid(r,n){
+  if(r.start&&n.iso<r.start)return false;
+  if(r.end&&n.iso>r.end)return false;
+  if(Array.isArray(r.exclude)&&r.exclude.indexOf(n.iso)>=0)return false;
+  if(Array.isArray(r.dates)&&r.dates.indexOf(n.iso)<0)return false;
+  if(Array.isArray(r.days)&&r.days.indexOf(n.dow)<0)return false;
+  return true
+}
 function et(r,n){return r.timeByDow&&Object.prototype.hasOwnProperty.call(r.timeByDow,String(n.dow))?r.timeByDow[String(n.dow)]:r.time}
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
-function pr(r){var a=String(r.info||'').split('・').filter(Boolean),p='—';if(a.length&&/^\d+番$/.test(a[0]))p=a.shift();return{p:p,r:a.join('・')||'—'}}
-function terminals(r){var d=String(r.dest||''),s=String(r.service||''),i=String(r.info||''),t=r.time;if(/宇和海/.test(s))return[['宇和島',add(t,136)]];if(/しおかぜ/.test(s)&&/岡山・高松/.test(d))return[['高松',add(t,159)],['岡山',add(t,185)]];if(/いしづち/.test(s)&&/高松/.test(d))return[['高松',add(t,159)]];var n={'今治':37,'伊予西条':76,'観音寺':121,'高松':170,'伊予北条':26},q={'伊予市':19,'内子':49,'伊予大洲':/伊予長浜経由/.test(i)?102:83,'八幡浜':/伊予長浜経由/.test(i)?150:127,'宇和島':/伊予長浜経由/.test(i)?198:176},x=Object.prototype.hasOwnProperty.call(n,d)?n[d]:q[d];return Number.isFinite(x)?[[d,add(t,x)]]:[]}
-function term(r){var a=terminals(r);return a.length?a.map(function(x){return x[0]+' '+x[1]}).join(' / '):'—'}
-function detail(r){var s=String(r.service||''),a=[];if(/宇和海/.test(s))a=[['伊予市',14],['内子',43],['八幡浜',80],['卯之町',107],['宇和島',136]];else if(/しおかぜ/.test(s))a=[['今治',37],['壬生川',58],['伊予西条',79],['新居浜',98],['丸亀',132],['高松',159],['岡山',185]];if(a.length)return '停車駅：'+a.map(function(x){return x[0]+'('+add(r.time,x[1])+')'}).join(' → ')+' ◆ 終点着 '+term(r);var z=['各駅停車'],i=String(r.info||'');if(/伊予長浜経由/.test(i))z.push('愛ある伊予灘線経由');else if(/内子経由/.test(i))z.push('内子経由');z.push('終点 '+r.dest);if(term(r)!=='—')z.push('終点着 '+term(r));return z.join(' ◆ ')}
-function rows(n){if(!data||!Array.isArray(data.records))return[];return data.records.filter(function(r){return r.board==='rail'&&r.direction===direction&&valid(r,n)}).map(function(r){var x=Object.assign({},r);x.time=et(r,n);return x}).filter(function(r){return Number.isFinite(min(r.time))&&min(r.time)>=n.minutes-1}).sort(function(a,b){return min(a.time)-min(b.time)}).slice(0,MAX)}
-function render(n){$('dir').textContent=direction==='north'?'今治方面':'宇和島方面';var a=rows(n),h=$('rows');if(!a.length){h.innerHTML='<div class="empty">本日の表示対象列車はありません</div>';return}h.innerHTML=a.map(function(r){var x=pr(r),d=detail(r),dur=Math.max(22,Math.min(50,Math.round(d.length*.32))),lim=r.kind==='limited';return '<div class="row '+(lim?'limited':'')+'"><div class="rowtop"><div class="cell svc">'+esc((lim?'特急 ':'')+(r.service||'普通'))+'</div><div class="cell tm">'+esc(r.time)+'</div><div class="cell dest">'+esc(r.dest)+'行</div><div class="cell plat">'+esc(x.p)+'</div><div class="cell term">'+esc(term(r))+'</div><div class="cell remark">'+esc(x.r)+'</div></div><div class="detail"><div class="track" style="--dur:'+dur+'s"><span>'+esc(d)+'</span><span>'+esc(d)+'</span></div></div></div>'}).join('');var f='JR松山駅 '+(direction==='north'?'今治方面':'宇和島方面')+'　次列車 '+a[0].time+' '+(a[0].service||'普通')+' '+a[0].dest+'行　◆　'+detail(a[0]);$('foot1').textContent=f;$('foot2').textContent=f}
-function clock(){var n=now();$('date').textContent=n.date;$('hm').textContent=n.hh+':'+n.mm;$('sec').textContent=':'+n.ss;var e=Math.floor((Date.now()-started)/1000)%SWITCH;$('count').textContent='次切替 '+(SWITCH-e)+'秒';return n}
-function load(src){return new Promise(function(ok,ng){var s=document.createElement('script'),tm=setTimeout(function(){ng(new Error('timeout'))},5000);s.src=src+(src.indexOf('?')>=0?'&':'?')+'t='+Date.now();s.onload=function(){clearTimeout(tm);ok()};s.onerror=function(){clearTimeout(tm);ng(new Error('load'))};document.head.appendChild(s)})}
-async function watch(){try{var r=await fetch('/test/?watch='+Date.now(),{cache:'no-store'}),b=await r.text();if(!initialHtml){initialHtml=b;return}if(b&&b!==initialHtml)location.reload()}catch(e){}}
-async function boot(){try{delete window.MATSUYAMA_DATA;await load('/patapata/schedule.js');data=window.MATSUYAMA_DATA;if(!data||!Array.isArray(data.records))throw new Error('bad');$('source').textContent='R14実データ / GitHub→Railway同期'}catch(e){$('source').textContent='時刻表データ読込失敗';data={records:[]}}render(clock());setInterval(function(){render(clock())},1000);setInterval(function(){direction=direction==='north'?'south':'north';started=Date.now();render(now())},SWITCH*1000);watch();setInterval(watch,10000)}
+function platform(r){
+  var m=String(r.info||'').match(/(?:^|・)(\d+)番/);return m?m[1]:'—'
+}
+function remark(r){
+  return String(r.info||'').replace(/^\d+番・?/,'').replace(/^・/,'')||'各駅停車'
+}
+function serviceText(r){
+  var s=String(r.service||'普通');
+  if(r.kind==='limited'&&!/^特急/.test(s)) return '特急 '+s;
+  if(/^普通$/.test(s)) return '普通';
+  return s
+}
+function terminals(r){
+  var d=String(r.dest||''),s=String(r.service||''),i=String(r.info||''),t=r.time;
+  if(/宇和海/.test(s))return[['宇和島',add(t,136)]];
+  if(/しおかぜ/.test(s)&&/岡山・高松/.test(d))return[['高松',add(t,159)],['岡山',add(t,185)]];
+  if(/いしづち/.test(s)&&/高松/.test(d))return[['高松',add(t,159)]];
+  if(/いしづち/.test(s)&&/新居浜/.test(d))return[['新居浜',add(t,98)]];
+  var north={'今治':37,'伊予西条':76,'観音寺':121,'高松':170,'伊予北条':26};
+  var south={'伊予市':19,'内子':49,'伊予大洲':/伊予長浜経由/.test(i)?102:83,'八幡浜':/伊予長浜経由/.test(i)?150:127,'宇和島':/伊予長浜経由/.test(i)?198:176};
+  var x=Object.prototype.hasOwnProperty.call(north,d)?north[d]:south[d];
+  return Number.isFinite(x)?[[d,add(t,x)]]:[]
+}
+function terminalText(r){
+  var a=terminals(r);return a.length?a.map(function(x){return x[0]+' '+x[1]}).join(' / '):'—'
+}
+function timedStops(r){
+  var s=String(r.service||''),a=[];
+  if(/宇和海/.test(s))a=[['伊予市',14],['内子',43],['八幡浜',80],['卯之町',107],['宇和島',136]];
+  else if(/しおかぜ/.test(s))a=[['今治',37],['壬生川',58],['伊予西条',79],['新居浜',98],['丸亀',132],['高松',159],['岡山',185]];
+  else if(/いしづち/.test(s))a=[['今治',37],['壬生川',58],['伊予西条',79],['新居浜',98],['丸亀',132],['高松',159]];
+  return a.map(function(x){return x[0]+'('+add(r.time,x[1])+')'})
+}
+function detail(r){
+  var a=timedStops(r),parts=[];
+  if(a.length) parts.push('停車駅：'+a.join(' → '));
+  else{
+    parts.push('各駅停車');
+    if(/伊予長浜経由/.test(String(r.info||'')))parts.push('愛ある伊予灘線経由');
+    else if(/内子経由/.test(String(r.info||'')))parts.push('内子経由');
+    if(r.dest)parts.push('終点 '+r.dest)
+  }
+  var rem=remark(r);if(rem&&rem!=='各駅停車')parts.push(rem);
+  var term=terminalText(r);if(term!=='—')parts.push('終点着 '+term);
+  return parts.join('　◆　')
+}
+function getRows(n){
+  if(!data||!Array.isArray(data.records))return[];
+  var a=data.records.filter(function(r){return r.board==='rail'&&r.direction===direction&&valid(r,n)})
+    .map(function(r){var x=Object.assign({},r);x.time=et(r,n);return x})
+    .filter(function(r){return Number.isFinite(min(r.time))})
+    .sort(function(a,b){return min(a.time)-min(b.time)});
+  var upcoming=a.filter(function(r){return min(r.time)>=n.minutes-1});
+  if(upcoming.length<MAX){
+    var iso=shiftIso(n.iso,1),nn={iso:iso,dow:new Date(iso+'T12:00:00+09:00').getDay(),minutes:0};
+    var next=data.records.filter(function(r){return r.board==='rail'&&r.direction===direction&&valid(r,nn)})
+      .map(function(r){var x=Object.assign({},r);x.time=et(r,nn);x.nextDay=true;return x})
+      .filter(function(r){return Number.isFinite(min(r.time))})
+      .sort(function(a,b){return min(a.time)-min(b.time)});
+    upcoming=upcoming.concat(next.slice(0,MAX-upcoming.length))
+  }
+  return upcoming.slice(0,MAX)
+}
+function setModeText(){
+  var north=direction==='north';
+  $('modePill').textContent=north?'今治方面':'宇和島方面';
+  $('directionTitle').textContent=north?'今治・高松・岡山方面　発車時刻':'伊予市・八幡浜・宇和島方面　発車時刻';
+  $('directionEn').textContent=north?'for Imabari, Takamatsu, Okayama':'for Iyo-shi, Yawatahama, Uwajima';
+  $('leftArrow').textContent=north?'→':'←'
+}
+function render(n){
+  setModeText();
+  var a=getRows(n),h=$('rows');
+  if(!a.length){h.innerHTML='<div class="empty">本日の表示対象列車はありません</div>';return}
+  h.innerHTML=a.map(function(r){
+    var d=detail(r),dur=Math.max(20,Math.min(50,Math.round(d.length*.27)));
+    var cls=r.kind==='limited'?'limited':'local';
+    return '<div class="train"><div class="mainline">'+
+      '<div class="cell service '+cls+'">'+esc(serviceText(r))+'</div>'+
+      '<div class="cell time">'+(r.nextDay?'<span style="font-size:9px;color:#aaa;margin-right:4px">翌</span>':'')+esc(r.time)+'</div>'+
+      '<div class="cell dest">'+esc(r.dest)+'</div>'+
+      '<div class="cell platform">'+esc(platform(r))+'</div>'+
+      '<div class="cell terminal">'+esc(terminalText(r))+'</div>'+
+      '</div><div class="subline"><div class="subtrack" style="--dur:'+dur+'s"><span>'+esc(d)+'</span><span aria-hidden="true">'+esc(d)+'</span></div></div></div>'
+  }).join('');
+  var lead=a[0],msg='まもなく '+lead.time+'発 '+serviceText(lead)+' '+lead.dest+'行が発車します。　'+detail(lead);
+  $('tick1').textContent=msg;$('tick2').textContent=msg
+}
+function tickClock(){
+  var n=now();$('hm').textContent=n.hh+':'+n.mm;$('sec').textContent=':'+n.ss;
+  var e=Math.floor((Date.now()-started)/1000)%SWITCH,remain=SWITCH-e;
+  $('count').textContent=remain+' sec';
+  return n
+}
+function load(src){
+  return new Promise(function(ok,ng){
+    var s=document.createElement('script'),tm=setTimeout(function(){ng(new Error('timeout'))},6000);
+    s.src=src+(src.indexOf('?')>=0?'&':'?')+'t='+Date.now();
+    s.onload=function(){clearTimeout(tm);ok()};s.onerror=function(){clearTimeout(tm);ng(new Error('load'))};
+    document.head.appendChild(s)
+  })
+}
+async function watch(){
+  try{
+    var r=await fetch('/test/?watch='+Date.now(),{cache:'no-store'}),b=await r.text();
+    if(!pageSignature){pageSignature=b;return}
+    if(b&&b!==pageSignature)location.reload()
+  }catch(e){}
+}
+async function boot(){
+  try{
+    delete window.MATSUYAMA_DATA;
+    await load('/patapata/schedule.js');
+    data=window.MATSUYAMA_DATA;
+    if(!data||!Array.isArray(data.records))throw new Error('invalid');
+    $('source').textContent='R14実データ / GitHub→Railway同期'
+  }catch(e){
+    data={records:[]};$('source').textContent='時刻表データ読込失敗'
+  }
+  render(tickClock());
+  setInterval(function(){render(tickClock())},1000);
+  setInterval(function(){direction=direction==='north'?'south':'north';started=Date.now();render(now())},SWITCH*1000);
+  watch();setInterval(watch,10000)
+}
 boot();
 })();
 </script>
