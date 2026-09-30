@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import json
+import array
+import math
 import os
 import re
 import statistics
@@ -1880,177 +1882,123 @@ def _probe_known_35s_op(url: str, chapters: list[dict], total_duration: int) -> 
 
 
 def _probe_global_op_logo_starts(url: str, total_duration: int, episode_count: int, chapters: list[dict] | None = None) -> dict:
-    """Locate the first three Season-20 OPs without trusting uniform chapter positions."""
-    template_logo_frames = _scan_title_logo_timeline(
-        KNOWN_OP_TEMPLATE_URL, KNOWN_OP_TEMPLATE_SECONDS, KNOWN_OP_TEMPLATE_SECONDS
-    )
-    reference, ref_meta = _pick_anchor_title_logo(template_logo_frames, 0)
-    if reference is None:
-        return {"status": "skipped", "reason": "template_logo_not_found", "reference": ref_meta}
-    template_frames = _sample_hash_range(
-        KNOWN_OP_TEMPLATE_URL, 0, KNOWN_OP_TEMPLATE_SECONDS, KNOWN_OP_TEMPLATE_SECONDS
-    )
-    if len(template_frames) < KNOWN_OP_TEMPLATE_SECONDS - 2:
-        return {"status": "skipped", "reason": "template_hash_incomplete", "frames": len(template_frames)}
-    template_frames = template_frames[:KNOWN_OP_TEMPLATE_SECONDS]
-
-    logo_offset = int(reference.get("run_start") or 0)
-    ref_w = float(reference.get("width_ratio") or 0)
-    ref_h = float(reference.get("height_ratio") or 0)
-    ref_a = float(reference.get("aspect") or 0)
-    ref_x = float(reference.get("center_x") or 0.5)
-    ref_y = float(reference.get("center_y") or 0.5)
-    ref_fill = float(reference.get("yellow_fill") or 0)
-    episodes = [x for x in (chapters or []) if x.get("kind") == "episode"][:3]
-    if len(episodes) != 3:
-        return {"status": "skipped", "reason": "episode_estimates_missing", "template_logo_offset": logo_offset}
-
+    """Prove the first three Season-20 starts from the user-confirmed 35s OP audio."""
     analysis_url = _lowest_hls_variant(url)
-    width, height = 64, 36
+    sample_rate = 4000
+    block_samples = 400  # 0.1 second energy envelope
 
-    def scan_window(start: int, stop: int) -> dict:
-        span = max(1, int(stop) - int(start))
+    def audio_envelope(source: str, start: int, span: int, timeout: int = 100) -> list[float]:
+        start = max(0, int(start))
+        span = max(1, int(span))
         cmd = [
             "ffmpeg", "-hide_banner", "-loglevel", "error",
-            "-rw_timeout", "15000000", "-ss", str(int(start)), "-i", analysis_url,
-            "-t", str(span), "-an",
-            "-vf", f"fps=1/{TITLE_LOGO_SAMPLE_SECONDS},scale={width}:{height}:flags=area,format=rgb24",
-            "-pix_fmt", "rgb24", "-f", "rawvideo", "pipe:1",
+            "-rw_timeout", "15000000", "-ss", str(start), "-i", source,
+            "-t", str(span), "-vn", "-ac", "1", "-ar", str(sample_rate),
+            "-f", "s16le", "pipe:1",
         ]
         try:
-            proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=80, check=False)
-        except (FileNotFoundError, subprocess.TimeoutExpired) as exc:
-            return {"start": start, "stop": stop, "frames": 0, "candidates": [], "reason": str(exc)}
-        if proc.returncode != 0:
-            return {"start": start, "stop": stop, "frames": 0, "candidates": [], "reason": "ffmpeg_failed"}
-        frame_size = width * height * 3
-        frames = []
-        for idx in range(len(proc.stdout) // frame_size):
-            frame = proc.stdout[idx * frame_size:(idx + 1) * frame_size]
-            logo = _normalise_yellow_logo(frame, width, height)
-            if logo:
-                frames.append({"time": int(start) + idx * TITLE_LOGO_SAMPLE_SECONDS, **logo})
-        candidates = []
-        for run in _title_logo_runs(frames):
-            run_start = int(run[0]["time"])
-            best = max(run, key=lambda x: (float(x.get("width_ratio") or 0), float(x.get("yellow_fill") or 0)))
-            w = float(best.get("width_ratio") or 0)
-            h = float(best.get("height_ratio") or 0)
-            aa = float(best.get("aspect") or 0)
-            cx = float(best.get("center_x") or 0.5)
-            cy = float(best.get("center_y") or 0.5)
-            fill = float(best.get("yellow_fill") or 0)
-            fd = (
-                abs(w - ref_w) / 0.30 + abs(h - ref_h) / 0.22 + abs(aa - ref_a) / 3.0
-                + abs(cx - ref_x) / 0.22 + abs(cy - ref_y) / 0.20 + abs(fill - ref_fill) / 0.35
-            ) / 6.0
-            if fd <= 0.40:
-                candidates.append((round(fd, 4), -len(run), run_start, len(run)))
-        return {"start": start, "stop": stop, "frames": len(frames), "candidates": candidates}
+            proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=timeout, check=False)
+        except (FileNotFoundError, subprocess.TimeoutExpired):
+            return []
+        if proc.returncode != 0 or not proc.stdout:
+            return []
+        pcm = array.array("h")
+        pcm.frombytes(proc.stdout)
+        out = []
+        for i in range(0, len(pcm) - block_samples + 1, block_samples):
+            block = pcm[i:i + block_samples]
+            # Mean absolute amplitude is robust to compression and channel differences.
+            out.append(sum(abs(int(x)) for x in block) / block_samples)
+        return out
 
-    # First prove three episodes using chronology instead of equal division.
-    # #227 is user-confirmed at 0. Regular files are nominally 58:00; between
-    # #228 and #229 sits Pokemon special #5 (43:00), so #229's expected start
-    # is 2*58:00 + 43:00 = 9540s. Search only around those expected joins.
-    expected_starts = {
-        227: 0,
-        228: 3480,
-        229: 9540,
-    }
-    search_ranges = {
-        227: (0, 300),
-        228: (2780, 4180),
-        229: (8840, 10240),
+    template = audio_envelope(KNOWN_OP_TEMPLATE_URL, 0, KNOWN_OP_TEMPLATE_SECONDS, timeout=70)
+    need = KNOWN_OP_TEMPLATE_SECONDS * 10
+    if len(template) < need - 5:
+        return {"status": "skipped", "reason": "audio_template_incomplete", "frames": len(template)}
+    template = template[:need]
+    tmean = sum(template) / len(template)
+    tcenter = [x - tmean for x in template]
+    tnorm = math.sqrt(sum(x * x for x in tcenter))
+    if tnorm <= 0:
+        return {"status": "skipped", "reason": "audio_template_flat"}
+
+    episodes = [x for x in (chapters or []) if x.get("kind") == "episode"][:3]
+    if len(episodes) != 3:
+        return {"status": "skipped", "reason": "episode_estimates_missing"}
+
+    # #227/#228/#229 are consecutive regular broadcasts. Search broadly around
+    # 58-minute file boundaries, without inserting unrelated specials.
+    expected = {227: 0, 228: 3480, 229: 6960}
+    windows = {
+        227: (0, 180),
+        228: (2580, 4380),
+        229: (6060, 7860),
     }
 
-    def scan_episode(item: dict) -> dict:
-        ep = int(item.get("episode") or 0)
-        rough = int(item.get("start_seconds") or 0)
-        broad_start, broad_stop = search_ranges.get(ep, (max(0, rough - 1800), min(int(total_duration), rough + 1800)))
-        broad_stop = min(int(total_duration), broad_stop)
-        tile_starts = list(range(int(broad_start), int(broad_stop), 150))
-        tile_rows = []
-        with ThreadPoolExecutor(max_workers=min(8, len(tile_starts))) as tile_pool:
-            futures = [
-                tile_pool.submit(scan_window, t, min(int(broad_stop), t + 180))
-                for t in tile_starts
-            ]
-            for future in as_completed(futures):
-                tile_rows.append(future.result())
+    def best_audio_match(ep: int) -> dict:
+        wstart, wstop = windows[ep]
+        wstop = min(int(total_duration), int(wstop))
+        env = audio_envelope(analysis_url, wstart, max(1, wstop - wstart), timeout=150)
+        n = len(template)
+        if len(env) < n:
+            return {
+                "episode": ep, "matched": False, "reason": "audio_window_incomplete",
+                "window_start": wstart, "window_stop": wstop, "envelope_blocks": len(env),
+            }
+        prefix = [0.0]
+        prefix2 = [0.0]
+        for x in env:
+            prefix.append(prefix[-1] + x)
+            prefix2.append(prefix2[-1] + x * x)
 
-        merged = {}
-        for row in tile_rows:
-            for fd, neg_len, run_start, run_frames in row.get("candidates") or []:
-                cand = (fd, neg_len, int(run_start), int(run_frames))
-                prev = merged.get(int(run_start))
-                if prev is None or cand < prev:
-                    merged[int(run_start)] = cand
-
-        expected_start = int(expected_starts.get(ep, rough))
-        logo_candidates = sorted(
-            merged.values(),
-            key=lambda c: (
-                abs((int(c[2]) - logo_offset) - expected_start),
-                float(c[0]),
-                int(c[1]),
-            ),
-        )
-        validation_rows = []
-        if ep == 227:
-            logo_candidates = [(0.0, -5, logo_offset, 5)] + logo_candidates
-        unique_op_starts = []
-        for fd, neg_len, logo_time, run_frames in logo_candidates:
-            op_start = max(0, int(logo_time) - logo_offset)
-            if any(abs(op_start - x[0]) <= 4 for x in unique_op_starts):
+        scored = []
+        # 0.5-second resolution; exact boundary can be refined afterward.
+        for i in range(0, len(env) - n + 1, 5):
+            csum = prefix[i + n] - prefix[i]
+            cmean = csum / n
+            css = prefix2[i + n] - prefix2[i] - n * cmean * cmean
+            if css <= 0:
                 continue
-            unique_op_starts.append((op_start, fd, run_frames, logo_time))
-            if len(unique_op_starts) >= 6:
+            dot = 0.0
+            for k, tv in enumerate(tcenter):
+                dot += tv * (env[i + k] - cmean)
+            corr = dot / (tnorm * math.sqrt(css))
+            scored.append((corr, i))
+
+        if not scored:
+            return {
+                "episode": ep, "matched": False, "reason": "audio_no_candidates",
+                "window_start": wstart, "window_stop": wstop,
+            }
+        scored.sort(reverse=True)
+        top = []
+        for corr, idx in scored:
+            sec = wstart + idx / 10.0
+            if any(abs(sec - x["start_seconds"]) < 4 for x in top):
+                continue
+            top.append({"start_seconds": round(sec, 1), "correlation": round(float(corr), 4)})
+            if len(top) >= 5:
                 break
-
-        for op_start, fd, run_frames, logo_time in unique_op_starts:
-            check = _score_known_op_candidate(analysis_url, op_start, int(total_duration), template_frames)
-            validation_rows.append({
-                "logo_time": int(logo_time),
-                "op_start": int(op_start),
-                "expected_start": expected_start,
-                "distance_from_expected": int(op_start) - expected_start,
-                "feature_distance": fd,
-                "run_frames": int(run_frames),
-                **check,
-            })
-
-        valid = [x for x in validation_rows if x.get("validated")]
-        valid.sort(key=lambda x: (
-            abs(int(x.get("best_start") or x.get("op_start") or 0) - expected_start),
-            float(x.get("feature_distance") or 9999),
-            float(x.get("score") or 9999),
-        ))
-        best = valid[0] if valid else None
+        best = top[0]
         return {
             "episode": ep,
-            "chapter_start": rough,
-            "expected_start": int(expected_starts.get(ep, rough)),
-            "matched": best is not None,
-            "scan_mode": "tiled-lowest-hls-plus-35s-template",
-            "tile_count": len(tile_starts),
-            "window_start": int(broad_start),
-            "window_stop": int(broad_stop),
-            "detected_logo_frames": sum(int(x.get("frames") or 0) for x in tile_rows),
-            "candidate_count": len(validation_rows),
-            "best": best,
-            "candidates": valid[:8],
+            "expected_start": expected[ep],
+            "matched": float(best["correlation"]) >= 0.60,
+            "window_start": wstart,
+            "window_stop": wstop,
+            "best_start": best["start_seconds"],
+            "correlation": best["correlation"],
+            "distance_from_expected": round(float(best["start_seconds"]) - expected[ep], 1),
+            "top_candidates": top,
         }
 
-    rows = []
-    # Episodes are independent; parallelise only at this outer level lightly because each one also tiles.
-    for item in episodes:
-        rows.append(scan_episode(item))
-    rows.sort(key=lambda x: int(x.get("episode") or 0))
+    rows = [best_audio_match(int(item.get("episode") or 0)) for item in episodes]
     return {
         "status": "diagnostic",
-        "method": "tiled-logo-plus-user-confirmed-35s-template",
-        "template_logo_offset": logo_offset,
-        "episode_count": len(rows),
+        "method": "user-confirmed-35s-op-audio-envelope",
+        "template_seconds": KNOWN_OP_TEMPLATE_SECONDS,
+        "episode_count": 3,
+        "matched": sum(1 for x in rows if x.get("matched")),
         "rows": rows,
     }
 
