@@ -2690,19 +2690,22 @@ def make_mixed_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict[str,
         specs = [x for x in specs if x.get("key") != "2015-season19-unclassified-extra"]
         regular_total = sum(regular_duration_map.values())
     elif (start_ep, end_ep) == (217, 226):
-        # Provisional test: regular episodes only are 58:36.
-        # Inserted Pokemon specials and the 2-hour #226 keep their own durations,
-        # so later chapter starts shift naturally instead of staying on a flat cadence.
+        # User playback baseline: normal episodes are about 58:03.
+        # #217 is confirmed 58:03, #218 is confirmed 58:07.
+        # Keep known Pokemon insert durations and the 2-hour #226 unchanged.
+        provisional_regular_seconds = 58 * 60 + 3
+        regular_duration_map = {
+            ep: provisional_regular_seconds
+            for ep in range(start_ep, end_ep + 1)
+            if ep not in EPISODE_DURATION_OVERRIDES
+        }
+        regular_duration_map[217] = 3483
+        regular_duration_map[218] = 3487
         override_total = sum(
             int(EPISODE_DURATION_OVERRIDES.get(ep) or 0)
             for ep in range(start_ep, end_ep + 1)
             if ep in EPISODE_DURATION_OVERRIDES
         )
-        regular_eps = [
-            ep for ep in range(start_ep, end_ep + 1)
-            if ep not in EPISODE_DURATION_OVERRIDES
-        ]
-        regular_duration_map = {ep: FIXED_TEST_EPISODE_SECONDS for ep in regular_eps}
         regular_total = override_total + sum(regular_duration_map.values())
     else:
         regular_total = sum(
