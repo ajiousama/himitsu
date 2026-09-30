@@ -2647,19 +2647,39 @@ def make_mixed_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict[str,
 
     regular_duration_map: dict[int, int] = {}
     if (start_ep, end_ep) == (207, 216):
-        # Provisional boundaries from the brief source-player seekbar flash:
-        # #208 3539.4s, #209 7019.8s, #210 10510.0s.
-        # Keep later regular slots at 58:36 for now; the flexible block after
-        # #210 absorbs the difference so #211+ rough positions stay stable.
-        provisional_starts = {207: 0, 208: 3539, 209: 7020, 210: 10510}
-        regular_duration_map = {
-            207: provisional_starts[208] - provisional_starts[207],
-            208: provisional_starts[209] - provisional_starts[208],
-            209: provisional_starts[210] - provisional_starts[209],
-            210: FIXED_TEST_EPISODE_SECONDS,
+        # Working rule: 58:36 for a normal slot, but a convincing seekbar flash
+        # resets the next episode boundary. Values below are the current observed
+        # joins; where no reliable flash exists, keep the 58:36 fallback.
+        provisional_starts = {
+            207: 0,
+            208: 3539,
+            209: 7020,
+            210: 10500,
+            211: 28438,
+            212: 31953,
+            213: 35422,
+            214: 38937,
+            215: 42484,
+            216: 45967,
         }
-        for ep in range(211, 217):
-            regular_duration_map[ep] = FIXED_TEST_EPISODE_SECONDS
+        regular_duration_map = {
+            ep: (
+                provisional_starts[ep + 1] - provisional_starts[ep]
+                if ep + 1 in provisional_starts
+                else FIXED_TEST_EPISODE_SECONDS
+            )
+            for ep in range(207, 217)
+        }
+        # #210 is followed by fixed 5m / 2h / 15m blocks plus one unknown block.
+        # Size that unknown block so the next seekbar-confirmed #211 starts at 28438.
+        fixed_after_210 = 300 + 7200 + 900
+        unknown_after_210 = (
+            provisional_starts[211]
+            - (provisional_starts[210] + regular_duration_map[210] + fixed_after_210)
+        )
+        for spec in specs:
+            if spec.get("key") == "2015-season19-unclassified-extra":
+                spec["duration_seconds"] = max(0, int(unknown_after_210))
         regular_total = sum(regular_duration_map.values())
     elif (start_ep, end_ep) == (217, 226):
         # Provisional test: regular episodes only are 58:36.
@@ -2723,7 +2743,7 @@ def make_mixed_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict[str,
             spec["duration_seconds"] = base + (1 if idx < remainder else 0)
         remaining = 0
 
-    if remaining != 0:
+    if remaining != 0 and (start_ep, end_ep) != (207, 216):
         return []
 
     vod_id = str(vod.get("vod_id"))
@@ -2780,8 +2800,8 @@ def make_mixed_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict[str,
             "duration_seconds": clip_duration,
             "replay_url": clip_url(vod_id, cursor, clip_duration),
             "method": (
-                "seekbar-flash-provisional"
-                if (start_ep, end_ep) == (207, 216) and ep in {207, 208, 209, 210}
+                "58m36-plus-seekbar-provisional"
+                if (start_ep, end_ep) == (207, 216)
                 else "chronological-reference-cadence"
             ),
             "confidence": "high",
