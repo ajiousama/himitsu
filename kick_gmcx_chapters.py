@@ -2661,7 +2661,7 @@ def make_mixed_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict[str,
             212: 25904,
             213: 29367,
             214: 32840,
-            215: 36462,
+            215: 36321,
             216: 39945,
         }
         regular_duration_map = {}
