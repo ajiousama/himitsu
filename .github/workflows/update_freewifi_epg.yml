@@ -36,6 +36,7 @@ on:
       - "radio_tv_nationwide.py"
       - "radio_tv_nationwide_freewifi.py"
       - "kick_channels.json"
+      - "vod5/kick_channels.json"
       - "kick_gccx2_sync.py"
       - "logos/kick_gccx2.svg"
       - "public_sports_epg_local.py"
@@ -275,6 +276,7 @@ jobs:
                   continue
               if not (
                   cid in protected
+                  or cid == 'kick.gccx2'
                   or cid == 'kick.nogizaka'
                   or cid.startswith('kick.nogizaka.replay.')
               ):
