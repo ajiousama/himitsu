@@ -73,6 +73,17 @@ jobs:
           assert matched > 0
           assert len(bases) == 1, f'HARUKA entries disagree on host: {sorted(bases)}'
           print(f'Validated {matched} HARUKA entries on {next(iter(bases))}')
+
+          # The HARUKA refresh must not erase the user's canonical ABC blog
+          # fallback or collapse terrestrial source groups in root FreeWiFi.
+          published = Path('freewifi').read_text(encoding='utf-8-sig', errors='replace')
+          abc_blog = 'https://haru.charandom.blog/stream/jp/abc/stream-output.m3u8?mode=hls'
+          assert published.count(abc_blog) == 1
+          assert published.count('haru.charandom.blog') == 1
+          assert 'group-title="地上波 haru blog",ABCテレビ (haru blog)' in published
+          assert 'group-title="地上波 haruka"' in published
+          assert 'group-title="地上波 primehome"' in published
+          print('Validated ABC-only haru blog fallback and terrestrial source groups')
           PY
 
             git diff --check

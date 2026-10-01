@@ -45,7 +45,12 @@ jobs:
           assert 'NHK東京・総合 (primehome)' in s
           assert '## Rch' in s
           assert 'Pigoo (haruka(9394))' in s
-          assert 'haru.charandom.blog' not in s
+          abc_blog = 'https://haru.charandom.blog/stream/jp/abc/stream-output.m3u8?mode=hls'
+          assert s.count(abc_blog) == 1
+          assert s.count('haru.charandom.blog') == 1
+          assert 'group-title="地上波 haru blog",ABCテレビ (haru blog)' in s
+          assert 'group-title="地上波 haruka"' in s
+          assert 'group-title="地上波 primehome"' in s
           for cid in ('rch_30','rch_35','rch_37','rch_46','rch_86','rch_113','rch_122','rch_123','rch_124','rch_125','rch_41'):
               assert cid in s
           assert '## Rakuten-JP' not in s
