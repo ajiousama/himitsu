@@ -262,11 +262,21 @@ jobs:
                   continue
               m = re.search(r'tvg-id="([^"]+)"', line)
               cid = m.group(1) if m else ''
+              if cid.startswith('keirin.'):
+                  checked += 1
+                  # Today's keirin venue cards may use either the generated
+                  # contrast PNG or a repository-owned public-sports venue asset
+                  # (including the weserv PNG projection of a local SVG).
+                  if (
+                      '/logos/contrast/' not in line
+                      and '/logos/public_sports/venues/' not in line
+                  ):
+                      raise SystemExit(f'Stable logo guard: keirin logo left local assets: {line}')
+                  continue
               if not (
                   cid in protected
                   or cid == 'kick.nogizaka'
                   or cid.startswith('kick.nogizaka.replay.')
-                  or cid.startswith('keirin.')
               ):
                   continue
               checked += 1
