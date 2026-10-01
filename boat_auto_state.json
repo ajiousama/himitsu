@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-01",
-  "generated_at": "2026-10-01T09:53:47.563266+09:00",
+  "generated_at": "2026-10-01T09:54:47.358063+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261001.json",
   "schedule_checked_at": "2026-10-01T09:44:47.410424+09:00",
@@ -19,7 +19,7 @@
   "alert_lead_minutes": 30,
   "card_count": 14,
   "held_count": 14,
-  "visible_count": 3,
+  "visible_count": 4,
   "active_count": 2,
   "ended_kept": [],
   "seed_required": false,
@@ -36,7 +36,7 @@
     },
     "day": {
       "held": 7,
-      "acquired": 1,
+      "acquired": 2,
       "active": 0,
       "ended": 0,
       "seed_required": 0,
@@ -53,7 +53,7 @@
   },
   "cloud_acquisition": {
     "requested": 9,
-    "fetched": 3,
+    "fetched": 4,
     "failures": [],
     "deferred": [
       {
@@ -70,11 +70,6 @@
         "jcd": "06",
         "name": "浜名湖",
         "start": "2026-10-01T10:40:00+09:00"
-      },
-      {
-        "jcd": "09",
-        "name": "津",
-        "start": "2026-10-01T09:55:00+09:00"
       },
       {
         "jcd": "13",
@@ -97,6 +92,22 @@
     "kind": "healthy"
   },
   "streams": {
+    "boat.tsu": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/2f119a91d9884db3a9a60b66d44e61ba/b9ba10fdce594c2c99b2fb51ed8e2d2f/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MDk4OTIwMCwic3RhcnQiOjE3OTA4MTYxMDAsImlvcyI6MTgsImNwIjoiMjEzMDExNzAwXzIxMzA1NDg5OSIsInBwdyI6IjQwayJ9.UMLzXUYiXu1RAIDwgM81Tm7IwZNwyZa7rpPYab54e6s",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-10-01T09:55:14.605996+09:00",
+      "checked_at": "2026-10-01T09:55:14.605996+09:00",
+      "first_verified_at": "2026-10-01T09:55:14.605996+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 8343213,
+        "last_segment": "/2f119a91d9884db3a9a60b66d44e61ba/b9ba10fdce594c2c99b2fb51ed8e2d2f/manifest_4_8343214.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
+    },
     "boat.naruto": {
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/4fca3272e3924918bda77ab3e854ddcb/5852e95941b6420fb5c0597d91289456/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MDk4NTYwMCwic3RhcnQiOjE3OTA4MDkyMDAsImlvcyI6MTgsImNwIjoiMjEzMDA0ODAwXzIxMzA0Nzk5OSIsInBwdyI6IjQwayJ9.Jux5GohZ3hAHEHuFGNqqgHJdfwBMpt8is7WIY-t6ySE",
       "source": "automatic acquisition + audio/video decode",
@@ -514,7 +525,7 @@
       "jcd": "09",
       "name": "津",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
       "active": false,
       "cancelled": false,
@@ -532,9 +543,9 @@
       "guidance_switch_at": "2026-10-01T16:57:00+09:00",
       "seed_required": false,
       "reverify_due": false,
-      "playback_verified": false,
-      "first_verified_at": null,
-      "ready_before_first_race": false,
+      "playback_verified": true,
+      "first_verified_at": "2026-10-01T09:55:14.605996+09:00",
+      "ready_before_first_race": true,
       "acquire_from": "2026-10-01T08:00:00+09:00",
       "races": [
         {
@@ -598,8 +609,9 @@
           "name": "ツッキー選抜戦"
         }
       ],
-      "provider_stream_start": "2026-10-01T09:55:00+09:00",
-      "source": "公式BR配信開始待ち 09:55"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/2f119a91d9884db3a9a60b66d44e61ba/b9ba10fdce594c2c99b2fb51ed8e2d2f/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MDk4OTIwMCwic3RhcnQiOjE3OTA4MTYxMDAsImlvcyI6MTgsImNwIjoiMjEzMDExNzAwXzIxMzA1NDg5OSIsInBwdyI6IjQwayJ9.UMLzXUYiXu1RAIDwgM81Tm7IwZNwyZa7rpPYab54e6s",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     },
     "boat.suminoe": {
       "jcd": "12",
