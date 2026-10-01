@@ -41,9 +41,11 @@ def main():
     text = FREEWIFI.read_text(encoding="utf-8-sig", errors="replace")
     text = replace(text, LIVE_START, LIVE_END, managed(LIVE, LIVE_START, LIVE_END))
     text = replace(text, VOD5_START, VOD5_END, playlist_block(PLAYLIST, VOD5_START, VOD5_END))
-    text = replace(text, SP_START, SP_END, managed(SPECIALS, SP_START, SP_END))
+    # The full VOD5 catalog already contains the GMCX long specials.
+    # Remove the legacy separate specials projection to prevent duplicate IDs/URLs.
+    text = replace(text, SP_START, SP_END, "")
     FREEWIFI.write_text(text.rstrip() + "\n", encoding="utf-8")
-    print("vod5 KICK live/full catalog projections synced")
+    print("vod5 KICK live/full catalog projections synced without duplicate specials")
 
 if __name__ == "__main__":
     main()
