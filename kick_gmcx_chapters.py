@@ -2565,8 +2565,10 @@ def _sample_king_dialogue_cue(url: str, center: int, total_duration: int) -> lis
     """Find the recurring pixel-art king + black dialogue-box cue used by VOD5 thumbnails."""
     if total_duration <= 0:
         return []
-    start = max(0, center - 45)
-    stop = min(total_duration, center + 90)
+    # Only inspect the opening neighbourhood. The same king/dialogue motif is
+    # reused as an in-program eye-catch, so never scan deep into the episode.
+    start = max(0, center - 12)
+    stop = min(total_duration, center + 55)
     span = max(1, stop - start)
     width, height = 64, 36
     cmd = [
@@ -2651,8 +2653,9 @@ def _first_stable_king_dialogue(rows: list[dict]) -> tuple[int | None, dict]:
     if not runs:
         return None, {"reason": "no_stable_king_dialogue_run"}
 
-    # First stable occurrence = king has just entered and the first dialogue
-    # caption is visible, before later text advances.
+    # First stable occurrence only. The king/dialogue motif also appears as
+    # an eye-catch later in the programme, so a later run must never replace
+    # the opening run even if it has a stronger visual score.
     best = runs[0]
     cue = int(round(float(best[0]["time"])))
     return cue, {
@@ -2688,7 +2691,7 @@ def refine_with_king_dialogue(
         original = int(item.get("start_seconds") or 0)
         rows = _sample_king_dialogue_cue(analysis_url, original, duration)
         cue, detail = _first_stable_king_dialogue(rows)
-        if cue is None or abs(cue - original) > 75:
+        if cue is None or abs(cue - original) > 40:
             matches.append({
                 "episode": ep, "matched": False, "original": original,
                 "candidate": cue, "detail": detail,
