@@ -52,7 +52,7 @@ EPISODE_DURATION_OVERRIDES: dict[int, int] = {
 # signature inside each VOD and place every split on the same visual cue.
 TITLECARD_WINDOW_SECONDS = 240
 TITLECARD_SAMPLE_SECONDS = 2
-TITLECARD_BOUNDARY_VERSION = 42
+TITLECARD_BOUNDARY_VERSION = 43
 TITLECARD_INTRO_SECONDS = 8
 TITLECARD_HASH_BITS = 256
 TITLECARD_MATCH_DISTANCE = 42
@@ -1082,6 +1082,76 @@ def _fine_align_king_caption(
         "coverage": round(coverage, 3),
         "rows": rows,
     }
+
+
+def refine_with_nearby_king_caption(
+    vod: dict,
+    chapters: list[dict],
+) -> tuple[list[dict], dict]:
+    """Fine-align regular #207+ episodes only within +/-10s of current cuts.
+
+    The current chapter layout is treated as authoritative coarse structure.
+    This pass never hunts deeper into an episode, so in-program king eye-catches
+    cannot become a boundary. Long-form specials are explicitly excluded.
+    """
+    duration = int(vod.get("duration_seconds") or 0)
+    vod_id = str(vod.get("vod_id") or "")
+    source_url = str(vod.get("source_url") or "")
+    if duration <= 0 or not vod_id or not source_url or not vod.get("playable"):
+        return chapters, {
+            "status": "skipped",
+            "reason": "source-unavailable",
+            "method": "nearby-king-caption-10s",
+            "boundary_version": TITLECARD_BOUNDARY_VERSION,
+        }
+
+    regular_indices = [
+        i for i, item in enumerate(chapters)
+        if item.get("kind") == "episode"
+        and int(item.get("episode") or 0) >= 207
+        and int(item.get("episode") or 0) not in EPISODE_DURATION_OVERRIDES
+    ]
+    if not regular_indices:
+        return chapters, {
+            "status": "skipped",
+            "reason": "no-eligible-regular-episodes",
+            "method": "nearby-king-caption-10s",
+            "boundary_version": TITLECARD_BOUNDARY_VERSION,
+        }
+
+    analysis_url = _lowest_hls_variant(source_url)
+    fine_starts, fine_meta = _fine_align_king_caption(
+        analysis_url, chapters, regular_indices, duration
+    )
+    meta = {
+        **fine_meta,
+        "method": "nearby-king-caption-10s",
+        "boundary_version": TITLECARD_BOUNDARY_VERSION,
+        "special_exclusions": sorted(EPISODE_DURATION_OVERRIDES),
+    }
+    if fine_meta.get("status") != "applied" or not fine_starts:
+        return chapters, meta
+
+    source = [{**x, "vod_id": vod_id} for x in chapters]
+    rebuilt = _apply_refined_chapter_starts(source, fine_starts, duration)
+    if rebuilt == source:
+        meta["status"] = "rejected"
+        meta["reason"] = "ordering-or-fragment-guard"
+        return chapters, meta
+
+    for index in fine_starts:
+        if 0 <= index < len(rebuilt):
+            rebuilt[index]["method"] = "king-caption-nearby-detected"
+            rebuilt[index]["confidence"] = "high"
+    for x in rebuilt:
+        x.pop("vod_id", None)
+
+    meta["chapter_starts"] = {
+        str(i): int(item.get("start_seconds") or 0)
+        for i, item in enumerate(rebuilt)
+    }
+    return rebuilt, meta
+
 
 
 def _title_logo_template_mask() -> int:
@@ -3758,12 +3828,34 @@ def main() -> int:
                 "reason": "source-filelist-exact",
                 "boundary_version": TITLECARD_BOUNDARY_VERSION,
             }
-        elif status == "ready" and chapters and (start_ep, end_ep) in {(207, 216), (217, 226)}:
-            titlecard_refinement = {
-                "status": "skipped",
-                "reason": "provisional-58m36-regular-slots-with-special-offsets",
-                "boundary_version": TITLECARD_BOUNDARY_VERSION,
-            }
+        elif (
+            status == "ready"
+            and chapters
+            and start_ep >= 207
+            and (start_ep, end_ep) not in {(227, 236), (237, 246)}
+            and vod.get("playable")
+        ):
+            # #207 onward: the recurring title cue should appear within about
+            # ten seconds of the already-known cut. Search only there so a
+            # later king eye-catch can never be selected.
+            nearby_chapters, nearby_meta = refine_with_nearby_king_caption(
+                vod, chapters
+            )
+            if nearby_meta.get("status") == "applied":
+                chapters = nearby_chapters
+                titlecard_refinement = nearby_meta
+            elif (start_ep, end_ep) in {(207, 216), (217, 226)}:
+                # These ranges already have user-tested/special-aware coarse
+                # structure. If the nearby cue is uncertain, keep it untouched.
+                titlecard_refinement = nearby_meta
+            else:
+                # For later clean ranges only, retain the older title-logo
+                # detector as a fallback when the +/-10s cue is not found.
+                chapters, titlecard_refinement = refine_with_titlecard(
+                    vod,
+                    chapters,
+                    previous_result,
+                )
         elif status == "ready" and chapters and start_ep < 177:
             if (
                 previous_result
