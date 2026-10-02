@@ -51,7 +51,7 @@ EPISODE_DURATION_OVERRIDES: dict[int, int] = {
 # signature inside each VOD and place every split on the same visual cue.
 TITLECARD_WINDOW_SECONDS = 240
 TITLECARD_SAMPLE_SECONDS = 2
-TITLECARD_BOUNDARY_VERSION = 40
+TITLECARD_BOUNDARY_VERSION = 41
 TITLECARD_INTRO_SECONDS = 8
 TITLECARD_HASH_BITS = 256
 TITLECARD_MATCH_DISTANCE = 42
@@ -79,7 +79,7 @@ KING_CAPTION_WINDOW_SECONDS = 12
 KING_CAPTION_FPS = 4
 KING_CAPTION_WIDTH = 96
 KING_CAPTION_HEIGHT = 54
-KING_CAPTION_MIN_DARK_RATIO = 0.44
+KING_CAPTION_MIN_DARK_RATIO = 0.40
 KING_CAPTION_PRE_DARK_MAX = 0.34
 KING_CAPTION_MIN_BRIGHT_RATIO = 0.022
 KING_CAPTION_MIN_WARM_RATIO = 0.003
@@ -900,10 +900,10 @@ def _sample_king_caption_window(
 
     # Lower caption box: broad enough to include the white frame/text while
     # avoiding most of the floor/background.
-    x0, x1 = int(w * 0.12), int(w * 0.88)
-    y0, y1 = int(h * 0.68), int(h * 0.96)
-    # King enters through the right half of the throne-room animation.
-    kx0, kx1 = int(w * 0.50), int(w * 0.94)
+    x0, x1 = int(w * 0.20), int(w * 0.80)
+    y0, y1 = int(h * 0.62), int(h * 0.90)
+    # King moves in from the right toward centre as the first caption appears.
+    kx0, kx1 = int(w * 0.42), int(w * 0.90)
     ky0, ky1 = int(h * 0.28), int(h * 0.72)
 
     for idx in range(len(raw) // frame_size):
