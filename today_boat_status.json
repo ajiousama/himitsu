@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-02",
-  "generated_at": "2026-10-02T17:01:35.141860+09:00",
+  "generated_at": "2026-10-02T17:04:46.108505+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261002.json",
   "schedule_checked_at": "2026-10-02T16:51:18.248271+09:00",
@@ -19,7 +19,7 @@
   "alert_lead_minutes": 30,
   "card_count": 14,
   "held_count": 14,
-  "visible_count": 4,
+  "visible_count": 5,
   "active_count": 4,
   "ended_kept": [],
   "seed_required": false,
@@ -44,7 +44,7 @@
     },
     "night": {
       "held": 5,
-      "acquired": 4,
+      "acquired": 5,
       "active": 4,
       "ended": 0,
       "seed_required": 0,
@@ -53,15 +53,9 @@
   },
   "cloud_acquisition": {
     "requested": 5,
-    "fetched": 4,
+    "fetched": 5,
     "failures": [],
-    "deferred": [
-      {
-        "jcd": "24",
-        "name": "大村",
-        "start": "2026-10-02T17:05:00+09:00"
-      }
-    ]
+    "deferred": []
   },
   "epg_programmes_written": {
     "public_sports_epg_local.xml": 196,
@@ -131,6 +125,22 @@
         "ok": true,
         "sequence": 8347321,
         "last_segment": "/642febb8153e455ea052d7a3826f93a0/97a2e880854d475db10c7842df8efa23/manifest_4_8348695.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
+    },
+    "boat.omura": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/7aa20c382bda493698a115c1d4415113/2ba91c47c8c9435e922b58a8aaf71d60/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MTEwNDQwMCwic3RhcnQiOjE3OTA5MjgzMDAsImlvcyI6MTgsImNwIjoiMjEzMTIzOTAwXzIxMzE1NTk5OSIsInBwdyI6IjQwayJ9.kEwPDMuLWtJMttfqZmG2-tW64DuSaWulCWX6nqThWL8",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-10-02T17:05:40.721140+09:00",
+      "checked_at": "2026-10-02T17:05:40.721140+09:00",
+      "first_verified_at": "2026-10-02T17:05:40.721140+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 8340528,
+        "last_segment": "/7aa20c382bda493698a115c1d4415113/2ba91c47c8c9435e922b58a8aaf71d60/manifest_1_8340534.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -1044,7 +1054,7 @@
       "intermission": null,
       "guidance_switch_at": "2026-10-02T21:30:00+09:00",
       "seed_required": false,
-      "reverify_due": false,
+      "reverify_due": true,
       "playback_verified": true,
       "first_verified_at": "2026-10-02T14:45:34.910305+09:00",
       "ready_before_first_race": true,
@@ -1293,7 +1303,7 @@
       "jcd": "24",
       "name": "大村",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
       "active": false,
       "cancelled": false,
@@ -1311,9 +1321,9 @@
       "guidance_switch_at": "2026-10-02T23:30:00+09:00",
       "seed_required": false,
       "reverify_due": false,
-      "playback_verified": false,
-      "first_verified_at": null,
-      "ready_before_first_race": false,
+      "playback_verified": true,
+      "first_verified_at": "2026-10-02T17:05:40.721140+09:00",
+      "ready_before_first_race": true,
       "acquire_from": "2026-10-02T15:11:00+09:00",
       "races": [
         {
@@ -1377,8 +1387,9 @@
           "name": "特別選抜戦A組"
         }
       ],
-      "provider_stream_start": "2026-10-02T17:05:00+09:00",
-      "source": "公式BR配信開始待ち 17:05"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/7aa20c382bda493698a115c1d4415113/2ba91c47c8c9435e922b58a8aaf71d60/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MTEwNDQwMCwic3RhcnQiOjE3OTA5MjgzMDAsImlvcyI6MTgsImNwIjoiMjEzMTIzOTAwXzIxMzE1NTk5OSIsInBwdyI6IjQwayJ9.kEwPDMuLWtJMttfqZmG2-tW64DuSaWulCWX6nqThWL8",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     }
   }
 }
