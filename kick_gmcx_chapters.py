@@ -52,7 +52,7 @@ EPISODE_DURATION_OVERRIDES: dict[int, int] = {
 # signature inside each VOD and place every split on the same visual cue.
 TITLECARD_WINDOW_SECONDS = 240
 TITLECARD_SAMPLE_SECONDS = 2
-TITLECARD_BOUNDARY_VERSION = 43
+TITLECARD_BOUNDARY_VERSION = 44
 TITLECARD_INTRO_SECONDS = 8
 TITLECARD_HASH_BITS = 256
 TITLECARD_MATCH_DISTANCE = 42
@@ -1151,6 +1151,135 @@ def refine_with_nearby_king_caption(
         for i, item in enumerate(rebuilt)
     }
     return rebuilt, meta
+
+
+
+def refine_247_256_wide_heads(
+    vod: dict,
+    chapters: list[dict],
+) -> tuple[list[dict], dict]:
+    """Track #247-256 episode heads around the provisional special-aware layout.
+
+    We search for the title-only sequence (king enters, then caption) around
+    each expected head.  This is deliberately wider after #249 because the
+    inserted Bakarhythm/Arino special duration is only a coarse seed.
+    """
+    duration = int(vod.get("duration_seconds") or 0)
+    vod_id = str(vod.get("vod_id") or "")
+    source_url = str(vod.get("source_url") or "")
+    if duration <= 0 or not vod_id or not source_url or not vod.get("playable"):
+        return chapters, {
+            "status": "skipped",
+            "reason": "source-unavailable",
+            "method": "247-256-wide-king-heads",
+            "boundary_version": TITLECARD_BOUNDARY_VERSION,
+        }
+
+    analysis_url = _lowest_hls_variant(source_url)
+    starts = {}
+    rows = []
+    targets = [
+        (i, item) for i, item in enumerate(chapters)
+        if item.get("kind") == "episode"
+        and 248 <= int(item.get("episode") or 0) <= 256
+    ]
+
+    def scan(index: int, item: dict) -> tuple[int, dict, list[dict]]:
+        ep = int(item.get("episode") or 0)
+        center = int(item.get("start_seconds") or 0)
+        # #248/#249 should be close to 58:03.  #250+ may inherit drift from
+        # the inserted special, so allow a much wider head search.
+        radius = 150 if ep <= 249 else 900
+        candidates = _scan_unclassified_king_title_sequence(
+            analysis_url,
+            max(0, center - radius),
+            min(duration, center + radius),
+        )
+        return index, item, candidates
+
+    with ThreadPoolExecutor(max_workers=min(3, max(1, len(targets)))) as pool:
+        futures = [pool.submit(scan, i, item) for i, item in targets]
+        for future in as_completed(futures):
+            try:
+                index, item, candidates = future.result()
+            except Exception as exc:
+                rows.append({"matched": False, "reason": f"scan_exception:{exc}"})
+                continue
+            ep = int(item.get("episode") or 0)
+            center = int(item.get("start_seconds") or 0)
+            radius = 150 if ep <= 249 else 900
+            if not candidates:
+                rows.append({
+                    "index": index, "episode": ep, "matched": False,
+                    "expected_start": center, "reason": "no_title_sequence",
+                })
+                continue
+
+            ranked = sorted(
+                candidates,
+                key=lambda x: abs(float(x["king_entry_seconds"]) - center),
+            )
+            best = ranked[0]
+            refined = int(round(float(best["king_entry_seconds"])))
+            if abs(refined - center) > radius:
+                rows.append({
+                    "index": index, "episode": ep, "matched": False,
+                    "expected_start": center, "candidate": refined,
+                    "reason": "outside_search_guard",
+                })
+                continue
+            starts[index] = refined
+            rows.append({
+                "index": index, "episode": ep, "matched": True,
+                "expected_start": center, "refined_start": refined,
+                "shift_seconds": refined - center,
+                "candidate": best,
+                "candidate_count": len(candidates),
+            })
+
+    rows.sort(key=lambda x: int(x.get("episode") or 0))
+    coverage = len(starts) / max(1, len(targets))
+    if not starts:
+        return chapters, {
+            "status": "no_consensus",
+            "method": "247-256-wide-king-heads",
+            "boundary_version": TITLECARD_BOUNDARY_VERSION,
+            "coverage": 0,
+            "rows": rows,
+        }
+
+    source = [{**x, "vod_id": vod_id} for x in chapters]
+    rebuilt = _apply_refined_chapter_starts(source, starts, duration)
+    if rebuilt == source:
+        return chapters, {
+            "status": "rejected",
+            "method": "247-256-wide-king-heads",
+            "boundary_version": TITLECARD_BOUNDARY_VERSION,
+            "reason": "ordering-or-fragment-guard",
+            "coverage": round(coverage, 3),
+            "rows": rows,
+        }
+
+    for index in starts:
+        if 0 <= index < len(rebuilt):
+            rebuilt[index]["method"] = "king-title-head-wide-detected"
+            rebuilt[index]["confidence"] = "high"
+    for x in rebuilt:
+        x.pop("vod_id", None)
+
+    return rebuilt, {
+        "status": "applied" if coverage >= 0.6 else "partial",
+        "method": "247-256-wide-king-heads",
+        "boundary_version": TITLECARD_BOUNDARY_VERSION,
+        "coverage": round(coverage, 3),
+        "matched": len(starts),
+        "expected": len(targets),
+        "chapter_starts": {
+            str(i): int(item.get("start_seconds") or 0)
+            for i, item in enumerate(rebuilt)
+        },
+        "rows": rows,
+    }
 
 
 
@@ -3306,6 +3435,21 @@ def make_fixed_test_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict
         for ep in range(237, 247):
             append_episode(ep, 2 * 60 * 60 if ep == 243 else regular)
 
+    elif (start_ep, end_ep) == (247, 256):
+        # Broadcast order: #249 aired 2017-11-16, then the Tokyo E-sports
+        # "バカリズムVS有野課長 世紀の一戦!" event on 2017-11-18,
+        # before #250 on 2017-12-07.  Use the later two-hour complete-edition
+        # runtime only as a coarse seed; visual head tracking refines #250+.
+        for ep in range(247, 250):
+            append_episode(ep)
+        append_special(
+            "2017-bakarhythm-vs-arino",
+            "バカリズムVS有野課長 世紀の一戦！",
+            2 * 60 * 60,
+        )
+        for ep in range(250, 257):
+            append_episode(ep)
+
     else:
         for ep in range(start_ep, end_ep + 1):
             append_episode(ep)
@@ -3807,7 +3951,7 @@ def main() -> int:
         elif known_mixed:
             chapters = make_mixed_chapters(vod, start_ep, end_ep, titles)
             status = "ready" if chapters else "ai_required"
-        elif (start_ep, end_ep) in {(227, 236), (237, 246)}:
+        elif (start_ep, end_ep) in {(227, 236), (237, 246), (247, 256)}:
             # User verification pass: expose each numbered episode at a fixed
             # 58:03 cadence. Any drift or inserted special is corrected later
             # from playback feedback; do not stretch the cuts to fill the VOD.
@@ -3831,8 +3975,17 @@ def main() -> int:
         elif (
             status == "ready"
             and chapters
+            and (start_ep, end_ep) == (247, 256)
+            and vod.get("playable")
+        ):
+            chapters, titlecard_refinement = refine_247_256_wide_heads(
+                vod, chapters
+            )
+        elif (
+            status == "ready"
+            and chapters
             and start_ep >= 207
-            and (start_ep, end_ep) not in {(227, 236), (237, 246)}
+            and (start_ep, end_ep) not in {(227, 236), (237, 246), (247, 256)}
             and vod.get("playable")
         ):
             # #207 onward: the recurring title cue should appear within about
@@ -3881,7 +4034,7 @@ def main() -> int:
                 chapters,
                 previous_result,
             )
-        elif status == "ready" and chapters and (start_ep, end_ep) in {(227, 236), (237, 246)}:
+        elif status == "ready" and chapters and (start_ep, end_ep) in {(227, 236), (237, 246), (247, 256)}:
             titlecard_refinement = {
                 "status": "skipped",
                 "reason": "source-unavailable-kept-broadcast-order-seed",
