@@ -51,7 +51,7 @@ EPISODE_DURATION_OVERRIDES: dict[int, int] = {
 # signature inside each VOD and place every split on the same visual cue.
 TITLECARD_WINDOW_SECONDS = 240
 TITLECARD_SAMPLE_SECONDS = 2
-TITLECARD_BOUNDARY_VERSION = 38
+TITLECARD_BOUNDARY_VERSION = 39
 TITLECARD_INTRO_SECONDS = 8
 TITLECARD_HASH_BITS = 256
 TITLECARD_MATCH_DISTANCE = 42
@@ -2322,6 +2322,170 @@ def _probe_bottom_seekbar_flash(
     }
 
 
+def _sample_king_dialogue_cue(url: str, center: int, total_duration: int) -> list[dict]:
+    """Find the recurring pixel-art king + black dialogue-box cue used by VOD5 thumbnails."""
+    if total_duration <= 0:
+        return []
+    start = max(0, center - 45)
+    stop = min(total_duration, center + 90)
+    span = max(1, stop - start)
+    width, height = 64, 36
+    cmd = [
+        "ffmpeg", "-hide_banner", "-loglevel", "error",
+        "-rw_timeout", "15000000", "-ss", str(start), "-i", url,
+        "-t", str(span), "-an",
+        "-vf", f"fps=2,scale={width}:{height}:flags=area,format=rgb24",
+        "-pix_fmt", "rgb24", "-f", "rawvideo", "pipe:1",
+    ]
+    try:
+        proc = subprocess.run(
+            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            timeout=65, check=False,
+        )
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        return []
+    if proc.returncode != 0:
+        return []
+
+    frame_size = width * height * 3
+    rows = []
+    for idx in range(len(proc.stdout) // frame_size):
+        frame = proc.stdout[idx * frame_size:(idx + 1) * frame_size]
+
+        # Dialogue box in the screenshot occupies the lower-centre of the
+        # game image. Require a broad near-black rectangle there.
+        dark = total = 0
+        for y in range(23, 33):
+            for x in range(15, 52):
+                p = (y * width + x) * 3
+                r, g, b = frame[p], frame[p + 1], frame[p + 2]
+                total += 1
+                if r < 42 and g < 42 and b < 42:
+                    dark += 1
+        dark_ratio = dark / max(1, total)
+
+        # The king enters from the right: require a bright warm sprite cluster
+        # in the right half, while avoiding plain black/title frames.
+        warm = 0
+        warm_total = 0
+        for y in range(8, 27):
+            for x in range(35, 58):
+                p = (y * width + x) * 3
+                r, g, b = frame[p], frame[p + 1], frame[p + 2]
+                warm_total += 1
+                if r > 125 and g > 90 and b < 105 and r > b + 35:
+                    warm += 1
+        warm_ratio = warm / max(1, warm_total)
+
+        # Palace/game background is colourful rather than a studio shot.
+        saturated = 0
+        for p in range(0, len(frame), 3):
+            r, g, b = frame[p], frame[p + 1], frame[p + 2]
+            if max(r, g, b) - min(r, g, b) >= 45:
+                saturated += 1
+        saturation_ratio = saturated / (width * height)
+
+        if dark_ratio >= 0.48 and warm_ratio >= 0.035 and saturation_ratio >= 0.20:
+            rows.append({
+                "time": start + idx / 2.0,
+                "dark_ratio": round(dark_ratio, 4),
+                "warm_ratio": round(warm_ratio, 4),
+                "saturation_ratio": round(saturation_ratio, 4),
+            })
+    return rows
+
+
+def _first_stable_king_dialogue(rows: list[dict]) -> tuple[int | None, dict]:
+    if not rows:
+        return None, {"reason": "no_king_dialogue_candidates"}
+    run = []
+    runs = []
+    for row in rows:
+        if not run or float(row["time"]) - float(run[-1]["time"]) <= 0.75:
+            run.append(row)
+        else:
+            if len(run) >= 3:
+                runs.append(run)
+            run = [row]
+    if len(run) >= 3:
+        runs.append(run)
+    if not runs:
+        return None, {"reason": "no_stable_king_dialogue_run"}
+
+    # First stable occurrence = king has just entered and the first dialogue
+    # caption is visible, before later text advances.
+    best = runs[0]
+    cue = int(round(float(best[0]["time"])))
+    return cue, {
+        "reason": "ok",
+        "run_frames": len(best),
+        "dark_ratio": best[0]["dark_ratio"],
+        "warm_ratio": best[0]["warm_ratio"],
+        "saturation_ratio": best[0]["saturation_ratio"],
+    }
+
+
+def refine_with_king_dialogue(
+    vod: dict,
+    chapters: list[dict],
+) -> tuple[list[dict], dict]:
+    """Align #227-246 starts to the king-entering + first dialogue cue."""
+    duration = int(vod.get("duration_seconds") or 0)
+    vod_id = str(vod.get("vod_id") or "")
+    source_url = str(vod.get("source_url") or "")
+    if duration <= 0 or not source_url or not vod_id:
+        return chapters, {"status": "skipped", "reason": "insufficient_source"}
+
+    analysis_url = _lowest_hls_variant(source_url)
+    starts: dict[int, int] = {}
+    matches = []
+    eligible = 0
+    matched = 0
+    for index, item in enumerate(chapters):
+        ep = int(item.get("episode") or 0)
+        if item.get("kind") != "episode" or not (227 <= ep <= 246):
+            continue
+        eligible += 1
+        original = int(item.get("start_seconds") or 0)
+        rows = _sample_king_dialogue_cue(analysis_url, original, duration)
+        cue, detail = _first_stable_king_dialogue(rows)
+        if cue is None or abs(cue - original) > 75:
+            matches.append({
+                "episode": ep, "matched": False, "original": original,
+                "candidate": cue, "detail": detail,
+            })
+            continue
+        starts[index] = cue
+        matched += 1
+        matches.append({
+            "episode": ep, "matched": True, "original": original,
+            "king_dialogue_cue": cue, "shift_seconds": cue - original,
+            "detail": detail,
+        })
+
+    coverage = matched / max(1, eligible)
+    if eligible < 3 or coverage < 0.70:
+        return chapters, {
+            "status": "no_consensus", "method": "king-dialogue-cue",
+            "boundary_version": TITLECARD_BOUNDARY_VERSION,
+            "coverage": round(coverage, 3), "matches": matches,
+        }
+
+    rebuilt = _apply_refined_chapter_starts(
+        [{**x, "vod_id": vod_id} for x in chapters], starts, duration
+    )
+    for x in rebuilt:
+        x.pop("vod_id", None)
+    return rebuilt, {
+        "status": "applied" if coverage >= 0.9 else "partial",
+        "method": "king-dialogue-cue",
+        "boundary_version": TITLECARD_BOUNDARY_VERSION,
+        "coverage": round(coverage, 3),
+        "chapter_starts": {str(k): v for k, v in starts.items()},
+        "matches": matches,
+    }
+
+
 def refine_with_titlecard(
     vod: dict,
     chapters: list[dict],
@@ -2362,6 +2526,16 @@ def refine_with_titlecard(
 
     if os.environ.get("GMCX_TITLECARD_REFINE", "1") == "0":
         return chapters, {"status": "skipped", "reason": "disabled"}
+
+    # For the currently tested season 20/21 bundle, the user-selected visual
+    # standard is the recurring game screen where the king enters from the
+    # right and the first black dialogue caption appears. This also makes the
+    # VOD5 thumbnails visually consistent.
+    eps = [int(x.get("episode") or 0) for x in chapters if x.get("kind") == "episode"]
+    if eps and min(eps) >= 227 and max(eps) <= 246:
+        king_chapters, king_meta = refine_with_king_dialogue(vod, chapters)
+        if king_meta.get("status") in {"applied", "partial"}:
+            return king_chapters, king_meta
 
     analysis_url = _lowest_hls_variant(source_url)
     regular_indices = [
