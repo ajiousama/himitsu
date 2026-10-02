@@ -2795,9 +2795,21 @@ def refine_with_titlecard(
     # logo time is known, move the clip start back by the opening offset learned
     # from the first regular episode.
     logo_windows: dict[int, list[dict]] = {}
-    for index in regular_indices:
+
+    def sample_logo(index: int) -> tuple[int, list[dict]]:
         original = int(items[index].get("start_seconds") or 0)
-        logo_windows[index] = _sample_title_logo_window(analysis_url, original, duration)
+        return index, _sample_title_logo_window(analysis_url, original, duration)
+
+    # Independent HLS windows: analyse several episode openings in parallel.
+    # This changes only wall time, not matching/scoring semantics.
+    with ThreadPoolExecutor(max_workers=min(4, len(regular_indices))) as pool:
+        futures = [pool.submit(sample_logo, index) for index in regular_indices]
+        for future in as_completed(futures):
+            try:
+                index, rows = future.result()
+                logo_windows[index] = rows
+            except Exception:
+                continue
 
     # The first episode can have a shorter/different intro (e.g. #177 has the
     # large GMCX logo around 10s).  Try every regular episode and use the
