@@ -52,7 +52,7 @@ EPISODE_DURATION_OVERRIDES: dict[int, int] = {
 # signature inside each VOD and place every split on the same visual cue.
 TITLECARD_WINDOW_SECONDS = 240
 TITLECARD_SAMPLE_SECONDS = 2
-TITLECARD_BOUNDARY_VERSION = 45
+TITLECARD_BOUNDARY_VERSION = 46
 TITLECARD_INTRO_SECONDS = 8
 TITLECARD_HASH_BITS = 256
 TITLECARD_MATCH_DISTANCE = 42
@@ -3329,6 +3329,67 @@ def refine_with_titlecard(
         "cache_reused": False,
     }
 
+# Playback-confirmed episode-head corrections. These are applied AFTER visual
+# refinement so a later automated pass cannot undo a user-verified boundary.
+MANUAL_EPISODE_START_OVERRIDES: dict[int, int] = {
+    228: 3496,  # #228 was 13s early: tail of #227 appeared at its head.
+}
+
+
+def _apply_manual_episode_start_overrides(
+    vod: dict,
+    chapters: list[dict],
+) -> tuple[list[dict], dict]:
+    duration = int(vod.get("duration_seconds") or 0)
+    vod_id = str(vod.get("vod_id") or "")
+    if duration <= 0 or not vod_id or not chapters:
+        return chapters, {"status": "skipped"}
+
+    starts = {}
+    rows = []
+    for index, item in enumerate(chapters):
+        if item.get("kind") != "episode":
+            continue
+        ep = int(item.get("episode") or 0)
+        if ep not in MANUAL_EPISODE_START_OVERRIDES:
+            continue
+        target = int(MANUAL_EPISODE_START_OVERRIDES[ep])
+        current = int(item.get("start_seconds") or 0)
+        starts[index] = target
+        rows.append({
+            "episode": ep,
+            "previous_start": current,
+            "manual_start": target,
+            "shift_seconds": target - current,
+        })
+
+    if not starts:
+        return chapters, {"status": "not_applicable"}
+
+    source = [{**x, "vod_id": vod_id} for x in chapters]
+    rebuilt = _apply_refined_chapter_starts(source, starts, duration)
+    if rebuilt == source:
+        return chapters, {
+            "status": "rejected",
+            "reason": "ordering-or-fragment-guard",
+            "rows": rows,
+        }
+
+    for index in starts:
+        if 0 <= index < len(rebuilt):
+            rebuilt[index]["method"] = "manual-playback-confirmed"
+            rebuilt[index]["confidence"] = "confirmed"
+    for x in rebuilt:
+        x.pop("vod_id", None)
+
+    return rebuilt, {
+        "status": "applied",
+        "method": "manual-playback-confirmed",
+        "rows": rows,
+    }
+
+
+
 def clip_url(vod_id: str, start: int, duration: int) -> str:
     return f"{REPLAY_BASE}{urllib.parse.quote(vod_id)}&start={start}&duration={duration}"
 
@@ -4052,6 +4113,10 @@ def main() -> int:
                 "reason": "direct-source-unavailable-kept-structured-split",
             }
 
+        chapters, manual_boundary_overrides = _apply_manual_episode_start_overrides(
+            vod, chapters
+        )
+
         known_op_probe = None
         global_op_probe = None
         oldest_range_probe = None
@@ -4119,6 +4184,7 @@ def main() -> int:
             "status": status,
             "chapters": chapters,
             "titlecard_refinement": titlecard_refinement,
+            "manual_boundary_overrides": manual_boundary_overrides,
             "hls_join_markers": hls_join_markers if start_ep == 177 else None,
             "packet_join_probe": packet_join_probe if start_ep == 177 else None,
             "opening_sequence_probe": opening_sequence_probe if start_ep == 177 else None,
