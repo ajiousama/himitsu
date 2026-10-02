@@ -51,7 +51,7 @@ EPISODE_DURATION_OVERRIDES: dict[int, int] = {
 # signature inside each VOD and place every split on the same visual cue.
 TITLECARD_WINDOW_SECONDS = 240
 TITLECARD_SAMPLE_SECONDS = 2
-TITLECARD_BOUNDARY_VERSION = 39
+TITLECARD_BOUNDARY_VERSION = 40
 TITLECARD_INTRO_SECONDS = 8
 TITLECARD_HASH_BITS = 256
 TITLECARD_MATCH_DISTANCE = 42
@@ -2766,15 +2766,12 @@ def refine_with_titlecard(
     if os.environ.get("GMCX_TITLECARD_REFINE", "1") == "0":
         return chapters, {"status": "skipped", "reason": "disabled"}
 
-    # For the currently tested season 20/21 bundle, the user-selected visual
-    # standard is the recurring game screen where the king enters from the
-    # right and the first black dialogue caption appears. This also makes the
-    # VOD5 thumbnails visually consistent.
+    # Season 20/21 uses the king + lower-caption cue as the FINAL fine
+    # alignment. Do not return from the wide king search here: first obtain the
+    # coarse episode boundary from the recurring title logo, then inspect only
+    # +/-12 seconds at 0.25 s resolution. The wide search remains available as
+    # a fallback if the title-logo anchor cannot be learned.
     eps = [int(x.get("episode") or 0) for x in chapters if x.get("kind") == "episode"]
-    if eps and min(eps) >= 227 and max(eps) <= 246:
-        king_chapters, king_meta = refine_with_king_dialogue(vod, chapters)
-        if king_meta.get("status") in {"applied", "partial"}:
-            return king_chapters, king_meta
 
     analysis_url = _lowest_hls_variant(source_url)
     regular_indices = [
@@ -2819,6 +2816,12 @@ def refine_with_titlecard(
             (score, candidate_index, candidate_ref, candidate_meta, candidate_offset)
         )
     if not anchor_candidates:
+        if eps and min(eps) >= 227 and max(eps) <= 246:
+            king_chapters, king_meta = refine_with_king_dialogue(vod, chapters)
+            if king_meta.get("status") in {"applied", "partial"}:
+                king_meta = dict(king_meta)
+                king_meta["method"] = "wide-king-dialogue-fallback"
+                return king_chapters, king_meta
         return chapters, {
             "status": "no_consensus", "method": "recurring-title-logo",
             "boundary_version": TITLECARD_BOUNDARY_VERSION,
