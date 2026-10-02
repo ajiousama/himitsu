@@ -21,10 +21,10 @@ TEST_DIR = HERE / "test"
 PORT = int(os.environ.get("PORT", "8080"))
 HOST = "0.0.0.0"
 DISPLAY = os.environ.get("DISPLAY", ":99")
-SCREEN_W = 1600
-SCREEN_H = 900
-OUT_W = 1600
-OUT_H = 900
+SCREEN_W = 1920
+SCREEN_H = 1080
+OUT_W = 1920
+OUT_H = 1080
 FPS = int(os.environ.get("PATAPATA_FPS", "24"))
 SOURCE_URL = os.environ.get("PATAPATA_SOURCE_URL", "https://ajiousama.github.io/live-wallpaper/transport/r15-dev/?freewifi=1")
 HLS_DIR = pathlib.Path("/tmp/patapata-r15-hls")
@@ -332,8 +332,8 @@ def start_ffmpeg() -> subprocess.Popen:
         "-map", "0:v:0", "-map", "1:a:0",
         "-vf", f"scale={OUT_W}:{OUT_H}:flags=fast_bilinear",
         "-c:v", "libx264", "-preset", "ultrafast", "-tune", "zerolatency",
-        "-profile:v", "baseline", "-level", "3.1",
-        "-crf", "27", "-pix_fmt", "yuv420p",
+        "-profile:v", "baseline", "-level", "4.0",
+        "-crf", "24", "-pix_fmt", "yuv420p",
         "-r", str(FPS), "-g", str(FPS * 2), "-keyint_min", str(FPS * 2), "-sc_threshold", "0",
         "-c:a", "aac", "-b:a", "64k", "-ar", "48000", "-ac", "2",
         "-f", "hls",
