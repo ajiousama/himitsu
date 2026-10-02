@@ -43,7 +43,8 @@ FILELIST_CONFIRMED_RANGES = {
 }
 
 EPISODE_DURATION_OVERRIDES: dict[int, int] = {
-    226: 7232,  # playback-confirmed: content ends at 2:00:32; trailing 11:34 is silent
+    226: 7232,  # playback-confirmed: 四国編; special visual structure
+    243: 7200,  # on 太平洋; long-form special, do not use regular king-title cue
 }
 
 # Real-video boundary refinement. GMCX repeats a characteristic title/opening
@@ -2685,7 +2686,11 @@ def refine_with_king_dialogue(
     matched = 0
     for index, item in enumerate(chapters):
         ep = int(item.get("episode") or 0)
-        if item.get("kind") != "episode" or not (227 <= ep <= 246):
+        if (
+            item.get("kind") != "episode"
+            or not (227 <= ep <= 246)
+            or ep in EPISODE_DURATION_OVERRIDES
+        ):
             continue
         eligible += 1
         original = int(item.get("start_seconds") or 0)
