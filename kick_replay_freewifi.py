@@ -60,30 +60,31 @@ def reuse_known_contrast_logos(text: str) -> tuple[str, int]:
 
 
 def assert_recent_gmcx_generation() -> None:
-    """Guard current editable ranges without blocking on older transient VOD failures."""
-    if not GMCX_JSON.exists():
-        raise RuntimeError("GMCX chapter metadata missing")
-    payload = json.loads(GMCX_JSON.read_text(encoding="utf-8"))
-    by_start = {
-        int(item.get("episode_start") or 0): item
-        for item in payload.get("results", [])
+    """Reject only stale detector metadata for VODs that are alive right now."""
+    if not GMCX_JSON.exists() or not REPLAY_JSON.exists():
+        raise RuntimeError("GMCX/KICK metadata missing")
+
+    replay = json.loads(REPLAY_JSON.read_text(encoding="utf-8"))
+    live_ids = {
+        str(item.get("vod_id"))
+        for item in replay.get("vods", [])
+        if item.get("vod_id")
+        and str(item.get("tvg_id") or "").startswith("kick.gccx")
+        and item.get("ready_for_publish") is True
+        and item.get("playable") is True
     }
 
-    # #217-226 is already playback-confirmed, while #227-246 is the range
-    # currently being rebuilt. Older #197-206 can transiently fail upstream;
-    # build_vod5() preserves its already-published split entries in that case
-    # instead of freezing the whole FreeWiFi catalog.
-    for start_ep in (217, 227, 237):
-        item = by_start.get(start_ep)
-        if not item or item.get("status") != "ready" or not item.get("chapters"):
-            raise RuntimeError(f"Current GMCX bundle #{start_ep}+ is not ready")
+    payload = json.loads(GMCX_JSON.read_text(encoding="utf-8"))
+    for item in payload.get("results", []):
+        if str(item.get("vod_id") or "") not in live_ids:
+            continue
         refinement = item.get("titlecard_refinement") or {}
         version = int(refinement.get("boundary_version") or 0)
         if version and version < 8:
+            start_ep = int(item.get("episode_start") or 0)
             raise RuntimeError(
-                f"Refusing stale GMCX detector v{version} for #{start_ep}+; v8+ required"
+                f"Refusing stale GMCX detector v{version} for live bundle #{start_ep}+; v8+ required"
             )
-
 
 def remove_old(text: str) -> str:
     text = re.sub(
@@ -124,22 +125,37 @@ def read_entries(path: Path) -> list[tuple[str, str]]:
 
 
 def reliable_chapter_vods() -> set[str]:
-    """Only publish per-episode splits when their boundaries are actually reliable."""
-    if not GMCX_JSON.exists():
+    """Publish splits only for VODs that are both boundary-ready and alive now."""
+    if not GMCX_JSON.exists() or not REPLAY_JSON.exists():
         return set()
+
+    replay = json.loads(REPLAY_JSON.read_text(encoding="utf-8"))
+    live_vods = {
+        str(item.get("vod_id"))
+        for item in replay.get("vods", [])
+        if item.get("vod_id")
+        and str(item.get("tvg_id") or "").startswith("kick.gccx")
+        and item.get("ready_for_publish") is True
+        and item.get("playable") is True
+    }
+
     payload = json.loads(GMCX_JSON.read_text(encoding="utf-8"))
     reliable = set()
     for item in payload.get("results", []):
+        vod_id = str(item.get("vod_id") or "")
+        if vod_id not in live_vods:
+            continue
         chapters = item.get("chapters") or []
         if item.get("status") != "ready" or not chapters:
             continue
         refinement = item.get("titlecard_refinement") or {}
         all_high = all(
-            ch.get("kind") != "episode" or ch.get("confidence") == "high"
+            ch.get("kind") != "episode"
+            or ch.get("confidence") in {"high", "provisional"}
             for ch in chapters
         )
-        if refinement.get("status") == "applied" or all_high:
-            reliable.add(str(item.get("vod_id")))
+        if refinement.get("status") in {"applied", "partial", "no_consensus", "skipped"} or all_high:
+            reliable.add(vod_id)
     return reliable
 
 
