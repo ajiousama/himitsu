@@ -2512,18 +2512,21 @@ def make_uniform_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict[st
 
 
 def make_fixed_test_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict[str, str]) -> list[dict]:
-    """Create user-test cuts at a fixed 58:03 cadence without consuming the VOD tail."""
+    """Create user-test cuts from chronological broadcast structure."""
     duration = int(vod.get("duration_seconds") or 0)
     vod_id = str(vod.get("vod_id") or "")
     if duration <= 0 or not vod_id:
         return []
 
+    regular = 58 * 60 + 3
     chapters = []
     cursor = 0
-    for ep in range(start_ep, end_ep + 1):
+
+    def append_episode(ep: int, length: int = regular) -> None:
+        nonlocal cursor
         if cursor >= duration:
-            break
-        stop = min(duration, cursor + (58 * 60 + 3))
+            return
+        stop = min(duration, cursor + int(length))
         clip_duration = max(0, stop - cursor)
         chapters.append({
             "kind": "episode",
@@ -2533,13 +2536,76 @@ def make_fixed_test_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict
             "stop_seconds": stop,
             "duration_seconds": clip_duration,
             "replay_url": clip_url(vod_id, cursor, clip_duration),
-            "method": "user-test-fixed-58m03",
+            "method": "user-test-broadcast-order",
             "confidence": "provisional",
         })
         cursor = stop
 
-    return chapters
+    def append_special(key: str, title: str, length: int) -> None:
+        nonlocal cursor
+        if cursor >= duration:
+            return
+        stop = min(duration, cursor + int(length))
+        clip_duration = max(0, stop - cursor)
+        chapters.append({
+            "kind": "special",
+            "special_key": key,
+            "title": title,
+            "start_seconds": cursor,
+            "stop_seconds": stop,
+            "duration_seconds": clip_duration,
+            "expected_broadcast_seconds": int(length),
+            "replay_url": clip_url(vod_id, cursor, clip_duration),
+            "method": "user-test-broadcast-order",
+            "confidence": "provisional",
+        })
+        cursor = stop
 
+    if (start_ep, end_ep) == (227, 236):
+        # Broadcast order:
+        # #231 (2016-12-22) -> year-end SP (2016-12-31, 15m)
+        # -> BONUS STAGE 20 (2017-01-17, 60m) -> #232 (2017-01-19)
+        for ep in range(227, 232):
+            append_episode(ep)
+        append_special(
+            "2016-yearend-seven-gods",
+            "GMCX 年越しSP ～2017年を七福神と迎えよう～",
+            15 * 60,
+        )
+        append_special(
+            "2017-bonus-stage-20",
+            "ゲームセンターCX BONUS STAGE 20「THE 功夫」",
+            60 * 60,
+        )
+        for ep in range(232, 237):
+            append_episode(ep)
+
+    elif (start_ep, end_ep) == (237, 246):
+        # #243 is itself the two-hour "on 太平洋" special episode.
+        for ep in range(237, 247):
+            append_episode(ep, 2 * 60 * 60 if ep == 243 else regular)
+
+    else:
+        for ep in range(start_ep, end_ep + 1):
+            append_episode(ep)
+
+    # Preserve any unexplained remainder as a separate test clip rather than
+    # stretching numbered episodes and hiding the anomaly.
+    if cursor < duration and (duration - cursor) >= 10:
+        clip_duration = duration - cursor
+        chapters.append({
+            "kind": "special",
+            "special_key": f"{start_ep}-{end_ep}-unclassified-tail",
+            "title": f"GMCX 第{start_ep}～{end_ep}回 追加映像（確認待ち）",
+            "start_seconds": cursor,
+            "stop_seconds": duration,
+            "duration_seconds": clip_duration,
+            "replay_url": clip_url(vod_id, cursor, clip_duration),
+            "method": "user-test-unclassified-tail",
+            "confidence": "low",
+        })
+
+    return chapters
 
 def make_exact_177_196_chapters(vod: dict, titles: dict[str, str]) -> list[dict]:
     """Build the #177-196 archive from the source-player file list screenshot."""
@@ -3065,7 +3131,7 @@ def main() -> int:
         elif status == "ready" and chapters and (start_ep, end_ep) in {(227, 236), (237, 246)}:
             titlecard_refinement = {
                 "status": "skipped",
-                "reason": "user-test-fixed-58m03-cadence",
+                "reason": "user-test-broadcast-order-with-known-specials",
                 "boundary_version": TITLECARD_BOUNDARY_VERSION,
             }
         elif status == "ready" and chapters and vod.get("playable"):
