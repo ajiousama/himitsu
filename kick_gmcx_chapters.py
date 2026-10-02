@@ -2510,6 +2510,37 @@ def make_uniform_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict[st
     return chapters
 
 
+
+def make_fixed_test_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict[str, str]) -> list[dict]:
+    """Create user-test cuts at a fixed 58:03 cadence without consuming the VOD tail."""
+    duration = int(vod.get("duration_seconds") or 0)
+    vod_id = str(vod.get("vod_id") or "")
+    if duration <= 0 or not vod_id:
+        return []
+
+    chapters = []
+    cursor = 0
+    for ep in range(start_ep, end_ep + 1):
+        if cursor >= duration:
+            break
+        stop = min(duration, cursor + (58 * 60 + 3))
+        clip_duration = max(0, stop - cursor)
+        chapters.append({
+            "kind": "episode",
+            "episode": ep,
+            "title": titles.get(str(ep), f"第{ep}回"),
+            "start_seconds": cursor,
+            "stop_seconds": stop,
+            "duration_seconds": clip_duration,
+            "replay_url": clip_url(vod_id, cursor, clip_duration),
+            "method": "user-test-fixed-58m03",
+            "confidence": "provisional",
+        })
+        cursor = stop
+
+    return chapters
+
+
 def make_exact_177_196_chapters(vod: dict, titles: dict[str, str]) -> list[dict]:
     """Build the #177-196 archive from the source-player file list screenshot."""
     duration = int(vod.get("duration_seconds") or 0)
@@ -2989,6 +3020,12 @@ def main() -> int:
         elif known_mixed:
             chapters = make_mixed_chapters(vod, start_ep, end_ep, titles)
             status = "ready" if chapters else "ai_required"
+        elif (start_ep, end_ep) in {(227, 236), (237, 246)}:
+            # User verification pass: expose each numbered episode at a fixed
+            # 58:03 cadence. Any drift or inserted special is corrected later
+            # from playback feedback; do not stretch the cuts to fill the VOD.
+            chapters = make_fixed_test_chapters(vod, start_ep, end_ep, titles)
+            status = "ready" if chapters else "ai_required"
         elif clean_range_only and plausible_hour_blocks:
             status = "ready"
             chapters = make_uniform_chapters(vod, start_ep, end_ep, titles)
@@ -3025,10 +3062,10 @@ def main() -> int:
                     "status": "legacy-structured",
                     "reason": "image-refinement-limited-to-177-plus",
                 }
-        elif status == "ready" and chapters and start_ep == 227:
+        elif status == "ready" and chapters and (start_ep, end_ep) in {(227, 236), (237, 246)}:
             titlecard_refinement = {
                 "status": "skipped",
-                "reason": "season20-exact-op-diagnostic",
+                "reason": "user-test-fixed-58m03-cadence",
                 "boundary_version": TITLECARD_BOUNDARY_VERSION,
             }
         elif status == "ready" and chapters and vod.get("playable"):
