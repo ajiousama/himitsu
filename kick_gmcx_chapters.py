@@ -2978,7 +2978,7 @@ def main() -> int:
         average = (duration / count) if duration > 0 else 0
         clean_range_only = not tail
         plausible_hour_blocks = 2700 <= average <= 4500 if average else False
-        known_mixed = (start_ep, end_ep) in KNOWN_SPECIALS
+        known_mixed = (start_ep, end_ep) in KNOWN_SPECIALS or (start_ep, end_ep) == (227, 236)
 
         if duration <= 0:
             status = "waiting_live_end"
