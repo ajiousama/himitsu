@@ -71,6 +71,21 @@ BLUE_ROOM_BLUE_RED_GAP = 10
 BLUE_ROOM_BLUE_GREEN_GAP = 2
 BLUE_ROOM_HASH_DISTANCE = 76
 BLUE_ROOM_SAMPLE_SECONDS = 2
+
+# Fine thumbnail/start alignment: the recurring pixel-art king enters from the
+# right as the black lower caption box appears.  Detect that exact phase after
+# the coarse title-logo boundary so VOD5 cards line up visually.
+KING_CAPTION_WINDOW_SECONDS = 12
+KING_CAPTION_FPS = 4
+KING_CAPTION_WIDTH = 96
+KING_CAPTION_HEIGHT = 54
+KING_CAPTION_MIN_DARK_RATIO = 0.44
+KING_CAPTION_PRE_DARK_MAX = 0.34
+KING_CAPTION_MIN_BRIGHT_RATIO = 0.022
+KING_CAPTION_MIN_WARM_RATIO = 0.003
+KING_CAPTION_MAX_FINE_SHIFT_SECONDS = 10
+KING_CAPTION_MIN_COVERAGE = 0.70
+
 TITLE_LOGO_SAMPLE_SECONDS = 1
 TITLE_LOGO_MIN_YELLOW_RATIO = 0.055
 TITLE_LOGO_MIN_DARK_RATIO = 0.55
@@ -842,6 +857,230 @@ def _best_blue_room_match(reference: dict, frames: list[dict]) -> tuple[int | No
         return None, best_dist
     near = [t for d, t in scored if d <= min(BLUE_ROOM_HASH_DISTANCE, best_dist + 4)]
     return min(near), best_dist
+
+
+def _sample_king_caption_window(
+    url: str,
+    center: int,
+    total_duration: int,
+) -> list[dict]:
+    """Sample the recurring throne-room king/caption cue at quarter-second resolution."""
+    if total_duration <= 0:
+        return []
+    radius = KING_CAPTION_WINDOW_SECONDS
+    start = max(0.0, float(center) - radius)
+    stop = min(float(total_duration), float(center) + radius)
+    span = max(0.25, stop - start)
+    cmd = [
+        "ffmpeg", "-hide_banner", "-loglevel", "error",
+        "-rw_timeout", "15000000",
+        "-ss", f"{start:.3f}", "-i", url,
+        "-t", f"{span:.3f}", "-an",
+        "-vf", (
+            f"fps={KING_CAPTION_FPS},"
+            f"scale={KING_CAPTION_WIDTH}:{KING_CAPTION_HEIGHT}:flags=area,"
+            "format=rgb24"
+        ),
+        "-pix_fmt", "rgb24", "-f", "rawvideo", "pipe:1",
+    ]
+    try:
+        proc = subprocess.run(
+            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            timeout=50, check=False,
+        )
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        return []
+    if proc.returncode != 0:
+        return []
+
+    w, h = KING_CAPTION_WIDTH, KING_CAPTION_HEIGHT
+    frame_size = w * h * 3
+    out = []
+    raw = proc.stdout
+
+    # Lower caption box: broad enough to include the white frame/text while
+    # avoiding most of the floor/background.
+    x0, x1 = int(w * 0.12), int(w * 0.88)
+    y0, y1 = int(h * 0.68), int(h * 0.96)
+    # King enters through the right half of the throne-room animation.
+    kx0, kx1 = int(w * 0.50), int(w * 0.94)
+    ky0, ky1 = int(h * 0.28), int(h * 0.72)
+
+    for idx in range(len(raw) // frame_size):
+        frame = raw[idx * frame_size:(idx + 1) * frame_size]
+
+        caption_pixels = 0
+        dark_pixels = 0
+        bright_pixels = 0
+        for y in range(y0, y1):
+            base = y * w * 3
+            for x in range(x0, x1):
+                p = base + x * 3
+                rr, gg, bb = frame[p], frame[p + 1], frame[p + 2]
+                caption_pixels += 1
+                if rr < 68 and gg < 68 and bb < 68:
+                    dark_pixels += 1
+                if rr > 175 and gg > 175 and bb > 175:
+                    bright_pixels += 1
+
+        king_pixels = 0
+        warm_pixels = 0
+        for y in range(ky0, ky1):
+            base = y * w * 3
+            for x in range(kx0, kx1):
+                p = base + x * 3
+                rr, gg, bb = frame[p], frame[p + 1], frame[p + 2]
+                king_pixels += 1
+                if rr > 120 and gg > 65 and bb < 125 and rr - bb > 28:
+                    warm_pixels += 1
+
+        t = start + idx / KING_CAPTION_FPS
+        out.append({
+            "time": round(t, 3),
+            "caption_dark_ratio": dark_pixels / max(1, caption_pixels),
+            "caption_bright_ratio": bright_pixels / max(1, caption_pixels),
+            "king_warm_ratio": warm_pixels / max(1, king_pixels),
+        })
+    return out
+
+
+def _pick_king_caption_onset(
+    frames: list[dict],
+    center: int,
+) -> tuple[float | None, dict]:
+    """Pick the first black-caption onset near the coarse boundary.
+
+    The warm king-pixel signal is a guard/ranking feature rather than a hard
+    template, because the sprite itself moves while the caption box onset is
+    stable across episodes.
+    """
+    if not frames:
+        return None, {"reason": "no_fine_frames"}
+
+    candidates = []
+    for i, row in enumerate(frames):
+        t = float(row["time"])
+        if abs(t - float(center)) > KING_CAPTION_MAX_FINE_SHIFT_SECONDS:
+            continue
+        dark = float(row["caption_dark_ratio"])
+        bright = float(row["caption_bright_ratio"])
+        warm = float(row["king_warm_ratio"])
+        if dark < KING_CAPTION_MIN_DARK_RATIO or bright < KING_CAPTION_MIN_BRIGHT_RATIO:
+            continue
+
+        prev = frames[max(0, i - 4):i]
+        prev_dark = min(
+            (float(x["caption_dark_ratio"]) for x in prev),
+            default=1.0,
+        )
+        onset = prev_dark <= KING_CAPTION_PRE_DARK_MAX
+        # Prefer a true box-appearance transition, then the frame with a
+        # visible king, then the earliest cue nearest the coarse boundary.
+        candidates.append((
+            0 if onset else 1,
+            0 if warm >= KING_CAPTION_MIN_WARM_RATIO else 1,
+            abs(t - float(center)),
+            t,
+            dark,
+            bright,
+            warm,
+            prev_dark,
+        ))
+
+    if not candidates:
+        return None, {"reason": "no_king_caption_onset"}
+    candidates.sort()
+    onset_rank, warm_rank, _, t, dark, bright, warm, prev_dark = candidates[0]
+    return t, {
+        "reason": "ok",
+        "transition_detected": onset_rank == 0,
+        "king_guard_detected": warm_rank == 0,
+        "caption_dark_ratio": round(dark, 4),
+        "caption_bright_ratio": round(bright, 4),
+        "king_warm_ratio": round(warm, 4),
+        "previous_dark_ratio": round(prev_dark, 4),
+        "offset_from_coarse_seconds": round(t - float(center), 3),
+    }
+
+
+def _fine_align_king_caption(
+    url: str,
+    chapters: list[dict],
+    regular_indices: list[int],
+    total_duration: int,
+) -> tuple[dict[int, int], dict]:
+    """Fine-align numbered episode starts to the king + lower-caption cue."""
+    targets = [
+        index for index in regular_indices
+        if 0 < index < len(chapters)
+    ]
+    if not targets:
+        return {}, {"status": "skipped", "reason": "no_movable_regular_boundaries"}
+
+    def analyse(index: int) -> tuple[int, float | None, dict]:
+        center = int(chapters[index].get("start_seconds") or 0)
+        frames = _sample_king_caption_window(url, center, total_duration)
+        hit, detail = _pick_king_caption_onset(frames, center)
+        return index, hit, detail
+
+    rows = []
+    starts: dict[int, int] = {}
+    with ThreadPoolExecutor(max_workers=min(4, len(targets))) as pool:
+        futures = [pool.submit(analyse, index) for index in targets]
+        for future in as_completed(futures):
+            try:
+                index, hit, detail = future.result()
+            except Exception as exc:
+                rows.append({"matched": False, "reason": f"fine_exception:{exc}"})
+                continue
+            center = int(chapters[index].get("start_seconds") or 0)
+            if hit is None:
+                rows.append({
+                    "index": index,
+                    "episode": chapters[index].get("episode"),
+                    "matched": False,
+                    "coarse_start": center,
+                    "detail": detail,
+                })
+                continue
+
+            # Resolver/HLS chapter boundaries are integer-second based.  Round
+            # to the nearest second after detecting at 0.25 s resolution.
+            refined = int(round(float(hit)))
+            if abs(refined - center) > KING_CAPTION_MAX_FINE_SHIFT_SECONDS:
+                rows.append({
+                    "index": index,
+                    "episode": chapters[index].get("episode"),
+                    "matched": False,
+                    "coarse_start": center,
+                    "candidate": refined,
+                    "reason": "fine_shift_guard",
+                    "detail": detail,
+                })
+                continue
+            starts[index] = refined
+            rows.append({
+                "index": index,
+                "episode": chapters[index].get("episode"),
+                "matched": True,
+                "coarse_start": center,
+                "fine_start": refined,
+                "shift_seconds": refined - center,
+                "detail": detail,
+            })
+
+    rows.sort(key=lambda x: int(x.get("index") or 0))
+    coverage = len(starts) / max(1, len(targets))
+    return starts, {
+        "status": "applied" if coverage >= KING_CAPTION_MIN_COVERAGE else "insufficient",
+        "method": "king-right-plus-caption-onset",
+        "sample_fps": KING_CAPTION_FPS,
+        "window_seconds": KING_CAPTION_WINDOW_SECONDS,
+        "matched": len(starts),
+        "expected": len(targets),
+        "coverage": round(coverage, 3),
+        "rows": rows,
+    }
 
 
 def _title_logo_template_mask() -> int:
@@ -2641,16 +2880,45 @@ def refine_with_titlecard(
     )
     for x in rebuilt:
         x.pop("vod_id", None)
+
+    # Second pass: the list UI previews the beginning of each clip.  Fine-align
+    # that beginning to the exact recurring pixel-art phase the user selected:
+    # king enters from the right + black lower caption appears.
+    fine_starts, fine_meta = _fine_align_king_caption(
+        analysis_url, rebuilt, regular_indices, duration
+    )
+    if fine_meta.get("status") == "applied" and fine_starts:
+        fine_source = [{**x, "vod_id": vod_id} for x in rebuilt]
+        fine_rebuilt = _apply_refined_chapter_starts(
+            fine_source, fine_starts, duration
+        )
+        # Only accept the fine pass when it did not trip ordering/fragment
+        # guards; otherwise keep the coarse title-logo result.
+        if fine_rebuilt != fine_source:
+            rebuilt = fine_rebuilt
+            for index in fine_starts:
+                if 0 <= index < len(rebuilt):
+                    rebuilt[index]["method"] = "king-caption-detected"
+                    rebuilt[index]["confidence"] = "high"
+            for x in rebuilt:
+                x.pop("vod_id", None)
+
+    effective_starts = {
+        str(index): int(item.get("start_seconds") or 0)
+        for index, item in enumerate(rebuilt)
+    }
     return rebuilt, {
         "status": "applied" if coverage >= 0.95 else "partial",
-        "method": "recurring-title-logo",
+        "method": "recurring-title-logo+king-caption-onset",
         "boundary_version": TITLECARD_BOUNDARY_VERSION,
         "reference": ref_meta, "opening_offset_seconds": opening_offset,
         "detected_regular_boundaries": matched_regular,
         "expected_regular_boundaries": len(regular_indices),
         "coverage": round(coverage, 3),
-        "chapter_starts": {str(k): v for k, v in starts.items()},
-        "matches": match_rows, "cache_reused": False,
+        "chapter_starts": effective_starts,
+        "matches": match_rows,
+        "king_caption_refinement": fine_meta,
+        "cache_reused": False,
     }
 
 def clip_url(vod_id: str, start: int, duration: int) -> str:
