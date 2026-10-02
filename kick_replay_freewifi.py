@@ -163,55 +163,28 @@ def build_vod5() -> str:
     chapter_vods = reliable_chapter_vods()
     id_to_vod = replay_vod_ids()
 
-    # If an older GCCX bundle is temporarily unavailable, preserve the
-    # already-published split entries for that same VOD instead of replacing
-    # them with one long VOD or aborting the whole FreeWiFi update.
-    current_meta = json.loads(GMCX_JSON.read_text(encoding="utf-8"))
-    unreliable_vods = {
-        str(item.get("vod_id"))
-        for item in current_meta.get("results", [])
-        if item.get("vod_id")
-        and (
-            item.get("status") != "ready"
-            or not item.get("chapters")
-        )
-    }
-    preserved: list[tuple[str, str]] = []
-    if VOD5.exists() and unreliable_vods:
-        for extinf, url in read_entries(VOD5):
-            if not tvg_id(extinf).startswith("kick.gmcx."):
-                continue
-            if any(f"vod={vod_id}" in url for vod_id in unreliable_vods):
-                preserved.append((extinf, url))
-
+    # Rebuild from the current live catalog only. Expired/dead VODs are
+    # intentionally NOT preserved from the previous VOD5/FreeWiFi output.
+    # This prevents stale split entries from surviving after KICK HLS expiry.
     whole: list[tuple[str, str]] = []
     for extinf, url in read_entries(REPLAY_M3U):
         vod_id = id_to_vod.get(tvg_id(extinf))
         if vod_id and vod_id in chapter_vods:
             continue
-        if vod_id and vod_id in unreliable_vods and any(
-            f"vod={vod_id}" in old_url for _, old_url in preserved
-        ):
-            continue
         whole.append((extinf, url))
 
-    # VOD5 is the complete split catalog. Specials such as Vietnam and
-    # NicoNico must stay here too; otherwise suppressing the original long VOD
-    # makes those programmes disappear entirely.
     chapters = [
         (extinf, url)
         for extinf, url in read_entries(GMCX_M3U)
         if any(f"vod={vod_id}" in url for vod_id in chapter_vods)
     ]
+
     lines = ["#EXTM3U"]
     for extinf, url in whole:
         lines.extend([extinf.replace('group-title="VOD"', 'group-title="VOD"'), url])
-    for extinf, url in preserved:
-        lines.extend([extinf.replace('group-title="GMCX Replay"', 'group-title="VOD"'), url])
     for extinf, url in chapters:
         lines.extend([extinf.replace('group-title="GMCX Replay"', 'group-title="VOD"'), url])
     return "\n".join(lines) + "\n"
-
 
 def main() -> int:
     if not FREEWIFI.exists():
