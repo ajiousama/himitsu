@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-02",
-  "generated_at": "2026-10-02T15:09:07.799847+09:00",
+  "generated_at": "2026-10-02T15:11:07.450976+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261002.json",
   "schedule_checked_at": "2026-10-02T15:01:07.450113+09:00",
@@ -52,10 +52,16 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 10,
+    "requested": 11,
     "fetched": 10,
     "failures": [],
-    "deferred": []
+    "deferred": [
+      {
+        "jcd": "24",
+        "name": "大村",
+        "start": "2026-10-02T17:05:00+09:00"
+      }
+    ]
   },
   "epg_programmes_written": {
     "public_sports_epg_local.xml": 196,
@@ -1497,7 +1503,8 @@
           "name": "特別選抜戦A組"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "provider_stream_start": "2026-10-02T17:05:00+09:00",
+      "source": "公式BR配信開始待ち 17:05"
     }
   }
 }
