@@ -26,15 +26,14 @@ SCREEN_H = 900
 OUT_W = 1600
 OUT_H = 900
 FPS = int(os.environ.get("PATAPATA_FPS", "24"))
-EXPECTED_SHA256 = "9f4beff9bc368b194f43635d9553829d46f5656476c76ec5088e7f38ce865783"
-ASSET_DIR = pathlib.Path("/tmp/patapata-r14")
-HLS_DIR = pathlib.Path("/tmp/patapata-r14-hls")
+SOURCE_URL = os.environ.get("PATAPATA_SOURCE_URL", "https://ajiousama.github.io/live-wallpaper/transport/r15-dev/")
+HLS_DIR = pathlib.Path("/tmp/patapata-r15-hls")
 HLS_PLAYLIST = HLS_DIR / "index.m3u8"
 STOP = threading.Event()
 PROCESS_LOCK = threading.Lock()
 PROCESSES: dict[str, subprocess.Popen] = {}
 LAST_ERROR = ""
-DEPLOYMENT_ID = os.environ.get("RAILWAY_DEPLOYMENT_ID") or EXPECTED_SHA256
+DEPLOYMENT_ID = os.environ.get("RAILWAY_DEPLOYMENT_ID") or "r15-live"
 
 TV_STYLE = """
 <style id="freewifi-tv-style">
@@ -67,7 +66,7 @@ REMOTE_UPDATE_SCRIPT = f"""
 """
 
 def log(msg: str) -> None:
-    print(f"[patapata-r14] {msg}", flush=True)
+    print(f"[patapata-r15] {msg}", flush=True)
 
 def assemble_assets() -> pathlib.Path:
     if (ASSET_DIR / "index.html").is_file():
@@ -162,16 +161,20 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
     def do_GET(self):
         path = urllib.parse.unquote(urllib.parse.urlsplit(self.path).path)
-        if path in ("/wallpaper", "/wallpaper/"):
-            path = "/patapata/index.html"
+        if path in ("/wallpaper", "/wallpaper/", "/patapata", "/patapata/"):
+            self.send_response(302)
+            self.send_header("Location", SOURCE_URL)
+            self.send_header("Cache-Control", "no-store")
+            self.end_headers()
+            return
         if path == "/version.json":
             self.send_text(
                 200,
                 json.dumps(
                     {
                         "deployment_id": DEPLOYMENT_ID,
-                        "source": "TRUE-FINAL-R14",
-                        "archive_sha256": EXPECTED_SHA256,
+                        "source": "R15-GITHUB-LIVE",
+                        "source_url": SOURCE_URL,
                         "fps": FPS,
                     },
                     ensure_ascii=False,
@@ -183,7 +186,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
             ok = ready()
             self.send_text(
                 200 if ok else 503,
-                f"ready={str(ok).lower()} source=TRUE-FINAL-R14 fps={FPS} hls_age={hls_age():.2f} "
+                f"ready={str(ok).lower()} source=R15-GITHUB-LIVE fps={FPS} hls_age={hls_age():.2f} "
                 f"xvfb={process_alive('xvfb')} chromium={process_alive('chromium')} ffmpeg={process_alive('ffmpeg')} "
                 f"error={LAST_ERROR}\n",
             )
@@ -192,8 +195,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
             self.send_text(
                 200,
                 "Patapata TV\n"
-                "source=TRUE-FINAL-R14\n"
-                f"archive_sha256={EXPECTED_SHA256}\n"
+                "source=R15-GITHUB-LIVE\n"
+                f"source_url={SOURCE_URL}\n"
                 f"capture=x11grab {SCREEN_W}x{SCREEN_H} {FPS}fps\n"
                 f"video={OUT_W}x{OUT_H} H.264 baseline\n"
                 "audio=AAC 48kHz stereo silence\n"
@@ -242,7 +245,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 ctype += "; charset=utf-8"
             self.send_bytes(200, data, ctype, "no-store")
             return
-        if path.startswith("/patapata/"):
+        if False and path.startswith("/patapata/"):
             rel = path[len("/patapata/"):] or "index.html"
             target = (ASSET_DIR / rel).resolve()
             root = ASSET_DIR.resolve()
@@ -288,7 +291,7 @@ def start_chromium() -> subprocess.Popen:
         raise RuntimeError("chromium not found")
     env = os.environ.copy()
     env["DISPLAY"] = DISPLAY
-    url = f"http://127.0.0.1:{PORT}/patapata/index.html"
+    url = SOURCE_URL
     cmd = [
         chrome,
         "--no-sandbox",
@@ -369,7 +372,6 @@ def supervisor() -> None:
         time.sleep(1)
 
 def main() -> None:
-    assemble_assets()
     server = http.server.ThreadingHTTPServer((HOST, PORT), Handler)
     server.daemon_threads = True
     threading.Thread(target=supervisor, daemon=True).start()
