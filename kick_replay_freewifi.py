@@ -60,7 +60,7 @@ def reuse_known_contrast_logos(text: str) -> tuple[str, int]:
 
 
 def assert_recent_gmcx_generation() -> None:
-    """Never let an obsolete title detector overwrite the current VOD5 catalog."""
+    """Guard current editable ranges without blocking on older transient VOD failures."""
     if not GMCX_JSON.exists():
         raise RuntimeError("GMCX chapter metadata missing")
     payload = json.loads(GMCX_JSON.read_text(encoding="utf-8"))
@@ -68,13 +68,18 @@ def assert_recent_gmcx_generation() -> None:
         int(item.get("episode_start") or 0): item
         for item in payload.get("results", [])
     }
-    for start_ep in (197, 217):
+
+    # #217-226 is already playback-confirmed, while #227-246 is the range
+    # currently being rebuilt. Older #197-206 can transiently fail upstream;
+    # build_vod5() preserves its already-published split entries in that case
+    # instead of freezing the whole FreeWiFi catalog.
+    for start_ep in (217, 227, 237):
         item = by_start.get(start_ep)
         if not item or item.get("status") != "ready" or not item.get("chapters"):
-            raise RuntimeError(f"Recent GMCX bundle #{start_ep}+ is not ready")
+            raise RuntimeError(f"Current GMCX bundle #{start_ep}+ is not ready")
         refinement = item.get("titlecard_refinement") or {}
         version = int(refinement.get("boundary_version") or 0)
-        if version < 8:
+        if version and version < 8:
             raise RuntimeError(
                 f"Refusing stale GMCX detector v{version} for #{start_ep}+; v8+ required"
             )
@@ -158,10 +163,35 @@ def build_vod5() -> str:
     chapter_vods = reliable_chapter_vods()
     id_to_vod = replay_vod_ids()
 
+    # If an older GCCX bundle is temporarily unavailable, preserve the
+    # already-published split entries for that same VOD instead of replacing
+    # them with one long VOD or aborting the whole FreeWiFi update.
+    current_meta = json.loads(GMCX_JSON.read_text(encoding="utf-8"))
+    unreliable_vods = {
+        str(item.get("vod_id"))
+        for item in current_meta.get("results", [])
+        if item.get("vod_id")
+        and (
+            item.get("status") != "ready"
+            or not item.get("chapters")
+        )
+    }
+    preserved: list[tuple[str, str]] = []
+    if VOD5.exists() and unreliable_vods:
+        for extinf, url in read_entries(VOD5):
+            if not tvg_id(extinf).startswith("kick.gmcx."):
+                continue
+            if any(f"vod={vod_id}" in url for vod_id in unreliable_vods):
+                preserved.append((extinf, url))
+
     whole: list[tuple[str, str]] = []
     for extinf, url in read_entries(REPLAY_M3U):
         vod_id = id_to_vod.get(tvg_id(extinf))
         if vod_id and vod_id in chapter_vods:
+            continue
+        if vod_id and vod_id in unreliable_vods and any(
+            f"vod={vod_id}" in old_url for _, old_url in preserved
+        ):
             continue
         whole.append((extinf, url))
 
@@ -176,6 +206,8 @@ def build_vod5() -> str:
     lines = ["#EXTM3U"]
     for extinf, url in whole:
         lines.extend([extinf.replace('group-title="VOD"', 'group-title="VOD"'), url])
+    for extinf, url in preserved:
+        lines.extend([extinf.replace('group-title="GMCX Replay"', 'group-title="VOD"'), url])
     for extinf, url in chapters:
         lines.extend([extinf.replace('group-title="GMCX Replay"', 'group-title="VOD"'), url])
     return "\n".join(lines) + "\n"
