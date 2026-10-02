@@ -2,10 +2,10 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-03",
-  "generated_at": "2026-10-03T08:13:43.187603+09:00",
+  "generated_at": "2026-10-03T08:17:43.192226+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261003.json",
-  "schedule_checked_at": "2026-10-03T07:59:43.187628+09:00",
+  "schedule_checked_at": "2026-10-03T08:17:43.192226+09:00",
   "schedule_warnings": [
     "official_cards: TimeoutError"
   ],
@@ -20,7 +20,7 @@
   "card_count": 13,
   "held_count": 13,
   "visible_count": 2,
-  "active_count": 1,
+  "active_count": 2,
   "ended_kept": [],
   "seed_required": false,
   "seed_required_venues": [],
@@ -29,7 +29,7 @@
     "morning": {
       "held": 2,
       "acquired": 2,
-      "active": 1,
+      "active": 2,
       "ended": 0,
       "seed_required": 0,
       "cancelled": 0
@@ -52,10 +52,15 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 6,
+    "requested": 7,
     "fetched": 2,
     "failures": [],
     "deferred": [
+      {
+        "jcd": "02",
+        "name": "戸田",
+        "start": "2026-10-03T10:09:00+09:00"
+      },
       {
         "jcd": "09",
         "name": "津",
@@ -91,13 +96,13 @@
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/16ab5a596c11455cb2e40a0f6c345619/09f1ab73c70d409da376514cca32454a/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MTE1ODQwMCwic3RhcnQiOjE3OTA5ODI3MjAsImlvcyI6MTgsImNwIjoiMjEzMTc4MzIwXzIxMzIyMTUxOSIsInBwdyI6IjQwayJ9.PWvRVRvQ9v-fPThpYn4ncFL3jFmTIvMuXry826tjykQ",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-10-03T08:12:10.555139+09:00",
-      "checked_at": "2026-10-03T08:12:10.555139+09:00",
+      "checked_at": "2026-10-03T08:18:18.519146+09:00",
       "first_verified_at": "2026-10-03T08:12:10.555139+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
         "sequence": 8348833,
-        "last_segment": "/16ab5a596c11455cb2e40a0f6c345619/09f1ab73c70d409da376514cca32454a/manifest_1_8348834.ts",
+        "last_segment": "/16ab5a596c11455cb2e40a0f6c345619/09f1ab73c70d409da376514cca32454a/manifest_1_8348895.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -107,13 +112,13 @@
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/eb8ebfdb94534fadaf7ac704fbd7d8b6/0afae631cdbb41d7990ca8be9a1984f9/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MTE1ODQwMCwic3RhcnQiOjE3OTA5ODIwMDAsImlvcyI6MTgsImNwIjoiMjEzMTc3NjAwXzIxMzIyMDc5OSIsInBwdyI6IjQwayJ9.zIksoHHTFS2Fa0N78EI0pAIAQUwwmFMy3zLrtH-gG2E",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-10-03T08:00:18.693363+09:00",
-      "checked_at": "2026-10-03T08:12:10.555404+09:00",
+      "checked_at": "2026-10-03T08:18:18.519675+09:00",
       "first_verified_at": "2026-10-03T08:00:18.693363+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
         "sequence": 8350961,
-        "last_segment": "/eb8ebfdb94534fadaf7ac704fbd7d8b6/0afae631cdbb41d7990ca8be9a1984f9/manifest_4_8351082.ts",
+        "last_segment": "/eb8ebfdb94534fadaf7ac704fbd7d8b6/0afae631cdbb41d7990ca8be9a1984f9/manifest_4_8351143.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -209,7 +214,8 @@
           "name": "戸田選抜戦"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "provider_stream_start": "2026-10-03T10:09:00+09:00",
+      "source": "公式BR配信開始待ち 10:09"
     },
     "boat.heiwajima": {
       "jcd": "04",
@@ -941,7 +947,7 @@
       "held": true,
       "visible": true,
       "ended": false,
-      "active": false,
+      "active": true,
       "cancelled": false,
       "mode": "morning",
       "mode_label": "モーニング",
@@ -952,7 +958,7 @@
         "race": 1,
         "start": "08:47"
       },
-      "stream_window": "scheduled",
+      "stream_window": "live_or_prestart",
       "intermission": null,
       "guidance_switch_at": "2026-10-03T15:12:00+09:00",
       "seed_required": false,
