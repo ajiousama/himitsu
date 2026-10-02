@@ -3128,10 +3128,20 @@ def main() -> int:
                     "status": "legacy-structured",
                     "reason": "image-refinement-limited-to-177-plus",
                 }
+        elif status == "ready" and chapters and (start_ep, end_ep) in {(227, 236), (237, 246)} and vod.get("playable"):
+            # Use the broadcast-order layout only as a rough seed.  Refine
+            # numbered episode starts from the recurring yellow GCCX title/opening
+            # cue; if confidence is insufficient, keep the seed untouched so
+            # the user can correct only the bad joins by playback.
+            chapters, titlecard_refinement = refine_with_titlecard(
+                vod,
+                chapters,
+                previous_result,
+            )
         elif status == "ready" and chapters and (start_ep, end_ep) in {(227, 236), (237, 246)}:
             titlecard_refinement = {
                 "status": "skipped",
-                "reason": "user-test-broadcast-order-with-known-specials",
+                "reason": "source-unavailable-kept-broadcast-order-seed",
                 "boundary_version": TITLECARD_BOUNDARY_VERSION,
             }
         elif status == "ready" and chapters and vod.get("playable"):
