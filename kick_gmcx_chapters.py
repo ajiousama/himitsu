@@ -52,7 +52,7 @@ EPISODE_DURATION_OVERRIDES: dict[int, int] = {
 # signature inside each VOD and place every split on the same visual cue.
 TITLECARD_WINDOW_SECONDS = 240
 TITLECARD_SAMPLE_SECONDS = 2
-TITLECARD_BOUNDARY_VERSION = 44
+TITLECARD_BOUNDARY_VERSION = 45
 TITLECARD_INTRO_SECONDS = 8
 TITLECARD_HASH_BITS = 256
 TITLECARD_MATCH_DISTANCE = 42
@@ -3951,7 +3951,7 @@ def main() -> int:
         elif known_mixed:
             chapters = make_mixed_chapters(vod, start_ep, end_ep, titles)
             status = "ready" if chapters else "ai_required"
-        elif (start_ep, end_ep) in {(227, 236), (237, 246), (247, 256)}:
+        elif (start_ep, end_ep) in {(227, 236), (237, 246), (247, 256), (257, 266)}:
             # User verification pass: expose each numbered episode at a fixed
             # 58:03 cadence. Any drift or inserted special is corrected later
             # from playback feedback; do not stretch the cuts to fill the VOD.
@@ -4034,7 +4034,7 @@ def main() -> int:
                 chapters,
                 previous_result,
             )
-        elif status == "ready" and chapters and (start_ep, end_ep) in {(227, 236), (237, 246), (247, 256)}:
+        elif status == "ready" and chapters and (start_ep, end_ep) in {(227, 236), (237, 246), (247, 256), (257, 266)}:
             titlecard_refinement = {
                 "status": "skipped",
                 "reason": "source-unavailable-kept-broadcast-order-seed",
