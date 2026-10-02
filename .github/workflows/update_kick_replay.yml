@@ -27,7 +27,9 @@ concurrency:
   # Emergency GMCX repair commits may run beside an obsolete analyser.
   # Normal scheduled/push runs still share the repository-wide writer mutex.
   group: ${{ contains(github.event.head_commit.message, '[gmcx-final]') && 'himitsu-gmcx-final' || contains(github.event.head_commit.message, '[gmcx-fast]') && 'himitsu-gmcx-fast' || contains(github.event.head_commit.message, '[gmcx-fix]') && 'himitsu-gmcx-fix' || 'himitsu-freewifi-state-writer' }}
-  cancel-in-progress: false
+  # Fast/fix GMCX pushes supersede older analyser runs. Scheduled/catalog
+  # writers still finish normally.
+  cancel-in-progress: ${{ contains(github.event.head_commit.message, '[gmcx-fast]') || contains(github.event.head_commit.message, '[gmcx-fix]') || contains(github.event.head_commit.message, '[gmcx-final]') }}
 
 jobs:
   build:
