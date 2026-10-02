@@ -52,7 +52,7 @@ EPISODE_DURATION_OVERRIDES: dict[int, int] = {
 # signature inside each VOD and place every split on the same visual cue.
 TITLECARD_WINDOW_SECONDS = 240
 TITLECARD_SAMPLE_SECONDS = 2
-TITLECARD_BOUNDARY_VERSION = 41
+TITLECARD_BOUNDARY_VERSION = 42
 TITLECARD_INTRO_SECONDS = 8
 TITLECARD_HASH_BITS = 256
 TITLECARD_MATCH_DISTANCE = 42
@@ -2668,6 +2668,192 @@ def _first_stable_king_dialogue(rows: list[dict]) -> tuple[int | None, dict]:
     }
 
 
+def _scan_unclassified_king_title_sequence(
+    url: str,
+    start_seconds: int,
+    stop_seconds: int,
+) -> list[dict]:
+    """Scan an unclassified tail for the title sequence: king enters, then caption appears.
+
+    Unlike normal episode alignment this intentionally scans the whole unknown
+    region.  Eye-catches where the king is already present and talking are
+    rejected because we require a warm-sprite rise BEFORE the black caption
+    box appears.
+    """
+    start_seconds = max(0, int(start_seconds))
+    stop_seconds = max(start_seconds + 1, int(stop_seconds))
+    width, height = 80, 45
+    fps = 2
+    chunk_seconds = 600
+
+    def scan_chunk(chunk_start: int, chunk_stop: int) -> list[dict]:
+        span = max(1, chunk_stop - chunk_start)
+        cmd = [
+            "ffmpeg", "-hide_banner", "-loglevel", "error",
+            "-rw_timeout", "15000000",
+            "-ss", str(chunk_start), "-i", url,
+            "-t", str(span), "-an",
+            "-vf", f"fps={fps},scale={width}:{height}:flags=area,format=rgb24",
+            "-pix_fmt", "rgb24", "-f", "rawvideo", "pipe:1",
+        ]
+        try:
+            proc = subprocess.run(
+                cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                timeout=180, check=False,
+            )
+        except (FileNotFoundError, subprocess.TimeoutExpired):
+            return []
+        if proc.returncode != 0:
+            return []
+
+        frame_size = width * height * 3
+        raw = proc.stdout
+        metrics = []
+        # caption box area
+        cx0, cx1 = int(width * 0.18), int(width * 0.82)
+        cy0, cy1 = int(height * 0.62), int(height * 0.91)
+        # king/right-entry area
+        kx0, kx1 = int(width * 0.48), int(width * 0.96)
+        ky0, ky1 = int(height * 0.24), int(height * 0.74)
+
+        for idx in range(len(raw) // frame_size):
+            frame = raw[idx * frame_size:(idx + 1) * frame_size]
+            dark = bright = ctot = 0
+            warm = ktot = 0
+
+            for y in range(cy0, cy1):
+                base = y * width * 3
+                for x in range(cx0, cx1):
+                    p = base + x * 3
+                    r, g, b = frame[p], frame[p + 1], frame[p + 2]
+                    ctot += 1
+                    if r < 62 and g < 62 and b < 62:
+                        dark += 1
+                    if r > 175 and g > 175 and b > 175:
+                        bright += 1
+
+            for y in range(ky0, ky1):
+                base = y * width * 3
+                for x in range(kx0, kx1):
+                    p = base + x * 3
+                    r, g, b = frame[p], frame[p + 1], frame[p + 2]
+                    ktot += 1
+                    if r > 120 and g > 68 and b < 130 and r - b > 26:
+                        warm += 1
+
+            metrics.append({
+                "time": chunk_start + idx / fps,
+                "caption_dark": dark / max(1, ctot),
+                "caption_bright": bright / max(1, ctot),
+                "king_warm": warm / max(1, ktot),
+            })
+
+        candidates = []
+        # Require: king/warm sprite rises first, then within ~4 sec the black
+        # caption box appears. This distinguishes the title from an eye-catch
+        # where the king is already on-screen and already speaking.
+        for i in range(6, len(metrics) - 2):
+            row = metrics[i]
+            prev = metrics[max(0, i - 6):i]  # previous ~3 sec
+            if not prev:
+                continue
+            prev_warm = statistics.mean(x["king_warm"] for x in prev)
+            prev_dark = statistics.mean(x["caption_dark"] for x in prev)
+            warm_rise = row["king_warm"] - prev_warm
+
+            # First detect king entry.
+            if row["king_warm"] < 0.012 or warm_rise < 0.004:
+                continue
+            if prev_dark > 0.30:
+                continue
+
+            # Then demand a caption onset shortly AFTER the entry.
+            caption = None
+            for j in range(i, min(len(metrics), i + 9)):  # next ~4 sec
+                c = metrics[j]
+                if c["caption_dark"] >= 0.40 and c["caption_bright"] >= 0.018:
+                    before = metrics[max(0, j - 4):j]
+                    if before and min(x["caption_dark"] for x in before) <= 0.32:
+                        caption = c
+                        break
+            if caption is None:
+                continue
+
+            candidates.append({
+                "king_entry_seconds": round(float(row["time"]), 1),
+                "caption_onset_seconds": round(float(caption["time"]), 1),
+                "delay_seconds": round(float(caption["time"] - row["time"]), 1),
+                "king_warm_before": round(float(prev_warm), 4),
+                "king_warm_entry": round(float(row["king_warm"]), 4),
+                "caption_dark_before": round(float(prev_dark), 4),
+                "caption_dark_onset": round(float(caption["caption_dark"]), 4),
+                "caption_bright_onset": round(float(caption["caption_bright"]), 4),
+            })
+        return candidates
+
+    chunks = []
+    cursor = start_seconds
+    while cursor < stop_seconds:
+        end = min(stop_seconds, cursor + chunk_seconds)
+        chunks.append((cursor, end))
+        cursor = end
+
+    found = []
+    with ThreadPoolExecutor(max_workers=min(3, max(1, len(chunks)))) as pool:
+        futures = [pool.submit(scan_chunk, a, b) for a, b in chunks]
+        for future in as_completed(futures):
+            try:
+                found.extend(future.result())
+            except Exception:
+                continue
+
+    # Deduplicate neighbouring detections from the same title sequence.
+    found.sort(key=lambda x: x["king_entry_seconds"])
+    deduped = []
+    for row in found:
+        if deduped and row["king_entry_seconds"] - deduped[-1]["king_entry_seconds"] < 8:
+            continue
+        deduped.append(row)
+    return deduped[:12]
+
+
+def _annotate_unclassified_title_candidates(
+    vod: dict,
+    chapters: list[dict],
+) -> list[dict]:
+    source_url = str(vod.get("source_url") or "")
+    if not source_url or not vod.get("playable"):
+        return chapters
+    analysis_url = _lowest_hls_variant(source_url)
+    out = []
+    for chapter in chapters:
+        row = dict(chapter)
+        key = str(row.get("special_key") or "")
+        title = str(row.get("title") or "")
+        method = str(row.get("method") or "")
+        is_unclassified = (
+            "unclassified" in key
+            or method == "unclassified-tail"
+            or "確認待ち" in title
+            or title.startswith("GMCX 追加映像")
+        )
+        if is_unclassified:
+            candidates = _scan_unclassified_king_title_sequence(
+                analysis_url,
+                int(row.get("start_seconds") or 0),
+                int(row.get("stop_seconds") or 0),
+            )
+            row["title_sequence_probe"] = {
+                "status": "candidate_found" if candidates else "not_found",
+                "method": "king-enters-then-caption",
+                "candidate_count": len(candidates),
+                "candidates": candidates,
+            }
+        out.append(row)
+    return out
+
+
+
 def refine_with_king_dialogue(
     vod: dict,
     chapters: list[dict],
@@ -3662,6 +3848,7 @@ def main() -> int:
                 hls_join_markers = _fetch_hls_join_markers(str(vod.get("source_url")))
                 packet_join_probe = _probe_selected_episode_joins(str(vod.get("source_url")), chapters)
                 opening_sequence_probe = _probe_recurring_opening_sequence(str(vod.get("source_url")), chapters, duration)
+            chapters = _annotate_unclassified_title_candidates(vod, chapters)
             chapters = _annotate_hls_diagnostics(vod, chapters)
             chapters = _mark_provisional_titles(chapters, start_ep, end_ep)
 
