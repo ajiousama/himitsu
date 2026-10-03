@@ -51,28 +51,31 @@ jobs:
           from pathlib import Path
           import re
           import urllib.parse
+          from refresh_haruka_freewifi import is_haruka_entry
 
-          lines = Path('tv/playlist.m3u').read_text(encoding='utf-8').splitlines()
           bases = set()
-          matched = 0
-          for i, line in enumerate(lines):
-              if not line.startswith('#EXTINF:') or '(haruka(9394))' not in line:
-                  continue
-              j = i + 1
-              while j < len(lines) and not lines[j].strip():
-                  j += 1
-              assert j < len(lines) and not lines[j].lstrip().startswith('#')
-              url = lines[j].strip()
-              parsed = urllib.parse.urlparse(url)
-              assert parsed.scheme in {'http', 'https'}
-              assert parsed.port == 9394
-              assert re.fullmatch(r'/stream/\d+\.m3u8', parsed.path)
-              bases.add(f'{parsed.scheme}://{parsed.netloc}')
-              matched += 1
+          for path in ('tv/playlist.m3u', 'freewifi'):
+              lines = Path(path).read_text(encoding='utf-8').splitlines()
+              matched = 0
+              for i, line in enumerate(lines):
+                  if not is_haruka_entry(line):
+                      continue
+                  j = i + 1
+                  while j < len(lines) and not lines[j].strip():
+                      j += 1
+                  assert j < len(lines) and not lines[j].lstrip().startswith('#')
+                  url = lines[j].strip()
+                  parsed = urllib.parse.urlparse(url)
+                  assert parsed.scheme in {'http', 'https'}
+                  assert parsed.port == 9394
+                  assert re.fullmatch(r'/stream/\d+\.m3u8', parsed.path)
+                  bases.add(f'{parsed.scheme}://{parsed.netloc}')
+                  matched += 1
 
-          assert matched > 0
+              assert matched > 0, f'No HARUKA entries in {path}'
+              print(f'Validated {matched} HARUKA entries in {path}')
           assert len(bases) == 1, f'HARUKA entries disagree on host: {sorted(bases)}'
-          print(f'Validated {matched} HARUKA entries on {next(iter(bases))}')
+          print(f'Validated common HARUKA host: {next(iter(bases))}')
 
           # The HARUKA refresh must not erase the user's canonical ABC blog
           # fallback or collapse terrestrial source groups in root FreeWiFi.

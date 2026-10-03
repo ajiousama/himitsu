@@ -6,6 +6,7 @@ import urllib.parse
 import urllib.request
 
 FREEWIFI = Path("tv/playlist.m3u")
+PUBLISHED = Path("freewifi")
 API_URL = "http://app.harukashop.site:3008/api/news/get-link"
 AU = os.environ.get("HARUKA_AU", "05zs80LO1csztPgNDkFeJcwkiSqNw9J6")
 HEADERS = {
@@ -15,6 +16,12 @@ HEADERS = {
 }
 PAYLOAD = {"os": 1, "appId": 7, "deviceId": 602539, "newsId": 12}
 STREAM_PATH_RE = re.compile(r"/stream/\d+\.m3u8")
+HARUKA_NAME_RE = re.compile(r"\(haruka(?:\(9394\))?\)\s*$", re.I)
+
+
+def is_haruka_entry(line: str) -> bool:
+    """Match terrestrial and BS/CS display-name variants, irrespective of group."""
+    return line.startswith("#EXTINF:") and bool(HARUKA_NAME_RE.search(line))
 
 
 def fetch_current_base() -> str:
@@ -53,7 +60,7 @@ def refresh_playlist(text: str, base_url: str) -> tuple[str, int, int]:
     changed = 0
 
     for i, line in enumerate(lines):
-        if not line.startswith("#EXTINF:") or "(haruka(9394))" not in line:
+        if not is_haruka_entry(line):
             continue
 
         j = i + 1
@@ -64,7 +71,11 @@ def refresh_playlist(text: str, base_url: str) -> tuple[str, int, int]:
 
         old_url = lines[j].strip()
         parsed = urllib.parse.urlparse(old_url)
-        if parsed.scheme not in {"http", "https"} or not STREAM_PATH_RE.fullmatch(parsed.path):
+        if (
+            parsed.scheme not in {"http", "https"}
+            or parsed.port != 9394
+            or not STREAM_PATH_RE.fullmatch(parsed.path)
+        ):
             raise RuntimeError(f"Unexpected HARUKA playlist URL: {old_url!r}")
 
         matched += 1
@@ -79,22 +90,28 @@ def refresh_playlist(text: str, base_url: str) -> tuple[str, int, int]:
             changed += 1
 
     if matched == 0:
-        raise RuntimeError("No (haruka(9394)) entries found in freewifi")
+        raise RuntimeError("No HARUKA entries found in playlist")
 
     trailing_newline = "\n" if text.endswith(("\n", "\r")) else ""
     return "\n".join(lines) + trailing_newline, matched, changed
 
 
 def main() -> None:
-    original = FREEWIFI.read_text(encoding="utf-8-sig", errors="strict")
     base_url = fetch_current_base()
-    updated, matched, changed = refresh_playlist(original, base_url)
-
     print(f"HARUKA current base: {base_url}")
-    print(f"HARUKA entries checked: {matched}; changed: {changed}")
 
-    if changed:
-        FREEWIFI.write_text(updated, encoding="utf-8")
+    # Validate both outputs before writing either. The published aggregate can
+    # contain HARUKA rows outside TV's section (for example Pigoo in Rch).
+    updates = []
+    for path in (FREEWIFI, PUBLISHED):
+        original = path.read_text(encoding="utf-8-sig", errors="strict")
+        updated, matched, changed = refresh_playlist(original, base_url)
+        print(f"{path}: HARUKA entries checked: {matched}; changed: {changed}")
+        updates.append((path, updated, changed))
+
+    for path, updated, changed in updates:
+        if changed:
+            path.write_text(updated, encoding="utf-8")
 
 
 if __name__ == "__main__":
