@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-04",
-  "generated_at": "2026-10-04T08:15:18.137984+09:00",
+  "generated_at": "2026-10-04T08:17:18.137316+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261004.json",
   "schedule_checked_at": "2026-10-04T08:15:18.137984+09:00",
@@ -20,7 +20,7 @@
   "card_count": 13,
   "held_count": 13,
   "visible_count": 2,
-  "active_count": 1,
+  "active_count": 2,
   "ended_kept": [],
   "seed_required": false,
   "seed_required_venues": [],
@@ -29,7 +29,7 @@
     "morning": {
       "held": 2,
       "acquired": 2,
-      "active": 1,
+      "active": 2,
       "ended": 0,
       "seed_required": 0,
       "cancelled": 0
@@ -52,10 +52,15 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 7,
+    "requested": 8,
     "fetched": 2,
     "failures": [],
     "deferred": [
+      {
+        "jcd": "02",
+        "name": "戸田",
+        "start": "2026-10-04T10:09:00+09:00"
+      },
       {
         "jcd": "05",
         "name": "多摩川",
@@ -112,13 +117,13 @@
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/92f8f65ab01f4df5a8588fdff731f586/aa6a79e6ed1243248893e4f6902dfaf3/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MTI0NDgwMCwic3RhcnQiOjE3OTEwNjg0MDAsImlvcyI6MTgsImNwIjoiMjEzMjY0MDAwXzIxMzMwNzE5OSIsInBwdyI6IjQwayJ9.RIXN-XsmWZsBOiE3a1XYaaWEldMj4chUyZf30yQOX-w",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-10-04T08:00:54.460277+09:00",
-      "checked_at": "2026-10-04T08:11:36.423133+09:00",
+      "checked_at": "2026-10-04T08:17:45.369680+09:00",
       "first_verified_at": "2026-10-04T08:00:54.460277+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
         "sequence": 8365361,
-        "last_segment": "/92f8f65ab01f4df5a8588fdff731f586/aa6a79e6ed1243248893e4f6902dfaf3/manifest_4_8365476.ts",
+        "last_segment": "/92f8f65ab01f4df5a8588fdff731f586/aa6a79e6ed1243248893e4f6902dfaf3/manifest_4_8365538.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -214,7 +219,8 @@
           "name": "記者選抜戦"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "provider_stream_start": "2026-10-04T10:09:00+09:00",
+      "source": "公式BR配信開始待ち 10:09"
     },
     "boat.tamagawa": {
       "jcd": "05",
@@ -947,7 +953,7 @@
       "held": true,
       "visible": true,
       "ended": false,
-      "active": false,
+      "active": true,
       "cancelled": false,
       "mode": "morning",
       "mode_label": "モーニング",
@@ -958,7 +964,7 @@
         "race": 1,
         "start": "08:47"
       },
-      "stream_window": "scheduled",
+      "stream_window": "live_or_prestart",
       "intermission": null,
       "guidance_switch_at": "2026-10-04T15:15:00+09:00",
       "seed_required": false,
