@@ -2,10 +2,10 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-03",
-  "generated_at": "2026-10-03T10:38:54.797954+09:00",
+  "generated_at": "2026-10-03T10:39:54.898798+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261003.json",
-  "schedule_checked_at": "2026-10-03T10:24:54.749139+09:00",
+  "schedule_checked_at": "2026-10-03T10:39:54.898798+09:00",
   "schedule_warnings": [
     "official_cards: TimeoutError"
   ],
@@ -19,7 +19,7 @@
   "alert_lead_minutes": 30,
   "card_count": 13,
   "held_count": 13,
-  "visible_count": 9,
+  "visible_count": 10,
   "active_count": 9,
   "ended_kept": [],
   "seed_required": false,
@@ -36,7 +36,7 @@
     },
     "day": {
       "held": 8,
-      "acquired": 7,
+      "acquired": 8,
       "active": 7,
       "ended": 0,
       "seed_required": 0,
@@ -53,15 +53,9 @@
   },
   "cloud_acquisition": {
     "requested": 10,
-    "fetched": 9,
+    "fetched": 10,
     "failures": [],
-    "deferred": [
-      {
-        "jcd": "06",
-        "name": "浜名湖",
-        "start": "2026-10-03T10:40:00+09:00"
-      }
-    ]
+    "deferred": []
   },
   "epg_programmes_written": {
     "public_sports_epg_local.xml": 182,
@@ -99,6 +93,22 @@
         "ok": true,
         "sequence": 8347323,
         "last_segment": "/758c56be68794c09882e1bde1b4d2464/bbd2a575c71643b297eb8ae3657596be/manifest_1_8347696.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
+    },
+    "boat.hamanako": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/cd315f90975d45528d2a98d9fea929e9/1ffa7947e1204123af9e00ea57004c7f/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MTE2NTYwMCwic3RhcnQiOjE3OTA5OTE2MDAsImlvcyI6MTgsImNwIjoiMjEzMTg3MjAwXzIxMzIzMDM5OSIsInBwdyI6IjQwayJ9.kgublGAKI1lUZf6gr-T4ZbgvgZYWPoOMROheQeFIWpM",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-10-03T10:40:30.414868+09:00",
+      "checked_at": "2026-10-03T10:40:30.414868+09:00",
+      "first_verified_at": "2026-10-03T10:40:30.414868+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 8372758,
+        "last_segment": "/cd315f90975d45528d2a98d9fea929e9/1ffa7947e1204123af9e00ea57004c7f/manifest_1_8372763.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -406,7 +416,7 @@
       "jcd": "06",
       "name": "浜名湖",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
       "active": false,
       "cancelled": false,
@@ -424,9 +434,9 @@
       "guidance_switch_at": "2026-10-03T17:33:00+09:00",
       "seed_required": false,
       "reverify_due": false,
-      "playback_verified": false,
-      "first_verified_at": null,
-      "ready_before_first_race": false,
+      "playback_verified": true,
+      "first_verified_at": "2026-10-03T10:40:30.414868+09:00",
+      "ready_before_first_race": true,
       "acquire_from": "2026-10-03T08:50:00+09:00",
       "races": [
         {
@@ -490,8 +500,9 @@
           "name": "準優勝戦"
         }
       ],
-      "provider_stream_start": "2026-10-03T10:40:00+09:00",
-      "source": "公式BR配信開始待ち 10:40"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/cd315f90975d45528d2a98d9fea929e9/1ffa7947e1204123af9e00ea57004c7f/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MTE2NTYwMCwic3RhcnQiOjE3OTA5OTE2MDAsImlvcyI6MTgsImNwIjoiMjEzMTg3MjAwXzIxMzIzMDM5OSIsInBwdyI6IjQwayJ9.kgublGAKI1lUZf6gr-T4ZbgvgZYWPoOMROheQeFIWpM",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     },
     "boat.gamagori": {
       "jcd": "07",
@@ -1056,7 +1067,7 @@
       "alert_from": "2026-10-03T08:17:00+09:00",
       "next_race": {
         "race": 6,
-        "start": "11:04"
+        "start": "11:06"
       },
       "stream_window": "live_or_prestart",
       "intermission": null,
@@ -1095,7 +1106,7 @@
         },
         {
           "race": 6,
-          "start": "11:04",
+          "start": "11:06",
           "name": "予選"
         },
         {
