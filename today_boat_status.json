@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-03",
-  "generated_at": "2026-10-03T09:13:43.145521+09:00",
+  "generated_at": "2026-10-03T09:14:43.138246+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261003.json",
   "schedule_checked_at": "2026-10-03T09:12:43.250763+09:00",
@@ -19,7 +19,7 @@
   "alert_lead_minutes": 30,
   "card_count": 13,
   "held_count": 13,
-  "visible_count": 2,
+  "visible_count": 3,
   "active_count": 2,
   "ended_kept": [],
   "seed_required": false,
@@ -36,7 +36,7 @@
     },
     "day": {
       "held": 8,
-      "acquired": 0,
+      "acquired": 1,
       "active": 0,
       "ended": 0,
       "seed_required": 0,
@@ -53,7 +53,7 @@
   },
   "cloud_acquisition": {
     "requested": 10,
-    "fetched": 2,
+    "fetched": 3,
     "failures": [],
     "deferred": [
       {
@@ -87,11 +87,6 @@
         "start": "2026-10-03T10:02:00+09:00"
       },
       {
-        "jcd": "16",
-        "name": "児島",
-        "start": "2026-10-03T09:15:00+09:00"
-      },
-      {
         "jcd": "22",
         "name": "福岡",
         "start": "2026-10-03T10:25:00+09:00"
@@ -107,6 +102,22 @@
     "kind": "healthy"
   },
   "streams": {
+    "boat.kojima": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/77b7baf00ac441daa5bebd83afe962b8/04cdd9e807bc4e399dbb80c02d8a9e81/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MTE2MjAwMCwic3RhcnQiOjE3OTA5ODY1MDAsImlvcyI6MTgsImNwIjoiMjEzMTgyMTAwXzIxMzIyNTI5OSIsInBwdyI6IjQwayJ9.jXA7PjszdbGtj3huJHclNO3J4D_Ti5kTKGursjCEVNk",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-10-03T09:15:10.426952+09:00",
+      "checked_at": "2026-10-03T09:15:10.426952+09:00",
+      "first_verified_at": "2026-10-03T09:15:10.426952+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 8350277,
+        "last_segment": "/77b7baf00ac441daa5bebd83afe962b8/04cdd9e807bc4e399dbb80c02d8a9e81/manifest_4_8350278.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
+    },
     "boat.tokuyama": {
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/16ab5a596c11455cb2e40a0f6c345619/09f1ab73c70d409da376514cca32454a/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MTE1ODQwMCwic3RhcnQiOjE3OTA5ODI3MjAsImlvcyI6MTgsImNwIjoiMjEzMTc4MzIwXzIxMzIyMTUxOSIsInBwdyI6IjQwayJ9.PWvRVRvQ9v-fPThpYn4ncFL3jFmTIvMuXry826tjykQ",
       "source": "automatic acquisition + audio/video decode",
@@ -871,7 +882,7 @@
       "jcd": "16",
       "name": "児島",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
       "active": false,
       "cancelled": false,
@@ -889,9 +900,9 @@
       "guidance_switch_at": "2026-10-03T17:35:00+09:00",
       "seed_required": false,
       "reverify_due": false,
-      "playback_verified": false,
-      "first_verified_at": null,
-      "ready_before_first_race": false,
+      "playback_verified": true,
+      "first_verified_at": "2026-10-03T09:15:10.426952+09:00",
+      "ready_before_first_race": true,
       "acquire_from": "2026-10-03T08:13:00+09:00",
       "races": [
         {
@@ -955,8 +966,9 @@
           "name": "優勝戦"
         }
       ],
-      "provider_stream_start": "2026-10-03T09:15:00+09:00",
-      "source": "公式BR配信開始待ち 09:15"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/77b7baf00ac441daa5bebd83afe962b8/04cdd9e807bc4e399dbb80c02d8a9e81/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MTE2MjAwMCwic3RhcnQiOjE3OTA5ODY1MDAsImlvcyI6MTgsImNwIjoiMjEzMTgyMTAwXzIxMzIyNTI5OSIsInBwdyI6IjQwayJ9.jXA7PjszdbGtj3huJHclNO3J4D_Ti5kTKGursjCEVNk",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     },
     "boat.tokuyama": {
       "jcd": "18",
