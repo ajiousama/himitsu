@@ -34,6 +34,7 @@ RANGE_EPISODE_SECONDS: dict[tuple[int, int], int] = {
     (197, 206): 3871,
     (207, 216): FIXED_TEST_EPISODE_SECONDS,
     (217, 226): FIXED_TEST_EPISODE_SECONDS,
+    (267, 276): 3480,
 }
 
 # Numbered episodes that are actually long-form specials.
@@ -284,6 +285,15 @@ KNOWN_SPECIALS: dict[tuple[int, int], list[dict]] = {
             "after_episode": 216,
             "duration_seconds": 6241,
             "expected_broadcast_seconds": 6241,
+        },
+    ],
+    (267, 276): [
+        {
+            "key": "2019-15th-thanks-makuhari",
+            "title": "ゲームセンターCX 15th感謝祭 有野の生挑戦 リベンジ七番勝負",
+            "after_episode": 272,
+            "duration_seconds": None,
+            "expected_broadcast_seconds": 10800,
         },
     ],
     (217, 226): [
