@@ -46,9 +46,13 @@ jobs:
           assert '## Rch' in s
           assert 'Pigoo (haruka(9394))' in s
           abc_blog = 'https://haru.charandom.blog/stream/jp/abc/stream-output.m3u8?mode=hls'
+          mx2_blog = 'https://haru.charandom.blog/stream/jp/tokyo_mx2/stream-output.m3u8?mode=hls'
           assert s.count(abc_blog) == 1
-          assert s.count('haru.charandom.blog') == 1
+          assert s.count(mx2_blog) == 1
+          assert s.count('haru.charandom.blog') == 2
           assert 'group-title="地上波 haru blog",ABCテレビ (haru blog)' in s
+          assert 'tvg-id="TOKYO・MX2_jp"' in s
+          assert 'group-title="地上波 haru blog",TOKYO MX2 (haru blog)' in s
           assert 'group-title="地上波 haruka"' in s
           assert 'group-title="地上波 primehome"' in s
           for cid in ('rch_30','rch_35','rch_37','rch_46','rch_86','rch_113','rch_122','rch_123','rch_124','rch_125','rch_41'):
