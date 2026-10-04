@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-04",
-  "generated_at": "2026-10-04T10:21:18.153419+09:00",
+  "generated_at": "2026-10-04T10:25:18.154239+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261004.json",
   "schedule_checked_at": "2026-10-04T10:11:18.105854+09:00",
@@ -19,7 +19,7 @@
   "alert_lead_minutes": 30,
   "card_count": 13,
   "held_count": 13,
-  "visible_count": 8,
+  "visible_count": 9,
   "active_count": 8,
   "ended_kept": [],
   "seed_required": false,
@@ -36,7 +36,7 @@
     },
     "day": {
       "held": 8,
-      "acquired": 6,
+      "acquired": 7,
       "active": 6,
       "ended": 0,
       "seed_required": 0,
@@ -53,18 +53,13 @@
   },
   "cloud_acquisition": {
     "requested": 10,
-    "fetched": 8,
+    "fetched": 9,
     "failures": [],
     "deferred": [
       {
         "jcd": "06",
         "name": "浜名湖",
         "start": "2026-10-04T10:40:00+09:00"
-      },
-      {
-        "jcd": "22",
-        "name": "福岡",
-        "start": "2026-10-04T10:25:00+09:00"
       }
     ]
   },
@@ -129,13 +124,13 @@
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/85cb2e1ae2744049a4ed33f99d80bdac/0153439c3b2c42a68ac494d83dca0ce3/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MTI1MjAwMCwic3RhcnQiOjE3OTEwNzU2MDAsImlvcyI6MTgsImNwIjoiMjEzMjcxMjAwXzIxMzMxNDM5OSIsInBwdyI6IjQwayJ9.-GFnb3tJ7P1_Dmdqy9QJKD0gfuRtFZEBslkmDFvM9JY",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-10-04T10:00:45.462216+09:00",
-      "checked_at": "2026-10-04T10:17:45.329685+09:00",
+      "checked_at": "2026-10-04T10:25:45.600246+09:00",
       "first_verified_at": "2026-10-04T10:00:45.462216+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
         "sequence": 8358725,
-        "last_segment": "/85cb2e1ae2744049a4ed33f99d80bdac/0153439c3b2c42a68ac494d83dca0ce3/manifest_4_8358902.ts",
+        "last_segment": "/85cb2e1ae2744049a4ed33f99d80bdac/0153439c3b2c42a68ac494d83dca0ce3/manifest_4_8358982.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -184,6 +179,22 @@
         "ok": true,
         "sequence": 8363233,
         "last_segment": "/23c8d1da72944dee8b52c1fe3ceb075a/2aaa8bcd952342eebe0b69df6bb4d55a/manifest_1_8364530.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
+    },
+    "boat.fukuoka": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/7ba56ce380594f3d810c8b49f77abe00/4830a55441ec4a1fa23b015afdf1a7ff/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MTI1MjAwMCwic3RhcnQiOjE3OTEwNzcxMDAsImlvcyI6MTgsImNwIjoiMjEzMjcyNzAwXzIxMzMxNTg5OSIsInBwdyI6IjQwayJ9.mWiIqTfSB2NOL_MCsZKTaSoy-pu_X5ePpb6cNxOLw8I",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-10-04T10:25:45.600901+09:00",
+      "checked_at": "2026-10-04T10:25:45.600901+09:00",
+      "first_verified_at": "2026-10-04T10:25:45.600901+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 8385539,
+        "last_segment": "/7ba56ce380594f3d810c8b49f77abe00/4830a55441ec4a1fa23b015afdf1a7ff/manifest_1_8385546.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -1216,7 +1227,7 @@
       "jcd": "22",
       "name": "福岡",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
       "active": false,
       "cancelled": false,
@@ -1234,9 +1245,9 @@
       "guidance_switch_at": "2026-10-04T17:25:00+09:00",
       "seed_required": false,
       "reverify_due": false,
-      "playback_verified": false,
-      "first_verified_at": null,
-      "ready_before_first_race": false,
+      "playback_verified": true,
+      "first_verified_at": "2026-10-04T10:25:45.600901+09:00",
+      "ready_before_first_race": true,
       "acquire_from": "2026-10-04T08:30:00+09:00",
       "races": [
         {
@@ -1300,8 +1311,9 @@
           "name": "福岡選抜"
         }
       ],
-      "provider_stream_start": "2026-10-04T10:25:00+09:00",
-      "source": "公式BR配信開始待ち 10:25"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/7ba56ce380594f3d810c8b49f77abe00/4830a55441ec4a1fa23b015afdf1a7ff/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MTI1MjAwMCwic3RhcnQiOjE3OTEwNzcxMDAsImlvcyI6MTgsImNwIjoiMjEzMjcyNzAwXzIxMzMxNTg5OSIsInBwdyI6IjQwayJ9.mWiIqTfSB2NOL_MCsZKTaSoy-pu_X5ePpb6cNxOLw8I",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     },
     "boat.karatsu": {
       "jcd": "23",
@@ -1317,14 +1329,14 @@
       "last_race": "14:19",
       "alert_from": "2026-10-04T08:05:00+09:00",
       "next_race": {
-        "race": 5,
-        "start": "10:25"
+        "race": 6,
+        "start": "10:54"
       },
       "stream_window": "live_or_prestart",
       "intermission": null,
       "guidance_switch_at": "2026-10-04T15:04:00+09:00",
       "seed_required": false,
-      "reverify_due": true,
+      "reverify_due": false,
       "playback_verified": true,
       "first_verified_at": "2026-10-04T08:00:54.460277+09:00",
       "ready_before_first_race": true,
