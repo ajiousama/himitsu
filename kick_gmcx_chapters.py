@@ -291,7 +291,7 @@ KNOWN_SPECIALS: dict[tuple[int, int], list[dict]] = {
         {
             "key": "2019-15th-thanks-makuhari",
             "title": "ゲームセンターCX 15th感謝祭 有野の生挑戦 リベンジ七番勝負",
-            "after_episode": 272,
+            "after_episode": 271,
             "duration_seconds": None,
             "expected_broadcast_seconds": 10800,
         },
@@ -3958,12 +3958,19 @@ def _mark_provisional_titles(
     end_ep: int,
 ) -> list[dict]:
     confirmed = (start_ep, end_ep) in FILELIST_CONFIRMED_RANGES
+    reference_confirmed = (start_ep, end_ep) == (267, 276)
     out = []
     for chapter in chapters:
         row = dict(chapter)
         if confirmed:
             row["title_status"] = "confirmed-filelist"
             row["title_source"] = "source-player-filelist"
+        elif reference_confirmed:
+            # #267-276 programme titles and the 15th-anniversary special are
+            # independently verified from broadcast/reference listings.  This
+            # confirms labels only; chapter boundaries may still be provisional.
+            row["title_status"] = "confirmed-reference"
+            row["title_source"] = "broadcast-reference"
         else:
             title = str(row.get("title") or "")
             if title and not title.endswith("（仮）"):
