@@ -2,6 +2,7 @@ name: Normalize FreeWiFi per-channel source order
 
 on:
   push:
+    branches: [main]
     paths:
       - group_freewifi_sources.py
       - .github/workflows/group_freewifi_source_regions.yml
