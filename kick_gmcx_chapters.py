@@ -287,6 +287,15 @@ KNOWN_SPECIALS: dict[tuple[int, int], list[dict]] = {
             "expected_broadcast_seconds": 6241,
         },
     ],
+    (277, 286): [
+        {
+            "key": "2019-in-russia",
+            "title": "ゲームセンターCX in Russia ～北の大地でシンフォニー～",
+            "after_episode": 282,
+            "duration_seconds": None,
+            "expected_broadcast_seconds": 7200,
+        },
+    ],
     (267, 276): [
         {
             "key": "2019-15th-thanks-makuhari",
@@ -3958,7 +3967,7 @@ def _mark_provisional_titles(
     end_ep: int,
 ) -> list[dict]:
     confirmed = (start_ep, end_ep) in FILELIST_CONFIRMED_RANGES
-    reference_confirmed = (start_ep, end_ep) == (267, 276)
+    reference_confirmed = (start_ep, end_ep) in {(267, 276), (277, 286)}
     out = []
     for chapter in chapters:
         row = dict(chapter)
