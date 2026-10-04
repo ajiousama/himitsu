@@ -22,6 +22,7 @@ VIDEOINPUT_PROBE_URLS = [
 ]
 
 VIDEOINPUT_KNOWN_CHANNELS = {
+    8173: "博斯運動1",
     35802: "NHK WORLD",
     1092: "BSフジ",
     8210: "NHK BS",
