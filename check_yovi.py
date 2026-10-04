@@ -16,6 +16,11 @@ CONNECT_TIMEOUT = 4
 READ_TIMEOUT = 8
 MAX_BYTES = 65536
 
+VIDEOINPUT_PROBE_URLS = [
+    f"http://125.227.210.55:{port}/VideoInput/play.ts"
+    for port in range(8200, 8231)
+]
+
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/154 Safari/537.36",
     "Accept": "application/vnd.apple.mpegurl,application/x-mpegURL,text/plain,*/*",
@@ -101,7 +106,8 @@ def main():
         original = f.read()
     lines = original.splitlines()
     entries = parse_entries(lines)
-    urls = list(dict.fromkeys(e["url"] for e in entries))
+    playlist_urls = list(dict.fromkeys(e["url"] for e in entries))
+    urls = list(dict.fromkeys(playlist_urls + VIDEOINPUT_PROBE_URLS))
 
     results = {}
     with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_WORKERS) as ex:
@@ -138,7 +144,10 @@ def main():
 
     host_stats = defaultdict(lambda: {"ok": 0, "fail": 0})
     reasons = Counter()
-    for u, r in results.items():
+    playlist_results = {u: results[u] for u in playlist_urls}
+    probe_only_results = {u: results[u] for u in VIDEOINPUT_PROBE_URLS}
+
+    for u, r in playlist_results.items():
         h = host_of(u)
         if r.get("ok"):
             host_stats[h]["ok"] += 1
@@ -149,13 +158,14 @@ def main():
     report = {
         "checked_at_utc": dt.datetime.now(dt.timezone.utc).isoformat(),
         "entries": len(entries),
-        "unique_urls": len(urls),
+        "unique_urls": len(playlist_urls),
         "green_entries": green_entries,
-        "green_unique_urls": sum(1 for r in results.values() if r.get("ok")),
-        "failed_unique_urls": sum(1 for r in results.values() if not r.get("ok")),
+        "green_unique_urls": sum(1 for r in playlist_results.values() if r.get("ok")),
+        "failed_unique_urls": sum(1 for r in playlist_results.values() if not r.get("ok")),
         "failure_reasons": dict(reasons.most_common()),
         "host_stats": dict(sorted(host_stats.items())),
-        "results": results,
+        "results": playlist_results,
+        "videoinput_probe_results": probe_only_results,
     }
     with open(RESULT, "w", encoding="utf-8") as f:
         json.dump(report, f, ensure_ascii=False, indent=2)
@@ -168,6 +178,11 @@ def main():
         "failed_unique_urls": report["failed_unique_urls"],
         "failure_reasons": report["failure_reasons"],
         "host_stats": report["host_stats"],
+        "videoinput_probe_200_ports": [
+            int(urlsplit(u).port)
+            for u, r in report["videoinput_probe_results"].items()
+            if r.get("status") == 200
+        ],
     }, ensure_ascii=False, indent=2))
 
 if __name__ == "__main__":
