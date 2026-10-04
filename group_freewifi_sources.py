@@ -73,11 +73,13 @@ def source_rank(inf: str) -> int:
         return 2
     if "(primehome)" in lower:
         return 3
-    if "(haru blog)" in lower or "(blog)" in lower:
+    if "(jpnettv)" in lower:
         return 4
-    if tvg_id(inf).startswith("tver_") or ",tver " in lower:
+    if "(haru blog)" in lower or "(blog)" in lower:
         return 5
-    return 6
+    if tvg_id(inf).startswith("tver_") or ",tver " in lower:
+        return 6
+    return 7
 
 
 def rewrite_group_title(inf: str, group: str) -> str:
@@ -96,6 +98,8 @@ def terrestrial_group_title(inf: str, url: str) -> str:
         return "地上波 5002直"
     if "(primehome)" in lower:
         return "地上波 primehome"
+    if "(jpnettv)" in lower:
+        return "地上波 jpnettv"
     if is_haru_blog(inf, url):
         return "地上波 haru blog"
     if tvg_id(inf).startswith("tver_") or ",tver " in lower:
@@ -160,7 +164,7 @@ def replace_section(text: str, start: str, end: str | None, prefix: str = "", te
 
 def normalize(text: str) -> str:
     # Terrestrial channels are channel-first, with source groups exposed in the
-    # player: haruka -> primehomeHD -> 5002 -> primehome -> haru blog -> TVer.
+    # player: haruka -> primehomeHD -> 5002 -> primehome -> jpnettv -> haru blog -> TVer.
     text = replace_section(text, "## 地上波\n", "## BS", terrestrial=True)
     text = replace_section(text, "## BS\n", "# === GREEN_CHANNEL_PERSISTENT_START ===")
 
@@ -235,7 +239,7 @@ def main() -> None:
 
     if updated != original:
         FREEWIFI.write_text(updated, encoding="utf-8")
-        print("Normalized TV order: haruka -> primehomeHD -> 5002 -> primehome -> haru blog -> TVer")
+        print("Normalized TV order: haruka -> primehomeHD -> 5002 -> primehome -> jpnettv -> haru blog -> TVer")
     else:
         print("TV playlist per-channel source order already normalized")
 
