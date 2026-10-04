@@ -21,6 +21,11 @@ VIDEOINPUT_PROBE_URLS = [
     for port in range(8200, 8231)
 ]
 
+VIDEOINPUT_KNOWN_CHANNELS = {
+    8210: "NHK BS",
+    8215: "NHK BS4K",
+}
+
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/154 Safari/537.36",
     "Accept": "application/vnd.apple.mpegurl,application/x-mpegURL,text/plain,*/*",
@@ -166,6 +171,9 @@ def main():
         "host_stats": dict(sorted(host_stats.items())),
         "results": playlist_results,
         "videoinput_probe_results": probe_only_results,
+        "videoinput_known_channels": {
+            str(port): name for port, name in VIDEOINPUT_KNOWN_CHANNELS.items()
+        },
     }
     with open(RESULT, "w", encoding="utf-8") as f:
         json.dump(report, f, ensure_ascii=False, indent=2)
@@ -180,6 +188,14 @@ def main():
         "host_stats": report["host_stats"],
         "videoinput_probe_200_ports": [
             int(urlsplit(u).port)
+            for u, r in report["videoinput_probe_results"].items()
+            if r.get("status") == 200
+        ],
+        "videoinput_probe_200_channels": [
+            {
+                "port": int(urlsplit(u).port),
+                "channel": VIDEOINPUT_KNOWN_CHANNELS.get(int(urlsplit(u).port)),
+            }
             for u, r in report["videoinput_probe_results"].items()
             if r.get("status") == 200
         ],
