@@ -4059,6 +4059,15 @@ def main() -> int:
                 "reason": "source-filelist-exact",
                 "boundary_version": TITLECARD_BOUNDARY_VERSION,
             }
+        elif status == "ready" and chapters and (start_ep, end_ep) == (277, 286):
+            # Long (~12h) mixed bundle. Publish the broadcast-order seed first;
+            # user playback verification is faster and more reliable than a
+            # full network ffmpeg image scan over this entire archive.
+            titlecard_refinement = {
+                "status": "skipped",
+                "reason": "manual-playback-pass-first",
+                "boundary_version": TITLECARD_BOUNDARY_VERSION,
+            }
         elif (
             status == "ready"
             and chapters
