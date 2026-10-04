@@ -17,6 +17,11 @@ TVER_PARENT = {
 ABC_ID = "ABCテレビ_jp"
 ABC_BLOG_URL = "https://haru.charandom.blog/stream/jp/abc/stream-output.m3u8?mode=hls"
 ABC_BLOG_NAME = "ABCテレビ (haru blog)"
+MX1_ID = "TOKYO・MX_jp"
+MX2_ID = "TOKYO・MX2_jp"
+MX2_BLOG_URL = "https://haru.charandom.blog/stream/jp/tokyo_mx2/stream-output.m3u8?mode=hls"
+MX2_BLOG_NAME = "TOKYO MX2 (haru blog)"
+MX2_LOGO = "https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/contrast/TOKYO_MX2_jp_b68495fb.png"
 
 
 def parse_entries(body: str):
@@ -99,30 +104,35 @@ def terrestrial_group_title(inf: str, url: str) -> str:
 
 
 def normalize_terrestrial_entries(entries):
-    # haru blog is intentionally retained for ABC only.  Remove every legacy
-    # blog row first, then recreate exactly one canonical ABC row so later
-    # automatic syncs cannot silently drop it or resurrect other Kansai rows.
-    template = next((inf for inf, _url, _seq in entries if tvg_id(inf) == ABC_ID), None)
-    if template is None:
+    # Keep exactly two haru blog terrestrial fallbacks: ABC and TOKYO MX2.
+    # Recreate them on every normalization so automatic syncs cannot erase
+    # them or bring back unrelated blog sources.
+    abc_template = next((inf for inf, _url, _seq in entries if tvg_id(inf) == ABC_ID), None)
+    mx1_template = next((inf for inf, _url, _seq in entries if tvg_id(inf) == MX1_ID), None)
+    if abc_template is None:
         raise RuntimeError("ABC source missing from terrestrial playlist")
+    if mx1_template is None:
+        raise RuntimeError("TOKYO MX1 source missing from terrestrial playlist")
 
-    cleaned = [
-        (inf, url, seq)
-        for inf, url, seq in entries
-        if not is_haru_blog(inf, url)
-    ]
+    cleaned = [(inf, url, seq) for inf, url, seq in entries if not is_haru_blog(inf, url)]
 
     next_seq = max((seq for _inf, _url, seq in cleaned), default=-1) + 1
-    blog_inf = template.rsplit(",", 1)[0] + "," + ABC_BLOG_NAME
-    cleaned.append((blog_inf, ABC_BLOG_URL, next_seq))
+    abc_inf = abc_template.rsplit(",", 1)[0] + "," + ABC_BLOG_NAME
+    cleaned.append((abc_inf, ABC_BLOG_URL, next_seq))
+    next_seq += 1
+
+    mx2_inf = mx1_template.rsplit(",", 1)[0]
+    mx2_inf = re.sub(r'tvg-id="[^"]+"', f'tvg-id="{MX2_ID}"', mx2_inf, count=1)
+    mx2_inf = re.sub(r'tvg-logo="[^"]+"', f'tvg-logo="{MX2_LOGO}"', mx2_inf, count=1)
+    mx2_inf = mx2_inf + "," + MX2_BLOG_NAME
+    last_mx1 = max(i for i, (inf, _url, _seq) in enumerate(cleaned) if tvg_id(inf) == MX1_ID)
+    cleaned.insert(last_mx1 + 1, (mx2_inf, MX2_BLOG_URL, next_seq))
 
     relabelled = []
     for inf, url, seq in cleaned:
         group = terrestrial_group_title(inf, url)
         relabelled.append((rewrite_group_title(inf, group), url, seq))
     return relabelled
-
-
 def group_by_channel(entries):
     groups = OrderedDict()
     for inf, url, seq in entries:
@@ -194,20 +204,25 @@ def validate_grouping(text: str, start: str, end: str | None) -> None:
             raise RuntimeError(f"source order invalid for {current}: {current_ranks}")
 
 
-def validate_abc_blog(text: str) -> None:
+def validate_haru_blogs(text: str) -> None:
     a = text.index("## 地上波\n") + len("## 地上波\n")
     b = text.index("## BS", a)
     entries = parse_entries(text[a:b])
     blogs = [(inf, url) for inf, url, _seq in entries if is_haru_blog(inf, url)]
-    if len(blogs) != 1:
-        raise RuntimeError(f"expected exactly one haru blog source, found {len(blogs)}")
-    inf, url = blogs[0]
-    if tvg_id(inf) != ABC_ID or url != ABC_BLOG_URL or ABC_BLOG_NAME not in inf:
-        raise RuntimeError(f"unexpected haru blog source: {inf} {url}")
-    if 'group-title="地上波 haru blog"' not in inf:
-        raise RuntimeError("ABC haru blog source group label missing")
+    if len(blogs) != 2:
+        raise RuntimeError(f"expected exactly two haru blog sources, found {len(blogs)}")
 
+    expected = {
+        (ABC_ID, ABC_BLOG_URL, ABC_BLOG_NAME),
+        (MX2_ID, MX2_BLOG_URL, MX2_BLOG_NAME),
+    }
+    actual = {(tvg_id(inf), url, inf.rsplit(",", 1)[-1]) for inf, url in blogs}
+    if actual != expected:
+        raise RuntimeError(f"unexpected haru blog sources: {actual}")
 
+    for inf, _url in blogs:
+        if 'group-title="地上波 haru blog"' not in inf:
+            raise RuntimeError("haru blog source group label missing")
 def main() -> None:
     original = FREEWIFI.read_text(encoding="utf-8-sig", errors="strict")
     updated = normalize(original)
@@ -216,7 +231,7 @@ def main() -> None:
     validate_grouping(updated, "## BS\n", "# === GREEN_CHANNEL_PERSISTENT_START ===")
     validate_grouping(updated, "# === GREEN_CHANNEL_PERSISTENT_START ===\n", "# === GREEN_CHANNEL_PERSISTENT_END ===")
     validate_grouping(updated, "## CS\n", None)
-    validate_abc_blog(updated)
+    validate_haru_blogs(updated)
 
     if updated != original:
         FREEWIFI.write_text(updated, encoding="utf-8")
