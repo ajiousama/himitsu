@@ -4060,14 +4060,27 @@ def main() -> int:
                 "boundary_version": TITLECARD_BOUNDARY_VERSION,
             }
         elif status == "ready" and chapters and (start_ep, end_ep) == (277, 286):
-            # Long (~12h) mixed bundle. Publish the broadcast-order seed first;
-            # user playback verification is faster and more reliable than a
-            # full network ffmpeg image scan over this entire archive.
-            titlecard_refinement = {
-                "status": "skipped",
-                "reason": "manual-playback-pass-first",
-                "boundary_version": TITLECARD_BOUNDARY_VERSION,
-            }
+            # The first full scan matched all ten regular episode heads.
+            # Reuse that verified chapter map on later runs so scheduled refreshes
+            # do not waste another ~12h-bundle scan or regress to coarse cuts.
+            prev_refine = (previous_result or {}).get("titlecard_refinement") or {}
+            if (
+                previous_result
+                and int(previous_result.get("duration_seconds") or 0) == duration
+                and previous_result.get("status") == "ready"
+                and previous_result.get("chapters")
+                and prev_refine.get("status") == "applied"
+                and float(prev_refine.get("coverage") or 0) >= 1.0
+            ):
+                chapters = previous_result["chapters"]
+                titlecard_refinement = dict(prev_refine)
+                titlecard_refinement["cache_reused"] = True
+            else:
+                titlecard_refinement = {
+                    "status": "skipped",
+                    "reason": "manual-playback-pass-first",
+                    "boundary_version": TITLECARD_BOUNDARY_VERSION,
+                }
         elif (
             status == "ready"
             and chapters
