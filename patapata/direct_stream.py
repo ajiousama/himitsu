@@ -26,7 +26,7 @@ SCREEN_H = 1080
 OUT_W = 1920
 OUT_H = 1080
 FPS = int(os.environ.get("PATAPATA_FPS", "24"))
-SOURCE_URL = os.environ.get("PATAPATA_SOURCE_URL", "https://ajiousama.github.io/live-wallpaper/transport/r15-dev/?freewifi=1")
+SOURCE_URL = os.environ.get("PATAPATA_SOURCE_URL", "https://ajiousama.github.io/live-wallpaper/transport/freewifi/")
 HLS_DIR = pathlib.Path("/tmp/patapata-r15-hls")
 HLS_PLAYLIST = HLS_DIR / "index.m3u8"
 STOP = threading.Event()
