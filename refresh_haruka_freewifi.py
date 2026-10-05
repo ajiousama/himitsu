@@ -24,6 +24,20 @@ def is_haruka_entry(line: str) -> bool:
     return line.startswith("#EXTINF:") and bool(HARUKA_NAME_RE.search(line))
 
 
+def is_haruka_stream_url(url: str) -> bool:
+    """Treat every 9394 /stream/<n>.m3u8 URL as a HARUKA stream."""
+    try:
+        parsed = urllib.parse.urlparse(url.strip())
+        port = parsed.port
+    except ValueError:
+        return False
+    return (
+        parsed.scheme in {"http", "https"}
+        and port == 9394
+        and bool(STREAM_PATH_RE.fullmatch(parsed.path))
+    )
+
+
 def fetch_current_base() -> str:
     req = urllib.request.Request(
         API_URL,
@@ -59,25 +73,15 @@ def refresh_playlist(text: str, base_url: str) -> tuple[str, int, int]:
     matched = 0
     changed = 0
 
+    # Do not depend on the display name or group. In this project, port 9394
+    # with /stream/<number>.m3u8 is the HARUKA signature, so refresh every
+    # matching URL wherever it appears (TV, BS/CS, Rch/Pigoo, manual blocks).
     for i, line in enumerate(lines):
-        if not is_haruka_entry(line):
+        old_url = line.strip()
+        if not is_haruka_stream_url(old_url):
             continue
 
-        j = i + 1
-        while j < len(lines) and not lines[j].strip():
-            j += 1
-        if j >= len(lines) or lines[j].lstrip().startswith("#"):
-            raise RuntimeError(f"HARUKA entry has no URL after line {i + 1}")
-
-        old_url = lines[j].strip()
         parsed = urllib.parse.urlparse(old_url)
-        if (
-            parsed.scheme not in {"http", "https"}
-            or parsed.port != 9394
-            or not STREAM_PATH_RE.fullmatch(parsed.path)
-        ):
-            raise RuntimeError(f"Unexpected HARUKA playlist URL: {old_url!r}")
-
         matched += 1
         new_url = f"{base_url}{parsed.path}"
         if parsed.query:
@@ -86,11 +90,11 @@ def refresh_playlist(text: str, base_url: str) -> tuple[str, int, int]:
             new_url += f"#{parsed.fragment}"
 
         if new_url != old_url:
-            lines[j] = new_url
+            lines[i] = new_url
             changed += 1
 
     if matched == 0:
-        raise RuntimeError("No HARUKA entries found in playlist")
+        raise RuntimeError("No HARUKA 9394 stream URLs found in playlist")
 
     trailing_newline = "\n" if text.endswith(("\n", "\r")) else ""
     return "\n".join(lines) + trailing_newline, matched, changed
