@@ -1,12 +1,17 @@
 from pathlib import Path
 import re
 
+from refresh_haruka_freewifi import fetch_current_base
+
 FREEWIFI = Path("freewifi")
 
 PIGOO_LOGO = "https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/contrast/Pigoo_jp_daa9c17a.png"
-PIGOO_BLOCK = f'''#EXTINF:-1 tvg-id="Pigoo_jp" tvg-logo="{PIGOO_LOGO}" group-title="Rch",Pigoo (haruka(9394))
-http://42.113.96.247:9394/stream/234.m3u8
-'''
+def pigoo_block() -> str:
+    base = fetch_current_base()
+    return (
+        f'#EXTINF:-1 tvg-id="Pigoo_jp" tvg-logo="{PIGOO_LOGO}" group-title="Rch",Pigoo (haruka(9394))\n'
+        f'{base}/stream/234.m3u8\n'
+    )
 
 
 def remove_pigoo_entries(text: str) -> str:
@@ -29,7 +34,7 @@ def main() -> None:
     start = text.index("## Rch")
     end = text.index("## 今日の開催場", start)
     rch = text[start:end].rstrip()
-    updated = text[:start] + rch + "\n\n" + PIGOO_BLOCK + "\n" + text[end:]
+    updated = text[:start] + rch + "\n\n" + pigoo_block() + "\n" + text[end:]
 
     FREEWIFI.write_text(updated.rstrip() + "\n", encoding="utf-8")
     print("Placed Pigoo haruka(9394) directly below Rch with canonical logo")
