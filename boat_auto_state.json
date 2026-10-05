@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-06",
-  "generated_at": "2026-10-06T06:56:11.279588+09:00",
+  "generated_at": "2026-10-06T07:00:11.279762+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261006.json",
   "schedule_checked_at": "2026-10-06T06:56:11.279588+09:00",
@@ -54,19 +54,19 @@
   "cloud_acquisition": {
     "requested": 2,
     "fetched": 0,
-    "failures": [
+    "failures": [],
+    "deferred": [
       {
         "jcd": "14",
         "name": "鳴門",
-        "error": "cloud and official acquisition unavailable: HTTPError"
+        "start": "2026-10-06T08:00:00+09:00"
       },
       {
         "jcd": "18",
         "name": "徳山",
-        "error": "cloud and official acquisition unavailable: HTTPError"
+        "start": "2026-10-06T08:12:00+09:00"
       }
-    ],
-    "deferred": []
+    ]
   },
   "epg_programmes_written": {
     "public_sports_epg_local.xml": 182,
@@ -796,7 +796,8 @@
           "name": "ドリーム戦"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "provider_stream_start": "2026-10-06T08:00:00+09:00",
+      "source": "公式BR配信開始待ち 08:00"
     },
     "boat.tokuyama": {
       "jcd": "18",
@@ -886,7 +887,8 @@
           "name": "準優勝戦"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "provider_stream_start": "2026-10-06T08:12:00+09:00",
+      "source": "公式BR配信開始待ち 08:12"
     },
     "boat.shimonoseki": {
       "jcd": "19",
