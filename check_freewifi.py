@@ -56,7 +56,12 @@ def parse_entries(lines):
         title = re.sub(r"^🟢\s*", "", title)
         m = re.search(r'group-title="([^"]*)"', line)
         group = m.group(1) if m else ""
-        entries.append({"line": i, "url_line": j, "url": url, "title": title, "group": group})
+        mid = re.search(r'tvg-id="([^"]*)"', line)
+        tvg_id = mid.group(1) if mid else ""
+        entries.append({
+            "line": i, "url_line": j, "url": url,
+            "title": title, "group": group, "tvg_id": tvg_id,
+        })
     return entries
 
 
@@ -65,11 +70,13 @@ def get_limited(url, max_bytes=MAX_BYTES, accept=None):
     if accept:
         headers["Accept"] = accept
     sem = host_sem(url)
+    host = urlsplit(url).netloc.lower()
+    read_timeout = 16 if host == "freewifi-radio-production.up.railway.app" else READ_TIMEOUT
     with sem:
         with requests.get(
             url,
             headers=headers,
-            timeout=(CONNECT_TIMEOUT, READ_TIMEOUT),
+            timeout=(CONNECT_TIMEOUT, read_timeout),
             allow_redirects=True,
             stream=True,
         ) as r:
@@ -222,6 +229,38 @@ def host_of(url):
         return ""
 
 
+def mark_prestart_pending(entries, results):
+    """Do not call scheduled sports streams dead hours before their first race."""
+    status_path = "today_public_sports_status.json"
+    try:
+        with open(status_path, "r", encoding="utf-8-sig") as f:
+            status = json.load(f)
+    except Exception:
+        return
+
+    JST = dt.timezone(dt.timedelta(hours=9))
+    now = dt.datetime.now(JST)
+    channels = status.get("channels") or {}
+    for e in entries:
+        if e.get("group") != "今日の開催場":
+            continue
+        r = results.get(e["url"]) or {}
+        if r.get("ok"):
+            continue
+        info = channels.get(e.get("tvg_id")) or {}
+        nr = info.get("next_race") or {}
+        start = nr.get("start")
+        if not isinstance(start, str) or not re.fullmatch(r"\d{1,2}:\d{2}", start):
+            continue
+        hh, mm = map(int, start.split(":"))
+        race_dt = dt.datetime.combine(now.date(), dt.time(hh, mm), tzinfo=JST)
+        if now < race_dt - dt.timedelta(minutes=90):
+            r["pending"] = True
+            r["reason"] = "scheduled_not_live_yet"
+            r["scheduled_start"] = start
+            results[e["url"]] = r
+
+
 def main():
     with open(PLAYLIST, "r", encoding="utf-8-sig") as f:
         original = f.read()
@@ -246,6 +285,8 @@ def main():
                     "probe_url": None,
                 }
 
+    mark_prestart_pending(entries, results)
+
     green_entries = 0
     for e in entries:
         i = e["line"]
@@ -263,8 +304,8 @@ def main():
     with open(PLAYLIST, "w", encoding="utf-8", newline="\n") as f:
         f.write(new_content)
 
-    host_stats = defaultdict(lambda: {"ok": 0, "fail": 0})
-    group_stats = defaultdict(lambda: {"ok": 0, "fail": 0, "total": 0})
+    host_stats = defaultdict(lambda: {"ok": 0, "fail": 0, "pending": 0})
+    group_stats = defaultdict(lambda: {"ok": 0, "fail": 0, "pending": 0, "total": 0})
     reasons = Counter()
 
     for e in entries:
@@ -275,6 +316,9 @@ def main():
         if r.get("ok"):
             host_stats[h]["ok"] += 1
             group_stats[g]["ok"] += 1
+        elif r.get("pending"):
+            host_stats[h]["pending"] += 1
+            group_stats[g]["pending"] += 1
         else:
             host_stats[h]["fail"] += 1
             group_stats[g]["fail"] += 1
@@ -286,7 +330,10 @@ def main():
         "unique_urls": len(playlist_urls),
         "green_entries": green_entries,
         "green_unique_urls": sum(1 for r in results.values() if r.get("ok")),
-        "failed_unique_urls": sum(1 for r in results.values() if not r.get("ok")),
+        "pending_unique_urls": sum(1 for r in results.values() if r.get("pending")),
+        "failed_unique_urls": sum(
+            1 for r in results.values() if not r.get("ok") and not r.get("pending")
+        ),
         "failure_reasons": dict(reasons.most_common()),
         "group_stats": dict(sorted(group_stats.items())),
         "host_stats": dict(sorted(host_stats.items())),
@@ -295,15 +342,36 @@ def main():
     with open(RESULT, "w", encoding="utf-8") as f:
         json.dump(report, f, ensure_ascii=False, indent=2)
 
+    failed_entries = []
+    pending_entries = []
+    for e in entries:
+        r = results[e["url"]]
+        item = {
+            "group": e["group"],
+            "tvg_id": e["tvg_id"],
+            "title": e["title"],
+            "reason": r.get("reason"),
+            "status": r.get("status"),
+            "url": e["url"],
+        }
+        if r.get("pending"):
+            item["scheduled_start"] = r.get("scheduled_start")
+            pending_entries.append(item)
+        elif not r.get("ok"):
+            failed_entries.append(item)
+
     print(json.dumps({
         "entries": report["entries"],
         "unique_urls": report["unique_urls"],
         "green_entries": report["green_entries"],
         "green_unique_urls": report["green_unique_urls"],
+        "pending_unique_urls": report["pending_unique_urls"],
         "failed_unique_urls": report["failed_unique_urls"],
         "failure_reasons": report["failure_reasons"],
         "group_stats": report["group_stats"],
         "host_stats": report["host_stats"],
+        "failed_entries": failed_entries,
+        "pending_entries": pending_entries,
     }, ensure_ascii=False, indent=2))
 
 
