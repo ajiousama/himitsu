@@ -18,6 +18,7 @@ CONNECT_TIMEOUT = 4
 READ_TIMEOUT = 8
 MAX_BYTES = 131072
 PER_HOST = 4
+SKIP_GROUPS = {"VOD"}
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/154 Safari/537.36",
@@ -267,7 +268,8 @@ def main():
         original = f.read()
     lines = original.splitlines()
     entries = parse_entries(lines)
-    playlist_urls = list(dict.fromkeys(e["url"] for e in entries))
+    check_entries = [e for e in entries if e.get("group") not in SKIP_GROUPS]
+    playlist_urls = list(dict.fromkeys(e["url"] for e in check_entries))
 
     results = {}
     with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_WORKERS) as ex:
@@ -286,10 +288,12 @@ def main():
                     "probe_url": None,
                 }
 
-    mark_prestart_pending(entries, results)
+    mark_prestart_pending(check_entries, results)
 
     green_entries = 0
     for e in entries:
+        if e.get("group") in SKIP_GROUPS:
+            continue
         i = e["line"]
         line = lines[i]
         if "," not in line:
@@ -309,7 +313,7 @@ def main():
     group_stats = defaultdict(lambda: {"ok": 0, "fail": 0, "pending": 0, "total": 0})
     reasons = Counter()
 
-    for e in entries:
+    for e in check_entries:
         r = results[e["url"]]
         h = host_of(e["url"])
         g = e["group"] or "(none)"
@@ -327,7 +331,9 @@ def main():
 
     report = {
         "checked_at_utc": dt.datetime.now(dt.timezone.utc).isoformat(),
-        "entries": len(entries),
+        "entries": len(check_entries),
+        "skipped_entries": len(entries) - len(check_entries),
+        "skipped_groups": sorted(SKIP_GROUPS),
         "unique_urls": len(playlist_urls),
         "green_entries": green_entries,
         "green_unique_urls": sum(1 for r in results.values() if r.get("ok")),
@@ -345,7 +351,7 @@ def main():
 
     failed_entries = []
     pending_entries = []
-    for e in entries:
+    for e in check_entries:
         r = results[e["url"]]
         item = {
             "group": e["group"],
