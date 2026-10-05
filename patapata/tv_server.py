@@ -32,6 +32,7 @@ STREAM_SEM = threading.BoundedSemaphore(6)
 HLS_DIR = pathlib.Path("/tmp/patapata-tv-hls")
 HLS_PLAYLIST = HLS_DIR / "index.m3u8"
 HLS_ERROR = ""
+SOURCE_URL = os.environ.get("PATAPATA_SOURCE_URL", "https://ajiousama.github.io/live-wallpaper/transport/freewifi/")
 
 # Keep capture, encoder input and output on one real cadence.  The old HLS
 # pipeline advertised 2 fps input while feeding ~8 fps screenshots and then
@@ -94,7 +95,6 @@ def browser_worker() -> None:
     global LATEST_FRAME, FRAME_AT, BROWSER_ERROR
     while not STOP.is_set():
         try:
-            ensure_assets()
             with sync_playwright() as p:
                 browser = p.chromium.launch(
                     headless=True,
@@ -111,7 +111,7 @@ def browser_worker() -> None:
                     device_scale_factor=1,
                 )
                 page.goto(
-                    f"http://127.0.0.1:{PORT}/patapata/index.html",
+                    SOURCE_URL,
                     wait_until="domcontentloaded",
                     timeout=45000,
                 )
@@ -444,7 +444,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
             self._text(
                 200,
                 "Patapata TV\n"
-                "source=FINAL-v5-JR-DEADHEAD\n"
+                "source=R15-GITHUB-FREEWIFI\n"
+                f"source_url={SOURCE_URL}\n"
                 f"video=1280x720 {CAPTURE_FPS}fps real-capture H.264 baseline\n"
                 "audio=AAC 48kHz stereo silence\n"
                 "stream=/tv\n"
@@ -474,7 +475,6 @@ class Handler(http.server.BaseHTTPRequestHandler):
         self.send_error(404)
 
 def main() -> None:
-    ensure_assets()
     server = http.server.ThreadingHTTPServer((HOST, PORT), Handler)
     threading.Thread(target=browser_worker, daemon=True).start()
     threading.Thread(target=hls_worker, daemon=True).start()
