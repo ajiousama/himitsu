@@ -35,6 +35,7 @@ RANGE_EPISODE_SECONDS: dict[tuple[int, int], int] = {
     (207, 216): FIXED_TEST_EPISODE_SECONDS,
     (217, 226): FIXED_TEST_EPISODE_SECONDS,
     (267, 276): 3480,
+    (287, 296): 3480,
 }
 
 # Numbered episodes that are actually long-form specials.
@@ -303,6 +304,15 @@ KNOWN_SPECIALS: dict[tuple[int, int], list[dict]] = {
             "after_episode": 271,
             "duration_seconds": None,
             "expected_broadcast_seconds": 10800,
+        },
+    ],
+    (287, 296): [
+        {
+            "key": "2020-gccx-mini",
+            "title": "ゲームセンターCX mini（5本まとめ）",
+            "after_episode": 296,
+            "duration_seconds": None,
+            "expected_broadcast_seconds": None,
         },
     ],
     (217, 226): [
@@ -3967,7 +3977,7 @@ def _mark_provisional_titles(
     end_ep: int,
 ) -> list[dict]:
     confirmed = (start_ep, end_ep) in FILELIST_CONFIRMED_RANGES
-    reference_confirmed = (start_ep, end_ep) in {(267, 276), (277, 286)}
+    reference_confirmed = (start_ep, end_ep) in {(267, 276), (277, 286), (287, 296)}
     out = []
     for chapter in chapters:
         row = dict(chapter)
