@@ -83,6 +83,26 @@ def get_limited(url, max_bytes=MAX_BYTES, accept=None):
             return r, data
 
 
+def looks_like_mpegts(data: bytes) -> bool:
+    if len(data) < 188 * 3:
+        return False
+    # MPEG-TS packets are 188 bytes and start with sync byte 0x47.
+    # Allow a small leading offset in case an upstream prepends a few bytes.
+    for offset in range(min(188, len(data))):
+        if data[offset] != 0x47:
+            continue
+        hits = 0
+        pos = offset
+        while pos < len(data) and hits < 5:
+            if data[pos] != 0x47:
+                break
+            hits += 1
+            pos += 188
+        if hits >= 3:
+            return True
+    return False
+
+
 def first_media_uri(text):
     lines = [x.strip() for x in text.splitlines() if x.strip()]
     for idx, line in enumerate(lines):
@@ -100,6 +120,10 @@ def probe_hls(url):
     r, data = get_limited(url)
     if r.status_code != 200:
         return False, r.status_code, f"http_{r.status_code}", r.url, None
+    ctype = (r.headers.get("content-type") or "").lower()
+    if "mp2t" in ctype or looks_like_mpegts(data):
+        return True, r.status_code, "mpegts", r.url, None
+
     text = data.decode("utf-8", "ignore")
     if "#EXTM3U" not in text:
         return False, r.status_code, "non_hls", r.url, None
