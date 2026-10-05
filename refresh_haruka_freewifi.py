@@ -7,6 +7,7 @@ import urllib.request
 
 FREEWIFI = Path("tv/playlist.m3u")
 PUBLISHED = Path("freewifi")
+RAKUTEN_PLAYLIST = Path("rakuten/playlist.m3u")
 API_URL = "http://app.harukashop.site:3008/api/news/get-link"
 AU = os.environ.get("HARUKA_AU", "05zs80LO1csztPgNDkFeJcwkiSqNw9J6")
 HEADERS = {
@@ -107,7 +108,7 @@ def main() -> None:
     # Validate both outputs before writing either. The published aggregate can
     # contain HARUKA rows outside TV's section (for example Pigoo in Rch).
     updates = []
-    for path in (FREEWIFI, PUBLISHED):
+    for path in (FREEWIFI, RAKUTEN_PLAYLIST, PUBLISHED):
         original = path.read_text(encoding="utf-8-sig", errors="strict")
         updated, matched, changed = refresh_playlist(original, base_url)
         print(f"{path}: HARUKA entries checked: {matched}; changed: {changed}")
