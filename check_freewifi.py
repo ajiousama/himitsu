@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# final non-VOD rerun 2026-10-06
 import concurrent.futures
 import datetime as dt
 import json
