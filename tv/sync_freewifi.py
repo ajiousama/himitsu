@@ -29,6 +29,14 @@ def manual_block(text: str) -> str:
     )
     if match:
         body = match.group(1).strip("\n")
+        # Retire the old NAORI test relay. BS朝日 and スカイA already have
+        # working HARUKA/PrimeHome/5002 alternatives, so preserving the
+        # permanently-403 test rows only creates dead duplicates.
+        body = re.sub(
+            r'(?m)^#EXTINF:[^\\n]*(?:NAORI|naori)[^\\n]*\\nhttps://naori-test\\.netgenx\\.site/[^\\n]+\\n*',
+            '',
+            body,
+        ).strip("\n")
     else:
         body = (
             "# 手動追加TV保護枠: この2つのマーカーの間は自動更新でも保持されます。\n"
