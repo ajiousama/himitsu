@@ -66,6 +66,12 @@ def build() -> None:
                 timeout=TIMEOUT,
             ).json()
             print("TVer debug:", json.dumps(dbg, ensure_ascii=False))
+            srch = requests.get(
+                RESOLVER,
+                params={"debug": "search", "forceFunctionRegion": "ap-northeast-1"},
+                timeout=TIMEOUT,
+            ).json()
+            print("TVer search debug:", json.dumps(srch, ensure_ascii=False))
         except Exception as exc:
             print("TVer debug failed:", exc)
         raise SystemExit("TVer catalog returned no playable Special Live entries; keeping previous playlist")
