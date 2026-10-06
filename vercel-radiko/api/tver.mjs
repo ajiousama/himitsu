@@ -290,7 +290,12 @@ async function resolveSpecial(id) {
 
   try {
     const hls = await playbackUrl("tver-splive", "ref:" + id, [id], id);
-    return { id, title: id, hls };
+    let title = id;
+    try {
+      const meta = await fetchJson("https://statics.tver.jp/content/live/" + encodeURIComponent(id) + ".json?v=3", { headers: { Origin: ORIGIN, Referer: ORIGIN + "/" } });
+      title = String(meta.title || meta.seriesTitle || id);
+    } catch {}
+    return { id, title, hls };
   } catch (first) {
     let meta = null;
     for (const version of [3,2,1]) {
