@@ -59,6 +59,15 @@ def build() -> None:
     # as resolver discovery failure so a transient API change does not wipe
     # the previous working FreeWiFi block.
     if not specials:
+        try:
+            dbg = requests.get(
+                RESOLVER,
+                params={"debug": "home", "forceFunctionRegion": "ap-northeast-1"},
+                timeout=TIMEOUT,
+            ).json()
+            print("TVer debug:", json.dumps(dbg, ensure_ascii=False))
+        except Exception as exc:
+            print("TVer debug failed:", exc)
         raise SystemExit("TVer catalog returned no playable Special Live entries; keeping previous playlist")
 
     rows = []
