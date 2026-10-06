@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-06",
-  "generated_at": "2026-10-06T09:44:34.634295+09:00",
+  "generated_at": "2026-10-06T09:45:34.573592+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261006.json",
   "schedule_checked_at": "2026-10-06T09:38:34.635071+09:00",
@@ -19,7 +19,7 @@
   "alert_lead_minutes": 30,
   "card_count": 13,
   "held_count": 13,
-  "visible_count": 2,
+  "visible_count": 3,
   "active_count": 2,
   "ended_kept": [],
   "seed_required": false,
@@ -36,7 +36,7 @@
     },
     "day": {
       "held": 7,
-      "acquired": 0,
+      "acquired": 1,
       "active": 0,
       "ended": 0,
       "seed_required": 0,
@@ -53,14 +53,8 @@
   },
   "cloud_acquisition": {
     "requested": 9,
-    "fetched": 2,
-    "failures": [
-      {
-        "jcd": "08",
-        "name": "常滑",
-        "error": "HTTPError: playback check failed"
-      }
-    ],
+    "fetched": 3,
+    "failures": [],
     "deferred": [
       {
         "jcd": "02",
@@ -103,6 +97,22 @@
     "kind": "healthy"
   },
   "streams": {
+    "boat.tokoname": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/e8bb7928936441e19c1ead454a1742d9/a93d19ead10a4e42970e26d74799229b/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MTQyMTIwMCwic3RhcnQiOjE3OTEyNDc1MDAsImlvcyI6MTgsImNwIjoiMjEzNDQzMTAwXzIxMzQ4NjI5OSIsInBwdyI6IjQwayJ9.s7HMjxNZjVREXLGR8xd5g5OyDOOkyfIqo-qbLFAcuN8",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-10-06T09:46:01.978040+09:00",
+      "checked_at": "2026-10-06T09:46:01.978040+09:00",
+      "first_verified_at": "2026-10-06T09:46:01.978040+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 8392261,
+        "last_segment": "/e8bb7928936441e19c1ead454a1742d9/a93d19ead10a4e42970e26d74799229b/manifest_4_8392271.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
+    },
     "boat.naruto": {
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/d78234dcd38340d98140a76bfdf10b2a/d96f11bb8b1e4dfa8367c6f96840a6e0/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MTQxNzYwMCwic3RhcnQiOjE3OTEyNDEyMDAsImlvcyI6MTgsImNwIjoiMjEzNDM2ODAwXzIxMzQ3OTk5OSIsInBwdyI6IjQwayJ9.Q-UkR6XSoCu9123AfJP6XFxohTbjPQuLJ9_CfPMuAxY",
       "source": "automatic acquisition + audio/video decode",
@@ -323,7 +333,7 @@
       "jcd": "08",
       "name": "常滑",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
       "active": false,
       "cancelled": false,
@@ -341,9 +351,9 @@
       "guidance_switch_at": "2026-10-06T16:45:00+09:00",
       "seed_required": false,
       "reverify_due": false,
-      "playback_verified": false,
-      "first_verified_at": null,
-      "ready_before_first_race": false,
+      "playback_verified": true,
+      "first_verified_at": "2026-10-06T09:46:01.978040+09:00",
+      "ready_before_first_race": true,
       "acquire_from": "2026-10-06T07:46:00+09:00",
       "races": [
         {
@@ -407,7 +417,9 @@
           "name": "予選ドリーム戦"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/e8bb7928936441e19c1ead454a1742d9/a93d19ead10a4e42970e26d74799229b/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MTQyMTIwMCwic3RhcnQiOjE3OTEyNDc1MDAsImlvcyI6MTgsImNwIjoiMjEzNDQzMTAwXzIxMzQ4NjI5OSIsInBwdyI6IjQwayJ9.s7HMjxNZjVREXLGR8xd5g5OyDOOkyfIqo-qbLFAcuN8",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     },
     "boat.mikuni": {
       "jcd": "10",
