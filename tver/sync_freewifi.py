@@ -8,7 +8,7 @@ CONTRAST_DB = Path("logos/contrast_sources.json")
 RAW_BASE = "https://raw.githubusercontent.com/ajiousama/himitsu/main"
 PLAYLIST = Path("tver/playlist.m3u")
 START = "### TVerﾘｱﾙﾀｲﾑ"
-END = "## YouTube"
+END_CANDIDATES = ("# === PATAPATA_TV_START ===", "## YouTube")
 
 def reuse_known_contrast_logos(text: str) -> tuple[str, int]:
     if not CONTRAST_DB.exists():
@@ -42,7 +42,14 @@ def payload():
 def main():
     text = FREEWIFI.read_text(encoding="utf-8-sig", errors="replace")
     a = text.find(START)
-    b = text.find(END, a + len(START))
+    b = -1
+    if a >= 0:
+        positions = [
+            text.find(marker, a + len(START))
+            for marker in END_CANDIDATES
+        ]
+        positions = [pos for pos in positions if pos >= 0]
+        b = min(positions) if positions else -1
     if a < 0 or b < 0:
         raise SystemExit("TVer realtime section boundary missing in freewifi")
     updated = text[:a] + payload() + text[b:]
