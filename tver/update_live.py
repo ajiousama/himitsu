@@ -250,6 +250,17 @@ def playable_special(live_id):
         key_obj = {}
 
     keys = []
+    direct_keys = [
+        live_video.get("apiKey"),
+        live_video.get("api_key"),
+        (meta.get("streaks") or {}).get("apiKey") if isinstance(meta.get("streaks"), dict) else None,
+        (meta.get("streaks") or {}).get("api_key") if isinstance(meta.get("streaks"), dict) else None,
+        meta.get("apiKey"),
+        meta.get("api_key"),
+    ]
+    for value in direct_keys:
+        if isinstance(value, str) and value and value not in keys:
+            keys.append(value)
     for name in current_key_names():
         value = key_obj.get(name)
         if isinstance(value, str) and value and value not in keys:
@@ -286,6 +297,12 @@ def playable_special(live_id):
     except Exception as exc:
         last = exc
 
+    print(
+        f"::warning::Special metadata {live_id}: "
+        f"project={project} media={media_ref} "
+        f"liveVideoKeys={sorted(live_video.keys())} "
+        f"playerProjectFound={bool(project_info)} keyCandidates={len(keys)}"
+    )
     raise RuntimeError(f"Special Live playback unavailable: {last}")
 
 
