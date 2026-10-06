@@ -19,5 +19,5 @@
       ]
     }
   },
-  "ignoreCommand": "git log -1 --pretty=%B | grep -q '\\\\[skip render\\\\]'"
+  "ignoreCommand": "git log -1 --pretty=%B | grep -Fq '[skip render]'"
 }
