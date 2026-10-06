@@ -600,9 +600,6 @@ def build():
     rows = []
 
     for item in public_live_candidates():
-        if not hls_ok(item["url"]):
-            print(f"::warning::public TVer HLS failed: {item['name']}")
-            continue
         rows.append({
             "tvg_id": known_tvg_id_for_live(item["name"], item["url"]),
             "name": item["name"].replace(",", " "),
@@ -610,6 +607,7 @@ def build():
             "url": item["url"],
             "kind": "public-live",
             "source_id": item["url"].split("?", 1)[0],
+            "verification": "jp_client_required",
         })
 
     status = {
@@ -628,9 +626,9 @@ def build():
         ):
             continue
         try:
-            url = playable_special(live_id)
-            if not url or not hls_ok(url):
-                raise RuntimeError("HLS probe failed")
+            # Playback metadata/HLS is Japan-geofenced and GitHub Actions runs in the US.
+            # Unknown specials stay out until a public live-tver URL is available.
+            raise RuntimeError("no Japan-routed resolver available for this special")
             known = KNOWN_SPECIALS.get(live_id)
             meta = special_meta(live_id)
             title = (
@@ -659,9 +657,6 @@ def build():
 
     for item in simul:
         url = item["url"]
-        if not hls_ok(url):
-            print(f"::warning::TVer simul {item['id']} HLS probe failed")
-            continue
         cid = item["id"]
         rows.append({
             "tvg_id": f"tver.realtime.{safe_id(cid)}",
@@ -671,6 +666,7 @@ def build():
             "kind": "simul",
             "source_id": cid,
             "program": item.get("title") or "",
+            "verification": "official_on_air_jp_client_required",
         })
 
     # Deduplicate by stream/source identity. Prefer persistent known-news IDs first.
