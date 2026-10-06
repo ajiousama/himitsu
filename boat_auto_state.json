@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-06",
-  "generated_at": "2026-10-06T10:05:34.638075+09:00",
+  "generated_at": "2026-10-06T10:06:34.581934+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261006.json",
   "schedule_checked_at": "2026-10-06T09:53:34.636307+09:00",
@@ -20,7 +20,7 @@
   "card_count": 13,
   "held_count": 13,
   "visible_count": 6,
-  "active_count": 4,
+  "active_count": 5,
   "ended_kept": [],
   "seed_required": false,
   "seed_required_venues": [],
@@ -37,7 +37,7 @@
     "day": {
       "held": 7,
       "acquired": 4,
-      "active": 2,
+      "active": 3,
       "ended": 0,
       "seed_required": 0,
       "cancelled": 0
@@ -54,17 +54,18 @@
   "cloud_acquisition": {
     "requested": 9,
     "fetched": 6,
-    "failures": [],
+    "failures": [
+      {
+        "jcd": "05",
+        "name": "多摩川",
+        "error": "HTTPError: playback check failed"
+      }
+    ],
     "deferred": [
       {
         "jcd": "02",
         "name": "戸田",
         "start": "2026-10-06T10:09:00+09:00"
-      },
-      {
-        "jcd": "05",
-        "name": "多摩川",
-        "start": "2026-10-06T10:07:00+09:00"
       },
       {
         "jcd": "22",
@@ -359,8 +360,7 @@
           "name": "記者選抜戦"
         }
       ],
-      "provider_stream_start": "2026-10-06T10:07:00+09:00",
-      "source": "公式BR配信開始待ち 10:07"
+      "source": "automatic cloud SEED pending"
     },
     "boat.tokoname": {
       "jcd": "08",
@@ -460,7 +460,7 @@
       "held": true,
       "visible": true,
       "ended": false,
-      "active": false,
+      "active": true,
       "cancelled": false,
       "mode": "day",
       "mode_label": "デイ",
@@ -471,7 +471,7 @@
         "race": 1,
         "start": "10:36"
       },
-      "stream_window": "scheduled",
+      "stream_window": "live_or_prestart",
       "intermission": null,
       "guidance_switch_at": "2026-10-06T17:05:00+09:00",
       "seed_required": false,
