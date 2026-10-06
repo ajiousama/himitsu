@@ -19,6 +19,19 @@ OUT = Path("tver/playlist.m3u")
 STATUS = Path("tver/live_status.json")
 TIMEOUT = 15
 
+PUBLIC_TVER_PLAYLISTS = [
+    "https://raw.githubusercontent.com/david13xa/-/main/irl.m3u",
+    "https://raw.githubusercontent.com/dbghelp/Free-to-air-TV/master/japan.m3u8",
+]
+
+STABLE_SIMUL = {
+    "ntv": "https://live-tver-simul-ntv.streaks.jp/938232e586b34196b704a5839663984b/cb593b5eafbb4645907e979d757e1dd5/manifest_1.m3u8",
+    "ex": "https://live-tver-simul-ex.streaks.jp/498c4512f66846f1b0a5a3320ee035c3/ce98cb0b48994b50a76dba08ea894e24/manifest_1.m3u8",
+    "tbs": "https://live-tver-simul-tbs.streaks.jp/8e4c80725b9842cdb0f6f91260945222/b72f7e116957436b824f95d5138ea7a3/manifest_1.m3u8",
+    "tx": "https://live-tver-simul-tx.streaks.jp/035622a82bcb46bc8e41ca5351f95a00/3887c96991ce4ae1bec43ea19f24c4d5/manifest_1.m3u8",
+    "cx": "https://live-tver-simul-cx.streaks.jp/a78ebf1910144ba287907ec691bdc863/4817bf371f214463a3609e17a365f098/manifest_1.m3u8",
+}
+
 KNOWN_SPECIALS = {
     "le7gtytdy0": {
         "name": "Tver 日テレ NEWS24",
@@ -350,6 +363,10 @@ def current_program(channel_id, uid, token):
 
 
 def resolve_simul(channel, current):
+    stable = STABLE_SIMUL.get(channel["id"].lower())
+    if stable:
+        return stable
+
     info = get_json(PLAYER_INFO)
     project_info = (
         info.get(channel["project"])
@@ -500,11 +517,101 @@ def special_meta(live_id):
     return {}
 
 
+
+def clean_public_name(name):
+    name = re.sub(r"\s+", " ", str(name or "")).strip()
+    aliases = {
+        "NTV NEWS24": "Tver 日テレ NEWS24",
+        "日テレNEWS24": "Tver 日テレ NEWS24",
+        "TBS NEWS DIG": "Tver TBS NEWS DIG",
+        "TBS NEWS DIG Powered by JNN": "Tver TBS NEWS DIG",
+        "日テレNEWS NNN": "Tver 日テレNEWS NNN",
+    }
+    return aliases.get(name, f"Tver {name}" if name and not name.lower().startswith("tver") else name)
+
+
+def public_live_candidates():
+    rows = []
+    seen = set()
+    for source in PUBLIC_TVER_PLAYLISTS:
+        try:
+            r = S.get(source, timeout=TIMEOUT)
+            r.raise_for_status()
+            lines = r.text.splitlines()
+        except Exception as exc:
+            print(f"::warning::public TVer playlist failed {source}: {exc}")
+            continue
+
+        pending = None
+        for line in lines:
+            line = line.strip()
+            if line.startswith("#EXTINF:"):
+                pending = line
+                continue
+            if not pending or not line.startswith("https://"):
+                continue
+
+            url = line
+            # Realtime TVer channels other than the five simulcast networks.
+            if "streaks.jp" not in url or "live-tver-" not in url:
+                pending = None
+                continue
+            if "live-tver-simul-" in url:
+                pending = None
+                continue
+
+            name = pending.split(",", 1)[1].strip() if "," in pending else "TVer Live"
+            key = url.split("?", 1)[0]
+            if key not in seen:
+                seen.add(key)
+                rows.append({
+                    "name": clean_public_name(name),
+                    "url": key,
+                    "source": source,
+                })
+            pending = None
+    return rows
+
+
+def logo_for_live_name(name):
+    n = str(name).lower()
+    if "news24" in n:
+        return "https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/contrast/tver.news24_ecf50e0e.png"
+    if "tbs" in n and "news" in n:
+        return "https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/contrast/tver.tbs_newsdig_65e73997.png"
+    return ""
+
+
+def known_tvg_id_for_live(name, url):
+    n = str(name).lower()
+    if "news24" in n:
+        return "tver.news24"
+    if "tbs" in n and "news" in n:
+        return "tver.tbs_newsdig"
+    if "news nnn" in n or "news-nnn" in url.lower():
+        return "tver.news_nnn"
+    return "tver.live." + safe_id(url.split("streaks.jp", 1)[0].rsplit("/", 1)[-1])
+
+
 def build():
     uid, token = browser_credentials()
     specials = discover_specials(uid, token)
     simul = discover_simul(uid, token)
     rows = []
+
+    for item in public_live_candidates():
+        if not hls_ok(item["url"]):
+            print(f"::warning::public TVer HLS failed: {item['name']}")
+            continue
+        rows.append({
+            "tvg_id": known_tvg_id_for_live(item["name"], item["url"]),
+            "name": item["name"].replace(",", " "),
+            "logo": logo_for_live_name(item["name"]),
+            "url": item["url"],
+            "kind": "public-live",
+            "source_id": item["url"].split("?", 1)[0],
+        })
+
     status = {
         "generated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "special_discovered": len(specials),
@@ -514,6 +621,12 @@ def build():
 
     for item in specials:
         live_id = item["id"]
+        title_hint = str(item.get("title") or "").lower()
+        if (
+            ("news24" in title_hint and any(r["tvg_id"] == "tver.news24" for r in rows))
+            or ("tbs" in title_hint and "news" in title_hint and any(r["tvg_id"] == "tver.tbs_newsdig" for r in rows))
+        ):
+            continue
         try:
             url = playable_special(live_id)
             if not url or not hls_ok(url):
@@ -589,7 +702,7 @@ def build():
     STATUS.write_text(json.dumps(status, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(
         f"TVer live updated: playable={len(rows)} "
-        f"special={sum(r['kind']=='special' for r in rows)} "
+        f"special={sum(r['kind'] in ('special','public-live') for r in rows)} "
         f"simul={sum(r['kind']=='simul' for r in rows)}"
     )
     for row in rows:
