@@ -26,7 +26,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
         with:
-          fetch-depth: 0
+          filter: blob:none
+          sparse-checkout: |
+            tver
+            freewifi
 
       - name: Set up Python
         uses: actions/setup-python@v6
