@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-06",
-  "generated_at": "2026-10-06T10:07:34.742873+09:00",
+  "generated_at": "2026-10-06T10:08:34.585401+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261006.json",
   "schedule_checked_at": "2026-10-06T09:53:34.636307+09:00",
@@ -54,13 +54,14 @@
   "cloud_acquisition": {
     "requested": 9,
     "fetched": 7,
-    "failures": [],
-    "deferred": [
+    "failures": [
       {
         "jcd": "02",
         "name": "戸田",
-        "start": "2026-10-06T10:09:00+09:00"
-      },
+        "error": "HTTPError: playback check failed"
+      }
+    ],
+    "deferred": [
       {
         "jcd": "22",
         "name": "福岡",
@@ -279,8 +280,7 @@
           "name": "優勝戦"
         }
       ],
-      "provider_stream_start": "2026-10-06T10:09:00+09:00",
-      "source": "公式BR配信開始待ち 10:09"
+      "source": "automatic cloud SEED pending"
     },
     "boat.tamagawa": {
       "jcd": "05",
