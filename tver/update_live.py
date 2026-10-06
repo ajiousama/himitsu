@@ -137,7 +137,7 @@ def build() -> None:
                 "generated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
                 "resolver": data.get("resolver"),
                 "resolver_region": data.get("region"),
-                "discovery_source": "tver_public_special_live_page",
+                "discovery_source": "tver_public_special_live_page_hydrated",
                 "special_count": len(active),
                 "schedule_count": len(schedule),
                 "simul_on_air": data.get("simul") or [],
