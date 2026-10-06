@@ -57,7 +57,8 @@ def build_overlay() -> None:
     })
 
     count = 0
-    for row in data.get("entries") or []:
+    rows = data.get("schedule") or data.get("entries") or []
+    for row in rows:
         cid = str(row.get("tvg_id") or "").strip()
         title = clean_title(row.get("title"), cid)
         if not cid or not title or title in {"配信休止", "配信準備中"}:
@@ -66,11 +67,16 @@ def build_overlay() -> None:
         start = epoch_dt(row.get("start_at"))
         stop = epoch_dt(row.get("end_at"))
         if start is None:
-            # Rolling slot for streams whose public metadata omits wall-clock times.
+            # Continuous/always-on live feeds without explicit wall-clock times
+            # get a rolling slot that refreshes every 10 minutes.
             minute = (generated.minute // 10) * 10
             start = generated.replace(minute=minute, second=0, microsecond=0)
-        if stop is None or stop <= start:
             stop = start + timedelta(minutes=30)
+        elif stop is None or stop <= start:
+            # TVer's public Special Live page often publishes an exact start
+            # before it publishes a firm end time. Keep the real start time and
+            # use a conservative four-hour placeholder until endAt appears.
+            stop = start + timedelta(hours=4)
 
         ch = ET.SubElement(root, "channel", {"id": cid})
         ET.SubElement(ch, "display-name", {"lang": "ja"}).text = title
@@ -81,8 +87,10 @@ def build_overlay() -> None:
             "channel": cid,
         })
         ET.SubElement(p, "title", {"lang": "ja"}).text = title
+        state = "配信予定" if start > generated else "配信中"
         ET.SubElement(p, "desc", {"lang": "ja"}).text = (
-            "TVer Special Live。配信一覧を10分ごとに更新し、再生時に最新ストリームへ解決します。"
+            f"TVer Special Live｜{state}。TVer公開ページを10分ごとに確認し、"
+            "配信時は再生時に最新ストリームへ解決します。"
         )
         ET.SubElement(p, "category", {"lang": "ja"}).text = "TVer LIVE"
         count += 1
