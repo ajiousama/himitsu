@@ -658,6 +658,11 @@ def build():
     for item in simul:
         url = item["url"]
         cid = item["id"]
+        # The five commercial-network simulcasts are already permanent
+        # alternate sources in the "地上波 TVer" block. Do not duplicate them
+        # in the realtime/special-live block.
+        if cid.lower() in STABLE_SIMUL:
+            continue
         rows.append({
             "tvg_id": f"tver.realtime.{safe_id(cid)}",
             "name": f"Tver {item['channel_name']}",
