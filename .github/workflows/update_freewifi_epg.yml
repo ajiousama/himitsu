@@ -19,6 +19,7 @@ on:
       - "rakuten/sync_freewifi.py"
       - "tver/playlist.m3u"
       - "tver/sync_freewifi.py"
+      - "tver/epg.py"
       - "radio/sync_freewifi.py"
       - "vod5/sync_freewifi.py"
       - "radio/playlist.m3u"
@@ -402,6 +403,9 @@ jobs:
 
       - name: Add persistent KICK receiver EPG
         run: python -m epg.kick_epg
+
+      - name: Reapply TVer live EPG overlay
+        run: python tver/epg.py
 
       - name: Validate XML and reject empty/sparse guides
         run: |
