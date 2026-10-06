@@ -1,5 +1,84 @@
 const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/140 Safari/537.36";
-const VERSION = "2026-09-19-tver-v1";
+const VERSION = "2026-10-07-tver-live-news-v2";
+
+async function fetchText(url, headers = {}) {
+  const r = await fetch(url, {
+    headers: {
+      accept: "text/html,application/xhtml+xml,application/json,text/plain,*/*",
+      "user-agent": UA,
+      referer: "https://tver.jp/",
+      "cache-control": "no-cache",
+      pragma: "no-cache",
+      ...headers
+    },
+    cache: "no-store",
+    redirect: "follow"
+  });
+  if (!r.ok) throw new Error(`HTTP ${r.status} ${url}`);
+  return r.text();
+}
+
+const NEWS_SPECIAL = {
+  news24: {
+    label: "日テレNEWS24",
+    title: /日テレNEWS24/i,
+    fallback: ["le7gtytdy0"]
+  },
+  tbs: {
+    label: "TBS NEWS DIG",
+    title: /TBS\\s*NEWS\\s*DIG/i,
+    fallback: ["le5t0u6hpv"]
+  }
+};
+
+async function specialLiveMeta(id) {
+  return j(`https://statics.tver.jp/content/live/${encodeURIComponent(id)}.json?v=3`, {
+    headers: {
+      origin: "https://tver.jp",
+      referer: "https://tver.jp/"
+    }
+  });
+}
+
+async function discoverSpecialLiveId(kind) {
+  const cfg = NEWS_SPECIAL[kind];
+  if (!cfg) throw new Error("unknown news channel");
+
+  const ids = [];
+  try {
+    const html = await fetchText("https://tver.jp/corner/f0048951");
+    for (const m of html.matchAll(/\\/live\\/special\\/(le[a-z0-9]+)/gi)) {
+      if (!ids.includes(m[1])) ids.push(m[1]);
+    }
+  } catch {}
+
+  for (const id of [...ids, ...cfg.fallback]) {
+    try {
+      const meta = await specialLiveMeta(id);
+      const title = String(meta?.title || meta?.seriesTitle || "");
+      if (cfg.title.test(title)) return { id, meta, title };
+    } catch {}
+  }
+
+  throw new Error(`${cfg.label} current Special Live not found`);
+}
+
+async function resolveSpecialNews(kind) {
+  const { id, title } = await discoverSpecialLiveId(kind);
+  const playback = await j(
+    `https://playback.api.streaks.jp/v1/projects/tver-splive/medias/ref:${encodeURIComponent(id)}`,
+    {
+      headers: {
+        origin: "https://tver.jp",
+        referer: "https://tver.jp/",
+        "x-streaks-api-key": id
+      }
+    }
+  );
+  const media = playableSource(playback?.sources);
+  if (!media) throw new Error("Special Live HLS source missing");
+  return { id, title, media };
+}
 
 async function j(url, opts = {}) {
   const r = await fetch(url, {
@@ -98,6 +177,27 @@ module.exports = async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("X-TVer-Resolver-Version", VERSION);
   res.setHeader("X-Vercel-Region", process.env.VERCEL_REGION || "unknown");
+
+  const news = String(req.query?.news || "").trim().toLowerCase();
+  if (news) {
+    if (!NEWS_SPECIAL[news]) {
+      return res.status(400).json({ error: "invalid TVer news channel", resolver: VERSION });
+    }
+    try {
+      const live = await resolveSpecialNews(news);
+      res.setHeader("X-TVer-Live-Id", live.id);
+      res.setHeader("X-TVer-Live-Title", encodeURIComponent(live.title || NEWS_SPECIAL[news].label));
+      res.setHeader("Location", live.media);
+      return res.status(302).end();
+    } catch (e) {
+      return res.status(502).json({
+        error: "TVer Special Live unavailable",
+        news,
+        detail: String(e?.message || e),
+        resolver: VERSION
+      });
+    }
+  }
 
   const ep = String(req.query?.ep || "").trim();
   if (!/^[A-Za-z0-9]{6,40}$/.test(ep)) {
