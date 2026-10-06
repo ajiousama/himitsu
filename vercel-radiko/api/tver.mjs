@@ -315,6 +315,70 @@ async function resolveSpecial(id) {
   }
 }
 
+
+async function fetchText(url) {
+  const r = await fetch(url, {
+    headers: {
+      "User-Agent": UA,
+      Accept: "text/html,application/xhtml+xml,text/plain,*/*",
+      Referer: ORIGIN + "/",
+      "Cache-Control": "no-cache"
+    },
+    cache: "no-store",
+    redirect: "follow"
+  });
+  if (!r.ok) throw new Error("HTTP " + r.status + " " + new URL(url).host);
+  return r.text();
+}
+
+function idsFromHtml(html) {
+  const normalized = String(html || "")
+    .replace(/\\u002F/gi, "/")
+    .replace(/\\\//g, "/");
+  const out = [];
+  for (const m of normalized.matchAll(/\/live\/special\/(le[a-z0-9]+)/gi)) {
+    if (!out.includes(m[1])) out.push(m[1]);
+  }
+  return out;
+}
+
+async function discoverPlayableSpecials() {
+  const candidates = [];
+  const pages = [
+    "https://tver.jp/live",
+    "https://tver.jp/corner/f0048951"
+  ];
+
+  for (const page of pages) {
+    try {
+      const ids = idsFromHtml(await fetchText(page));
+      for (const id of ids) if (!candidates.includes(id)) candidates.push(id);
+    } catch {}
+  }
+
+  const out = [];
+  for (const id of candidates.slice(0, 40)) {
+    try {
+      const live = await resolveSpecial(id);
+      out.push({
+        kind: "special",
+        id,
+        title: String(live.title || id),
+        resolver: "/api/tver?special=" + encodeURIComponent(id)
+      });
+    } catch {}
+  }
+  return out;
+}
+
+async function resolveNewsAlias(alias) {
+  const live = await discoverPlayableSpecials();
+  const re = alias === "news24" ? /日テレ\s*NEWS24/i : /TBS\s*NEWS\s*DIG/i;
+  const hit = live.find(x => re.test(String(x.title || "")));
+  if (!hit) throw new Error("news live not found");
+  return resolveSpecial(hit.id);
+}
+
 function walk(value, out) {
   if (!value || typeof value !== "object") return out;
   if (Array.isArray(value)) {
@@ -338,6 +402,7 @@ async function catalog(req) {
   }));
 
   const specialMap = new Map();
+
   try {
     const home = await platform("callHome", cred);
     const now = Math.floor(Date.now() / 1000);
@@ -360,6 +425,10 @@ async function catalog(req) {
       });
     }
   } catch {}
+
+  for (const item of await discoverPlayableSpecials()) {
+    if (!specialMap.has(item.id)) specialMap.set(item.id, item);
+  }
 
   const proto = String(req.headers["x-forwarded-proto"] || "https").split(",")[0].trim();
   const base = proto + "://" + req.headers.host + "/api/tver";
@@ -438,14 +507,14 @@ export default async function handler(req, res) {
     } else if (special) {
       result = await resolveSpecial(special);
       kind = "special";
-    } else if (news === "news24") {
-      result = await resolveSpecial("le7gtytdy0");
+    } else if (news === "news24" || news === "tbs") {
+      result = await resolveNewsAlias(news);
       kind = "special";
     } else {
       return json(res, 400, {
         ok: false,
         error: "missing selector",
-        usage: ["?live=ntv", "?special=le...", "?catalog=1", "?health=1"],
+        usage: ["?live=ntv", "?special=le...", "?news=news24", "?news=tbs", "?catalog=1", "?health=1"],
         resolver: VERSION
       });
     }
