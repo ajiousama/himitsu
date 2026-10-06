@@ -85,6 +85,10 @@ def build() -> None:
             continue
         if not title or title in {"配信休止", "配信準備中"}:
             continue
+        # TVer sometimes exposes decorative placeholder cards as live items.
+        # Do not publish entries whose title has no Japanese/ASCII letters or digits.
+        if not re.search(r"[A-Za-z0-9一-龯ぁ-んァ-ヶ]", title):
+            continue
         if live_id in seen:
             continue
         seen.add(live_id)
