@@ -1,0 +1,79 @@
+name: Update TVer live streams
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/10 * * * *"
+  push:
+    branches: [main]
+    paths:
+      - "tver/update_live.py"
+      - "tver/sync_freewifi.py"
+      - ".github/workflows/update_tver_live.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: himitsu-freewifi-state-writer
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install requests
+        run: python -m pip install --disable-pip-version-check requests
+
+      - name: Resolve current TVer live streams
+        run: |
+          python tver/update_live.py
+          python tver/sync_freewifi.py
+
+      - name: Publish TVer live state safely
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          snapshot="$(mktemp -d)"
+          cp tver/playlist.m3u "$snapshot/playlist.m3u"
+          cp tver/live_status.json "$snapshot/live_status.json"
+
+          for attempt in 1 2 3 4 5; do
+            echo "TVer publish attempt $attempt/5"
+            git fetch origin main
+            git reset --hard origin/main
+
+            cp "$snapshot/playlist.m3u" tver/playlist.m3u
+            cp "$snapshot/live_status.json" tver/live_status.json
+            python tver/sync_freewifi.py
+
+            git add tver/playlist.m3u tver/live_status.json freewifi
+            if git diff --cached --quiet; then
+              echo "TVer live state already current"
+              exit 0
+            fi
+
+            git commit -m "Update TVer live streams [skip ci] [skip render]"
+            if git push origin HEAD:main; then
+              exit 0
+            fi
+            echo "::warning::main moved during TVer publish; retrying"
+            sleep 1
+          done
+
+          echo "::error::TVer live publish failed after 5 attempts"
+          exit 1
