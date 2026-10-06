@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-06",
-  "generated_at": "2026-10-06T14:23:34.614185+09:00",
+  "generated_at": "2026-10-06T14:24:34.615148+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261006.json",
   "schedule_checked_at": "2026-10-06T14:22:34.614099+09:00",
@@ -54,13 +54,14 @@
   "cloud_acquisition": {
     "requested": 11,
     "fetched": 8,
-    "failures": [],
-    "deferred": [
+    "failures": [
       {
         "jcd": "12",
         "name": "住之江",
-        "start": "2026-10-06T14:25:00+09:00"
-      },
+        "error": "HTTPError: playback check failed"
+      }
+    ],
+    "deferred": [
       {
         "jcd": "19",
         "name": "下関",
@@ -760,8 +761,7 @@
           "name": "優勝戦"
         }
       ],
-      "provider_stream_start": "2026-10-06T14:25:00+09:00",
-      "source": "公式BR配信開始待ち 14:25"
+      "source": "automatic cloud SEED pending"
     },
     "boat.amagasaki": {
       "jcd": "13",
