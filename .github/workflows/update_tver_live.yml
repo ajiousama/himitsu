@@ -2,6 +2,14 @@ name: Update TVer live streams
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: "*/10 * * * *"
+  push:
+    branches: [main]
+    paths:
+      - "tver/update_live.py"
+      - "tver/sync_freewifi.py"
+      - ".github/workflows/update_tver_live.yml"
 
 permissions:
   contents: write
