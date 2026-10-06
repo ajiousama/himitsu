@@ -233,13 +233,60 @@ def default_ads_params(current_id=""):
 
 
 def playable_special(live_id):
-    url = PLAYBACK.format(project="tver-splive", media=quote(f"ref:{live_id}", safe=":"))
-    data = get_json(url, headers={"X-Streaks-Api-Key": live_id})
-    media = data.get("media") if isinstance(data, dict) and isinstance(data.get("media"), dict) else data
-    for src in source_list(media):
-        if source_is_hls(src):
-            return str(src.get("src"))
-    return None
+    meta = special_meta(live_id)
+    live_video = meta.get("liveVideo") if isinstance(meta, dict) else {}
+    if not isinstance(live_video, dict):
+        live_video = {}
+
+    project = str(live_video.get("projectID") or live_video.get("projectId") or "tver-splive")
+    media_ref = str(live_video.get("mediaID") or live_video.get("mediaId") or f"ref:{live_id}")
+    if not media_ref.startswith("ref:") and project == "tver-splive":
+        media_ref = "ref:" + media_ref
+
+    info = get_json(PLAYER_INFO)
+    project_info = info.get(project) or info.get("tver-splive") or {}
+    key_obj = project_info.get("api_key") if isinstance(project_info, dict) else {}
+    if not isinstance(key_obj, dict):
+        key_obj = {}
+
+    keys = []
+    for name in current_key_names():
+        value = key_obj.get(name)
+        if isinstance(value, str) and value and value not in keys:
+            keys.append(value)
+    for value in key_obj.values():
+        if isinstance(value, str) and value and value not in keys:
+            keys.append(value)
+    # Keep the legacy special-live key only as a final fallback.
+    if live_id not in keys:
+        keys.append(live_id)
+
+    url = PLAYBACK.format(
+        project=quote(project, safe=""),
+        media=quote(media_ref, safe=":"),
+    )
+    last = None
+    for key in keys:
+        try:
+            data = get_json(url, headers={"X-Streaks-Api-Key": key})
+            media = data.get("media") if isinstance(data, dict) and isinstance(data.get("media"), dict) else data
+            for src in source_list(media):
+                if source_is_hls(src):
+                    return str(src.get("src"))
+        except Exception as exc:
+            last = exc
+
+    # Some special-live projects no longer require an explicit key.
+    try:
+        data = get_json(url)
+        media = data.get("media") if isinstance(data, dict) and isinstance(data.get("media"), dict) else data
+        for src in source_list(media):
+            if source_is_hls(src):
+                return str(src.get("src"))
+    except Exception as exc:
+        last = exc
+
+    raise RuntimeError(f"Special Live playback unavailable: {last}")
 
 
 def normalize_channel(item):
