@@ -80,8 +80,10 @@ def build() -> None:
     seen = set()
     for item in specials:
         live_id = str(item.get("id") or "").strip()
-        title = str(item.get("title") or live_id).strip()
+        title = str(item.get("title") or "").strip()
         if not re.fullmatch(r"le[a-z0-9]+", live_id, re.I):
+            continue
+        if not title or title in {"配信休止", "配信準備中"}:
             continue
         if live_id in seen:
             continue
