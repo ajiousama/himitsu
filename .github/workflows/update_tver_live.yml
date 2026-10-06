@@ -30,6 +30,7 @@ jobs:
           filter: blob:none
           sparse-checkout: |
             tver
+            patapata
             freewifi
             guides.xml
 
@@ -45,6 +46,7 @@ jobs:
         run: |
           python tver/update_live.py
           python tver/sync_freewifi.py
+          python patapata/sync_freewifi.py
           python tver/epg.py --build-only
 
       - name: Publish TVer live state safely
@@ -68,6 +70,7 @@ jobs:
             cp "$snapshot/live_status.json" tver/live_status.json
             cp "$snapshot/tver_epg.xml" tver/tver_epg.xml
             python tver/sync_freewifi.py
+            python patapata/sync_freewifi.py
             python tver/epg.py --merge-only
 
             git add tver/playlist.m3u tver/live_status.json tver/tver_epg.xml freewifi guides.xml
