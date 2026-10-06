@@ -26,7 +26,7 @@ const NEWS_SPECIAL = {
   },
   tbs: {
     label: "TBS NEWS DIG",
-    title: /TBS\\s*NEWS\\s*DIG/i,
+    title: /TBS\s*NEWS\s*DIG/i,
     fallback: ["le5t0u6hpv"]
   }
 };
@@ -47,7 +47,7 @@ async function discoverSpecialLiveId(kind) {
   const ids = [];
   try {
     const html = await fetchText("https://tver.jp/corner/f0048951");
-    for (const m of html.matchAll(/\\/live\\/special\\/(le[a-z0-9]+)/gi)) {
+    for (const m of html.matchAll(/\/live\/special\/(le[a-z0-9]+)/gi)) {
       if (!ids.includes(m[1])) ids.push(m[1]);
     }
   } catch {}
