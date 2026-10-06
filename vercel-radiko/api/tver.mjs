@@ -482,6 +482,38 @@ export default async function handler(req, res) {
     });
   }
 
+  if (String(req.query && req.query.debug || "") === "home") {
+    try {
+      const cred = await browserCredentials();
+      const home = await platform("callHome", cred);
+      const nodes = [];
+      for (const obj of walk(home, [])) {
+        const typ = String(obj.type || obj.Type || "");
+        const c = obj.content || obj.Content;
+        if (typ.toLowerCase().includes("live") || (c && /^le[a-z0-9]+$/i.test(String(c.id || c.Id || "")))) {
+          nodes.push({
+            type: typ,
+            id: c && String(c.id || c.Id || ""),
+            title: c && String(c.title || c.Title || c.seriesTitle || c.SeriesTitle || ""),
+            startAt: c && (c.startAt || c.StartAt || null),
+            endAt: c && (c.endAt || c.EndAt || null),
+            keys: Object.keys(obj).slice(0,20),
+            contentKeys: c && typeof c === "object" ? Object.keys(c).slice(0,30) : []
+          });
+        }
+      }
+      return json(res, 200, {
+        ok: true,
+        topKeys: Object.keys(home || {}),
+        resultKeys: home && home.result ? Object.keys(home.result) : [],
+        liveNodes: nodes.slice(0,100),
+        resolver: VERSION
+      });
+    } catch (e) {
+      return json(res, 502, { ok: false, detail: String(e && e.message || e), resolver: VERSION });
+    }
+  }
+
   if (String(req.query && req.query.catalog || "") === "1") {
     try {
       const c = await catalog(req);
