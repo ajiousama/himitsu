@@ -30,6 +30,7 @@ jobs:
           sparse-checkout: |
             tver
             freewifi
+            guides.xml
 
       - name: Set up Python
         uses: actions/setup-python@v6
@@ -43,6 +44,7 @@ jobs:
         run: |
           python tver/update_live.py
           python tver/sync_freewifi.py
+          python tver/epg.py --build-only
 
       - name: Publish TVer live state safely
         shell: bash
@@ -54,6 +56,7 @@ jobs:
           snapshot="$(mktemp -d)"
           cp tver/playlist.m3u "$snapshot/playlist.m3u"
           cp tver/live_status.json "$snapshot/live_status.json"
+          cp tver/tver_epg.xml "$snapshot/tver_epg.xml"
 
           for attempt in 1 2 3 4 5; do
             echo "TVer publish attempt $attempt/5"
@@ -62,9 +65,11 @@ jobs:
 
             cp "$snapshot/playlist.m3u" tver/playlist.m3u
             cp "$snapshot/live_status.json" tver/live_status.json
+            cp "$snapshot/tver_epg.xml" tver/tver_epg.xml
             python tver/sync_freewifi.py
+            python tver/epg.py --merge-only
 
-            git add tver/playlist.m3u tver/live_status.json freewifi
+            git add tver/playlist.m3u tver/live_status.json tver/tver_epg.xml freewifi guides.xml
             if git diff --cached --quiet; then
               echo "TVer live state already current"
               exit 0
