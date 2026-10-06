@@ -9,7 +9,7 @@ from urllib.parse import quote
 
 import requests
 
-RESOLVER = "https://himitsu-six.vercel.app/api/tver"
+RESOLVER = "https://ihhiymkepuydykrhmzwo.supabase.co/functions/v1/tver-live"
 OUT = Path("tver/playlist.m3u")
 STATUS = Path("tver/live_status.json")
 TIMEOUT = 30
@@ -41,7 +41,7 @@ def tvg_id_for(title: str, live_id: str) -> str:
 def fetch_catalog() -> dict:
     r = requests.get(
         RESOLVER,
-        params={"catalog": "1"},
+        params={"catalog": "1", "forceFunctionRegion": "ap-northeast-1"},
         headers={"Cache-Control": "no-cache", "Pragma": "no-cache"},
         timeout=TIMEOUT,
     )
@@ -77,7 +77,7 @@ def build() -> None:
             "title": title,
             "tvg_id": tvg_id_for(title, live_id),
             "logo": logo_for(title),
-            "url": RESOLVER + "?special=" + quote(live_id, safe=""),
+            "url": RESOLVER + "?special=" + quote(live_id, safe="") + "&forceFunctionRegion=ap-northeast-1",
             "start_at": item.get("startAt"),
             "end_at": item.get("endAt"),
         })
