@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-06",
-  "generated_at": "2026-10-06T10:00:34.582913+09:00",
+  "generated_at": "2026-10-06T10:01:34.689399+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261006.json",
   "schedule_checked_at": "2026-10-06T09:53:34.636307+09:00",
@@ -54,7 +54,13 @@
   "cloud_acquisition": {
     "requested": 9,
     "fetched": 5,
-    "failures": [],
+    "failures": [
+      {
+        "jcd": "13",
+        "name": "尼崎",
+        "error": "HTTPError: playback check failed"
+      }
+    ],
     "deferred": [
       {
         "jcd": "02",
@@ -65,11 +71,6 @@
         "jcd": "05",
         "name": "多摩川",
         "start": "2026-10-06T10:07:00+09:00"
-      },
-      {
-        "jcd": "13",
-        "name": "尼崎",
-        "start": "2026-10-06T10:02:00+09:00"
       },
       {
         "jcd": "22",
@@ -372,7 +373,7 @@
       "intermission": null,
       "guidance_switch_at": "2026-10-06T16:45:00+09:00",
       "seed_required": false,
-      "reverify_due": false,
+      "reverify_due": true,
       "playback_verified": true,
       "first_verified_at": "2026-10-06T09:46:01.978040+09:00",
       "ready_before_first_race": true,
@@ -805,8 +806,7 @@
           "name": "優勝戦"
         }
       ],
-      "provider_stream_start": "2026-10-06T10:02:00+09:00",
-      "source": "公式BR配信開始待ち 10:02"
+      "source": "automatic cloud SEED pending"
     },
     "boat.naruto": {
       "jcd": "14",
