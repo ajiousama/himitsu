@@ -7,160 +7,78 @@ on:
     paths:
       - '.github/workflows/probe_autorace_cloudfront_temp.yml'
 
-permissions:
-  contents: write
-
 jobs:
   probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-      - uses: actions/setup-python@v6
-        with:
-          python-version: '3.12'
-      - name: Install Selenium
-        run: pip install -q selenium
-      - name: Probe live pages and TIPSTAR network
-        shell: bash
+      - name: Search public URL archives
+        shell: python
         run: |
-          cat > /tmp/probe.py <<'PY'
-          import json, re, time, urllib.request
-          from selenium import webdriver
-          from selenium.webdriver.chrome.options import Options
-          from selenium.webdriver.common.by import By
+          import json, re, urllib.parse, urllib.request
 
-          KNOWN = {
-              '川口':'d1liritc3ayfk5.cloudfront.net',
-              '伊勢崎':'d1y1a3qyv8xfur.cloudfront.net',
-              '山陽':'d24g41mr42kxdj.cloudfront.net',
+          HOSTS = {
+              '川口': 'd1liritc3ayfk5.cloudfront.net',
+              '伊勢崎': 'd1y1a3qyv8xfur.cloudfront.net',
+              '山陽': 'd24g41mr42kxdj.cloudfront.net',
           }
-          out = {'static':{}, 'browser':{}, 'errors':[]}
-          pat = re.compile(r'https?://[^\"\'\\\s<>]+?(?:index\.m3u8|\.m3u8(?:\?[^\"\'\\\s<>]*)?)', re.I)
+          UA={'User-Agent':'Mozilla/5.0'}
 
-          def fetch(url):
-              req=urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0','Accept':'*/*'})
-              with urllib.request.urlopen(req,timeout=20) as r:
+          def get(url, timeout=30):
+              req=urllib.request.Request(url, headers=UA)
+              with urllib.request.urlopen(req, timeout=timeout) as r:
                   return r.read().decode('utf-8','replace')
 
-          # Static HTML + referenced JS from official live pages.
-          for venue, slug in [('川口','kawaguchi'),('伊勢崎','isesaki'),('山陽','sanyo')]:
-              start=f'https://autorace.jp/sp/live_{slug}.html'
-              vals=[]
-              try:
-                  text=fetch(start)
-                  texts=[text]
-                  for src in re.findall(r'<script[^>]+src=[\"\']([^\"\']+)', text, re.I):
-                      if src.startswith('//'): src='https:'+src
-                      elif src.startswith('/'): src='https://autorace.jp'+src
-                      elif not src.startswith('http'): src='https://autorace.jp/sp/'+src
-                      try: texts.append(fetch(src))
-                      except Exception: pass
-                  for t in texts:
-                      norm=t.replace('\\/','/').replace('\\u002F','/')
-                      for u in pat.findall(norm):
-                          if ('cloudfront.net' in u or KNOWN[venue] in u) and u not in vals: vals.append(u)
-                      for host in KNOWN.values():
-                          for m in re.findall(r'https?://'+re.escape(host)+r'/out/v1/[0-9a-f]{32}/index\.m3u8', norm, re.I):
-                              if m not in vals: vals.append(m)
-                  out['static'][venue]=vals
-              except Exception as e:
-                  out['errors'].append(f'static {venue}: {e}')
-
-          opts=Options()
-          opts.add_argument('--headless=new')
-          opts.add_argument('--no-sandbox')
-          opts.add_argument('--disable-dev-shm-usage')
-          opts.add_argument('--autoplay-policy=no-user-gesture-required')
-          opts.add_argument('--window-size=1440,1200')
-          opts.set_capability('goog:loggingPrefs', {'performance':'ALL'})
-          driver=None
-          try:
-              driver=webdriver.Chrome(options=opts)
-              def collect(label):
-                  urls=[]
-                  try:
-                      logs=driver.get_log('performance')
-                  except Exception:
-                      logs=[]
-                  for ent in logs:
-                      try:
-                          msg=json.loads(ent['message'])['message']
-                          if msg.get('method')!='Network.requestWillBeSent': continue
-                          u=msg['params']['request']['url']
-                          if ('cloudfront.net' in u or '.m3u8' in u) and u not in urls: urls.append(u)
-                      except Exception: pass
-                  # include DOM/page source matches
-                  try:
-                      src=driver.page_source.replace('&amp;','&').replace('\\/','/')
-                      for host in KNOWN.values():
-                          for m in re.findall(r'https?://'+re.escape(host)+r'/out/v1/[0-9a-f]{32}/index\.m3u8',src,re.I):
-                              if m not in urls: urls.append(m)
-                  except Exception: pass
-                  out['browser'][label]=urls
-
-              # Official pages in a real browser.
-              for venue, slug in [('川口','kawaguchi'),('伊勢崎','isesaki'),('山陽','sanyo')]:
-                  try:
-                      driver.get(f'https://autorace.jp/sp/live_{slug}.html')
-                      time.sleep(6)
-                      try:
-                          driver.execute_script("document.querySelectorAll('video').forEach(v=>{v.muted=true; v.play().catch(()=>{})})")
-                      except Exception: pass
-                      time.sleep(4)
-                      collect('official_'+venue)
-                  except Exception as e: out['errors'].append(f'browser official {venue}: {e}')
-
-              # TIPSTAR: load dynamic app, then click/open elements that contain venue names.
-              try:
-                  driver.get('https://www.tipstar.com/')
-                  time.sleep(10)
-                  collect('tipstar_home')
-                  for venue in KNOWN:
-                      try:
-                          els=driver.find_elements(By.XPATH, f"//*[contains(normalize-space(.), '{venue}')]")
-                          target=None
-                          for el in els:
-                              try:
-                                  if el.is_displayed() and el.size.get('width',0)>0 and el.size.get('height',0)>0:
-                                      target=el; break
-                              except Exception: pass
-                          if target:
-                              driver.execute_script('arguments[0].click()',target)
-                              time.sleep(8)
-                              collect('tipstar_'+venue)
-                              driver.back(); time.sleep(5)
-                          else:
-                              out['browser']['tipstar_'+venue]=[]
-                      except Exception as e: out['errors'].append(f'tipstar {venue}: {e}')
-              except Exception as e: out['errors'].append(f'tipstar home: {e}')
-          except Exception as e:
-              out['errors'].append(f'webdriver: {e}')
-          finally:
-              if driver:
-                  try: driver.quit()
-                  except Exception: pass
-
-          # Exact known-host matches only, de-duplicated for easy pickup.
-          exact={}
-          for venue,host in KNOWN.items():
+          for venue, host in HOSTS.items():
+              print('\n===', venue, host, '===')
               found=[]
-              blob=json.dumps(out,ensure_ascii=False)
-              for m in re.findall(r'https?://'+re.escape(host)+r'/out/v1/[0-9a-f]{32}/index\.m3u8',blob,re.I):
-                  if m not in found: found.append(m)
-              exact[venue]=found
-          out['exact']=exact
-          open('autorace_cloudfront_probe_temp.json','w',encoding='utf-8').write(json.dumps(out,ensure_ascii=False,indent=2)+'\n')
-          print(json.dumps(out,ensure_ascii=False,indent=2))
-          PY
-          python -u /tmp/probe.py
-      - name: Commit probe result
-        run: |
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add autorace_cloudfront_probe_temp.json
-          git diff --cached --quiet && exit 0
-          git commit -m 'Temp probe AutoRace CloudFront URLs [skip ci]'
-          git push origin HEAD:main
+              pat=re.compile(r'https?://'+re.escape(host)+r'/out/v1/[0-9a-f]{32}/index\.m3u8(?:\?[^\"\'\s<>]*)?',re.I)
+
+              # URLScan search API and result JSONs.
+              try:
+                  q=urllib.parse.quote('domain:'+host)
+                  data=json.loads(get(f'https://urlscan.io/api/v1/search/?q={q}&size=100'))
+                  blob=json.dumps(data, ensure_ascii=False).replace('\\/','/')
+                  for u in pat.findall(blob):
+                      if u not in found: found.append(u)
+                  for item in data.get('results',[])[:50]:
+                      api=item.get('_links',{}).get('self') or ('https://urlscan.io/api/v1/result/'+item.get('_id','')+'/')
+                      if not api: continue
+                      try:
+                          b=get(api,20).replace('\\/','/')
+                          for u in pat.findall(b):
+                              if u not in found: found.append(u)
+                      except Exception: pass
+              except Exception as e:
+                  print('urlscan error:',repr(e))
+
+              # Wayback CDX.
+              try:
+                  u='https://web.archive.org/cdx/search/cdx?'+urllib.parse.urlencode({
+                      'url':host+'/out/v1/*','output':'json','fl':'original','filter':'statuscode:200','collapse':'urlkey','limit':'5000'
+                  })
+                  b=get(u,40).replace('\\/','/')
+                  for x in pat.findall(b):
+                      if x not in found: found.append(x)
+              except Exception as e:
+                  print('wayback error:',repr(e))
+
+              # Common Crawl newest indexes.
+              try:
+                  cols=json.loads(get('https://index.commoncrawl.org/collinfo.json',30))[:8]
+                  for col in cols:
+                      api=col.get('cdx-api')
+                      if not api: continue
+                      try:
+                          u=api+'?'+urllib.parse.urlencode({'url':host+'/out/v1/*','output':'json','filter':'status:200'})
+                          b=get(u,40).replace('\\/','/')
+                          for x in pat.findall(b):
+                              if x not in found: found.append(x)
+                      except Exception as e:
+                          print('cc index error',col.get('id'),repr(e))
+              except Exception as e:
+                  print('commoncrawl error:',repr(e))
+
+              print('FOUND',venue,len(found))
+              for u in found:
+                  print(u)
