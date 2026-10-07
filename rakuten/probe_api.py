@@ -1,50 +1,53 @@
 #!/usr/bin/env python3
-import re
-from urllib.parse import urljoin, urlparse
+import json
 import requests
 
-BASE="https://channel.rakuten.co.jp/"
+FRONT="https://channel.rakuten.co.jp"
+API="https://backendapi.channel.rakuten.co.jp"
 UA="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/154 Safari/537.36"
-NEEDLES=("baseURL","baseUrl","apiBase","API_BASE","NEXT_PUBLIC","platform/media","platform/core")
+KEYS=("刺激","グラビア","年齢制限","NECO","セクシー","歓楽街","shigeki","gravure","adult","mens","sexy")
 
-def contexts(text, needle, span=1800):
-    out=[]
-    start=0
-    while True:
-        p=text.find(needle,start)
-        if p<0: break
-        out.append(text[max(0,p-span):p+span])
-        start=p+len(needle)
-        if len(out)>=10: break
-    return out
+def walk(obj,path="$"):
+    if isinstance(obj,dict):
+        blob=json.dumps(obj,ensure_ascii=False).lower()
+        if any(k.lower() in blob for k in KEYS):
+            slim={k:obj.get(k) for k in ("id","channelId","title","name","manifestUrl","platform","rating","genreName","order") if k in obj}
+            if slim:
+                print("HIT",path,json.dumps(slim,ensure_ascii=False))
+        for k,v in obj.items(): walk(v,path+"."+str(k))
+    elif isinstance(obj,list):
+        for i,v in enumerate(obj): walk(v,f"{path}[{i}]")
 
 def main():
     s=requests.Session()
-    h=s.get(BASE,headers={"User-Agent":UA},timeout=30)
-    print("HOME",h.status_code,len(h.content),h.url)
-    for needle in NEEDLES:
-        for c in contexts(h.text,needle,1000):
-            print("HOME_CONTEXT",needle,c.replace("\n"," ")[:2500])
-    scripts=re.findall(r'<script[^>]+src=["\']([^"\']+)["\']',h.text,re.I)
-    urls=set()
-    for src in scripts:
-        u=urljoin(BASE,src)
+    headers={
+        "User-Agent":UA,
+        "Accept":"application/json, text/plain, */*",
+        "Origin":FRONT,
+        "Referer":FRONT+"/",
+    }
+    home=s.get(FRONT+"/",headers=headers,timeout=30)
+    print("HOME",home.status_code,len(home.content))
+    for path in (
+        "/platform/media/api/v1/content/list",
+        "/platform/media/api/v1/content/list?limit=200",
+        "/platform/media/api/v1/content/list?page=1&limit=200",
+    ):
+        u=API+path
         try:
-            r=s.get(u,headers={"User-Agent":UA,"Referer":BASE},timeout=30)
-        except Exception:
-            continue
-        text=r.text
-        for m in re.finditer(r'https?://[^"\'\\\s)]+',text):
-            v=m.group(0)
-            host=urlparse(v).netloc.lower()
-            if "rakuten" in host or "r10s" in host:
-                urls.add(v[:700])
-        for needle in NEEDLES:
-            for c in contexts(text,needle,2200):
-                print("JS_CONTEXT",needle,u,c.replace("\n"," ")[:5000])
-    print("ABS_URLS",len(urls))
-    for u in sorted(urls):
-        print("ABS",u)
+            r=s.get(u,headers=headers,timeout=30)
+        except Exception as e:
+            print("REQ_ERR",u,type(e).__name__,str(e)[:300]); continue
+        print("REQ",r.status_code,u,"ctype",r.headers.get("content-type"),"bytes",len(r.content))
+        print("BODY_HEAD",r.text[:1600].replace("\n"," "))
+        if r.status_code==200:
+            try:
+                data=r.json()
+                print("TOP",list(data)[:30] if isinstance(data,dict) else type(data).__name__)
+                walk(data)
+            except Exception as e:
+                print("JSON_ERR",type(e).__name__,str(e))
     return 0
+
 if __name__=="__main__":
     raise SystemExit(main())
