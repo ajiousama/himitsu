@@ -21,7 +21,7 @@ def main():
     s.get(FRONT+"/",headers=h,timeout=30)
     for path in ("/platform/content/channels","/platform/content/now-playing"):
         u=API+path
-        r=s.get(u,headers=h,timeout=30)
+        r=s.get(u,headers=h,params={"platform":"WEB"},timeout=30)
         print("REQ",path,r.status_code,len(r.content),r.headers.get("content-type"))
         print("BODY_HEAD",r.text[:2000].replace("\n"," "))
         if r.status_code==200:
