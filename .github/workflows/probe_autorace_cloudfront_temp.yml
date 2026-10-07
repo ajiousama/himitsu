@@ -10,35 +10,50 @@ on:
 jobs:
   probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 3
+    timeout-minutes: 4
     steps:
-      - name: Recover endpoint IDs from Wayback objects
+      - name: Search Common Crawl indexes
         shell: bash
         run: |
           python - <<'PY'
-          import re,urllib.parse,urllib.request
+          import json,re,urllib.parse,urllib.request,time
           hosts={'川口':'d1liritc3ayfk5.cloudfront.net','伊勢崎':'d1y1a3qyv8xfur.cloudfront.net','山陽':'d24g41mr42kxdj.cloudfront.net'}
-          UA={'User-Agent':'Mozilla/5.0'}
+          UA={'User-Agent':'autorace-recovery/1.0'}
+          def get(url,t=12):
+              req=urllib.request.Request(url,headers=UA)
+              with urllib.request.urlopen(req,timeout=t) as r: return r.read().decode('utf-8','replace')
+          cols=json.loads(get('https://index.commoncrawl.org/collinfo.json',15))[:24]
+          print('INDEXES',[c.get('id') for c in cols])
+          found={k:[] for k in hosts}
+          for col in cols:
+              api=col.get('cdx-api')
+              if not api: continue
+              print('\nINDEX',col.get('id'),api)
+              for venue,host in hosts.items():
+                  if found[venue]: continue
+                  q=urllib.parse.urlencode({'url':host+'/out/v1/*','output':'json','filter':'status:200','limit':'50'})
+                  try:
+                      txt=get(api+'?'+q,12).replace('\\/','/')
+                      ids=[]
+                      for eid in re.findall(r'/out/v1/([0-9a-f]{32})/',txt,re.I):
+                          if eid not in ids: ids.append(eid)
+                      if ids:
+                          found[venue]=ids
+                          print('FOUND',venue,ids)
+                  except Exception as e:
+                      print('ERR',venue,type(e).__name__,str(e)[:200])
+                  time.sleep(.15)
+              if all(found.values()): break
+          print('\n=== RESULT ===')
           for venue,host in hosts.items():
-              params={'url':host+'/out/v1/*','output':'json','fl':'original','limit':'5'}
-              url='https://web.archive.org/cdx/search/cdx?'+urllib.parse.urlencode(params)
-              print('\n===',venue,url,'===')
-              try:
-                  req=urllib.request.Request(url,headers=UA)
-                  with urllib.request.urlopen(req,timeout=25) as r: txt=r.read().decode('utf-8','replace')
-                  print('CDX',txt[:12000])
-                  ids=[]
-                  for x in re.findall(r'/out/v1/([0-9a-f]{32})/',txt,re.I):
-                      if x not in ids: ids.append(x)
-                  print('IDS',ids)
-                  for eid in ids:
-                      m3u=f'https://{host}/out/v1/{eid}/index.m3u8'
-                      print('CANDIDATE',m3u)
-                      try:
-                          rq=urllib.request.Request(m3u,headers=UA)
-                          with urllib.request.urlopen(rq,timeout=12) as rr:
-                              body=rr.read(1024).decode('utf-8','replace')
-                              print('VERIFY',rr.status,rr.headers.get('content-type'),body[:300].replace('\n',' | '))
-                      except Exception as e: print('VERIFYERR',repr(e))
-              except Exception as e: print('CDXERR',repr(e))
+              print(venue,found[venue])
+              for eid in found[venue]:
+                  u=f'https://{host}/out/v1/{eid}/index.m3u8'
+                  print('CANDIDATE',u)
+                  try:
+                      req=urllib.request.Request(u,headers=UA)
+                      with urllib.request.urlopen(req,timeout=12) as r:
+                          body=r.read(800).decode('utf-8','replace')
+                          print('VERIFY',r.status,r.headers.get('content-type'),body[:250].replace('\n',' | '))
+                  except Exception as e: print('VERIFYERR',repr(e))
           PY
