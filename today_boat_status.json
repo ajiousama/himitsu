@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-07",
-  "generated_at": "2026-10-07T09:38:52.110051+09:00",
+  "generated_at": "2026-10-07T09:39:52.051355+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261007.json",
   "schedule_checked_at": "2026-10-07T09:24:52.103561+09:00",
@@ -19,7 +19,7 @@
   "alert_lead_minutes": 30,
   "card_count": 12,
   "held_count": 12,
-  "visible_count": 2,
+  "visible_count": 3,
   "active_count": 2,
   "ended_kept": [],
   "seed_required": false,
@@ -36,7 +36,7 @@
     },
     "day": {
       "held": 6,
-      "acquired": 0,
+      "acquired": 1,
       "active": 0,
       "ended": 0,
       "seed_required": 0,
@@ -53,7 +53,7 @@
   },
   "cloud_acquisition": {
     "requested": 8,
-    "fetched": 2,
+    "fetched": 3,
     "failures": [],
     "deferred": [
       {
@@ -80,11 +80,6 @@
         "jcd": "11",
         "name": "びわこ",
         "start": "2026-10-07T09:55:00+09:00"
-      },
-      {
-        "jcd": "16",
-        "name": "児島",
-        "start": "2026-10-07T09:40:00+09:00"
       }
     ]
   },
@@ -108,6 +103,22 @@
         "ok": true,
         "sequence": 8428314,
         "last_segment": "/a66df79e0d43433ea014cc371aa4567c/7e0b6ed0ca5143d59c0d65ea391b2ff6/manifest_1_8429306.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
+    },
+    "boat.kojima": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/b6a840b8c6684483912619528d1d6c24/1f384f67bb7d4f4981bb4d435c6372ec/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MTUwNzYwMCwic3RhcnQiOjE3OTEzMzM2MDAsImlvcyI6MTgsImNwIjoiMjEzNTI5MjAwXzIxMzU3MjM5OSIsInBwdyI6IjQwayJ9.IIpLNebsngV8qTNgJ-cGfL5SZtNRpcKf6XONrW-GPio",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-10-07T09:40:19.286075+09:00",
+      "checked_at": "2026-10-07T09:40:19.286075+09:00",
+      "first_verified_at": "2026-10-07T09:40:19.286075+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 8408127,
+        "last_segment": "/b6a840b8c6684483912619528d1d6c24/1f384f67bb7d4f4981bb4d435c6372ec/manifest_4_8408129.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -862,7 +873,7 @@
       "jcd": "16",
       "name": "児島",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
       "active": false,
       "cancelled": false,
@@ -880,9 +891,9 @@
       "guidance_switch_at": "2026-10-07T17:35:00+09:00",
       "seed_required": false,
       "reverify_due": false,
-      "playback_verified": false,
-      "first_verified_at": null,
-      "ready_before_first_race": false,
+      "playback_verified": true,
+      "first_verified_at": "2026-10-07T09:40:19.286075+09:00",
+      "ready_before_first_race": true,
       "acquire_from": "2026-10-07T08:22:00+09:00",
       "races": [
         {
@@ -946,8 +957,9 @@
           "name": "デイリー選抜"
         }
       ],
-      "provider_stream_start": "2026-10-07T09:40:00+09:00",
-      "source": "公式BR配信開始待ち 09:40"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/b6a840b8c6684483912619528d1d6c24/1f384f67bb7d4f4981bb4d435c6372ec/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MTUwNzYwMCwic3RhcnQiOjE3OTEzMzM2MDAsImlvcyI6MTgsImNwIjoiMjEzNTI5MjAwXzIxMzU3MjM5OSIsInBwdyI6IjQwayJ9.IIpLNebsngV8qTNgJ-cGfL5SZtNRpcKf6XONrW-GPio",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     },
     "boat.tokuyama": {
       "jcd": "18",
@@ -963,14 +975,14 @@
       "last_race": "14:29",
       "alert_from": "2026-10-07T08:17:00+09:00",
       "next_race": {
-        "race": 3,
-        "start": "09:39"
+        "race": 4,
+        "start": "10:05"
       },
       "stream_window": "live_or_prestart",
       "intermission": null,
       "guidance_switch_at": "2026-10-07T15:14:00+09:00",
       "seed_required": false,
-      "reverify_due": true,
+      "reverify_due": false,
       "playback_verified": true,
       "first_verified_at": "2026-10-07T08:12:19.499010+09:00",
       "ready_before_first_race": true,
