@@ -1,4 +1,4 @@
-name: Apply verified Kawaguchi AutoRace CloudFront
+name: Apply Kawaguchi AutoRace CloudFront via API
 
 on:
   push:
@@ -13,30 +13,31 @@ jobs:
   apply:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-      - name: Replace Kawaguchi Akamai URL
+      - name: Replace Kawaguchi Akamai URL in freewifi
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
         shell: bash
         run: |
           python - <<'PY'
-          from pathlib import Path
-          p=Path('freewifi')
-          s=p.read_text(encoding='utf-8')
+          import base64,json,os,urllib.request
+          repo=os.environ['REPO']; token=os.environ['GH_TOKEN']
+          api=f'https://api.github.com/repos/{repo}/contents/freewifi'
+          headers={'Authorization':f'Bearer {token}','Accept':'application/vnd.github+json','User-Agent':'github-actions'}
+          req=urllib.request.Request(api,headers=headers)
+          with urllib.request.urlopen(req,timeout=30) as r: obj=json.load(r)
+          s=base64.b64decode(obj['content']).decode('utf-8')
           old='https://autorace-live.akamaized.net/hls/live/2036917/id2/streaming/media.m3u8'
           new='https://d1liritc3ayfk5.cloudfront.net/out/v1/03398b6ae2364881930ef1c84291695b/index.m3u8'
           n=s.count(old)
-          if n != 1:
-              raise SystemExit(f'expected exactly one Kawaguchi Akamai URL, found {n}')
-          p.write_text(s.replace(old,new),encoding='utf-8')
+          if n==0 and new in s:
+              print('already applied')
+              raise SystemExit(0)
+          if n!=1:
+              raise SystemExit(f'expected exactly one old Kawaguchi URL, found {n}')
+          s=s.replace(old,new)
+          payload=json.dumps({'message':'Switch Kawaguchi AutoRace to CloudFront [skip ci]','content':base64.b64encode(s.encode()).decode(),'sha':obj['sha']}).encode()
+          req=urllib.request.Request(api,data=payload,headers={**headers,'Content-Type':'application/json'},method='PUT')
+          with urllib.request.urlopen(req,timeout=30) as r:
+              out=json.load(r); print('commit',out['commit']['sha'])
           PY
-      - name: Commit FreeWiFi update
-        shell: bash
-        run: |
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add freewifi
-          git diff --cached --quiet && exit 0
-          git commit -m 'Switch Kawaguchi AutoRace to CloudFront [skip ci]'
-          git pull --rebase origin main
-          git push origin HEAD:main
