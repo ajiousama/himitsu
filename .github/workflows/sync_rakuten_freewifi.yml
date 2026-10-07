@@ -1,0 +1,54 @@
+name: Sync Rakuten Rch to FreeWiFi
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "rakuten/playlist.m3u"
+      - "rakuten/sync_freewifi.py"
+      - ".github/workflows/sync_rakuten_freewifi.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Sync Rakuten Rch block and publish
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          for attempt in 1 2 3 4 5; do
+            echo "Rakuten FreeWiFi publish attempt $attempt/5"
+            git fetch origin main
+            git reset --hard origin/main
+            python rakuten/sync_freewifi.py
+            git add freewifi
+
+            if git diff --cached --quiet; then
+              echo "Rakuten Rch already current in FreeWiFi"
+              exit 0
+            fi
+
+            git commit -m "Sync Rakuten Rch to FreeWiFi [skip ci] [skip render]"
+            if git push origin HEAD:main; then
+              echo "Rakuten Rch published to FreeWiFi"
+              exit 0
+            fi
+
+            echo "main moved; retrying on latest main"
+            sleep 1
+          done
+
+          echo "Rakuten Rch FreeWiFi publish failed after retries" >&2
+          exit 1
