@@ -3362,6 +3362,17 @@ def refine_with_titlecard(
 # refinement so a later automated pass cannot undo a user-verified boundary.
 MANUAL_EPISODE_START_OVERRIDES: dict[int, int] = {
     228: 3496,  # #228 was 13s early: tail of #227 appeared at its head.
+    # #247-256: playback-confirmed/user-confirmed source timeline.
+    247: 0,
+    248: 3492,
+    249: 6973,
+    250: 14050,
+    251: 17531,
+    252: 21912,
+    253: 25393,
+    254: 28874,
+    255: 32355,
+    256: 35836,
 }
 
 
@@ -3535,8 +3546,11 @@ def make_fixed_test_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict
         append_special(
             "2017-bakarhythm-vs-arino",
             "バカリズムVS有野課長 世紀の一戦！",
-            2 * 60 * 60,
+            3602,
         )
+        # User-confirmed 15-minute New Year insert between #251 and #252.
+        # It is represented by the manual episode starts below; never compact
+        # the source timeline around it.
         for ep in range(250, 257):
             append_episode(ep)
 
