@@ -3373,6 +3373,18 @@ MANUAL_EPISODE_START_OVERRIDES: dict[int, int] = {
     254: 28874,
     255: 32355,
     256: 35836,
+    # #257-266: full recurring-title scan found all ten heads (coverage=1.0).
+    # This locks the corrected cumulative drift instead of returning to 58:03 steps.
+    257: 0,
+    258: 3483,
+    259: 6964,
+    260: 10444,
+    261: 13924,
+    262: 17404,
+    263: 20885,
+    264: 24365,
+    265: 27845,
+    266: 31326,
 }
 
 
