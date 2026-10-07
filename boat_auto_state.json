@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-08",
-  "generated_at": "2026-10-08T08:08:37.311450+09:00",
+  "generated_at": "2026-10-08T08:11:37.161183+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261008.json",
   "schedule_checked_at": "2026-10-08T08:05:37.115665+09:00",
@@ -52,10 +52,21 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 5,
+    "requested": 6,
     "fetched": 1,
-    "failures": [],
+    "failures": [
+      {
+        "jcd": "23",
+        "name": "唐津",
+        "error": "HTTPError: playback check failed"
+      }
+    ],
     "deferred": [
+      {
+        "jcd": "05",
+        "name": "多摩川",
+        "start": "2026-10-08T10:07:00+09:00"
+      },
       {
         "jcd": "08",
         "name": "常滑",
@@ -70,11 +81,6 @@
         "jcd": "11",
         "name": "びわこ",
         "start": "2026-10-08T09:55:00+09:00"
-      },
-      {
-        "jcd": "23",
-        "name": "唐津",
-        "start": "2026-10-08T08:12:00+09:00"
       }
     ]
   },
@@ -91,13 +97,13 @@
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/e8194b7c19734f599bd17a30b82afb9e/1c2aaa33f17e4788b3592d1cf58cd445/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MTU5MDQwMCwic3RhcnQiOjE3OTE0MTQwMDAsImlvcyI6MTgsImNwIjoiMjEzNjA5NjAwXzIxMzY1Mjc5OSIsInBwdyI6IjQwayJ9.y7H03s6QpwU7rXOZ71EDm7dxdbqO53eH06PamyPGmz4",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-10-08T08:01:04.371485+09:00",
-      "checked_at": "2026-10-08T08:06:13.074688+09:00",
+      "checked_at": "2026-10-08T08:12:04.504608+09:00",
       "first_verified_at": "2026-10-08T08:01:04.371485+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
         "sequence": 8442714,
-        "last_segment": "/e8194b7c19734f599bd17a30b82afb9e/1c2aaa33f17e4788b3592d1cf58cd445/manifest_1_8442775.ts",
+        "last_segment": "/e8194b7c19734f599bd17a30b82afb9e/1c2aaa33f17e4788b3592d1cf58cd445/manifest_1_8442834.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -373,7 +379,8 @@
           "name": "準優勝戦"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "provider_stream_start": "2026-10-08T10:07:00+09:00",
+      "source": "公式BR配信開始待ち 10:07"
     },
     "boat.gamagori": {
       "jcd": "07",
@@ -1098,8 +1105,7 @@
           "name": "ドリーム"
         }
       ],
-      "provider_stream_start": "2026-10-08T08:12:00+09:00",
-      "source": "公式BR配信開始待ち 08:12"
+      "source": "automatic cloud SEED pending"
     },
     "boat.omura": {
       "jcd": "24",
