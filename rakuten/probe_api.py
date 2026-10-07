@@ -32,7 +32,7 @@ def main():
     for typ in list(range(0,16))+["channel","channels","live","tv","all"]:
         u=API+"/platform/media/api/v1/content/list"
         try:
-            r=s.get(u,headers=headers,params={"type":typ},timeout=30)
+            r=s.get(u,headers=headers,params={"type":typ,"platform":1},timeout=30)
         except Exception as e:
             print("ERR",typ,type(e).__name__); continue
         print("TYPE",repr(typ),"STATUS",r.status_code,"BYTES",len(r.content))
