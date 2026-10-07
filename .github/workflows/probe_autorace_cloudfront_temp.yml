@@ -10,48 +10,42 @@ on:
 jobs:
   probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 2
+    timeout-minutes: 3
     steps:
-      - name: Search URL archives fast
+      - name: Inspect AutoRace TV HTML and scripts
         shell: python
         run: |
-          import json, re, urllib.parse, urllib.request
-          HOSTS={'川口':'d1liritc3ayfk5.cloudfront.net','伊勢崎':'d1y1a3qyv8xfur.cloudfront.net','山陽':'d24g41mr42kxdj.cloudfront.net'}
-          UA={'User-Agent':'Mozilla/5.0'}
-          def get(url, timeout=8):
+          import re, urllib.parse, urllib.request
+          BASE='https://sp.atrc.jp'
+          PAGES=['/tv/','/tv/index/date/20261007/p1/2','/tv/index/date/20261007/p1/3','/tv/index/date/20261007/p1/6']
+          UA={'User-Agent':'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Version/18.0 Mobile/15E148 Safari/604.1'}
+          def get(url,t=15):
               req=urllib.request.Request(url,headers=UA)
-              with urllib.request.urlopen(req,timeout=timeout) as r:
-                  return r.read().decode('utf-8','replace')
-          try:
-              cols=json.loads(get('https://index.commoncrawl.org/collinfo.json',8))
-              ccapi=cols[0].get('cdx-api') if cols else None
-          except Exception as e:
-              print('collinfo',repr(e)); ccapi=None
-          for venue,host in HOSTS.items():
-              print('\n===',venue,host,'===')
-              pat=re.compile(r'https?://'+re.escape(host)+r'/out/v1/[0-9a-f]{32}/index\.m3u8(?:\?[^\"\'\s<>]*)?',re.I)
-              found=[]
-              def scan(text):
-                  for u in pat.findall(text.replace('\\/','/')):
-                      if u not in found: found.append(u)
+              with urllib.request.urlopen(req,timeout=t) as r:
+                  return r.geturl(),r.read().decode('utf-8','replace')
+          seen=set(); texts=[]
+          for p in PAGES:
+              u=urllib.parse.urljoin(BASE,p)
               try:
-                  q=urllib.parse.quote('domain:'+host)
-                  data=json.loads(get('https://urlscan.io/api/v1/search/?q='+q+'&size=100',8))
-                  scan(json.dumps(data,ensure_ascii=False))
-                  for item in data.get('results',[])[:10]:
-                      rid=item.get('_id')
-                      if rid:
-                          try: scan(get('https://urlscan.io/api/v1/result/'+rid+'/',5))
-                          except Exception: pass
-              except Exception as e: print('urlscan',repr(e))
+                  final,html=get(u); print('\nPAGE',u,'=>',final,'LEN',len(html)); texts.append((final,html))
+                  for line in html.splitlines():
+                      low=line.lower()
+                      if any(k in low for k in ['cloudfront','m3u8','video','movie','stream','iframe','live']): print('HTML',line[:1800])
+                  for attr in re.findall(r'(?:src|href)=[\"\']([^\"\']+)',html,re.I):
+                      x=urllib.parse.urljoin(final,attr)
+                      if x not in seen and (x.endswith('.js') or '/js/' in x or 'movie' in x or 'video' in x or 'tv' in x):
+                          seen.add(x)
+              except Exception as e: print('PAGEERR',u,repr(e))
+          print('\nASSETS',len(seen))
+          for u in sorted(seen):
+              print('ASSET',u)
+              if not (u.endswith('.js') or '/js/' in u): continue
               try:
-                  q=urllib.parse.urlencode({'url':host+'/out/v1/*','output':'json','fl':'original','filter':'statuscode:200','collapse':'urlkey','limit':'1000'})
-                  scan(get('https://web.archive.org/cdx/search/cdx?'+q,8))
-              except Exception as e: print('wayback',repr(e))
-              if ccapi:
-                  try:
-                      q=urllib.parse.urlencode({'url':host+'/out/v1/*','output':'json','filter':'status:200'})
-                      scan(get(ccapi+'?'+q,8))
-                  except Exception as e: print('cc',repr(e))
-              print('FOUND',venue,len(found))
-              for u in found: print(u)
+                  _,txt=get(u,10)
+                  if any(k in txt.lower() for k in ['cloudfront','m3u8','stream','video']):
+                      print('JSLEN',len(txt))
+                      for m in re.findall(r'https?://[^\"\'\\\s<>]+',txt.replace('\\/','/')):
+                          if 'cloudfront' in m or 'm3u8' in m: print('URL',m[:1200])
+                      for line in txt.splitlines():
+                          if any(k in line.lower() for k in ['cloudfront','m3u8','streamurl','video_url','movie_url']): print('JS',line[:1800])
+              except Exception as e: print('ASSETERR',repr(e))
