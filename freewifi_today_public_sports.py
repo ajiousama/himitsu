@@ -195,21 +195,14 @@ def race_datetime(today, hhmm):
 def gch_today_visibility():
     """Return why GCH HQ/LQ should appear in today's-events group.
 
+    Primary source is the GCH schedule EPG. If that feed is missing today's
+    local-racing programme, fall back to today's locally generated NAR EPG:
+    any Jpn dirt graded race is a GCH-visible local-racing day.
+
     Normal JRA coverage is shown only on the actual JRA race date.
     Overseas/local-racing live specials may be shown from the prior evening
     through 09:00 the next morning so overnight broadcasts are not missed.
     """
-    try:
-        req = urllib.request.Request(
-            GCH_EPG_URL,
-            headers={'User-Agent': 'Mozilla/5.0 (FreeWiFi GCH visibility checker)'},
-        )
-        with urllib.request.urlopen(req, timeout=20) as response:
-            root = ET.fromstring(response.read())
-    except Exception as exc:
-        print(f'GCH EPG check failed: {type(exc).__name__}: {exc}')
-        return None
-
     now = datetime.now(JST)
     today = now.date()
     overnight_limit = datetime.combine(today + timedelta(days=1), time(9, 0), tzinfo=JST)
@@ -218,48 +211,106 @@ def gch_today_visibility():
 
     normal_jra = []
     specials = []
-    for p in root.findall('programme'):
-        # HQ and LQ carry the same schedule; inspect HQ only to avoid duplicates.
-        if (p.get('channel') or '') != 'jra.gch.hq':
-            continue
-        start = parse_xmltv_time(p.get('start'))
-        stop = parse_xmltv_time(p.get('stop'))
-        if not start:
-            continue
-        title = (p.findtext('title') or '').strip()
-        desc = (p.findtext('desc') or '').strip()
-        joined = f'{title} {desc}'.upper()
-        effective_stop = stop or (start + timedelta(hours=2))
-        is_live = ('[生]' in title or '［生］' in title or '生]' in title)
 
-        # 1) Actual JRA race day: show GCH only on that calendar date.
-        if (
-            start.date() == today
-            and is_live
-            and any(k.upper() in joined for k in GCH_JRA_LIVE_KEYWORDS)
-        ):
-            if effective_stop >= now - timedelta(minutes=15):
-                normal_jra.append((start, effective_stop, title, 'JRA開催日'))
+    try:
+        req = urllib.request.Request(
+            GCH_EPG_URL,
+            headers={'User-Agent': 'Mozilla/5.0 (FreeWiFi GCH visibility checker)'},
+        )
+        with urllib.request.urlopen(req, timeout=20) as response:
+            root = ET.fromstring(response.read())
 
-        # 2) Overseas/local-racing live specials: allow overnight next-morning window.
-        target_special = any(k.upper() in joined for k in GCH_SPECIAL_KEYWORDS)
-        live_broadcast = is_live and ('中継' in title)
-        if target_special and live_broadcast:
-            if effective_stop >= now - timedelta(minutes=15) and start <= overnight_limit:
-                specials.append((start, effective_stop, title, 'GCH特番'))
+        for p in root.findall('programme'):
+            # HQ and LQ carry the same schedule; inspect HQ only to avoid duplicates.
+            if (p.get('channel') or '') != 'jra.gch.hq':
+                continue
+            start = parse_xmltv_time(p.get('start'))
+            stop = parse_xmltv_time(p.get('stop'))
+            if not start:
+                continue
+            title = (p.findtext('title') or '').strip()
+            desc = (p.findtext('desc') or '').strip()
+            joined = f'{title} {desc}'.upper()
+            effective_stop = stop or (start + timedelta(hours=2))
+            is_live = ('[生]' in title or '［生］' in title or '生]' in title)
+
+            # 1) Actual JRA race day: show GCH only on that calendar date.
+            if (
+                start.date() == today
+                and is_live
+                and any(k.upper() in joined for k in GCH_JRA_LIVE_KEYWORDS)
+            ):
+                if effective_stop >= now - timedelta(minutes=15):
+                    normal_jra.append((start, effective_stop, title, 'JRA開催日'))
+
+            # 2) Overseas/local-racing live specials: allow overnight next-morning window.
+            target_special = any(k.upper() in joined for k in GCH_SPECIAL_KEYWORDS)
+            live_broadcast = is_live and ('中継' in title)
+            if target_special and live_broadcast:
+                if effective_stop >= now - timedelta(minutes=15) and start <= overnight_limit:
+                    specials.append((start, effective_stop, title, 'GCH特番'))
+    except Exception as exc:
+        print(f'GCH EPG check failed: {type(exc).__name__}: {exc}')
 
     matches = normal_jra + specials
-    if not matches:
-        return None
-    matches.sort(key=lambda item: item[0])
-    start, stop, title, reason = matches[0]
-    return {
-        'title': title,
-        'start': start,
-        'stop': stop,
-        'start_text': start.strftime('%m/%d %H:%M'),
-        'reason': reason,
-    }
+    if matches:
+        matches.sort(key=lambda item: item[0])
+        start, stop, title, reason = matches[0]
+        return {
+            'title': title,
+            'start': start,
+            'stop': stop,
+            'start_text': start.strftime('%m/%d %H:%M'),
+            'reason': reason,
+        }
+
+    # 3) Safety net for local dirt graded races.
+    # The GCH guide feed has occasionally omitted the current day even though
+    # NAR has a JpnI/JpnII/JpnIII race and Green Channel is carrying it.
+    # public_sports_epg_local.xml is generated directly from NAR earlier in
+    # this workflow, so use it as the authoritative same-day fallback.
+    try:
+        if PUBLIC_EPG.exists():
+            local_root = ET.parse(PUBLIC_EPG).getroot()
+            dirt_grade = []
+            for p in local_root.findall('programme'):
+                cid = p.get('channel') or ''
+                if not cid.startswith('chihou.'):
+                    continue
+                start = parse_xmltv_time(p.get('start'))
+                stop = parse_xmltv_time(p.get('stop'))
+                if not start or start.date() != today:
+                    continue
+                title = (p.findtext('title') or '').strip()
+                desc = (p.findtext('desc') or '').strip()
+                joined = f'{title} {desc}'.upper()
+                if 'JPN' not in joined or '重賞' not in joined:
+                    continue
+                effective_stop = stop or (start + timedelta(minutes=45))
+                if effective_stop < now - timedelta(minutes=15):
+                    continue
+                # GCH local-racing programmes commonly begin roughly an hour
+                # before the target graded race. This time is used for ordering
+                # only; visibility applies for the whole event day.
+                gch_start = start - timedelta(minutes=65)
+                gch_stop = effective_stop + timedelta(minutes=60)
+                dirt_grade.append((gch_start, gch_stop, title, '地方交流重賞'))
+
+            if dirt_grade:
+                dirt_grade.sort(key=lambda item: item[0])
+                start, stop, title, reason = dirt_grade[0]
+                print(f'GCH fallback visible from local NAR EPG: {title}')
+                return {
+                    'title': title,
+                    'start': start,
+                    'stop': stop,
+                    'start_text': start.strftime('%m/%d %H:%M'),
+                    'reason': reason,
+                }
+    except Exception as exc:
+        print(f'GCH local dirt-grade fallback failed: {type(exc).__name__}: {exc}')
+
+    return None
 
 def epg_state():
     if not PUBLIC_EPG.exists():
