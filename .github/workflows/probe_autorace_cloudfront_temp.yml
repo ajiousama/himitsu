@@ -10,50 +10,32 @@ on:
 jobs:
   probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 3
+    timeout-minutes: 2
     steps:
-      - name: Search Common Crawl indexes in parallel
+      - name: Search public URL intelligence index
         shell: bash
         run: |
           python - <<'PY'
-          import json,re,urllib.parse,urllib.request
-          from concurrent.futures import ThreadPoolExecutor, as_completed
+          import json,re,urllib.request
           hosts={'川口':'d1liritc3ayfk5.cloudfront.net','伊勢崎':'d1y1a3qyv8xfur.cloudfront.net','山陽':'d24g41mr42kxdj.cloudfront.net'}
-          UA={'User-Agent':'autorace-recovery/1.0'}
-          def get(url,t=10):
-              req=urllib.request.Request(url,headers=UA)
-              with urllib.request.urlopen(req,timeout=t) as r: return r.read().decode('utf-8','replace')
-          cols=json.loads(get('https://index.commoncrawl.org/collinfo.json',15))[:36]
-          def task(col,venue,host):
-              api=col.get('cdx-api')
-              q=urllib.parse.urlencode({'url':host+'/out/v1/*','output':'json','limit':'100'})
-              try:
-                  txt=get(api+'?'+q,10).replace('\\/','/')
-                  ids=[]
-                  for eid in re.findall(r'/out/v1/([0-9a-f]{32})/',txt,re.I):
-                      if eid not in ids: ids.append(eid)
-                  return venue,host,col.get('id'),ids,None
-              except Exception as e:
-                  return venue,host,col.get('id'),[],f'{type(e).__name__}: {e}'
-          found={k:[] for k in hosts}
-          with ThreadPoolExecutor(max_workers=18) as ex:
-              futs=[ex.submit(task,c,v,h) for c in cols for v,h in hosts.items()]
-              for f in as_completed(futs):
-                  venue,host,cid,ids,err=f.result()
-                  if ids:
-                      for x in ids:
-                          if x not in found[venue]: found[venue].append(x)
-                      print('FOUND',venue,cid,ids)
-          print('\n=== RESULT ===')
+          UA={'User-Agent':'Mozilla/5.0'}
           for venue,host in hosts.items():
-              print(venue,found[venue])
-              for eid in found[venue]:
-                  u=f'https://{host}/out/v1/{eid}/index.m3u8'
-                  print('CANDIDATE',u)
-                  try:
-                      req=urllib.request.Request(u,headers=UA)
-                      with urllib.request.urlopen(req,timeout=12) as r:
-                          body=r.read(700).decode('utf-8','replace')
-                          print('VERIFY',r.status,r.headers.get('content-type'),body[:220].replace('\n',' | '))
-                  except Exception as e: print('VERIFYERR',repr(e))
+              print('\n===',venue,host,'===')
+              url=f'https://otx.alienvault.com/api/v1/indicators/hostname/{host}/url_list?limit=500&page=1'
+              try:
+                  req=urllib.request.Request(url,headers=UA)
+                  with urllib.request.urlopen(req,timeout=20) as r: txt=r.read().decode('utf-8','replace')
+                  print('LEN',len(txt))
+                  ids=sorted(set(re.findall(r'/out/v1/([0-9a-f]{32})/',txt,re.I)))
+                  print('IDS',ids)
+                  for eid in ids:
+                      u=f'https://{host}/out/v1/{eid}/index.m3u8'
+                      print('CANDIDATE',u)
+                      try:
+                          rq=urllib.request.Request(u,headers=UA)
+                          with urllib.request.urlopen(rq,timeout=12) as rr:
+                              body=rr.read(700).decode('utf-8','replace')
+                              print('VERIFY',rr.status,rr.headers.get('content-type'),body[:220].replace('\n',' | '))
+                      except Exception as e: print('VERIFYERR',repr(e))
+              except Exception as e: print('OTXERR',repr(e))
           PY
