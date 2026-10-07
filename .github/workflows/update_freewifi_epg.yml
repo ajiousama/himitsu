@@ -298,7 +298,8 @@ jobs:
               'channel.rakuten.co.jp',
               'www.simulradio.info/data/161.jpg',
           )
-          leaked = [host for host in forbidden_logo_hosts if host in text]
+          logo_values = '\n'.join(re.findall(r'tvg-logo="([^"]*)"', text))
+          leaked = [host for host in forbidden_logo_hosts if host in logo_values]
           if leaked:
               raise SystemExit('Stable logo guard: external non-white logo returned: ' + ', '.join(leaked))
 
