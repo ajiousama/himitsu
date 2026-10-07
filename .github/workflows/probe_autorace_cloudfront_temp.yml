@@ -10,75 +10,48 @@ on:
 jobs:
   probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 2
     steps:
-      - name: Search public URL archives
+      - name: Search URL archives fast
         shell: python
         run: |
           import json, re, urllib.parse, urllib.request
-
-          HOSTS = {
-              '川口': 'd1liritc3ayfk5.cloudfront.net',
-              '伊勢崎': 'd1y1a3qyv8xfur.cloudfront.net',
-              '山陽': 'd24g41mr42kxdj.cloudfront.net',
-          }
+          HOSTS={'川口':'d1liritc3ayfk5.cloudfront.net','伊勢崎':'d1y1a3qyv8xfur.cloudfront.net','山陽':'d24g41mr42kxdj.cloudfront.net'}
           UA={'User-Agent':'Mozilla/5.0'}
-
-          def get(url, timeout=30):
-              req=urllib.request.Request(url, headers=UA)
-              with urllib.request.urlopen(req, timeout=timeout) as r:
+          def get(url, timeout=8):
+              req=urllib.request.Request(url,headers=UA)
+              with urllib.request.urlopen(req,timeout=timeout) as r:
                   return r.read().decode('utf-8','replace')
-
-          for venue, host in HOSTS.items():
-              print('\n===', venue, host, '===')
-              found=[]
+          try:
+              cols=json.loads(get('https://index.commoncrawl.org/collinfo.json',8))
+              ccapi=cols[0].get('cdx-api') if cols else None
+          except Exception as e:
+              print('collinfo',repr(e)); ccapi=None
+          for venue,host in HOSTS.items():
+              print('\n===',venue,host,'===')
               pat=re.compile(r'https?://'+re.escape(host)+r'/out/v1/[0-9a-f]{32}/index\.m3u8(?:\?[^\"\'\s<>]*)?',re.I)
-
-              # URLScan search API and result JSONs.
+              found=[]
+              def scan(text):
+                  for u in pat.findall(text.replace('\\/','/')):
+                      if u not in found: found.append(u)
               try:
                   q=urllib.parse.quote('domain:'+host)
-                  data=json.loads(get(f'https://urlscan.io/api/v1/search/?q={q}&size=100'))
-                  blob=json.dumps(data, ensure_ascii=False).replace('\\/','/')
-                  for u in pat.findall(blob):
-                      if u not in found: found.append(u)
-                  for item in data.get('results',[])[:50]:
-                      api=item.get('_links',{}).get('self') or ('https://urlscan.io/api/v1/result/'+item.get('_id','')+'/')
-                      if not api: continue
-                      try:
-                          b=get(api,20).replace('\\/','/')
-                          for u in pat.findall(b):
-                              if u not in found: found.append(u)
-                      except Exception: pass
-              except Exception as e:
-                  print('urlscan error:',repr(e))
-
-              # Wayback CDX.
+                  data=json.loads(get('https://urlscan.io/api/v1/search/?q='+q+'&size=100',8))
+                  scan(json.dumps(data,ensure_ascii=False))
+                  for item in data.get('results',[])[:10]:
+                      rid=item.get('_id')
+                      if rid:
+                          try: scan(get('https://urlscan.io/api/v1/result/'+rid+'/',5))
+                          except Exception: pass
+              except Exception as e: print('urlscan',repr(e))
               try:
-                  u='https://web.archive.org/cdx/search/cdx?'+urllib.parse.urlencode({
-                      'url':host+'/out/v1/*','output':'json','fl':'original','filter':'statuscode:200','collapse':'urlkey','limit':'5000'
-                  })
-                  b=get(u,40).replace('\\/','/')
-                  for x in pat.findall(b):
-                      if x not in found: found.append(x)
-              except Exception as e:
-                  print('wayback error:',repr(e))
-
-              # Common Crawl newest indexes.
-              try:
-                  cols=json.loads(get('https://index.commoncrawl.org/collinfo.json',30))[:8]
-                  for col in cols:
-                      api=col.get('cdx-api')
-                      if not api: continue
-                      try:
-                          u=api+'?'+urllib.parse.urlencode({'url':host+'/out/v1/*','output':'json','filter':'status:200'})
-                          b=get(u,40).replace('\\/','/')
-                          for x in pat.findall(b):
-                              if x not in found: found.append(x)
-                      except Exception as e:
-                          print('cc index error',col.get('id'),repr(e))
-              except Exception as e:
-                  print('commoncrawl error:',repr(e))
-
+                  q=urllib.parse.urlencode({'url':host+'/out/v1/*','output':'json','fl':'original','filter':'statuscode:200','collapse':'urlkey','limit':'1000'})
+                  scan(get('https://web.archive.org/cdx/search/cdx?'+q,8))
+              except Exception as e: print('wayback',repr(e))
+              if ccapi:
+                  try:
+                      q=urllib.parse.urlencode({'url':host+'/out/v1/*','output':'json','filter':'status:200'})
+                      scan(get(ccapi+'?'+q,8))
+                  except Exception as e: print('cc',repr(e))
               print('FOUND',venue,len(found))
-              for u in found:
-                  print(u)
+              for u in found: print(u)
