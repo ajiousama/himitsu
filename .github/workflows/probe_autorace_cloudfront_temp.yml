@@ -10,40 +10,40 @@ on:
 jobs:
   probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 4
+    timeout-minutes: 3
     steps:
-      - name: Search Common Crawl indexes
+      - name: Search Common Crawl indexes in parallel
         shell: bash
         run: |
           python - <<'PY'
-          import json,re,urllib.parse,urllib.request,time
+          import json,re,urllib.parse,urllib.request
+          from concurrent.futures import ThreadPoolExecutor, as_completed
           hosts={'川口':'d1liritc3ayfk5.cloudfront.net','伊勢崎':'d1y1a3qyv8xfur.cloudfront.net','山陽':'d24g41mr42kxdj.cloudfront.net'}
           UA={'User-Agent':'autorace-recovery/1.0'}
-          def get(url,t=12):
+          def get(url,t=10):
               req=urllib.request.Request(url,headers=UA)
               with urllib.request.urlopen(req,timeout=t) as r: return r.read().decode('utf-8','replace')
-          cols=json.loads(get('https://index.commoncrawl.org/collinfo.json',15))[:24]
-          print('INDEXES',[c.get('id') for c in cols])
-          found={k:[] for k in hosts}
-          for col in cols:
+          cols=json.loads(get('https://index.commoncrawl.org/collinfo.json',15))[:36]
+          def task(col,venue,host):
               api=col.get('cdx-api')
-              if not api: continue
-              print('\nINDEX',col.get('id'),api)
-              for venue,host in hosts.items():
-                  if found[venue]: continue
-                  q=urllib.parse.urlencode({'url':host+'/out/v1/*','output':'json','filter':'status:200','limit':'50'})
-                  try:
-                      txt=get(api+'?'+q,12).replace('\\/','/')
-                      ids=[]
-                      for eid in re.findall(r'/out/v1/([0-9a-f]{32})/',txt,re.I):
-                          if eid not in ids: ids.append(eid)
-                      if ids:
-                          found[venue]=ids
-                          print('FOUND',venue,ids)
-                  except Exception as e:
-                      print('ERR',venue,type(e).__name__,str(e)[:200])
-                  time.sleep(.15)
-              if all(found.values()): break
+              q=urllib.parse.urlencode({'url':host+'/out/v1/*','output':'json','limit':'100'})
+              try:
+                  txt=get(api+'?'+q,10).replace('\\/','/')
+                  ids=[]
+                  for eid in re.findall(r'/out/v1/([0-9a-f]{32})/',txt,re.I):
+                      if eid not in ids: ids.append(eid)
+                  return venue,host,col.get('id'),ids,None
+              except Exception as e:
+                  return venue,host,col.get('id'),[],f'{type(e).__name__}: {e}'
+          found={k:[] for k in hosts}
+          with ThreadPoolExecutor(max_workers=18) as ex:
+              futs=[ex.submit(task,c,v,h) for c in cols for v,h in hosts.items()]
+              for f in as_completed(futs):
+                  venue,host,cid,ids,err=f.result()
+                  if ids:
+                      for x in ids:
+                          if x not in found[venue]: found[venue].append(x)
+                      print('FOUND',venue,cid,ids)
           print('\n=== RESULT ===')
           for venue,host in hosts.items():
               print(venue,found[venue])
@@ -53,7 +53,7 @@ jobs:
                   try:
                       req=urllib.request.Request(u,headers=UA)
                       with urllib.request.urlopen(req,timeout=12) as r:
-                          body=r.read(800).decode('utf-8','replace')
-                          print('VERIFY',r.status,r.headers.get('content-type'),body[:250].replace('\n',' | '))
+                          body=r.read(700).decode('utf-8','replace')
+                          print('VERIFY',r.status,r.headers.get('content-type'),body[:220].replace('\n',' | '))
                   except Exception as e: print('VERIFYERR',repr(e))
           PY
