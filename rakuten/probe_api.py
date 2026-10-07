@@ -1,77 +1,61 @@
 #!/usr/bin/env python3
-import json, sys
+import json, re
 import requests
 
 BASE = "https://gizmo.rakuten.tv/v3"
+HEADERS = {
+    "Origin": "https://www.rakuten.tv",
+    "Referer": "https://www.rakuten.tv/",
+    "Accept": "application/json, text/plain, */*",
+    "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/154 Safari/537.36",
+}
 PARAMS = {
     "classification_id": 309,
     "device_identifier": "web",
-    "locale": "jp",
+    "device_stream_audio_quality": "2.0",
+    "device_stream_hdr_type": "NONE",
+    "device_stream_video_quality": "FHD",
+    "live_channel_support": "true",
+    "locale": "en",
     "market_code": "jp",
+    "user_status": "visitor",
 }
-HEADERS = {
-    "Origin": "https://rakuten.tv",
-    "Referer": "https://rakuten.tv/",
-    "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/154 Safari/537.36",
-}
-KEYWORDS = ("刺激", "グラビア", "年齢制限", "NECO", "セクシー", "歓楽街")
+KEYWORDS = ("刺激", "グラビア", "年齢制限", "NECO", "セクシー", "歓楽街",
+            "shigeki", "gravure", "adult", "mens", "sexy")
+
+def walk(obj, path="$"):
+    if isinstance(obj, dict):
+        blob = json.dumps(obj, ensure_ascii=False).lower()
+        if any(k.lower() in blob for k in KEYWORDS):
+            slim = {}
+            for k in ("id","title","name","type","content_type","live_channel_id","channel_id","numerical_id","channel_number"):
+                if k in obj:
+                    slim[k]=obj[k]
+            if slim:
+                print("HIT", path, json.dumps(slim, ensure_ascii=False))
+        for k,v in obj.items():
+            walk(v, path+"."+str(k))
+    elif isinstance(obj, list):
+        for i,v in enumerate(obj):
+            walk(v, f"{path}[{i}]")
 
 def main():
-    s = requests.Session()
-    r = s.get(BASE + "/live_channels", headers=HEADERS, params={**PARAMS, "page": 1, "per_page": 100}, timeout=20)
-    print("live_channels:", r.status_code, r.url)
+    s=requests.Session()
+    r=s.get(BASE+"/skeleton/gardens/default", headers=HEADERS, params=PARAMS, timeout=30)
+    print("skeleton:", r.status_code, r.url)
+    print("content_type:", r.headers.get("content-type"))
     if r.status_code != 200:
-        print(r.text[:1000])
+        print(r.text[:3000])
         return 0
-    data = r.json().get("data") or []
-    print("channel_count:", len(data))
-    hits = []
-    for ch in data:
-        title = str(ch.get("title") or "")
-        if any(k.lower() in title.lower() for k in KEYWORDS):
-            hits.append(ch)
-    print("matches:", len(hits))
-    for ch in hits:
-        print("CHANNEL", json.dumps({
-            "id": ch.get("id"),
-            "numerical_id": ch.get("numerical_id"),
-            "channel_number": ch.get("channel_number"),
-            "title": ch.get("title"),
-            "type": ch.get("type"),
-            "labels": ch.get("labels"),
-        }, ensure_ascii=False))
-        langs = ((ch.get("labels") or {}).get("languages") or [])
-        audio = (langs[0].get("id") if langs and isinstance(langs[0], dict) else "JA")
-        body = {
-            "audio_language": audio,
-            "audio_quality": "2.0",
-            "classification_id": 309,
-            "content_id": ch.get("id"),
-            "content_type": "live_channels",
-            "device_serial": "not implemented",
-            "player": "web:HLS-NONE:NONE",
-            "strict_video_quality": False,
-            "subtitle_language": "MIS",
-            "video_type": "stream",
-        }
-        rr = s.post(BASE + "/avod/streamings", headers=HEADERS, params=PARAMS, json=body, timeout=20)
-        print("STREAM_STATUS", ch.get("title"), rr.status_code)
-        if rr.status_code != 200:
-            print(rr.text[:1000])
-            continue
-        payload = rr.json()
-        infos = (payload.get("data") or {}).get("stream_infos") or []
-        for info in infos[:3]:
-            url = info.get("url") or ""
-            base = url.split(".m3u8", 1)[0] + ".m3u8" if ".m3u8" in url else url
-            print("STREAM", ch.get("title"), base)
-            try:
-                test = s.get(base, headers=HEADERS, timeout=15, stream=True)
-                print("STREAM_GET", ch.get("title"), test.status_code, test.url)
-                test.close()
-            except Exception as e:
-                print("STREAM_GET_ERROR", ch.get("title"), type(e).__name__, str(e)[:200])
+    try:
+        data=r.json()
+    except Exception:
+        print(r.text[:5000])
+        return 0
+    print("top_keys:", list(data)[:30])
+    print("json_bytes:", len(r.content))
+    walk(data)
     return 0
 
-if __name__ == "__main__":
+if __name__=="__main__":
     raise SystemExit(main())
