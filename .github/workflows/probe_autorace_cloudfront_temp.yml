@@ -12,30 +12,21 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
-      - name: Inspect Kawaguchi urlscan records
+      - name: Query Wayback exact manifest patterns
         shell: bash
         run: |
           python - <<'PY'
-          import json,re,urllib.parse,urllib.request
-          UA={'User-Agent':'Mozilla/5.0'}
-          def get(u,t=12):
-              req=urllib.request.Request(u,headers=UA)
-              with urllib.request.urlopen(req,timeout=t) as r: return r.read().decode('utf-8','replace')
-          host='d1liritc3ayfk5.cloudfront.net'
-          q=urllib.parse.quote('domain:'+host)
-          data=json.loads(get('https://urlscan.io/api/v1/search/?q='+q+'&size=100'))
-          print('RESULTS',len(data.get('results',[])))
-          allurls=[]
-          for i,item in enumerate(data.get('results',[])[:30]):
-              rid=item.get('_id'); print('\nSCAN',i,rid,'page=',item.get('page',{}).get('url'),'title=',item.get('page',{}).get('title'))
-              if not rid: continue
-              try: txt=get('https://urlscan.io/api/v1/result/'+rid+'/',12).replace('\\/','/')
-              except Exception as e: print('ERR',repr(e)); continue
-              urls=sorted(set(re.findall(r'https?://[^\"\'\\\s<>]+',txt)))
-              for u in urls:
-                  if 'cloudfront.net' in u and ('.m3u8' in u or '/out/v1/' in u):
-                      print('CF',u[:1800])
-                      if u not in allurls: allurls.append(u)
-          print('\n=== ALL UNIQUE CLOUDFRONT STREAM URLS ===')
-          for u in allurls: print(u)
+          import re,urllib.parse,urllib.request
+          hosts={'川口':'d1liritc3ayfk5.cloudfront.net','伊勢崎':'d1y1a3qyv8xfur.cloudfront.net','山陽':'d24g41mr42kxdj.cloudfront.net'}
+          for venue,host in hosts.items():
+              params={'url':host+'/out/v1/*/index.m3u8','output':'json','fl':'original,timestamp,statuscode','filter':'statuscode:200','collapse':'urlkey','limit':'100'}
+              url='https://web.archive.org/cdx/search/cdx?'+urllib.parse.urlencode(params)
+              print('\n===',venue,url,'===')
+              try:
+                  req=urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0'})
+                  with urllib.request.urlopen(req,timeout=35) as r: txt=r.read().decode('utf-8','replace')
+                  print(txt[:20000])
+                  pat=re.compile(r'https?://'+re.escape(host)+r'/out/v1/[0-9a-f]{32}/index\.m3u8',re.I)
+                  print('MATCHES',sorted(set(pat.findall(txt))))
+              except Exception as e: print('ERR',repr(e))
           PY
