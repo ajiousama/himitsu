@@ -36,6 +36,7 @@ RANGE_EPISODE_SECONDS: dict[tuple[int, int], int] = {
     (217, 226): FIXED_TEST_EPISODE_SECONDS,
     (267, 276): 3480,
     (287, 296): 3480,
+    (297, 306): 3480,
 }
 
 # Numbered episodes that are actually long-form specials.
@@ -313,6 +314,22 @@ KNOWN_SPECIALS: dict[tuple[int, int], list[dict]] = {
             "after_episode": 296,
             "duration_seconds": None,
             "expected_broadcast_seconds": None,
+        },
+    ],
+    (297, 306): [
+        {
+            "key": "2020-300-live-planning",
+            "title": "ゲームセンターCX おっさん3人生放送何やるかSP",
+            "before_episode": 297,
+            "duration_seconds": 1800,
+            "expected_broadcast_seconds": 1800,
+        },
+        {
+            "key": "2020-300th-300min-live",
+            "title": "ゲームセンターCX300 ～300回記念300分生放送SP～",
+            "after_episode": 300,
+            "duration_seconds": None,
+            "expected_broadcast_seconds": 18000,
         },
     ],
     (217, 226): [
