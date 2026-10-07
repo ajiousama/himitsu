@@ -6,7 +6,8 @@ on:
     branches: [main]
     paths:
       - "rakuten/playlist.m3u"
-      - "rakuten/sync_freewifi.py"\n      - "rakuten/probe_api.py"
+      - "rakuten/sync_freewifi.py"
+      - "rakuten/probe_api.py"
       - ".github/workflows/sync_rakuten_freewifi.yml"
 
 permissions:
@@ -21,7 +22,10 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Probe current Rakuten streaming API\n        run: python rakuten/probe_api.py\n\n      - name: Sync Rakuten Rch block and publish
+      - name: Probe current Rakuten streaming API
+        run: python rakuten/probe_api.py
+
+      - name: Sync Rakuten Rch block and publish
         shell: bash
         run: |
           set -euo pipefail
