@@ -13,8 +13,9 @@ jobs:
     timeout-minutes: 3
     steps:
       - name: Inspect AutoRace TV HTML and scripts
-        shell: python
+        shell: bash
         run: |
+          python - <<'PY'
           import re, urllib.parse, urllib.request
           BASE='https://sp.atrc.jp'
           PAGES=['/tv/','/tv/index/date/20261007/p1/2','/tv/index/date/20261007/p1/3','/tv/index/date/20261007/p1/6']
@@ -23,18 +24,17 @@ jobs:
               req=urllib.request.Request(url,headers=UA)
               with urllib.request.urlopen(req,timeout=t) as r:
                   return r.geturl(),r.read().decode('utf-8','replace')
-          seen=set(); texts=[]
+          seen=set()
           for p in PAGES:
               u=urllib.parse.urljoin(BASE,p)
               try:
-                  final,html=get(u); print('\nPAGE',u,'=>',final,'LEN',len(html)); texts.append((final,html))
+                  final,html=get(u); print('\nPAGE',u,'=>',final,'LEN',len(html))
                   for line in html.splitlines():
                       low=line.lower()
                       if any(k in low for k in ['cloudfront','m3u8','video','movie','stream','iframe','live']): print('HTML',line[:1800])
                   for attr in re.findall(r'(?:src|href)=[\"\']([^\"\']+)',html,re.I):
                       x=urllib.parse.urljoin(final,attr)
-                      if x not in seen and (x.endswith('.js') or '/js/' in x or 'movie' in x or 'video' in x or 'tv' in x):
-                          seen.add(x)
+                      if x not in seen and (x.endswith('.js') or '/js/' in x or 'movie' in x or 'video' in x or '/tv/' in x): seen.add(x)
               except Exception as e: print('PAGEERR',u,repr(e))
           print('\nASSETS',len(seen))
           for u in sorted(seen):
@@ -49,3 +49,4 @@ jobs:
                       for line in txt.splitlines():
                           if any(k in line.lower() for k in ['cloudfront','m3u8','streamurl','video_url','movie_url']): print('JS',line[:1800])
               except Exception as e: print('ASSETERR',repr(e))
+          PY
