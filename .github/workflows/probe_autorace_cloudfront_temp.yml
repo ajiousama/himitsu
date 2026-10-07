@@ -12,42 +12,30 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
-      - name: Resolve and inspect Millvi player
+      - name: Inspect Kawaguchi urlscan records
         shell: bash
         run: |
-          set -euo pipefail
           python - <<'PY'
-          import json, urllib.request
-          u='https://dns.google/resolve?name=asp.millvi.jp&type=A'
-          req=urllib.request.Request(u,headers={'User-Agent':'Mozilla/5.0'})
-          data=json.load(urllib.request.urlopen(req,timeout=15))
-          print(json.dumps(data,ensure_ascii=False,indent=2))
-          ips=[]
-          for a in data.get('Answer',[]):
-              d=a.get('data','')
-              if a.get('type')==1 and d.count('.')==3: ips.append(d)
-          open('/tmp/ips.txt','w').write('\n'.join(ips))
-          PY
-          echo '=== IPs ==='
-          cat /tmp/ips.txt || true
-          while read -r ip; do
-            [ -z "$ip" ] && continue
-            echo "=== try $ip ==="
-            if curl -fsSL --max-time 15 --resolve "asp.millvi.jp:443:$ip" 'https://asp.millvi.jp/commonclient/commonplayer.js' -o /tmp/commonplayer.js; then
-              echo "fetched $(wc -c </tmp/commonplayer.js) bytes"
-              break
-            fi
-          done </tmp/ips.txt
-          if [ ! -s /tmp/commonplayer.js ]; then echo 'commonplayer fetch failed'; exit 0; fi
-          python - <<'PY'
-          import re
-          t=open('/tmp/commonplayer.js',encoding='utf-8',errors='replace').read().replace('\\/','/')
-          print('LEN',len(t))
-          for u in sorted(set(re.findall(r'https?://[^\"\'\\\s<>]+',t))):
-              print('URL',u[:2000])
-          print('=== interesting lines ===')
-          for line in t.splitlines():
-              low=line.lower()
-              if any(k in low for k in ['ajax','api','json','xml','projectcode','videodata','playerdata','m3u8','stream','movie','video']):
-                  print(line[:2500])
+          import json,re,urllib.parse,urllib.request
+          UA={'User-Agent':'Mozilla/5.0'}
+          def get(u,t=12):
+              req=urllib.request.Request(u,headers=UA)
+              with urllib.request.urlopen(req,timeout=t) as r: return r.read().decode('utf-8','replace')
+          host='d1liritc3ayfk5.cloudfront.net'
+          q=urllib.parse.quote('domain:'+host)
+          data=json.loads(get('https://urlscan.io/api/v1/search/?q='+q+'&size=100'))
+          print('RESULTS',len(data.get('results',[])))
+          allurls=[]
+          for i,item in enumerate(data.get('results',[])[:30]):
+              rid=item.get('_id'); print('\nSCAN',i,rid,'page=',item.get('page',{}).get('url'),'title=',item.get('page',{}).get('title'))
+              if not rid: continue
+              try: txt=get('https://urlscan.io/api/v1/result/'+rid+'/',12).replace('\\/','/')
+              except Exception as e: print('ERR',repr(e)); continue
+              urls=sorted(set(re.findall(r'https?://[^\"\'\\\s<>]+',txt)))
+              for u in urls:
+                  if 'cloudfront.net' in u and ('.m3u8' in u or '/out/v1/' in u):
+                      print('CF',u[:1800])
+                      if u not in allurls: allurls.append(u)
+          print('\n=== ALL UNIQUE CLOUDFRONT STREAM URLS ===')
+          for u in allurls: print(u)
           PY
