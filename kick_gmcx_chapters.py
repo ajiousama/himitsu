@@ -3430,6 +3430,57 @@ def _apply_manual_episode_start_overrides(
 
 
 
+def make_exact_247_256_chapters(vod: dict, titles: dict[str, str]) -> list[dict]:
+    """Playback-confirmed #247-256 timeline. Never regenerate these cuts heuristically."""
+    vod_id = str(vod.get("vod_id") or "")
+    total = int(vod.get("duration_seconds") or 0)
+    if not vod_id or total <= 0:
+        return []
+    specs = [
+        ("episode", 247, 0, 3492),
+        ("episode", 248, 3492, 3481),
+        ("episode", 249, 6973, 3475),
+        ("special", "2017-bakarhythm-vs-arino", 10448, 3602),
+        ("episode", 250, 14050, 3481),
+        ("episode", 251, 17531, 3481),
+        ("special", "2017-2018-newyear-15min", 21012, 900),
+        ("episode", 252, 21912, 3481),
+        ("episode", 253, 25393, 3481),
+        ("episode", 254, 28874, 3481),
+        ("episode", 255, 32355, 3481),
+        ("episode", 256, 35836, 3481),
+        ("special", "takahashi-daiboukenjima", 39317, max(0, total - 39317)),
+    ]
+    special_titles = {
+        "2017-bakarhythm-vs-arino": "バカリズムVS有野課長 世紀の一戦！",
+        "2017-2018-newyear-15min": "GMCX 年越し15分",
+        "takahashi-daiboukenjima": "高橋名人の大冒険島",
+    }
+    out = []
+    for kind, key, start, length in specs:
+        if start >= total or length <= 0:
+            continue
+        stop = min(total, start + length)
+        item = {
+            "kind": kind,
+            "start_seconds": start,
+            "stop_seconds": stop,
+            "duration_seconds": stop - start,
+            "replay_url": clip_url(vod_id, start, stop - start),
+            "method": "manual-playback-confirmed",
+            "confidence": "confirmed",
+        }
+        if kind == "episode":
+            item["episode"] = int(key)
+            item["title"] = titles.get(str(key), f"第{key}回")
+        else:
+            item["special_key"] = str(key)
+            item["title"] = special_titles[str(key)]
+            item["expected_broadcast_seconds"] = length if str(key) != "takahashi-daiboukenjima" else None
+        out.append(item)
+    return out
+
+
 def clip_url(vod_id: str, start: int, duration: int) -> str:
     return f"{REPLAY_BASE}{urllib.parse.quote(vod_id)}&start={start}&duration={duration}"
 
@@ -3776,6 +3827,8 @@ def make_mixed_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict[str,
     duration = int(vod.get("duration_seconds") or 0)
     if (start_ep, end_ep) == (177, 196):
         return make_exact_177_196_chapters(vod, titles)
+    if (start_ep, end_ep) == (247, 256):
+        return make_exact_247_256_chapters(vod, titles)
     if (start_ep, end_ep) == (197, 206):
         return make_exact_197_206_chapters(vod, titles)
     if (start_ep, end_ep) == (217, 226):
@@ -4059,6 +4112,9 @@ def main() -> int:
         elif not vod.get("vod_id"):
             status = "source_unavailable"
             chapters = []
+        elif (start_ep, end_ep) == (247, 256):
+            chapters = make_exact_247_256_chapters(vod, titles)
+            status = "ready" if chapters else "ai_required"
         elif known_mixed:
             chapters = make_mixed_chapters(vod, start_ep, end_ep, titles)
             status = "ready" if chapters else "ai_required"
@@ -4108,6 +4164,7 @@ def main() -> int:
         elif (
             status == "ready"
             and chapters
+            and False  # exact manual #247-256 map must never be visually rewritten
             and (start_ep, end_ep) == (247, 256)
             and vod.get("playable")
         ):
