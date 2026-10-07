@@ -26,6 +26,7 @@ SCREEN_H = 1080
 OUT_W = 1920
 OUT_H = 1080
 FPS = int(os.environ.get("PATAPATA_FPS", "24"))
+PAGE_RELOAD_SECONDS = max(30, int(os.environ.get("PATAPATA_PAGE_RELOAD_SECONDS", "120")))
 SOURCE_URL = os.environ.get("PATAPATA_SOURCE_URL", "https://ajiousama.github.io/live-wallpaper/transport/freewifi/")
 HLS_DIR = pathlib.Path("/tmp/patapata-r15-hls")
 HLS_PLAYLIST = HLS_DIR / "index.m3u8"
@@ -350,6 +351,7 @@ def start_ffmpeg() -> subprocess.Popen:
 
 def supervisor() -> None:
     global LAST_ERROR
+    last_browser_start = 0.0
     while not STOP.is_set():
         try:
             if not process_alive("xvfb"):
@@ -361,7 +363,14 @@ def supervisor() -> None:
             if not process_alive("chromium"):
                 stop_process("ffmpeg")
                 set_process("chromium", start_chromium())
+                last_browser_start = time.time()
                 time.sleep(5)
+            if process_alive("chromium") and last_browser_start and time.time() - last_browser_start >= PAGE_RELOAD_SECONDS:
+                log(f"refreshing GitHub Pages source after {PAGE_RELOAD_SECONDS}s")
+                stop_process("chromium")
+                set_process("chromium", start_chromium())
+                last_browser_start = time.time()
+                time.sleep(2)
             if not process_alive("ffmpeg"):
                 set_process("ffmpeg", start_ffmpeg())
             LAST_ERROR = ""
