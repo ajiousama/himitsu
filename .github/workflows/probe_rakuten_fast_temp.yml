@@ -1,0 +1,65 @@
+name: Probe Rakuten FAST temp
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/probe_rakuten_fast_temp.yml"
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Probe FAST variants
+        run: |
+          python - <<'PY'
+          import requests
+          from urllib.parse import urlencode
+
+          channels = [
+              ("刺激", "https://shigeki-strong-jp.fast.rakuten.tv/v1/master/0547f18649bd788bec7b67b746e47670f558b6b2/production-hls-aes128-rchannels-1-playout/master.m3u8", "shigekistrongeu", "1"),
+              ("アイドル", "https://gravure-jp.fast.rakuten.tv/v1/master/0547f18649bd788bec7b67b746e47670f558b6b2/production-hls-aes128-rchannels-2-playout/master.m3u8", "idolgravureeu", "2"),
+              ("映画", "https://adult-movies-jp.fast.rakuten.tv/v1/master/0547f18649bd788bec7b67b746e47670f558b6b2/production-hls-aes128-rchannels-3-playout/master.m3u8", "adultmovieeu", "3"),
+              ("MEN'S NECO", "https://mens-neco-jp.fast.rakuten.tv/v1/master/0547f18649bd788bec7b67b746e47670f558b6b2/production-hls-aes128-rchannels-4-playout/master.m3u8", "mensnecoeu", "4"),
+              ("セクシー", "https://sexy-entertainment-jp.fast.rakuten.tv/v1/master/0547f18649bd788bec7b67b746e47670f558b6b2/production-hls-aes128-rchannels-5-playout/master.m3u8", "sexyentermeeu", "5"),
+          ]
+          uuid="9327881c-b882-5243-8a45-6ff97661cf40"
+          rp="f4f1cf8e6fc552bc1192c78de156ac5aa1c58a12"
+          base_params = {
+              "ads.country":"jp",
+              "ads.custom_device_type":"r_channels",
+              "ads.language":"ja",
+              "ads.stream_type":"hlslinear",
+              "publishing_platform_id":"16",
+              "tenant_identifier":"rchannels",
+              "ads.device_make":"rchweb",
+              "ads.url":"channel.rakuten.co.jp",
+          }
+          headers_sets = {
+              "plain": {"User-Agent":"Mozilla/5.0"},
+              "referer": {"User-Agent":"Mozilla/5.0","Referer":"https://channel.rakuten.co.jp/","Origin":"https://channel.rakuten.co.jp"},
+          }
+          for title, base, cname, cid in channels:
+              variants = {}
+              p=dict(base_params); p.update({"ads.rtv_channel_name":cname,"ads.rtv_content_id":cid,"channel_id":cid})
+              variants["minimal"]=p
+              p2=dict(p); p2.update({"ads.uuid":uuid,"ads.uid_rch":uuid,"ads.refid":"0","ads.rch_hid":"","ads.rch_rp":rp})
+              variants["full"]=p2
+              p3=dict(p); p3.update({"ads.refid":"0","ads.rch_hid":""})
+              variants["nosession"]=p3
+              variants["pathonly"]={}
+              print("\n==", title, "==")
+              for vname, params in variants.items():
+                  url=base + (("?" + urlencode(params)) if params else "")
+                  for hname, headers in headers_sets.items():
+                      try:
+                          r=requests.get(url,headers=headers,timeout=12,allow_redirects=True)
+                          body=r.text[:80].replace("\n"," ")
+                          print(vname,hname,r.status_code,r.headers.get("content-type"),len(r.content),body)
+                      except Exception as e:
+                          print(vname,hname,"ERR",type(e).__name__,str(e)[:120])
+          PY
