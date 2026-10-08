@@ -1,0 +1,41 @@
+# Parallel test deployment for Oracle Cloud Always Free Ampere A1 (arm64).
+# No public ports: expose through a reviewed TLS reverse proxy after testing.
+# Existing Railway, Render, GitHub and FreeWiFi endpoints remain unchanged.
+name: freewifi-oci
+
+services:
+  radio:
+    build:
+      context: ..
+      dockerfile: Dockerfile.radio.railway
+    platform: linux/arm64
+    init: true
+    restart: unless-stopped
+    environment:
+      PORT: "8080"
+    ports:
+      - "127.0.0.1:18080:8080"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/health', timeout=5)"]
+      interval: 30s
+      timeout: 8s
+      retries: 3
+      start_period: 60s
+
+  patapata:
+    build:
+      context: ..
+      dockerfile: patapata/Dockerfile.railway
+    platform: linux/arm64
+    init: true
+    restart: unless-stopped
+    environment:
+      PORT: "8080"
+    ports:
+      - "127.0.0.1:18081:8080"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/health', timeout=5)"]
+      interval: 30s
+      timeout: 8s
+      retries: 5
+      start_period: 180s
