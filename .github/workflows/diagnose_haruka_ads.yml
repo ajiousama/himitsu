@@ -13,7 +13,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Compare ABC and TVO segment transitions without fetching video
-        run: python scripts/diagnose_haruka_ads.py --iterations 18 --interval 20
+      - name: Ensure ffmpeg is installed
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
       - name: Watch and fingerprint HLS transitions live
         run: python scripts/watch_haruka_transitions.py
