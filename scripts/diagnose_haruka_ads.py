@@ -3,6 +3,7 @@
 import argparse
 import datetime as dt
 import hashlib
+import collections
 import json
 import re
 import time
@@ -23,10 +24,18 @@ def analyze(name, raw, url):
     tags = [line.split(":", 1)[0] for line in lines if line.startswith("#EXT")]
     markers = [line[:140] for line in lines if re.search(r"(DATERANGE|DISCONTINUITY|CUE-OUT|CUE-IN|SCTE|AD-)", line, re.I)]
     hosts = sorted({urlparse(urljoin(url, item)).hostname for item in urls if urlparse(urljoin(url,item)).hostname})
+    durations = [float(m.group(1)) for line in lines if (m := re.match(r"#EXTINF:([0-9.]+)", line))]
+    segment_suffixes = collections.Counter(urlparse(item).path.rsplit(".", 1)[-1] for item in urls)
+    sequence = next((line.partition(":")[2] for line in lines if line.startswith("#EXT-X-MEDIA-SEQUENCE:")), None)
+    discontinuity_sequence = next((line.partition(":")[2] for line in lines if line.startswith("#EXT-X-DISCONTINUITY-SEQUENCE:")), None)
+    # Segment fingerprints only: no media bytes or full stream URLs are logged.
+    segment_ids = [hashlib.sha256(urljoin(url, item).encode()).hexdigest()[:12] for item in urls]
     return {"channel": name, "timestamp_utc": dt.datetime.now(dt.timezone.utc).isoformat(),
             "playlist_hash": hashlib.sha256(raw.encode()).hexdigest()[:16],
             "segment_count": len(urls), "tag_counts": {t: tags.count(t) for t in sorted(set(tags))},
-            "markers": markers[:20], "hosts": hosts}
+            "markers": markers[:20], "hosts": hosts, "durations": durations,
+            "segment_types": dict(segment_suffixes), "media_sequence": sequence,
+            "discontinuity_sequence": discontinuity_sequence, "segment_ids": segment_ids}
 
 def main():
     ap = argparse.ArgumentParser()
