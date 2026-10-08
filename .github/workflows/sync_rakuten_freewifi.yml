@@ -9,6 +9,7 @@ on:
     paths:
       - "rakuten/playlist.m3u"
       - "rakuten/refresh_live.py"
+      - "rakuten/capture_live_browser.mjs"
       - "rakuten/sync_freewifi.py"
       - ".github/workflows/sync_rakuten_freewifi.yml"
 
@@ -22,7 +23,7 @@ concurrency:
 jobs:
   sync:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v5
         with:
@@ -32,13 +33,14 @@ jobs:
         with:
           python-version: "3.12"
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
       - name: Install requests
         run: python -m pip install --disable-pip-version-check requests
 
-      - name: Refresh current R Channel live URLs
-        run: python rakuten/refresh_live.py --api-only
-
-      - name: Sync Rakuten Rch block and publish
+      - name: Refresh Rakuten Rch and publish
         shell: bash
         run: |
           set -euo pipefail
@@ -49,7 +51,18 @@ jobs:
             echo "Rakuten FreeWiFi publish attempt $attempt/5"
             git fetch origin main
             git reset --hard origin/main
+
+            rm -f rakuten/browser_live_urls.json rakuten/needs_browser_refresh
             python rakuten/refresh_live.py --api-only
+
+            if [ -f rakuten/needs_browser_refresh ]; then
+              echo "API manifest needs browser session; capturing live R Channel requests"
+              node rakuten/capture_live_browser.mjs rakuten/browser_live_urls.json || true
+              if [ -s rakuten/browser_live_urls.json ]; then
+                python rakuten/refresh_live.py --browser-json rakuten/browser_live_urls.json
+              fi
+            fi
+
             python rakuten/sync_freewifi.py
             git add rakuten/playlist.m3u rakuten/live_refresh_status.json freewifi
 
