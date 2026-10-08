@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-09",
-  "generated_at": "2026-10-09T08:06:00.019971+09:00",
+  "generated_at": "2026-10-09T08:11:00.067190+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261009.json",
   "schedule_checked_at": "2026-10-09T08:05:00.072247+09:00",
@@ -52,10 +52,15 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 4,
+    "requested": 5,
     "fetched": 1,
     "failures": [],
     "deferred": [
+      {
+        "jcd": "05",
+        "name": "多摩川",
+        "start": "2026-10-09T10:07:00+09:00"
+      },
       {
         "jcd": "08",
         "name": "常滑",
@@ -86,13 +91,13 @@
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/4762b49fb1604e0f86b858bf7a6ea891/c0c40bc9ec624bcdb1cccccd77a9da8a/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MTY3NjgwMCwic3RhcnQiOjE3OTE1MDA0MDAsImlvcyI6MTgsImNwIjoiMjEzNjk2MDAwXzIxMzczOTE5OSIsInBwdyI6IjQwayJ9.M2FEz10wMRhxHEO3dwH9aChFikygBHjgyFfQ-8z3eL4",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-10-09T08:00:27.527565+09:00",
-      "checked_at": "2026-10-09T08:05:35.587659+09:00",
+      "checked_at": "2026-10-09T08:11:27.469860+09:00",
       "first_verified_at": "2026-10-09T08:00:27.527565+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
         "sequence": 8457114,
-        "last_segment": "/4762b49fb1604e0f86b858bf7a6ea891/c0c40bc9ec624bcdb1cccccd77a9da8a/manifest_1_8457169.ts",
+        "last_segment": "/4762b49fb1604e0f86b858bf7a6ea891/c0c40bc9ec624bcdb1cccccd77a9da8a/manifest_1_8457227.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -458,7 +463,8 @@
           "name": "優勝戦"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "provider_stream_start": "2026-10-09T10:07:00+09:00",
+      "source": "公式BR配信開始待ち 10:07"
     },
     "boat.gamagori": {
       "jcd": "07",
