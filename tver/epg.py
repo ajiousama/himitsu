@@ -80,6 +80,9 @@ def build_overlay() -> None:
 
         ch = ET.SubElement(root, "channel", {"id": cid})
         ET.SubElement(ch, "display-name", {"lang": "ja"}).text = title
+        logo = str(row.get("logo") or "").strip()
+        if logo.startswith("https://"):
+            ET.SubElement(ch, "icon", {"src": logo})
 
         p = ET.SubElement(root, "programme", {
             "start": xmltv(start),

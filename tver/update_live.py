@@ -17,7 +17,20 @@ TIMEOUT = 45
 LOGOS = {
     "news24": "https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/contrast/tver.news24_ecf50e0e.png",
     "tbs news": "https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/contrast/tver.tbs_newsdig_65e73997.png",
+    "politics": "https://raw.githubusercontent.com/ajiousama/himitsu/main/tver/logos/politics_live.jpg",
+    "sports": "https://raw.githubusercontent.com/ajiousama/himitsu/main/tver/logos/sports_live.jpg",
 }
+
+# Keep the user-adopted politics/sports logos stable on every 10-minute refresh.
+POLITICS_RE = re.compile(r"政治|国会|参議院|衆議院|首相|選挙|党首|内閣|政党|党大会")
+SPORTS_RE = re.compile(
+    r"スポーツ|野球|巨人|阪神|DeNA|中日|広島|ヤクルト|クライマックス|日本シリーズ|"
+    r"サッカー|Jリーグ|駅伝|マラソン|競馬|GⅠ|GⅡ|GI|GII|"
+    r"テニス|バスケ|バレー|ゴルフ|ラグビー|陸上|オリンピック|"
+    r"フィギュア|スケート|水泳|卓球|相撲|格闘技|柔道|"
+    r"ソフトボール|スポーツ中継|トーナメント|ワールドカップ",
+    re.I,
+)
 
 
 def safe_id(value: str) -> str:
@@ -34,12 +47,17 @@ def useful_title(title: str) -> bool:
     return bool(re.search(r"[A-Za-z0-9一-龯ぁ-んァ-ヶ]", title))
 
 
-def logo_for(title: str) -> str:
+def logo_for(title: str, series_title: str = "") -> str:
     low = title.lower()
     if "news24" in low:
         return LOGOS["news24"]
     if "tbs" in low and "news" in low:
         return LOGOS["tbs news"]
+    combined = title + " " + series_title
+    if POLITICS_RE.search(combined):
+        return LOGOS["politics"]
+    if SPORTS_RE.search(combined):
+        return LOGOS["sports"]
     return ""
 
 
@@ -86,7 +104,7 @@ def normalize(items: list[dict]) -> list[dict]:
             "series_title": clean_title(item.get("seriesTitle")),
             "broadcaster": clean_title(item.get("broadcasterName")),
             "tvg_id": tvg_id_for(title, live_id),
-            "logo": logo_for(title),
+            "logo": logo_for(title, clean_title(item.get("seriesTitle"))),
             "url": RESOLVER + "?special=" + quote(live_id, safe="") + "&forceFunctionRegion=ap-northeast-1",
             "start_at": item.get("startAt"),
             "end_at": item.get("endAt"),
