@@ -2,10 +2,10 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-09",
-  "generated_at": "2026-10-09T06:17:00.106064+09:00",
+  "generated_at": "2026-10-09T07:00:00.060145+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261009.json",
-  "schedule_checked_at": "2026-10-09T06:05:00.106135+09:00",
+  "schedule_checked_at": "2026-10-09T07:00:00.060145+09:00",
   "schedule_warnings": [
     "official_cards: TimeoutError"
   ],
@@ -56,17 +56,18 @@
     "fetched": 0,
     "failures": [
       {
-        "jcd": "14",
-        "name": "鳴門",
-        "error": "cloud and official acquisition unavailable: HTTPError"
-      },
-      {
         "jcd": "23",
         "name": "唐津",
         "error": "cloud and official acquisition unavailable: HTTPError"
       }
     ],
-    "deferred": []
+    "deferred": [
+      {
+        "jcd": "14",
+        "name": "鳴門",
+        "start": "2026-10-09T08:00:00+09:00"
+      }
+    ]
   },
   "epg_programmes_written": {
     "public_sports_epg_local.xml": 168,
@@ -796,7 +797,8 @@
           "name": "優勝戦"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "provider_stream_start": "2026-10-09T08:00:00+09:00",
+      "source": "公式BR配信開始待ち 08:00"
     },
     "boat.kojima": {
       "jcd": "16",
