@@ -9,7 +9,7 @@ import time
 import urllib.request
 from urllib.parse import urljoin, urlparse
 
-CHANNELS = {"ABC": "28", "TVO": "22", "TV_ASAHI_5CH": "7", "HARUKA_STREAM_5": "5"}
+CHANNELS = {"ABC": "28", "TVO": "22"}
 BASE = "http://118.69.27.222:9394"
 HEADERS = {"User-Agent": "Mozilla/5.0 HarukaPlaylistDiagnostic/1.0"}
 def fetch(url):
