@@ -2,28 +2,41 @@ name: Sync Rakuten Rch to FreeWiFi
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: "*/10 * * * *"
   push:
     branches: [main]
     paths:
       - "rakuten/playlist.m3u"
+      - "rakuten/refresh_live.py"
       - "rakuten/sync_freewifi.py"
-      - "rakuten/probe_api.py"
       - ".github/workflows/sync_rakuten_freewifi.yml"
 
 permissions:
   contents: write
 
+concurrency:
+  group: himitsu-rakuten-rch-writer
+  cancel-in-progress: false
+
 jobs:
   sync:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 8
     steps:
       - uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
-      - name: Probe current Rakuten streaming API
-        run: python rakuten/probe_api.py
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install requests
+        run: python -m pip install --disable-pip-version-check requests
+
+      - name: Refresh current R Channel live URLs
+        run: python rakuten/refresh_live.py --api-only
 
       - name: Sync Rakuten Rch block and publish
         shell: bash
@@ -36,17 +49,18 @@ jobs:
             echo "Rakuten FreeWiFi publish attempt $attempt/5"
             git fetch origin main
             git reset --hard origin/main
+            python rakuten/refresh_live.py --api-only
             python rakuten/sync_freewifi.py
-            git add freewifi
+            git add rakuten/playlist.m3u rakuten/live_refresh_status.json freewifi
 
             if git diff --cached --quiet; then
               echo "Rakuten Rch already current in FreeWiFi"
               exit 0
             fi
 
-            git commit -m "Sync Rakuten Rch to FreeWiFi [skip ci] [skip render]"
+            git commit -m "Refresh Rakuten Rch live URLs [skip ci] [skip render]"
             if git push origin HEAD:main; then
-              echo "Rakuten Rch published to FreeWiFi"
+              echo "Rakuten Rch refreshed and published"
               exit 0
             fi
 
