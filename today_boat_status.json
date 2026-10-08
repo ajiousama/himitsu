@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-08",
-  "generated_at": "2026-10-08T09:56:37.120622+09:00",
+  "generated_at": "2026-10-08T09:59:37.120390+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261008.json",
   "schedule_checked_at": "2026-10-08T09:54:37.070699+09:00",
@@ -54,7 +54,13 @@
   "cloud_acquisition": {
     "requested": 8,
     "fetched": 5,
-    "failures": [],
+    "failures": [
+      {
+        "jcd": "10",
+        "name": "三国",
+        "error": "HTTPError: playback check failed"
+      }
+    ],
     "deferred": [
       {
         "jcd": "03",
@@ -65,11 +71,6 @@
         "jcd": "05",
         "name": "多摩川",
         "start": "2026-10-08T10:07:00+09:00"
-      },
-      {
-        "jcd": "10",
-        "name": "三国",
-        "start": "2026-10-08T10:00:00+09:00"
       }
     ]
   },
@@ -706,8 +707,7 @@
           "name": "準優勝戦"
         }
       ],
-      "provider_stream_start": "2026-10-08T10:00:00+09:00",
-      "source": "公式BR配信開始待ち 10:00"
+      "source": "automatic cloud SEED pending"
     },
     "boat.biwako": {
       "jcd": "11",
