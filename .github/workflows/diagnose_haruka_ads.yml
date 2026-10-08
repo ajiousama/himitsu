@@ -1,5 +1,8 @@
 name: HARUKA playlist diagnostics (read-only)
 on:
+  push:
+    branches:
+      - haruka-ad-diagnostics-20261009
   workflow_dispatch:
 jobs:
   sample:
