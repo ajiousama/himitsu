@@ -36,7 +36,7 @@ def playlist(name, no):
 def fingerprint(url):
     if urlparse(url).hostname != urlparse(BASE).hostname:
         return {"error": "different host"}
-    raw = get_bytes(url)
+    raw = get_bytes(url, limit=16000000)
     with tempfile.NamedTemporaryFile(suffix=".ts") as f:
         f.write(raw);f.flush()
         cmd = ["ffmpeg","-nostdin","-v","error","-i",f.name,"-vf","scale=16:16,format=gray","-frames:v","1","-f","rawvideo","-"]
