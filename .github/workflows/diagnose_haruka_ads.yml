@@ -1,0 +1,14 @@
+name: HARUKA playlist diagnostics (read-only)
+on:
+  workflow_dispatch:
+jobs:
+  sample:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Sample ABC and TVO manifests without fetching video
+        run: python scripts/diagnose_haruka_ads.py --iterations 18 --interval 20
