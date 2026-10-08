@@ -27,12 +27,16 @@ OUT_W = 1920
 OUT_H = 1080
 FPS = int(os.environ.get("PATAPATA_FPS", "24"))
 PAGE_RELOAD_SECONDS = max(30, int(os.environ.get("PATAPATA_PAGE_RELOAD_SECONDS", "120")))
+IDLE_SECONDS = max(60, int(os.environ.get("PATAPATA_IDLE_SECONDS", "120")))
 SOURCE_URL = os.environ.get("PATAPATA_SOURCE_URL", "https://ajiousama.github.io/live-wallpaper/transport/freewifi/")
 HLS_DIR = pathlib.Path("/tmp/patapata-r15-hls")
 HLS_PLAYLIST = HLS_DIR / "index.m3u8"
 STOP = threading.Event()
 PROCESS_LOCK = threading.Lock()
 PROCESSES: dict[str, subprocess.Popen] = {}
+VIEWER_LOCK = threading.Lock()
+LAST_VIEWER_AT = time.monotonic()
+READY_ONCE = threading.Event()
 LAST_ERROR = ""
 DEPLOYMENT_ID = os.environ.get("RAILWAY_DEPLOYMENT_ID") or "r15-live"
 
@@ -151,6 +155,15 @@ def hls_age() -> float:
     except OSError:
         return 999999.0
 
+def touch_viewer() -> None:
+    global LAST_VIEWER_AT
+    with VIEWER_LOCK:
+        LAST_VIEWER_AT = time.monotonic()
+
+def viewers_active() -> bool:
+    with VIEWER_LOCK:
+        return time.monotonic() - LAST_VIEWER_AT < IDLE_SECONDS
+
 def ready() -> bool:
     if not (process_alive("xvfb") and process_alive("chromium") and process_alive("ffmpeg")):
         return False
@@ -158,7 +171,10 @@ def ready() -> bool:
         text = HLS_PLAYLIST.read_text(encoding="utf-8", errors="replace")
     except OSError:
         return False
-    return "#EXTM3U" in text and any(line.strip() and not line.startswith("#") for line in text.splitlines()) and hls_age() < 10
+    ok = "#EXTM3U" in text and any(line.strip() and not line.startswith("#") for line in text.splitlines()) and hls_age() < 10
+    if ok:
+        READY_ONCE.set()
+    return ok
 
 class Handler(http.server.BaseHTTPRequestHandler):
     protocol_version = "HTTP/1.1"
@@ -208,10 +224,13 @@ class Handler(http.server.BaseHTTPRequestHandler):
             )
             return
         if path == "/health":
-            ok = ready()
+            stream_ready = ready()
+            idle = not viewers_active()
+            ok = stream_ready or (idle and READY_ONCE.is_set())
             self.send_text(
                 200 if ok else 503,
-                f"ready={str(ok).lower()} source=R15-GITHUB-LIVE fps={FPS} hls_age={hls_age():.2f} "
+                f"ready={str(stream_ready).lower()} idle={str(idle).lower()} source=R15-GITHUB-LIVE "
+                f"fps={FPS} hls_age={hls_age():.2f} "
                 f"xvfb={process_alive('xvfb')} chromium={process_alive('chromium')} ffmpeg={process_alive('ffmpeg')} "
                 f"error={LAST_ERROR}\n",
             )
@@ -229,7 +248,11 @@ class Handler(http.server.BaseHTTPRequestHandler):
             )
             return
         if path == "/live.m3u8":
-            if not HLS_PLAYLIST.is_file():
+            touch_viewer()
+            deadline = time.monotonic() + 45
+            while not ready() and time.monotonic() < deadline:
+                time.sleep(0.25)
+            if not ready():
                 self.send_text(503, "HLS warming up\n")
                 return
             src = HLS_PLAYLIST.read_text(encoding="utf-8", errors="replace")
@@ -242,6 +265,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
             self.send_text(200, "\n".join(lines).rstrip() + "\n", "application/vnd.apple.mpegurl")
             return
         if path.startswith("/hls/"):
+            touch_viewer()
             name = pathlib.Path(path[len("/hls/"):]).name
             if not name.endswith(".ts"):
                 self.send_error(404)
@@ -382,6 +406,13 @@ def supervisor() -> None:
     global LAST_ERROR
     last_browser_start = 0.0
     while not STOP.is_set():
+        if not viewers_active():
+            if PROCESSES:
+                log(f"no viewers for {IDLE_SECONDS}s; stopping capture until next request")
+                for name in ("ffmpeg", "chromium", "xvfb"):
+                    stop_process(name)
+            time.sleep(1)
+            continue
         try:
             if not process_alive("xvfb"):
                 stop_process("chromium")
@@ -424,3 +455,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
