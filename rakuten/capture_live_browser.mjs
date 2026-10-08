@@ -113,9 +113,17 @@ try {
     if (i >= 0) console.error("BODY_SNIP", key, JSON.stringify(String(body || "").slice(Math.max(0,i-200), i+900)));
   }
 
-  const ageExpr = "(async()=>{const n=v=>String(v||'').replace(/\\s+/g,' ').trim();const vis=e=>{const r=e.getBoundingClientRect();return r.width>0&&r.height>0};const xs=[...document.querySelectorAll('button,[role=button],[role=tab],[role=option],li,div,span')].filter(vis);const x=xs.find(e=>{const t=n(e.textContent);return t&&t.length<100&&t.includes('年齢制限')});if(!x)return false;let c=x;for(let i=0;i<6&&c;i++,c=c.parentElement){if(c.matches&&c.matches('button,a,[role=button],[role=tab],[role=option]')){c.click();return true}try{if(getComputedStyle(c).cursor==='pointer'){c.click();return true}}catch{}}x.click();return true})()";
-  console.error("AGE_FILTER_CLICK", await evalValue(ageExpr));
-  await sleep(3000);
+  const ageExpr = "(()=>{for(const s of document.querySelectorAll('select')){const o=[...s.options].find(o=>String(o.value)==='14'||String(o.textContent||'').includes('年齢制限'));if(!o)continue;const d=Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype,'value');if(d&&d.set)d.set.call(s,o.value);else s.value=o.value;s.dispatchEvent(new Event('input',{bubbles:true}));s.dispatchEvent(new Event('change',{bubbles:true}));return {ok:true,value:o.value,text:String(o.textContent||'').trim()}}return {ok:false}})()";
+  console.error("AGE_FILTER_SET", JSON.stringify(await evalValue(ageExpr)));
+  await sleep(4500);
+  const afterAge = await evalValue("document.body ? document.body.innerText : ''");
+  console.error("AFTER_AGE_TITLES", JSON.stringify({
+    sexy:String(afterAge||'').includes('セクシーエンタメ'),
+    neco:String(afterAge||'').includes('おとなの歓楽街'),
+    gravure:String(afterAge||'').includes('アイドル・グラビア'),
+    strong:String(afterAge||'').includes('刺激ストロング'),
+    movie:String(afterAge||'').includes('映画（年齢制限あり）')
+  }));
 
   for (const t of targets) {
     if (captured[String(t.apiId)]) continue;
