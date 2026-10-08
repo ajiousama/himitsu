@@ -15,5 +15,5 @@ jobs:
           python-version: '3.11'
       - name: Compare ABC and TVO segment transitions without fetching video
         run: python scripts/diagnose_haruka_ads.py --iterations 18 --interval 20
-      - name: Inspect brief frames around HLS discontinuities
-        run: python scripts/haruka_transition_fingerprints.py
+      - name: Watch and fingerprint HLS transitions live
+        run: python scripts/watch_haruka_transitions.py
