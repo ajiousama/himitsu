@@ -98,10 +98,34 @@ def assemble_assets() -> pathlib.Path:
     log(f"R14 ready sha256={actual}")
     return ASSET_DIR
 
+def process_log_path(name: str) -> pathlib.Path:
+    return pathlib.Path("/tmp") / f"patapata-{name}.log"
+
+def launch_logged(name: str, cmd: list[str], **kwargs) -> subprocess.Popen:
+    # Keep only the latest process attempt's output.
+    with process_log_path(name).open("wb") as output:
+        return subprocess.Popen(cmd, stdout=output, stderr=subprocess.STDOUT, **kwargs)
+
 def process_alive(name: str) -> bool:
     with PROCESS_LOCK:
         p = PROCESSES.get(name)
-    return bool(p and p.poll() is None)
+    if p is None:
+        return False
+    code = p.poll()
+    if code is None:
+        return True
+    with PROCESS_LOCK:
+        if PROCESSES.get(name) is not p:
+            return False
+        PROCESSES.pop(name, None)
+    log(f"{name} exited unexpectedly: pid={p.pid} returncode={code}")
+    try:
+        tail = process_log_path(name).read_bytes()[-1500:].decode("utf-8", "replace").strip()
+        if tail:
+            log(f"{name} exit output: {tail}")
+    except OSError:
+        pass
+    return False
 
 def set_process(name: str, proc: subprocess.Popen) -> None:
     with PROCESS_LOCK:
@@ -274,7 +298,7 @@ def start_xvfb() -> subprocess.Popen:
         "-nolisten", "tcp", "-ac",
     ]
     log("starting Xvfb")
-    return subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+    return launch_logged("xvfb", cmd)
 
 def wait_x() -> None:
     display_num = DISPLAY.lstrip(":").split(".")[0]
@@ -311,7 +335,7 @@ def start_chromium() -> subprocess.Popen:
         url,
     ]
     log(f"starting Chromium {url}")
-    return subprocess.Popen(cmd, env=env, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+    return launch_logged("chromium", cmd, env=env)
 
 def start_ffmpeg() -> subprocess.Popen:
     ff = shutil.which("ffmpeg")
@@ -331,7 +355,12 @@ def start_ffmpeg() -> subprocess.Popen:
         "-i", f"{DISPLAY}.0+0,0",
         "-f", "lavfi", "-i", "anullsrc=r=48000:cl=stereo",
         "-map", "0:v:0", "-map", "1:a:0",
-        "-vf", f"scale={OUT_W}:{OUT_H}:flags=fast_bilinear",
+        # Do not rescale video when source and output resolutions match.
+        *(
+            ["-vf", f"scale={OUT_W}:{OUT_H}:flags=fast_bilinear"]
+            if (OUT_W, OUT_H) != (SCREEN_W, SCREEN_H)
+            else []
+        ),
         "-c:v", "libx264", "-preset", "ultrafast", "-tune", "zerolatency",
         "-profile:v", "baseline", "-level", "4.0",
         "-crf", "24", "-pix_fmt", "yuv420p",
@@ -347,7 +376,7 @@ def start_ffmpeg() -> subprocess.Popen:
         str(HLS_PLAYLIST),
     ]
     log(f"starting ffmpeg x11grab {SCREEN_W}x{SCREEN_H}@{FPS} -> {OUT_W}x{OUT_H}")
-    return subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+    return launch_logged("ffmpeg", cmd)
 
 def supervisor() -> None:
     global LAST_ERROR
