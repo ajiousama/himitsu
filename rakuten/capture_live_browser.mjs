@@ -104,6 +104,8 @@ try {
 
   const body = await evalValue("document.body ? document.body.innerText : ''");
   console.error("BODY_HAS_RESTRICTED", /年齢制限|セクシーエンタメ|刺激ストロング/.test(String(body || "")));
+  const selectInfo = await evalValue("(()=>[...document.querySelectorAll('select')].map((s,i)=>({i,value:s.value,options:[...s.options].map(o=>({value:o.value,text:String(o.textContent||'').replace(/\\s+/g,' ').trim()})).slice(0,120)})))()");
+  console.error("SELECT_INFO", JSON.stringify(selectInfo));
   const matchLinks = await evalValue("(()=>[...document.querySelectorAll('a')].map(a=>({text:String(a.textContent||'').replace(/\\s+/g,' ').trim(),href:a.href||''})).filter(x=>/セクシー|歓楽街|グラビア|刺激ストロング|年齢制限|CH\\s*(239|240|241|242|243)|channel/i.test(x.text+' '+x.href)).slice(0,120))()");
   console.error("MATCH_LINKS", JSON.stringify(matchLinks));
   for (const key of ["セクシーエンタメ","おとなの歓楽街","アイドル・グラビア","刺激ストロング","映画（年齢制限あり）","CH 239","CH 240","CH 241","CH 242","CH 243"]) {
@@ -117,10 +119,15 @@ try {
 
   for (const t of targets) {
     if (captured[String(t.apiId)]) continue;
-    const expr = "(()=>{const needle=" + JSON.stringify(t.title) + ";const n=v=>String(v||'').replace(/\\s+/g,' ').trim();const vis=e=>{const r=e.getBoundingClientRect();return r.width>0&&r.height>0};let xs=[...document.querySelectorAll('a,button,[role=button],div,span')].filter(vis).filter(e=>n(e.textContent).includes(needle));xs.sort((a,b)=>n(a.textContent).length-n(b.textContent).length);let x=xs[0];if(!x)return false;for(let i=0;i<8&&x;i++,x=x.parentElement){if(x.matches&&x.matches('a,button,[role=button]')){x.click();return true}try{if(getComputedStyle(x).cursor==='pointer'){x.click();return true}}catch{}}xs[0].click();return true})()";
+    const selectExpr = "(()=>{const needle=" + JSON.stringify(t.title) + ";const id=" + JSON.stringify(String(t.apiId)) + ";const n=v=>String(v||'').replace(/\\s+/g,' ').trim();for(const s of document.querySelectorAll('select')){const o=[...s.options].find(o=>String(o.value)===id||n(o.textContent).includes(needle));if(!o)continue;const d=Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype,'value');if(d&&d.set)d.set.call(s,o.value);else s.value=o.value;s.dispatchEvent(new Event('input',{bubbles:true}));s.dispatchEvent(new Event('change',{bubbles:true}));return {ok:true,value:o.value,text:n(o.textContent)}}return {ok:false}})()";
+    const selected = await evalValue(selectExpr);
+    console.error("CHANNEL_SELECT", t.apiId, JSON.stringify(selected));
+    await sleep(5500);
+    if (captured[String(t.apiId)]) continue;
+    const expr = "(()=>{const needle=" + JSON.stringify(t.title) + ";const n=v=>String(v||'').replace(/\\s+/g,' ').trim();const vis=e=>{const r=e.getBoundingClientRect();return r.width>0&&r.height>0};let xs=[...document.querySelectorAll('a,button,[role=button],div,span,option')].filter(vis).filter(e=>n(e.textContent).includes(needle));xs.sort((a,b)=>n(a.textContent).length-n(b.textContent).length);let x=xs[0];if(!x)return false;for(let i=0;i<8&&x;i++,x=x.parentElement){if(x.matches&&x.matches('a,button,[role=button]')){x.click();return true}try{if(getComputedStyle(x).cursor==='pointer'){x.click();return true}}catch{}}xs[0].click();return true})()";
     const clicked = await evalValue(expr);
     console.error("CHANNEL_CLICK", t.apiId, clicked);
-    await sleep(5500);
+    await sleep(3500);
   }
 
   const payload = {
