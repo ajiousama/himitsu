@@ -104,6 +104,12 @@ try {
 
   const body = await evalValue("document.body ? document.body.innerText : ''");
   console.error("BODY_HAS_RESTRICTED", /年齢制限|セクシーエンタメ|刺激ストロング/.test(String(body || "")));
+  const matchLinks = await evalValue("(()=>[...document.querySelectorAll('a')].map(a=>({text:String(a.textContent||'').replace(/\\s+/g,' ').trim(),href:a.href||''})).filter(x=>/セクシー|歓楽街|グラビア|刺激ストロング|年齢制限|CH\\s*(239|240|241|242|243)|channel/i.test(x.text+' '+x.href)).slice(0,120))()");
+  console.error("MATCH_LINKS", JSON.stringify(matchLinks));
+  for (const key of ["セクシーエンタメ","おとなの歓楽街","アイドル・グラビア","刺激ストロング","映画（年齢制限あり）","CH 239","CH 240","CH 241","CH 242","CH 243"]) {
+    const i = String(body || "").indexOf(key);
+    if (i >= 0) console.error("BODY_SNIP", key, JSON.stringify(String(body || "").slice(Math.max(0,i-200), i+900)));
+  }
 
   const ageExpr = "(async()=>{const n=v=>String(v||'').replace(/\\s+/g,' ').trim();const vis=e=>{const r=e.getBoundingClientRect();return r.width>0&&r.height>0};const xs=[...document.querySelectorAll('button,[role=button],[role=tab],[role=option],li,div,span')].filter(vis);const x=xs.find(e=>{const t=n(e.textContent);return t&&t.length<100&&t.includes('年齢制限')});if(!x)return false;let c=x;for(let i=0;i<6&&c;i++,c=c.parentElement){if(c.matches&&c.matches('button,a,[role=button],[role=tab],[role=option]')){c.click();return true}try{if(getComputedStyle(c).cursor==='pointer'){c.click();return true}}catch{}}x.click();return true})()";
   console.error("AGE_FILTER_CLICK", await evalValue(ageExpr));
