@@ -8,6 +8,7 @@ FREEWIFI=Path('freewifi'); VERIFIED=Path('verified_daily_status.json'); STATUS=P
 JST=timezone(timedelta(hours=9)); START='# === TODAY_JRA_START ==='; END='# === TODAY_JRA_END ==='; GROUP='今日の開催場'
 RAW='https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main'
 LOGO=RAW+'/public_sports_logos_github_43/jra_quality'
+GCH_LOCAL_LOGO='https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/public_sports/jra_quality'
 SOURCES={
  'jra.gch':('グリーンチャンネル MAIN','gchmain.m3u8','gchmain_LQ.m3u8','gch_hq.png','gch_lq.png'),
  'jra.east':('JRA EAST WEB3','EAST_test.m3u8','EAST_test_LQ.m3u8','east_hq.png','east_lq.png'),
@@ -130,7 +131,8 @@ def main():
   outbase='jra.local' if source=='jra.hokkaido' else source
   for q,stream,logo in (('hq',hq,hqlogo),('lq',lq,lqlogo)):
    cid=f'{outbase}.{q}'; label=f'{name} {q.upper()}'
-   rows += [f'#EXTINF:-1 tvg-id="{cid}" tvg-name="{label}" tvg-logo="{LOGO}/{logo}" group-title="{GROUP}",{label}',f'{RAW}/{stream}','']
+   logo_url=(GCH_LOCAL_LOGO if source=='jra.gch' else LOGO) + '/' + logo
+   rows += [f'#EXTINF:-1 tvg-id="{cid}" tvg-name="{label}" tvg-logo="{logo_url}" group-title="{GROUP}",{label}',f'{RAW}/{stream}','']
    exposed.append(cid)
  managed=START+'\n## 本日の開催場（JRA / earphone HQ・LQ）\n'+'\n'.join(rows).rstrip()+('\n' if rows else '')+END
  anchor='# === GENERAL_YOUTUBE_MANAGED_START ==='

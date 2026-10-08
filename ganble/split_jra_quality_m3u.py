@@ -4,6 +4,7 @@ import re
 M3U = Path(__file__).resolve().parent / 'public_sports.m3u'
 RAW = 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main'
 LOGO_BASE = RAW + '/public_sports_logos_github_43/jra_quality'
+GCH_LOCAL_LOGO_BASE = 'https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/public_sports/jra_quality'
 
 SERVICES = {
     'jra.gch': {
@@ -98,7 +99,7 @@ def main():
         output_base = svc.get('output_base', base)
         new = set_attr(new, 'tvg-id', f'{output_base}.{quality}')
         new = set_attr(new, 'tvg-name', f"{svc['name']} {label}")
-        new = set_attr(new, 'tvg-logo', f'{LOGO_BASE}/{logo}')
+        new = set_attr(new, 'tvg-logo', f'{GCH_LOCAL_LOGO_BASE if base == "jra.gch" else LOGO_BASE}/{logo}')
 
         comma = new.find(',')
         if comma >= 0:
