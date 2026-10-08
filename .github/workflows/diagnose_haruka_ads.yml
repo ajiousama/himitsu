@@ -13,5 +13,5 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Sample ABC and TVO manifests without fetching video
+      - name: Compare ABC and TVO segment transitions without fetching video
         run: python scripts/diagnose_haruka_ads.py --iterations 18 --interval 20
