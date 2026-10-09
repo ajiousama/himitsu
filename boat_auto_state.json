@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-10",
-  "generated_at": "2026-10-10T08:37:49.927912+09:00",
+  "generated_at": "2026-10-10T08:44:49.930374+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261010.json",
   "schedule_checked_at": "2026-10-10T08:35:49.927255+09:00",
@@ -52,7 +52,7 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 8,
+    "requested": 9,
     "fetched": 2,
     "failures": [],
     "deferred": [
@@ -60,6 +60,11 @@
         "jcd": "02",
         "name": "戸田",
         "start": "2026-10-10T10:09:00+09:00"
+      },
+      {
+        "jcd": "03",
+        "name": "江戸川",
+        "start": "2026-10-10T10:39:00+09:00"
       },
       {
         "jcd": "06",
@@ -101,13 +106,13 @@
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/a44de39725d44a218193f610eafe840e/0b0101f9ad9549f990a72ba2c48f5c8d/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MTc2MzIwMCwic3RhcnQiOjE3OTE1ODc1MjAsImlvcyI6MTgsImNwIjoiMjEzNzgzMTIwXzIxMzgyNjMxOSIsInBwdyI6IjQwayJ9.4kBUPt2950SRoYwZIgtzY13FY7teyOe83bKu3L-afUc",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-10-10T08:12:17.113297+09:00",
-      "checked_at": "2026-10-10T08:36:25.395005+09:00",
+      "checked_at": "2026-10-10T08:45:17.170634+09:00",
       "first_verified_at": "2026-10-10T08:12:17.113297+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
         "sequence": 8449633,
-        "last_segment": "/a44de39725d44a218193f610eafe840e/0b0101f9ad9549f990a72ba2c48f5c8d/manifest_1_8449877.ts",
+        "last_segment": "/a44de39725d44a218193f610eafe840e/0b0101f9ad9549f990a72ba2c48f5c8d/manifest_1_8449965.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -117,13 +122,13 @@
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/6aa98f0bad044bef907714e608a12e94/9355af0d93d548b2876b9697e681ad01/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MTc2MzIwMCwic3RhcnQiOjE3OTE1ODY4MDAsImlvcyI6MTgsImNwIjoiMjEzNzgyNDAwXzIxMzgyNTU5OSIsInBwdyI6IjQwayJ9.CB68MK-lvy88Q-LdRjWqa6SNmyzVpZBCnOj6F7Kpo_g",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-10-10T08:00:18.153607+09:00",
-      "checked_at": "2026-10-10T08:36:25.395306+09:00",
+      "checked_at": "2026-10-10T08:45:17.171206+09:00",
       "first_verified_at": "2026-10-10T08:00:18.153607+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
         "sequence": 8451761,
-        "last_segment": "/6aa98f0bad044bef907714e608a12e94/9355af0d93d548b2876b9697e681ad01/manifest_4_8452124.ts",
+        "last_segment": "/6aa98f0bad044bef907714e608a12e94/9355af0d93d548b2876b9697e681ad01/manifest_4_8452213.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -400,7 +405,8 @@
           "name": "記者選抜戦"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "provider_stream_start": "2026-10-10T10:39:00+09:00",
+      "source": "公式BR配信開始待ち 10:39"
     },
     "boat.hamanako": {
       "jcd": "06",
