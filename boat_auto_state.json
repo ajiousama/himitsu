@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-09",
-  "generated_at": "2026-10-09T15:35:39.160034+09:00",
+  "generated_at": "2026-10-09T15:38:39.110958+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261009.json",
   "schedule_checked_at": "2026-10-09T15:35:39.160034+09:00",
@@ -52,10 +52,16 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 9,
+    "requested": 10,
     "fetched": 9,
     "failures": [],
-    "deferred": []
+    "deferred": [
+      {
+        "jcd": "20",
+        "name": "若松",
+        "start": "2026-10-09T17:25:00+09:00"
+      }
+    ]
   },
   "epg_programmes_written": {
     "public_sports_epg_local.xml": 168,
@@ -417,7 +423,7 @@
       "intermission": null,
       "guidance_switch_at": "2026-10-09T17:10:00+09:00",
       "seed_required": false,
-      "reverify_due": false,
+      "reverify_due": true,
       "playback_verified": true,
       "first_verified_at": "2026-10-09T10:39:27.515321+09:00",
       "ready_before_first_race": true,
@@ -1123,7 +1129,8 @@
           "name": "選抜戦A"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "provider_stream_start": "2026-10-09T17:25:00+09:00",
+      "source": "公式BR配信開始待ち 17:25"
     },
     "boat.karatsu": {
       "jcd": "23",
