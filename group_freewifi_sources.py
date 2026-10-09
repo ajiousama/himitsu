@@ -65,21 +65,26 @@ def is_haru_blog(inf: str, url: str = "") -> bool:
 
 def source_rank(inf: str) -> int:
     lower = inf.lower()
-    if "(haruka" in lower or 'group-title="haruka bs"' in lower or 'group-title="haruka cs"' in lower:
-        return 0
-    if "(primehomehd)" in lower:
-        return 1
+    # Prefer 5002 direct as primary for every channel where it is registered.
+    # Keep HARUKA as fallback; Naori test sources remain directly after HARUKA
+    # for channels that lack 5002. This is a display preference, not a health claim.
     if "(5002直)" in lower:
+        return 0
+    if "(haruka" in lower or 'group-title="haruka bs"' in lower or 'group-title="haruka cs"' in lower:
+        return 1
+    if "(naori" in lower or 'group-title="naori bs"' in lower or 'group-title="naori cs"' in lower:
         return 2
-    if "(primehome)" in lower:
+    if "(primehomehd)" in lower:
         return 3
-    if "(jpnettv)" in lower:
+    if "(primehome)" in lower:
         return 4
-    if "(haru blog)" in lower or "(blog)" in lower:
+    if "(jpnettv)" in lower:
         return 5
-    if tvg_id(inf).startswith("tver_") or ",tver " in lower:
+    if "(haru blog)" in lower or "(blog)" in lower:
         return 6
-    return 7
+    if tvg_id(inf).startswith("tver_") or ",tver " in lower:
+        return 7
+    return 8
 
 
 def rewrite_group_title(inf: str, group: str) -> str:
@@ -164,7 +169,7 @@ def replace_section(text: str, start: str, end: str | None, prefix: str = "", te
 
 def normalize(text: str) -> str:
     # Terrestrial channels are channel-first, with source groups exposed in the
-    # player: haruka -> primehomeHD -> 5002 -> primehome -> jpnettv -> haru blog -> TVer.
+    # player: 5002 -> HARUKA -> Naori -> primehomeHD -> primehome -> jpnettv -> haru blog -> TVer.
     text = replace_section(text, "## 地上波\n", "## BS", terrestrial=True)
     text = replace_section(text, "## BS\n", "# === GREEN_CHANNEL_PERSISTENT_START ===")
 
@@ -239,7 +244,7 @@ def main() -> None:
 
     if updated != original:
         FREEWIFI.write_text(updated, encoding="utf-8")
-        print("Normalized TV order: haruka -> primehomeHD -> 5002 -> primehome -> jpnettv -> haru blog -> TVer")
+        print("Normalized TV order: 5002 -> HARUKA -> Naori -> primehomeHD -> primehome -> jpnettv -> haru blog -> TVer")
     else:
         print("TV playlist per-channel source order already normalized")
 
