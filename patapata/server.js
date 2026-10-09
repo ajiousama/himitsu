@@ -7,6 +7,7 @@ const { spawn } = require('child_process');
 const puppeteer = require('puppeteer');
 const ffmpegPath = require('ffmpeg-static');
 const AdmZip = require('adm-zip');
+const { createFerryAIS } = require('./ferry_ais');
 
 const PORT = Number(process.env.PORT || 10000);
 const HOST = '0.0.0.0';
@@ -36,6 +37,8 @@ function prepareWeb() {
   return root;
 }
 
+const ferryAIS = createFerryAIS();
+ferryAIS.start();
 const WEB = prepareWeb();
 const TEST_WEB = path.join(__dirname, 'test');
 const WIDTH = Number(process.env.PATAPATA_WIDTH || 1280);
@@ -240,6 +243,7 @@ async function snapshot(res) {
 
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
+  if (url.pathname === '/api/ferry-ais') return send(res, 200, JSON.stringify(ferryAIS.snapshot()), 'application/json; charset=utf-8');
   if (url.pathname === '/health') return send(res, 200, `ok active=${activeStreams}\n`);
   if (url.pathname === '/stream.ts') return streamTs(req, res);
   if (url.pathname === '/snapshot.png') return snapshot(res);
