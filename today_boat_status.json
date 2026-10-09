@@ -2,10 +2,10 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-10",
-  "generated_at": "2026-10-10T08:17:49.977016+09:00",
+  "generated_at": "2026-10-10T08:20:49.925900+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261010.json",
-  "schedule_checked_at": "2026-10-10T08:05:49.925887+09:00",
+  "schedule_checked_at": "2026-10-10T08:20:49.925900+09:00",
   "schedule_warnings": [
     "official_cards: TimeoutError"
   ],
@@ -52,7 +52,7 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 5,
+    "requested": 6,
     "fetched": 2,
     "failures": [],
     "deferred": [
@@ -70,6 +70,11 @@
         "jcd": "09",
         "name": "津",
         "start": "2026-10-10T09:00:00+09:00"
+      },
+      {
+        "jcd": "16",
+        "name": "児島",
+        "start": "2026-10-10T09:40:00+09:00"
       }
     ]
   },
@@ -1017,7 +1022,8 @@
           "name": "記者選抜戦"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "provider_stream_start": "2026-10-10T09:40:00+09:00",
+      "source": "公式BR配信開始待ち 09:40"
     },
     "boat.tokuyama": {
       "jcd": "18",
@@ -1222,7 +1228,7 @@
       "intermission": null,
       "guidance_switch_at": "2026-10-10T14:59:00+09:00",
       "seed_required": false,
-      "reverify_due": false,
+      "reverify_due": true,
       "playback_verified": true,
       "first_verified_at": "2026-10-10T08:00:18.153607+09:00",
       "ready_before_first_race": true,
