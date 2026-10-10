@@ -2,10 +2,10 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-10",
-  "generated_at": "2026-10-10T10:05:57.422949+09:00",
+  "generated_at": "2026-10-10T10:08:57.373918+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261010.json",
-  "schedule_checked_at": "2026-10-10T09:53:57.370262+09:00",
+  "schedule_checked_at": "2026-10-10T10:08:57.373918+09:00",
   "schedule_warnings": [
     "official_cards: TimeoutError"
   ],
@@ -19,7 +19,7 @@
   "alert_lead_minutes": 30,
   "card_count": 13,
   "held_count": 13,
-  "visible_count": 5,
+  "visible_count": 6,
   "active_count": 4,
   "ended_kept": [],
   "seed_required": false,
@@ -36,7 +36,7 @@
     },
     "day": {
       "held": 7,
-      "acquired": 3,
+      "acquired": 4,
       "active": 2,
       "ended": 0,
       "seed_required": 0,
@@ -53,14 +53,9 @@
   },
   "cloud_acquisition": {
     "requested": 9,
-    "fetched": 5,
+    "fetched": 6,
     "failures": [],
     "deferred": [
-      {
-        "jcd": "02",
-        "name": "戸田",
-        "start": "2026-10-10T10:09:00+09:00"
-      },
       {
         "jcd": "03",
         "name": "江戸川",
@@ -87,6 +82,22 @@
     "kind": "healthy"
   },
   "streams": {
+    "boat.toda": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/bcf6f7a69d964c3f9a3aab65da3f81fc/f1a01eb9aaa940318cdcd3bd2f7a17cc/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MTc3MDQwMCwic3RhcnQiOjE3OTE1OTQ1NDAsImlvcyI6MTgsImNwIjoiMjEzNzkwMTQwXzIxMzgzMzMzOSIsInBwdyI6IjQwayJ9.1VfwcfwWprubULEg0KnDf9nBXOXi8JvH4E6cOj6QLCE",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-10-10T10:09:32.581455+09:00",
+      "checked_at": "2026-10-10T10:09:32.581455+09:00",
+      "first_verified_at": "2026-10-10T10:09:32.581455+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 8450703,
+        "last_segment": "/bcf6f7a69d964c3f9a3aab65da3f81fc/f1a01eb9aaa940318cdcd3bd2f7a17cc/manifest_4_8450708.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
+    },
     "boat.tokoname": {
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/36c903744f0348a8a7b43752c74dd16f/51c92d87ebda46d386f47351d42b1f54/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MTc2NjgwMCwic3RhcnQiOjE3OTE1OTMxMDAsImlvcyI6MTgsImNwIjoiMjEzNzg4NzAwXzIxMzgzMTg5OSIsInBwdyI6IjQwayJ9.xkmHpCPlQeselpKE8fXEtMncen2_MWLwNSkn2wj1Ksc",
       "source": "automatic acquisition + audio/video decode",
@@ -263,7 +274,7 @@
       "jcd": "02",
       "name": "戸田",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
       "active": false,
       "cancelled": false,
@@ -281,9 +292,9 @@
       "guidance_switch_at": "2026-10-10T17:15:00+09:00",
       "seed_required": false,
       "reverify_due": false,
-      "playback_verified": false,
-      "first_verified_at": null,
-      "ready_before_first_race": false,
+      "playback_verified": true,
+      "first_verified_at": "2026-10-10T10:09:32.581455+09:00",
+      "ready_before_first_race": true,
       "acquire_from": "2026-10-10T08:17:00+09:00",
       "races": [
         {
@@ -347,8 +358,9 @@
           "name": "記者選抜戦"
         }
       ],
-      "provider_stream_start": "2026-10-10T10:09:00+09:00",
-      "source": "公式BR配信開始待ち 10:09"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/bcf6f7a69d964c3f9a3aab65da3f81fc/f1a01eb9aaa940318cdcd3bd2f7a17cc/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MTc3MDQwMCwic3RhcnQiOjE3OTE1OTQ1NDAsImlvcyI6MTgsImNwIjoiMjEzNzkwMTQwXzIxMzgzMzMzOSIsInBwdyI6IjQwayJ9.1VfwcfwWprubULEg0KnDf9nBXOXi8JvH4E6cOj6QLCE",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     },
     "boat.edogawa": {
       "jcd": "03",
@@ -1282,7 +1294,7 @@
       "intermission": null,
       "guidance_switch_at": "2026-10-10T14:59:00+09:00",
       "seed_required": false,
-      "reverify_due": false,
+      "reverify_due": true,
       "playback_verified": true,
       "first_verified_at": "2026-10-10T08:00:18.153607+09:00",
       "ready_before_first_race": true,
