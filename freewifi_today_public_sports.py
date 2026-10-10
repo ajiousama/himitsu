@@ -472,7 +472,7 @@ def main():
     if gch_special:
         for spec in GCH_SPECIAL_ENTRIES:
             block = [
-                f'#EXTINF:-1 tvg-id="{spec["id"]}" tvg-name="{spec["tvg_name"]}" tvg-logo="{spec["logo"]}" group-title="{GROUP}",{spec["name"]}',
+                f'#EXTINF:-1 tvg-id="{spec["id"]}" tvg-name="{spec["tvg_name"]}" tvg-logo="{spec["logo"]}" group-title="競馬",{spec["name"]}',
                 spec['url'],
             ]
             rows.append({
