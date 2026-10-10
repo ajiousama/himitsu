@@ -2,10 +2,10 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-10",
-  "generated_at": "2026-10-10T20:45:09.727572+09:00",
+  "generated_at": "2026-10-10T20:48:29.532988+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261010.json",
-  "schedule_checked_at": "2026-10-10T20:31:00.240849+09:00",
+  "schedule_checked_at": "2026-10-10T20:48:29.532988+09:00",
   "schedule_warnings": [
     "official_cards: TimeoutError"
   ],
@@ -19,8 +19,8 @@
   "alert_lead_minutes": 30,
   "card_count": 13,
   "held_count": 13,
-  "visible_count": 1,
-  "active_count": 1,
+  "visible_count": 0,
+  "active_count": 0,
   "ended_kept": [],
   "seed_required": false,
   "seed_required_venues": [],
@@ -44,18 +44,20 @@
     },
     "night": {
       "held": 4,
-      "acquired": 1,
-      "active": 1,
-      "ended": 3,
+      "acquired": 0,
+      "active": 0,
+      "ended": 4,
       "seed_required": 0,
       "cancelled": 0
     }
   },
   "cloud_acquisition": {
-    "requested": 1,
-    "fetched": 1,
+    "requested": 0,
+    "fetched": 0,
     "failures": [],
-    "deferred": []
+    "deferred": [],
+    "deferred_count": 13,
+    "reason": "stream acquisition waits until each venue 1R prefetch window"
   },
   "epg_programmes_written": {
     "public_sports_epg_local.xml": 182,
@@ -65,32 +67,15 @@
     "active": false,
     "kind": "healthy"
   },
-  "streams": {
-    "boat.kiryu": {
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/59fb4d48f26245b4aed2cc26ee84bed1/6b7d092005c24e87bf2947752fa92d04/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MTc4NDgwMCwic3RhcnQiOjE3OTE2MTExMDAsImlvcyI6MTgsImNwIjoiMjEzODA2NzAwXzIxMzg0NzE5OSIsInBwdyI6IjQwayJ9.jkYG1aKh8lAbP01Hnv1jzcuH7a59Um9SO1cbJM0bJqs",
-      "source": "automatic acquisition + audio/video decode",
-      "acquired_at": "2026-10-10T14:46:18.674066+09:00",
-      "checked_at": "2026-10-10T20:44:54.586876+09:00",
-      "first_verified_at": "2026-10-10T14:46:18.674066+09:00",
-      "playback_verified": true,
-      "probe": {
-        "ok": true,
-        "sequence": 8470744,
-        "last_segment": "/59fb4d48f26245b4aed2cc26ee84bed1/6b7d092005c24e87bf2947752fa92d04/manifest_1_8474342.ts",
-        "video_decoded": true,
-        "audio_decoded": true
-      },
-      "consecutive_failures": 0
-    }
-  },
+  "streams": {},
   "venues": {
     "boat.kiryu": {
       "jcd": "01",
       "name": "桐生",
       "held": true,
-      "visible": true,
-      "ended": false,
-      "active": true,
+      "visible": false,
+      "ended": true,
+      "active": false,
       "cancelled": false,
       "mode": "night",
       "mode_label": "ナイター",
@@ -98,11 +83,11 @@
       "last_race": "20:45",
       "alert_from": "2026-10-10T14:49:00+09:00",
       "next_race": null,
-      "stream_window": "live_or_prestart",
+      "stream_window": "ended_hidden",
       "intermission": null,
       "guidance_switch_at": "2026-10-10T21:30:00+09:00",
       "seed_required": false,
-      "reverify_due": true,
+      "reverify_due": false,
       "playback_verified": true,
       "first_verified_at": "2026-10-10T14:46:18.674066+09:00",
       "ready_before_first_race": true,
@@ -169,9 +154,7 @@
           "name": "一般桐生特選"
         }
       ],
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/59fb4d48f26245b4aed2cc26ee84bed1/6b7d092005c24e87bf2947752fa92d04/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MTc4NDgwMCwic3RhcnQiOjE3OTE2MTExMDAsImlvcyI6MTgsImNwIjoiMjEzODA2NzAwXzIxMzg0NzE5OSIsInBwdyI6IjQwayJ9.jkYG1aKh8lAbP01Hnv1jzcuH7a59Um9SO1cbJM0bJqs",
-      "source": "automatic acquisition + audio/video decode",
-      "token_expired": false
+      "source": "automatic cloud SEED pending"
     },
     "boat.toda": {
       "jcd": "02",
