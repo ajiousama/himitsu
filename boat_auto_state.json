@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-10",
-  "generated_at": "2026-10-10T14:23:57.402579+09:00",
+  "generated_at": "2026-10-10T14:24:57.452191+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261010.json",
   "schedule_checked_at": "2026-10-10T14:11:57.399155+09:00",
@@ -19,7 +19,7 @@
   "alert_lead_minutes": 30,
   "card_count": 13,
   "held_count": 13,
-  "visible_count": 10,
+  "visible_count": 11,
   "active_count": 8,
   "ended_kept": [],
   "seed_required": false,
@@ -44,7 +44,7 @@
     },
     "night": {
       "held": 4,
-      "acquired": 2,
+      "acquired": 3,
       "active": 0,
       "ended": 0,
       "seed_required": 0,
@@ -53,18 +53,13 @@
   },
   "cloud_acquisition": {
     "requested": 12,
-    "fetched": 10,
+    "fetched": 11,
     "failures": [],
     "deferred": [
       {
         "jcd": "01",
         "name": "桐生",
         "start": "2026-10-10T14:45:00+09:00"
-      },
-      {
-        "jcd": "12",
-        "name": "住之江",
-        "start": "2026-10-10T14:25:00+09:00"
       }
     ]
   },
@@ -168,6 +163,22 @@
         "ok": true,
         "sequence": 8472263,
         "last_segment": "/000780d7ca0d444f80575c44b227773a/daf6d420f63a4451be6abbc3f0017354/manifest_4_8475506.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
+    },
+    "boat.suminoe": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/0f16cb87de294de7948d54e12a537be9/75967b02970e46689b57e1b00760821c/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MTc4NDgwMCwic3RhcnQiOjE3OTE2MDk5MDAsImlvcyI6MTgsImNwIjoiMjEzODA1NTAwXzIxMzg0NzE5OSIsInBwdyI6IjQwayJ9.0PxCV3PZZ0gySauUA9xIMdw9E1Bpe1wjfxKvT5UmdKo",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-10-10T14:25:24.752961+09:00",
+      "checked_at": "2026-10-10T14:25:24.752961+09:00",
+      "first_verified_at": "2026-10-10T14:25:24.752961+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 8451276,
+        "last_segment": "/0f16cb87de294de7948d54e12a537be9/75967b02970e46689b57e1b00760821c/manifest_4_8451279.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -436,14 +447,14 @@
       "last_race": "16:25",
       "alert_from": "2026-10-10T10:44:00+09:00",
       "next_race": {
-        "race": 8,
-        "start": "14:24"
+        "race": 9,
+        "start": "14:52"
       },
       "stream_window": "live_or_prestart",
       "intermission": null,
       "guidance_switch_at": "2026-10-10T17:10:00+09:00",
       "seed_required": false,
-      "reverify_due": true,
+      "reverify_due": false,
       "playback_verified": true,
       "first_verified_at": "2026-10-10T10:39:24.407376+09:00",
       "ready_before_first_race": true,
@@ -886,7 +897,7 @@
       "jcd": "12",
       "name": "住之江",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
       "active": false,
       "cancelled": false,
@@ -904,9 +915,9 @@
       "guidance_switch_at": "2026-10-10T21:15:00+09:00",
       "seed_required": false,
       "reverify_due": false,
-      "playback_verified": false,
-      "first_verified_at": null,
-      "ready_before_first_race": false,
+      "playback_verified": true,
+      "first_verified_at": "2026-10-10T14:25:24.752961+09:00",
+      "ready_before_first_race": true,
       "acquire_from": "2026-10-10T12:47:00+09:00",
       "races": [
         {
@@ -970,8 +981,9 @@
           "name": "ドリーム戦"
         }
       ],
-      "provider_stream_start": "2026-10-10T14:25:00+09:00",
-      "source": "公式BR配信開始待ち 14:25"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/0f16cb87de294de7948d54e12a537be9/75967b02970e46689b57e1b00760821c/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MTc4NDgwMCwic3RhcnQiOjE3OTE2MDk5MDAsImlvcyI6MTgsImNwIjoiMjEzODA1NTAwXzIxMzg0NzE5OSIsInBwdyI6IjQwayJ9.0PxCV3PZZ0gySauUA9xIMdw9E1Bpe1wjfxKvT5UmdKo",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     },
     "boat.marugame": {
       "jcd": "15",
