@@ -132,7 +132,7 @@ def main():
   for q,stream,logo in (('hq',hq,hqlogo),('lq',lq,lqlogo)):
    cid=f'{outbase}.{q}'; label=f'{name} {q.upper()}'
    logo_url=(GCH_LOCAL_LOGO if source=='jra.gch' else LOGO) + '/' + logo
-   rows += [f'#EXTINF:-1 tvg-id="{cid}" tvg-name="{label}" tvg-logo="{logo_url}" group-title="{'競馬' if source == 'jra.gch' else GROUP}",{label}',f'{RAW}/{stream}','']
+   rows += [f'#EXTINF:-1 tvg-id="{cid}" tvg-name="{label}" tvg-logo="{logo_url}" group-title="{GROUP}",{label}',f'{RAW}/{stream}','']
    exposed.append(cid)
  managed=START+'\n## 本日の開催場（JRA / earphone HQ・LQ）\n'+'\n'.join(rows).rstrip()+('\n' if rows else '')+END
  anchor='# === GENERAL_YOUTUBE_MANAGED_START ==='
