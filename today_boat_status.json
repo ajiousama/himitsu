@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-11",
-  "generated_at": "2026-10-11T06:58:38.667542+09:00",
+  "generated_at": "2026-10-11T07:00:38.668734+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261011.json",
   "schedule_checked_at": "2026-10-11T06:58:38.667542+09:00",
@@ -54,19 +54,19 @@
   "cloud_acquisition": {
     "requested": 2,
     "fetched": 0,
-    "failures": [
+    "failures": [],
+    "deferred": [
       {
         "jcd": "18",
         "name": "徳山",
-        "error": "cloud and official acquisition unavailable: HTTPError"
+        "start": "2026-10-11T08:12:00+09:00"
       },
       {
         "jcd": "23",
         "name": "唐津",
-        "error": "cloud and official acquisition unavailable: HTTPError"
+        "start": "2026-10-11T08:00:00+09:00"
       }
-    ],
-    "deferred": []
+    ]
   },
   "epg_programmes_written": {
     "public_sports_epg_local.xml": 182,
@@ -976,7 +976,8 @@
           "name": "すなっち特選"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "provider_stream_start": "2026-10-11T08:12:00+09:00",
+      "source": "公式BR配信開始待ち 08:12"
     },
     "boat.shimonoseki": {
       "jcd": "19",
@@ -1246,7 +1247,8 @@
           "name": "準優勝戦"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "provider_stream_start": "2026-10-11T08:00:00+09:00",
+      "source": "公式BR配信開始待ち 08:00"
     }
   }
 }
