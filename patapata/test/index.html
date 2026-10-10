@@ -411,7 +411,7 @@ function tickClock(){
   var n=now();$('hm').textContent=n.hh+':'+n.mm;$('sec').textContent=':'+n.ss;
   var e=Math.floor((Date.now()-started)/1000)%SWITCH,remain=SWITCH-e;
   var phaseLabel=displayPhase===2?'English':(displayPhase===1?'日本語 / まもなく':'日本語');
-  $('count').textContent=remain+' sec / '+phaseLabel;
+  var count=$('count');if(count)count.textContent=remain+' sec / '+phaseLabel;
   return n
 }
 function load(src){
@@ -432,7 +432,7 @@ async function watch(){
 async function boot(){
   try{
     delete window.MATSUYAMA_DATA;
-    await load('/patapata/schedule.js');
+    await load('/view/schedule.js');
     data=window.MATSUYAMA_DATA;
     if(!data||!Array.isArray(data.records))throw new Error('invalid');
     $('source').textContent='R14実データ / GitHub→Railway同期'
