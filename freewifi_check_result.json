@@ -1,18 +1,19 @@
 {
-  "checked_at_utc": "2026-10-08T00:37:39.661631+00:00",
-  "entries": 222,
-  "skipped_entries": 71,
+  "checked_at_utc": "2026-10-10T00:19:18.788166+00:00",
+  "entries": 241,
+  "skipped_entries": 58,
   "skipped_groups": [
     "VOD"
   ],
-  "unique_urls": 222,
-  "green_entries": 212,
-  "green_unique_urls": 212,
-  "pending_unique_urls": 3,
-  "failed_unique_urls": 7,
+  "unique_urls": 241,
+  "green_entries": 216,
+  "green_unique_urls": 216,
+  "pending_unique_urls": 4,
+  "failed_unique_urls": 21,
   "failure_reasons": {
+    "http_403": 14,
     "http_504": 5,
-    "ReadTimeout": 2
+    "non_hls": 2
   },
   "group_stats": {
     "BS": {
@@ -51,6 +52,12 @@
       "pending": 0,
       "total": 51
     },
+    "naori CS": {
+      "ok": 0,
+      "fail": 14,
+      "pending": 0,
+      "total": 14
+    },
     "その他": {
       "ok": 1,
       "fail": 0,
@@ -64,10 +71,10 @@
       "total": 29
     },
     "今日の開催場": {
-      "ok": 13,
-      "fail": 2,
-      "pending": 3,
-      "total": 18
+      "ok": 19,
+      "fail": 0,
+      "pending": 4,
+      "total": 23
     },
     "地上波 5002直": {
       "ok": 15,
@@ -82,8 +89,8 @@
       "total": 5
     },
     "地上波 haru blog": {
-      "ok": 2,
-      "fail": 0,
+      "ok": 0,
+      "fail": 2,
       "pending": 0,
       "total": 2
     },
@@ -123,7 +130,7 @@
       "pending": 0
     },
     "autorace-live.akamaized.net": {
-      "ok": 0,
+      "ok": 1,
       "fail": 0,
       "pending": 1
     },
@@ -152,17 +159,22 @@
       "fail": 0,
       "pending": 0
     },
+    "d19fq96jx01oj3.cloudfront.net": {
+      "ok": 1,
+      "fail": 0,
+      "pending": 0
+    },
+    "d1bvxvt0rc15dk.cloudfront.net": {
+      "ok": 1,
+      "fail": 0,
+      "pending": 0
+    },
     "d1fozgui02sgex.cloudfront.net": {
       "ok": 1,
       "fail": 0,
       "pending": 0
     },
-    "d1k0zwbhpej0or.cloudfront.net": {
-      "ok": 1,
-      "fail": 0,
-      "pending": 0
-    },
-    "d20x1p8tfre91b.cloudfront.net": {
+    "d1fzg1sb6wtn97.cloudfront.net": {
       "ok": 1,
       "fail": 0,
       "pending": 0
@@ -172,22 +184,17 @@
       "fail": 0,
       "pending": 0
     },
-    "d2qwtrte7v1vrk.cloudfront.net": {
+    "d30l40wf0q5flx.cloudfront.net": {
       "ok": 1,
       "fail": 0,
       "pending": 0
     },
-    "d2zw3hk976cigz.cloudfront.net": {
+    "d39uosfxy3v3ex.cloudfront.net": {
       "ok": 1,
       "fail": 0,
       "pending": 0
     },
-    "dfb6s2sy8m4fj.cloudfront.net": {
-      "ok": 1,
-      "fail": 0,
-      "pending": 0
-    },
-    "dtobnwhel29h8.cloudfront.net": {
+    "dhwnzvxv6smzu.cloudfront.net": {
       "ok": 1,
       "fail": 0,
       "pending": 0
@@ -203,8 +210,8 @@
       "pending": 0
     },
     "haru.charandom.blog": {
-      "ok": 2,
-      "fail": 0,
+      "ok": 0,
+      "fail": 2,
       "pending": 0
     },
     "himitsu-six.vercel.app": {
@@ -223,13 +230,18 @@
       "pending": 0
     },
     "manifest.streaks.jp": {
-      "ok": 2,
+      "ok": 3,
       "fail": 0,
       "pending": 0
     },
     "mens-neco-jp.fast.rakuten.tv": {
       "ok": 0,
       "fail": 1,
+      "pending": 0
+    },
+    "naori-test.netgenx.site": {
+      "ok": 0,
+      "fail": 14,
       "pending": 0
     },
     "patapata-r14-production.up.railway.app": {
@@ -239,11 +251,11 @@
     },
     "rakuten3qdrzrp0.keiba-racing.jp": {
       "ok": 0,
-      "fail": 2,
-      "pending": 2
+      "fail": 0,
+      "pending": 3
     },
     "raw.githubusercontent.com": {
-      "ok": 2,
+      "ok": 6,
       "fail": 0,
       "pending": 0
     },
@@ -269,1363 +281,1523 @@
     }
   },
   "results": {
-    "https://live-tver-simul-ntv.streaks.jp/938232e586b34196b704a5839663984b/cb593b5eafbb4645907e979d757e1dd5/manifest_1.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 767,
-      "final_url": "https://live-tver-simul-ntv.streaks.jp/938232e586b34196b704a5839663984b/cb593b5eafbb4645907e979d757e1dd5/manifest_1_11045149.ts?m=1747271078",
-      "probe_url": "https://live-tver-simul-ntv.streaks.jp/938232e586b34196b704a5839663984b/cb593b5eafbb4645907e979d757e1dd5/manifest_1_11045149.ts?m=1747271078"
-    },
-    "https://ssai-variants.streaks.jp/v5/tver-simul-ex/498c4512f66846f1b0a5a3320ee035c3/ce98cb0b48994b50a76dba08ea894e24/manifest/13df2e5de86b5ff0c5c3522d82e73a5fbf55aac1/pro-mt-175-8158/b92b4043-6632-4d74-b9c7-d8444a4eb355/0.m3u8?pdt=-16847&session=b92b4043-6632-4d74-b9c7-d8444a4eb355&vt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlZGdlIjoiZXgtbGl2ZS1jZG4udHZlci5qcCIsIm9mZnNldCI6OSwicGR0IjoiLTE2ODQ3In0.LmScKQAVVQYt76GM-z64D8Py0KfYRz-3H5zc6GDcBj0": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 1260,
-      "final_url": "https://ex-live-cdn.tver.jp/498c4512f66846f1b0a5a3320ee035c3/ce98cb0b48994b50a76dba08ea894e24/manifest_1_18370368.ts?m=1717985258",
-      "probe_url": "https://ex-live-cdn.tver.jp/498c4512f66846f1b0a5a3320ee035c3/ce98cb0b48994b50a76dba08ea894e24/manifest_1_18370368.ts?m=1717985258"
-    },
-    "https://ssai-variants.streaks.jp/v5/tver-simul-tbs/8e4c80725b9842cdb0f6f91260945222/b72f7e116957436b824f95d5138ea7a3/manifest/13df2e5de86b5ff0c5c3522d82e73a5fbf55aac1/pro-mt-176-7925/2a38d855-a521-4d96-a6c7-933a0bf29754/0.m3u8?pdt=-9133&session=2a38d855-a521-4d96-a6c7-933a0bf29754&vt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlZGdlIjoidGJzLWxpdmUtY2RuLnR2ZXIuanAiLCJvZmZzZXQiOjksInBkdCI6Ii05MTMzIn0.wWY9OBF4yy2xGYlTx_N_eud7S1bwrGw7oXya1meGNFY": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 1302,
-      "final_url": "https://tbs-live-cdn.tver.jp/8e4c80725b9842cdb0f6f91260945222/b72f7e116957436b824f95d5138ea7a3/manifest_1_18799853.ts?m=1716260857",
-      "probe_url": "https://tbs-live-cdn.tver.jp/8e4c80725b9842cdb0f6f91260945222/b72f7e116957436b824f95d5138ea7a3/manifest_1_18799853.ts?m=1716260857"
-    },
-    "http://118.69.27.222:9394/stream/25.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 1342,
-      "final_url": "http://118.69.27.222:9394/stream/25/1791419772214.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/25/1791419772214.ts"
-    },
-    "http://118.69.27.222:9394/stream/3.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 1342,
-      "final_url": "http://118.69.27.222:9394/stream/3/1791419740079ajktvadfinal_7.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/3/1791419740079ajktvadfinal_7.ts"
-    },
     "http://67.215.237.218:5002/hdgd01.m3u8?gid=hdgd01&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
       "ok": true,
       "status": 200,
       "reason": "hls_segment",
-      "elapsed_ms": 1345,
-      "final_url": "http://67.215.237.218:5002/hdgd01-frag24441730.ts?token=guoziyun&channel=zhongying&gid=hdgd01&range=60153880645872-60153883374316",
-      "probe_url": "http://67.215.237.218:5002/hdgd01-frag24441730.ts?token=guoziyun&channel=zhongying&gid=hdgd01&range=60153880645872-60153883374316"
-    },
-    "https://ssai-variants.streaks.jp/v5/tver-simul-cx/a78ebf1910144ba287907ec691bdc863/4817bf371f214463a3609e17a365f098/manifest/13df2e5de86b5ff0c5c3522d82e73a5fbf55aac1/pro-mt-178-7884/2d0e62ec-afcb-4689-a1f0-d17fb79b5562/0.m3u8?pdt=-6627&session=2d0e62ec-afcb-4689-a1f0-d17fb79b5562&vt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlZGdlIjoiY3gtbGl2ZS1jZG4udHZlci5qcCIsIm9mZnNldCI6OSwicGR0IjoiLTY2MjcifQ.rGchZoAv-VWLdrkowF0VYMb-geWaK_ZcFhYhXb5HolM": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 1350,
-      "final_url": "https://cx-live-cdn.tver.jp/a78ebf1910144ba287907ec691bdc863/4817bf371f214463a3609e17a365f098/manifest_1_18986648.ts?m=1715824811",
-      "probe_url": "https://cx-live-cdn.tver.jp/a78ebf1910144ba287907ec691bdc863/4817bf371f214463a3609e17a365f098/manifest_1_18986648.ts?m=1715824811"
+      "elapsed_ms": 58,
+      "final_url": "http://67.215.237.218:5002/hdgd01-frag24458785.ts?token=guoziyun&channel=zhongying&gid=hdgd01&range=60200655616640-60200658361816",
+      "probe_url": "http://67.215.237.218:5002/hdgd01-frag24458785.ts?token=guoziyun&channel=zhongying&gid=hdgd01&range=60200655616640-60200658361816"
     },
     "http://67.215.237.218:5002/hdgd04.m3u8?gid=hdgd04&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
       "ok": true,
       "status": 200,
       "reason": "hls_segment",
-      "elapsed_ms": 1354,
-      "final_url": "http://67.215.237.218:5002/hdgd04-frag24420650.ts?token=guoziyun&channel=zhongying&gid=hdgd04&range=59836512650092-59836515378536",
-      "probe_url": "http://67.215.237.218:5002/hdgd04-frag24420650.ts?token=guoziyun&channel=zhongying&gid=hdgd04&range=59836512650092-59836515378536"
-    },
-    "http://67.215.237.218:5002/gx06.m3u8?gid=gx06&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 1358,
-      "final_url": "http://67.215.237.218:5002/gx06-frag24911647.ts?token=guoziyun&channel=zhongying&gid=gx06&range=44972621605184-44972624319152",
-      "probe_url": "http://67.215.237.218:5002/gx06-frag24911647.ts?token=guoziyun&channel=zhongying&gid=gx06&range=44972621605184-44972624319152"
+      "elapsed_ms": 57,
+      "final_url": "http://67.215.237.218:5002/hdgd04-frag24437702.ts?token=guoziyun&channel=zhongying&gid=hdgd04&range=59883300207836-59883302927256",
+      "probe_url": "http://67.215.237.218:5002/hdgd04-frag24437702.ts?token=guoziyun&channel=zhongying&gid=hdgd04&range=59883300207836-59883302927256"
     },
     "http://67.215.237.218:5002/hdgd02.m3u8?gid=hdgd02&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
       "ok": true,
       "status": 200,
       "reason": "hls_segment",
-      "elapsed_ms": 1359,
-      "final_url": "http://67.215.237.218:5002/hdgd02-frag24605814.ts?token=guoziyun&channel=zhongying&gid=hdgd02&range=58974363890976-58974366608892",
-      "probe_url": "http://67.215.237.218:5002/hdgd02-frag24605814.ts?token=guoziyun&channel=zhongying&gid=hdgd02&range=58974363890976-58974366608892"
+      "elapsed_ms": 61,
+      "final_url": "http://67.215.237.218:5002/hdgd02-frag24622899.ts?token=guoziyun&channel=zhongying&gid=hdgd02&range=59021064752144-59021067610308",
+      "probe_url": "http://67.215.237.218:5002/hdgd02-frag24622899.ts?token=guoziyun&channel=zhongying&gid=hdgd02&range=59021064752144-59021067610308"
     },
-    "http://118.69.27.222:9394/stream/14.m3u8": {
+    "http://67.215.237.218:5002/gx06.m3u8?gid=gx06&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
       "ok": true,
       "status": 200,
       "reason": "hls_segment",
-      "elapsed_ms": 1371,
-      "final_url": "http://118.69.27.222:9394/stream/14/1791419775506.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/14/1791419775506.ts"
-    },
-    "http://118.69.27.222:9394/stream/321.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 1383,
-      "final_url": "http://118.69.27.222:9394/stream/321/25417510.fplsegment.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/321/25417510.fplsegment.ts"
-    },
-    "https://ssai-variants.streaks.jp/v5/tver-simul-tx/035622a82bcb46bc8e41ca5351f95a00/3887c96991ce4ae1bec43ea19f24c4d5/manifest/13df2e5de86b5ff0c5c3522d82e73a5fbf55aac1/pro-mt-177-8159/0f5f5883-a6c1-4cd1-a4c6-0f0a14c9e49b/0.m3u8?pdt=-11501&session=0f5f5883-a6c1-4cd1-a4c6-0f0a14c9e49b&vt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlZGdlIjoidHgtbGl2ZS1jZG4udHZlci5qcCIsIm9mZnNldCI6OSwicGR0IjoiLTExNTAxIn0.ENL1yqihdtixoLM2vqtt9oZ3caukXFFuLBwGeXXwUH0": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 1641,
-      "final_url": "https://tx-live-cdn.tver.jp/035622a82bcb46bc8e41ca5351f95a00/3887c96991ce4ae1bec43ea19f24c4d5/manifest_1_18372429.ts?m=1717985872",
-      "probe_url": "https://tx-live-cdn.tver.jp/035622a82bcb46bc8e41ca5351f95a00/3887c96991ce4ae1bec43ea19f24c4d5/manifest_1_18372429.ts?m=1717985872"
-    },
-    "http://67.215.237.218:5002/hdgd05.m3u8?gid=hdgd05&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 2548,
-      "final_url": "http://67.215.237.218:5002/hdgd05-frag26527084.ts?token=guoziyun&channel=zhongying&gid=hdgd05&range=60197922372060-60197925105392",
-      "probe_url": "http://67.215.237.218:5002/hdgd05-frag26527084.ts?token=guoziyun&channel=zhongying&gid=hdgd05&range=60197922372060-60197925105392"
-    },
-    "http://67.215.237.218:5002/gx03.m3u8?gid=gx03&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 2549,
-      "final_url": "http://67.215.237.218:5002/gx03-frag26950902.ts?token=guoziyun&channel=zhongying&gid=gx03&range=45280657855468-45280660601396",
-      "probe_url": "http://67.215.237.218:5002/gx03-frag26950902.ts?token=guoziyun&channel=zhongying&gid=gx03&range=45280657855468-45280660601396"
-    },
-    "http://67.215.237.218:5002/hdgd03.m3u8?gid=hdgd03&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 2569,
-      "final_url": "http://67.215.237.218:5002/hdgd03-frag26444149.ts?token=guoziyun&channel=zhongying&gid=hdgd03&range=59921759091844-59921761822732",
-      "probe_url": "http://67.215.237.218:5002/hdgd03-frag26444149.ts?token=guoziyun&channel=zhongying&gid=hdgd03&range=59921759091844-59921761822732"
-    },
-    "http://67.215.237.218:5002/gx07.m3u8?gid=gx07&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 1253,
-      "final_url": "http://67.215.237.218:5002/gx07-frag24629916.ts?token=guoziyun&channel=zhongying&gid=gx07&range=42431615406600-42431618116432",
-      "probe_url": "http://67.215.237.218:5002/gx07-frag24629916.ts?token=guoziyun&channel=zhongying&gid=gx07&range=42431615406600-42431618116432"
-    },
-    "https://haru.charandom.blog/stream/jp/tokyo_mx2/stream-output.m3u8?mode=hls": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 1298,
-      "final_url": "https://haru.charandom.blog/stream/segments/def-liv_c30790e0f0f0f5cf.css",
-      "probe_url": "https://haru.charandom.blog/stream/segments/def-liv_c30790e0f0f0f5cf.css"
-    },
-    "http://67.215.237.218:5002/hdgd08.m3u8?gid=hdgd08&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 1340,
-      "final_url": "http://67.215.237.218:5002/hdgd08-frag24489296.ts?token=guoziyun&channel=zhongying&gid=hdgd08&range=58442388211248-58442390945708",
-      "probe_url": "http://67.215.237.218:5002/hdgd08-frag24489296.ts?token=guoziyun&channel=zhongying&gid=hdgd08&range=58442388211248-58442390945708"
-    },
-    "http://67.215.237.218:5002/gx04.m3u8?gid=gx04&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 1882,
-      "final_url": "http://67.215.237.218:5002/gx04-frag24766638.ts?token=guoziyun&channel=zhongying&gid=gx04&range=44690667388636-44690670113508",
-      "probe_url": "http://67.215.237.218:5002/gx04-frag24766638.ts?token=guoziyun&channel=zhongying&gid=gx04&range=44690667388636-44690670113508"
+      "elapsed_ms": 66,
+      "final_url": "http://67.215.237.218:5002/gx06-frag24928812.ts?token=guoziyun&channel=zhongying&gid=gx06&range=45019171313600-45019174017228",
+      "probe_url": "http://67.215.237.218:5002/gx06-frag24928812.ts?token=guoziyun&channel=zhongying&gid=gx06&range=45019171313600-45019174017228"
     },
     "http://67.215.237.218:5002/gx05.m3u8?gid=gx05&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
       "ok": true,
       "status": 200,
       "reason": "hls_segment",
-      "elapsed_ms": 2668,
-      "final_url": "http://67.215.237.218:5002/gx05-frag24621700.ts?token=guoziyun&channel=zhongying&gid=gx05&range=42237594025476-42237596721584",
-      "probe_url": "http://67.215.237.218:5002/gx05-frag24621700.ts?token=guoziyun&channel=zhongying&gid=gx05&range=42237594025476-42237596721584"
+      "elapsed_ms": 105,
+      "final_url": "http://67.215.237.218:5002/gx05-frag24638818.ts?token=guoziyun&channel=zhongying&gid=gx05&range=42284139610112-42284142310920",
+      "probe_url": "http://67.215.237.218:5002/gx05-frag24638818.ts?token=guoziyun&channel=zhongying&gid=gx05&range=42284139610112-42284142310920"
     },
-    "http://67.215.237.218:5002/bs11.m3u8?gid=bs11&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
+    "http://67.215.237.218:5002/gx03.m3u8?gid=gx03&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
       "ok": true,
       "status": 200,
       "reason": "hls_segment",
-      "elapsed_ms": 1042,
-      "final_url": "http://67.215.237.218:5002/bs11-frag26360385.ts?token=guoziyun&channel=zhongying&gid=bs11&range=43526882975888-43526885688164",
-      "probe_url": "http://67.215.237.218:5002/bs11-frag26360385.ts?token=guoziyun&channel=zhongying&gid=bs11&range=43526882975888-43526885688164"
+      "elapsed_ms": 109,
+      "final_url": "http://67.215.237.218:5002/gx03-frag26968039.ts?token=guoziyun&channel=zhongying&gid=gx03&range=45327204046028-45327206766012",
+      "probe_url": "http://67.215.237.218:5002/gx03-frag26968039.ts?token=guoziyun&channel=zhongying&gid=gx03&range=45327204046028-45327206766012"
     },
-    "http://67.215.237.218:5002/gx02.m3u8?gid=gx02&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
+    "http://67.215.237.218:5002/hdgd05.m3u8?gid=hdgd05&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
       "ok": true,
       "status": 200,
       "reason": "hls_segment",
-      "elapsed_ms": 2734,
-      "final_url": "http://67.215.237.218:5002/gx02-frag24770949.ts?token=guoziyun&channel=zhongying&gid=gx02&range=45243504218604-45243506909448",
-      "probe_url": "http://67.215.237.218:5002/gx02-frag24770949.ts?token=guoziyun&channel=zhongying&gid=gx02&range=45243504218604-45243506909448"
+      "elapsed_ms": 111,
+      "final_url": "http://67.215.237.218:5002/hdgd05-frag26544166.ts?token=guoziyun&channel=zhongying&gid=hdgd05&range=60244704615044-60244707347624",
+      "probe_url": "http://67.215.237.218:5002/hdgd05-frag26544166.ts?token=guoziyun&channel=zhongying&gid=hdgd05&range=60244704615044-60244707347624"
     },
-    "http://118.69.27.222:9394/stream/8.m3u8": {
+    "http://67.215.237.218:5002/hdgd03.m3u8?gid=hdgd03&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
       "ok": true,
       "status": 200,
       "reason": "hls_segment",
-      "elapsed_ms": 2748,
-      "final_url": "http://118.69.27.222:9394/stream/8/1791419779478.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/8/1791419779478.ts"
-    },
-    "http://118.69.27.222:9394/stream/23.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 1425,
-      "final_url": "http://118.69.27.222:9394/stream/23/1791419776767.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/23/1791419776767.ts"
+      "elapsed_ms": 114,
+      "final_url": "http://67.215.237.218:5002/hdgd03-frag26461226.ts?token=guoziyun&channel=zhongying&gid=hdgd03&range=59968539837220-59968542559836",
+      "probe_url": "http://67.215.237.218:5002/hdgd03-frag26461226.ts?token=guoziyun&channel=zhongying&gid=hdgd03&range=59968539837220-59968542559836"
     },
     "http://67.215.237.218:5002/hdgd07.m3u8?gid=hdgd07&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
       "ok": true,
       "status": 200,
       "reason": "hls_segment",
-      "elapsed_ms": 2764,
-      "final_url": "http://67.215.237.218:5002/hdgd07-frag24460531.ts?token=guoziyun&channel=zhongying&gid=hdgd07&range=59908418417484-59908421139160",
-      "probe_url": "http://67.215.237.218:5002/hdgd07-frag24460531.ts?token=guoziyun&channel=zhongying&gid=hdgd07&range=59908418417484-59908421139160"
+      "elapsed_ms": 158,
+      "final_url": "http://67.215.237.218:5002/hdgd07-frag24477658.ts?token=guoziyun&channel=zhongying&gid=hdgd07&range=59955190388712-59955193267180",
+      "probe_url": "http://67.215.237.218:5002/hdgd07-frag24477658.ts?token=guoziyun&channel=zhongying&gid=hdgd07&range=59955190388712-59955193267180"
     },
-    "https://haru.charandom.blog/stream/jp/abc/stream-output.m3u8?mode=hls": {
+    "http://67.215.237.218:5002/gx04.m3u8?gid=gx04&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
       "ok": true,
       "status": 200,
       "reason": "hls_segment",
-      "elapsed_ms": 2787,
-      "final_url": "https://haru.charandom.blog/stream/segments/zhx-liv_9030f057423b57d3.jpg",
-      "probe_url": "https://haru.charandom.blog/stream/segments/zhx-liv_9030f057423b57d3.jpg"
-    },
-    "http://67.215.237.218:5002/bs08.m3u8?gid=bs08&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 195,
-      "final_url": "http://67.215.237.218:5002/bs08-frag26696298.ts?token=guoziyun&channel=zhongying&gid=bs08&range=38156317917116-38156320628452",
-      "probe_url": "http://67.215.237.218:5002/bs08-frag26696298.ts?token=guoziyun&channel=zhongying&gid=bs08&range=38156317917116-38156320628452"
-    },
-    "http://118.69.27.222:9394/stream/12.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 2788,
-      "final_url": "http://118.69.27.222:9394/stream/12/1791419774964.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/12/1791419774964.ts"
-    },
-    "http://67.215.237.218:5002/bs31.m3u8?gid=bs31&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 154,
-      "final_url": "http://67.215.237.218:5002/bs31-frag10015952.ts?token=guoziyun&channel=zhongying&gid=bs31&range=27224192104548-27224193883780",
-      "probe_url": "http://67.215.237.218:5002/bs31-frag10015952.ts?token=guoziyun&channel=zhongying&gid=bs31&range=27224192104548-27224193883780"
-    },
-    "http://118.69.27.222:9394/stream/32.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 1445,
-      "final_url": "http://118.69.27.222:9394/stream/32/1791419774011.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/32/1791419774011.ts"
-    },
-    "http://67.215.237.218:5002/bs05.m3u8?gid=bs05&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 1488,
-      "final_url": "http://67.215.237.218:5002/bs05-frag26698826.ts?token=guoziyun&channel=zhongying&gid=bs05&range=37909270724272-37909273429404",
-      "probe_url": "http://67.215.237.218:5002/bs05-frag26698826.ts?token=guoziyun&channel=zhongying&gid=bs05&range=37909270724272-37909273429404"
+      "elapsed_ms": 164,
+      "final_url": "http://67.215.237.218:5002/gx04-frag24783799.ts?token=guoziyun&channel=zhongying&gid=gx04&range=44737210346912-44737213075356",
+      "probe_url": "http://67.215.237.218:5002/gx04-frag24783799.ts?token=guoziyun&channel=zhongying&gid=gx04&range=44737210346912-44737213075356"
     },
     "http://67.215.237.218:5002/gx01.m3u8?gid=gx01&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
       "ok": true,
       "status": 200,
       "reason": "hls_segment",
-      "elapsed_ms": 2875,
-      "final_url": "http://67.215.237.218:5002/gx01-frag24517651.ts?token=guoziyun&channel=zhongying&gid=gx01&range=44598755523248-44598758237592",
-      "probe_url": "http://67.215.237.218:5002/gx01-frag24517651.ts?token=guoziyun&channel=zhongying&gid=gx01&range=44598755523248-44598758237592"
+      "elapsed_ms": 171,
+      "final_url": "http://67.215.237.218:5002/gx01-frag24534815.ts?token=guoziyun&channel=zhongying&gid=gx01&range=44645296499816-44645299245368",
+      "probe_url": "http://67.215.237.218:5002/gx01-frag24534815.ts?token=guoziyun&channel=zhongying&gid=gx01&range=44645296499816-44645299245368"
     },
-    "http://67.215.237.218:5002/bs02.m3u8?gid=bs02&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
+    "http://67.215.237.218:5002/hdgd08.m3u8?gid=hdgd08&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
       "ok": true,
       "status": 200,
       "reason": "hls_segment",
-      "elapsed_ms": 1555,
-      "final_url": "http://67.215.237.218:5002/bs02-frag26908815.ts?token=guoziyun&channel=zhongying&gid=bs02&range=42766778556456-42766781252000",
-      "probe_url": "http://67.215.237.218:5002/bs02-frag26908815.ts?token=guoziyun&channel=zhongying&gid=bs02&range=42766778556456-42766781252000"
-    },
-    "http://67.215.237.218:5002/bs03.m3u8?gid=bs03&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 176,
-      "final_url": "http://67.215.237.218:5002/bs03-frag26922535.ts?token=guoziyun&channel=zhongying&gid=bs03&range=42931932732912-42931935446692",
-      "probe_url": "http://67.215.237.218:5002/bs03-frag26922535.ts?token=guoziyun&channel=zhongying&gid=bs03&range=42931932732912-42931935446692"
-    },
-    "http://67.215.237.218:5002/bs12.m3u8?gid=bs12&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 173,
-      "final_url": "http://67.215.237.218:5002/bs12-frag26335759.ts?token=guoziyun&channel=zhongying&gid=bs12&range=37379291800896-37379294510164",
-      "probe_url": "http://67.215.237.218:5002/bs12-frag26335759.ts?token=guoziyun&channel=zhongying&gid=bs12&range=37379291800896-37379294510164"
-    },
-    "http://67.215.237.218:5002/bs04.m3u8?gid=bs04&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 439,
-      "final_url": "http://67.215.237.218:5002/bs04-frag26960267.ts?token=guoziyun&channel=zhongying&gid=bs04&range=41525565018912-41525567720284",
-      "probe_url": "http://67.215.237.218:5002/bs04-frag26960267.ts?token=guoziyun&channel=zhongying&gid=bs04&range=41525565018912-41525567720284"
-    },
-    "http://67.215.237.218:5002/bs20.m3u8?gid=bs20&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 177,
-      "final_url": "http://67.215.237.218:5002/bs20-frag26261453.ts?token=guoziyun&channel=zhongying&gid=bs20&range=38541764527440-38541767236708",
-      "probe_url": "http://67.215.237.218:5002/bs20-frag26261453.ts?token=guoziyun&channel=zhongying&gid=bs20&range=38541764527440-38541767236708"
-    },
-    "http://67.215.237.218:5002/bs06.m3u8?gid=bs06&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 244,
-      "final_url": "http://67.215.237.218:5002/bs06-frag26638219.ts?token=guoziyun&channel=zhongying&gid=bs06&range=38236000098492-38236002763392",
-      "probe_url": "http://67.215.237.218:5002/bs06-frag26638219.ts?token=guoziyun&channel=zhongying&gid=bs06&range=38236000098492-38236002763392"
-    },
-    "http://67.215.237.218:5002/bs18.m3u8?gid=bs18&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 140,
-      "final_url": "http://67.215.237.218:5002/bs18-frag25545855.ts?token=guoziyun&channel=zhongying&gid=bs18&range=39595585955148-39595588665544",
-      "probe_url": "http://67.215.237.218:5002/bs18-frag25545855.ts?token=guoziyun&channel=zhongying&gid=bs18&range=39595585955148-39595588665544"
-    },
-    "http://67.215.237.218:5002/bs01.m3u8?gid=bs01&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 356,
-      "final_url": "http://67.215.237.218:5002/bs01-frag26920430.ts?token=guoziyun&channel=zhongying&gid=bs01&range=42676681265188-42676683374736",
-      "probe_url": "http://67.215.237.218:5002/bs01-frag26920430.ts?token=guoziyun&channel=zhongying&gid=bs01&range=42676681265188-42676683374736"
-    },
-    "http://67.215.237.218:5002/bs07.m3u8?gid=bs07&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 245,
-      "final_url": "http://67.215.237.218:5002/bs07-frag25885296.ts?token=guoziyun&channel=zhongying&gid=bs07&range=35430515865888-35430518570644",
-      "probe_url": "http://67.215.237.218:5002/bs07-frag25885296.ts?token=guoziyun&channel=zhongying&gid=bs07&range=35430515865888-35430518570644"
-    },
-    "http://67.215.237.218:5002/bs19.m3u8?gid=bs19&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 179,
-      "final_url": "http://67.215.237.218:5002/bs19-frag23027569.ts?token=guoziyun&channel=zhongying&gid=bs19&range=38935778230552-38935780939444",
-      "probe_url": "http://67.215.237.218:5002/bs19-frag23027569.ts?token=guoziyun&channel=zhongying&gid=bs19&range=38935778230552-38935780939444"
-    },
-    "http://67.215.237.218:5002/bs21.m3u8?gid=bs21&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 143,
-      "final_url": "http://67.215.237.218:5002/bs21-frag26425728.ts?token=guoziyun&channel=zhongying&gid=bs21&range=38592613645784-38592616340764",
-      "probe_url": "http://67.215.237.218:5002/bs21-frag26425728.ts?token=guoziyun&channel=zhongying&gid=bs21&range=38592613645784-38592616340764"
-    },
-    "http://67.215.237.218:5002/bs22.m3u8?gid=bs22&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 110,
-      "final_url": "http://67.215.237.218:5002/bs22-frag25474340.ts?token=guoziyun&channel=zhongying&gid=bs22&range=39183808981672-39183811694700",
-      "probe_url": "http://67.215.237.218:5002/bs22-frag25474340.ts?token=guoziyun&channel=zhongying&gid=bs22&range=39183808981672-39183811694700"
-    },
-    "http://67.215.237.218:5002/bs23.m3u8?gid=bs23&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 72,
-      "final_url": "http://67.215.237.218:5002/bs23-frag26506746.ts?token=guoziyun&channel=zhongying&gid=bs23&range=39193411750684-39193414452056",
-      "probe_url": "http://67.215.237.218:5002/bs23-frag26506746.ts?token=guoziyun&channel=zhongying&gid=bs23&range=39193411750684-39193414452056"
-    },
-    "http://67.215.237.218:5002/bs15.m3u8?gid=bs15&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 71,
-      "final_url": "http://67.215.237.218:5002/bs15-frag26436788.ts?token=guoziyun&channel=zhongying&gid=bs15&range=35641294723312-35641297478828",
-      "probe_url": "http://67.215.237.218:5002/bs15-frag26436788.ts?token=guoziyun&channel=zhongying&gid=bs15&range=35641294723312-35641297478828"
-    },
-    "http://118.69.27.222:9394/stream/35.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 1326,
-      "final_url": "http://118.69.27.222:9394/stream/35/1791419780124.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/35/1791419780124.ts"
+      "elapsed_ms": 116,
+      "final_url": "http://67.215.237.218:5002/hdgd08-frag24506437.ts?token=guoziyun&channel=zhongying&gid=hdgd08&range=58489175859044-58489178545752",
+      "probe_url": "http://67.215.237.218:5002/hdgd08-frag24506437.ts?token=guoziyun&channel=zhongying&gid=hdgd08&range=58489175859044-58489178545752"
     },
     "http://67.215.237.218:5002/hdgd06.m3u8?gid=hdgd06&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
       "ok": true,
       "status": 200,
       "reason": "hls_segment",
-      "elapsed_ms": 4093,
-      "final_url": "http://67.215.237.218:5002/hdgd06-frag26597727.ts?token=guoziyun&channel=zhongying&gid=hdgd06&range=59653720299192-59653723042676",
-      "probe_url": "http://67.215.237.218:5002/hdgd06-frag26597727.ts?token=guoziyun&channel=zhongying&gid=hdgd06&range=59653720299192-59653723042676"
+      "elapsed_ms": 220,
+      "final_url": "http://67.215.237.218:5002/hdgd06-frag26614877.ts?token=guoziyun&channel=zhongying&gid=hdgd06&range=59700503960448-59700506676860",
+      "probe_url": "http://67.215.237.218:5002/hdgd06-frag26614877.ts?token=guoziyun&channel=zhongying&gid=hdgd06&range=59700503960448-59700506676860"
     },
-    "http://118.69.27.222:9394/stream/28.m3u8": {
+    "http://67.215.237.218:5002/bs05.m3u8?gid=bs05&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
       "ok": true,
       "status": 200,
       "reason": "hls_segment",
-      "elapsed_ms": 4095,
-      "final_url": "http://118.69.27.222:9394/stream/28/1791419775809.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/28/1791419775809.ts"
+      "elapsed_ms": 54,
+      "final_url": "http://67.215.237.218:5002/bs05-frag26715992.ts?token=guoziyun&channel=zhongying&gid=bs05&range=37955814735536-37955817450632",
+      "probe_url": "http://67.215.237.218:5002/bs05-frag26715992.ts?token=guoziyun&channel=zhongying&gid=bs05&range=37955814735536-37955817450632"
     },
-    "http://67.215.237.218:5002/bs24.m3u8?gid=bs24&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
+    "http://67.215.237.218:5002/bs02.m3u8?gid=bs02&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
       "ok": true,
       "status": 200,
       "reason": "hls_segment",
-      "elapsed_ms": 55,
-      "final_url": "http://67.215.237.218:5002/bs24-frag26492017.ts?token=guoziyun&channel=zhongying&gid=bs24&range=35203588808956-35203591533264",
-      "probe_url": "http://67.215.237.218:5002/bs24-frag26492017.ts?token=guoziyun&channel=zhongying&gid=bs24&range=35203588808956-35203591533264"
+      "elapsed_ms": 111,
+      "final_url": "http://67.215.237.218:5002/bs02-frag26925959.ts?token=guoziyun&channel=zhongying&gid=bs02&range=42813320806160-42813323511668",
+      "probe_url": "http://67.215.237.218:5002/bs02-frag26925959.ts?token=guoziyun&channel=zhongying&gid=bs02&range=42813320806160-42813323511668"
     },
-    "http://67.215.237.218:5002/bs25.m3u8?gid=bs25&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
+    "http://67.215.237.218:5002/gx07.m3u8?gid=gx07&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
       "ok": true,
       "status": 200,
       "reason": "hls_segment",
-      "elapsed_ms": 60,
-      "final_url": "http://67.215.237.218:5002/bs25-frag26837047.ts?token=guoziyun&channel=zhongying&gid=bs25&range=41740006976684-41740009701744",
-      "probe_url": "http://67.215.237.218:5002/bs25-frag26837047.ts?token=guoziyun&channel=zhongying&gid=bs25&range=41740006976684-41740009701744"
+      "elapsed_ms": 126,
+      "final_url": "http://67.215.237.218:5002/gx07-frag24647053.ts?token=guoziyun&channel=zhongying&gid=gx07&range=42478134800016-42478137500072",
+      "probe_url": "http://67.215.237.218:5002/gx07-frag24647053.ts?token=guoziyun&channel=zhongying&gid=gx07&range=42478134800016-42478137500072"
     },
-    "http://118.69.27.222:9394/stream/17.m3u8": {
+    "http://67.215.237.218:5002/bs11.m3u8?gid=bs11&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
       "ok": true,
       "status": 200,
       "reason": "hls_segment",
-      "elapsed_ms": 2898,
-      "final_url": "http://118.69.27.222:9394/stream/17/1791419778853.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/17/1791419778853.ts"
+      "elapsed_ms": 109,
+      "final_url": "http://67.215.237.218:5002/bs11-frag26377538.ts?token=guoziyun&channel=zhongying&gid=bs11&range=43573428348648-43573431052464",
+      "probe_url": "http://67.215.237.218:5002/bs11-frag26377538.ts?token=guoziyun&channel=zhongying&gid=bs11&range=43573428348648-43573431052464"
     },
-    "http://118.69.27.222:9394/stream/22.m3u8": {
+    "http://67.215.237.218:5002/gx02.m3u8?gid=gx02&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
       "ok": true,
       "status": 200,
       "reason": "hls_segment",
-      "elapsed_ms": 4194,
-      "final_url": "http://118.69.27.222:9394/stream/22/1791419775233.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/22/1791419775233.ts"
+      "elapsed_ms": 285,
+      "final_url": "http://67.215.237.218:5002/gx02-frag24788080.ts?token=guoziyun&channel=zhongying&gid=gx02&range=45290048196592-45290050913004",
+      "probe_url": "http://67.215.237.218:5002/gx02-frag24788080.ts?token=guoziyun&channel=zhongying&gid=gx02&range=45290048196592-45290050913004"
     },
-    "http://118.69.27.222:9394/stream/98.m3u8": {
+    "http://67.215.237.218:5002/bs04.m3u8?gid=bs04&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
       "ok": true,
       "status": 200,
       "reason": "hls_segment",
-      "elapsed_ms": 1324,
-      "final_url": "http://118.69.27.222:9394/stream/98/1791419782399.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/98/1791419782399.ts"
+      "elapsed_ms": 67,
+      "final_url": "http://67.215.237.218:5002/bs04-frag26977430.ts?token=guoziyun&channel=zhongying&gid=bs04&range=41572109208212-41572111930076",
+      "probe_url": "http://67.215.237.218:5002/bs04-frag26977430.ts?token=guoziyun&channel=zhongying&gid=bs04&range=41572109208212-41572111930076"
     },
-    "http://118.69.27.222:9394/stream/21.m3u8": {
+    "http://67.215.237.218:5002/bs08.m3u8?gid=bs08&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
       "ok": true,
       "status": 200,
       "reason": "hls_segment",
-      "elapsed_ms": 5459,
-      "final_url": "http://118.69.27.222:9394/stream/21/1791419778089.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/21/1791419778089.ts"
+      "elapsed_ms": 58,
+      "final_url": "http://67.215.237.218:5002/bs08-frag26713416.ts?token=guoziyun&channel=zhongying&gid=bs08&range=38202858419736-38202861147428",
+      "probe_url": "http://67.215.237.218:5002/bs08-frag26713416.ts?token=guoziyun&channel=zhongying&gid=bs08&range=38202858419736-38202861147428"
     },
-    "http://118.69.27.222:9394/stream/144.m3u8": {
+    "http://67.215.237.218:5002/bs31.m3u8?gid=bs31&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
       "ok": true,
       "status": 200,
       "reason": "hls_segment",
-      "elapsed_ms": 1342,
-      "final_url": "http://118.69.27.222:9394/stream/144/27133631.fplsegment.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/144/27133631.fplsegment.ts"
+      "elapsed_ms": 61,
+      "final_url": "http://67.215.237.218:5002/bs31-frag10033039.ts?token=guoziyun&channel=zhongying&gid=bs31&range=27254790482964-27254792262760",
+      "probe_url": "http://67.215.237.218:5002/bs31-frag10033039.ts?token=guoziyun&channel=zhongying&gid=bs31&range=27254790482964-27254792262760"
     },
-    "http://118.69.27.222:9394/stream/145.m3u8": {
+    "https://live-tver-simul-ntv.streaks.jp/938232e586b34196b704a5839663984b/cb593b5eafbb4645907e979d757e1dd5/manifest_1.m3u8": {
       "ok": true,
       "status": 200,
       "reason": "hls_segment",
-      "elapsed_ms": 1320,
-      "final_url": "http://118.69.27.222:9394/stream/145/27070531.fplsegment.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/145/27070531.fplsegment.ts"
+      "elapsed_ms": 870,
+      "final_url": "https://live-tver-simul-ntv.streaks.jp/938232e586b34196b704a5839663984b/cb593b5eafbb4645907e979d757e1dd5/manifest_1_11088069.ts?m=1747271078",
+      "probe_url": "https://live-tver-simul-ntv.streaks.jp/938232e586b34196b704a5839663984b/cb593b5eafbb4645907e979d757e1dd5/manifest_1_11088069.ts?m=1747271078"
     },
-    "http://118.69.27.222:9394/stream/160.m3u8": {
+    "https://haru.charandom.blog/stream/jp/tokyo_mx2/stream-output.m3u8?mode=hls": {
+      "ok": false,
+      "status": 200,
+      "reason": "non_hls",
+      "elapsed_ms": 818,
+      "final_url": "https://haru.charandom.blog/stream/jp/tokyo_mx2/stream-output.m3u8?mode=hls",
+      "probe_url": null
+    },
+    "http://67.215.237.218:5002/bs01.m3u8?gid=bs01&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
       "ok": true,
       "status": 200,
       "reason": "hls_segment",
-      "elapsed_ms": 1376,
-      "final_url": "http://118.69.27.222:9394/stream/160/21647242.fplsegment.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/160/21647242.fplsegment.ts"
+      "elapsed_ms": 51,
+      "final_url": "http://67.215.237.218:5002/bs01-frag26937596.ts?token=guoziyun&channel=zhongying&gid=bs01&range=42713110210368-42713112328940",
+      "probe_url": "http://67.215.237.218:5002/bs01-frag26937596.ts?token=guoziyun&channel=zhongying&gid=bs01&range=42713110210368-42713112328940"
     },
-    "http://118.69.27.222:9394/stream/161.m3u8": {
+    "http://67.215.237.218:5002/bs03.m3u8?gid=bs03&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
       "ok": true,
       "status": 200,
       "reason": "hls_segment",
-      "elapsed_ms": 1338,
-      "final_url": "http://118.69.27.222:9394/stream/161/21649738.fplsegment.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/161/21649738.fplsegment.ts"
+      "elapsed_ms": 57,
+      "final_url": "http://67.215.237.218:5002/bs03-frag26939698.ts?token=guoziyun&channel=zhongying&gid=bs03&range=42978477731552-42978480454544",
+      "probe_url": "http://67.215.237.218:5002/bs03-frag26939698.ts?token=guoziyun&channel=zhongying&gid=bs03&range=42978477731552-42978480454544"
     },
-    "http://118.69.27.222:9394/stream/147.m3u8": {
+    "http://118.69.27.222:9394/stream/25.m3u8": {
       "ok": true,
       "status": 200,
       "reason": "hls_segment",
-      "elapsed_ms": 1324,
-      "final_url": "http://118.69.27.222:9394/stream/147/27357233.fplsegment.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/147/27357233.fplsegment.ts"
+      "elapsed_ms": 1300,
+      "final_url": "http://118.69.27.222:9394/stream/25/1791591473778.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/25/1791591473778.ts"
     },
-    "http://118.69.27.222:9394/stream/146.m3u8": {
+    "http://118.69.27.222:9394/stream/3.m3u8": {
       "ok": true,
       "status": 200,
       "reason": "hls_segment",
       "elapsed_ms": 1341,
-      "final_url": "http://118.69.27.222:9394/stream/146/27124174.fplsegment.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/146/27124174.fplsegment.ts"
+      "final_url": "http://118.69.27.222:9394/stream/3/1791591436735ashtvadfinal_7.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/3/1791591436735ashtvadfinal_7.ts"
     },
-    "http://67.215.237.218:5002/cs26.m3u8?gid=cs26&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 63,
-      "final_url": "http://67.215.237.218:5002/cs26-frag20438164.ts?token=guoziyun&channel=zhongying&gid=cs26&range=34193482848864-34193484568312",
-      "probe_url": "http://67.215.237.218:5002/cs26-frag20438164.ts?token=guoziyun&channel=zhongying&gid=cs26&range=34193482848864-34193484568312"
-    },
-    "http://118.69.27.222:9394/stream/148.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 1378,
-      "final_url": "http://118.69.27.222:9394/stream/148/27151914.fplsegment.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/148/27151914.fplsegment.ts"
-    },
-    "http://118.69.27.222:9394/stream/70.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 5232,
-      "final_url": "http://118.69.27.222:9394/stream/70/1791419783543.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/70/1791419783543.ts"
-    },
-    "http://118.69.27.222:9394/stream/237.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 1412,
-      "final_url": "http://118.69.27.222:9394/stream/237/21649939.fplsegment.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/237/21649939.fplsegment.ts"
-    },
-    "http://118.69.27.222:9394/stream/112.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 1422,
-      "final_url": "http://118.69.27.222:9394/stream/112/21649101.fplsegment.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/112/21649101.fplsegment.ts"
-    },
-    "http://67.215.237.218:5002/cs01.m3u8?gid=cs01&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 814,
-      "final_url": "http://67.215.237.218:5002/cs01-frag25612043.ts?token=guoziyun&channel=zhongying&gid=cs01&range=46441138063312-46441140070964",
-      "probe_url": "http://67.215.237.218:5002/cs01-frag25612043.ts?token=guoziyun&channel=zhongying&gid=cs01&range=46441138063312-46441140070964"
-    },
-    "http://118.69.27.222:9394/stream/37.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 8121,
-      "final_url": "http://118.69.27.222:9394/stream/37/1791419784265.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/37/1791419784265.ts"
-    },
-    "http://67.215.237.218:5002/cs17.m3u8?gid=cs17&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 1297,
-      "final_url": "http://67.215.237.218:5002/cs17-frag26850102.ts?token=guoziyun&channel=zhongying&gid=cs17&range=44380953961964-44380955702280",
-      "probe_url": "http://67.215.237.218:5002/cs17-frag26850102.ts?token=guoziyun&channel=zhongying&gid=cs17&range=44380953961964-44380955702280"
-    },
-    "http://118.69.27.222:9394/stream/1.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 1325,
-      "final_url": "http://118.69.27.222:9394/stream/1/1791419779747.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/1/1791419779747.ts"
-    },
-    "http://118.69.27.222:9394/stream/20.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 9601,
-      "final_url": "http://118.69.27.222:9394/stream/20/1791419785751.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/20/1791419785751.ts"
-    },
-    "http://118.69.27.222:9394/stream/236.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 1350,
-      "final_url": "http://118.69.27.222:9394/stream/236/21639595.fplsegment.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/236/21639595.fplsegment.ts"
-    },
-    "http://67.215.237.218:5002/bs26.m3u8?gid=bs26&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 1172,
-      "final_url": "http://67.215.237.218:5002/bs26-frag26122056.ts?token=guoziyun&channel=zhongying&gid=bs26&range=37295375408680-37295377160088",
-      "probe_url": "http://67.215.237.218:5002/bs26-frag26122056.ts?token=guoziyun&channel=zhongying&gid=bs26&range=37295375408680-37295377160088"
-    },
-    "http://67.215.237.218:5002/cs13.m3u8?gid=cs13&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 1151,
-      "final_url": "http://67.215.237.218:5002/cs13-frag26913338.ts?token=guoziyun&channel=zhongying&gid=cs13&range=41076969058948-41076970810356",
-      "probe_url": "http://67.215.237.218:5002/cs13-frag26913338.ts?token=guoziyun&channel=zhongying&gid=cs13&range=41076969058948-41076970810356"
-    },
-    "http://67.215.237.218:5002/cs18.m3u8?gid=cs18&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 1106,
-      "final_url": "http://67.215.237.218:5002/cs18-frag26476717.ts?token=guoziyun&channel=zhongying&gid=cs18&range=38842777716196-38842779457264",
-      "probe_url": "http://67.215.237.218:5002/cs18-frag26476717.ts?token=guoziyun&channel=zhongying&gid=cs18&range=38842777716196-38842779457264"
-    },
-    "http://118.69.27.222:9394/stream/135.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 1354,
-      "final_url": "http://118.69.27.222:9394/stream/135/27689580.fplsegment.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/135/27689580.fplsegment.ts"
-    },
-    "http://118.69.27.222:9394/stream/74.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 1323,
-      "final_url": "http://118.69.27.222:9394/stream/74/1791419789389.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/74/1791419789389.ts"
-    },
-    "http://118.69.27.222:9394/stream/157.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 8287,
-      "final_url": "http://118.69.27.222:9394/stream/157/27179044.fplsegment.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/157/27179044.fplsegment.ts"
-    },
-    "http://118.69.27.222:9394/stream/89.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 1331,
-      "final_url": "http://118.69.27.222:9394/stream/89/1791419761666ashtvadfinal_5.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/89/1791419761666ashtvadfinal_5.ts"
-    },
-    "http://67.215.237.218:5002/cs21.m3u8?gid=cs21&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 977,
-      "final_url": "http://67.215.237.218:5002/cs21-frag26673131.ts?token=guoziyun&channel=zhongying&gid=cs21&range=37729357638272-37729359403404",
-      "probe_url": "http://67.215.237.218:5002/cs21-frag26673131.ts?token=guoziyun&channel=zhongying&gid=cs21&range=37729357638272-37729359403404"
-    },
-    "http://118.69.27.222:9394/stream/87.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 1335,
-      "final_url": "http://118.69.27.222:9394/stream/87/1791419774482akantanad_3.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/87/1791419774482akantanad_3.ts"
-    },
-    "http://118.69.27.222:9394/stream/41.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 9404,
-      "final_url": "http://118.69.27.222:9394/stream/41/1791419788202.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/41/1791419788202.ts"
-    },
-    "http://118.69.27.222:9394/stream/68.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 9367,
-      "final_url": "http://118.69.27.222:9394/stream/68/1791419786206.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/68/1791419786206.ts"
-    },
-    "http://118.69.27.222:9394/stream/54.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 1360,
-      "final_url": "http://118.69.27.222:9394/stream/54/1791419789019.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/54/1791419789019.ts"
-    },
-    "http://67.215.237.218:5002/cs20.m3u8?gid=cs20&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 1675,
-      "final_url": "http://67.215.237.218:5002/cs20-frag25801122.ts?token=guoziyun&channel=zhongying&gid=cs20&range=44209036857936-44209038606148",
-      "probe_url": "http://67.215.237.218:5002/cs20-frag25801122.ts?token=guoziyun&channel=zhongying&gid=cs20&range=44209036857936-44209038606148"
-    },
-    "http://67.215.237.218:5002/cs27.m3u8?gid=cs27&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 311,
-      "final_url": "http://67.215.237.218:5002/cs27-frag9814337.ts?token=guoziyun&channel=zhongying&gid=cs27&range=26633206553528-26633208287264",
-      "probe_url": "http://67.215.237.218:5002/cs27-frag9814337.ts?token=guoziyun&channel=zhongying&gid=cs27&range=26633206553528-26633208287264"
-    },
-    "http://118.69.27.222:9394/stream/95.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 1346,
-      "final_url": "http://118.69.27.222:9394/stream/95/1791419789089.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/95/1791419789089.ts"
-    },
-    "http://118.69.27.222:9394/stream/85.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 1375,
-      "final_url": "http://118.69.27.222:9394/stream/85/1791419789153.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/85/1791419789153.ts"
-    },
-    "http://118.69.27.222:9394/stream/139.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 1378,
-      "final_url": "http://118.69.27.222:9394/stream/139/21613946.fplsegment.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/139/21613946.fplsegment.ts"
-    },
-    "http://67.215.237.218:5002/cs05.m3u8?gid=cs05&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 60,
-      "final_url": "http://67.215.237.218:5002/cs05-frag25125204.ts?token=guoziyun&channel=zhongying&gid=cs05&range=40730846135320-40730847874132",
-      "probe_url": "http://67.215.237.218:5002/cs05-frag25125204.ts?token=guoziyun&channel=zhongying&gid=cs05&range=40730846135320-40730847874132"
-    },
-    "http://118.69.27.222:9394/stream/44.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 12329,
-      "final_url": "http://118.69.27.222:9394/stream/44/1791419785170.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/44/1791419785170.ts"
-    },
-    "http://67.215.237.218:5002/cs29.m3u8?gid=cs29&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 55,
-      "final_url": "http://67.215.237.218:5002/cs29-frag9816741.ts?token=guoziyun&channel=zhongying&gid=cs29&range=26850454483576-26850456609104",
-      "probe_url": "http://67.215.237.218:5002/cs29-frag9816741.ts?token=guoziyun&channel=zhongying&gid=cs29&range=26850454483576-26850456609104"
-    },
-    "http://67.215.237.218:5002/cs12.m3u8?gid=cs12&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 59,
-      "final_url": "http://67.215.237.218:5002/cs12-frag25837293.ts?token=guoziyun&channel=zhongying&gid=cs12&range=41106031825540-41106033573940",
-      "probe_url": "http://67.215.237.218:5002/cs12-frag25837293.ts?token=guoziyun&channel=zhongying&gid=cs12&range=41106031825540-41106033573940"
-    },
-    "http://118.69.27.222:9394/stream/86.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 1407,
-      "final_url": "http://118.69.27.222:9394/stream/86/1791419788150.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/86/1791419788150.ts"
-    },
-    "http://118.69.27.222:9394/stream/18.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 15030,
-      "final_url": "http://118.69.27.222:9394/stream/18/1791419789017.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/18/1791419789017.ts"
-    },
-    "http://118.69.27.222:9394/stream/124.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 1411,
-      "final_url": "http://118.69.27.222:9394/stream/124/21658754.fplsegment.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/124/21658754.fplsegment.ts"
-    },
-    "http://118.69.27.222:9394/stream/138.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 1401,
-      "final_url": "http://118.69.27.222:9394/stream/138/27019120.fplsegment.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/138/27019120.fplsegment.ts"
-    },
-    "http://118.69.27.222:9394/stream/73.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 1347,
-      "final_url": "http://118.69.27.222:9394/stream/73/1791419790309.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/73/1791419790309.ts"
-    },
-    "http://118.69.27.222:9394/stream/75.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 1335,
-      "final_url": "http://118.69.27.222:9394/stream/75/1791419793601.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/75/1791419793601.ts"
-    },
-    "http://118.69.27.222:9394/stream/76.m3u8": {
+    "http://118.69.27.222:9394/stream/14.m3u8": {
       "ok": true,
       "status": 200,
       "reason": "hls_segment",
       "elapsed_ms": 1349,
-      "final_url": "http://118.69.27.222:9394/stream/76/1791419789572.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/76/1791419789572.ts"
+      "final_url": "http://118.69.27.222:9394/stream/14/1791591474467.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/14/1791591474467.ts"
     },
-    "http://118.69.27.222:9394/stream/84.m3u8": {
+    "http://118.69.27.222:9394/stream/321.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 1357,
+      "final_url": "http://118.69.27.222:9394/stream/321/25438975.fplsegment.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/321/25438975.fplsegment.ts"
+    },
+    "https://ssai-variants.streaks.jp/v5/tver-simul-tbs/8e4c80725b9842cdb0f6f91260945222/b72f7e116957436b824f95d5138ea7a3/manifest/13df2e5de86b5ff0c5c3522d82e73a5fbf55aac1/pro-mt-176-7925/2a38d855-a521-4d96-a6c7-933a0bf29754/0.m3u8?pdt=-9133&session=2a38d855-a521-4d96-a6c7-933a0bf29754&vt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlZGdlIjoidGJzLWxpdmUtY2RuLnR2ZXIuanAiLCJvZmZzZXQiOjksInBkdCI6Ii05MTMzIn0.wWY9OBF4yy2xGYlTx_N_eud7S1bwrGw7oXya1meGNFY": {
       "ok": true,
       "status": 200,
       "reason": "hls_segment",
       "elapsed_ms": 1359,
-      "final_url": "http://118.69.27.222:9394/stream/84/1791419771690ajktvadfinal_4.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/84/1791419771690ajktvadfinal_4.ts"
+      "final_url": "https://tbs-live-cdn.tver.jp/8e4c80725b9842cdb0f6f91260945222/b72f7e116957436b824f95d5138ea7a3/manifest_1_18842820.ts?m=1716260857",
+      "probe_url": "https://tbs-live-cdn.tver.jp/8e4c80725b9842cdb0f6f91260945222/b72f7e116957436b824f95d5138ea7a3/manifest_1_18842820.ts?m=1716260857"
     },
-    "http://118.69.27.222:9394/stream/88.m3u8": {
+    "http://67.215.237.218:5002/bs06.m3u8?gid=bs06&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
       "ok": true,
       "status": 200,
       "reason": "hls_segment",
-      "elapsed_ms": 1345,
-      "final_url": "http://118.69.27.222:9394/stream/88/1791419790194.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/88/1791419790194.ts"
+      "elapsed_ms": 63,
+      "final_url": "http://67.215.237.218:5002/bs06-frag26655375.ts?token=guoziyun&channel=zhongying&gid=bs06&range=38282542475848-38282545170076",
+      "probe_url": "http://67.215.237.218:5002/bs06-frag26655375.ts?token=guoziyun&channel=zhongying&gid=bs06&range=38282542475848-38282545170076"
     },
-    "http://118.69.27.222:9394/stream/99.m3u8": {
+    "https://ssai-variants.streaks.jp/v5/tver-simul-tx/035622a82bcb46bc8e41ca5351f95a00/3887c96991ce4ae1bec43ea19f24c4d5/manifest/13df2e5de86b5ff0c5c3522d82e73a5fbf55aac1/pro-mt-177-8159/0f5f5883-a6c1-4cd1-a4c6-0f0a14c9e49b/0.m3u8?pdt=-11501&session=0f5f5883-a6c1-4cd1-a4c6-0f0a14c9e49b&vt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlZGdlIjoidHgtbGl2ZS1jZG4udHZlci5qcCIsIm9mZnNldCI6OSwicGR0IjoiLTExNTAxIn0.ENL1yqihdtixoLM2vqtt9oZ3caukXFFuLBwGeXXwUH0": {
       "ok": true,
       "status": 200,
       "reason": "hls_segment",
-      "elapsed_ms": 1316,
-      "final_url": "http://118.69.27.222:9394/stream/99/1791419794613.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/99/1791419794613.ts"
+      "elapsed_ms": 1397,
+      "final_url": "https://tx-live-cdn.tver.jp/035622a82bcb46bc8e41ca5351f95a00/3887c96991ce4ae1bec43ea19f24c4d5/manifest_1_18415379.ts?m=1717985872",
+      "probe_url": "https://tx-live-cdn.tver.jp/035622a82bcb46bc8e41ca5351f95a00/3887c96991ce4ae1bec43ea19f24c4d5/manifest_1_18415379.ts?m=1717985872"
     },
-    "http://118.69.27.222:9394/stream/131.m3u8": {
+    "http://67.215.237.218:5002/bs12.m3u8?gid=bs12&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
       "ok": true,
       "status": 200,
       "reason": "hls_segment",
-      "elapsed_ms": 1329,
-      "final_url": "http://118.69.27.222:9394/stream/131/21518197.fplsegment.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/131/21518197.fplsegment.ts"
+      "elapsed_ms": 61,
+      "final_url": "http://67.215.237.218:5002/bs12-frag26352927.ts?token=guoziyun&channel=zhongying&gid=bs12&range=37425832153304-37425834856932",
+      "probe_url": "http://67.215.237.218:5002/bs12-frag26352927.ts?token=guoziyun&channel=zhongying&gid=bs12&range=37425832153304-37425834856932"
     },
-    "http://118.69.27.222:9394/stream/132.m3u8": {
-      "ok": true,
+    "https://haru.charandom.blog/stream/jp/abc/stream-output.m3u8?mode=hls": {
+      "ok": false,
       "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 1315,
-      "final_url": "http://118.69.27.222:9394/stream/132/21654300.fplsegment.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/132/21654300.fplsegment.ts"
-    },
-    "http://118.69.27.222:9394/stream/133.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 1340,
-      "final_url": "http://118.69.27.222:9394/stream/133/21646528.fplsegment.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/133/21646528.fplsegment.ts"
-    },
-    "http://118.69.27.222:9394/stream/136.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 1365,
-      "final_url": "http://118.69.27.222:9394/stream/136/27157288.fplsegment.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/136/27157288.fplsegment.ts"
-    },
-    "http://118.69.27.222:9394/stream/137.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 1360,
-      "final_url": "http://118.69.27.222:9394/stream/137/30369334.fplsegment.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/137/30369334.fplsegment.ts"
-    },
-    "http://118.69.27.222:9394/stream/141.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 1371,
-      "final_url": "http://118.69.27.222:9394/stream/141/21639482.fplsegment.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/141/21639482.fplsegment.ts"
-    },
-    "http://118.69.27.222:9394/stream/142.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 1379,
-      "final_url": "http://118.69.27.222:9394/stream/142/28187488.fplsegment.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/142/28187488.fplsegment.ts"
-    },
-    "http://118.69.27.222:9394/stream/149.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 1375,
-      "final_url": "http://118.69.27.222:9394/stream/149/28963301.fplsegment.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/149/28963301.fplsegment.ts"
-    },
-    "http://118.69.27.222:9394/stream/156.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 1385,
-      "final_url": "http://118.69.27.222:9394/stream/156/27487665.fplsegment.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/156/27487665.fplsegment.ts"
-    },
-    "http://118.69.27.222:9394/stream/158.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 1407,
-      "final_url": "http://118.69.27.222:9394/stream/158/26981467.fplsegment.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/158/26981467.fplsegment.ts"
-    },
-    "http://67.215.237.218:5002/cs07.m3u8?gid=cs07&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 59,
-      "final_url": "http://67.215.237.218:5002/cs07-frag26584155.ts?token=guoziyun&channel=zhongying&gid=cs07&range=36142471182696-36142472921132",
-      "probe_url": "http://67.215.237.218:5002/cs07-frag26584155.ts?token=guoziyun&channel=zhongying&gid=cs07&range=36142471182696-36142472921132"
-    },
-    "http://118.69.27.222:9394/stream/309.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 1378,
-      "final_url": "http://118.69.27.222:9394/stream/309/21648917.fplsegment.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/309/21648917.fplsegment.ts"
-    },
-    "http://118.69.27.222:9394/stream/315.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 1338,
-      "final_url": "http://118.69.27.222:9394/stream/315/28328865.fplsegment.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/315/28328865.fplsegment.ts"
-    },
-    "http://118.69.27.222:9394/stream/323.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 1381,
-      "final_url": "http://118.69.27.222:9394/stream/323/28812936.fplsegment.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/323/28812936.fplsegment.ts"
-    },
-    "http://118.69.27.222:9394/stream/71.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 18820,
-      "final_url": "http://118.69.27.222:9394/stream/71/1791419794522.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/71/1791419794522.ts"
-    },
-    "http://118.69.27.222:9394/stream/116.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 21723,
-      "final_url": "http://118.69.27.222:9394/stream/116/22893631.fplsegment.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/116/22893631.fplsegment.ts"
-    },
-    "http://118.69.27.222:9394/stream/53.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 19888,
-      "final_url": "http://118.69.27.222:9394/stream/53/1791419799181.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/53/1791419799181.ts"
-    },
-    "http://118.69.27.222:9394/stream/150.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 10685,
-      "final_url": "http://118.69.27.222:9394/stream/150/24057253.fplsegment.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/150/24057253.fplsegment.ts"
-    },
-    "http://118.69.27.222:9394/stream/308.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 10720,
-      "final_url": "http://118.69.27.222:9394/stream/308/20512787.fplsegment.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/308/20512787.fplsegment.ts"
-    },
-    "http://118.69.27.222:9394/stream/5.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 24405,
-      "final_url": "http://118.69.27.222:9394/stream/5/1791419796786.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/5/1791419796786.ts"
-    },
-    "http://118.69.27.222:9394/stream/36.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 21958,
-      "final_url": "http://118.69.27.222:9394/stream/36/1791419795759.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/36/1791419795759.ts"
-    },
-    "http://118.69.27.222:9394/stream/52.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 22032,
-      "final_url": "http://118.69.27.222:9394/stream/52/1791419797193.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/52/1791419797193.ts"
-    },
-    "http://118.69.27.222:9394/stream/67.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 10849,
-      "final_url": "http://118.69.27.222:9394/stream/67/1791419800242.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/67/1791419800242.ts"
-    },
-    "https://freewifi-radio-production.up.railway.app/radio-tv/JOEU-FM?v=20260929e": {
-      "ok": true,
-      "status": 200,
-      "reason": "mpegts",
-      "elapsed_ms": 5177,
-      "final_url": "https://freewifi-radio-production.up.railway.app/radio-tv/JOEU-FM?v=20260929e",
+      "reason": "non_hls",
+      "elapsed_ms": 1410,
+      "final_url": "https://haru.charandom.blog/stream/jp/abc/stream-output.m3u8?mode=hls",
       "probe_url": null
+    },
+    "http://67.215.237.218:5002/bs20.m3u8?gid=bs20&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 58,
+      "final_url": "http://67.215.237.218:5002/bs20-frag26278577.ts?token=guoziyun&channel=zhongying&gid=bs20&range=38588201975980-38588204678480",
+      "probe_url": "http://67.215.237.218:5002/bs20-frag26278577.ts?token=guoziyun&channel=zhongying&gid=bs20&range=38588201975980-38588204678480"
+    },
+    "http://67.215.237.218:5002/bs07.m3u8?gid=bs07&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 52,
+      "final_url": "http://67.215.237.218:5002/bs07-frag25902462.ts?token=guoziyun&channel=zhongying&gid=bs07&range=35477049069784-35477051768524",
+      "probe_url": "http://67.215.237.218:5002/bs07-frag25902462.ts?token=guoziyun&channel=zhongying&gid=bs07&range=35477049069784-35477051768524"
+    },
+    "http://67.215.237.218:5002/bs18.m3u8?gid=bs18&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 54,
+      "final_url": "http://67.215.237.218:5002/bs18-frag25563024.ts?token=guoziyun&channel=zhongying&gid=bs18&range=39642127052788-39642129756980",
+      "probe_url": "http://67.215.237.218:5002/bs18-frag25563024.ts?token=guoziyun&channel=zhongying&gid=bs18&range=39642127052788-39642129756980"
+    },
+    "https://ssai-variants.streaks.jp/v5/tver-simul-ex/498c4512f66846f1b0a5a3320ee035c3/ce98cb0b48994b50a76dba08ea894e24/manifest/13df2e5de86b5ff0c5c3522d82e73a5fbf55aac1/pro-mt-175-8158/b92b4043-6632-4d74-b9c7-d8444a4eb355/0.m3u8?pdt=-16847&session=b92b4043-6632-4d74-b9c7-d8444a4eb355&vt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlZGdlIjoiZXgtbGl2ZS1jZG4udHZlci5qcCIsIm9mZnNldCI6OSwicGR0IjoiLTE2ODQ3In0.LmScKQAVVQYt76GM-z64D8Py0KfYRz-3H5zc6GDcBj0": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 1500,
+      "final_url": "https://ex-live-cdn.tver.jp/498c4512f66846f1b0a5a3320ee035c3/ce98cb0b48994b50a76dba08ea894e24/manifest_1_18413371.ts?m=1717985258",
+      "probe_url": "https://ex-live-cdn.tver.jp/498c4512f66846f1b0a5a3320ee035c3/ce98cb0b48994b50a76dba08ea894e24/manifest_1_18413371.ts?m=1717985258"
+    },
+    "http://67.215.237.218:5002/bs19.m3u8?gid=bs19&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 56,
+      "final_url": "http://67.215.237.218:5002/bs19-frag23044667.ts?token=guoziyun&channel=zhongying&gid=bs19&range=38982322023924-38982324711196",
+      "probe_url": "http://67.215.237.218:5002/bs19-frag23044667.ts?token=guoziyun&channel=zhongying&gid=bs19&range=38982322023924-38982324711196"
+    },
+    "http://67.215.237.218:5002/bs21.m3u8?gid=bs21&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 67,
+      "final_url": "http://67.215.237.218:5002/bs21-frag26442813.ts?token=guoziyun&channel=zhongying&gid=bs21&range=38639157820984-38639160535516",
+      "probe_url": "http://67.215.237.218:5002/bs21-frag26442813.ts?token=guoziyun&channel=zhongying&gid=bs21&range=38639157820984-38639160535516"
+    },
+    "http://67.215.237.218:5002/bs22.m3u8?gid=bs22&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 57,
+      "final_url": "http://67.215.237.218:5002/bs22-frag25491452.ts?token=guoziyun&channel=zhongying&gid=bs22&range=39230352634796-39230355340304",
+      "probe_url": "http://67.215.237.218:5002/bs22-frag25491452.ts?token=guoziyun&channel=zhongying&gid=bs22&range=39230352634796-39230355340304"
+    },
+    "https://ssai-variants.streaks.jp/v5/tver-simul-cx/a78ebf1910144ba287907ec691bdc863/4817bf371f214463a3609e17a365f098/manifest/13df2e5de86b5ff0c5c3522d82e73a5fbf55aac1/pro-mt-178-7884/2d0e62ec-afcb-4689-a1f0-d17fb79b5562/0.m3u8?pdt=-6627&session=2d0e62ec-afcb-4689-a1f0-d17fb79b5562&vt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlZGdlIjoiY3gtbGl2ZS1jZG4udHZlci5qcCIsIm9mZnNldCI6OSwicGR0IjoiLTY2MjcifQ.rGchZoAv-VWLdrkowF0VYMb-geWaK_ZcFhYhXb5HolM": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 1727,
+      "final_url": "https://cx-live-cdn.tver.jp/a78ebf1910144ba287907ec691bdc863/4817bf371f214463a3609e17a365f098/manifest_1_19029723.ts?m=1715824811",
+      "probe_url": "https://cx-live-cdn.tver.jp/a78ebf1910144ba287907ec691bdc863/4817bf371f214463a3609e17a365f098/manifest_1_19029723.ts?m=1715824811"
+    },
+    "http://67.215.237.218:5002/bs23.m3u8?gid=bs23&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 56,
+      "final_url": "http://67.215.237.218:5002/bs23-frag26523909.ts?token=guoziyun&channel=zhongying&gid=bs23&range=39239954354956-39239957077384",
+      "probe_url": "http://67.215.237.218:5002/bs23-frag26523909.ts?token=guoziyun&channel=zhongying&gid=bs23&range=39239954354956-39239957077384"
+    },
+    "http://118.69.27.222:9394/stream/8.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 2616,
+      "final_url": "http://118.69.27.222:9394/stream/8/1791591475007.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/8/1791591475007.ts"
     },
     "http://118.69.27.222:9394/stream/38.m3u8": {
       "ok": true,
       "status": 200,
       "reason": "hls_segment",
-      "elapsed_ms": 23030,
-      "final_url": "http://118.69.27.222:9394/stream/38/1791419798942.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/38/1791419798942.ts"
+      "elapsed_ms": 1314,
+      "final_url": "http://118.69.27.222:9394/stream/38/1791591433540ajktvadfinal_8.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/38/1791591433540ajktvadfinal_8.ts"
+    },
+    "http://118.69.27.222:9394/stream/12.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 2667,
+      "final_url": "http://118.69.27.222:9394/stream/12/1791591471446akantanad_1.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/12/1791591471446akantanad_1.ts"
+    },
+    "http://67.215.237.218:5002/bs15.m3u8?gid=bs15&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 58,
+      "final_url": "http://67.215.237.218:5002/bs15-frag26453870.ts?token=guoziyun&channel=zhongying&gid=bs15&range=35687833475464-35687836170820",
+      "probe_url": "http://67.215.237.218:5002/bs15-frag26453870.ts?token=guoziyun&channel=zhongying&gid=bs15&range=35687833475464-35687836170820"
+    },
+    "http://118.69.27.222:9394/stream/39.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 1333,
+      "final_url": "http://118.69.27.222:9394/stream/39/1791591460008akantanad_3.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/39/1791591460008akantanad_3.ts"
+    },
+    "http://67.215.237.218:5002/bs25.m3u8?gid=bs25&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 57,
+      "final_url": "http://67.215.237.218:5002/bs25-frag26854146.ts?token=guoziyun&channel=zhongying&gid=bs25&range=41786557689960-41786560462584",
+      "probe_url": "http://67.215.237.218:5002/bs25-frag26854146.ts?token=guoziyun&channel=zhongying&gid=bs25&range=41786557689960-41786560462584"
+    },
+    "http://118.69.27.222:9394/stream/56.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 1317,
+      "final_url": "http://118.69.27.222:9394/stream/56/1791591473519.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/56/1791591473519.ts"
+    },
+    "http://118.69.27.222:9394/stream/116.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 3884,
+      "final_url": "http://118.69.27.222:9394/stream/116/22915100.fplsegment.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/116/22915100.fplsegment.ts"
+    },
+    "http://118.69.27.222:9394/stream/32.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 3810,
+      "final_url": "http://118.69.27.222:9394/stream/32/1791591474343.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/32/1791591474343.ts"
+    },
+    "http://67.215.237.218:5002/bs24.m3u8?gid=bs24&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 61,
+      "final_url": "http://67.215.237.218:5002/bs24-frag26509117.ts?token=guoziyun&channel=zhongying&gid=bs24&range=35250127426876-35250130284664",
+      "probe_url": "http://67.215.237.218:5002/bs24-frag26509117.ts?token=guoziyun&channel=zhongying&gid=bs24&range=35250127426876-35250130284664"
+    },
+    "http://118.69.27.222:9394/stream/53.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 1419,
+      "final_url": "http://118.69.27.222:9394/stream/53/1791591477330.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/53/1791591477330.ts"
+    },
+    "https://naori-test.netgenx.site/pxx.php?shk_cid=cs11#.m3u8": {
+      "ok": false,
+      "status": 403,
+      "reason": "http_403",
+      "elapsed_ms": 95,
+      "final_url": "https://naori-test.netgenx.site/pxx.php?shk_cid=cs11#.m3u8",
+      "probe_url": null
+    },
+    "http://118.69.27.222:9394/stream/233.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 1326,
+      "final_url": "http://118.69.27.222:9394/stream/233/26998753.fplsegment.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/233/26998753.fplsegment.ts"
+    },
+    "http://118.69.27.222:9394/stream/125.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 4973,
+      "final_url": "http://118.69.27.222:9394/stream/125/16720537.fplsegment.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/125/16720537.fplsegment.ts"
+    },
+    "http://118.69.27.222:9394/stream/18.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 5396,
+      "final_url": "http://118.69.27.222:9394/stream/18/1791591480641.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/18/1791591480641.ts"
+    },
+    "http://118.69.27.222:9394/stream/144.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 1339,
+      "final_url": "http://118.69.27.222:9394/stream/144/27153833.fplsegment.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/144/27153833.fplsegment.ts"
+    },
+    "http://118.69.27.222:9394/stream/161.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 1351,
+      "final_url": "http://118.69.27.222:9394/stream/161/21669938.fplsegment.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/161/21669938.fplsegment.ts"
+    },
+    "http://118.69.27.222:9394/stream/160.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 1391,
+      "final_url": "http://118.69.27.222:9394/stream/160/21667444.fplsegment.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/160/21667444.fplsegment.ts"
+    },
+    "http://118.69.27.222:9394/stream/146.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 1326,
+      "final_url": "http://118.69.27.222:9394/stream/146/27144379.fplsegment.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/146/27144379.fplsegment.ts"
+    },
+    "http://67.215.237.218:5002/cs26.m3u8?gid=cs26&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 58,
+      "final_url": "http://67.215.237.218:5002/cs26-frag20455294.ts?token=guoziyun&channel=zhongying&gid=cs26&range=34223510760644-34223512500772",
+      "probe_url": "http://67.215.237.218:5002/cs26-frag20455294.ts?token=guoziyun&channel=zhongying&gid=cs26&range=34223510760644-34223512500772"
+    },
+    "http://118.69.27.222:9394/stream/147.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 1350,
+      "final_url": "http://118.69.27.222:9394/stream/147/27377443.fplsegment.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/147/27377443.fplsegment.ts"
+    },
+    "http://67.215.237.218:5002/cs01.m3u8?gid=cs01&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 60,
+      "final_url": "http://67.215.237.218:5002/cs01-frag25629139.ts?token=guoziyun&channel=zhongying&gid=cs01&range=46475777712288-46475779727272",
+      "probe_url": "http://67.215.237.218:5002/cs01-frag25629139.ts?token=guoziyun&channel=zhongying&gid=cs01&range=46475777712288-46475779727272"
+    },
+    "http://118.69.27.222:9394/stream/21.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 7959,
+      "final_url": "http://118.69.27.222:9394/stream/21/1791591479502.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/21/1791591479502.ts"
+    },
+    "http://118.69.27.222:9394/stream/148.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 1318,
+      "final_url": "http://118.69.27.222:9394/stream/148/27172116.fplsegment.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/148/27172116.fplsegment.ts"
+    },
+    "http://118.69.27.222:9394/stream/112.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 1319,
+      "final_url": "http://118.69.27.222:9394/stream/112/21669300.fplsegment.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/112/21669300.fplsegment.ts"
+    },
+    "http://67.215.237.218:5002/cs17.m3u8?gid=cs17&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 65,
+      "final_url": "http://67.215.237.218:5002/cs17-frag26867248.ts?token=guoziyun&channel=zhongying&gid=cs17&range=44410978702936-44410980456788",
+      "probe_url": "http://67.215.237.218:5002/cs17-frag26867248.ts?token=guoziyun&channel=zhongying&gid=cs17&range=44410978702936-44410980456788"
+    },
+    "http://67.215.237.218:5002/bs26.m3u8?gid=bs26&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 62,
+      "final_url": "http://67.215.237.218:5002/bs26-frag26139163.ts?token=guoziyun&channel=zhongying&gid=bs26&range=37325415720000-37325417478928",
+      "probe_url": "http://67.215.237.218:5002/bs26-frag26139163.ts?token=guoziyun&channel=zhongying&gid=bs26&range=37325415720000-37325417478928"
+    },
+    "http://118.69.27.222:9394/stream/23.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 8010,
+      "final_url": "http://118.69.27.222:9394/stream/23/1791591483212.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/23/1791591483212.ts"
+    },
+    "http://67.215.237.218:5002/cs13.m3u8?gid=cs13&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 59,
+      "final_url": "http://67.215.237.218:5002/cs13-frag26930441.ts?token=guoziyun&channel=zhongying&gid=cs13&range=41106985796572-41106987553432",
+      "probe_url": "http://67.215.237.218:5002/cs13-frag26930441.ts?token=guoziyun&channel=zhongying&gid=cs13&range=41106985796572-41106987553432"
+    },
+    "http://67.215.237.218:5002/cs18.m3u8?gid=cs18&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 57,
+      "final_url": "http://67.215.237.218:5002/cs18-frag26493871.ts?token=guoziyun&channel=zhongying&gid=cs18&range=38872810920552-38872812676284",
+      "probe_url": "http://67.215.237.218:5002/cs18-frag26493871.ts?token=guoziyun&channel=zhongying&gid=cs18&range=38872810920552-38872812676284"
+    },
+    "http://118.69.27.222:9394/stream/36.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 9098,
+      "final_url": "http://118.69.27.222:9394/stream/36/1791591481071.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/36/1791591481071.ts"
+    },
+    "http://118.69.27.222:9394/stream/157.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 9051,
+      "final_url": "http://118.69.27.222:9394/stream/157/27199245.fplsegment.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/157/27199245.fplsegment.ts"
+    },
+    "http://118.69.27.222:9394/stream/1.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 1324,
+      "final_url": "http://118.69.27.222:9394/stream/1/1791591480775.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/1/1791591480775.ts"
+    },
+    "https://naori-test.netgenx.site/pxx.php?shk_cid=cs23#.m3u8": {
+      "ok": false,
+      "status": 403,
+      "reason": "http_403",
+      "elapsed_ms": 54,
+      "final_url": "https://naori-test.netgenx.site/pxx.php?shk_cid=cs23#.m3u8",
+      "probe_url": null
+    },
+    "http://118.69.27.222:9394/stream/135.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 1328,
+      "final_url": "http://118.69.27.222:9394/stream/135/27709783.fplsegment.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/135/27709783.fplsegment.ts"
+    },
+    "http://118.69.27.222:9394/stream/89.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 1311,
+      "final_url": "http://118.69.27.222:9394/stream/89/1791591487398.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/89/1791591487398.ts"
     },
     "http://118.69.27.222:9394/stream/107.m3u8": {
       "ok": true,
       "status": 200,
       "reason": "hls_segment",
-      "elapsed_ms": 15741,
-      "final_url": "http://118.69.27.222:9394/stream/107/21637894.fplsegment.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/107/21637894.fplsegment.ts"
+      "elapsed_ms": 1320,
+      "final_url": "http://118.69.27.222:9394/stream/107/21658101.fplsegment.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/107/21658101.fplsegment.ts"
     },
-    "http://118.69.27.222:9394/stream/58.m3u8": {
+    "http://118.69.27.222:9394/stream/163.m3u8": {
       "ok": true,
       "status": 200,
       "reason": "hls_segment",
-      "elapsed_ms": 15287,
-      "final_url": "http://118.69.27.222:9394/stream/58/1791419798293.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/58/1791419798293.ts"
+      "elapsed_ms": 9798,
+      "final_url": "http://118.69.27.222:9394/stream/163/20994571.fplsegment.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/163/20994571.fplsegment.ts"
+    },
+    "http://67.215.237.218:5002/cs20.m3u8?gid=cs20&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 55,
+      "final_url": "http://67.215.237.218:5002/cs20-frag25818253.ts?token=guoziyun&channel=zhongying&gid=cs20&range=44239057682868-44239059437472",
+      "probe_url": "http://67.215.237.218:5002/cs20-frag25818253.ts?token=guoziyun&channel=zhongying&gid=cs20&range=44239057682868-44239059437472"
+    },
+    "http://67.215.237.218:5002/cs21.m3u8?gid=cs21&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 62,
+      "final_url": "http://67.215.237.218:5002/cs21-frag26690256.ts?token=guoziyun&channel=zhongying&gid=cs21&range=37759993597136-37759995369976",
+      "probe_url": "http://67.215.237.218:5002/cs21-frag26690256.ts?token=guoziyun&channel=zhongying&gid=cs21&range=37759993597136-37759995369976"
     },
     "http://118.69.27.222:9394/stream/82.m3u8": {
       "ok": true,
       "status": 200,
       "reason": "hls_segment",
-      "elapsed_ms": 15993,
-      "final_url": "http://118.69.27.222:9394/stream/82/1791419799350.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/82/1791419799350.ts"
+      "elapsed_ms": 1332,
+      "final_url": "http://118.69.27.222:9394/stream/82/1791591480727.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/82/1791591480727.ts"
     },
-    "https://freewifi-radio-production.up.railway.app/radio-tv/QRR?v=20260929e": {
+    "http://118.69.27.222:9394/stream/71.m3u8": {
       "ok": true,
       "status": 200,
-      "reason": "mpegts",
-      "elapsed_ms": 4835,
-      "final_url": "https://freewifi-radio-production.up.railway.app/radio-tv/QRR?v=20260929e",
+      "reason": "hls_segment",
+      "elapsed_ms": 10371,
+      "final_url": "http://118.69.27.222:9394/stream/71/1791591483967.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/71/1791591483967.ts"
+    },
+    "http://118.69.27.222:9394/stream/69.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 10539,
+      "final_url": "http://118.69.27.222:9394/stream/69/1791591485734.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/69/1791591485734.ts"
+    },
+    "http://118.69.27.222:9394/stream/87.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 1345,
+      "final_url": "http://118.69.27.222:9394/stream/87/1791591476438ashtvadfinal_1.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/87/1791591476438ashtvadfinal_1.ts"
+    },
+    "http://67.215.237.218:5002/cs27.m3u8?gid=cs27&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 57,
+      "final_url": "http://67.215.237.218:5002/cs27-frag9831474.ts?token=guoziyun&channel=zhongying&gid=cs27&range=26663230023244-26663231765252",
+      "probe_url": "http://67.215.237.218:5002/cs27-frag9831474.ts?token=guoziyun&channel=zhongying&gid=cs27&range=26663230023244-26663231765252"
+    },
+    "http://118.69.27.222:9394/stream/95.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 1308,
+      "final_url": "http://118.69.27.222:9394/stream/95/1791591481467.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/95/1791591481467.ts"
+    },
+    "http://118.69.27.222:9394/stream/44.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 13189,
+      "final_url": "http://118.69.27.222:9394/stream/44/1791591472370ashtvadfinal_3.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/44/1791591472370ashtvadfinal_3.ts"
+    },
+    "http://118.69.27.222:9394/stream/85.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 1347,
+      "final_url": "http://118.69.27.222:9394/stream/85/1791591490571.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/85/1791591490571.ts"
+    },
+    "http://118.69.27.222:9394/stream/139.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 1348,
+      "final_url": "http://118.69.27.222:9394/stream/139/21634148.fplsegment.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/139/21634148.fplsegment.ts"
+    },
+    "http://118.69.27.222:9394/stream/150.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 1306,
+      "final_url": "http://118.69.27.222:9394/stream/150/24077451.fplsegment.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/150/24077451.fplsegment.ts"
+    },
+    "http://67.215.237.218:5002/cs05.m3u8?gid=cs05&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 63,
+      "final_url": "http://67.215.237.218:5002/cs05-frag25142281.ts?token=guoziyun&channel=zhongying&gid=cs05&range=40760865172184-40760867001800",
+      "probe_url": "http://67.215.237.218:5002/cs05-frag25142281.ts?token=guoziyun&channel=zhongying&gid=cs05&range=40760865172184-40760867001800"
+    },
+    "http://67.215.237.218:5002/cs29.m3u8?gid=cs29&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 54,
+      "final_url": "http://67.215.237.218:5002/cs29-frag9833879.ts?token=guoziyun&channel=zhongying&gid=cs29&range=26887253602260-26887255751852",
+      "probe_url": "http://67.215.237.218:5002/cs29-frag9833879.ts?token=guoziyun&channel=zhongying&gid=cs29&range=26887253602260-26887255751852"
+    },
+    "http://67.215.237.218:5002/cs12.m3u8?gid=cs12&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 53,
+      "final_url": "http://67.215.237.218:5002/cs12-frag25854403.ts?token=guoziyun&channel=zhongying&gid=cs12&range=41136055283412-41136057011320",
+      "probe_url": "http://67.215.237.218:5002/cs12-frag25854403.ts?token=guoziyun&channel=zhongying&gid=cs12&range=41136055283412-41136057011320"
+    },
+    "http://118.69.27.222:9394/stream/5.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 14671,
+      "final_url": "http://118.69.27.222:9394/stream/5/1791591492283.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/5/1791591492283.ts"
+    },
+    "http://118.69.27.222:9394/stream/86.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 1327,
+      "final_url": "http://118.69.27.222:9394/stream/86/1791591484065.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/86/1791591484065.ts"
+    },
+    "http://118.69.27.222:9394/stream/7.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 14699,
+      "final_url": "http://118.69.27.222:9394/stream/7/1791591485580.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/7/1791591485580.ts"
+    },
+    "https://naori-test.netgenx.site/pxx.php?shk_cid=cs03#.m3u8": {
+      "ok": false,
+      "status": 403,
+      "reason": "http_403",
+      "elapsed_ms": 53,
+      "final_url": "https://naori-test.netgenx.site/pxx.php?shk_cid=cs03#.m3u8",
       "probe_url": null
     },
-    "https://freewifi-radio-production.up.railway.app/radio-tv/RNB?v=20260929e": {
+    "http://118.69.27.222:9394/stream/124.m3u8": {
       "ok": true,
       "status": 200,
-      "reason": "mpegts",
-      "elapsed_ms": 5100,
-      "final_url": "https://freewifi-radio-production.up.railway.app/radio-tv/RNB?v=20260929e",
+      "reason": "hls_segment",
+      "elapsed_ms": 1369,
+      "final_url": "http://118.69.27.222:9394/stream/124/21678955.fplsegment.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/124/21678955.fplsegment.ts"
+    },
+    "https://naori-test.netgenx.site/pxx.php?shk_cid=cs14#.m3u8": {
+      "ok": false,
+      "status": 403,
+      "reason": "http_403",
+      "elapsed_ms": 68,
+      "final_url": "https://naori-test.netgenx.site/pxx.php?shk_cid=cs14#.m3u8",
       "probe_url": null
     },
-    "https://freewifi-radio-production.up.railway.app/radio-tv/LFR?v=20260929e": {
+    "https://naori-test.netgenx.site/pxx.php?shk_cid=cs10#.m3u8": {
+      "ok": false,
+      "status": 403,
+      "reason": "http_403",
+      "elapsed_ms": 48,
+      "final_url": "https://naori-test.netgenx.site/pxx.php?shk_cid=cs10#.m3u8",
+      "probe_url": null
+    },
+    "https://naori-test.netgenx.site/pxx.php?shk_cid=cs24#.m3u8": {
+      "ok": false,
+      "status": 403,
+      "reason": "http_403",
+      "elapsed_ms": 51,
+      "final_url": "https://naori-test.netgenx.site/pxx.php?shk_cid=cs24#.m3u8",
+      "probe_url": null
+    },
+    "http://118.69.27.222:9394/stream/20.m3u8": {
       "ok": true,
       "status": 200,
-      "reason": "mpegts",
-      "elapsed_ms": 5110,
-      "final_url": "https://freewifi-radio-production.up.railway.app/radio-tv/LFR?v=20260929e",
+      "reason": "hls_segment",
+      "elapsed_ms": 15991,
+      "final_url": "http://118.69.27.222:9394/stream/20/1791591489357.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/20/1791591489357.ts"
+    },
+    "http://118.69.27.222:9394/stream/40.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 14610,
+      "final_url": "http://118.69.27.222:9394/stream/40/1791591489124.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/40/1791591489124.ts"
+    },
+    "https://naori-test.netgenx.site/pxx.php?shk_cid=cs22#.m3u8": {
+      "ok": false,
+      "status": 403,
+      "reason": "http_403",
+      "elapsed_ms": 49,
+      "final_url": "https://naori-test.netgenx.site/pxx.php?shk_cid=cs22#.m3u8",
+      "probe_url": null
+    },
+    "http://118.69.27.222:9394/stream/73.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 1366,
+      "final_url": "http://118.69.27.222:9394/stream/73/1791591483710ajktvadfinal_1.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/73/1791591483710ajktvadfinal_1.ts"
+    },
+    "http://118.69.27.222:9394/stream/68.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 14688,
+      "final_url": "http://118.69.27.222:9394/stream/68/1791591485758.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/68/1791591485758.ts"
+    },
+    "https://naori-test.netgenx.site/pxx.php?shk_cid=cs04#.m3u8": {
+      "ok": false,
+      "status": 403,
+      "reason": "http_403",
+      "elapsed_ms": 62,
+      "final_url": "https://naori-test.netgenx.site/pxx.php?shk_cid=cs04#.m3u8",
+      "probe_url": null
+    },
+    "https://naori-test.netgenx.site/pxx.php?shk_cid=cs08#.m3u8": {
+      "ok": false,
+      "status": 403,
+      "reason": "http_403",
+      "elapsed_ms": 71,
+      "final_url": "https://naori-test.netgenx.site/pxx.php?shk_cid=cs08#.m3u8",
       "probe_url": null
     },
     "http://118.69.27.222:9394/stream/57.m3u8": {
       "ok": true,
       "status": 200,
       "reason": "hls_segment",
-      "elapsed_ms": 24030,
-      "final_url": "http://118.69.27.222:9394/stream/57/1791419800302.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/57/1791419800302.ts"
+      "elapsed_ms": 15540,
+      "final_url": "http://118.69.27.222:9394/stream/57/1791591490740.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/57/1791591490740.ts"
     },
-    "http://118.69.27.222:9394/stream/56.m3u8": {
+    "http://118.69.27.222:9394/stream/88.m3u8": {
       "ok": true,
       "status": 200,
       "reason": "hls_segment",
-      "elapsed_ms": 24158,
-      "final_url": "http://118.69.27.222:9394/stream/56/1791419803119.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/56/1791419803119.ts"
+      "elapsed_ms": 1325,
+      "final_url": "http://118.69.27.222:9394/stream/88/1791591489088.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/88/1791591489088.ts"
     },
-    "http://118.69.27.222:9394/stream/83.m3u8": {
+    "http://118.69.27.222:9394/stream/99.m3u8": {
       "ok": true,
       "status": 200,
       "reason": "hls_segment",
-      "elapsed_ms": 15742,
-      "final_url": "http://118.69.27.222:9394/stream/83/1791419800897.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/83/1791419800897.ts"
+      "elapsed_ms": 1309,
+      "final_url": "http://118.69.27.222:9394/stream/99/1791591487008.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/99/1791591487008.ts"
     },
-    "http://118.69.27.222:9394/stream/90.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 23906,
-      "final_url": "http://118.69.27.222:9394/stream/90/1791419798678.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/90/1791419798678.ts"
-    },
-    "http://118.69.27.222:9394/stream/125.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 25817,
-      "final_url": "http://118.69.27.222:9394/stream/125/16700337.fplsegment.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/125/16700337.fplsegment.ts"
-    },
-    "http://118.69.27.222:9394/stream/163.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 26037,
-      "final_url": "http://118.69.27.222:9394/stream/163/20974387.fplsegment.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/163/20974387.fplsegment.ts"
-    },
-    "https://himitsu-six.vercel.app/api/radio-tv?station=nhk_r1_matsuyama&v=20260929e": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 1667,
-      "final_url": "https://himitsu-six.vercel.app/api/radio-tv?station=nhk_r1_matsuyama&asset=seg&n=358283953",
-      "probe_url": "https://himitsu-six.vercel.app/api/radio-tv?station=nhk_r1_matsuyama&asset=seg&n=358283953"
-    },
-    "http://118.69.27.222:9394/stream/39.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 26248,
-      "final_url": "http://118.69.27.222:9394/stream/39/1791419801816.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/39/1791419801816.ts"
-    },
-    "https://himitsu-six.vercel.app/api/radio-tv?station=nhk_fm_matsuyama&v=20260929e": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 1707,
-      "final_url": "https://himitsu-six.vercel.app/api/radio-tv?station=nhk_fm_matsuyama&asset=seg&n=358283953",
-      "probe_url": "https://himitsu-six.vercel.app/api/radio-tv?station=nhk_fm_matsuyama&asset=seg&n=358283953"
-    },
-    "http://118.69.27.222:9394/stream/69.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 26464,
-      "final_url": "http://118.69.27.222:9394/stream/69/1791419804367.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/69/1791419804367.ts"
-    },
-    "http://118.69.27.222:9394/stream/55.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 26584,
-      "final_url": "http://118.69.27.222:9394/stream/55/1791419801709.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/55/1791419801709.ts"
-    },
-    "http://118.69.27.222:9394/stream/233.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 25944,
-      "final_url": "http://118.69.27.222:9394/stream/233/26978556.fplsegment.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/233/26978556.fplsegment.ts"
-    },
-    "https://cdn.e-catv.ne.jp/mpeg-dash/hc_town_news_24/dash.mpd": {
-      "ok": true,
-      "status": 200,
-      "reason": "dash_mpd",
-      "elapsed_ms": 845,
-      "final_url": "https://cdn.e-catv.ne.jp/mpeg-dash/hc_town_news_24/dash.mpd",
-      "probe_url": null
-    },
-    "http://118.69.27.222:9394/stream/7.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 30431,
-      "final_url": "http://118.69.27.222:9394/stream/7/1791419806059.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/7/1791419806059.ts"
-    },
-    "https://cdn.e-catv.ne.jp/mpeg-dash/hc_ainan_live_cam/dash.mpd": {
-      "ok": true,
-      "status": 200,
-      "reason": "dash_mpd",
-      "elapsed_ms": 516,
-      "final_url": "https://cdn.e-catv.ne.jp/mpeg-dash/hc_ainan_live_cam/dash.mpd",
-      "probe_url": null
-    },
-    "https://cdn.e-catv.ne.jp/mpeg-dash/hc_machi_cam_24/dash.mpd": {
-      "ok": true,
-      "status": 200,
-      "reason": "dash_mpd",
-      "elapsed_ms": 762,
-      "final_url": "https://cdn.e-catv.ne.jp/mpeg-dash/hc_machi_cam_24/dash.mpd",
-      "probe_url": null
-    },
-    "https://freewifi-radio-production.up.railway.app/radio-tv/ALPHA-STATION?v=20260929e": {
-      "ok": true,
-      "status": 200,
-      "reason": "mpegts",
-      "elapsed_ms": 4958,
-      "final_url": "https://freewifi-radio-production.up.railway.app/radio-tv/ALPHA-STATION?v=20260929e",
+    "https://naori-test.netgenx.site/pxx.php?shk_cid=cs19#.m3u8": {
+      "ok": false,
+      "status": 403,
+      "reason": "http_403",
+      "elapsed_ms": 58,
+      "final_url": "https://naori-test.netgenx.site/pxx.php?shk_cid=cs19#.m3u8",
       "probe_url": null
     },
     "http://118.69.27.222:9394/stream/72.m3u8": {
       "ok": true,
       "status": 200,
       "reason": "hls_segment",
-      "elapsed_ms": 23902,
-      "final_url": "http://118.69.27.222:9394/stream/72/1791419803329.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/72/1791419803329.ts"
+      "elapsed_ms": 10601,
+      "final_url": "http://118.69.27.222:9394/stream/72/1791591489898.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/72/1791591489898.ts"
     },
-    "https://cdn.e-catv.ne.jp/mpeg-dash/hc_eventsel_channel/dash.mpd": {
-      "ok": true,
-      "status": 200,
-      "reason": "dash_mpd",
-      "elapsed_ms": 505,
-      "final_url": "https://cdn.e-catv.ne.jp/mpeg-dash/hc_eventsel_channel/dash.mpd",
-      "probe_url": null
-    },
-    "https://cdn.e-catv.ne.jp/mpeg-dash/hc_ehime_channel/dash.mpd": {
-      "ok": true,
-      "status": 200,
-      "reason": "dash_mpd",
-      "elapsed_ms": 407,
-      "final_url": "https://cdn.e-catv.ne.jp/mpeg-dash/hc_ehime_channel/dash.mpd",
-      "probe_url": null
-    },
-    "https://cdn.e-catv.ne.jp/mpeg-dash/hc_bousai_channel/dash.mpd": {
-      "ok": true,
-      "status": 200,
-      "reason": "dash_mpd",
-      "elapsed_ms": 398,
-      "final_url": "https://cdn.e-catv.ne.jp/mpeg-dash/hc_bousai_channel/dash.mpd",
-      "probe_url": null
-    },
-    "http://118.69.27.222:9394/stream/114.m3u8": {
+    "http://118.69.27.222:9394/stream/52.m3u8": {
       "ok": true,
       "status": 200,
       "reason": "hls_segment",
-      "elapsed_ms": 28552,
-      "final_url": "http://118.69.27.222:9394/stream/114/21663108.fplsegment.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/114/21663108.fplsegment.ts"
+      "elapsed_ms": 18346,
+      "final_url": "http://118.69.27.222:9394/stream/52/1791591490347.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/52/1791591490347.ts"
     },
-    "https://freewifi-radio-production.up.railway.app/radio-tv/RCC?v=20260929e": {
+    "http://118.69.27.222:9394/stream/133.m3u8": {
       "ok": true,
       "status": 200,
-      "reason": "mpegts",
-      "elapsed_ms": 4616,
-      "final_url": "https://freewifi-radio-production.up.railway.app/radio-tv/RCC?v=20260929e",
+      "reason": "hls_segment",
+      "elapsed_ms": 1324,
+      "final_url": "http://118.69.27.222:9394/stream/133/21666729.fplsegment.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/133/21666729.fplsegment.ts"
+    },
+    "http://118.69.27.222:9394/stream/136.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 1345,
+      "final_url": "http://118.69.27.222:9394/stream/136/27177491.fplsegment.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/136/27177491.fplsegment.ts"
+    },
+    "https://naori-test.netgenx.site/pxx.php?shk_cid=cs28#.m3u8": {
+      "ok": false,
+      "status": 403,
+      "reason": "http_403",
+      "elapsed_ms": 56,
+      "final_url": "https://naori-test.netgenx.site/pxx.php?shk_cid=cs28#.m3u8",
       "probe_url": null
+    },
+    "http://118.69.27.222:9394/stream/141.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 1344,
+      "final_url": "http://118.69.27.222:9394/stream/141/21659684.fplsegment.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/141/21659684.fplsegment.ts"
+    },
+    "https://naori-test.netgenx.site/pxx.php?shk_cid=cs06#.m3u8": {
+      "ok": false,
+      "status": 403,
+      "reason": "http_403",
+      "elapsed_ms": 48,
+      "final_url": "https://naori-test.netgenx.site/pxx.php?shk_cid=cs06#.m3u8",
+      "probe_url": null
+    },
+    "http://118.69.27.222:9394/stream/142.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 1324,
+      "final_url": "http://118.69.27.222:9394/stream/142/28207695.fplsegment.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/142/28207695.fplsegment.ts"
+    },
+    "http://118.69.27.222:9394/stream/35.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 19040,
+      "final_url": "http://118.69.27.222:9394/stream/35/1791591493007.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/35/1791591493007.ts"
+    },
+    "http://118.69.27.222:9394/stream/149.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 1325,
+      "final_url": "http://118.69.27.222:9394/stream/149/28983510.fplsegment.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/149/28983510.fplsegment.ts"
+    },
+    "https://naori-test.netgenx.site/pxx.php?shk_cid=cs09#.m3u8": {
+      "ok": false,
+      "status": 403,
+      "reason": "http_403",
+      "elapsed_ms": 55,
+      "final_url": "https://naori-test.netgenx.site/pxx.php?shk_cid=cs09#.m3u8",
+      "probe_url": null
+    },
+    "https://naori-test.netgenx.site/pxx.php?shk_cid=cs16#.m3u8": {
+      "ok": false,
+      "status": 403,
+      "reason": "http_403",
+      "elapsed_ms": 69,
+      "final_url": "https://naori-test.netgenx.site/pxx.php?shk_cid=cs16#.m3u8",
+      "probe_url": null
+    },
+    "http://118.69.27.222:9394/stream/22.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 20143,
+      "final_url": "http://118.69.27.222:9394/stream/22/1791591497784.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/22/1791591497784.ts"
+    },
+    "http://67.215.237.218:5002/cs07.m3u8?gid=cs07&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 61,
+      "final_url": "http://67.215.237.218:5002/cs07-frag26601297.ts?token=guoziyun&channel=zhongying&gid=cs07&range=36172490883200-36172492623704",
+      "probe_url": "http://67.215.237.218:5002/cs07-frag26601297.ts?token=guoziyun&channel=zhongying&gid=cs07&range=36172490883200-36172492623704"
+    },
+    "http://118.69.27.222:9394/stream/309.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 1336,
+      "final_url": "http://118.69.27.222:9394/stream/309/21669117.fplsegment.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/309/21669117.fplsegment.ts"
+    },
+    "http://118.69.27.222:9394/stream/54.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 10660,
+      "final_url": "http://118.69.27.222:9394/stream/54/1791591491924.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/54/1791591491924.ts"
+    },
+    "http://118.69.27.222:9394/stream/315.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 1348,
+      "final_url": "http://118.69.27.222:9394/stream/315/28348983.fplsegment.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/315/28348983.fplsegment.ts"
     },
     "http://118.69.27.222:9394/stream/4.m3u8": {
       "ok": true,
       "status": 200,
       "reason": "hls_segment",
-      "elapsed_ms": 31473,
-      "final_url": "http://118.69.27.222:9394/stream/4/1791419772471ashtvadfinal_7.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/4/1791419772471ashtvadfinal_7.ts"
+      "elapsed_ms": 21477,
+      "final_url": "http://118.69.27.222:9394/stream/4/1791591491997.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/4/1791591491997.ts"
     },
-    "https://freewifi-radio-production.up.railway.app/radio-tv/CBC?v=20260929e": {
+    "http://118.69.27.222:9394/stream/37.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 22441,
+      "final_url": "http://118.69.27.222:9394/stream/37/1791591495808.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/37/1791591495808.ts"
+    },
+    "http://118.69.27.222:9394/stream/55.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 20014,
+      "final_url": "http://118.69.27.222:9394/stream/55/1791591494397.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/55/1791591494397.ts"
+    },
+    "http://118.69.27.222:9394/stream/308.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 10682,
+      "final_url": "http://118.69.27.222:9394/stream/308/20532990.fplsegment.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/308/20532990.fplsegment.ts"
+    },
+    "http://118.69.27.222:9394/stream/98.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 20109,
+      "final_url": "http://118.69.27.222:9394/stream/98/1791591494707.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/98/1791591494707.ts"
+    },
+    "http://118.69.27.222:9394/stream/90.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 19917,
+      "final_url": "http://118.69.27.222:9394/stream/90/1791591495081.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/90/1791591495081.ts"
+    },
+    "http://118.69.27.222:9394/stream/145.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 19887,
+      "final_url": "http://118.69.27.222:9394/stream/145/27090735.fplsegment.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/145/27090735.fplsegment.ts"
+    },
+    "http://118.69.27.222:9394/stream/138.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 10693,
+      "final_url": "http://118.69.27.222:9394/stream/138/27039320.fplsegment.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/138/27039320.fplsegment.ts"
+    },
+    "http://118.69.27.222:9394/stream/67.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 10720,
+      "final_url": "http://118.69.27.222:9394/stream/67/1791591466724ashtvadfinal_5.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/67/1791591466724ashtvadfinal_5.ts"
+    },
+    "http://118.69.27.222:9394/stream/41.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 23910,
+      "final_url": "http://118.69.27.222:9394/stream/41/1791591495642.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/41/1791591495642.ts"
+    },
+    "http://118.69.27.222:9394/stream/75.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 10643,
+      "final_url": "http://118.69.27.222:9394/stream/75/1791591499443.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/75/1791591499443.ts"
+    },
+    "http://118.69.27.222:9394/stream/76.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 10681,
+      "final_url": "http://118.69.27.222:9394/stream/76/1791591496051.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/76/1791591496051.ts"
+    },
+    "http://118.69.27.222:9394/stream/84.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 10661,
+      "final_url": "http://118.69.27.222:9394/stream/84/1791591502781.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/84/1791591502781.ts"
+    },
+    "https://freewifi-radio-production.up.railway.app/radio-tv/JOEU-FM?v=20260929e": {
       "ok": true,
       "status": 200,
       "reason": "mpegts",
-      "elapsed_ms": 4921,
-      "final_url": "https://freewifi-radio-production.up.railway.app/radio-tv/CBC?v=20260929e",
+      "elapsed_ms": 6345,
+      "final_url": "https://freewifi-radio-production.up.railway.app/radio-tv/JOEU-FM?v=20260929e",
       "probe_url": null
     },
-    "https://freewifi-radio-production.up.railway.app/radio-tv/RKB?v=20260929e": {
+    "https://freewifi-radio-production.up.railway.app/radio-tv/LFR?v=20260929e": {
       "ok": true,
       "status": 200,
       "reason": "mpegts",
-      "elapsed_ms": 4864,
-      "final_url": "https://freewifi-radio-production.up.railway.app/radio-tv/RKB?v=20260929e",
+      "elapsed_ms": 5228,
+      "final_url": "https://freewifi-radio-production.up.railway.app/radio-tv/LFR?v=20260929e",
+      "probe_url": null
+    },
+    "https://freewifi-radio-production.up.railway.app/radio-tv/RNB?v=20260929e": {
+      "ok": true,
+      "status": 200,
+      "reason": "mpegts",
+      "elapsed_ms": 5316,
+      "final_url": "https://freewifi-radio-production.up.railway.app/radio-tv/RNB?v=20260929e",
+      "probe_url": null
+    },
+    "http://118.69.27.222:9394/stream/237.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 19874,
+      "final_url": "http://118.69.27.222:9394/stream/237/21670138.fplsegment.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/237/21670138.fplsegment.ts"
+    },
+    "https://freewifi-radio-production.up.railway.app/radio-tv/QRR?v=20260929e": {
+      "ok": true,
+      "status": 200,
+      "reason": "mpegts",
+      "elapsed_ms": 5242,
+      "final_url": "https://freewifi-radio-production.up.railway.app/radio-tv/QRR?v=20260929e",
+      "probe_url": null
+    },
+    "http://118.69.27.222:9394/stream/131.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 10595,
+      "final_url": "http://118.69.27.222:9394/stream/131/21538399.fplsegment.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/131/21538399.fplsegment.ts"
+    },
+    "http://118.69.27.222:9394/stream/132.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 10622,
+      "final_url": "http://118.69.27.222:9394/stream/132/21674501.fplsegment.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/132/21674501.fplsegment.ts"
+    },
+    "http://118.69.27.222:9394/stream/236.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 18773,
+      "final_url": "http://118.69.27.222:9394/stream/236/21659796.fplsegment.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/236/21659796.fplsegment.ts"
+    },
+    "http://118.69.27.222:9394/stream/58.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 18538,
+      "final_url": "http://118.69.27.222:9394/stream/58/1791591497730.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/58/1791591497730.ts"
+    },
+    "http://118.69.27.222:9394/stream/156.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 9307,
+      "final_url": "http://118.69.27.222:9394/stream/156/27507867.fplsegment.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/156/27507867.fplsegment.ts"
+    },
+    "http://118.69.27.222:9394/stream/158.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 9314,
+      "final_url": "http://118.69.27.222:9394/stream/158/27001665.fplsegment.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/158/27001665.fplsegment.ts"
+    },
+    "http://118.69.27.222:9394/stream/70.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 26680,
+      "final_url": "http://118.69.27.222:9394/stream/70/1791591503835.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/70/1791591503835.ts"
+    },
+    "https://himitsu-six.vercel.app/api/radio-tv?station=nhk_fm_matsuyama&v=20260929e": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 1952,
+      "final_url": "https://himitsu-six.vercel.app/api/radio-tv?station=nhk_fm_matsuyama&asset=seg&n=358318292",
+      "probe_url": "https://himitsu-six.vercel.app/api/radio-tv?station=nhk_fm_matsuyama&asset=seg&n=358318292"
+    },
+    "https://himitsu-six.vercel.app/api/radio-tv?station=nhk_r1_matsuyama&v=20260929e": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 2158,
+      "final_url": "https://himitsu-six.vercel.app/api/radio-tv?station=nhk_r1_matsuyama&asset=seg&n=358318294",
+      "probe_url": "https://himitsu-six.vercel.app/api/radio-tv?station=nhk_r1_matsuyama&asset=seg&n=358318294"
+    },
+    "http://118.69.27.222:9394/stream/137.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 11870,
+      "final_url": "http://118.69.27.222:9394/stream/137/30389535.fplsegment.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/137/30389535.fplsegment.ts"
+    },
+    "http://118.69.27.222:9394/stream/74.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 21112,
+      "final_url": "http://118.69.27.222:9394/stream/74/1791591499024.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/74/1791591499024.ts"
+    },
+    "http://118.69.27.222:9394/stream/83.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 18748,
+      "final_url": "http://118.69.27.222:9394/stream/83/1791591500966.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/83/1791591500966.ts"
+    },
+    "http://118.69.27.222:9394/stream/28.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 29488,
+      "final_url": "http://118.69.27.222:9394/stream/28/1791591497648.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/28/1791591497648.ts"
+    },
+    "https://cdn.e-catv.ne.jp/mpeg-dash/hc_town_news_24/dash.mpd": {
+      "ok": true,
+      "status": 200,
+      "reason": "dash_mpd",
+      "elapsed_ms": 748,
+      "final_url": "https://cdn.e-catv.ne.jp/mpeg-dash/hc_town_news_24/dash.mpd",
+      "probe_url": null
+    },
+    "https://cdn.e-catv.ne.jp/mpeg-dash/hc_machi_cam_24/dash.mpd": {
+      "ok": true,
+      "status": 200,
+      "reason": "dash_mpd",
+      "elapsed_ms": 745,
+      "final_url": "https://cdn.e-catv.ne.jp/mpeg-dash/hc_machi_cam_24/dash.mpd",
+      "probe_url": null
+    },
+    "https://cdn.e-catv.ne.jp/mpeg-dash/hc_ainan_live_cam/dash.mpd": {
+      "ok": true,
+      "status": 200,
+      "reason": "dash_mpd",
+      "elapsed_ms": 676,
+      "final_url": "https://cdn.e-catv.ne.jp/mpeg-dash/hc_ainan_live_cam/dash.mpd",
+      "probe_url": null
+    },
+    "https://cdn-ecatv-stream.durasite.net/live/plala.town/playlist.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 1727,
+      "final_url": "https://cdn-ecatv-stream.durasite.net/live/plala.town/media_w1786850965_1298270.ts",
+      "probe_url": "https://cdn-ecatv-stream.durasite.net/live/plala.town/media_w1786850965_1298270.ts"
+    },
+    "https://cdn.e-catv.ne.jp/mpeg-dash/hc_ehime_channel/dash.mpd": {
+      "ok": true,
+      "status": 200,
+      "reason": "dash_mpd",
+      "elapsed_ms": 504,
+      "final_url": "https://cdn.e-catv.ne.jp/mpeg-dash/hc_ehime_channel/dash.mpd",
+      "probe_url": null
+    },
+    "https://cdn.e-catv.ne.jp/mpeg-dash/hc_eventsel_channel/dash.mpd": {
+      "ok": true,
+      "status": 200,
+      "reason": "dash_mpd",
+      "elapsed_ms": 520,
+      "final_url": "https://cdn.e-catv.ne.jp/mpeg-dash/hc_eventsel_channel/dash.mpd",
+      "probe_url": null
+    },
+    "http://118.69.27.222:9394/stream/17.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 30560,
+      "final_url": "http://118.69.27.222:9394/stream/17/1791591502404.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/17/1791591502404.ts"
+    },
+    "http://118.69.27.222:9394/stream/114.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 30373,
+      "final_url": "http://118.69.27.222:9394/stream/114/21683307.fplsegment.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/114/21683307.fplsegment.ts"
+    },
+    "https://cdn.e-catv.ne.jp/mpeg-dash/hc_bousai_channel/dash.mpd": {
+      "ok": true,
+      "status": 200,
+      "reason": "dash_mpd",
+      "elapsed_ms": 643,
+      "final_url": "https://cdn.e-catv.ne.jp/mpeg-dash/hc_bousai_channel/dash.mpd",
       "probe_url": null
     },
     "https://cdn.e-catv.ne.jp/mpeg-dash/hc_gosho_channel/dash.mpd": {
       "ok": true,
       "status": 200,
       "reason": "dash_mpd",
-      "elapsed_ms": 632,
+      "elapsed_ms": 611,
       "final_url": "https://cdn.e-catv.ne.jp/mpeg-dash/hc_gosho_channel/dash.mpd",
-      "probe_url": null
-    },
-    "http://118.69.27.222:9394/stream/40.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 28934,
-      "final_url": "http://118.69.27.222:9394/stream/40/1791419809320.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/40/1791419809320.ts"
-    },
-    "https://cdn-ecatv-stream.durasite.net/live/plala.town/playlist.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 2655,
-      "final_url": "https://cdn-ecatv-stream.durasite.net/live/plala.town/media_w933679288_1281051.ts",
-      "probe_url": "https://cdn-ecatv-stream.durasite.net/live/plala.town/media_w933679288_1281051.ts"
-    },
-    "https://mens-neco-jp.fast.rakuten.tv/v1/master/0547f18649bd788bec7b67b746e47670f558b6b2/production-hls-aes128-rchannels-4-playout/master.m3u8?ads.country=jp&ads.custom_device_type=r_channels&ads.language=ja&ads.rtv_channel_name=mensnecoeu&ads.rtv_content_id=4&ads.stream_type=hlslinear&channel_id=4&publishing_platform_id=16&tenant_identifier=rchannels&ads.device_make=rchweb&ads.url=channel.rakuten.co.jp&ads.uuid=9327881c-b882-5243-8a45-6ff97661cf40&ads.uid_rch=9327881c-b882-5243-8a45-6ff97661cf40&ads.refid=0&ads.rch_hid=&ads.rch_rp=f4f1cf8e6fc552bc1192c78de156ac5aa1c58a12": {
-      "ok": false,
-      "status": 504,
-      "reason": "http_504",
-      "elapsed_ms": 312,
-      "final_url": "https://mens-neco-jp.fast.rakuten.tv/v1/master/0547f18649bd788bec7b67b746e47670f558b6b2/production-hls-aes128-rchannels-4-playout/master.m3u8?ads.country=jp&ads.custom_device_type=r_channels&ads.language=ja&ads.rtv_channel_name=mensnecoeu&ads.rtv_content_id=4&ads.stream_type=hlslinear&channel_id=4&publishing_platform_id=16&tenant_identifier=rchannels&ads.device_make=rchweb&ads.url=channel.rakuten.co.jp&ads.uuid=9327881c-b882-5243-8a45-6ff97661cf40&ads.uid_rch=9327881c-b882-5243-8a45-6ff97661cf40&ads.refid=0&ads.rch_hid=&ads.rch_rp=f4f1cf8e6fc552bc1192c78de156ac5aa1c58a12",
       "probe_url": null
     },
     "https://cdn-apne1.tsv2.amagi.tv/linear/amg01287-rakutentvjapan-tandtcmaf-rakutenjp/playlist.m3u8": {
       "ok": true,
       "status": 200,
       "reason": "hls_segment",
-      "elapsed_ms": 948,
-      "final_url": "https://amg01287-rakutentvjapan-tandtcmaf-rakutenjp-tavl1.amagi.tv/Rchannel-Train-and-Travel_video_9_8794488.mp4?m=1740394097",
-      "probe_url": "https://amg01287-rakutentvjapan-tandtcmaf-rakutenjp-tavl1.amagi.tv/ts-us-w2-n1/beacon/amg01287-rakutentvjapan-tandtcmaf-rakutenjp/cb573d1d7f6c668d84cb3f66cef34382be7b3dcb0e6c886470af4a9765d97800dbe8ae84ae5b910c4c9e1fc061017d360439cd1dd56c49c1da63b820743c4b21fdcde00080dd0d0cb1df11292ca3094613a15340cf24562699da1b0e842fbc365040bf473d0070c9eb51f9225190835f962c2bd9adc060382b5b42ce095db1bd0af2f8b35914dc3ef4b54d4cf77f7fcfba9332192e91b2b1388c7ee328a850c8c6e0e89741c6d3d241816d801a2828eff904e203fee752a4ce92291891743a4f1d549cc3d99e1c7aeecf242d7b3a301b257f31eef0bdb2e3f24014a0efce5fab66af1baee24fef8eb3d641403eabfe420b128deaba83f73932f233b5f2a995447597f21b6f548943ec627a68dead9054b3ca1bc0e278c5ac3f497180b0558b91b7b4eab2a643886a9f94a3d66e140e400c108950a7d53c8e7d9d4ba9c81233550211fecd1b97d0ab2b5a08788f8e5adb0408f98adbf1b8200f8a314b14b81ab0196248c9276768ea3df3f86d3b6947d12ece8b9df7758e2fd40a714969e7ec7924dda292/1920x1080_5330152_audio_0?bcn=1&ca=0&cid=as_443247&dur=6.006000&media_type=M&redirect_url=https%3A%2F%2Famg01287-rakutentvjapan-tandtcmaf-rakutenjp-tavl1.amagi.tv%2FRchannel-Train-and-Travel_video_9_8794488.mp4%3Fm%3D1740394097&seen-ad=1&seg_id=8794488&user_id=68dd3e3e-c2b0-11f1-ad0d-da7b4a4be4a4"
+      "elapsed_ms": 1008,
+      "final_url": "https://amg01287-rakutentvjapan-tandtcmaf-rakutenjp-tavl1.amagi.tv/Rchannel-Train-and-Travel_video_9_8823596.mp4?m=1740394097",
+      "probe_url": "https://amg01287-rakutentvjapan-tandtcmaf-rakutenjp-tavl1.amagi.tv/ts-us-w2-n1/beacon/amg01287-rakutentvjapan-tandtcmaf-rakutenjp/cb543e1e6573638784cb3f65cef342a4f9631fde1d6988693eb5518975d1073edce2a59caa08ff16388f1ede7f0a66413a3e951fda77118fd87eb141453c5728cfffe729a2c05616b7db083429b56a6d09bc5148853a52278da92909833ca7704a46bb5e200564cff95bff250091895b8e627a8fa9dd7c387c0c5e820f0cb4f543a5aae75516db6cf4e41d49924d15ddaa7a182fd189aae63efd51bb13af4dd9c7a49bb054d3c2c4208b7f8856277952b01d1d1be9a473b9c88e6179bd7c2d541756e7d9f3b42e6ec02fcb3b897c0e44c1bf93eca95c1953b47efb8c77247ae54aa70cb5e84da1e298d74b4238a3cb61784d95c8af90f2393fbc29aeecb99d3b4b90f8107750da2df6166b69c0b39b4fc4f41c98e077def4714b6c89d1648b8dbe86d8b58f6195318592a7cf73111823270a9452af9f228a7c89389bcf15204e440bf8c9028ad58f2c450825b18950d01c0caa9bdad3ad6915fe204a0aa630a332470be8317f77f122e9905e3bd8c66b0eddfb4d3ed2b1e9570c0d2f8469f6fd2e163fe04b/1920x1080_5330152_audio_0?bcn=1&ca=0&cid=as_442566&dur=6.006000&media_type=C&redirect_url=https%3A%2F%2Famg01287-rakutentvjapan-tandtcmaf-rakutenjp-tavl1.amagi.tv%2FRchannel-Train-and-Travel_video_9_8823596.mp4%3Fm%3D1740394097&seen-ad=1&seg_id=8823596&user_id=2bcbd9a5-c440-11f1-baae-6e68c30ee117"
     },
-    "https://sexy-entertainment-jp.fast.rakuten.tv/v1/master/0547f18649bd788bec7b67b746e47670f558b6b2/production-hls-aes128-rchannels-5-playout/master.m3u8?ads.country=jp&ads.custom_device_type=r_channels&ads.language=ja&ads.rtv_channel_name=sexyentermeeu&ads.rtv_content_id=5&ads.stream_type=hlslinear&channel_id=5&publishing_platform_id=16&tenant_identifier=rchannels&ads.device_make=rchweb&ads.url=channel.rakuten.co.jp&ads.uuid=9327881c-b882-5243-8a45-6ff97661cf40&ads.uid_rch=9327881c-b882-5243-8a45-6ff97661cf40&ads.refid=0&ads.rch_hid=&ads.rch_rp=f4f1cf8e6fc552bc1192c78de156ac5aa1c58a12": {
-      "ok": false,
-      "status": 504,
-      "reason": "http_504",
-      "elapsed_ms": 454,
-      "final_url": "https://sexy-entertainment-jp.fast.rakuten.tv/v1/master/0547f18649bd788bec7b67b746e47670f558b6b2/production-hls-aes128-rchannels-5-playout/master.m3u8?ads.country=jp&ads.custom_device_type=r_channels&ads.language=ja&ads.rtv_channel_name=sexyentermeeu&ads.rtv_content_id=5&ads.stream_type=hlslinear&channel_id=5&publishing_platform_id=16&tenant_identifier=rchannels&ads.device_make=rchweb&ads.url=channel.rakuten.co.jp&ads.uuid=9327881c-b882-5243-8a45-6ff97661cf40&ads.uid_rch=9327881c-b882-5243-8a45-6ff97661cf40&ads.refid=0&ads.rch_hid=&ads.rch_rp=f4f1cf8e6fc552bc1192c78de156ac5aa1c58a12",
-      "probe_url": null
-    },
-    "https://gravure-jp.fast.rakuten.tv/v1/master/0547f18649bd788bec7b67b746e47670f558b6b2/production-hls-aes128-rchannels-2-playout/master.m3u8?ads.country=jp&ads.custom_device_type=r_channels&ads.language=ja&ads.rtv_channel_name=idolgravureeu&ads.rtv_content_id=2&ads.stream_type=hlslinear&channel_id=2&publishing_platform_id=16&tenant_identifier=rchannels&ads.device_make=rchweb&ads.url=channel.rakuten.co.jp&ads.uuid=9327881c-b882-5243-8a45-6ff97661cf40&ads.uid_rch=9327881c-b882-5243-8a45-6ff97661cf40&ads.refid=0&ads.rch_hid=&ads.rch_rp=f4f1cf8e6fc552bc1192c78de156ac5aa1c58a12": {
-      "ok": false,
-      "status": 504,
-      "reason": "http_504",
-      "elapsed_ms": 263,
-      "final_url": "https://gravure-jp.fast.rakuten.tv/v1/master/0547f18649bd788bec7b67b746e47670f558b6b2/production-hls-aes128-rchannels-2-playout/master.m3u8?ads.country=jp&ads.custom_device_type=r_channels&ads.language=ja&ads.rtv_channel_name=idolgravureeu&ads.rtv_content_id=2&ads.stream_type=hlslinear&channel_id=2&publishing_platform_id=16&tenant_identifier=rchannels&ads.device_make=rchweb&ads.url=channel.rakuten.co.jp&ads.uuid=9327881c-b882-5243-8a45-6ff97661cf40&ads.uid_rch=9327881c-b882-5243-8a45-6ff97661cf40&ads.refid=0&ads.rch_hid=&ads.rch_rp=f4f1cf8e6fc552bc1192c78de156ac5aa1c58a12",
+    "https://freewifi-radio-production.up.railway.app/radio-tv/TBC?v=20260929e": {
+      "ok": true,
+      "status": 200,
+      "reason": "mpegts",
+      "elapsed_ms": 5103,
+      "final_url": "https://freewifi-radio-production.up.railway.app/radio-tv/TBC?v=20260929e",
       "probe_url": null
     },
     "https://cdn-apne1.tsv2.amagi.tv/linear/amg01287-rakutentvjapan-pachislocmaf-rakutenjp/playlist.m3u8": {
       "ok": true,
       "status": 200,
       "reason": "hls_segment",
-      "elapsed_ms": 1101,
-      "final_url": "https://amg01287-rakutentvjapan-pachislocmaf-rakutenjp-tuko0.amagi.tv/Rchannel-PachiSlo_video_1_10175703.mp4?m=1730129811",
-      "probe_url": "https://amg01287-rakutentvjapan-pachislocmaf-rakutenjp-tuko0.amagi.tv/ts-us-w2-n1/beacon/amg01287-rakutentvjapan-pachislocmaf-rakutenjp/cb573d1d7f6c668d84cb3f66cef34382be7b3dcb0e6c886470af4a9765d97800dbe8ae84ae5b910c4c9e1fc061017d360439cd1dd56c49c1da63b820743c4b21fdcde00080dd0d0cb1df11292ca3094613a15340cf24562699da1b0e842fbc365040bf473d0070c9eb51f9275596d60a962c2bd9adc060382b5b42970c5ee2bd0ff6f8e755478965f3e24a1cf77f7fcfba9332192e91b2b1388c7ee328a850c8c6e0e89741c6d3d241816d801a2828eff904e203fee752a4ce92291891743a4f1d549cc3d99e1c7aeecf242d7b3a301b257f31eef0bdb2e3f24014a0efce5fab66af1baee24fef8eb3d641403eabfe420b128deaba83f73932f233b5f2a995447597f21b6f548943ec627a68dead9054b3ca1bc0e278c5ac3f497180b0558b91b7b4eab2a643886a9f94a3d66e140e400c108950a7d53c8e7d9d4ba9c81233550211fecd1b97d0ab2b5a08788f8e5adb0408f98adbf1b8200f8a314b14b81ab0196248c9276768ea3df3f96d35dfc66b5e9ec64d3eed161bc52891eae6166228f849aa1a86/1920x1080_5015689_audio_0?bcn=1&ca=0&cid=as_438565&dur=6.006000&media_type=C&redirect_url=https%3A%2F%2Famg01287-rakutentvjapan-pachislocmaf-rakutenjp-tuko0.amagi.tv%2FRchannel-PachiSlo_video_1_10175703.mp4%3Fm%3D1730129811&seen-ad=1&seg_id=10175703&user_id=68da7cf0-c2b0-11f1-8a37-ae7682a9bcfd"
+      "elapsed_ms": 1108,
+      "final_url": "https://amg01287-rakutentvjapan-pachislocmaf-rakutenjp-tuko0.amagi.tv/Rchannel-PachiSlo_video_1_10204724.mp4?m=1730129811",
+      "probe_url": "https://amg01287-rakutentvjapan-pachislocmaf-rakutenjp-tuko0.amagi.tv/ts-us-w2-n1/beacon/amg01287-rakutentvjapan-pachislocmaf-rakutenjp/cb543e1e6573638784cb3f65cef342a4f9631fde1d6988693eb5518975d1073edce2a59caa08ff16388f1ede7f0a66413a3e951fda77118fd87eb141453c5728cfffe729a2c05616b7db083429b56a6d09bc5148853a52278da92909833ca7704a46bb5e200564cff95bff225394850d83627a8fa9dd7c387c0c5e825455eca943f2f9b70c438c3df0b41e1b9d4d15ddaa7a182fd189aae63efd51bb13af4dd9c7a49bb054d3c2c4208b7f8856277952b01d1d1be9a473b9c88e6179bd7c2d541756e7d9f3b42e6ec02fcb3b897c0e44c1bf93eca95c1953b47efb8c77247ae54aa70cb5e84da1e298d74b4238a3cb61784d95c8af90f2393fbc29aeecb99d3b4b90f8107750da2df6166b69c0b39b4fc4f41c98e077def4714b6c89d1648b8dbe86d8b58f6195318592a7cf73111823270a9452af9f228a7c89389bcf15204e440bf8c9028ad58f2c450825b18950d01c0caa9bdad3ad6915fe204a0aa630a332470be8317f77f122e9905f3ddd75eae4bed53dee53bb36fdbdc5bb8de35e215c2658812243/1920x1080_5015689_audio_0?bcn=1&ca=0&cid=as_439458&dur=6.006000&media_type=M&redirect_url=https%3A%2F%2Famg01287-rakutentvjapan-pachislocmaf-rakutenjp-tuko0.amagi.tv%2FRchannel-PachiSlo_video_1_10204724.mp4%3Fm%3D1730129811&seen-ad=1&seg_id=10204724&user_id=2bd1a578-c440-11f1-9899-a6fa6daa52c8"
+    },
+    "https://freewifi-radio-production.up.railway.app/radio-tv/CBC?v=20260929e": {
+      "ok": true,
+      "status": 200,
+      "reason": "mpegts",
+      "elapsed_ms": 5262,
+      "final_url": "https://freewifi-radio-production.up.railway.app/radio-tv/CBC?v=20260929e",
+      "probe_url": null
+    },
+    "http://118.69.27.222:9394/stream/323.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 11768,
+      "final_url": "http://118.69.27.222:9394/stream/323/28833141.fplsegment.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/323/28833141.fplsegment.ts"
+    },
+    "https://cdn-ecatv-stream.durasite.net/live/plala.info/playlist.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 2442,
+      "final_url": "https://cdn-ecatv-stream.durasite.net/live/plala.info/media_w1220856506_1292970.ts",
+      "probe_url": "https://cdn-ecatv-stream.durasite.net/live/plala.info/media_w1220856506_1292970.ts"
+    },
+    "https://cdn-ecatv-stream.durasite.net/live/plala.machisuki/playlist.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 2446,
+      "final_url": "https://cdn-ecatv-stream.durasite.net/live/plala.machisuki/media_w207921334_1292566.ts",
+      "probe_url": "https://cdn-ecatv-stream.durasite.net/live/plala.machisuki/media_w207921334_1292566.ts"
+    },
+    "https://cdn-ecatv-stream.durasite.net/live/plala.event/playlist.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 2330,
+      "final_url": "https://cdn-ecatv-stream.durasite.net/live/plala.event/media_w1101605580_17361.ts",
+      "probe_url": "https://cdn-ecatv-stream.durasite.net/live/plala.event/media_w1101605580_17361.ts"
+    },
+    "https://freewifi-radio-production.up.railway.app/radio-tv/KBC?v=20260929e": {
+      "ok": true,
+      "status": 200,
+      "reason": "mpegts",
+      "elapsed_ms": 5338,
+      "final_url": "https://freewifi-radio-production.up.railway.app/radio-tv/KBC?v=20260929e",
+      "probe_url": null
+    },
+    "https://cdn-uw2-prod.tsv2.amagi.tv/linear/amg01287-rakutentvjapan-pet-cmaf-rakutenjp/playlist.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 835,
+      "final_url": "https://amg01287-rakutentvjapan-pet-cmaf-rakutenjp-i0lse.amagi.tv/Rchannel-Pet_video_1_11147033.mp4?m=1725349910",
+      "probe_url": "https://amg01287-rakutentvjapan-pet-cmaf-rakutenjp-i0lse.amagi.tv/ts-us-w2-n1/beacon/amg01287-rakutentvjapan-pet-cmaf-rakutenjp/cb543e1e6573638784cb3f65cef342a4f9631fde1d6988693eb5518975d1073edce2a59caa08ff16388f1ede7f0a66413a3e951fda77118fd87eb141453c5728cfffe729a2c05616b7db083429b56a6d09bc5148853a52278da92909833ca7704a46bb5e200564cff95bfe7657c7805cdf627a8fa9dd7c387c0c5e82545ce6f343a3aae7084ddb68a2b74e1a924d15ddaa7a182fd189aae63efd51bb13af4dd9c7a49bb054d3c2c4208b7f8856277952b01d1d1be9a473b9c88e6179bd7c2d541756e7d9f3b42e6ec02fcb3b897c0e44c1bf93eca95c1953b47efb8c77247ae54aa70cb5e84da1e298d74b4238a3cb61784d95c8af90f2393fbc29aeecb99d3b4b90f8107750da2df6166b69c0b39b4fc4f41c98e077def4714b6c89d1648b8dbe86d8b58f6195318592a7cf73111823270a9452af9f228a7c89389bcf15204e440bf8c9028ad58f2c450825b18950d01c0caa9bdad3ad6915fe204a0aa630a332470be8317f77f122e9905e39d1c66b09ddfb4d3ee1604d3e833356c2e08e3761cba94fa3/1920x1080_4515375_audio_0?bcn=1&ca=0&cid=as_449644&dur=6.006000&media_type=C&redirect_url=https%3A%2F%2Famg01287-rakutentvjapan-pet-cmaf-rakutenjp-i0lse.amagi.tv%2FRchannel-Pet_video_1_11147033.mp4%3Fm%3D1725349910&seen-ad=1&seg_id=11147033&user_id=2c0520fd-c440-11f1-913c-0e6e83436bb7"
+    },
+    "https://freewifi-radio-production.up.railway.app/radio-tv/RCC?v=20260929e": {
+      "ok": true,
+      "status": 200,
+      "reason": "mpegts",
+      "elapsed_ms": 5371,
+      "final_url": "https://freewifi-radio-production.up.railway.app/radio-tv/RCC?v=20260929e",
+      "probe_url": null
+    },
+    "https://mens-neco-jp.fast.rakuten.tv/v1/master/0547f18649bd788bec7b67b746e47670f558b6b2/production-hls-aes128-rchannels-4-playout/master.m3u8?ads.country=jp&ads.custom_device_type=r_channels&ads.language=ja&ads.rtv_channel_name=mensnecoeu&ads.rtv_content_id=4&ads.stream_type=hlslinear&channel_id=4&publishing_platform_id=16&tenant_identifier=rchannels&ads.device_make=rchweb&ads.url=channel.rakuten.co.jp&ads.uuid=9327881c-b882-5243-8a45-6ff97661cf40&ads.uid_rch=9327881c-b882-5243-8a45-6ff97661cf40&ads.refid=0&ads.rch_hid=&ads.rch_rp=f4f1cf8e6fc552bc1192c78de156ac5aa1c58a12": {
+      "ok": false,
+      "status": 504,
+      "reason": "http_504",
+      "elapsed_ms": 317,
+      "final_url": "https://mens-neco-jp.fast.rakuten.tv/v1/master/0547f18649bd788bec7b67b746e47670f558b6b2/production-hls-aes128-rchannels-4-playout/master.m3u8?ads.country=jp&ads.custom_device_type=r_channels&ads.language=ja&ads.rtv_channel_name=mensnecoeu&ads.rtv_content_id=4&ads.stream_type=hlslinear&channel_id=4&publishing_platform_id=16&tenant_identifier=rchannels&ads.device_make=rchweb&ads.url=channel.rakuten.co.jp&ads.uuid=9327881c-b882-5243-8a45-6ff97661cf40&ads.uid_rch=9327881c-b882-5243-8a45-6ff97661cf40&ads.refid=0&ads.rch_hid=&ads.rch_rp=f4f1cf8e6fc552bc1192c78de156ac5aa1c58a12",
+      "probe_url": null
+    },
+    "https://gravure-jp.fast.rakuten.tv/v1/master/0547f18649bd788bec7b67b746e47670f558b6b2/production-hls-aes128-rchannels-2-playout/master.m3u8?ads.country=jp&ads.custom_device_type=r_channels&ads.language=ja&ads.rtv_channel_name=idolgravureeu&ads.rtv_content_id=2&ads.stream_type=hlslinear&channel_id=2&publishing_platform_id=16&tenant_identifier=rchannels&ads.device_make=rchweb&ads.url=channel.rakuten.co.jp&ads.uuid=9327881c-b882-5243-8a45-6ff97661cf40&ads.uid_rch=9327881c-b882-5243-8a45-6ff97661cf40&ads.refid=0&ads.rch_hid=&ads.rch_rp=f4f1cf8e6fc552bc1192c78de156ac5aa1c58a12": {
+      "ok": false,
+      "status": 504,
+      "reason": "http_504",
+      "elapsed_ms": 262,
+      "final_url": "https://gravure-jp.fast.rakuten.tv/v1/master/0547f18649bd788bec7b67b746e47670f558b6b2/production-hls-aes128-rchannels-2-playout/master.m3u8?ads.country=jp&ads.custom_device_type=r_channels&ads.language=ja&ads.rtv_channel_name=idolgravureeu&ads.rtv_content_id=2&ads.stream_type=hlslinear&channel_id=2&publishing_platform_id=16&tenant_identifier=rchannels&ads.device_make=rchweb&ads.url=channel.rakuten.co.jp&ads.uuid=9327881c-b882-5243-8a45-6ff97661cf40&ads.uid_rch=9327881c-b882-5243-8a45-6ff97661cf40&ads.refid=0&ads.rch_hid=&ads.rch_rp=f4f1cf8e6fc552bc1192c78de156ac5aa1c58a12",
+      "probe_url": null
+    },
+    "https://sexy-entertainment-jp.fast.rakuten.tv/v1/master/0547f18649bd788bec7b67b746e47670f558b6b2/production-hls-aes128-rchannels-5-playout/master.m3u8?ads.country=jp&ads.custom_device_type=r_channels&ads.language=ja&ads.rtv_channel_name=sexyentermeeu&ads.rtv_content_id=5&ads.stream_type=hlslinear&channel_id=5&publishing_platform_id=16&tenant_identifier=rchannels&ads.device_make=rchweb&ads.url=channel.rakuten.co.jp&ads.uuid=9327881c-b882-5243-8a45-6ff97661cf40&ads.uid_rch=9327881c-b882-5243-8a45-6ff97661cf40&ads.refid=0&ads.rch_hid=&ads.rch_rp=f4f1cf8e6fc552bc1192c78de156ac5aa1c58a12": {
+      "ok": false,
+      "status": 504,
+      "reason": "http_504",
+      "elapsed_ms": 449,
+      "final_url": "https://sexy-entertainment-jp.fast.rakuten.tv/v1/master/0547f18649bd788bec7b67b746e47670f558b6b2/production-hls-aes128-rchannels-5-playout/master.m3u8?ads.country=jp&ads.custom_device_type=r_channels&ads.language=ja&ads.rtv_channel_name=sexyentermeeu&ads.rtv_content_id=5&ads.stream_type=hlslinear&channel_id=5&publishing_platform_id=16&tenant_identifier=rchannels&ads.device_make=rchweb&ads.url=channel.rakuten.co.jp&ads.uuid=9327881c-b882-5243-8a45-6ff97661cf40&ads.uid_rch=9327881c-b882-5243-8a45-6ff97661cf40&ads.refid=0&ads.rch_hid=&ads.rch_rp=f4f1cf8e6fc552bc1192c78de156ac5aa1c58a12",
+      "probe_url": null
+    },
+    "https://cdn-apne1.tsv2.amagi.tv/linear/amg01287-rakutentvjapan-nagoyanextcmaf-rakutenjp/playlist.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 1106,
+      "final_url": "https://amg01287-rakutentvjapan-nagoyanextcmaf-rakutenjp-ksi62.amagi.tv/Rchannel-NagoyaTVNext_video_1_9626124.mp4?m=1731655261",
+      "probe_url": "https://amg01287-rakutentvjapan-nagoyanextcmaf-rakutenjp-ksi62.amagi.tv/Rchannel-NagoyaTVNext_video_1_9626124.mp4?m=1731655261"
+    },
+    "https://cdn4.nikkei-cnbc.co.jp/live-ch01/livestream/ts:playlist.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 1874,
+      "final_url": "https://cdn4.nikkei-cnbc.co.jp/live-ch01/livestream/seg_129129412433842416_27746_hls.ts",
+      "probe_url": "https://cdn4.nikkei-cnbc.co.jp/live-ch01/livestream/seg_129129412433842416_27746_hls.ts"
     },
     "https://adult-movies-jp.fast.rakuten.tv/v1/master/0547f18649bd788bec7b67b746e47670f558b6b2/production-hls-aes128-rchannels-3-playout/master.m3u8?ads.country=jp&ads.custom_device_type=r_channels&ads.language=ja&ads.rtv_channel_name=adultmovieeu&ads.rtv_content_id=3&ads.stream_type=hlslinear&channel_id=3&publishing_platform_id=16&tenant_identifier=rchannels&ads.device_make=rchweb&ads.url=channel.rakuten.co.jp&ads.uuid=9327881c-b882-5243-8a45-6ff97661cf40&ads.uid_rch=9327881c-b882-5243-8a45-6ff97661cf40&ads.refid=0&ads.rch_hid=&ads.rch_rp=f4f1cf8e6fc552bc1192c78de156ac5aa1c58a12": {
       "ok": false,
       "status": 504,
       "reason": "http_504",
-      "elapsed_ms": 232,
+      "elapsed_ms": 462,
       "final_url": "https://adult-movies-jp.fast.rakuten.tv/v1/master/0547f18649bd788bec7b67b746e47670f558b6b2/production-hls-aes128-rchannels-3-playout/master.m3u8?ads.country=jp&ads.custom_device_type=r_channels&ads.language=ja&ads.rtv_channel_name=adultmovieeu&ads.rtv_content_id=3&ads.stream_type=hlslinear&channel_id=3&publishing_platform_id=16&tenant_identifier=rchannels&ads.device_make=rchweb&ads.url=channel.rakuten.co.jp&ads.uuid=9327881c-b882-5243-8a45-6ff97661cf40&ads.uid_rch=9327881c-b882-5243-8a45-6ff97661cf40&ads.refid=0&ads.rch_hid=&ads.rch_rp=f4f1cf8e6fc552bc1192c78de156ac5aa1c58a12",
       "probe_url": null
     },
@@ -1633,201 +1805,241 @@
       "ok": true,
       "status": 200,
       "reason": "hls_segment",
-      "elapsed_ms": 759,
-      "final_url": "https://amg01287-rakutentvjapan-game-cmaf-rakutenjp-95y9n.amagi.tv/Rchannel-game_video_1_4365220.mp4?m=1765555161",
-      "probe_url": "https://amg01287-rakutentvjapan-game-cmaf-rakutenjp-95y9n.amagi.tv/Rchannel-game_video_1_4365220.mp4?m=1765555161"
+      "elapsed_ms": 789,
+      "final_url": "https://amg01287-rakutentvjapan-game-cmaf-rakutenjp-95y9n.amagi.tv/Rchannel-game_video_1_4394234.mp4?m=1765555161",
+      "probe_url": "https://cdn-uw2-prod.tsv2.amagi.tv/beacon?streamId=amg01287-rakutentvjapan-game-cmaf-rakutenjp&variant=1920x1080_4724687_29&n=4394234&rp=https%3A%2F%2Famg01287-rakutentvjapan-game-cmaf-rakutenjp-95y9n.amagi.tv%2FRchannel-game_video_1_4394234.mp4%3Fm%3D1765555161&sessionId=e0b4b28d-78a0-44b3-b711-0ecf591687c4"
     },
     "https://shigeki-strong-jp.fast.rakuten.tv/v1/master/0547f18649bd788bec7b67b746e47670f558b6b2/production-hls-aes128-rchannels-1-playout/master.m3u8?ads.country=jp&ads.custom_device_type=r_channels&ads.language=ja&ads.rtv_channel_name=shigekistrongeu&ads.rtv_content_id=1&ads.stream_type=hlslinear&channel_id=1&publishing_platform_id=16&tenant_identifier=rchannels&ads.device_make=rchweb&ads.url=channel.rakuten.co.jp&ads.uuid=9327881c-b882-5243-8a45-6ff97661cf40&ads.uid_rch=9327881c-b882-5243-8a45-6ff97661cf40&ads.refid=0&ads.rch_hid=&ads.rch_rp=f4f1cf8e6fc552bc1192c78de156ac5aa1c58a12": {
       "ok": false,
       "status": 504,
       "reason": "http_504",
-      "elapsed_ms": 379,
+      "elapsed_ms": 509,
       "final_url": "https://shigeki-strong-jp.fast.rakuten.tv/v1/master/0547f18649bd788bec7b67b746e47670f558b6b2/production-hls-aes128-rchannels-1-playout/master.m3u8?ads.country=jp&ads.custom_device_type=r_channels&ads.language=ja&ads.rtv_channel_name=shigekistrongeu&ads.rtv_content_id=1&ads.stream_type=hlslinear&channel_id=1&publishing_platform_id=16&tenant_identifier=rchannels&ads.device_make=rchweb&ads.url=channel.rakuten.co.jp&ads.uuid=9327881c-b882-5243-8a45-6ff97661cf40&ads.uid_rch=9327881c-b882-5243-8a45-6ff97661cf40&ads.refid=0&ads.rch_hid=&ads.rch_rp=f4f1cf8e6fc552bc1192c78de156ac5aa1c58a12",
       "probe_url": null
-    },
-    "https://cdn-apne1.tsv2.amagi.tv/linear/amg01287-rakutentvjapan-nagoyanextcmaf-rakutenjp/playlist.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 1095,
-      "final_url": "https://amg01287-rakutentvjapan-nagoyanextcmaf-rakutenjp-ksi62.amagi.tv/Rchannel-NagoyaTVNext_video_1_9597092.mp4?m=1731655261",
-      "probe_url": "https://amg01287-rakutentvjapan-nagoyanextcmaf-rakutenjp-ksi62.amagi.tv/Rchannel-NagoyaTVNext_video_1_9597092.mp4?m=1731655261"
-    },
-    "https://cdn-uw2-prod.tsv2.amagi.tv/linear/amg01287-rakutentvjapan-pet-cmaf-rakutenjp/playlist.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 1058,
-      "final_url": "https://amg01287-rakutentvjapan-pet-cmaf-rakutenjp-i0lse.amagi.tv/Rchannel-Pet_video_1_11118051.mp4?m=1725349910",
-      "probe_url": "https://cdn-uw2-prod.tsv2.amagi.tv/beacon?streamId=amg01287-rakutentvjapan-pet-cmaf-rakutenjp&variant=1920x1080_4515375_29&n=11118051&rp=https%3A%2F%2Famg01287-rakutentvjapan-pet-cmaf-rakutenjp-i0lse.amagi.tv%2FRchannel-Pet_video_1_11118051.mp4%3Fm%3D1725349910&sessionId=f4fca5be-9c4b-4e4c-a8a5-338c2667293b"
     },
     "https://cdn-apne1.tsv2.amagi.tv/linear/amg01287-rakutentvjapan-fishinghlscmaf-rakutenjp/playlist.m3u8": {
       "ok": true,
       "status": 200,
       "reason": "hls_segment",
-      "elapsed_ms": 858,
-      "final_url": "https://amg01287-rakutentvjapan-fishinghlscmaf-rakutenjp-n9nu6.amagi.tv/Rchannel-Fishing_video_1_10101733.mp4?m=1730129703",
-      "probe_url": "https://amg01287-rakutentvjapan-fishinghlscmaf-rakutenjp-n9nu6.amagi.tv/ts-us-w2-n1/beacon/amg01287-rakutentvjapan-fishinghlscmaf-rakutenjp/cb573d1d7f6c668d84cb3f66cef34382be7b3dcb0e6c886470af4a9765d97800dbe8ae84ae5b910c4c9e1fc061017d360439cd1dd56c49c1da63b820743c4b21fdcde00080dd0d0cb1df11292ca3094613a15340cf24562699da1b0e842fbc365040bf473d0070c9eb50ac2703c3890e962c2bd9adc060382b5b42975554b4bd59f2f6b05d45d065f3b81d41f77f7fcfba9332192e91b2b1388c7ee328a850c8c6e0e89741c6d3d241816d801a2828eff904e203fee752a4ce92291891743a4f1d549cc3d99e1c7aeecf242d7b3a301b257f31eef0bdb2e3f24014a0efce5fab66af1baee24fef8eb3d641403eabfe420b128deaba83f73932f233b5f2a995447597f21b6f548943ec627a68dead9054b3ca1bc0e278c5ac3f497180b0558b91b7b4eab2a643886a9f94a3d66e140e400c108950a7d53c8e7d9d4ba9c81233550211fecd1b97d0ab2b5a08788f8e5adb0408f98adbf1b8200f8a314b14b81ab0196248c9276768ea3df3f96d35dac66b5e9ec64d3e8a2014b2378bf12005ac9c5631571f61/1920x1080_5053639_audio_0?bcn=1&ca=0&cid=as_405724&dur=6.006000&media_type=C&redirect_url=https%3A%2F%2Famg01287-rakutentvjapan-fishinghlscmaf-rakutenjp-n9nu6.amagi.tv%2FRchannel-Fishing_video_1_10101733.mp4%3Fm%3D1730129703&seen-ad=1&seg_id=10101733&user_id=691aa694-c2b0-11f1-889a-7a9a0089b919"
+      "elapsed_ms": 875,
+      "final_url": "https://amg01287-rakutentvjapan-fishinghlscmaf-rakutenjp-n9nu6.amagi.tv/Rchannel-Fishing_video_1_10130730.mp4?m=1730129703",
+      "probe_url": "https://amg01287-rakutentvjapan-fishinghlscmaf-rakutenjp-n9nu6.amagi.tv/Rchannel-Fishing_video_1_10130730.mp4?m=1730129703"
     },
-    "https://patapata-r14-production.up.railway.app/live.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 223,
-      "final_url": "https://patapata-r14-production.up.railway.app/hls/seg_000322.ts",
-      "probe_url": "https://patapata-r14-production.up.railway.app/hls/seg_000322.ts"
-    },
-    "https://www.youtube.com/watch?v=j9jUe1LmfrQ": {
+    "https://www.youtube.com/watch?v=jAtDqQ_o3Fs": {
       "ok": true,
       "status": 200,
       "reason": "youtube_page",
-      "elapsed_ms": 155,
-      "final_url": "https://www.youtube.com/watch?v=j9jUe1LmfrQ",
+      "elapsed_ms": 151,
+      "final_url": "https://www.youtube.com/watch?v=jAtDqQ_o3Fs",
       "probe_url": null
-    },
-    "https://cdn-ecatv-stream.durasite.net/live/plala.info/playlist.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 2491,
-      "final_url": "https://cdn-ecatv-stream.durasite.net/live/plala.info/media_w1520485644_1275800.ts",
-      "probe_url": "https://cdn-ecatv-stream.durasite.net/live/plala.info/media_w1520485644_1275800.ts"
-    },
-    "https://cdn-ecatv-stream.durasite.net/live/plala.event/playlist.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 2161,
-      "final_url": "https://cdn-ecatv-stream.durasite.net/live/plala.event/media_w543483733_157.ts",
-      "probe_url": "https://cdn-ecatv-stream.durasite.net/live/plala.event/media_w543483733_157.ts"
-    },
-    "https://cdn-ecatv-stream.durasite.net/live/plala.machisuki/playlist.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 2347,
-      "final_url": "https://cdn-ecatv-stream.durasite.net/live/plala.machisuki/media_w1427243614_1275396.ts",
-      "probe_url": "https://cdn-ecatv-stream.durasite.net/live/plala.machisuki/media_w1427243614_1275396.ts"
-    },
-    "https://cdn4.nikkei-cnbc.co.jp/live-ch01/livestream/ts:playlist.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 1955,
-      "final_url": "https://cdn4.nikkei-cnbc.co.jp/live-ch01/livestream/seg_129129412433842416_453873_hls.ts",
-      "probe_url": "https://cdn4.nikkei-cnbc.co.jp/live-ch01/livestream/seg_129129412433842416_453873_hls.ts"
     },
     "http://118.69.27.222:9394/stream/234.m3u8": {
       "ok": true,
       "status": 200,
       "reason": "hls_segment",
-      "elapsed_ms": 1365,
-      "final_url": "http://118.69.27.222:9394/stream/234/21629320.fplsegment.ts",
-      "probe_url": "http://118.69.27.222:9394/stream/234/21629320.fplsegment.ts"
-    },
-    "https://d20x1p8tfre91b.cloudfront.net/out/v1/517433a16e384f348ad03da3df981912/index.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 1213,
-      "final_url": "https://d20x1p8tfre91b.cloudfront.net/out/v1/517433a16e384f348ad03da3df981912/index_1_762034.ts?m=1791413853",
-      "probe_url": "https://d20x1p8tfre91b.cloudfront.net/out/v1/517433a16e384f348ad03da3df981912/index_1_762034.ts?m=1791413853"
-    },
-    "https://manifest.streaks.jp/v4/cp-boatrace-prod/eb7224a8ba9d4c9f9c0bc78e4e94a444/f041956d7d6d4103a0699c72734e5338/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MTU5MDQwMCwic3RhcnQiOjE3OTE0MTQ3MjAsImlvcyI6MTgsImNwIjoiMjEzNjEwMzIwXzIxMzY1MzUxOSIsInBwdyI6IjQwayJ9.7rMAcMzfjSyb0QkrQNexwGtV94DRfm8_4b2x0mAY-G8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 1722,
-      "final_url": "https://j-live-cp-boatrace-prod.streaks.jp/eb7224a8ba9d4c9f9c0bc78e4e94a444/f041956d7d6d4103a0699c72734e5338/manifest_4_8423081.ts?m=1740759497",
-      "probe_url": "https://j-live-cp-boatrace-prod.streaks.jp/eb7224a8ba9d4c9f9c0bc78e4e94a444/f041956d7d6d4103a0699c72734e5338/manifest_4_8423081.ts?m=1740759497"
-    },
-    "https://manifest.streaks.jp/v4/cp-boatrace-prod/e8194b7c19734f599bd17a30b82afb9e/1c2aaa33f17e4788b3592d1cf58cd445/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MTU5MDQwMCwic3RhcnQiOjE3OTE0MTQwMDAsImlvcyI6MTgsImNwIjoiMjEzNjA5NjAwXzIxMzY1Mjc5OSIsInBwdyI6IjQwayJ9.y7H03s6QpwU7rXOZ71EDm7dxdbqO53eH06PamyPGmz4": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 1754,
-      "final_url": "https://j-live-cp-boatrace-prod.streaks.jp/e8194b7c19734f599bd17a30b82afb9e/1c2aaa33f17e4788b3592d1cf58cd445/manifest_1_8442714.ts?m=1740759634",
-      "probe_url": "https://j-live-cp-boatrace-prod.streaks.jp/e8194b7c19734f599bd17a30b82afb9e/1c2aaa33f17e4788b3592d1cf58cd445/manifest_1_8442714.ts?m=1740759634"
+      "elapsed_ms": 1341,
+      "final_url": "http://118.69.27.222:9394/stream/234/21649519.fplsegment.ts",
+      "probe_url": "http://118.69.27.222:9394/stream/234/21649519.fplsegment.ts"
     },
     "https://ihhiymkepuydykrhmzwo.supabase.co/functions/v1/tver-live?special=le7gtytdy0&forceFunctionRegion=ap-northeast-1": {
       "ok": true,
       "status": 200,
       "reason": "hls_segment",
-      "elapsed_ms": 2076,
-      "final_url": "https://tver-fast-live-cdn.tver.jp/643fa04619054a0295ebb5272183876e/aad0c73b1caa4354b68a6ec7ca46b03e/manifest_3_38289.ts?m=1791266376",
-      "probe_url": "https://tver-fast-live-cdn.tver.jp/643fa04619054a0295ebb5272183876e/aad0c73b1caa4354b68a6ec7ca46b03e/manifest_3_38289.ts?m=1791266376"
+      "elapsed_ms": 1580,
+      "final_url": "https://live-tver-splive.streaks.jp/643fa04619054a0295ebb5272183876e/aad0c73b1caa4354b68a6ec7ca46b03e/manifest_3_81170.ts?m=1791266376",
+      "probe_url": "https://live-tver-splive.streaks.jp/643fa04619054a0295ebb5272183876e/aad0c73b1caa4354b68a6ec7ca46b03e/manifest_3_81170.ts?m=1791266376"
+    },
+    "https://autorace-live.akamaized.net/hls/live/2036917/id4/streaming/media.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 1240,
+      "final_url": "https://autorace-live.akamaized.net/hls/live/2036917/id4/streaming/media1791590102.ts",
+      "probe_url": "https://autorace-live.akamaized.net/hls/live/2036917/id4/streaming/media1791590102.ts"
+    },
+    "https://d30l40wf0q5flx.cloudfront.net/out/v1/cc007464a1254ff9ac7e0644fdc230b5/index.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 1447,
+      "final_url": "https://d30l40wf0q5flx.cloudfront.net/out/v1/cc007464a1254ff9ac7e0644fdc230b5/index_1_474058.ts?m=1791586654",
+      "probe_url": "https://d30l40wf0q5flx.cloudfront.net/out/v1/cc007464a1254ff9ac7e0644fdc230b5/index_1_474058.ts?m=1791586654"
     },
     "https://ihhiymkepuydykrhmzwo.supabase.co/functions/v1/tver-live?special=lem4djsk1g&forceFunctionRegion=ap-northeast-1": {
       "ok": true,
       "status": 200,
       "reason": "hls_segment",
-      "elapsed_ms": 2215,
-      "final_url": "https://tver-fast-live-cdn.tver.jp/5e5e9df0d864475f9eab8085b729ae4b/0fd3d746a68e416fb6d0e24abdd9ba45/manifest_4_38289.ts?m=1791266382",
-      "probe_url": "https://tver-fast-live-cdn.tver.jp/5e5e9df0d864475f9eab8085b729ae4b/0fd3d746a68e416fb6d0e24abdd9ba45/manifest_4_38289.ts?m=1791266382"
+      "elapsed_ms": 2087,
+      "final_url": "https://tver-fast-live-cdn.tver.jp/5e5e9df0d864475f9eab8085b729ae4b/0fd3d746a68e416fb6d0e24abdd9ba45/manifest_4_81170.ts?m=1791266382",
+      "probe_url": "https://tver-fast-live-cdn.tver.jp/5e5e9df0d864475f9eab8085b729ae4b/0fd3d746a68e416fb6d0e24abdd9ba45/manifest_4_81170.ts?m=1791266382"
     },
     "https://autorace-live.akamaized.net/hls/live/2036917-b/id5/streaming/media.m3u8": {
       "ok": false,
       "status": 404,
       "reason": "scheduled_not_live_yet",
-      "elapsed_ms": 1016,
+      "elapsed_ms": 470,
       "final_url": "https://autorace-live.akamaized.net/hls/live/2036917-b/id5/streaming/media.m3u8",
       "probe_url": null,
       "pending": true,
       "scheduled_start": "14:47"
     },
+    "https://manifest.streaks.jp/v4/cp-boatrace-prod/000780d7ca0d444f80575c44b227773a/daf6d420f63a4451be6abbc3f0017354/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MTc2NjgwMCwic3RhcnQiOjE3OTE1OTA0MDAsImlvcyI6MTgsImNwIjoiMjEzNzg2MDAwXzIxMzgyOTE5OSIsInBwdyI6IjQwayJ9.SFhHznTSxcOrdN0z-aW73i7KLcPiXvjn1O9G5BgeX2o": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 1900,
+      "final_url": "https://j-live-cp-boatrace-prod.streaks.jp/000780d7ca0d444f80575c44b227773a/daf6d420f63a4451be6abbc3f0017354/manifest_4_8472263.ts?m=1740759218",
+      "probe_url": "https://j-live-cp-boatrace-prod.streaks.jp/000780d7ca0d444f80575c44b227773a/daf6d420f63a4451be6abbc3f0017354/manifest_4_8472263.ts?m=1740759218"
+    },
+    "https://manifest.streaks.jp/v4/cp-boatrace-prod/a44de39725d44a218193f610eafe840e/0b0101f9ad9549f990a72ba2c48f5c8d/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MTc2MzIwMCwic3RhcnQiOjE3OTE1ODc1MjAsImlvcyI6MTgsImNwIjoiMjEzNzgzMTIwXzIxMzgyNjMxOSIsInBwdyI6IjQwayJ9.4kBUPt2950SRoYwZIgtzY13FY7teyOe83bKu3L-afUc": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 2074,
+      "final_url": "https://j-live-cp-boatrace-prod.streaks.jp/a44de39725d44a218193f610eafe840e/0b0101f9ad9549f990a72ba2c48f5c8d/manifest_1_8449633.ts?m=1740759708",
+      "probe_url": "https://j-live-cp-boatrace-prod.streaks.jp/a44de39725d44a218193f610eafe840e/0b0101f9ad9549f990a72ba2c48f5c8d/manifest_1_8449633.ts?m=1740759708"
+    },
+    "https://manifest.streaks.jp/v4/cp-boatrace-prod/6aa98f0bad044bef907714e608a12e94/9355af0d93d548b2876b9697e681ad01/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MTc2MzIwMCwic3RhcnQiOjE3OTE1ODY4MDAsImlvcyI6MTgsImNwIjoiMjEzNzgyNDAwXzIxMzgyNTU5OSIsInBwdyI6IjQwayJ9.CB68MK-lvy88Q-LdRjWqa6SNmyzVpZBCnOj6F7Kpo_g": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 2084,
+      "final_url": "https://j-live-cp-boatrace-prod.streaks.jp/6aa98f0bad044bef907714e608a12e94/9355af0d93d548b2876b9697e681ad01/manifest_4_8451761.ts?m=1740759497",
+      "probe_url": "https://j-live-cp-boatrace-prod.streaks.jp/6aa98f0bad044bef907714e608a12e94/9355af0d93d548b2876b9697e681ad01/manifest_4_8451761.ts?m=1740759497"
+    },
     "https://himitsu-six.vercel.app/api/kick?ch=nogizaka": {
       "ok": true,
       "status": 200,
       "reason": "hls_segment",
-      "elapsed_ms": 2402,
-      "final_url": "https://fa723fc1b171.64853c35fe88.j.cloudfront.hls.live-video.net/v1/segment/CoIDnKFohEszl-ZNNfLgh0BsSQrIunwNcSdkrSfwcO1671phZHBLLrHl65-Fn7E7InGYjWIhGw8aszzGwZvihOVvwheFsuD-q-oZvYXdYltxT8RrY2hkjmQ6HiWPg5m2pr6vBLJuNdP0CO_MmPZniSCWhtLP0Z2O27BwOlg225X5Itu-7vb_9aNvZbwZ8RgEDYOivxQLVRlYf8ToYgJEPXXS186N46opt8HP6M70af-9ibi-Hju1CUNB63nD2apY31dTWin1C-qzURDcmdq13N-vB-k_c3LvdVZ87UwTvZs8LZr8GTSXAXX0K3nXsxcIlOhIlmWw5j3fi56JlMrZ4scICBQQ58xJIj9NU6CkJ6pBU3CC67NnZB0oQj-Kwbc14ubCgiWxvNUtHGNNpCFCsbIM8fqz9krXyXR3lQZlLJOZLEBfVeMa6kKURkKVWEYFHr2-25G3Zqqijz0YeMkHNXetneYTcOssetm2mMoPhan4Qn6l5QQrtA3dkgw6FLZotUxYnAsaDENOoetcUFWpbnZrwSABKgl1cy13ZXN0LTIwoxA.ts?dna=CmZw6EiuVgcK-VNnYsP4wrRa1N1hGyB0QEdo43jZEvJ4BECECfR-rzhMoTvam475sV6NXVOrYnMyGk3PmmGN9zqL4A_iEtVX571RCY5nX35pBxPLtAOR8gaC6TAhNU9GRtrhH-mprTwaDLJS4A5AigU_vO5XZyABKgl1cy13ZXN0LTIwoxA",
-      "probe_url": "https://fa723fc1b171.64853c35fe88.j.cloudfront.hls.live-video.net/v1/segment/CoIDnKFohEszl-ZNNfLgh0BsSQrIunwNcSdkrSfwcO1671phZHBLLrHl65-Fn7E7InGYjWIhGw8aszzGwZvihOVvwheFsuD-q-oZvYXdYltxT8RrY2hkjmQ6HiWPg5m2pr6vBLJuNdP0CO_MmPZniSCWhtLP0Z2O27BwOlg225X5Itu-7vb_9aNvZbwZ8RgEDYOivxQLVRlYf8ToYgJEPXXS186N46opt8HP6M70af-9ibi-Hju1CUNB63nD2apY31dTWin1C-qzURDcmdq13N-vB-k_c3LvdVZ87UwTvZs8LZr8GTSXAXX0K3nXsxcIlOhIlmWw5j3fi56JlMrZ4scICBQQ58xJIj9NU6CkJ6pBU3CC67NnZB0oQj-Kwbc14ubCgiWxvNUtHGNNpCFCsbIM8fqz9krXyXR3lQZlLJOZLEBfVeMa6kKURkKVWEYFHr2-25G3Zqqijz0YeMkHNXetneYTcOssetm2mMoPhan4Qn6l5QQrtA3dkgw6FLZotUxYnAsaDENOoetcUFWpbnZrwSABKgl1cy13ZXN0LTIwoxA.ts?dna=CmZw6EiuVgcK-VNnYsP4wrRa1N1hGyB0QEdo43jZEvJ4BECECfR-rzhMoTvam475sV6NXVOrYnMyGk3PmmGN9zqL4A_iEtVX571RCY5nX35pBxPLtAOR8gaC6TAhNU9GRtrhH-mprTwaDLJS4A5AigU_vO5XZyABKgl1cy13ZXN0LTIwoxA"
+      "elapsed_ms": 2291,
+      "final_url": "https://fa723fc1b171.e4b5b5e37b5f.j.cloudfront.hls.live-video.net/v1/segment/CpIDOOjFlMtM1B-k1M7IqyHJmnTukp1rhX-CS7Ks7Ba83eyv3DK5SksrHmBhTsvmla6L6uRXYDaJyRwKzRQ3RiQMlhe0k15CFAktRx3JOWJfHuMUODHHjbGNFEbHrEravkJpFrBlQ7j7yXiUMBvp0KP6c7aPqUYxaVVEli4wvOqTEASv50XH1Qx3MfYNtuF6XAfmHHD7qinjFIWE9BJzIfwh4gVpmkxfDg9nPwzSCZLftbeUv0E8uuzNINUsKoqvNJvq8Vsx-GK7-NGJktRQzvQb5CxYVSof7f8V3RqzQSvRY7P6BvOWg2x31QtISNZCT3B38TKrMuzJuVsV_n4fTF7jug_U-dnkfKjSHJZTHeoGB_jq-4wahJ8v-UuRDNUvmp3hdZruroM3gEKfxvhSOJ69p0AT_YB-mR5tkAFUibk7Nnrn5cXCSnaQrkQJDD6hTZ3gBsOxERHTSXZWMKwk2-sU3zooqYY83bBdzq-bE9_c6DPd3qNHKkM8ysv6YFXH2voRdAu40EHXz2-9Shkm_1au7wb-GgyZDmIQJ2GhzA1mqaIgASoJdXMtd2VzdC0yMKUQ.ts?dna=CmZTSq8z0Hj4qMMFiMp195LjymjyVTA6CXl548kOZytYmos-05hHdn0lRBlXJeoD8RPnCOlYiSLcbIEfFod0rm3qqvUwD3KqezgMeZT9UGdqknpdN4Fo06BzcfI-2_4jqAZx2BBj9v8aDMENB66QKnVml_p9cyABKgl1cy13ZXN0LTIwpRA",
+      "probe_url": "https://fa723fc1b171.e4b5b5e37b5f.j.cloudfront.hls.live-video.net/v1/segment/CpIDOOjFlMtM1B-k1M7IqyHJmnTukp1rhX-CS7Ks7Ba83eyv3DK5SksrHmBhTsvmla6L6uRXYDaJyRwKzRQ3RiQMlhe0k15CFAktRx3JOWJfHuMUODHHjbGNFEbHrEravkJpFrBlQ7j7yXiUMBvp0KP6c7aPqUYxaVVEli4wvOqTEASv50XH1Qx3MfYNtuF6XAfmHHD7qinjFIWE9BJzIfwh4gVpmkxfDg9nPwzSCZLftbeUv0E8uuzNINUsKoqvNJvq8Vsx-GK7-NGJktRQzvQb5CxYVSof7f8V3RqzQSvRY7P6BvOWg2x31QtISNZCT3B38TKrMuzJuVsV_n4fTF7jug_U-dnkfKjSHJZTHeoGB_jq-4wahJ8v-UuRDNUvmp3hdZruroM3gEKfxvhSOJ69p0AT_YB-mR5tkAFUibk7Nnrn5cXCSnaQrkQJDD6hTZ3gBsOxERHTSXZWMKwk2-sU3zooqYY83bBdzq-bE9_c6DPd3qNHKkM8ysv6YFXH2voRdAu40EHXz2-9Shkm_1au7wb-GgyZDmIQJ2GhzA1mqaIgASoJdXMtd2VzdC0yMKUQ.ts?dna=CmZTSq8z0Hj4qMMFiMp195LjymjyVTA6CXl548kOZytYmos-05hHdn0lRBlXJeoD8RPnCOlYiSLcbIEfFod0rm3qqvUwD3KqezgMeZT9UGdqknpdN4Fo06BzcfI-2_4jqAZx2BBj9v8aDMENB66QKnVml_p9cyABKgl1cy13ZXN0LTIwpRA"
     },
-    "https://d2zw3hk976cigz.cloudfront.net/out/v1/d88039ca0c144c4c897e3d05c70d24e9/index.m3u8": {
+    "https://d1fzg1sb6wtn97.cloudfront.net/out/v1/8c5cd6880a4c464e8d69a265fc2b7c22/index.m3u8": {
       "ok": true,
       "status": 200,
       "reason": "hls_segment",
-      "elapsed_ms": 2243,
-      "final_url": "https://d2zw3hk976cigz.cloudfront.net/out/v1/d88039ca0c144c4c897e3d05c70d24e9/index.mp4_1280x720_3300k_00001.ts",
-      "probe_url": "https://d2zw3hk976cigz.cloudfront.net/out/v1/d88039ca0c144c4c897e3d05c70d24e9/index.mp4_1280x720_3300k_00001.ts"
-    },
-    "https://dtobnwhel29h8.cloudfront.net/out/v1/932d55421d9d49deb1a64be99899d402/index.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 2466,
-      "final_url": "https://dtobnwhel29h8.cloudfront.net/out/v1/932d55421d9d49deb1a64be99899d402/index.mp4_1280x720_3300k_00001.ts",
-      "probe_url": "https://dtobnwhel29h8.cloudfront.net/out/v1/932d55421d9d49deb1a64be99899d402/index.mp4_1280x720_3300k_00001.ts"
+      "elapsed_ms": 2473,
+      "final_url": "https://d1fzg1sb6wtn97.cloudfront.net/out/v1/8c5cd6880a4c464e8d69a265fc2b7c22/index.mp4_1280x720_3300k_00001.ts",
+      "probe_url": "https://d1fzg1sb6wtn97.cloudfront.net/out/v1/8c5cd6880a4c464e8d69a265fc2b7c22/index.mp4_1280x720_3300k_00001.ts"
     },
     "https://ihhiymkepuydykrhmzwo.supabase.co/functions/v1/tver-live?special=le3uu3shj5&forceFunctionRegion=ap-northeast-1": {
       "ok": true,
       "status": 200,
       "reason": "hls_segment",
-      "elapsed_ms": 2961,
-      "final_url": "https://live-tver-channel-ntv-news-nnn.streaks.jp/c292027c71d14f8183a9333163a99047/62201dca87974fd6a0518c5df40251af/manifest_1_1126259.ts?m=1786958734",
-      "probe_url": "https://live-tver-channel-ntv-news-nnn.streaks.jp/c292027c71d14f8183a9333163a99047/62201dca87974fd6a0518c5df40251af/manifest_1_1126259.ts?m=1786958734"
+      "elapsed_ms": 3126,
+      "final_url": "https://live-tver-channel-ntv-news-nnn.streaks.jp/c292027c71d14f8183a9333163a99047/62201dca87974fd6a0518c5df40251af/manifest_1_1169498.ts?m=1786958734",
+      "probe_url": "https://live-tver-channel-ntv-news-nnn.streaks.jp/c292027c71d14f8183a9333163a99047/62201dca87974fd6a0518c5df40251af/manifest_1_1169498.ts?m=1786958734"
     },
-    "https://raw.githubusercontent.com/ajiousama/himitsu/main/gchmain_LQ.m3u8": {
+    "https://d1bvxvt0rc15dk.cloudfront.net/out/v1/d448b09b86504888b4753bec784f965e/index.m3u8": {
       "ok": true,
       "status": 200,
       "reason": "hls_segment",
-      "elapsed_ms": 632,
-      "final_url": "https://live-gch.streaks.jp/1f185cafa59741d2bed50f48b351de09/c8ccda6346f34a8cbc4c99a1c3f181df/manifest_5_4857884.ts?m=1771968418",
-      "probe_url": "https://live-gch.streaks.jp/1f185cafa59741d2bed50f48b351de09/c8ccda6346f34a8cbc4c99a1c3f181df/manifest_5_4857884.ts?m=1771968418"
+      "elapsed_ms": 2593,
+      "final_url": "https://d1bvxvt0rc15dk.cloudfront.net/out/v1/d448b09b86504888b4753bec784f965e/index.mp4_1280x720_3300k_00001.ts",
+      "probe_url": "https://d1bvxvt0rc15dk.cloudfront.net/out/v1/d448b09b86504888b4753bec784f965e/index.mp4_1280x720_3300k_00001.ts"
     },
-    "https://raw.githubusercontent.com/ajiousama/himitsu/main/gchmain_master.m3u8": {
+    "https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/gchmain.m3u8": {
       "ok": true,
       "status": 200,
       "reason": "hls_segment",
-      "elapsed_ms": 825,
-      "final_url": "https://live-gch.streaks.jp/1f185cafa59741d2bed50f48b351de09/c8ccda6346f34a8cbc4c99a1c3f181df/manifest_6_4857884.ts?m=1771968418",
-      "probe_url": "https://live-gch.streaks.jp/1f185cafa59741d2bed50f48b351de09/c8ccda6346f34a8cbc4c99a1c3f181df/manifest_6_4857884.ts?m=1771968418"
+      "elapsed_ms": 807,
+      "final_url": "https://live-gch.streaks.jp/1f185cafa59741d2bed50f48b351de09/c8ccda6346f34a8cbc4c99a1c3f181df/manifest_6_4900765.ts?m=1771968418",
+      "probe_url": "https://live-gch.streaks.jp/1f185cafa59741d2bed50f48b351de09/c8ccda6346f34a8cbc4c99a1c3f181df/manifest_6_4900765.ts?m=1771968418"
+    },
+    "https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/gchmain_LQ.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 533,
+      "final_url": "https://live-gch.streaks.jp/1f185cafa59741d2bed50f48b351de09/c8ccda6346f34a8cbc4c99a1c3f181df/manifest_5_4900765.ts?m=1771968418",
+      "probe_url": "https://live-gch.streaks.jp/1f185cafa59741d2bed50f48b351de09/c8ccda6346f34a8cbc4c99a1c3f181df/manifest_5_4900765.ts?m=1771968418"
+    },
+    "https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/EAST_test_LQ.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 623,
+      "final_url": "https://live-gch.streaks.jp/d2596ba17a2a4265a65324b00d0b47b4/e6ced951b38047bda3b67c807f1868a8/manifest_5_4900596.ts?m=1771969382",
+      "probe_url": "https://live-gch.streaks.jp/d2596ba17a2a4265a65324b00d0b47b4/e6ced951b38047bda3b67c807f1868a8/manifest_5_4900596.ts?m=1771969382"
+    },
+    "https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/WEST_master%20.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 697,
+      "final_url": "https://live-gch2.streaks.jp/7c08bb020c404e53ac20258c282debbc/581b3a09461e40c3860e347664d67f68/manifest_6_4900302.ts?m=1771970573",
+      "probe_url": "https://live-gch2.streaks.jp/7c08bb020c404e53ac20258c282debbc/581b3a09461e40c3860e347664d67f68/manifest_6_4900302.ts?m=1771970573"
+    },
+    "https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/EAST_test.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 970,
+      "final_url": "https://live-gch.streaks.jp/d2596ba17a2a4265a65324b00d0b47b4/e6ced951b38047bda3b67c807f1868a8/manifest_6_4900596.ts?m=1771969382",
+      "probe_url": "https://live-gch.streaks.jp/d2596ba17a2a4265a65324b00d0b47b4/e6ced951b38047bda3b67c807f1868a8/manifest_6_4900596.ts?m=1771969382"
+    },
+    "https://d1fozgui02sgex.cloudfront.net/out/v1/e5b143c0b1c84a728bd58d264d6f2492/index.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 2085,
+      "final_url": "https://d1fozgui02sgex.cloudfront.net/out/v1/e5b143c0b1c84a728bd58d264d6f2492/index.mp4_1280x720_3300k_00001.ts",
+      "probe_url": "https://d1fozgui02sgex.cloudfront.net/out/v1/e5b143c0b1c84a728bd58d264d6f2492/index.mp4_1280x720_3300k_00001.ts"
+    },
+    "https://d19fq96jx01oj3.cloudfront.net/out/v1/5648c4b609c248d9a6a23080241da3e8/index.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 1848,
+      "final_url": "https://d19fq96jx01oj3.cloudfront.net/out/v1/5648c4b609c248d9a6a23080241da3e8/index.mp4_1280x720_3300k_00001.ts",
+      "probe_url": "https://d19fq96jx01oj3.cloudfront.net/out/v1/5648c4b609c248d9a6a23080241da3e8/index.mp4_1280x720_3300k_00001.ts"
+    },
+    "https://dhwnzvxv6smzu.cloudfront.net/out/v1/8aeb71175e4d4f818d765c6471f10602/index.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 2047,
+      "final_url": "https://dhwnzvxv6smzu.cloudfront.net/out/v1/8aeb71175e4d4f818d765c6471f10602/index.mp4_1280x720_3300k_00001.ts",
+      "probe_url": "https://dhwnzvxv6smzu.cloudfront.net/out/v1/8aeb71175e4d4f818d765c6471f10602/index.mp4_1280x720_3300k_00001.ts"
+    },
+    "https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/WEST_master_LQ.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 687,
+      "final_url": "https://live-gch2.streaks.jp/7c08bb020c404e53ac20258c282debbc/581b3a09461e40c3860e347664d67f68/manifest_5_4900302.ts?m=1771970573",
+      "probe_url": "https://live-gch2.streaks.jp/7c08bb020c404e53ac20258c282debbc/581b3a09461e40c3860e347664d67f68/manifest_5_4900302.ts?m=1771970573"
+    },
+    "https://freewifi-radio-production.up.railway.app/radio-tv/FMO?v=20260929e": {
+      "ok": true,
+      "status": 200,
+      "reason": "mpegts",
+      "elapsed_ms": 12477,
+      "final_url": "https://freewifi-radio-production.up.railway.app/radio-tv/FMO?v=20260929e",
+      "probe_url": null
+    },
+    "https://d39uosfxy3v3ex.cloudfront.net/out/v1/e405ba3f01604bc59a3657bdd988675b/index.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 2298,
+      "final_url": "https://d39uosfxy3v3ex.cloudfront.net/out/v1/e405ba3f01604bc59a3657bdd988675b/index.mp4_1280x720_3300k_00001.ts",
+      "probe_url": "https://d39uosfxy3v3ex.cloudfront.net/out/v1/e405ba3f01604bc59a3657bdd988675b/index.mp4_1280x720_3300k_00001.ts"
+    },
+    "https://d24g41mr42kxdj.cloudfront.net/out/v1/e7be6fb365b84fa59eb68b49ecbd1aef/index.m3u8": {
+      "ok": true,
+      "status": 200,
+      "reason": "hls_segment",
+      "elapsed_ms": 2451,
+      "final_url": "https://d24g41mr42kxdj.cloudfront.net/out/v1/e7be6fb365b84fa59eb68b49ecbd1aef/index.mp4_1280x720_3300k_00001.ts",
+      "probe_url": "https://d24g41mr42kxdj.cloudfront.net/out/v1/e7be6fb365b84fa59eb68b49ecbd1aef/index.mp4_1280x720_3300k_00001.ts"
     },
     "https://freewifi-radio-production.up.railway.app/radio-tv/802?v=20260929e": {
       "ok": true,
       "status": 200,
       "reason": "mpegts",
-      "elapsed_ms": 12442,
+      "elapsed_ms": 14053,
       "final_url": "https://freewifi-radio-production.up.railway.app/radio-tv/802?v=20260929e",
       "probe_url": null
     },
@@ -1835,187 +2047,141 @@
       "ok": true,
       "status": 200,
       "reason": "mpegts",
-      "elapsed_ms": 11713,
+      "elapsed_ms": 13084,
       "final_url": "https://freewifi-radio-production.up.railway.app/radio-tv/MBS?v=20260929e",
-      "probe_url": null
-    },
-    "https://dfb6s2sy8m4fj.cloudfront.net/out/v1/46a75c8c38534b64902fcf3d080af7e2/index.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 1835,
-      "final_url": "https://dfb6s2sy8m4fj.cloudfront.net/out/v1/46a75c8c38534b64902fcf3d080af7e2/index.mp4_1280x720_3300k_00001.ts",
-      "probe_url": "https://dfb6s2sy8m4fj.cloudfront.net/out/v1/46a75c8c38534b64902fcf3d080af7e2/index.mp4_1280x720_3300k_00001.ts"
-    },
-    "https://freewifi-radio-production.up.railway.app/radio-tv/FMO?v=20260929e": {
-      "ok": true,
-      "status": 200,
-      "reason": "mpegts",
-      "elapsed_ms": 11883,
-      "final_url": "https://freewifi-radio-production.up.railway.app/radio-tv/FMO?v=20260929e",
       "probe_url": null
     },
     "https://freewifi-radio-production.up.railway.app/radio-tv/OBC?v=20260929e": {
       "ok": true,
       "status": 200,
       "reason": "mpegts",
-      "elapsed_ms": 11979,
+      "elapsed_ms": 13093,
       "final_url": "https://freewifi-radio-production.up.railway.app/radio-tv/OBC?v=20260929e",
       "probe_url": null
-    },
-    "https://d1fozgui02sgex.cloudfront.net/out/v1/e5b143c0b1c84a728bd58d264d6f2492/index.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 2474,
-      "final_url": "https://d1fozgui02sgex.cloudfront.net/out/v1/e5b143c0b1c84a728bd58d264d6f2492/index.mp4_1280x720_3300k_00001.ts",
-      "probe_url": "https://d1fozgui02sgex.cloudfront.net/out/v1/e5b143c0b1c84a728bd58d264d6f2492/index.mp4_1280x720_3300k_00001.ts"
-    },
-    "https://d24g41mr42kxdj.cloudfront.net/out/v1/e7be6fb365b84fa59eb68b49ecbd1aef/index.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 2177,
-      "final_url": "https://d24g41mr42kxdj.cloudfront.net/out/v1/e7be6fb365b84fa59eb68b49ecbd1aef/index.mp4_1280x720_3300k_00001.ts",
-      "probe_url": "https://d24g41mr42kxdj.cloudfront.net/out/v1/e7be6fb365b84fa59eb68b49ecbd1aef/index.mp4_1280x720_3300k_00001.ts"
-    },
-    "https://d2qwtrte7v1vrk.cloudfront.net/out/v1/b09f11096a2449179ecc765450e5d70e/index.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 2835,
-      "final_url": "https://d2qwtrte7v1vrk.cloudfront.net/out/v1/b09f11096a2449179ecc765450e5d70e/index.mp4_1280x720_3300k_00001.ts",
-      "probe_url": "https://d2qwtrte7v1vrk.cloudfront.net/out/v1/b09f11096a2449179ecc765450e5d70e/index.mp4_1280x720_3300k_00001.ts"
-    },
-    "https://d1k0zwbhpej0or.cloudfront.net/out/v1/1b4717ba26ca42e09066b373c5f296a4/index.m3u8": {
-      "ok": true,
-      "status": 200,
-      "reason": "hls_segment",
-      "elapsed_ms": 2610,
-      "final_url": "https://d1k0zwbhpej0or.cloudfront.net/out/v1/1b4717ba26ca42e09066b373c5f296a4/index.mp4_1280x720_3300k_00001.ts",
-      "probe_url": "https://d1k0zwbhpej0or.cloudfront.net/out/v1/1b4717ba26ca42e09066b373c5f296a4/index.mp4_1280x720_3300k_00001.ts"
     },
     "https://freewifi-radio-production.up.railway.app/radio-tv/KBS?v=20260929e": {
       "ok": true,
       "status": 200,
       "reason": "mpegts",
-      "elapsed_ms": 15712,
+      "elapsed_ms": 17360,
       "final_url": "https://freewifi-radio-production.up.railway.app/radio-tv/KBS?v=20260929e",
       "probe_url": null
     },
-    "https://freewifi-radio-production.up.railway.app/radio-tv/TBS?v=20260929e": {
+    "https://patapata-r14-production.up.railway.app/live.m3u8": {
       "ok": true,
       "status": 200,
-      "reason": "mpegts",
-      "elapsed_ms": 19250,
-      "final_url": "https://freewifi-radio-production.up.railway.app/radio-tv/TBS?v=20260929e",
-      "probe_url": null
+      "reason": "hls_segment",
+      "elapsed_ms": 9536,
+      "final_url": "https://patapata-r14-production.up.railway.app/hls/seg_000000.ts",
+      "probe_url": "https://patapata-r14-production.up.railway.app/hls/seg_000000.ts"
+    },
+    "https://rakuten3qdrzrp0.keiba-racing.jp/hls-live/keiba/_definst_/liveevent/obihiro5.m3u8": {
+      "ok": false,
+      "status": null,
+      "reason": "scheduled_not_live_yet",
+      "elapsed_ms": 8582,
+      "final_url": null,
+      "probe_url": null,
+      "pending": true,
+      "scheduled_start": "14:25"
+    },
+    "https://rakuten3qdrzrp0.keiba-racing.jp/hls-live/keiba/_definst_/liveevent/saga5.m3u8": {
+      "ok": false,
+      "status": null,
+      "reason": "scheduled_not_live_yet",
+      "elapsed_ms": 8477,
+      "final_url": null,
+      "probe_url": null,
+      "pending": true,
+      "scheduled_start": "14:45"
     },
     "https://freewifi-radio-production.up.railway.app/radio-tv/E-RADIO?v=20260929e": {
       "ok": true,
       "status": 200,
       "reason": "mpegts",
-      "elapsed_ms": 15366,
+      "elapsed_ms": 16845,
       "final_url": "https://freewifi-radio-production.up.railway.app/radio-tv/E-RADIO?v=20260929e",
+      "probe_url": null
+    },
+    "https://freewifi-radio-production.up.railway.app/radio-tv/ALPHA-STATION?v=20260929e": {
+      "ok": true,
+      "status": 200,
+      "reason": "mpegts",
+      "elapsed_ms": 16977,
+      "final_url": "https://freewifi-radio-production.up.railway.app/radio-tv/ALPHA-STATION?v=20260929e",
       "probe_url": null
     },
     "https://freewifi-radio-production.up.railway.app/radio-tv/CRK?v=20260929e": {
       "ok": true,
       "status": 200,
       "reason": "mpegts",
-      "elapsed_ms": 15396,
+      "elapsed_ms": 16892,
       "final_url": "https://freewifi-radio-production.up.railway.app/radio-tv/CRK?v=20260929e",
       "probe_url": null
-    },
-    "https://rakuten3qdrzrp0.keiba-racing.jp/hls-live/keiba/_definst_/liveevent/kasamatsu5.m3u8": {
-      "ok": false,
-      "status": null,
-      "reason": "ReadTimeout",
-      "elapsed_ms": 8605,
-      "final_url": null,
-      "probe_url": null
-    },
-    "https://rakuten3qdrzrp0.keiba-racing.jp/hls-live/keiba/_definst_/liveevent/sonoda5.m3u8": {
-      "ok": false,
-      "status": null,
-      "reason": "ReadTimeout",
-      "elapsed_ms": 8632,
-      "final_url": null,
-      "probe_url": null
-    },
-    "https://rakuten3qdrzrp0.keiba-racing.jp/hls-live/keiba/_definst_/liveevent/ooi5.m3u8": {
-      "ok": false,
-      "status": null,
-      "reason": "scheduled_not_live_yet",
-      "elapsed_ms": 8563,
-      "final_url": null,
-      "probe_url": null,
-      "pending": true,
-      "scheduled_start": "14:30"
     },
     "https://freewifi-radio-production.up.railway.app/radio-tv/HBC?v=20260929e": {
       "ok": true,
       "status": 200,
       "reason": "mpegts",
-      "elapsed_ms": 18951,
+      "elapsed_ms": 21199,
       "final_url": "https://freewifi-radio-production.up.railway.app/radio-tv/HBC?v=20260929e",
-      "probe_url": null
-    },
-    "https://rakuten3qdrzrp0.keiba-racing.jp/hls-live/keiba/_definst_/liveevent/monbetsu5.m3u8": {
-      "ok": false,
-      "status": null,
-      "reason": "scheduled_not_live_yet",
-      "elapsed_ms": 12480,
-      "final_url": null,
-      "probe_url": null,
-      "pending": true,
-      "scheduled_start": "14:20"
-    },
-    "https://freewifi-radio-production.up.railway.app/radio-tv/TBC?v=20260929e": {
-      "ok": true,
-      "status": 200,
-      "reason": "mpegts",
-      "elapsed_ms": 19122,
-      "final_url": "https://freewifi-radio-production.up.railway.app/radio-tv/TBC?v=20260929e",
-      "probe_url": null
-    },
-    "https://freewifi-radio-production.up.railway.app/radio-tv/ABC?v=20260929e": {
-      "ok": true,
-      "status": 200,
-      "reason": "mpegts",
-      "elapsed_ms": 22766,
-      "final_url": "https://freewifi-radio-production.up.railway.app/radio-tv/ABC?v=20260929e",
       "probe_url": null
     },
     "https://freewifi-radio-production.up.railway.app/radio-tv/FMT?v=20260929e": {
       "ok": true,
       "status": 200,
       "reason": "mpegts",
-      "elapsed_ms": 22899,
+      "elapsed_ms": 24210,
       "final_url": "https://freewifi-radio-production.up.railway.app/radio-tv/FMT?v=20260929e",
+      "probe_url": null
+    },
+    "https://freewifi-radio-production.up.railway.app/radio-tv/ABC?v=20260929e": {
+      "ok": true,
+      "status": 200,
+      "reason": "mpegts",
+      "elapsed_ms": 24749,
+      "final_url": "https://freewifi-radio-production.up.railway.app/radio-tv/ABC?v=20260929e",
+      "probe_url": null
+    },
+    "https://freewifi-radio-production.up.railway.app/radio-tv/TBS?v=20260929e": {
+      "ok": true,
+      "status": 200,
+      "reason": "mpegts",
+      "elapsed_ms": 26209,
+      "final_url": "https://freewifi-radio-production.up.railway.app/radio-tv/TBS?v=20260929e",
+      "probe_url": null
+    },
+    "https://rakuten3qdrzrp0.keiba-racing.jp/hls-live/keiba/_definst_/liveevent/kouchi5.m3u8": {
+      "ok": false,
+      "status": null,
+      "reason": "scheduled_not_live_yet",
+      "elapsed_ms": 16540,
+      "final_url": null,
+      "probe_url": null,
+      "pending": true,
+      "scheduled_start": "15:35"
+    },
+    "https://freewifi-radio-production.up.railway.app/radio-tv/RKB?v=20260929e": {
+      "ok": true,
+      "status": 200,
+      "reason": "mpegts",
+      "elapsed_ms": 25216,
+      "final_url": "https://freewifi-radio-production.up.railway.app/radio-tv/RKB?v=20260929e",
       "probe_url": null
     },
     "https://freewifi-radio-production.up.railway.app/radio-tv/CCL?v=20260929e": {
       "ok": true,
       "status": 200,
       "reason": "mpegts",
-      "elapsed_ms": 26354,
+      "elapsed_ms": 29185,
       "final_url": "https://freewifi-radio-production.up.railway.app/radio-tv/CCL?v=20260929e",
-      "probe_url": null
-    },
-    "https://freewifi-radio-production.up.railway.app/radio-tv/KBC?v=20260929e": {
-      "ok": true,
-      "status": 200,
-      "reason": "mpegts",
-      "elapsed_ms": 23390,
-      "final_url": "https://freewifi-radio-production.up.railway.app/radio-tv/KBC?v=20260929e",
       "probe_url": null
     },
     "https://freewifi-radio-production.up.railway.app/radio-tv/FM845?v=20260929e": {
       "ok": true,
       "status": 200,
       "reason": "mpegts",
-      "elapsed_ms": 22776,
+      "elapsed_ms": 25349,
       "final_url": "https://freewifi-radio-production.up.railway.app/radio-tv/FM845?v=20260929e",
       "probe_url": null
     },
@@ -2023,7 +2189,7 @@
       "ok": true,
       "status": 200,
       "reason": "mpegts",
-      "elapsed_ms": 23865,
+      "elapsed_ms": 27884,
       "final_url": "https://freewifi-radio-production.up.railway.app/radio-tv/FMOTOKUNI?v=20260929e",
       "probe_url": null
     },
@@ -2031,7 +2197,7 @@
       "ok": true,
       "status": 200,
       "reason": "mpegts",
-      "elapsed_ms": 25586,
+      "elapsed_ms": 29071,
       "final_url": "https://freewifi-radio-production.up.railway.app/radio-tv/BARIBARI?v=20260929e",
       "probe_url": null
     },
@@ -2039,7 +2205,7 @@
       "ok": true,
       "status": 200,
       "reason": "mpegts",
-      "elapsed_ms": 26472,
+      "elapsed_ms": 29358,
       "final_url": "https://freewifi-radio-production.up.railway.app/radio-tv/NIIHAMA?v=20260929e",
       "probe_url": null
     },
@@ -2047,7 +2213,7 @@
       "ok": true,
       "status": 200,
       "reason": "mpegts",
-      "elapsed_ms": 26846,
+      "elapsed_ms": 29936,
       "final_url": "https://freewifi-radio-production.up.railway.app/radio-tv/FMGAIYA?v=20260929e",
       "probe_url": null
     }
