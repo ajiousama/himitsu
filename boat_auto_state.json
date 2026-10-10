@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-11",
-  "generated_at": "2026-10-11T07:47:34.876540+09:00",
+  "generated_at": "2026-10-11T07:59:34.878733+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261011.json",
   "schedule_checked_at": "2026-10-11T07:47:34.876540+09:00",
@@ -52,9 +52,15 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 3,
+    "requested": 4,
     "fetched": 0,
-    "failures": [],
+    "failures": [
+      {
+        "jcd": "23",
+        "name": "唐津",
+        "error": "HTTPError: playback check failed"
+      }
+    ],
     "deferred": [
       {
         "jcd": "08",
@@ -62,14 +68,14 @@
         "start": "2026-10-11T09:45:00+09:00"
       },
       {
+        "jcd": "09",
+        "name": "津",
+        "start": "2026-10-11T10:00:00+09:00"
+      },
+      {
         "jcd": "18",
         "name": "徳山",
         "start": "2026-10-11T08:12:00+09:00"
-      },
-      {
-        "jcd": "23",
-        "name": "唐津",
-        "start": "2026-10-11T08:00:00+09:00"
       }
     ]
   },
@@ -622,7 +628,8 @@
           "name": "セミファイナル"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "provider_stream_start": "2026-10-11T10:00:00+09:00",
+      "source": "公式BR配信開始待ち 10:00"
     },
     "boat.suminoe": {
       "jcd": "12",
@@ -1253,8 +1260,7 @@
           "name": "準優勝戦"
         }
       ],
-      "provider_stream_start": "2026-10-11T08:00:00+09:00",
-      "source": "公式BR配信開始待ち 08:00"
+      "source": "automatic cloud SEED pending"
     }
   }
 }
