@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-10",
-  "generated_at": "2026-10-10T12:47:57.490061+09:00",
+  "generated_at": "2026-10-10T12:49:57.390893+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261010.json",
   "schedule_checked_at": "2026-10-10T12:38:57.388928+09:00",
@@ -52,10 +52,15 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 10,
+    "requested": 11,
     "fetched": 9,
     "failures": [],
     "deferred": [
+      {
+        "jcd": "01",
+        "name": "桐生",
+        "start": "2026-10-10T14:45:00+09:00"
+      },
       {
         "jcd": "12",
         "name": "住之江",
@@ -306,7 +311,8 @@
           "name": "一般桐生特選"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "provider_stream_start": "2026-10-10T14:45:00+09:00",
+      "source": "公式BR配信開始待ち 14:45"
     },
     "boat.toda": {
       "jcd": "02",
