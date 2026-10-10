@@ -192,8 +192,16 @@ function timedStopsEn(r){
 function terminalTextEn(r){
   var a=terminals(r);return a.length?a.map(function(x){return stationEn(x[0])+' '+x[1]}).join(' / '):'—';
 }
+function southRoute(r){
+  var info=String(r.info||''),svc=String(r.service||''),dest=String(r.dest||'');
+  if(!/宇和島|八幡浜|卯之町|伊予大洲/.test(dest)&&!/宇和海/.test(svc))return '';
+  if(/伊予長浜経由|海回り|愛ある伊予灘/.test(info))return 'sea';
+  if(/内子経由|山回り/.test(info)||/宇和海/.test(svc))return 'mountain';
+  return '';
+}
 function detailEn(r){
   var a=timedStopsEn(r),parts=[];
+  var route=southRoute(r);if(route)parts.push(route==='sea'?'COASTAL via Iyo-Nagahama':'INLAND via Uchiko');
   if(a.length) parts.push('Stops: '+a.join(' → '));
   else{
     parts.push('Local train');
@@ -229,6 +237,7 @@ function timedStops(r){
 }
 function detail(r){
   var a=timedStops(r),parts=[];
+  var route=southRoute(r);if(route)parts.push(route==='sea'?'【海回り・伊予長浜経由】':'【山回り・内子経由】');
   if(a.length) parts.push('停車駅：'+a.join(' → '));
   else{
     parts.push('各駅停車');
