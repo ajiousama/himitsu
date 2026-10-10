@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# final non-VOD rerun after iCap restore 2026-10-08
+# final non-VOD rerun 2026-10-10
 import concurrent.futures
 import datetime as dt
 import json
