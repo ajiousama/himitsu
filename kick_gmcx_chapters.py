@@ -3571,8 +3571,9 @@ def make_fixed_test_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict
     if duration <= 0 or not vod_id:
         return []
 
-    # User requested exact 58:00 cuts for #307-316. Older test ranges retain 58:03.
-    regular = 58 * 60 if (start_ep, end_ep) == (307, 316) else 58 * 60 + 3
+    # User requested exact 58:00 cuts from #307 onward; keep any extra footage as a separate clip.
+    # Older test ranges retain 58:03.
+    regular = 58 * 60 if start_ep >= 307 else 58 * 60 + 3
     chapters = []
     cursor = 0
 
@@ -4157,6 +4158,9 @@ def main() -> int:
         clean_range_only = not tail
         plausible_hour_blocks = 2700 <= average <= 4500 if average else False
         known_mixed = (start_ep, end_ep) in KNOWN_SPECIALS
+        # For clean newer bundles, use the user-requested 58-minute cuts,
+        # not variable-length automatic title-card boundaries.
+        fixed_58m_later = start_ep >= 307 and clean_range_only and plausible_hour_blocks
 
         if duration <= 0:
             status = "waiting_live_end"
@@ -4170,10 +4174,10 @@ def main() -> int:
         elif known_mixed:
             chapters = make_mixed_chapters(vod, start_ep, end_ep, titles)
             status = "ready" if chapters else "ai_required"
-        elif (start_ep, end_ep) in {(227, 236), (237, 246), (247, 256), (257, 266), (307, 316)}:
-            # User verification pass: expose each numbered episode at a fixed
-            # 58:03 cadence. Any drift or inserted special is corrected later
-            # from playback feedback; do not stretch the cuts to fill the VOD.
+        elif (start_ep, end_ep) in {(227, 236), (237, 246), (247, 256), (257, 266), (307, 316)} or fixed_58m_later:
+            # User verification pass: #307 onward is cut into exact 58:00 slots.
+            # Earlier provisional ranges retain their prior cadence.
+            # Do not stretch slots to fill the VOD; preserve any remainder.
             chapters = make_fixed_test_chapters(vod, start_ep, end_ep, titles)
             status = "ready" if chapters else "ai_required"
         elif clean_range_only and plausible_hour_blocks:
@@ -4228,6 +4232,7 @@ def main() -> int:
             and chapters
             and start_ep >= 207
             and (start_ep, end_ep) not in {(227, 236), (237, 246), (247, 256), (307, 316)}
+            and not fixed_58m_later
             and vod.get("playable")
         ):
             # #207 onward: the recurring title cue should appear within about
@@ -4276,7 +4281,7 @@ def main() -> int:
                 chapters,
                 previous_result,
             )
-        elif status == "ready" and chapters and (start_ep, end_ep) in {(227, 236), (237, 246), (247, 256), (257, 266), (307, 316)}:
+        elif status == "ready" and chapters and ((start_ep, end_ep) in {(227, 236), (237, 246), (247, 256), (257, 266), (307, 316)} or fixed_58m_later):
             titlecard_refinement = {
                 "status": "skipped",
                 "reason": "source-unavailable-kept-broadcast-order-seed",
