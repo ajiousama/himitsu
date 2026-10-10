@@ -391,8 +391,14 @@ function updateTicker(){
     $('tick1').textContent=language==='ja'?emptyJa:emptyEn;$('tick2').textContent=language==='ja'?emptyJa:emptyEn;
     return
   }
-  var ja='ご案内　'+lead.time+'発 '+serviceText(lead)+' '+lead.dest+'行　◆　'+detail(lead);
-  var en='Information  '+lead.time+'  '+serviceEn(lead)+' for '+stationEn(lead.dest)+'  ◆  '+detailEn(lead);
+  var route=southRoute(lead);
+  var routeJa=route==='sea'?'【海回り・伊予長浜経由】':route==='mountain'?'【山回り・内子経由】':'';
+  var routeEn=route==='sea'?'COASTAL via Iyo-Nagahama':route==='mountain'?'INLAND via Uchiko':'';
+  var detailJa=detail(lead),detailEnglish=detailEn(lead);
+  if(routeJa)detailJa=detailJa.replace(routeJa+'　◆　','');
+  if(routeEn)detailEnglish=detailEnglish.replace(routeEn+'  ◆  ','');
+  var ja='ご案内　'+lead.time+'発 '+serviceText(lead)+' '+lead.dest+'行'+(routeJa?'　'+routeJa:'')+'　◆　'+detailJa;
+  var en='Information  '+lead.time+'  '+serviceEn(lead)+' for '+stationEn(lead.dest)+(routeEn?'  '+routeEn:'')+'  ◆  '+detailEnglish;
   $('tick1').textContent=language==='ja'?ja:en;$('tick2').textContent=language==='ja'?ja:en
 }
 function applyLanguage(){
