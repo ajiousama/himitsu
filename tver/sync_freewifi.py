@@ -43,30 +43,38 @@ def payload():
     # Other FreeWiFi rebuilds may reuse an older tver/playlist.m3u before the
     # next TVer worker runs. Enforce endAt here too, so expired rows cannot
     # reappear when another workflow refreshes FreeWiFi.
-    expired = set()
+    allowed_ids = None
     status_path = Path("tver/live_status.json")
     if status_path.exists():
         state = json.loads(status_path.read_text(encoding="utf-8"))
         now = int(time.time())
+        allowed_ids = set()
         for row in state.get("entries") or []:
             try:
                 end = int(row.get("end_at") or 0)
                 start = int(row.get("start_at") or 0)
             except (TypeError, ValueError):
                 continue
-            if (end and now >= end) or (start and now < start):
-                expired.add(str(row.get("tvg_id") or ""))
+            if (not end or now < end) and (not start or now >= start):
+                allowed_ids.add(str(row.get("tvg_id") or ""))
 
     visible = []
     skip = False
+    suppressed = 0
     for line in lines:
         if line.startswith("#EXTINF:"):
             match = re.search(r'tvg-id="([^"]+)"', line)
-            skip = bool(match and match.group(1) in expired)
+            skip = bool(
+                allowed_ids is not None and match
+                and match.group(1).startswith("tver.")
+                and match.group(1) not in allowed_ids
+            )
+            if skip:
+                suppressed += 1
         if not skip:
             visible.append(line)
-    if expired:
-        print(f"TVer expired/early rows suppressed on sync: {len(expired)}")
+    if suppressed:
+        print(f"TVer expired/unlisted entries suppressed on sync: {suppressed}")
     return "\n".join(visible).strip() + "\n\n"
 
 def main():
