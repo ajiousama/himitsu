@@ -3422,9 +3422,9 @@ MANUAL_EPISODE_START_OVERRIDES: dict[int, int] = {
     304: 44308,
     305: 47677,
     306: 51162,
-    # #287-296: detected chapter positions; #288 was confirmed 4s too early.\n    # Preserve the independently detected #289-296 joins and mini special at 34800.
+    # #287-296: detected positions; playback recheck puts #288 8s after the original.\n    # Preserve independent #289-296 joins and mini special at 34800.
     287: 0,
-    288: 3484,  # user playback: 4s later than detected
+    288: 3488,  # user retest: another 4s late (+8s total from original)
     289: 6961,
     290: 10441,
     291: 13922,
