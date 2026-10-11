@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-11",
-  "generated_at": "2026-10-11T10:23:34.897206+09:00",
+  "generated_at": "2026-10-11T10:24:34.849803+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261011.json",
   "schedule_checked_at": "2026-10-11T10:14:34.947070+09:00",
@@ -54,7 +54,13 @@
   "cloud_acquisition": {
     "requested": 9,
     "fetched": 6,
-    "failures": [],
+    "failures": [
+      {
+        "jcd": "22",
+        "name": "福岡",
+        "error": "HTTPError: playback check failed"
+      }
+    ],
     "deferred": [
       {
         "jcd": "03",
@@ -65,11 +71,6 @@
         "jcd": "06",
         "name": "浜名湖",
         "start": "2026-10-11T10:26:00+09:00"
-      },
-      {
-        "jcd": "22",
-        "name": "福岡",
-        "start": "2026-10-11T10:25:00+09:00"
       }
     ]
   },
@@ -1270,8 +1271,7 @@
           "name": "福岡選抜"
         }
       ],
-      "provider_stream_start": "2026-10-11T10:25:00+09:00",
-      "source": "公式BR配信開始待ち 10:25"
+      "source": "automatic cloud SEED pending"
     },
     "boat.karatsu": {
       "jcd": "23",
