@@ -254,7 +254,10 @@ jobs:
               publish_general "$volatile_ids" || true
             fi
 
-            # Re-resolve current women\x27s baseball game every cycle (the watch ID rotates between matches).\n            publish_general "youtube.ehime_womens_baseball" || true\n\n            publish_scope special || true
+            # Re-resolve the current women's baseball game every five minutes.
+            publish_general "youtube.ehime_womens_baseball" || true
+
+            publish_scope special || true
 
             if [ $((cycle % 12)) -eq 0 ]; then
               publish_scope general || true
