@@ -138,8 +138,8 @@ def normalize(items: list[dict]) -> list[dict]:
             "tvg_id": tvg_id_for(title, live_id),
             "logo": logo_for(title, clean_title(item.get("seriesTitle"))),
             "url": RESOLVER + "?special=" + quote(live_id, safe="") + "&forceFunctionRegion=ap-northeast-1",
-            "start_at": item.get("startAt"),
-            "end_at": item.get("endAt"),
+            "start_at": item.get("startAt") if item.get("startAt") is not None else item.get("start_at"),
+            "end_at": item.get("endAt") if item.get("endAt") is not None else item.get("end_at"),
         })
     return rows
 
