@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 from pathlib import Path
 import json
+import re
+import time
 from urllib.parse import quote
 
 FREEWIFI = Path("freewifi")
@@ -37,7 +39,35 @@ def payload():
     lines = text.splitlines()
     if lines and lines[0].startswith("#EXTM3U"):
         lines = lines[1:]
-    return "\n".join(lines).strip() + "\n\n"
+
+    # Other FreeWiFi rebuilds may reuse an older tver/playlist.m3u before the
+    # next TVer worker runs. Enforce endAt here too, so expired rows cannot
+    # reappear when another workflow refreshes FreeWiFi.
+    expired = set()
+    status_path = Path("tver/live_status.json")
+    if status_path.exists():
+        state = json.loads(status_path.read_text(encoding="utf-8"))
+        now = int(time.time())
+        for row in state.get("entries") or []:
+            try:
+                end = int(row.get("end_at") or 0)
+                start = int(row.get("start_at") or 0)
+            except (TypeError, ValueError):
+                continue
+            if (end and now >= end) or (start and now < start):
+                expired.add(str(row.get("tvg_id") or ""))
+
+    visible = []
+    skip = False
+    for line in lines:
+        if line.startswith("#EXTINF:"):
+            match = re.search(r'tvg-id="([^"]+)"', line)
+            skip = bool(match and match.group(1) in expired)
+        if not skip:
+            visible.append(line)
+    if expired:
+        print(f"TVer expired/early rows suppressed on sync: {len(expired)}")
+    return "\n".join(visible).strip() + "\n\n"
 
 def main():
     text = FREEWIFI.read_text(encoding="utf-8-sig", errors="replace")
