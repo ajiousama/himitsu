@@ -71,6 +71,7 @@ on:
       - "freewifi_today_public_sports.py"
       - "freewifi_strip_public_boat.py"
       - "freewifi_today_jra.py"
+      - "check_gch_always.py"
       - "finalize_today_public_sports.py"
       - "build_today_event_counts.py"
       - "verified_daily_status.json"
@@ -305,6 +306,9 @@ jobs:
 
           print(f'Stable logo guard: OK protected_entries={checked} white-card-hosts=OK')
           PY
+
+            # GCH MAIN, 5002 and HARUKA stay visible even on non-race days.
+            python check_gch_always.py
 
             git add ganble/playlist.m3u ehime_catv/playlist.m3u freewifi radio/freewifi.m3u gccx2_live_state.json today_public_sports_status.json today_jra_status.json today_event_counts.json verified_daily_status.json public_sports_epg_local.xml
 
