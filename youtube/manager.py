@@ -503,20 +503,42 @@ def info_start(info, previous=None):
 
 
 def info_hls(info):
-    manifest = (info.get("manifest_url") or "").strip()
-    if manifest.startswith(("http://", "https://")):
-        return manifest
+    """Prefer a muxed A/V HLS *media* playlist for IPTV players.
+
+    yt-dlp's manifest_url is the adaptive master (hls_variant). Some IPTV
+    players cannot select the separate audio rendition correctly. Formats
+    contain concrete hls_playlist URLs; require explicit video AND audio to
+    avoid accidentally publishing a silent, video-only stream.
+    """
     choices = []
     for fmt in info.get("formats") or []:
         url = (fmt.get("url") or "").strip()
         protocol = (fmt.get("protocol") or "").lower()
         if not url.startswith(("http://", "https://")) or "m3u8" not in protocol:
             continue
-        both = int((fmt.get("vcodec") or "none") != "none" and (fmt.get("acodec") or "none") != "none")
-        choices.append(((both, int(fmt.get("height") or 0), float(fmt.get("tbr") or 0)), url))
+        video = str(fmt.get("vcodec") or "none").lower()
+        audio = str(fmt.get("acodec") or "none").lower()
+        if video == "none" or audio == "none":
+            continue
+        try:
+            height = int(fmt.get("height") or 0)
+            bitrate = float(fmt.get("tbr") or 0)
+        except (ValueError, TypeError):
+            continue
+        # Prefer H.264 + AAC for broad APTV/VLC compatibility. Avoid 4K when
+        # a normal 360-720p stream is available.
+        avc = video.startswith(("avc", "h264"))
+        aac = audio.startswith(("mp4a", "aac"))
+        practical = 360 <= height <= 720
+        choices.append(((int(avc and aac), int(practical), min(height, 720), bitrate), url))
     if choices:
-        choices.sort(key=lambda x: x[0], reverse=True)
-        return choices[0][1]
+        return max(choices, key=lambda row: row[0])[1]
+
+    # The adaptive master is a fallback only when no confirmed muxed stream
+    # exists (e.g. the livestream exclusively uses separate audio/video).
+    manifest = (info.get("manifest_url") or "").strip()
+    if manifest.startswith(("http://", "https://")) and ".m3u8" in manifest:
+        return manifest
     return None
 
 
