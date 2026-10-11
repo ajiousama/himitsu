@@ -3422,17 +3422,17 @@ MANUAL_EPISODE_START_OVERRIDES: dict[int, int] = {
     304: 44308,
     305: 47677,
     306: 51162,
-    # #287-296: detected positions; playback recheck puts #288 8s after the original.\n    # Preserve independent #289-296 joins and mini special at 34800.
+    # #287-296: user recheck of #288 puts it 8s after original; keep\n    # the downstream chapters' existing lengths by carrying the +8s shift.
     287: 0,
     288: 3488,  # user retest: another 4s late (+8s total from original)
-    289: 6961,
-    290: 10441,
-    291: 13922,
-    292: 17375,
-    293: 20880,
-    294: 24335,
-    295: 27814,
-    296: 31291,
+    289: 6969,  # +8s propagated after #288 retest
+    290: 10449,  # +8s propagated after #288 retest
+    291: 13930,  # +8s propagated after #288 retest
+    292: 17383,  # +8s propagated after #288 retest
+    293: 20888,  # +8s propagated after #288 retest
+    294: 24343,  # +8s propagated after #288 retest
+    295: 27822,  # +8s propagated after #288 retest
+    296: 31299,  # +8s propagated after #288 retest
 }
 
 
@@ -3448,6 +3448,20 @@ def _apply_manual_episode_start_overrides(
     starts = {}
     rows = []
     for index, item in enumerate(chapters):
+        # The post-#296 mini is a separate chapter in the same VOD.
+        # Carry the user's +8s offset through its start too; do not
+        # silently shorten #296 when re-generating the playlist.
+        if (
+            vod_id == "505ae6fb-b601-4015-8d4c-c5d580279781"
+            and item.get("special_key") == "2020-gccx-mini"
+        ):
+            starts[index] = 34808
+            rows.append({
+                "special_key": "2020-gccx-mini",
+                "manual_start": 34808,
+                "note": "propagated +8s from #288",
+            })
+            continue
         if item.get("kind") != "episode":
             continue
         ep = int(item.get("episode") or 0)
@@ -3478,7 +3492,7 @@ def _apply_manual_episode_start_overrides(
     for index in starts:
         if 0 <= index < len(rebuilt):
             ep = int(rebuilt[index].get("episode") or 0)
-            if 302 <= ep <= 306:
+            if 289 <= ep <= 296 or 302 <= ep <= 306 or rebuilt[index].get("kind") == "special":
                 rebuilt[index]["method"] = "manual-playback-offset-propagated"
                 rebuilt[index]["confidence"] = "provisional"
             else:
