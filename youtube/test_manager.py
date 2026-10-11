@@ -32,6 +32,22 @@ class YouTubeV2StructureTests(unittest.TestCase):
             self.assertTrue(Path(rel).is_file(), rel)
 
 
+    def test_kana_prefers_muxed_media_hls_over_adaptive_master(self):
+        video = {
+            "manifest_url": "https://manifest.googlevideo.com/hls_variant/master.m3u8",
+            "formats": [
+                {"url": "https://x.googlevideo.com/only-video.m3u8",
+                 "protocol": "m3u8_native", "vcodec": "avc1.42001e", "acodec": "none", "height": 1080},
+                {"url": "https://x.googlevideo.com/muxed-360.m3u8",
+                 "protocol": "m3u8_native", "vcodec": "avc1.42001e", "acodec": "mp4a.40.2", "height": 360},
+                {"url": "https://x.googlevideo.com/muxed-720.m3u8",
+                 "protocol": "m3u8_native", "vcodec": "avc1.64001f", "acodec": "mp4a.40.2", "height": 720},
+            ],
+        }
+        self.assertEqual(manager.info_hls(video), "https://x.googlevideo.com/muxed-720.m3u8")
+        video["formats"] = video["formats"][:1]
+        self.assertEqual(manager.info_hls(video), video["manifest_url"])
+
     def test_search_based_general_channels_have_guards(self):
         cfg = json.loads(manager.CONFIG.read_text(encoding="utf-8"))
         unguarded = [
