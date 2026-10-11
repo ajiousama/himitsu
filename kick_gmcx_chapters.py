@@ -3413,6 +3413,15 @@ MANUAL_EPISODE_START_OVERRIDES: dict[int, int] = {
     284: 31635,
     285: 35147,
     286: 38632,
+    # #301: playback observation showed its cut 34s too early.
+    # #302-306 retain the individual episode lengths while propagating that
+    # 34-second offset; the last episode stops at the source VOD's real end.
+    301: 33756,
+    302: 37236,
+    303: 40717,
+    304: 44308,
+    305: 47677,
+    306: 51162,
     # #287-296: stable refined map; 9/10 regular heads detected and mini starts at 34800.
     287: 0,
     288: 3480,
@@ -3468,8 +3477,13 @@ def _apply_manual_episode_start_overrides(
 
     for index in starts:
         if 0 <= index < len(rebuilt):
-            rebuilt[index]["method"] = "manual-playback-confirmed"
-            rebuilt[index]["confidence"] = "confirmed"
+            ep = int(rebuilt[index].get("episode") or 0)
+            if 302 <= ep <= 306:
+                rebuilt[index]["method"] = "manual-playback-offset-propagated"
+                rebuilt[index]["confidence"] = "provisional"
+            else:
+                rebuilt[index]["method"] = "manual-playback-confirmed"
+                rebuilt[index]["confidence"] = "confirmed"
     for x in rebuilt:
         x.pop("vod_id", None)
 
