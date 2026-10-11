@@ -125,11 +125,11 @@ def main():
  except Exception: pass
  active=[x for x in dict.fromkeys(reported) if x != 'jra.gch']
  jra_race_day=any(x in JRA_RACE_IDS for x in active)
+ # MAIN HQ/LQ and PH/HARUKA backups are always visible, including days
+ # without JRA, overseas racing or local graded races.
+ # No remote GCH schedule probe may determine whether they are published.
  official_fallback=[]
- if not jra_race_day:
-  official_fallback=gch_official_fallback(now)
- show_gch=jra_race_day or bool(official_fallback) or bool(gch_special)
- if show_gch: active.insert(0,'jra.gch')
+ active.insert(0,'jra.gch')
  base=strip(FREEWIFI.read_text(encoding='utf-8-sig',errors='replace')); rows=[]; exposed=[]
  for source in active:
   name,hq,lq,hqlogo,lqlogo=SOURCES[source]
@@ -146,6 +146,6 @@ def main():
  anchor='# === GENERAL_YOUTUBE_MANAGED_START ==='
  text=base.replace(anchor,managed+'\n\n'+anchor,1) if anchor in base else base.rstrip()+'\n\n'+managed+'\n'
  FREEWIFI.write_text(text.rstrip()+'\n',encoding='utf-8')
- STATUS.write_text(json.dumps({'generated_at':now.isoformat(),'active_count':len(active),'active_ids':active,'active_labels':[SOURCES[x][0] for x in active],'exposed_quality_ids':exposed,'gch_special_broadcasts':gch_special,'gch_official_broadcasts':official_fallback,'jra_race_day':jra_race_day,'gch_reason':('JRA race day' if jra_race_day else 'GCH official schedule: overseas/local race broadcast' if official_fallback else 'GCH programme guide: overseas/local race broadcast' if gch_special else None),'channels':{x:{'active':x in active,'source':'earphone HQ/LQ canonical'} for x in SOURCES}},ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+ STATUS.write_text(json.dumps({'generated_at':now.isoformat(),'active_count':len(active),'active_ids':active,'active_labels':[SOURCES[x][0] for x in active],'exposed_quality_ids':exposed,'gch_special_broadcasts':gch_special,'gch_official_broadcasts':official_fallback,'jra_race_day':jra_race_day,'gch_reason':('JRA race day / always visible' if jra_race_day else 'Always visible: MAIN HQ/LQ, 5002 direct, HARUKA'),'channels':{x:{'active':x in active,'source':'earphone HQ/LQ canonical'} for x in SOURCES}},ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
  print('JRA earphone HQ/LQ active:',exposed)
 if __name__=='__main__': main()
