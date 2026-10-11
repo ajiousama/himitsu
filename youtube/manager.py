@@ -330,6 +330,15 @@ def resolve_general_one(index, item, previous):
                         item.get("query") or item["name"],
                         guards,
                     )
+            # Rotating game broadcasts may be absent from channel /streams.
+            if not url and item["id"] == "youtube.ehime_womens_baseball":
+                found, search_code = search_live(
+                    item.get("query") or item["name"], guards
+                )
+                if found:
+                    url, code = found, "OK"
+                elif code not in TRANSIENT:
+                    code = search_code
         else:
             url, code = search_live(
                 item.get("query") or item["name"],
