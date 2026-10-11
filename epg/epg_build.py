@@ -79,6 +79,10 @@ EXPLICIT = {
     "日本テレビ_jp": ["JOAXDTV.jp", "jcom_2_1040_32738"], "TBS_jp": ["JORXDTV.jp", "jcom_2_1048_32739"],
     "フジテレビ_jp": ["JOCXDTV.jp", "jcom_2_1056_32740"], "テレビ朝日_jp": ["JOEXDTV.jp", "jcom_2_1064_32741"],
     "テレビ東京_jp": ["JOTXDTV.jp", "jcom_2_1072_32742"], "TBS-NEWS_jp": ["CS351", "Ch.572", "TBSNewsCS.jp", "TBSNews.jp"],
+    # All four FreeWiFi GCH receivers share two canonical XMLTV IDs.
+    # Match the genuine BS234/CS688 Green Channel programme grid, NOT GCH2.
+    "jra.gch.hq": ["BS234", "Ch.688", "GreenChannel.jp", "グリーンチャンネル_jp"],
+    "jra.gch.lq": ["BS234", "Ch.688", "GreenChannel.jp", "グリーンチャンネル_jp"],
     "グリーンチャンネル_jp": ["BS234", "Ch.688", "GreenChannel.jp"], "グリーンチャンネル2_jp": ["Ch.689", "GreenChannel2.jp"],
     "フジテレビONE_jp": ["FujiTVONE.jp", "CS307"], "フジテレビTWO_jp": ["FujiTVTWO.jp", "CS308"],
     "フジテレビNEXT_jp": ["FujiTVNEXT.jp", "CS309"], "ヒストリーチャンネル_jp": ["HistoryChannel.jp", "History.jp"],
@@ -188,7 +192,11 @@ def add_fallback(out_root, target_id, target_name, target_group="", sports_statu
     group_norm = unicodedata.normalize("NFKC", target_group or "").upper(); is_24h_name = ("CATV" in group_norm) or ("ABEMA" in group_norm)
     sport = (sports_status or {}).get(target_id, {})
     next_text = str(sport.get("next_race_text") or "").strip()
-    if target_group == "今日の開催場" and sport:
+    if target_id in ("jra.gch.hq", "jra.gch.lq"):
+        title = "グリーンチャンネル｜番組表取得待ち"
+        desc = "番組情報を取得できていません。放送休止を意味する案内ではありません。"
+        category = "番組情報"
+    elif target_group == "今日の開催場" and sport:
         title = next_text or target_name
         desc = f"{target_name} / {sport.get('section','公営競技')}。実レースEPG取得失敗時の案内です。"
         category = str(sport.get("section") or "公営競技")
