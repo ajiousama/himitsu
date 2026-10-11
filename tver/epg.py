@@ -66,6 +66,9 @@ def build_overlay() -> None:
 
         start = epoch_dt(row.get("start_at"))
         stop = epoch_dt(row.get("end_at"))
+        # Do not resurrect completed live events in a cached EPG overlay.
+        if stop is not None and stop <= datetime.now(JST):
+            continue
         if start is None:
             # Continuous/always-on live feeds without explicit wall-clock times
             # get a rolling slot that refreshes every 10 minutes.
