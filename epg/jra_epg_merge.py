@@ -1,95 +1,195 @@
+"""Merge JRA race cards without losing the always-on Green Channel EPG.
+
+The MAIN HQ/LQ, PH (5002) and HARUKA rows in FreeWiFi share jra.gch.hq
+(or jra.gch.lq for MAIN LQ).  They must be present every day regardless of
+JRA/local/overseas race schedules.  Programme data comes from the actual
+Green Channel XMLTV source when available, never from invented race coverage.
+"""
 from pathlib import Path
 from datetime import datetime, timezone, timedelta
-import copy, json, re
+import copy
+import re
 import xml.etree.ElementTree as ET
 
-GUIDES=Path('guides.xml'); LOCAL=Path('public_sports_epg_local.xml'); STATUS=Path('today_jra_status.json')
-REGIONAL=('jra.east','jra.west','jra.hokkaido')
-QUALITY={'jra.east':('jra.east','JRA EAST WEB3'),'jra.west':('jra.west','JRA WEST WEB4'),'jra.hokkaido':('jra.local','JRA LOCAL WEB5')}
-TARGET={'jra.gch','jra.east','jra.west','jra.hokkaido','jra.local','jra.official','jra.gch.free','jra.gch.hq','jra.gch.lq'}
-for base,_ in QUALITY.values(): TARGET|={base+'.hq',base+'.lq'}
+GUIDES = Path("guides.xml")
+LOCAL = Path("public_sports_epg_local.xml")
+REGIONAL = ("jra.east", "jra.west", "jra.hokkaido")
+QUALITY = {
+    "jra.east": ("jra.east", "JRA EAST WEB3"),
+    "jra.west": ("jra.west", "JRA WEST WEB4"),
+    "jra.hokkaido": ("jra.local", "JRA LOCAL WEB5"),
+}
+TARGET = {
+    "jra.gch", "jra.east", "jra.west", "jra.hokkaido", "jra.local",
+    "jra.official", "jra.gch.free", "jra.gch.hq", "jra.gch.lq",
+}
+for base, _ in QUALITY.values():
+    TARGET |= {base + ".hq", base + ".lq"}
 
-def add_channel(root,cid,name):
- c=ET.Element('channel',{'id':cid}); ET.SubElement(c,'display-name').text=name; root.append(c)
+JST = timezone(timedelta(hours=9))
+GCH_QUALITIES = ("jra.gch.hq", "jra.gch.lq")
+MISSING_MARKERS = (
+    "番組詳細EPG未取得", "実EPG未対応", "番組表取得待ち",
+    "実レースEPG取得失敗", "データ取得準備中",
+)
 
-def is_race(p):
- t=(p.findtext('title') or '')
- return bool(re.search(r'(?:【\s*)?[０-９0-9]{1,2}\s*[ＲR]|発走',t)) and '終了しました' not in t
 
-def clone(p,cid):
- q=copy.deepcopy(p); q.set('channel',cid); return q
+def parse_time(value):
+    match = re.match(r"^(\d{14})(?:\s*([+-]\d{4}))?", (value or "").strip())
+    if not match:
+        return None
+    dt = datetime.strptime(match.group(1), "%Y%m%d%H%M%S")
+    offset = match.group(2)
+    if offset:
+        sign = 1 if offset[0] == "+" else -1
+        delta = timedelta(hours=int(offset[1:3]), minutes=int(offset[3:5]))
+        return dt.replace(tzinfo=timezone(sign * delta)).astimezone(JST)
+    return dt.replace(tzinfo=JST)
 
-def combined(regional):
- by={}
- for source in REGIONAL:
-  for p in regional[source]:
-   if is_race(p): by.setdefault(p.get('start'),[]).append(p)
- out=[]; starts=sorted(by)
- for i,s in enumerate(starts):
-  items=by[s]; stop=starts[i+1] if i+1<len(starts) else max((p.get('stop') or s) for p in items)
-  q=ET.Element('programme',{'start':s,'stop':stop}); titles=[]; desc=[]
-  for p in items:
-   t=(p.findtext('title') or '').strip(); d=(p.findtext('desc') or '').strip()
-   if t and t not in titles: titles.append(t)
-   if d and d not in desc: desc.append(d)
-  ET.SubElement(q,'title',{'lang':'ja'}).text=' / '.join(titles)
-  if desc: ET.SubElement(q,'desc',{'lang':'ja'}).text='\n'.join(desc)
-  out.append(q)
- return out
+
+def xmltv_time(dt):
+    return dt.strftime("%Y%m%d%H%M%S %z")
+
+
+def add_channel(root, cid, name):
+    ch = ET.SubElement(root, "channel", {"id": cid})
+    ET.SubElement(ch, "display-name").text = name
+
+
+def clone(programme, channel):
+    copied = copy.deepcopy(programme)
+    copied.set("channel", channel)
+    return copied
+
+
+def real_gch(programme):
+    text = " ".join(
+        (programme.findtext("title") or "", programme.findtext("desc") or "")
+    )
+    return not any(marker in text for marker in MISSING_MARKERS)
+
+
+def actual_gch_schedule(root, start, end):
+    """Capture the true schedule BEFORE the EPG rebuild replaces GCH IDs."""
+    by_id = {}
+    for channel in root.findall("channel"):
+        cid = channel.get("id") or ""
+        name = " ".join(ch.text or "" for ch in channel.findall("display-name"))
+        if cid in GCH_QUALITIES or "グリーンチャンネル" in name or cid == "グリーンチャンネル_jp":
+            by_id[cid] = []
+    for programme in root.findall("programme"):
+        cid = programme.get("channel") or ""
+        if cid not in by_id or not real_gch(programme):
+            continue
+        a, b = parse_time(programme.get("start")), parse_time(programme.get("stop"))
+        if a and b and b > start and a < end and a < b:
+            by_id[cid].append(programme)
+    # Both quality versions should contain the same schedule. Prefer HQ, then LQ.
+    # An unsuffixed original guide is a valid additional source.
+    preferred = list(GCH_QUALITIES) + sorted(
+        cid for cid in by_id if cid not in GCH_QUALITIES
+    )
+    for cid in preferred:
+        if by_id.get(cid):
+            return cid, by_id[cid]
+    return None, []
+
+
+def placeholder(start, stop):
+    p = ET.Element("programme", {
+        "start": xmltv_time(start),
+        "stop": xmltv_time(stop),
+    })
+    ET.SubElement(p, "title", {"lang": "ja"}).text = "グリーンチャンネル｜番組表取得待ち"
+    ET.SubElement(p, "desc", {"lang": "ja"}).text = (
+        "番組情報を取得できていません。放送休止を意味する案内ではありません。"
+    )
+    ET.SubElement(p, "category", {"lang": "ja"}).text = "番組情報"
+    return p
+
+
+def build_gch_schedule(programmes, start, end):
+    """Keep source programmes and cover only missing intervals with honest labels."""
+    found = []
+    seen = set()
+    for p in programmes:
+        a = parse_time(p.get("start"))
+        b = parse_time(p.get("stop"))
+        if not a or not b or a >= b or b <= start or a >= end:
+            continue
+        a, b = max(a, start), min(b, end)
+        key = (a, b, (p.findtext("title") or "").strip())
+        if key in seen:
+            continue
+        seen.add(key)
+        cp = copy.deepcopy(p)
+        cp.set("start", xmltv_time(a))
+        cp.set("stop", xmltv_time(b))
+        found.append((a, b, cp))
+    found.sort(key=lambda row: (row[0], row[1]))
+    result = []
+    cursor = start
+    for a, b, p in found:
+        if a > cursor:
+            result.append(placeholder(cursor, a))
+        result.append(p)
+        cursor = max(cursor, b)
+    if cursor < end:
+        result.append(placeholder(cursor, end))
+    return result
+
 
 def main():
- if not GUIDES.exists() or not LOCAL.exists(): raise SystemExit('guides/local JRA EPG missing')
- src=ET.parse(LOCAL).getroot(); tree=ET.parse(GUIDES); root=tree.getroot()
- regional={cid:[copy.deepcopy(p) for p in src.findall('programme') if p.get('channel')==cid] for cid in REGIONAL}
- for el in list(root):
-  cid=el.get('id') if el.tag=='channel' else el.get('channel') if el.tag=='programme' else ''
-  if cid in TARGET: root.remove(el)
- for source,(base,display) in QUALITY.items():
-  if not regional[source]: continue
-  for quality,label in (('hq','HQ'),('lq','LQ')):
-   cid=f'{base}.{quality}'; add_channel(root,cid,f'{display} {label}')
-   for p in regional[source]: root.append(clone(p,cid))
- # GCH MAIN is visible on every JRA race day, and also on non-JRA days when
- # the Green Channel guide carries overseas/local race coverage.
- gch_ids=set()
- for ch in root.findall('channel'):
-  cid=str(ch.get('id') or '')
-  names=' '.join((x.text or '') for x in ch.findall('display-name'))
-  if 'グリーンチャンネル' in names or 'グリーンチャンネル' in cid:
-   gch_ids.add(cid)
+    if not GUIDES.exists() or not LOCAL.exists():
+        raise SystemExit("guides/local JRA EPG missing")
+    src = ET.parse(LOCAL).getroot()
+    tree = ET.parse(GUIDES)
+    root = tree.getroot()
+    regional = {
+        cid: [copy.deepcopy(p) for p in src.findall("programme") if p.get("channel") == cid]
+        for cid in REGIONAL
+    }
+    now = datetime.now(JST)
+    start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    end = start + timedelta(days=3)
+    source_id, source_schedule = actual_gch_schedule(root, start, end)
 
- JST=timezone(timedelta(hours=9))
- today=datetime.now(JST).strftime('%Y%m%d')
- trigger_re=re.compile(r'(?:海外競馬中継|地方競馬中継)',re.I)
- gch_today=[
-  copy.deepcopy(p) for p in root.findall('programme')
-  if str(p.get('channel') or '') in gch_ids and str(p.get('start') or '').startswith(today)
- ]
- gch_special=[
-  p for p in gch_today
-  if trigger_re.search(' '.join(((p.findtext('title') or ''),(p.findtext('desc') or ''))))
- ]
- jra_race_day=any(regional[source] for source in REGIONAL)
- status_gch=False
- try:
-  status=json.loads(STATUS.read_text(encoding='utf-8-sig')) if STATUS.exists() else {}
-  status_gch=bool((status.get('channels') or {}).get('jra.gch',{}).get('active'))
- except Exception:
-  status_gch=False
- show_gch=jra_race_day or bool(gch_special) or status_gch
- gch_programmes=gch_today
- gch_epg_source='green-channel guide'
- # The source guide can occasionally contain no Green Channel rows even on a
- # valid JRA race day.  FreeWiFi still exposes GCH MAIN on JRA race days, so
- # mirror the already verified EAST/WEST/LOCAL race grid instead of publishing
- # HQ/LQ channels with zero programmes (which the final audit must reject).
- if show_gch and not gch_programmes and jra_race_day:
-  gch_programmes=combined(regional)
-  gch_epg_source='combined JRA race EPG fallback'
- if show_gch:
-  for quality,label in (('hq','HQ'),('lq','LQ')):
-   cid=f'jra.gch.{quality}'; add_channel(root,cid,f'グリーンチャンネル MAIN {label}')
-   for p in gch_programmes: root.append(clone(p,cid))
- ET.indent(tree,space='  '); tree.write(GUIDES,encoding='utf-8',xml_declaration=True)
- print('JRA earphone HQ/LQ race EPG:',{k:len(v) for k,v in regional.items()},'GCH source ids=',sorted(gch_ids),'JRA race day=',jra_race_day,'GCH status active=',status_gch,'GCH trigger programmes=',len(gch_special),'GCH EPG source=',gch_epg_source if show_gch else 'hidden','GCH mirrored programmes=',len(gch_programmes) if show_gch else 0)
-if __name__=='__main__': main()
+    for el in list(root):
+        cid = el.get("id") if el.tag == "channel" else el.get("channel") if el.tag == "programme" else ""
+        if cid in TARGET:
+            root.remove(el)
+
+    for source, (base, display) in QUALITY.items():
+        if not regional[source]:
+            continue
+        for quality, label in (("hq", "HQ"), ("lq", "LQ")):
+            cid = f"{base}.{quality}"
+            add_channel(root, cid, f"{display} {label}")
+            for p in regional[source]:
+                root.append(clone(p, cid))
+
+    # Always create both XMLTV channel IDs, even if no race is scheduled.
+    # MAIN HQ / 5002 / HARUKA share the HQ guide by design.
+    schedule = build_gch_schedule(source_schedule, start, end)
+    for quality, label in (("hq", "HQ"), ("lq", "LQ")):
+        cid = f"jra.gch.{quality}"
+        add_channel(root, cid, f"グリーンチャンネル MAIN {label}")
+        for p in schedule:
+            root.append(clone(p, cid))
+
+    ET.indent(tree, space="  ")
+    tree.write(GUIDES, encoding="utf-8", xml_declaration=True)
+    real = sum(real_gch(p) for p in schedule)
+    fallback = len(schedule) - real
+    print(
+        "JRA race EPG:", {k: len(v) for k, v in regional.items()},
+        "GCH always-on:", list(GCH_QUALITIES),
+        "real schedule source:", source_id or "unavailable",
+        "real programmes:", real,
+        "missing intervals:", fallback,
+        "days:", 3,
+    )
+
+
+if __name__ == "__main__":
+    main()
