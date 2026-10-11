@@ -3700,6 +3700,7 @@ def make_fixed_test_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict
     playback_offset = {
         ("b1947917-7165-4da5-b94e-1f58a923797b", 307, 316): 23,
         ("ecd225a9-0035-4d5a-834f-2ee2392cf6aa", 317, 326): 43,
+        ("e12324ac-ba29-45dc-9af6-fee419d6de48", 327, 336): 9,
     }.get((vod_id, start_ep, end_ep), 0)
     if playback_offset and len(chapters) >= 2:
         for item in chapters[1:]:
