@@ -122,6 +122,10 @@ def standardize_file(path: Path, visible: dict[str, str], modes: dict[str, str],
     changed = 0
 
     for cid, playlist_name in visible.items():
+        # Green Channel is a TV station, not a race venue.  Programme titles
+        # mentioning 1R must never be rewritten as a synthetic start-of-race EPG.
+        if cid.startswith("jra.gch."):
+            continue
         result = find_first_race(root, cid, today)
         if not result:
             continue
