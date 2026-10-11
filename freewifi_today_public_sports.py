@@ -456,7 +456,8 @@ def main():
     if missing_keirin_logos:
         raise SystemExit('missing KEIRIN logo mappings: ' + ', '.join(missing_keirin_logos))
     rows=[]; status={}
-    gch_special = gch_today_visibility()
+    # GCH MAIN and PH/HARUKA are permanently owned by freewifi_today_jra.py.
+    # The fast public-sports builder must never gate or duplicate them.
     for cid, (section, block) in entries.items():
         if cid.startswith('boat.') or cid not in real:
             continue
@@ -468,31 +469,6 @@ def main():
             status[cid] = {'section':section,'name':name,'mode':modes.get(cid,'day'),'source':'ajiousama local direct EPG','epg_available':True,'next_race':nr,'next_race_text':f"次は {nr['race']}R {nr['start']}発走" if nr else '本日開催／次レースなし'}
         except Exception as e:
             print(f'M3U row skipped {cid}: {e}')
-
-    if gch_special:
-        for spec in GCH_SPECIAL_ENTRIES:
-            block = [
-                f'#EXTINF:-1 tvg-id="{spec["id"]}" tvg-name="{spec["tvg_name"]}" tvg-logo="{spec["logo"]}" group-title="{GROUP}",{spec["name"]}',
-                spec['url'],
-            ]
-            rows.append({
-                'id': spec['id'],
-                'name': spec['name'],
-                'block': block,
-                'next_race': None,
-                'sort_dt': gch_special['start'],
-            })
-            status[spec['id']] = {
-                'section': gch_special['reason'],
-                'name': spec['name'],
-                'mode': 'overnight',
-                'source': 'GCH EPG live-race visibility',
-                'epg_available': True,
-                'next_race': None,
-                'next_race_text': f"{gch_special['reason']} {gch_special['start_text']}〜",
-                'programme': gch_special['title'],
-            }
-        print(f"GCH visible: {gch_special['reason']} {gch_special['start_text']} {gch_special['title']}")
 
     def row_sort_key(row):
         if row.get('sort_dt'):
