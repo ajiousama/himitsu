@@ -513,7 +513,9 @@ def main():
     for r in rows: body += r['block'] + ['']
     managed = START+'\n## 今日の開催場\n'+'\n'.join(body).rstrip()+('\n' if body else '')+END
     base = FREEWIFI.read_text(encoding='utf-8-sig', errors='replace')
-    owned_ids = {cid for cid in entries if not cid.startswith('boat.')} | GCH_SPECIAL_IDS
+    owned_ids = {cid for cid in entries if not cid.startswith('boat.')}
+    # JRA's managed TODAY_JRA block owns GCH HQ/LQ (including PH and HARUKA
+    # backup routes).  Never erase those entries during the 10-minute sports refresh.
     base = strip_ids(base, owned_ids)
     updated = replace_block(base, managed).rstrip()+'\n'
     updated = restore_kana_owned_entry(updated)
