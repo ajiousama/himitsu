@@ -4097,14 +4097,14 @@ def _mark_provisional_titles(
     end_ep: int,
 ) -> list[dict]:
     confirmed = (start_ep, end_ep) in FILELIST_CONFIRMED_RANGES
-    reference_confirmed = (start_ep, end_ep) in {(267, 276), (277, 286), (287, 296)}
+    reference_confirmed = (start_ep, end_ep) in {(267, 276), (277, 286), (287, 296), (307, 316), (317, 326)}
     out = []
     for chapter in chapters:
         row = dict(chapter)
         if confirmed:
             row["title_status"] = "confirmed-filelist"
             row["title_source"] = "source-player-filelist"
-        elif reference_confirmed:
+        elif reference_confirmed and row.get("kind") == "episode":
             # #267-276 programme titles and the 15th-anniversary special are
             # independently verified from broadcast/reference listings.  This
             # confirms labels only; chapter boundaries may still be provisional.
