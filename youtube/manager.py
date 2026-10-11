@@ -555,8 +555,13 @@ def update_kana(config):
         watch = "https://www.youtube.com/watch?v=" + vid
         start = info_start(selected, previous)
         play = info_hls(selected)
-        if status == "is_live" and not play:
-            play, _ = direct_hls(watch)
+        if status == "is_live" and (not play or "/hls_variant/" in play):
+            # Some yt-dlp JSON responses expose only an adaptive master.
+            # Ask the single-format resolver for a muxed media playlist before
+            # using the master as the last resort.
+            alternate, _ = direct_hls(watch)
+            if alternate and (not play or "/hls_playlist/" in alternate):
+                play = alternate
         url = play if status == "is_live" and play else watch
         if status == "is_live":
             label = item["name"] + "【LIVE】"
