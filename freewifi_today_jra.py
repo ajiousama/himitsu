@@ -16,6 +16,11 @@ SOURCES={
  'jra.hokkaido':('JRA LOCAL WEB5','hokaido_master%20(1).m3u8','hokaido_master_LQ.m3u8','local_hq.png','local_lq.png'),
 }
 QUALITY_IDS={f'{base}.{q}' if base!='jra.hokkaido' else f'jra.local.{q}' for base in SOURCES for q in ('hq','lq')}
+# Additional viewing routes; programme EPG remains tied to jra.gch.hq.
+GCH_PROVIDER_BACKUPS=(
+ ('グリーンチャンネル (5002直)', 'http://67.215.237.218:5002/bs14.m3u8?gid=bs14&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0'),
+ ('グリーンチャンネル (HARUKA)', 'http://118.69.27.222:9394/stream/60.m3u8'),
+)
 LEGACY_FREE_IDS={'jra.official','jra.gch.free'}
 JRA_RACE_IDS={'jra.east','jra.west','jra.hokkaido'}
 GCH_SITEMAP_URL='https://www.greenchannel.jp/sitemap.html'
@@ -134,6 +139,9 @@ def main():
    logo_url=(GCH_LOCAL_LOGO if source=='jra.gch' else LOGO) + '/' + logo
    rows += [f'#EXTINF:-1 tvg-id="{cid}" tvg-name="{label}" tvg-logo="{logo_url}" group-title="{GROUP}",{label}',f'{RAW}/{stream}','']
    exposed.append(cid)
+  if source=='jra.gch':
+   for backup_label, backup_url in GCH_PROVIDER_BACKUPS:
+    rows += [f'#EXTINF:-1 tvg-id="jra.gch.hq" tvg-name="{backup_label}" tvg-logo="{GCH_LOCAL_LOGO}/gch_hq.png" group-title="{GROUP}",{backup_label}',backup_url,'']
  managed=START+'\n## 本日の開催場（JRA / earphone HQ・LQ）\n'+'\n'.join(rows).rstrip()+('\n' if rows else '')+END
  anchor='# === GENERAL_YOUTUBE_MANAGED_START ==='
  text=base.replace(anchor,managed+'\n\n'+anchor,1) if anchor in base else base.rstrip()+'\n\n'+managed+'\n'
