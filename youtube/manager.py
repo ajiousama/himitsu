@@ -754,12 +754,12 @@ def sync_freewifi(config):
     womens_id = "youtube.ehime_womens_baseball"
     womens_start = "# === WOMENS_BASEBALL_START ==="
     womens_end = "# === WOMENS_BASEBALL_END ==="
-    text = re.sub(re.escape(womens_start) + r".*?" + re.escape(womens_end) + r"\\n?", "", text, flags=re.S)
+    text = re.sub(re.escape(womens_start) + r".*?" + re.escape(womens_end) + r"\n?", "", text, flags=re.S)
     text = strip_entry(text, womens_id)
     womens = parse_m3u(GENERAL_OUT).get(womens_id)
     if womens:
-        temporary_block = (womens_start + "\\n" + womens["ext"] + "\\n" +
-                           womens["url"] + "\\n" + womens_end + "\\n")
+        temporary_block = (womens_start + "\n" + womens["ext"] + "\n" +
+                           womens["url"] + "\n" + womens_end + "\n")
         pos = text.find(GENERAL_START)
         if pos < 0:
             raise SystemExit("YouTube managed block anchor missing")
