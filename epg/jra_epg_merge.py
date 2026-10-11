@@ -75,6 +75,9 @@ def actual_gch_schedule(root, start, end):
     for channel in root.findall("channel"):
         cid = channel.get("id") or ""
         name = " ".join(ch.text or "" for ch in channel.findall("display-name"))
+        # Do not silently borrow Green Channel 2's separate programme service.
+        if "グリーンチャンネル2" in (name + cid) or "GreenChannel2" in (name + cid):
+            continue
         if cid in GCH_QUALITIES or "グリーンチャンネル" in name or cid == "グリーンチャンネル_jp":
             by_id[cid] = []
     for programme in root.findall("programme"):
