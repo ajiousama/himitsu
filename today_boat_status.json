@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-11",
-  "generated_at": "2026-10-11T10:05:34.838076+09:00",
+  "generated_at": "2026-10-11T10:08:34.895017+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261011.json",
   "schedule_checked_at": "2026-10-11T09:59:34.893468+09:00",
@@ -54,13 +54,14 @@
   "cloud_acquisition": {
     "requested": 9,
     "fetched": 5,
-    "failures": [],
-    "deferred": [
+    "failures": [
       {
         "jcd": "02",
         "name": "戸田",
-        "start": "2026-10-11T10:09:00+09:00"
-      },
+        "error": "HTTPError: playback check failed"
+      }
+    ],
+    "deferred": [
       {
         "jcd": "03",
         "name": "江戸川",
@@ -347,8 +348,7 @@
           "name": "記者選抜戦"
         }
       ],
-      "provider_stream_start": "2026-10-11T10:09:00+09:00",
-      "source": "公式BR配信開始待ち 10:09"
+      "source": "automatic cloud SEED pending"
     },
     "boat.edogawa": {
       "jcd": "03",
@@ -1282,7 +1282,7 @@
       "intermission": null,
       "guidance_switch_at": "2026-10-11T15:04:00+09:00",
       "seed_required": false,
-      "reverify_due": false,
+      "reverify_due": true,
       "playback_verified": true,
       "first_verified_at": "2026-10-11T08:01:02.261153+09:00",
       "ready_before_first_race": true,
