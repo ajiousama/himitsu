@@ -1,11 +1,59 @@
 {
-  "generated_at": "2026-10-11T07:06:32Z",
+  "generated_at": "2026-10-11T11:19:51Z",
   "resolver": "2026-10-07-tver-public-page-v13",
   "resolver_region": "ap-northeast-1",
   "discovery_source": "tver_public_page_authoritative_plus_search_v13",
+  "discovery_error": null,
+  "expires_by_end_at": true,
   "special_count": 3,
-  "schedule_count": 10,
-  "simul_on_air": [],
+  "schedule_count": 9,
+  "simul_on_air": [
+    {
+      "kind": "simul",
+      "id": "cx",
+      "name": "フジテレビ",
+      "title": "◆激闘！男子400ｍサバイバルレンチャン",
+      "startAt": 1791712800,
+      "endAt": 1791720000,
+      "resolver": "http://ihhiymkepuydykrhmzwo.supabase.co/tver-live?live=cx&forceFunctionRegion=ap-northeast-1"
+    },
+    {
+      "kind": "simul",
+      "id": "ex",
+      "name": "テレビ朝日",
+      "title": "高知県の山奥に広がっていたのは、天空の農園！？愛情あふれる有機野菜づくりに励む師弟の日々に密着",
+      "startAt": 1791716040,
+      "endAt": 1791719760,
+      "resolver": "http://ihhiymkepuydykrhmzwo.supabase.co/tver-live?live=ex&forceFunctionRegion=ap-northeast-1"
+    },
+    {
+      "kind": "simul",
+      "id": "ntv",
+      "name": "日テレ",
+      "title": "【エンターテイナー出川】ドイツで超重量ドラム缶まわし&巨大風船(秘)パフォ",
+      "startAt": 1791716280,
+      "endAt": 1791719640,
+      "resolver": "http://ihhiymkepuydykrhmzwo.supabase.co/tver-live?live=ntv&forceFunctionRegion=ap-northeast-1"
+    },
+    {
+      "kind": "simul",
+      "id": "tbs",
+      "name": "TBS",
+      "title": "渋谷ＳＰ深夜ユニクロにSnow Man宮舘が世界初潜入",
+      "startAt": 1791712800,
+      "endAt": 1791720000,
+      "resolver": "http://ihhiymkepuydykrhmzwo.supabase.co/tver-live?live=tbs&forceFunctionRegion=ap-northeast-1"
+    },
+    {
+      "kind": "simul",
+      "id": "tx",
+      "name": "テレ東",
+      "title": "巨大サメ捕獲大作戦！500キロ超怪物vsスゴ腕漁師…南海の壮絶バトル",
+      "startAt": 1791711000,
+      "endAt": 1791719400,
+      "resolver": "http://ihhiymkepuydykrhmzwo.supabase.co/tver-live?live=tx&forceFunctionRegion=ap-northeast-1"
+    }
+  ],
   "entries": [
     {
       "id": "lem4djsk1g",
@@ -87,17 +135,6 @@
       "end_at": 1791777600
     },
     {
-      "id": "leeu4hulb2",
-      "title": "第3戦 巨人× DeNA",
-      "series_title": "DRAMATIC BASEBALL 2026 クライマックスシリーズ セ ファーストステージ",
-      "broadcaster": "",
-      "tvg_id": "tver.special.leeu4hulb2",
-      "logo": "https://raw.githubusercontent.com/ajiousama/himitsu/main/tver/logos/sports_live.jpg",
-      "url": "https://ihhiymkepuydykrhmzwo.supabase.co/functions/v1/tver-live?special=leeu4hulb2&forceFunctionRegion=ap-northeast-1",
-      "start_at": 1791780300,
-      "end_at": 1791792000
-    },
-    {
       "id": "le15zbfeae",
       "title": "第103回箱根駅伝予選会",
       "series_title": "第103回箱根駅伝",
@@ -152,6 +189,5 @@
       "start_at": 1794116700,
       "end_at": 1794126600
     }
-  ],
-  "last_deadline_cleanup": "2026-10-11T11:14:05Z"
+  ]
 }
