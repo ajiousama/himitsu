@@ -3694,7 +3694,7 @@ def make_fixed_test_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict
             if ep == 311:
                 append_special(
                     "307-316-between-310-311-15min",
-                    "GMCX 15分番組（#310～#311間・番組名確認待ち）",
+                    "年越し15分 おっさん3人支離滅裂の刃で斬る！【SP42】",
                     15 * 60,
                 )
             append_episode(ep)
