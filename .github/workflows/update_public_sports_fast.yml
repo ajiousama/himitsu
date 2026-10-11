@@ -15,6 +15,7 @@ on:
       - "public_sports_epg_local_fast.py"
       - "freewifi_today_public_sports.py"
       - "freewifi_today_jra.py"
+      - "check_gch_always.py"
       - "ganble/playlist.m3u"
       - "ganble/epg.xml"
       - "ganble/fast_publish_keirin_epg.py"
@@ -119,8 +120,8 @@ jobs:
           PY
 
             python freewifi_today_public_sports.py
-            # Restore JRA/GCH HQ-LQ and provider backups after the sports builder
-            # removes stale GCH IDs; this fast job runs every ten minutes.
+            # Always republish JRA's GCH MAIN/5002/HARUKA routes, even on
+            # days without scheduled races; this job runs every ten minutes.
             python freewifi_today_jra.py
             python finalize_today_public_sports.py
             python build_today_event_counts.py
@@ -144,18 +145,8 @@ jobs:
           print("PUBLIC SPORTS FAST:", counts, "generated_at=", d["generated_at"])
           PY
 
-            # Guard against silent GCH removal after an active JRA refresh.
-            python - <<'PY'
-          import json
-          from pathlib import Path
-          status = json.loads(Path("today_jra_status.json").read_text(encoding="utf-8"))
-          if status.get("jra_race_day"):
-              playlist = Path("freewifi").read_text(encoding="utf-8-sig")
-              required = ("jra.gch.hq", "jra.gch.lq", "グリーンチャンネル (5002直)", "グリーンチャンネル (HARUKA)")
-              missing = [entry for entry in required if entry not in playlist]
-              if missing:
-                  raise SystemExit("GCH missing after fast refresh: " + ", ".join(missing))
-          PY
+            # No race-day exception: all four GCH routes must always survive.
+            python check_gch_always.py
 
             git add public_sports_epg_local.xml verified_daily_status.json freewifi today_public_sports_status.json today_jra_status.json today_event_counts.json ganble/epg.xml guides.xml
             if git diff --cached --quiet; then
