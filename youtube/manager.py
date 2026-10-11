@@ -330,15 +330,6 @@ def resolve_general_one(index, item, previous):
                         item.get("query") or item["name"],
                         guards,
                     )
-            # Rotating game broadcasts may be absent from channel /streams.
-            if not url and item["id"] == "youtube.ehime_womens_baseball":
-                found, search_code = search_live(
-                    item.get("query") or item["name"], guards
-                )
-                if found:
-                    url, code = found, "OK"
-                elif code not in TRANSIENT:
-                    code = search_code
         else:
             url, code = search_live(
                 item.get("query") or item["name"],
@@ -757,22 +748,6 @@ def sync_freewifi(config):
             if pos < 0:
                 raise SystemExit("no safe Kana insertion anchor")
             text = text[:pos].rstrip() + "\n\n" + kana_block + "\n" + text[pos:]
-
-    # Temporary women's baseball source follows the 5-minute urgent YouTube
-    # worker. Keep absent when not live, and never persist expired HLS URLs.
-    womens_id = "youtube.ehime_womens_baseball"
-    womens_start = "# === WOMENS_BASEBALL_START ==="
-    womens_end = "# === WOMENS_BASEBALL_END ==="
-    text = re.sub(re.escape(womens_start) + r".*?" + re.escape(womens_end) + r"\n?", "", text, flags=re.S)
-    text = strip_entry(text, womens_id)
-    womens = parse_m3u(GENERAL_OUT).get(womens_id)
-    if womens:
-        temporary_block = (womens_start + "\n" + womens["ext"] + "\n" +
-                           womens["url"] + "\n" + womens_end + "\n")
-        pos = text.find(GENERAL_START)
-        if pos < 0:
-            raise SystemExit("YouTube managed block anchor missing")
-        text = text[:pos] + temporary_block + text[pos:]
 
     FREEWIFI.write_text(text.rstrip() + "\n", encoding="utf-8")
 
