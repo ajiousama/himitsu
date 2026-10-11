@@ -2,10 +2,10 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-12",
-  "generated_at": "2026-10-12T07:00:52.905988+09:00",
+  "generated_at": "2026-10-12T07:04:52.957395+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261012.json",
-  "schedule_checked_at": "2026-10-12T06:49:52.905675+09:00",
+  "schedule_checked_at": "2026-10-12T07:04:52.957395+09:00",
   "schedule_warnings": [
     "official_cards: TimeoutError"
   ],
@@ -54,13 +54,14 @@
   "cloud_acquisition": {
     "requested": 3,
     "fetched": 0,
-    "failures": [],
-    "deferred": [
+    "failures": [
       {
         "jcd": "14",
         "name": "鳴門",
-        "start": "2026-10-12T08:00:00+09:00"
-      },
+        "error": "HTTPError: playback check failed"
+      }
+    ],
+    "deferred": [
       {
         "jcd": "18",
         "name": "徳山",
@@ -801,8 +802,7 @@
           "name": "ドリーム戦"
         }
       ],
-      "provider_stream_start": "2026-10-12T08:00:00+09:00",
-      "source": "公式BR配信開始待ち 08:00"
+      "source": "automatic cloud SEED pending"
     },
     "boat.marugame": {
       "jcd": "15",
