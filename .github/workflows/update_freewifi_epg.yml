@@ -63,6 +63,7 @@ on:
       - "epg/keirin_epg_direct.py"
       - "epg/autorace_epg_direct.py"
       - "epg/jra_epg_merge.py"
+      - "epg/validate_gch_epg.py"
       - "epg/finalize_public_sports_prestart_epg.py"
       - "epg/kick_epg.py"
       - "epg/epg_final_guard.py"
@@ -411,6 +412,11 @@ jobs:
 
       - name: Reapply TVer live EPG overlay
         run: python tver/epg.py
+
+      - name: Verify 3-day GCH EPG and backup stream ID mapping
+        run: |
+          python check_gch_always.py
+          python -m epg.validate_gch_epg
 
       - name: Validate XML and reject empty/sparse guides
         run: |
