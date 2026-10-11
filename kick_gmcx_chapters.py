@@ -3422,9 +3422,9 @@ MANUAL_EPISODE_START_OVERRIDES: dict[int, int] = {
     304: 44308,
     305: 47677,
     306: 51162,
-    # #287-296: stable refined map; 9/10 regular heads detected and mini starts at 34800.
+    # #287-296: detected chapter positions; #288 was confirmed 4s too early.\n    # Preserve the independently detected #289-296 joins and mini special at 34800.
     287: 0,
-    288: 3480,
+    288: 3484,  # user playback: 4s later than detected
     289: 6961,
     290: 10441,
     291: 13922,
