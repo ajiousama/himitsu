@@ -3686,6 +3686,19 @@ def make_fixed_test_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict
         for ep in range(250, 257):
             append_episode(ep)
 
+    elif (start_ep, end_ep) == (307, 316):
+        # User playback confirmed a separate 15-minute programme between
+        # #310 and #311. Keep it as an independent entry; do not absorb it
+        # into either 58-minute episode or discard it from the tail.
+        for ep in range(307, 317):
+            if ep == 311:
+                append_special(
+                    "307-316-between-310-311-15min",
+                    "GMCX 15分番組（#310～#311間・番組名確認待ち）",
+                    15 * 60,
+                )
+            append_episode(ep)
+
     else:
         for ep in range(start_ep, end_ep + 1):
             append_episode(ep)
@@ -3706,8 +3719,8 @@ def make_fixed_test_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict
             "confidence": "low",
         })
 
-    # Playback-confirmed offsets for two newer, otherwise fixed-58-minute
-    # KICK bundles. The second episode began too early in both sources.
+    # Playback-confirmed offsets for newer KICK bundles.  The #307-316
+    # bundle also contains the 15-minute programme inserted above.
     # Shift the second and subsequent episodes AND the unclassified remainder
     # together, keeping the rest of each episode precisely 58:00 and
     # retaining every second of the source (including small final tails).
