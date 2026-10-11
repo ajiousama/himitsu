@@ -47,6 +47,38 @@ def useful_title(title: str) -> bool:
     return bool(re.search(r"[A-Za-z0-9一-龯ぁ-んァ-ヶ]", title))
 
 
+def epoch_seconds(value) -> int:
+    try:
+        return max(0, int(value or 0))
+    except (TypeError, ValueError):
+        return 0
+
+
+def is_on_air(row: dict, now: int) -> bool:
+    """Only publish actual broadcast windows; timestamps are Unix seconds."""
+    start = epoch_seconds(row.get("start_at"))
+    end = epoch_seconds(row.get("end_at"))
+    return (not start or now >= start) and (not end or now < end)
+
+
+def is_not_finished(row: dict, now: int) -> bool:
+    end = epoch_seconds(row.get("end_at"))
+    return not end or now < end
+
+
+def cached_catalog() -> dict:
+    """Allow deadline-based expiry cleanup even when TVer discovery fails."""
+    previous = json.loads(STATUS.read_text(encoding="utf-8"))
+    if not (previous.get("entries") or previous.get("schedule")):
+        raise RuntimeError("no previous TVer catalog to filter")
+    return {
+        "special": previous.get("entries") or [],
+        "schedule": previous.get("schedule") or [],
+        "resolver": previous.get("resolver"),
+        "region": previous.get("resolver_region"),
+    }
+
+
 def logo_for(title: str, series_title: str = "") -> str:
     low = title.lower()
     if "news24" in low:
@@ -113,24 +145,21 @@ def normalize(items: list[dict]) -> list[dict]:
 
 
 def build() -> None:
-    data = fetch_catalog()
-    active = normalize(data.get("special") or [])
-    schedule = normalize(data.get("schedule") or [])
+    now = int(time.time())
+    discovery_error = None
+    try:
+        data = fetch_catalog()
+        if not (data.get("special") or data.get("schedule")):
+            raise RuntimeError("TVer discovery returned no live or scheduled programmes")
+    except Exception as exc:
+        discovery_error = str(exc)
+        print(f"TVer discovery unavailable; pruning old catalog by end_at: {exc}")
+        data = cached_catalog()
 
-    # The public Special Live page is now the primary discovery source. A fully
-    # empty schedule is treated as a discovery outage so a temporary TVer page
-    # failure never wipes the known state.
-    if not schedule:
-        try:
-            dbg = requests.get(
-                RESOLVER,
-                params={"debug": "page", "forceFunctionRegion": "ap-northeast-1"},
-                timeout=TIMEOUT,
-            ).json()
-            print("TVer page debug:", json.dumps(dbg, ensure_ascii=False))
-        except Exception as exc:
-            print("TVer page debug failed:", exc)
-        raise SystemExit("TVer public Special Live schedule is empty; keeping previous state")
+    # The resolver can continue listing a programme after its published endAt.
+    # Never let old catalogue rows resurrect an already finished broadcast.
+    active = [row for row in normalize(data.get("special") or []) if is_on_air(row, now)]
+    schedule = [row for row in normalize(data.get("schedule") or []) if is_not_finished(row, now)]
 
     active.sort(key=lambda x: x["title"])
     schedule.sort(key=lambda x: (int(x.get("start_at") or 0), x["title"]))
@@ -156,6 +185,8 @@ def build() -> None:
                 "resolver": data.get("resolver"),
                 "resolver_region": data.get("region"),
                 "discovery_source": "tver_public_page_authoritative_plus_search_v13",
+                "discovery_error": discovery_error,
+                "expires_by_end_at": True,
                 "special_count": len(active),
                 "schedule_count": len(schedule),
                 "simul_on_air": data.get("simul") or [],
