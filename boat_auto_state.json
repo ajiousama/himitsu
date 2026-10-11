@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-11",
-  "generated_at": "2026-10-11T15:07:03.305121+09:00",
+  "generated_at": "2026-10-11T15:11:03.311906+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261011.json",
   "schedule_checked_at": "2026-10-11T15:00:03.303752+09:00",
@@ -52,9 +52,15 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 10,
+    "requested": 11,
     "fetched": 10,
-    "failures": [],
+    "failures": [
+      {
+        "jcd": "19",
+        "name": "下関",
+        "error": "cloud and official acquisition unavailable: HTTPError"
+      }
+    ],
     "deferred": []
   },
   "epg_programmes_written": {
@@ -518,14 +524,14 @@
       "last_race": "16:36",
       "alert_from": "2026-10-11T10:29:00+09:00",
       "next_race": {
-        "race": 9,
-        "start": "15:11"
+        "race": 10,
+        "start": "15:39"
       },
       "stream_window": "live_or_prestart",
       "intermission": null,
       "guidance_switch_at": "2026-10-11T17:21:00+09:00",
       "seed_required": false,
-      "reverify_due": true,
+      "reverify_due": false,
       "playback_verified": true,
       "first_verified_at": "2026-10-11T10:27:01.960641+09:00",
       "ready_before_first_race": true,
