@@ -3,7 +3,7 @@ name: Update TVer live streams
 on:
   workflow_dispatch:
   schedule:
-    - cron: "*/10 * * * *"
+    - cron: "*/5 * * * *"
   push:
     branches: [main]
     paths:
@@ -41,6 +41,9 @@ jobs:
 
       - name: Install requests
         run: python -m pip install --disable-pip-version-check requests
+
+      - name: Verify broadcast expiry rules
+        run: python -m unittest -q tver.test_update_live
 
       - name: Resolve current TVer live streams
         run: |
