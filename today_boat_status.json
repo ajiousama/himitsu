@@ -2,10 +2,10 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-12",
-  "generated_at": "2026-10-12T08:43:52.917480+09:00",
+  "generated_at": "2026-10-12T08:44:52.863536+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261012.json",
-  "schedule_checked_at": "2026-10-12T08:28:52.918676+09:00",
+  "schedule_checked_at": "2026-10-12T08:44:52.863536+09:00",
   "schedule_warnings": [
     "official_cards: TimeoutError"
   ],
@@ -52,7 +52,7 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 9,
+    "requested": 10,
     "fetched": 3,
     "failures": [],
     "deferred": [
@@ -60,6 +60,11 @@
         "jcd": "02",
         "name": "戸田",
         "start": "2026-10-12T10:09:00+09:00"
+      },
+      {
+        "jcd": "03",
+        "name": "江戸川",
+        "start": "2026-10-12T10:30:00+09:00"
       },
       {
         "jcd": "06",
@@ -416,7 +421,8 @@
           "name": "優勝戦"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "provider_stream_start": "2026-10-12T10:30:00+09:00",
+      "source": "公式BR配信開始待ち 10:30"
     },
     "boat.hamanako": {
       "jcd": "06",
