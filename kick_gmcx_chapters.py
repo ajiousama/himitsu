@@ -3678,6 +3678,32 @@ def make_fixed_test_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict
             "confidence": "low",
         })
 
+    # Playback-confirmed offsets for two newer, otherwise fixed-58-minute
+    # KICK bundles. The second episode began too early in both sources.
+    # Shift the second and subsequent episodes AND the unclassified remainder
+    # together, keeping the rest of each episode precisely 58:00 and
+    # retaining every second of the source (including small final tails).
+    playback_offset = {
+        ("b1947917-7165-4da5-b94e-1f58a923797b", 307, 316): 23,
+        ("ecd225a9-0035-4d5a-834f-2ee2392cf6aa", 317, 326): 43,
+    }.get((vod_id, start_ep, end_ep), 0)
+    if playback_offset and len(chapters) >= 2:
+        for item in chapters[1:]:
+            item["start_seconds"] += playback_offset
+        for index, item in enumerate(chapters):
+            start = int(item["start_seconds"])
+            stop = duration if index + 1 == len(chapters) else int(chapters[index + 1]["start_seconds"])
+            if stop <= start:
+                raise ValueError(f"Non-monotonic playback correction for {vod_id}")
+            item["stop_seconds"] = stop
+            item["duration_seconds"] = stop - start
+            item["replay_url"] = clip_url(vod_id, start, stop - start)
+            if index == 1:
+                item["method"] = "user-playback-confirmed-offset"
+                item["confidence"] = "confirmed"
+            elif index > 1:
+                item["method"] = "user-playback-offset-propagated"
+
     return chapters
 
 def make_exact_177_196_chapters(vod: dict, titles: dict[str, str]) -> list[dict]:
