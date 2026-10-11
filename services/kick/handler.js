@@ -1,7 +1,7 @@
 const channels = require("../../vod5/kick_channels.json");
 
 const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/140 Safari/537.36";
-const RESOLVER_VERSION = "2026-09-22-kick-live-vod-v7-id-check";
+const RESOLVER_VERSION = "2026-10-12-kick-live-vod-v8-precise-start";
 
 function norm(s) {
   return String(s || "").toLowerCase().replace(/[^a-z0-9\u3040-\u30ff\u3400-\u9fff]+/g, "");
@@ -277,7 +277,7 @@ function clipPlaylist(text, source, offset, duration) {
       if (key && !outTags.some(x => x.startsWith("#EXT-X-KEY:"))) outTags.unshift(key);
       if (map && !outTags.some(x => x.startsWith("#EXT-X-MAP:"))) outTags.unshift(map);
       outTags.unshift(
-        "#EXT-X-START:TIME-OFFSET=0,PRECISE=YES",
+        `#EXT-X-START:TIME-OFFSET=${Math.max(0, offset - start).toFixed(3)},PRECISE=YES`,
         `# KICK clip requested offset=${offset}s actual_segment_start=${start.toFixed(3)}s`
       );
     }
