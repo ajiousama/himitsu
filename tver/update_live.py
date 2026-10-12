@@ -27,6 +27,7 @@ SPORTS_RE = re.compile(
     r"スポーツ|野球|巨人|阪神|DeNA|中日|広島|ヤクルト|クライマックス|日本シリーズ|"
     r"サッカー|Jリーグ|駅伝|マラソン|競馬|GⅠ|GⅡ|GI|GII|"
     r"テニス|バスケ|バレー|ゴルフ|ラグビー|陸上|オリンピック|"
+    r"競輪|競艇|ボートレース|オートレース|プロ野球|高校野球|スポーツスペシャル|"
     r"フィギュア|スケート|水泳|卓球|相撲|格闘技|柔道|"
     r"ソフトボール|スポーツ中継|トーナメント|ワールドカップ",
     re.I,
@@ -184,7 +185,7 @@ def build() -> None:
                 "generated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
                 "resolver": data.get("resolver"),
                 "resolver_region": data.get("region"),
-                "discovery_source": "tver_public_page_authoritative_plus_search_v13",
+                "discovery_source": "tver_official_special_listing_plus_search_v14",
                 "discovery_error": discovery_error,
                 "expires_by_end_at": True,
                 "special_count": len(active),
