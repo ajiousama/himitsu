@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-13",
-  "generated_at": "2026-10-13T07:59:38.054068+09:00",
+  "generated_at": "2026-10-13T08:00:38.103336+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261013.json",
   "schedule_checked_at": "2026-10-13T07:46:38.051251+09:00",
@@ -19,7 +19,7 @@
   "alert_lead_minutes": 30,
   "card_count": 11,
   "held_count": 11,
-  "visible_count": 0,
+  "visible_count": 1,
   "active_count": 0,
   "ended_kept": [],
   "seed_required": false,
@@ -28,7 +28,7 @@
   "phase_counts": {
     "morning": {
       "held": 2,
-      "acquired": 0,
+      "acquired": 1,
       "active": 0,
       "ended": 0,
       "seed_required": 0,
@@ -52,16 +52,15 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 3,
-    "fetched": 0,
-    "failures": [
-      {
-        "jcd": "14",
-        "name": "鳴門",
-        "error": "HTTPError: playback check failed"
-      }
-    ],
+    "requested": 4,
+    "fetched": 1,
+    "failures": [],
     "deferred": [
+      {
+        "jcd": "04",
+        "name": "平和島",
+        "start": "2026-10-13T08:25:00+09:00"
+      },
       {
         "jcd": "11",
         "name": "びわこ",
@@ -82,7 +81,24 @@
     "active": false,
     "kind": "healthy"
   },
-  "streams": {},
+  "streams": {
+    "boat.naruto": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/28fc7e11aecf436ba9752193e6b12d5e/63eadbc38bc848afaf255798b5349f2f/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MjAyMjQwMCwic3RhcnQiOjE3OTE4NDYwMDAsImlvcyI6MTgsImNwIjoiMjE0MDQxNjAwXzIxNDA4NDc5OSIsInBwdyI6IjQwayJ9.qy6hkt2w1OQfErnBpVtglqk1ZaCUnuGKdQ5V6Z_lzkY",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-10-13T08:01:05.452775+09:00",
+      "checked_at": "2026-10-13T08:01:05.452775+09:00",
+      "first_verified_at": "2026-10-13T08:01:05.452775+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 8514714,
+        "last_segment": "/28fc7e11aecf436ba9752193e6b12d5e/63eadbc38bc848afaf255798b5349f2f/manifest_1_8514724.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
+    }
+  },
   "venues": {
     "boat.heiwajima": {
       "jcd": "04",
@@ -172,7 +188,8 @@
           "name": "トーキョーベイ"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "provider_stream_start": "2026-10-13T08:25:00+09:00",
+      "source": "公式BR配信開始待ち 08:25"
     },
     "boat.hamanako": {
       "jcd": "06",
@@ -539,7 +556,7 @@
       "jcd": "14",
       "name": "鳴門",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
       "active": false,
       "cancelled": false,
@@ -557,9 +574,9 @@
       "guidance_switch_at": "2026-10-13T14:56:00+09:00",
       "seed_required": false,
       "reverify_due": false,
-      "playback_verified": false,
-      "first_verified_at": null,
-      "ready_before_first_race": false,
+      "playback_verified": true,
+      "first_verified_at": "2026-10-13T08:01:05.452775+09:00",
+      "ready_before_first_race": true,
       "acquire_from": "2026-10-13T06:05:00+09:00",
       "races": [
         {
@@ -623,7 +640,9 @@
           "name": "ドリーム戦"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/28fc7e11aecf436ba9752193e6b12d5e/63eadbc38bc848afaf255798b5349f2f/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MjAyMjQwMCwic3RhcnQiOjE3OTE4NDYwMDAsImlvcyI6MTgsImNwIjoiMjE0MDQxNjAwXzIxNDA4NDc5OSIsInBwdyI6IjQwayJ9.qy6hkt2w1OQfErnBpVtglqk1ZaCUnuGKdQ5V6Z_lzkY",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     },
     "boat.marugame": {
       "jcd": "15",
