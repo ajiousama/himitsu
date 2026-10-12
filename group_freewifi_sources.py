@@ -85,6 +85,8 @@ def terrestrial_group_title(inf: str, url: str) -> str:
     lower = inf.lower()
     if "(haruka" in lower:
         return "地上波 haruka"
+    if "(naori" in lower:
+        return "地上波 naori"
     if "(primehomehd)" in lower:
         return "地上波 primehomeHD"
     if "(5002直)" in lower:
