@@ -14,16 +14,6 @@ TVER_PARENT = {
     "tver_ntv": "日本テレビ_jp",
 }
 
-ABC_ID = "ABCテレビ_jp"
-ABC_BLOG_URL = "https://haru.charandom.blog/stream/jp/abc/stream-output.m3u8?mode=hls"
-ABC_BLOG_NAME = "ABCテレビ (haru blog)"
-MX1_ID = "TOKYO・MX_jp"
-MX2_ID = "TOKYO・MX2_jp"
-MX2_BLOG_URL = "https://haru.charandom.blog/stream/jp/tokyo_mx2/stream-output.m3u8?mode=hls"
-MX2_BLOG_NAME = "TOKYO MX2 (haru blog)"
-MX2_LOGO = "https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/contrast/TOKYO_MX2_jp_b68495fb.png"
-
-
 def parse_entries(body: str):
     lines = body.splitlines()
     result = []
@@ -80,11 +70,9 @@ def source_rank(inf: str) -> int:
         return 4
     if "(jpnettv)" in lower:
         return 5
-    if "(haru blog)" in lower or "(blog)" in lower:
-        return 6
     if tvg_id(inf).startswith("tver_") or ",tver " in lower:
-        return 7
-    return 8
+        return 6
+    return 7
 
 
 def rewrite_group_title(inf: str, group: str) -> str:
@@ -105,43 +93,19 @@ def terrestrial_group_title(inf: str, url: str) -> str:
         return "地上波 primehome"
     if "(jpnettv)" in lower:
         return "地上波 jpnettv"
-    if is_haru_blog(inf, url):
-        return "地上波 haru blog"
     if tvg_id(inf).startswith("tver_") or ",tver " in lower:
         return "地上波 TVer"
     return "地上波"
 
 
 def normalize_terrestrial_entries(entries):
-    # Keep exactly two haru blog terrestrial fallbacks: ABC and TOKYO MX2.
-    # Recreate them on every normalization so automatic syncs cannot erase
-    # them or bring back unrelated blog sources.
-    abc_template = next((inf for inf, _url, _seq in entries if tvg_id(inf) == ABC_ID), None)
-    mx1_template = next((inf for inf, _url, _seq in entries if tvg_id(inf) == MX1_ID), None)
-    if abc_template is None:
-        raise RuntimeError("ABC source missing from terrestrial playlist")
-    if mx1_template is None:
-        raise RuntimeError("TOKYO MX1 source missing from terrestrial playlist")
-
+    # haru blog is retired. Strip any stale entries rather than reintroducing
+    # them during automated source grouping.
     cleaned = [(inf, url, seq) for inf, url, seq in entries if not is_haru_blog(inf, url)]
+    return [(rewrite_group_title(inf, terrestrial_group_title(inf, url)), url, seq)
+            for inf, url, seq in cleaned]
 
-    next_seq = max((seq for _inf, _url, seq in cleaned), default=-1) + 1
-    abc_inf = abc_template.rsplit(",", 1)[0] + "," + ABC_BLOG_NAME
-    cleaned.append((abc_inf, ABC_BLOG_URL, next_seq))
-    next_seq += 1
 
-    mx2_inf = mx1_template.rsplit(",", 1)[0]
-    mx2_inf = re.sub(r'tvg-id="[^"]+"', f'tvg-id="{MX2_ID}"', mx2_inf, count=1)
-    mx2_inf = re.sub(r'tvg-logo="[^"]+"', f'tvg-logo="{MX2_LOGO}"', mx2_inf, count=1)
-    mx2_inf = mx2_inf + "," + MX2_BLOG_NAME
-    last_mx1 = max(i for i, (inf, _url, _seq) in enumerate(cleaned) if tvg_id(inf) == MX1_ID)
-    cleaned.insert(last_mx1 + 1, (mx2_inf, MX2_BLOG_URL, next_seq))
-
-    relabelled = []
-    for inf, url, seq in cleaned:
-        group = terrestrial_group_title(inf, url)
-        relabelled.append((rewrite_group_title(inf, group), url, seq))
-    return relabelled
 def group_by_channel(entries):
     groups = OrderedDict()
     for inf, url, seq in entries:
@@ -169,7 +133,7 @@ def replace_section(text: str, start: str, end: str | None, prefix: str = "", te
 
 def normalize(text: str) -> str:
     # Terrestrial channels are channel-first, with source groups exposed in the
-    # player: 5002 -> HARUKA -> Naori -> primehomeHD -> primehome -> jpnettv -> haru blog -> TVer.
+    # player: 5002 -> HARUKA -> Naori -> primehomeHD -> primehome -> jpnettv -> TVer.
     text = replace_section(text, "## 地上波\n", "## BS", terrestrial=True)
     text = replace_section(text, "## BS\n", "# === GREEN_CHANNEL_PERSISTENT_START ===")
 
@@ -213,25 +177,12 @@ def validate_grouping(text: str, start: str, end: str | None) -> None:
             raise RuntimeError(f"source order invalid for {current}: {current_ranks}")
 
 
-def validate_haru_blogs(text: str) -> None:
-    a = text.index("## 地上波\n") + len("## 地上波\n")
-    b = text.index("## BS", a)
-    entries = parse_entries(text[a:b])
-    blogs = [(inf, url) for inf, url, _seq in entries if is_haru_blog(inf, url)]
-    if len(blogs) != 2:
-        raise RuntimeError(f"expected exactly two haru blog sources, found {len(blogs)}")
+def validate_no_haru_blogs(text: str) -> None:
+    entries = parse_entries(text)
+    if any(is_haru_blog(inf, url) for inf, url, _seq in entries):
+        raise RuntimeError("retired haru blog source found in FreeWiFi TV playlist")
 
-    expected = {
-        (ABC_ID, ABC_BLOG_URL, ABC_BLOG_NAME),
-        (MX2_ID, MX2_BLOG_URL, MX2_BLOG_NAME),
-    }
-    actual = {(tvg_id(inf), url, inf.rsplit(",", 1)[-1]) for inf, url in blogs}
-    if actual != expected:
-        raise RuntimeError(f"unexpected haru blog sources: {actual}")
 
-    for inf, _url in blogs:
-        if 'group-title="地上波 haru blog"' not in inf:
-            raise RuntimeError("haru blog source group label missing")
 def main() -> None:
     original = FREEWIFI.read_text(encoding="utf-8-sig", errors="strict")
     updated = normalize(original)
@@ -240,11 +191,11 @@ def main() -> None:
     validate_grouping(updated, "## BS\n", "# === GREEN_CHANNEL_PERSISTENT_START ===")
     validate_grouping(updated, "# === GREEN_CHANNEL_PERSISTENT_START ===\n", "# === GREEN_CHANNEL_PERSISTENT_END ===")
     validate_grouping(updated, "## CS\n", None)
-    validate_haru_blogs(updated)
+    validate_no_haru_blogs(updated)
 
     if updated != original:
         FREEWIFI.write_text(updated, encoding="utf-8")
-        print("Normalized TV order: 5002 -> HARUKA -> Naori -> primehomeHD -> primehome -> jpnettv -> haru blog -> TVer")
+        print("Normalized TV order: 5002 -> HARUKA -> Naori -> primehomeHD -> primehome -> jpnettv -> TVer")
     else:
         print("TV playlist per-channel source order already normalized")
 
