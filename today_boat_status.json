@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-12",
-  "generated_at": "2026-10-12T12:49:27.485372+09:00",
+  "generated_at": "2026-10-12T12:50:27.335069+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261012.json",
   "schedule_checked_at": "2026-10-12T12:38:27.435150+09:00",
@@ -52,7 +52,7 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 12,
+    "requested": 13,
     "fetched": 10,
     "failures": [],
     "deferred": [
@@ -65,6 +65,11 @@
         "jcd": "12",
         "name": "住之江",
         "start": "2026-10-12T14:25:00+09:00"
+      },
+      {
+        "jcd": "15",
+        "name": "丸亀",
+        "start": "2026-10-12T13:55:00+09:00"
       }
     ]
   },
@@ -528,14 +533,14 @@
       "last_race": "16:36",
       "alert_from": "2026-10-12T10:28:00+09:00",
       "next_race": {
-        "race": 5,
-        "start": "12:50"
+        "race": 6,
+        "start": "13:20"
       },
       "stream_window": "live_or_prestart",
       "intermission": null,
       "guidance_switch_at": "2026-10-12T17:21:00+09:00",
       "seed_required": false,
-      "reverify_due": true,
+      "reverify_due": false,
       "playback_verified": true,
       "first_verified_at": "2026-10-12T10:26:20.094832+09:00",
       "ready_before_first_race": true,
@@ -1061,7 +1066,8 @@
           "name": "予選選抜"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "provider_stream_start": "2026-10-12T13:55:00+09:00",
+      "source": "公式BR配信開始待ち 13:55"
     },
     "boat.kojima": {
       "jcd": "16",
