@@ -4165,7 +4165,7 @@ def _mark_provisional_titles(
     end_ep: int,
 ) -> list[dict]:
     confirmed = (start_ep, end_ep) in FILELIST_CONFIRMED_RANGES
-    reference_confirmed = (start_ep, end_ep) in {(267, 276), (277, 286), (287, 296), (307, 316), (317, 326)}
+    reference_confirmed = (start_ep, end_ep) in {(267, 276), (277, 286), (287, 296), (307, 316), (317, 326, (327, 336), (337, 346))}
     out = []
     for chapter in chapters:
         row = dict(chapter)
