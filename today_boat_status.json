@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-12",
-  "generated_at": "2026-10-12T09:55:52.976970+09:00",
+  "generated_at": "2026-10-12T09:59:52.927960+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261012.json",
   "schedule_checked_at": "2026-10-12T09:48:52.926339+09:00",
@@ -19,8 +19,8 @@
   "alert_lead_minutes": 30,
   "card_count": 14,
   "held_count": 14,
-  "visible_count": 5,
-  "active_count": 4,
+  "visible_count": 6,
+  "active_count": 5,
   "ended_kept": [],
   "seed_required": false,
   "seed_required_venues": [],
@@ -36,8 +36,8 @@
     },
     "day": {
       "held": 7,
-      "acquired": 2,
-      "active": 1,
+      "acquired": 3,
+      "active": 2,
       "ended": 0,
       "seed_required": 0,
       "cancelled": 0
@@ -53,7 +53,7 @@
   },
   "cloud_acquisition": {
     "requested": 10,
-    "fetched": 5,
+    "fetched": 6,
     "failures": [],
     "deferred": [
       {
@@ -72,11 +72,6 @@
         "start": "2026-10-12T10:26:00+09:00"
       },
       {
-        "jcd": "09",
-        "name": "津",
-        "start": "2026-10-12T10:00:00+09:00"
-      },
-      {
         "jcd": "22",
         "name": "福岡",
         "start": "2026-10-12T10:25:00+09:00"
@@ -92,17 +87,33 @@
     "kind": "healthy"
   },
   "streams": {
+    "boat.tsu": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/6c706f68cf214031810d6843fd9c4b54/a6c180c0a0294a69ac2351a7a7432c95/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MTk0MzIwMCwic3RhcnQiOjE3OTE3NjY4MDAsImlvcyI6MTgsImNwIjoiMjEzOTYyNDAwXzIxNDAwNTU5OSIsInBwdyI6IjQwayJ9.i8sYu0XRg_2OKY4AcBb7TeCUgrM8L1CJ6D4Rr8hF0Bw",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-10-12T10:00:20.133722+09:00",
+      "checked_at": "2026-10-12T10:00:20.133722+09:00",
+      "first_verified_at": "2026-10-12T10:00:20.133722+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 8501663,
+        "last_segment": "/6c706f68cf214031810d6843fd9c4b54/a6c180c0a0294a69ac2351a7a7432c95/manifest_4_8501665.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
+    },
     "boat.biwako": {
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/4ede6cce59a84271b77ad025db72cb86/5dd8e07351454eac9207938489ce850b/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MTkzOTYwMCwic3RhcnQiOjE3OTE3NjYyMDAsImlvcyI6MTgsImNwIjoiMjEzOTYxODAwXzIxNDAwNDk5OSIsInBwdyI6IjQwayJ9.B9PfJ24VH-vbGuwmp40EXxuX5A5Ztee5XIJHXRZ5twQ",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-10-12T09:50:20.037324+09:00",
-      "checked_at": "2026-10-12T09:55:20.081765+09:00",
+      "checked_at": "2026-10-12T10:00:20.133957+09:00",
       "first_verified_at": "2026-10-12T09:50:20.037324+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
         "sequence": 8489034,
-        "last_segment": "/4ede6cce59a84271b77ad025db72cb86/5dd8e07351454eac9207938489ce850b/manifest_4_8489087.ts",
+        "last_segment": "/4ede6cce59a84271b77ad025db72cb86/5dd8e07351454eac9207938489ce850b/manifest_4_8489137.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -112,13 +123,13 @@
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/67a67d2e71e44bffa14c9738413e7ce6/631492685f2d410e9a985605cb97d994/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MTkzNjAwMCwic3RhcnQiOjE3OTE3NTk2MDAsImlvcyI6MTgsImNwIjoiMjEzOTU1MjAwXzIxMzk5ODM5OSIsInBwdyI6IjQwayJ9.eziW0oDYLok__0ypkhfLfeQL7950Q-vH-6R1_Hy6aw8",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-10-12T08:00:20.254597+09:00",
-      "checked_at": "2026-10-12T09:55:20.082216+09:00",
+      "checked_at": "2026-10-12T10:00:20.134413+09:00",
       "first_verified_at": "2026-10-12T08:00:20.254597+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
         "sequence": 8500314,
-        "last_segment": "/67a67d2e71e44bffa14c9738413e7ce6/631492685f2d410e9a985605cb97d994/manifest_1_8501466.ts",
+        "last_segment": "/67a67d2e71e44bffa14c9738413e7ce6/631492685f2d410e9a985605cb97d994/manifest_1_8501516.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -128,13 +139,13 @@
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/c80a4052312e44a1910bf1d5f62af014/c689335b5324494eb1ff0d38d1d2e37d/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MTkzOTYwMCwic3RhcnQiOjE3OTE3NjU2MDAsImlvcyI6MTgsImNwIjoiMjEzOTYxMjAwXzIxNDAwNDM5OSIsInBwdyI6IjQwayJ9.Pnwt-tpHaoXok6Zg7P1vZRqJlFPIMNkQXwj-tR2UIts",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-10-12T09:40:20.202397+09:00",
-      "checked_at": "2026-10-12T09:54:20.283000+09:00",
+      "checked_at": "2026-10-12T10:00:20.134691+09:00",
       "first_verified_at": "2026-10-12T09:40:20.202397+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
         "sequence": 8480127,
-        "last_segment": "/c80a4052312e44a1910bf1d5f62af014/c689335b5324494eb1ff0d38d1d2e37d/manifest_4_8480269.ts",
+        "last_segment": "/c80a4052312e44a1910bf1d5f62af014/c689335b5324494eb1ff0d38d1d2e37d/manifest_4_8480329.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -144,13 +155,13 @@
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/e2b575a20abf4e529314f227ca230c6f/dbd28cb905df43bbb76d57842b750285/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MTkzNjAwMCwic3RhcnQiOjE3OTE3NjA1NjAsImlvcyI6MTgsImNwIjoiMjEzOTU2MTYwXzIxMzk5OTM1OSIsInBwdyI6IjQwayJ9.L226WBLM03FxO-nhdkq1iT-BiNECoez_yRPO9rQUvFw",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-10-12T08:16:20.164435+09:00",
-      "checked_at": "2026-10-12T09:55:20.082745+09:00",
+      "checked_at": "2026-10-12T10:00:20.134967+09:00",
       "first_verified_at": "2026-10-12T08:16:20.164435+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
         "sequence": 8478473,
-        "last_segment": "/e2b575a20abf4e529314f227ca230c6f/dbd28cb905df43bbb76d57842b750285/manifest_1_8479466.ts",
+        "last_segment": "/e2b575a20abf4e529314f227ca230c6f/dbd28cb905df43bbb76d57842b750285/manifest_1_8479516.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -160,13 +171,13 @@
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/b0e35fdf15914d33aafd58608fc22407/0ac09fb711ae4f21bc8453b4b2c46f72/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MTkzNjAwMCwic3RhcnQiOjE3OTE3NjAwODAsImlvcyI6MTgsImNwIjoiMjEzOTU1NjgwXzIxMzk5ODg3OSIsInBwdyI6IjQwayJ9.oI-5uFCkO7MLU7S4q5S2E4JJ8lL6888Dh4dexEouh9o",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-10-12T08:08:20.105302+09:00",
-      "checked_at": "2026-10-12T09:55:20.083022+09:00",
+      "checked_at": "2026-10-12T10:00:20.135239+09:00",
       "first_verified_at": "2026-10-12T08:08:20.105302+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
         "sequence": 8480641,
-        "last_segment": "/b0e35fdf15914d33aafd58608fc22407/0ac09fb711ae4f21bc8453b4b2c46f72/manifest_4_8481714.ts",
+        "last_segment": "/b0e35fdf15914d33aafd58608fc22407/0ac09fb711ae4f21bc8453b4b2c46f72/manifest_4_8481764.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -541,9 +552,9 @@
       "jcd": "09",
       "name": "津",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
-      "active": false,
+      "active": true,
       "cancelled": false,
       "mode": "day",
       "mode_label": "デイ",
@@ -554,14 +565,14 @@
         "race": 1,
         "start": "10:29"
       },
-      "stream_window": "scheduled",
+      "stream_window": "live_or_prestart",
       "intermission": null,
       "guidance_switch_at": "2026-10-12T17:05:00+09:00",
       "seed_required": false,
       "reverify_due": false,
-      "playback_verified": false,
-      "first_verified_at": null,
-      "ready_before_first_race": false,
+      "playback_verified": true,
+      "first_verified_at": "2026-10-12T10:00:20.133722+09:00",
+      "ready_before_first_race": true,
       "acquire_from": "2026-10-12T07:59:00+09:00",
       "races": [
         {
@@ -625,8 +636,9 @@
           "name": "ファイナル"
         }
       ],
-      "provider_stream_start": "2026-10-12T10:00:00+09:00",
-      "source": "公式BR配信開始待ち 10:00"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/6c706f68cf214031810d6843fd9c4b54/a6c180c0a0294a69ac2351a7a7432c95/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MTk0MzIwMCwic3RhcnQiOjE3OTE3NjY4MDAsImlvcyI6MTgsImNwIjoiMjEzOTYyNDAwXzIxNDAwNTU5OSIsInBwdyI6IjQwayJ9.i8sYu0XRg_2OKY4AcBb7TeCUgrM8L1CJ6D4Rr8hF0Bw",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     },
     "boat.biwako": {
       "jcd": "11",
