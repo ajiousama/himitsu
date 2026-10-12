@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-12",
-  "generated_at": "2026-10-12T09:48:52.926339+09:00",
+  "generated_at": "2026-10-12T09:49:52.868557+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261012.json",
   "schedule_checked_at": "2026-10-12T09:48:52.926339+09:00",
@@ -19,7 +19,7 @@
   "alert_lead_minutes": 30,
   "card_count": 14,
   "held_count": 14,
-  "visible_count": 4,
+  "visible_count": 5,
   "active_count": 3,
   "ended_kept": [],
   "seed_required": false,
@@ -36,7 +36,7 @@
     },
     "day": {
       "held": 7,
-      "acquired": 1,
+      "acquired": 2,
       "active": 0,
       "ended": 0,
       "seed_required": 0,
@@ -53,7 +53,7 @@
   },
   "cloud_acquisition": {
     "requested": 10,
-    "fetched": 4,
+    "fetched": 5,
     "failures": [],
     "deferred": [
       {
@@ -77,11 +77,6 @@
         "start": "2026-10-12T10:00:00+09:00"
       },
       {
-        "jcd": "11",
-        "name": "びわこ",
-        "start": "2026-10-12T09:50:00+09:00"
-      },
-      {
         "jcd": "22",
         "name": "福岡",
         "start": "2026-10-12T10:25:00+09:00"
@@ -97,6 +92,22 @@
     "kind": "healthy"
   },
   "streams": {
+    "boat.biwako": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/4ede6cce59a84271b77ad025db72cb86/5dd8e07351454eac9207938489ce850b/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MTkzOTYwMCwic3RhcnQiOjE3OTE3NjYyMDAsImlvcyI6MTgsImNwIjoiMjEzOTYxODAwXzIxNDAwNDk5OSIsInBwdyI6IjQwayJ9.B9PfJ24VH-vbGuwmp40EXxuX5A5Ztee5XIJHXRZ5twQ",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-10-12T09:50:20.037324+09:00",
+      "checked_at": "2026-10-12T09:50:20.037324+09:00",
+      "first_verified_at": "2026-10-12T09:50:20.037324+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 8489034,
+        "last_segment": "/4ede6cce59a84271b77ad025db72cb86/5dd8e07351454eac9207938489ce850b/manifest_4_8489037.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
+    },
     "boat.naruto": {
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/67a67d2e71e44bffa14c9738413e7ce6/631492685f2d410e9a985605cb97d994/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MTkzNjAwMCwic3RhcnQiOjE3OTE3NTk2MDAsImlvcyI6MTgsImNwIjoiMjEzOTU1MjAwXzIxMzk5ODM5OSIsInBwdyI6IjQwayJ9.eziW0oDYLok__0ypkhfLfeQL7950Q-vH-6R1_Hy6aw8",
       "source": "automatic acquisition + audio/video decode",
@@ -621,7 +632,7 @@
       "jcd": "11",
       "name": "びわこ",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
       "active": false,
       "cancelled": false,
@@ -639,9 +650,9 @@
       "guidance_switch_at": "2026-10-12T16:52:00+09:00",
       "seed_required": false,
       "reverify_due": false,
-      "playback_verified": false,
-      "first_verified_at": null,
-      "ready_before_first_race": false,
+      "playback_verified": true,
+      "first_verified_at": "2026-10-12T09:50:20.037324+09:00",
+      "ready_before_first_race": true,
       "acquire_from": "2026-10-12T07:55:00+09:00",
       "races": [
         {
@@ -705,8 +716,9 @@
           "name": "近江米ドリーム"
         }
       ],
-      "provider_stream_start": "2026-10-12T09:50:00+09:00",
-      "source": "公式BR配信開始待ち 09:50"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/4ede6cce59a84271b77ad025db72cb86/5dd8e07351454eac9207938489ce850b/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MTkzOTYwMCwic3RhcnQiOjE3OTE3NjYyMDAsImlvcyI6MTgsImNwIjoiMjEzOTYxODAwXzIxNDAwNDk5OSIsInBwdyI6IjQwayJ9.B9PfJ24VH-vbGuwmp40EXxuX5A5Ztee5XIJHXRZ5twQ",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     },
     "boat.suminoe": {
       "jcd": "12",
