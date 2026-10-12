@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-12",
-  "generated_at": "2026-10-12T12:44:27.333511+09:00",
+  "generated_at": "2026-10-12T12:46:27.339159+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261012.json",
   "schedule_checked_at": "2026-10-12T12:38:27.435150+09:00",
@@ -52,10 +52,16 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 10,
+    "requested": 11,
     "fetched": 10,
     "failures": [],
-    "deferred": []
+    "deferred": [
+      {
+        "jcd": "12",
+        "name": "住之江",
+        "start": "2026-10-12T14:25:00+09:00"
+      }
+    ]
   },
   "epg_programmes_written": {
     "public_sports_epg_local.xml": 196,
@@ -866,7 +872,8 @@
           "name": "予選特別A戦"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "provider_stream_start": "2026-10-12T14:25:00+09:00",
+      "source": "公式BR配信開始待ち 14:25"
     },
     "boat.naruto": {
       "jcd": "14",
@@ -1156,14 +1163,14 @@
       "last_race": "14:29",
       "alert_from": "2026-10-12T08:21:00+09:00",
       "next_race": {
-        "race": 9,
-        "start": "12:46"
+        "race": 10,
+        "start": "13:18"
       },
       "stream_window": "live_or_prestart",
       "intermission": null,
       "guidance_switch_at": "2026-10-12T15:14:00+09:00",
       "seed_required": false,
-      "reverify_due": true,
+      "reverify_due": false,
       "playback_verified": true,
       "first_verified_at": "2026-10-12T08:16:20.164435+09:00",
       "ready_before_first_race": true,
