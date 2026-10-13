@@ -109,21 +109,37 @@ def _add_catv_gap(root: ET.Element, cid: str, name: str, start: datetime, stop: 
     count = 0
     cursor = start
     while cursor < stop:
+        title = f"📺 愛媛CATV｜{name}"
+        category = "愛媛CATV"
         end = min(stop, cursor + timedelta(hours=6))
+        if cid == "ecatv.ainan_livecam":
+            # Emergency gap fill must obey the same 05:00/20:00
+            # programme boundaries as epg_build_safe.py.
+            local = cursor.astimezone(JST)
+            midnight = local.replace(hour=0, minute=0, second=0, microsecond=0)
+            morning = midnight + timedelta(hours=5)
+            evening = midnight + timedelta(hours=20)
+            if local < morning:
+                end = min(stop, morning)
+                title, category = "🛍️ ショップチャンネル", "通販"
+            elif local < evening:
+                end = min(stop, evening)
+                title, category = "📹 愛南ライブカメラ｜LIVE", "ライブカメラ"
+            else:
+                end = min(stop, morning + timedelta(days=1))
+                title, category = "🛍️ ショップチャンネル", "通販"
         p = ET.SubElement(
             root,
             "programme",
             {"start": xmltv_time(cursor), "stop": xmltv_time(end), "channel": cid},
         )
-        title = f"📺 愛媛CATV｜{name}"
-        category = "愛媛CATV"
-        if cid == "ecatv.ainan_livecam":
-            title = "📹 愛南ライブカメラ｜24時間LIVE"
-            category = "ライブカメラ"
         ET.SubElement(p, "title", {"lang": "ja"}).text = title
-        ET.SubElement(p, "desc", {"lang": "ja"}).text = (
+        desc = (
             f"{name}。実番組表の空白時間を補完する案内表示です。映像チャンネル自体はそのまま利用できます。"
         )
+        if cid == "ecatv.ainan_livecam":
+            desc = "愛南ライブカメラ 05:00〜20:00／ショップチャンネル 20:00〜翌05:00（日本時間）"
+        ET.SubElement(p, "desc", {"lang": "ja"}).text = desc
         ET.SubElement(p, "category", {"lang": "ja"}).text = category
         count += 1
         cursor = end
