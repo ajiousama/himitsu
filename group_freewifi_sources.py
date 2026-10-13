@@ -85,6 +85,8 @@ def terrestrial_group_title(inf: str, url: str) -> str:
     lower = inf.lower()
     if "(haruka" in lower:
         return "地上波 haruka"
+    if "(naori hd)" in lower:
+        return "地上波 naori HD"
     if "(naori" in lower:
         return "地上波 naori"
     if "(primehomehd)" in lower:
@@ -194,6 +196,14 @@ def main() -> None:
     validate_grouping(updated, "# === GREEN_CHANNEL_PERSISTENT_START ===\n", "# === GREEN_CHANNEL_PERSISTENT_END ===")
     validate_grouping(updated, "## CS\n", None)
     validate_no_haru_blogs(updated)
+
+    # Keep separate player groups after every source normalisation.
+    terrestrial_body = updated.split("## 地上波", 1)[1].split("## BS", 1)[0]
+    for inf, _url, _seq in parse_entries(terrestrial_body):
+        if "(naori HD)" in inf:
+            assert 'group-title="地上波 naori HD"' in inf, "NAORI HD group reverted"
+        elif "(naori)" in inf:
+            assert 'group-title="地上波 naori"' in inf, "NAORI standard group reverted"
 
     if updated != original:
         FREEWIFI.write_text(updated, encoding="utf-8")
