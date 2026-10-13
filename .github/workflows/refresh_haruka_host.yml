@@ -70,29 +70,22 @@ jobs:
           assert len(bases) == 1, f'HARUKA entries disagree on host: {sorted(bases)}'
           print(f'Validated common HARUKA host: {next(iter(bases))}')
 
-          # HARUKA refresh must preserve the canonical ABC + TOKYO MX2
-          # haru blog fallbacks and terrestrial source groups.
+          # HARU/blog was retired on 2026-10-12. Validate the current
+          # FreeWiFi terrestrial groups without requiring deleted sources.
           published = Path('freewifi').read_text(encoding='utf-8-sig', errors='replace')
-          abc_blog = 'https://haru.charandom.blog/stream/jp/abc/stream-output.m3u8?mode=hls'
-          mx2_blog = 'https://haru.charandom.blog/stream/jp/tokyo_mx2/stream-output.m3u8?mode=hls'
-          assert published.count(abc_blog) == 1
-          assert published.count(mx2_blog) == 1
-          assert published.count('haru.charandom.blog') == 2
-          assert 'group-title="地上波 haru blog",ABCテレビ (haru blog)' in published
-          assert 'tvg-id="TOKYO・MX2_jp"' in published
-          assert 'group-title="地上波 haru blog",TOKYO MX2 (haru blog)' in published
+          assert 'haru.charandom.blog' not in published, 'Retired HARU blog source unexpectedly restored'
           assert 'group-title="地上波 haruka"' in published
-          assert 'group-title="地上波 primehome"' in published
-          print('Validated ABC + TOKYO MX2 haru blog fallbacks and terrestrial source groups')
+          assert 'group-title="地上波 5002直"' in published
+          print('Validated current terrestrial HARUKA and 5002 source groups')
           PY
 
             git diff --check
-            if git diff --quiet -- tv/playlist.m3u freewifi; then
+            if git diff --quiet -- tv/playlist.m3u rakuten/playlist.m3u freewifi; then
               echo "HARUKA host unchanged"
               exit 0
             fi
 
-            git add tv/playlist.m3u freewifi
+            git add tv/playlist.m3u rakuten/playlist.m3u freewifi
             git commit -m "Auto-refresh HARUKA host [skip render]"
             if git push origin HEAD:main; then
               echo "HARUKA host update pushed"
