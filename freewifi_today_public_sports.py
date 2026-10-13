@@ -75,7 +75,7 @@ KEIRIN_LOGOS = {
     'keirin.takeo': venue_png('keirin_takeo.svg'),
     'keirin.sasebo': venue_png('keirin_sasebo.svg'),
     'keirin.beppu': venue_png('keirin_beppu.svg'),
-    'keirin.kumamoto': venue_png('keirin_kumamoto.png'),
+    'keirin.kumamoto': venue_png('keirin_kumamoto.svg'),
     'keirin.pist6': venue_png('keirin_pist6.png'),
     'keirin.tamano': venue_png('keirin_tamano.svg'),
 }
