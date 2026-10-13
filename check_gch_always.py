@@ -2,6 +2,9 @@
 """Reject FreeWiFi updates that drop an always-on Green Channel route."""
 from pathlib import Path
 import re
+from urllib.parse import urlparse
+
+from refresh_haruka_freewifi import is_haruka_stream_url
 
 PLAYLIST = Path("freewifi")
 GROUP = "今日の開催場"
@@ -20,7 +23,7 @@ REQUIRED = {
     ),
     "グリーンチャンネル (HARUKA)": (
         "jra.gch.hq",
-        "http://118.69.27.222:9394/stream/60.m3u8",
+        "/stream/60.m3u8",  # Base host is dynamically refreshed.
     ),
 }
 
@@ -48,7 +51,21 @@ def main() -> None:
         if not (start < text.find(line) < end):
             raise SystemExit(f"GCH always-on guard: source escaped TODAY_JRA block: {name}")
 
+    # HARUKA's host changes regularly; pin the channel path rather than an
+    # obsolete IP. Require all HARUKA entries to use the same current host.
+    haruka_bases = set()
+    for line in lines:
+        url = line.strip()
+        if is_haruka_stream_url(url):
+            parsed = urlparse(url)
+            haruka_bases.add(f"{parsed.scheme}://{parsed.netloc}")
+    if len(haruka_bases) != 1:
+        raise SystemExit(f"GCH always-on guard: HARUKA host disagreement: {sorted(haruka_bases)}")
+    haruka_base = next(iter(haruka_bases))
+
     for name, (expected_id, expected_url) in REQUIRED.items():
+        if name == "グリーンチャンネル (HARUKA)":
+            expected_url = haruka_base + expected_url
         expected = (expected_id, expected_url, GROUP)
         actual = found.get(name)
         if actual != expected:
