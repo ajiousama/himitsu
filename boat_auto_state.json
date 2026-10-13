@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-13",
-  "generated_at": "2026-10-13T15:10:43.485041+09:00",
+  "generated_at": "2026-10-13T15:11:43.484973+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261013.json",
   "schedule_checked_at": "2026-10-13T15:01:43.433920+09:00",
@@ -52,9 +52,15 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 8,
+    "requested": 9,
     "fetched": 8,
-    "failures": [],
+    "failures": [
+      {
+        "jcd": "19",
+        "name": "下関",
+        "error": "cloud and official acquisition unavailable: HTTPError"
+      }
+    ],
     "deferred": []
   },
   "epg_programmes_written": {
