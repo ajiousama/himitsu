@@ -46,10 +46,9 @@ out = Path("guides.xml")
 if not out.is_file() or out.stat().st_size < 100_000:
     raise SystemExit(f"guides.xml suspiciously small: {out.stat().st_size if out.exists() else 0} bytes")
 
-# The online Ainan feed is actually switched to Shop Channel overnight even
-# though the channel introduction describes it as a 24-hour live camera.
-# Direct feed observation and the broadcaster's 06:00 programme-day boundary
-# are reflected here so the FreeWiFi EPG matches the video viewers receive.
+# Ainan live camera broadcasts daily from 05:00 to 20:00 JST.
+# Outside those hours the same feed carries Shop Channel. Use the
+# user-confirmed fixed operating hours (no provisional switch slots).
 AINAN_ID = "ecatv.ainan_livecam"
 AINAN_NAME = "愛南ライブカメラ"
 JST = timezone(timedelta(hours=9))
@@ -72,24 +71,24 @@ for offset in range(4):
     slots = (
         (
             day,
-            day + timedelta(hours=6),
-            "🛍️ ショップチャンネル｜夜間放送",
-            "愛南ライブカメラ回線は夜間、ショップチャンネルへ切り替わります。",
+            day + timedelta(hours=5),
+            "🛍️ ショップチャンネル",
+            "愛南ライブカメラの時間外放送。ショップチャンネルを放送します（20:00〜翌05:00）。",
             "通販",
         ),
         (
-            day + timedelta(hours=6),
-            day + timedelta(hours=18),
+            day + timedelta(hours=5),
+            day + timedelta(hours=20),
             "📹 愛南ライブカメラ｜LIVE",
-            "愛媛CATV 愛南ライブカメラ。愛南地域の海や道路の様子をライブ映像でお届けします。",
+            "愛媛CATV 愛南ライブカメラ。毎日05:00〜20:00のライブ映像です。",
             "ライブカメラ",
         ),
         (
-            day + timedelta(hours=18),
+            day + timedelta(hours=20),
             day + timedelta(days=1),
-            "🔄 夜間切替時刻を確認中｜愛南LIVE／ショップチャンネル",
-            "ショップチャンネルへの夜の切替開始時刻を実配信で確認中です。0時開始とは確定していません。",
-            "放送案内",
+            "🛍️ ショップチャンネル",
+            "愛南ライブカメラの時間外放送。ショップチャンネルを放送します（20:00〜翌05:00）。",
+            "通販",
         ),
     )
     for start, stop, title, desc, category in slots:
@@ -203,7 +202,7 @@ if channels < 50 or programmes < 100:
 
 ainan_programmes = sum(1 for p in root.findall("programme") if p.get("channel") == AINAN_ID)
 if ainan_programmes != 12:
-    raise SystemExit(f"Ainan provisional night-switch EPG missing: programmes={ainan_programmes}")
+    raise SystemExit(f"Ainan 05:00–20:00/20:00–05:00 EPG missing: programmes={ainan_programmes}")
 
 rakuten_counts = {
     channel_id: sum(1 for p in root.findall("programme") if p.get("channel") == channel_id)
