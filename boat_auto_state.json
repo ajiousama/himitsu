@@ -2,10 +2,10 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-14",
-  "generated_at": "2026-10-14T20:31:35.024394+09:00",
+  "generated_at": "2026-10-14T20:34:34.859583+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261014.json",
-  "schedule_checked_at": "2026-10-14T20:18:34.855978+09:00",
+  "schedule_checked_at": "2026-10-14T20:34:34.859583+09:00",
   "schedule_warnings": [
     "official_cards: TimeoutError"
   ],
@@ -19,8 +19,8 @@
   "alert_lead_minutes": 30,
   "card_count": 13,
   "held_count": 13,
-  "visible_count": 5,
-  "active_count": 5,
+  "visible_count": 4,
+  "active_count": 4,
   "ended_kept": [],
   "seed_required": false,
   "seed_required_venues": [],
@@ -44,16 +44,16 @@
     },
     "night": {
       "held": 5,
-      "acquired": 5,
-      "active": 5,
-      "ended": 0,
+      "acquired": 4,
+      "active": 4,
+      "ended": 1,
       "seed_required": 0,
       "cancelled": 0
     }
   },
   "cloud_acquisition": {
-    "requested": 5,
-    "fetched": 5,
+    "requested": 4,
+    "fetched": 4,
     "failures": [],
     "deferred": []
   },
@@ -66,22 +66,6 @@
     "kind": "healthy"
   },
   "streams": {
-    "boat.suminoe": {
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/2a57a5411c7f40bb8091186e84a67f89/6287478b290d49ab8cde8e38c68895e0/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MjEzMDQwMCwic3RhcnQiOjE3OTE5NTU1MDAsImlvcyI6MTgsImNwIjoiMjE0MTUxMTAwXzIxNDE5Mjc5OSIsInBwdyI6IjQwayJ9.kFBf35HFVhv_ZIitfjB3imCOMe2NRJl77wKifjmL57U",
-      "source": "automatic acquisition + audio/video decode",
-      "acquired_at": "2026-10-14T14:25:39.174460+09:00",
-      "checked_at": "2026-10-14T20:32:02.411675+09:00",
-      "first_verified_at": "2026-10-14T14:25:39.174460+09:00",
-      "playback_verified": true,
-      "probe": {
-        "ok": true,
-        "sequence": 8508876,
-        "last_segment": "/2a57a5411c7f40bb8091186e84a67f89/6287478b290d49ab8cde8e38c68895e0/manifest_4_8512545.ts",
-        "video_decoded": true,
-        "audio_decoded": true
-      },
-      "consecutive_failures": 0
-    },
     "boat.marugame": {
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/33ea4dec22364dcca6a481b20b3190b1/52f7a0272fbb4144ac53e91c8720a19e/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MjEyNjgwMCwic3RhcnQiOjE3OTE5NTM3MDAsImlvcyI6MTgsImNwIjoiMjE0MTQ5MzAwXzIxNDE5MjQ5OSIsInBwdyI6IjQwayJ9.vmv3TAzCjEroNY_Etz1rS4K9nsGotp2GjinbXNXQSKU",
       "source": "automatic acquisition + audio/video decode",
@@ -413,9 +397,9 @@
       "jcd": "12",
       "name": "住之江",
       "held": true,
-      "visible": true,
-      "ended": false,
-      "active": true,
+      "visible": false,
+      "ended": true,
+      "active": false,
       "cancelled": false,
       "mode": "night",
       "mode_label": "ナイター",
@@ -423,11 +407,11 @@
       "last_race": "20:31",
       "alert_from": "2026-10-14T14:47:00+09:00",
       "next_race": null,
-      "stream_window": "live_or_prestart",
+      "stream_window": "ended_hidden",
       "intermission": null,
       "guidance_switch_at": "2026-10-14T21:16:00+09:00",
       "seed_required": false,
-      "reverify_due": true,
+      "reverify_due": false,
       "playback_verified": true,
       "first_verified_at": "2026-10-14T14:25:39.174460+09:00",
       "ready_before_first_race": true,
@@ -494,9 +478,7 @@
           "name": "一般戦"
         }
       ],
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/2a57a5411c7f40bb8091186e84a67f89/6287478b290d49ab8cde8e38c68895e0/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MjEzMDQwMCwic3RhcnQiOjE3OTE5NTU1MDAsImlvcyI6MTgsImNwIjoiMjE0MTUxMTAwXzIxNDE5Mjc5OSIsInBwdyI6IjQwayJ9.kFBf35HFVhv_ZIitfjB3imCOMe2NRJl77wKifjmL57U",
-      "source": "automatic acquisition + audio/video decode",
-      "token_expired": false
+      "source": "automatic cloud SEED pending"
     },
     "boat.amagasaki": {
       "jcd": "13",
