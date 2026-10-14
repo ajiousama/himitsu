@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-14",
-  "generated_at": "2026-10-14T12:53:11.658439+09:00",
+  "generated_at": "2026-10-14T12:55:11.717611+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261014.json",
   "schedule_checked_at": "2026-10-14T12:48:50.147680+09:00",
@@ -52,7 +52,7 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 11,
+    "requested": 12,
     "fetched": 8,
     "failures": [],
     "deferred": [
@@ -65,6 +65,11 @@
         "jcd": "15",
         "name": "丸亀",
         "start": "2026-10-14T13:55:00+09:00"
+      },
+      {
+        "jcd": "20",
+        "name": "若松",
+        "start": "2026-10-14T14:45:00+09:00"
       },
       {
         "jcd": "24",
@@ -182,13 +187,13 @@
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/5756bf74e452488ba819efbac603bcf0/b3cf6fa791a448e2b0c987b0566807fa/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MjEwODgwMCwic3RhcnQiOjE3OTE5MzMzNjAsImlvcyI6MTgsImNwIjoiMjE0MTI4OTYwXzIxNDE3MjE1OSIsInBwdyI6IjQwayJ9.XJMHm1G1vBWITk2_kx6-uBnrDJaCa04xYsK434V6FEM",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-10-14T08:16:17.267953+09:00",
-      "checked_at": "2026-10-14T12:49:25.346476+09:00",
+      "checked_at": "2026-10-14T12:55:39.097398+09:00",
       "first_verified_at": "2026-10-14T08:16:17.267953+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
         "sequence": 8521962,
-        "last_segment": "/5756bf74e452488ba819efbac603bcf0/b3cf6fa791a448e2b0c987b0566807fa/manifest_1_8524695.ts",
+        "last_segment": "/5756bf74e452488ba819efbac603bcf0/b3cf6fa791a448e2b0c987b0566807fa/manifest_1_8524757.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -198,13 +203,13 @@
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/08fade077d3b4987b841969d25c4b50c/1e1771923dc941c89a019b938adab546/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MjExNjAwMCwic3RhcnQiOjE3OTE5NDExMDAsImlvcyI6MTgsImNwIjoiMjE0MTM2NzAwXzIxNDE3OTg5OSIsInBwdyI6IjQwayJ9.UiYmfo_srHDAWBH7WuBOjX1gbdE71bPJgO4puSbkp_s",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-10-14T10:25:17.287064+09:00",
-      "checked_at": "2026-10-14T12:49:25.346519+09:00",
+      "checked_at": "2026-10-14T12:55:39.097811+09:00",
       "first_verified_at": "2026-10-14T10:25:17.287064+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
         "sequence": 8529539,
-        "last_segment": "/08fade077d3b4987b841969d25c4b50c/1e1771923dc941c89a019b938adab546/manifest_1_8530983.ts",
+        "last_segment": "/08fade077d3b4987b841969d25c4b50c/1e1771923dc941c89a019b938adab546/manifest_1_8531045.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -1124,7 +1129,8 @@
           "name": "2ndドリーム"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "provider_stream_start": "2026-10-14T14:45:00+09:00",
+      "source": "公式BR配信開始待ち 14:45"
     },
     "boat.ashiya": {
       "jcd": "21",
