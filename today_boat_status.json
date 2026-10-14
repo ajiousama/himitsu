@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-14",
-  "generated_at": "2026-10-14T16:38:11.847194+09:00",
+  "generated_at": "2026-10-14T16:39:11.801418+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261014.json",
   "schedule_checked_at": "2026-10-14T16:34:11.851018+09:00",
@@ -19,8 +19,8 @@
   "alert_lead_minutes": 30,
   "card_count": 13,
   "held_count": 13,
-  "visible_count": 5,
-  "active_count": 5,
+  "visible_count": 4,
+  "active_count": 4,
   "ended_kept": [],
   "seed_required": false,
   "seed_required_venues": [],
@@ -36,9 +36,9 @@
     },
     "day": {
       "held": 5,
-      "acquired": 1,
-      "active": 1,
-      "ended": 4,
+      "acquired": 0,
+      "active": 0,
+      "ended": 5,
       "seed_required": 0,
       "cancelled": 0
     },
@@ -52,8 +52,8 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 6,
-    "fetched": 5,
+    "requested": 5,
+    "fetched": 4,
     "failures": [
       {
         "jcd": "19",
@@ -72,22 +72,6 @@
     "kind": "healthy"
   },
   "streams": {
-    "boat.hamanako": {
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/fb3f52ed0d8742549df3ff6484a6a546/8955001067604d5bb29fe3bcdeca2c45/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MjExNjAwMCwic3RhcnQiOjE3OTE5NDExNjAsImlvcyI6MTgsImNwIjoiMjE0MTM2NzYwXzIxNDE3OTk1OSIsInBwdyI6IjQwayJ9.sMILT3nDjbThaJQNCJlBaKU1I9MFU5AjtSDeHomhGEI",
-      "source": "automatic acquisition + audio/video decode",
-      "acquired_at": "2026-10-14T10:26:17.238157+09:00",
-      "checked_at": "2026-10-14T16:34:47.532335+09:00",
-      "first_verified_at": "2026-10-14T10:26:17.238157+09:00",
-      "playback_verified": true,
-      "probe": {
-        "ok": true,
-        "sequence": 8531019,
-        "last_segment": "/fb3f52ed0d8742549df3ff6484a6a546/8955001067604d5bb29fe3bcdeca2c45/manifest_1_8534706.ts",
-        "video_decoded": true,
-        "audio_decoded": true
-      },
-      "consecutive_failures": 0
-    },
     "boat.suminoe": {
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/2a57a5411c7f40bb8091186e84a67f89/6287478b290d49ab8cde8e38c68895e0/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MjEzMDQwMCwic3RhcnQiOjE3OTE5NTU1MDAsImlvcyI6MTgsImNwIjoiMjE0MTUxMTAwXzIxNDE5Mjc5OSIsInBwdyI6IjQwayJ9.kFBf35HFVhv_ZIitfjB3imCOMe2NRJl77wKifjmL57U",
       "source": "automatic acquisition + audio/video decode",
@@ -245,9 +229,9 @@
       "jcd": "06",
       "name": "浜名湖",
       "held": true,
-      "visible": true,
-      "ended": false,
-      "active": true,
+      "visible": false,
+      "ended": true,
+      "active": false,
       "cancelled": false,
       "mode": "day",
       "mode_label": "デイ",
@@ -255,11 +239,11 @@
       "last_race": "16:36",
       "alert_from": "2026-10-14T10:45:00+09:00",
       "next_race": null,
-      "stream_window": "live_or_prestart",
+      "stream_window": "ended_hidden",
       "intermission": null,
       "guidance_switch_at": "2026-10-14T17:21:00+09:00",
       "seed_required": false,
-      "reverify_due": true,
+      "reverify_due": false,
       "playback_verified": true,
       "first_verified_at": "2026-10-14T10:26:17.238157+09:00",
       "ready_before_first_race": true,
@@ -326,9 +310,7 @@
           "name": "準優勝戦"
         }
       ],
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/fb3f52ed0d8742549df3ff6484a6a546/8955001067604d5bb29fe3bcdeca2c45/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MjExNjAwMCwic3RhcnQiOjE3OTE5NDExNjAsImlvcyI6MTgsImNwIjoiMjE0MTM2NzYwXzIxNDE3OTk1OSIsInBwdyI6IjQwayJ9.sMILT3nDjbThaJQNCJlBaKU1I9MFU5AjtSDeHomhGEI",
-      "source": "automatic acquisition + audio/video decode",
-      "token_expired": false
+      "source": "automatic cloud SEED pending"
     },
     "boat.biwako": {
       "jcd": "11",
