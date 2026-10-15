@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-15",
-  "generated_at": "2026-10-15T20:35:39.021465+09:00",
+  "generated_at": "2026-10-15T20:38:50.236322+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261015.json",
   "schedule_checked_at": "2026-10-15T20:31:21.138343+09:00",
@@ -19,8 +19,8 @@
   "alert_lead_minutes": 30,
   "card_count": 13,
   "held_count": 13,
-  "visible_count": 3,
-  "active_count": 3,
+  "visible_count": 2,
+  "active_count": 2,
   "ended_kept": [],
   "seed_required": false,
   "seed_required_venues": [],
@@ -44,16 +44,16 @@
     },
     "night": {
       "held": 4,
-      "acquired": 3,
-      "active": 3,
-      "ended": 1,
+      "acquired": 2,
+      "active": 2,
+      "ended": 2,
       "seed_required": 0,
       "cancelled": 0
     }
   },
   "cloud_acquisition": {
-    "requested": 3,
-    "fetched": 3,
+    "requested": 2,
+    "fetched": 2,
     "failures": [],
     "deferred": []
   },
@@ -66,22 +66,6 @@
     "kind": "healthy"
   },
   "streams": {
-    "boat.marugame": {
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/e0ea7ad824bf431b8e76eeac7e49652d/876d290e5b674c00834387684667255f/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjAxZjc5MTcwZWM1YTQwYzdhNThlNjg3OWY1ZmIyOWM3IiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MjIxMzIwMCwic3RhcnQiOjE3OTIwNDAxMDAsImlvcyI6MTgsImNwIjoiMjE0MjM1NzAwXzIxNDI3ODg5OSIsInBwdyI6IjN1NyJ9.DokunFZ8zEOP7WYGuCnx02hFlPku-WUnwBhoWra0zW0",
-      "source": "automatic acquisition + audio/video decode",
-      "acquired_at": "2026-10-15T13:55:28.614787+09:00",
-      "checked_at": "2026-10-15T20:36:33.673522+09:00",
-      "first_verified_at": "2026-10-15T13:55:28.614787+09:00",
-      "playback_verified": true,
-      "probe": {
-        "ok": true,
-        "sequence": 8547103,
-        "last_segment": "/e0ea7ad824bf431b8e76eeac7e49652d/876d290e5b674c00834387684667255f/manifest_4_8551118.ts",
-        "video_decoded": true,
-        "audio_decoded": true
-      },
-      "consecutive_failures": 0
-    },
     "boat.wakamatsu": {
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/4eeb77da200e4c2cbf5be3f8c2690faf/f6d1b5b705f4439f90bed9de4a22741d/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjAxZjc5MTcwZWM1YTQwYzdhNThlNjg3OWY1ZmIyOWM3IiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MjIxNjgwMCwic3RhcnQiOjE3OTIwNDMxMDAsImlvcyI6MTgsImNwIjoiMjE0MjM4NzAwXzIxNDI3OTE5OSIsInBwdyI6IjN1NyJ9.YMKCIJvEArnvtcIq8bMzA061kyEWQCnAgi69E8o6ZG0",
       "source": "automatic acquisition + audio/video decode",
@@ -816,9 +800,9 @@
       "jcd": "15",
       "name": "丸亀",
       "held": true,
-      "visible": true,
-      "ended": false,
-      "active": true,
+      "visible": false,
+      "ended": true,
+      "active": false,
       "cancelled": false,
       "mode": "night",
       "mode_label": "ナイター",
@@ -826,11 +810,11 @@
       "last_race": "20:35",
       "alert_from": "2026-10-15T14:49:00+09:00",
       "next_race": null,
-      "stream_window": "live_or_prestart",
+      "stream_window": "ended_hidden",
       "intermission": null,
       "guidance_switch_at": "2026-10-15T21:20:00+09:00",
       "seed_required": false,
-      "reverify_due": true,
+      "reverify_due": false,
       "playback_verified": true,
       "first_verified_at": "2026-10-15T13:55:28.614787+09:00",
       "ready_before_first_race": true,
@@ -897,9 +881,7 @@
           "name": "優勝戦"
         }
       ],
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/e0ea7ad824bf431b8e76eeac7e49652d/876d290e5b674c00834387684667255f/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjAxZjc5MTcwZWM1YTQwYzdhNThlNjg3OWY1ZmIyOWM3IiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MjIxMzIwMCwic3RhcnQiOjE3OTIwNDAxMDAsImlvcyI6MTgsImNwIjoiMjE0MjM1NzAwXzIxNDI3ODg5OSIsInBwdyI6IjN1NyJ9.DokunFZ8zEOP7WYGuCnx02hFlPku-WUnwBhoWra0zW0",
-      "source": "automatic acquisition + audio/video decode",
-      "token_expired": false
+      "source": "automatic cloud SEED pending"
     },
     "boat.wakamatsu": {
       "jcd": "20",
