@@ -20,6 +20,7 @@ QUALITY_IDS={f'{base}.{q}' if base!='jra.hokkaido' else f'jra.local.{q}' for bas
 GCH_PROVIDER_BACKUPS=(
  ('グリーンチャンネル (5002直)', 'http://67.215.237.218:5002/bs14.m3u8?gid=bs14&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0'),
  ('グリーンチャンネル (HARUKA)', 'http://118.69.27.222:9394/stream/60.m3u8'),
+ ('グリーンチャンネル (YoiTV)', 'https://linxei.netgenx.site/tv/yoitv.php?mode=stream&id=green_ch'),
 )
 LEGACY_FREE_IDS={'jra.official','jra.gch.free'}
 JRA_RACE_IDS={'jra.east','jra.west','jra.hokkaido'}
