@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-17",
-  "generated_at": "2026-10-17T07:59:38.488704+09:00",
+  "generated_at": "2026-10-17T08:00:50.571152+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261017.json",
   "schedule_checked_at": "2026-10-17T07:48:18.218427+09:00",
@@ -52,10 +52,15 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 4,
+    "requested": 5,
     "fetched": 1,
     "failures": [],
     "deferred": [
+      {
+        "jcd": "04",
+        "name": "平和島",
+        "start": "2026-10-17T08:25:00+09:00"
+      },
       {
         "jcd": "08",
         "name": "常滑",
@@ -458,7 +463,8 @@
           "name": "準優勝戦"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "provider_stream_start": "2026-10-17T08:25:00+09:00",
+      "source": "公式BR配信開始待ち 08:25"
     },
     "boat.tokoname": {
       "jcd": "08",
