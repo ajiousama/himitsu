@@ -2,10 +2,10 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-17",
-  "generated_at": "2026-10-17T08:02:50.777237+09:00",
+  "generated_at": "2026-10-17T08:05:50.676741+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261017.json",
-  "schedule_checked_at": "2026-10-17T07:48:18.218427+09:00",
+  "schedule_checked_at": "2026-10-17T08:05:50.676741+09:00",
   "schedule_warnings": [
     "official_cards: TimeoutError"
   ],
@@ -20,7 +20,7 @@
   "card_count": 14,
   "held_count": 14,
   "visible_count": 1,
-  "active_count": 0,
+  "active_count": 1,
   "ended_kept": [],
   "seed_required": false,
   "seed_required_venues": [],
@@ -29,7 +29,7 @@
     "morning": {
       "held": 3,
       "acquired": 1,
-      "active": 0,
+      "active": 1,
       "ended": 0,
       "seed_required": 0,
       "cancelled": 0
@@ -96,13 +96,13 @@
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/953278bf907741b7a189153116aa5d72/91a71f8b512c49f2a187524891405424/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MjM2ODAwMCwic3RhcnQiOjE3OTIxOTE2MDAsImlvcyI6MTgsImNwIjoiMjE0Mzg3MjAwXzIxNDQzMDM5OSIsInBwdyI6IjQwayJ9.cb3cs5YehX5oB6xG1gwAz5XGWa3ggnTfdJf5TEZGsiw",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-10-17T08:00:33.611429+09:00",
-      "checked_at": "2026-10-17T08:00:33.611429+09:00",
+      "checked_at": "2026-10-17T08:06:26.451460+09:00",
       "first_verified_at": "2026-10-17T08:00:33.611429+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
         "sequence": 8572314,
-        "last_segment": "/953278bf907741b7a189153116aa5d72/91a71f8b512c49f2a187524891405424/manifest_1_8572319.ts",
+        "last_segment": "/953278bf907741b7a189153116aa5d72/91a71f8b512c49f2a187524891405424/manifest_1_8572377.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -840,7 +840,7 @@
       "held": true,
       "visible": true,
       "ended": false,
-      "active": false,
+      "active": true,
       "cancelled": false,
       "mode": "morning",
       "mode_label": "モーニング",
@@ -851,7 +851,7 @@
         "race": 1,
         "start": "08:35"
       },
-      "stream_window": "scheduled",
+      "stream_window": "live_or_prestart",
       "intermission": null,
       "guidance_switch_at": "2026-10-17T14:58:00+09:00",
       "seed_required": false,
