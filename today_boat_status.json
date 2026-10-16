@@ -2,10 +2,10 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-17",
-  "generated_at": "2026-10-17T06:37:53.443194+09:00",
+  "generated_at": "2026-10-17T06:59:53.745534+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261017.json",
-  "schedule_checked_at": "2026-10-17T06:37:53.443194+09:00",
+  "schedule_checked_at": "2026-10-17T06:59:53.745534+09:00",
   "schedule_warnings": [
     "official_cards: TimeoutError"
   ],
@@ -56,11 +56,6 @@
     "fetched": 0,
     "failures": [
       {
-        "jcd": "10",
-        "name": "三国",
-        "error": "cloud and official acquisition unavailable: HTTPError"
-      },
-      {
         "jcd": "14",
         "name": "鳴門",
         "error": "cloud and official acquisition unavailable: HTTPError"
@@ -71,7 +66,13 @@
         "error": "cloud and official acquisition unavailable: HTTPError"
       }
     ],
-    "deferred": []
+    "deferred": [
+      {
+        "jcd": "10",
+        "name": "三国",
+        "start": "2026-10-17T08:16:00+09:00"
+      }
+    ]
   },
   "epg_programmes_written": {
     "public_sports_epg_local.xml": 196,
@@ -711,7 +712,8 @@
           "name": "カニ坊選抜"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "provider_stream_start": "2026-10-17T08:16:00+09:00",
+      "source": "公式BR配信開始待ち 08:16"
     },
     "boat.amagasaki": {
       "jcd": "13",
