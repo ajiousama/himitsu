@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-17",
-  "generated_at": "2026-10-17T06:59:53.745534+09:00",
+  "generated_at": "2026-10-17T07:00:53.390343+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261017.json",
   "schedule_checked_at": "2026-10-17T06:59:53.745534+09:00",
@@ -54,23 +54,22 @@
   "cloud_acquisition": {
     "requested": 3,
     "fetched": 0,
-    "failures": [
-      {
-        "jcd": "14",
-        "name": "鳴門",
-        "error": "cloud and official acquisition unavailable: HTTPError"
-      },
-      {
-        "jcd": "21",
-        "name": "芦屋",
-        "error": "cloud and official acquisition unavailable: HTTPError"
-      }
-    ],
+    "failures": [],
     "deferred": [
       {
         "jcd": "10",
         "name": "三国",
         "start": "2026-10-17T08:16:00+09:00"
+      },
+      {
+        "jcd": "14",
+        "name": "鳴門",
+        "start": "2026-10-17T08:00:00+09:00"
+      },
+      {
+        "jcd": "21",
+        "name": "芦屋",
+        "start": "2026-10-17T08:08:00+09:00"
       }
     ]
   },
@@ -893,7 +892,8 @@
           "name": "優勝戦"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "provider_stream_start": "2026-10-17T08:00:00+09:00",
+      "source": "公式BR配信開始待ち 08:00"
     },
     "boat.kojima": {
       "jcd": "16",
@@ -1253,7 +1253,8 @@
           "name": "準優勝戦"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "provider_stream_start": "2026-10-17T08:08:00+09:00",
+      "source": "公式BR配信開始待ち 08:08"
     },
     "boat.omura": {
       "jcd": "24",
