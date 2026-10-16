@@ -2,10 +2,10 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-17",
-  "generated_at": "2026-10-17T06:13:53.440286+09:00",
+  "generated_at": "2026-10-17T06:21:53.440473+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261017.json",
-  "schedule_checked_at": "2026-10-17T06:05:53.890928+09:00",
+  "schedule_checked_at": "2026-10-17T06:21:53.440473+09:00",
   "schedule_warnings": [
     "official_cards: TimeoutError"
   ],
@@ -52,9 +52,14 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 2,
+    "requested": 3,
     "fetched": 0,
     "failures": [
+      {
+        "jcd": "10",
+        "name": "三国",
+        "error": "cloud and official acquisition unavailable: HTTPError"
+      },
       {
         "jcd": "14",
         "name": "鳴門",
