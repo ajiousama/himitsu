@@ -97,6 +97,8 @@ EXPLICIT = {
 # Rakuten source here; if it disappears, fall back instead of borrowing the
 # SkyPerfecTV schedule.
 SOURCE_PIN = {
+    # Ch.535 uses the same XMLTV ID as the FreeWiFi manual TV row.
+    "ヌーヴェルパラダイス_jp": ("karenda", "ヌーヴェルパラダイス_jp"),
     "rch_40": ("karenda", "rch_40"),
 }
 
