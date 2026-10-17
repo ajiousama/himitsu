@@ -7,6 +7,7 @@ FREEWIFI = Path("freewifi")
 CONTRAST_DB = Path("logos/contrast_sources.json")
 RAW_BASE = "https://raw.githubusercontent.com/ajiousama/himitsu/main"
 PLAYLIST = Path("rakuten/playlist.m3u")
+EXTRA = Path("rakuten/freewifi_extra.m3u")
 START = "## Rch"
 END = "## 今日の開催場"
 
@@ -37,7 +38,10 @@ def payload():
     lines = text.splitlines()
     if lines and lines[0].startswith("#EXTM3U"):
         lines = lines[1:]
-    return "\n".join(lines).strip() + "\n\n"
+    extra = EXTRA.read_text(encoding="utf-8-sig", errors="strict").strip()
+    if not extra.startswith("#EXTINF:") or 'group-title="Rch"' not in extra:
+        raise RuntimeError("Rch FreeWiFi extras missing or malformed")
+    return "\n".join(lines).strip() + "\n\n" + extra + "\n\n"
 
 def main():
     text = FREEWIFI.read_text(encoding="utf-8-sig", errors="replace")
