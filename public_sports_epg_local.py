@@ -82,12 +82,56 @@ AUTO = {
     '山陽': ('auto.sanyo', 'sanyou'),
 }
 
-JRA_STREAMS = {'JRA EAST': 'jra.east', 'JRA WEST': 'jra.west', 'JRA HOKKAIDO': 'jra.hokkaido'}
+JRA_STREAMS = {'JRA EAST': 'jra.east', 'JRA WEST': 'jra.west', 'JRA LOCAL': 'jra.hokkaido'}
 JRA_VENUE_STREAM = {
     '東京': 'JRA EAST', '中山': 'JRA EAST', '新潟': 'JRA EAST', '福島': 'JRA EAST',
     '京都': 'JRA WEST', '阪神': 'JRA WEST', '中京': 'JRA WEST', '小倉': 'JRA WEST',
-    '札幌': 'JRA HOKKAIDO', '函館': 'JRA HOKKAIDO',
+    '札幌': 'JRA LOCAL', '函館': 'JRA LOCAL',
 }
+
+# WEB5 is the third JRA meeting, not a permanently Hokkaido-only channel.
+# The canonical tvg-id remains jra.hokkaido for downstream compatibility.
+JRA_EAST_PRIORITY = ('東京', '中山', '福島', '新潟')
+JRA_WEST_PRIORITY = ('京都', '阪神', '中京', '小倉')
+
+
+def assign_jra_meeting_streams(meetings):
+    """Allocate actual meetings to WEB3 / WEB4 / WEB5 each day.
+
+    Retain normal east/west assignment for one or two meetings.  On
+    three-meeting dates, give EAST and WEST their primary venue and
+    allocate the third (Niigata, Fukushima, Chukyo, Kokura, Sapporo or
+    Hakodate according to that day's card) to LOCAL WEB5.
+    """
+    venues = [venue for venue, races in meetings.items()
+              if venue in JRA_VENUE_STREAM and races]
+    assigned = {venue: JRA_VENUE_STREAM[venue] for venue in venues}
+    if len(venues) < 3:
+        return assigned
+
+    east = next((v for v in JRA_EAST_PRIORITY if v in venues), None)
+    west = next((v for v in JRA_WEST_PRIORITY if v in venues), None)
+    if east and west:
+        return {
+            venue: ('JRA EAST' if venue == east else
+                    'JRA WEST' if venue == west else
+                    'JRA LOCAL')
+            for venue in venues
+        }
+
+    # Unexpected combination: avoid silently merging simultaneous cards.
+    # Keep any existing dedicated LOCAL venue, then allocate distinct feeds.
+    if 'JRA LOCAL' not in assigned.values():
+        assigned[venues[-1]] = 'JRA LOCAL'
+    if len({assigned[v] for v in venues}) < len(venues):
+        remaining = ['JRA EAST', 'JRA WEST', 'JRA LOCAL']
+        for venue in venues:
+            if list(assigned.values()).count(assigned[venue]) > 1:
+                alternative = next((s for s in remaining
+                                    if s not in assigned.values()), None)
+                if alternative:
+                    assigned[venue] = alternative
+    return assigned
 
 
 def fetch_text(url, label='URL', timeout=30, headers=None):
@@ -469,8 +513,9 @@ def build_jra(root, target_days, verified):
     for day in target_days:
         meetings = fetch_jra(day)
         grouped = {k: [] for k in JRA_STREAMS}
+        venue_streams = assign_jra_meeting_streams(meetings)
         for venue, races in meetings.items():
-            stream = JRA_VENUE_STREAM.get(venue)
+            stream = venue_streams.get(venue)
             if stream:
                 grouped[stream].extend((venue, r) for r in races)
         for stream, cid in JRA_STREAMS.items():
