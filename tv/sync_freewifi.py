@@ -14,12 +14,24 @@ MANUAL_START = "# === MANUAL_TV_START ==="
 MANUAL_END = "# === MANUAL_TV_END ==="
 
 def strip_retired_naori(text: str) -> str:
-    """Exclude retired NAORI, NAORI HD and NAORI CS channels."""
-    return re.sub(
-        r"(?mi)^#EXTINF:[^\\r\\n]*naori[^\\r\\n]*\\r?\\n[^\\r\\n]*\\r?\\n?",
-        "",
-        text,
-    )
+    """Exclude old NAORI standard, HD and CS playlist entries."""
+    lines = text.splitlines(keepends=True)
+    kept = []
+    drop_url = False
+    for line in lines:
+        if line.startswith("#EXTINF:"):
+            drop_url = "naori" in line.lower()
+            if drop_url:
+                continue
+        if drop_url:
+            if not line.strip():
+                continue
+            if not line.lstrip().startswith("#"):
+                drop_url = False
+                continue
+            drop_url = False
+        kept.append(line)
+    return "".join(kept)
 
 
 def payload():
