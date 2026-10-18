@@ -58,6 +58,9 @@ def payload():
     extra = EXTRA.read_text(encoding="utf-8-sig", errors="strict").strip()
     if not extra.startswith("#EXTINF:") or 'group-title="Rch"' not in extra:
         raise RuntimeError("Rch FreeWiFi extras missing or malformed")
+    # Running as python rakuten/sync_freewifi.py must resolve the repository root.
+    import sys
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
     from newblog.sync_tv import inject_rch
     return inject_rch("\n".join(lines).strip() + "\n\n" + extra + "\n\n")
 
