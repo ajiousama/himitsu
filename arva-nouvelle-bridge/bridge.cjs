@@ -142,12 +142,14 @@ async function setupDecoder() {
 }
 function send(res, status, data, mime) {
   res.writeHead(status, { 'Content-Type': mime, 'Content-Length': data.length, 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' });
+  // HEAD should match GET's status and response headers, without a body.
+  if (res.req?.method === 'HEAD') return res.end();
   res.end(data);
 }
 async function main() {
   await setupDecoder();
   const server = http.createServer(async (req, res) => {
-    if (req.method !== 'GET') return send(res, 405, Buffer.from('GET only'), 'text/plain');
+    if (req.method !== 'GET' && req.method !== 'HEAD') return send(res, 405, Buffer.from('GET and HEAD only'), 'text/plain');
     try {
       const requested = new URL(req.url, 'http://localhost');
       const route = requested.pathname;
