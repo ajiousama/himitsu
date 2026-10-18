@@ -159,8 +159,17 @@ def build() -> None:
 
     # The resolver can continue listing a programme after its published endAt.
     # Never let old catalogue rows resurrect an already finished broadcast.
-    active = [row for row in normalize(data.get("special") or []) if is_on_air(row, now)]
-    schedule = [row for row in normalize(data.get("schedule") or []) if is_not_finished(row, now)]
+    # Some TVer event streams (notably sports) remain in "schedule" even
+    # after their official start time. Promote them at startAt so FreeWiFi
+    # does not miss a live event while the Special listing lags behind.
+    special_rows = normalize(data.get("special") or [])
+    schedule_rows = normalize(data.get("schedule") or [])
+    active_by_id = {}
+    for row in special_rows + schedule_rows:
+        if is_on_air(row, now):
+            active_by_id.setdefault(row["id"], row)
+    active = list(active_by_id.values())
+    schedule = [row for row in schedule_rows if is_not_finished(row, now)]
 
     active.sort(key=lambda x: x["title"])
     schedule.sort(key=lambda x: (int(x.get("start_at") or 0), x["title"]))
