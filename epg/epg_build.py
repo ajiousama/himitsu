@@ -97,6 +97,9 @@ EXPLICIT = {
 # Rakuten source here; if it disappears, fall back instead of borrowing the
 # SkyPerfecTV schedule.
 SOURCE_PIN = {
+    # Same XMLTV IDs as the two Arva terrestrial trial channels.
+    "テレ玉_jp": ("karenda", "テレ玉_jp"),
+    "テレビ神奈川_jp": ("karenda", "テレビ神奈川_jp"),
     # Ch.535 uses the same XMLTV ID as the FreeWiFi manual TV row.
     "ヌーヴェルパラダイス_jp": ("karenda", "ヌーヴェルパラダイス_jp"),
     "rch_40": ("karenda", "rch_40"),
