@@ -7,9 +7,10 @@ from __future__ import annotations
 
 from pathlib import Path
 import re
+from urllib.parse import urlsplit, urlunsplit
 
 FILES = [Path("tv/playlist.m3u"), Path("rakuten/playlist.m3u"), Path("freewifi")]
-TRIALS = ("テレ玉 (Arva・試験)", "tvk (Arva・試験)")
+TRIALS = ("TOKYO MX2 (Arva・試験)", "テレ玉 (Arva・試験)", "tvk (Arva・試験)")
 ANCHOR = "TOKYO MX1 (YoiTV)"
 
 
@@ -48,6 +49,22 @@ def clean_playlist(text: str, *, reposition: bool) -> tuple[str, int]:
         i += 1
 
     if reposition:
+        # Add MX2 as an isolated trial using the same Railway access token as Teletama.
+        # Do not hard-code or expose the key in this source file.
+        if TRIALS[0] not in trials:
+            if TRIALS[1] not in trials:
+                raise RuntimeError("Teletama test URL required to create MX2 URL")
+            existing_url = urlsplit(trials[TRIALS[1]][1])
+            if existing_url.path != "/channel/teletama/playlist.m3u8" or not existing_url.query:
+                raise RuntimeError("Unexpected Teletama Railway URL format")
+            mx2_url = urlunsplit((existing_url.scheme, existing_url.netloc,
+                                  "/channel/tokyo_mx2/playlist.m3u8", existing_url.query, ""))
+            mx2_info = (
+                '#EXTINF:-1 tvg-id="TOKYO・MX2_jp" '
+                'tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/contrast/TOKYO_MX_jp_8c4572b1.png" '
+                'group-title="地上波 Arva",TOKYO MX2 (Arva・試験)'
+            )
+            trials[TRIALS[0]] = (mx2_info, mx2_url)
         if set(trials) != set(TRIALS):
             raise RuntimeError(f"Missing Arva trial channels: {set(TRIALS) - set(trials)}")
         insertion = None
