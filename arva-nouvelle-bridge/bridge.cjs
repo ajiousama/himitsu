@@ -116,6 +116,46 @@ async function resource(url) {
   pending.set(key, job);
   try { return await job; } finally { pending.delete(key); }
 }
+// Create a short replay playlist without storing any video media.
+// HLS segments are atomic: the end boundary is accurate to a segment.
+function clippedReplayPlaylist(input, maxSeconds) {
+  const lines = input.replace(/\r/g, '').split('\n');
+  if (lines[0]?.trim() !== '#EXTM3U') throw Error('Catch-up source is not a media playlist');
+  const header = [], media = [];
+  let tags = [], inf = null, foundMedia = false;
+  for (const raw of lines) {
+    const line = raw.trim();
+    if (!line || line === '#EXT-X-ENDLIST') continue;
+    if (line.startsWith('#EXTINF:')) {
+      const seconds = Number((line.match(/^#EXTINF:([0-9.]+)/) || [])[1]);
+      if (!Number.isFinite(seconds) || seconds <= 0) throw Error('Invalid replay segment duration');
+      inf = { line, seconds };
+      foundMedia = true;
+      continue;
+    }
+    if (line.startsWith('#')) {
+      if (!foundMedia && !tags.length && !inf) header.push(line);
+      else tags.push(line);
+      continue;
+    }
+    if (inf) media.push({ tags, inf, uri: line });
+    inf = null;
+    tags = [];
+  }
+  if (!media.length) throw Error('No replay media segments available');
+  const out = header.map(x => x.startsWith('#EXT-X-PLAYLIST-TYPE:') ? '#EXT-X-PLAYLIST-TYPE:VOD' : x);
+  if (!out.some(x => x === '#EXT-X-PLAYLIST-TYPE:VOD')) out.push('#EXT-X-PLAYLIST-TYPE:VOD');
+  let total = 0, count = 0;
+  for (const group of media) {
+    out.push(...group.tags, group.inf.line, group.uri);
+    total += group.inf.seconds;
+    count += 1;
+    if (total >= maxSeconds || count >= 3600) break;
+  }
+  out.push('#EXT-X-ENDLIST');
+  return out.join('\n') + '\n';
+}
+
 async function setupDecoder() {
   fs.mkdirSync(vendor, { recursive: true });
   for (const name of ['wasm_exec.js', 'natsux.wasm']) {
@@ -162,6 +202,18 @@ async function main() {
         return send(res, 200, Buffer.from(list), 'audio/x-mpegurl; charset=utf-8');
       }
       let target;
+      // Guarded bounded replay clip, currently only ABC's requested morning segment.
+      const clipMatch = route.match(/^\/clip\/([a-z0-9_-]+)\/(\d{10})\/(\d{2,4})\.m3u8$/);
+      if (clipMatch) {
+        const selected = clipMatch[1], epoch = Number(clipMatch[2]), seconds = Number(clipMatch[3]);
+        const age = Math.floor(Date.now() / 1000) - epoch;
+        if (selected !== 'abc' || seconds < 30 || seconds > 3600 || age < 0 || age > 6 * 86400)
+          return send(res, 404, Buffer.from('Unavailable replay clip'), 'text/plain');
+        const src = sourceURL('/stream/jp/' + selected + '/replay.m3u8?mode=hls&start=' + epoch);
+        const decoded = await resource(src);
+        const hls = clippedReplayPlaylist(decoded.data.toString('utf8'), seconds);
+        return send(res, 200, Buffer.from(hls, 'utf8'), 'application/vnd.apple.mpegurl; charset=utf-8');
+      }
       if (route === '/playlist.m3u8') target = sourceURL(`/stream/jp/${encodeURIComponent(channel)}/stream-output.m3u8?mode=hls`);
       else if (/^\/channel\/[a-z0-9_]+\/playlist\.m3u8$/.test(route)) {
         const selected = route.split('/')[2];
