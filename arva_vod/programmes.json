@@ -18,6 +18,34 @@
       "logo": "assets/haru_vod/gccx.svg"
     },
     {
+      "id": "gccx_two",
+      "name": "ゲームセンターCX（フジテレビTWO放送分）",
+      "include": [
+        "ゲームセンターCX"
+      ],
+      "exclude": [
+        "BONUS STAGE"
+      ],
+      "channels": {
+        "フジテレビTWO_jp": "fuji_tv_two"
+      },
+      "logo": "assets/haru_vod/gccx.svg"
+    },
+    {
+      "id": "gccx_next",
+      "name": "ゲームセンターCX（フジテレビNEXT放送分）",
+      "include": [
+        "ゲームセンターCX"
+      ],
+      "exclude": [
+        "BONUS STAGE"
+      ],
+      "channels": {
+        "フジテレビNEXT_jp": "fuji_tv_next"
+      },
+      "logo": "assets/haru_vod/gccx.svg"
+    },
+    {
       "id": "nogizaka_koujichuu",
       "name": "乃木坂工事中",
       "include": [
@@ -56,14 +84,19 @@
       "id": "ohayo_asahi_0729",
       "name": "おはよう朝日です 07:29〜07:35",
       "include": [
-        "おはよう朝日です"
+        "おはよう朝日です",
+        "おはよう朝日 土曜日です",
+        "おはよう朝日土曜日です",
+        "おはよう朝日　土曜日です"
       ],
       "channels": {
         "ABCテレビ_jp": "abc"
       },
       "logo": "assets/haru_vod/ohayo_asahi_0730.svg",
       "clip_start_jst": "07:29",
-      "clip_duration_seconds": 360
+      "clip_duration_seconds": 360,
+      "retention_policy": "asahi_latest",
+      "max_per_program": 2
     },
     {
       "id": "tetsuota",
@@ -95,10 +128,25 @@
       "logo": "assets/haru_vod/0655.svg"
     },
     {
-      "id": "bakobako_night",
-      "name": "バコバコナイト（KBS京都）",
+      "id": "bakobako_sun",
+      "name": "ケンコバのバコバコナイト（サンテレビ）",
       "include": [
-        "バコバコナイト"
+        "ケンコバのバコバコナイト",
+        "バコバコナイト",
+        "BAKO2ナイト"
+      ],
+      "channels": {
+        "サンテレビ_jp": "sun"
+      },
+      "logo": "assets/haru_vod/bakobako_night.svg"
+    },
+    {
+      "id": "bakobako_kbs",
+      "name": "ケンコバのバコバコナイト（KBS京都）",
+      "include": [
+        "ケンコバのバコバコナイト",
+        "バコバコナイト",
+        "BAKO2ナイト"
       ],
       "channels": {
         "KBS京都_jp": "kbs"
