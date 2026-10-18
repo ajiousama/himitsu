@@ -13,6 +13,7 @@ on:
       - "patapata/**"
       - "ganble/playlist.m3u"
       - "tv/playlist.m3u"
+      - "newblog/**"
       - "tv/sync_freewifi.py"
       - "scripts/retire_haruka_freewifi.py"
       - "rakuten/playlist.m3u"
@@ -124,6 +125,7 @@ jobs:
 
       - name: Sync canonical subsystem projections
         run: |
+          python newblog/sync_tv.py
           python scripts/retire_haruka_freewifi.py
           python tv/sync_freewifi.py
           python radio_tv_nationwide_freewifi.py
@@ -218,8 +220,10 @@ jobs:
             python kick_gccx2_sync.py
 
             # Keep terrestrial/BS/CS source groups stable after every full publish.
+            python newblog/sync_tv.py
             python group_freewifi_sources.py
-            python scripts/retire_haruka_freewifi.py
+            python newblog/sync_tv.py
+          python scripts/retire_haruka_freewifi.py
             python tv/sync_freewifi.py
             python radio_tv_nationwide_freewifi.py
             python radio/sync_freewifi.py

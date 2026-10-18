@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - group_freewifi_sources.py
+      - newblog/**
       - scripts/retire_haruka_freewifi.py
       - .github/workflows/group_freewifi_source_regions.yml
   workflow_dispatch:
@@ -38,6 +39,7 @@ jobs:
             git fetch origin main
             git reset --hard origin/main
 
+            python newblog/sync_tv.py
             python scripts/retire_haruka_freewifi.py
             python group_freewifi_sources.py
             python tv/sync_freewifi.py
