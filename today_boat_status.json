@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-18",
-  "generated_at": "2026-10-18T09:38:10.372885+09:00",
+  "generated_at": "2026-10-18T09:40:10.429833+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261018.json",
   "schedule_checked_at": "2026-10-18T09:37:10.430285+09:00",
@@ -19,7 +19,7 @@
   "alert_lead_minutes": 30,
   "card_count": 13,
   "held_count": 13,
-  "visible_count": 4,
+  "visible_count": 5,
   "active_count": 3,
   "ended_kept": [],
   "seed_required": false,
@@ -36,7 +36,7 @@
     },
     "day": {
       "held": 7,
-      "acquired": 1,
+      "acquired": 2,
       "active": 0,
       "ended": 0,
       "seed_required": 0,
@@ -53,7 +53,7 @@
   },
   "cloud_acquisition": {
     "requested": 10,
-    "fetched": 4,
+    "fetched": 5,
     "failures": [],
     "deferred": [
       {
@@ -75,11 +75,6 @@
         "jcd": "09",
         "name": "津",
         "start": "2026-10-18T09:55:00+09:00"
-      },
-      {
-        "jcd": "16",
-        "name": "児島",
-        "start": "2026-10-18T09:40:00+09:00"
       },
       {
         "jcd": "23",
@@ -124,6 +119,22 @@
         "ok": true,
         "sequence": 8559285,
         "last_segment": "/97f0ad1fdb7946ada131d5ef45ee5980/1ff8ca9967ef422ba0c553d00a4f4838/manifest_4_8560102.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
+    },
+    "boat.kojima": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/e7b6098ba0e942d3830299a6b319b90e/d5fa02a3113e4dae9122d70fd365bee7/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MjQ1ODAwMCwic3RhcnQiOjE3OTIyODQwMDAsImlvcyI6MTgsImNwIjoiMjE0NDc5NjAwXzIxNDUyMjc5OSIsInBwdyI6IjQwayJ9.CCsELWsZzIGzy9wgqQ15Y4tqAxSvn-arap_QGr3Tmfc",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-10-18T09:40:37.615965+09:00",
+      "checked_at": "2026-10-18T09:40:37.615965+09:00",
+      "first_verified_at": "2026-10-18T09:40:37.615965+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 8566527,
+        "last_segment": "/e7b6098ba0e942d3830299a6b319b90e/d5fa02a3113e4dae9122d70fd365bee7/manifest_4_8566533.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -805,7 +816,7 @@
       "jcd": "16",
       "name": "児島",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
       "active": false,
       "cancelled": false,
@@ -823,9 +834,9 @@
       "guidance_switch_at": "2026-10-18T17:32:00+09:00",
       "seed_required": false,
       "reverify_due": false,
-      "playback_verified": false,
-      "first_verified_at": null,
-      "ready_before_first_race": false,
+      "playback_verified": true,
+      "first_verified_at": "2026-10-18T09:40:37.615965+09:00",
+      "ready_before_first_race": true,
       "acquire_from": "2026-10-18T08:25:00+09:00",
       "races": [
         {
@@ -889,8 +900,9 @@
           "name": "記者選抜戦"
         }
       ],
-      "provider_stream_start": "2026-10-18T09:40:00+09:00",
-      "source": "公式BR配信開始待ち 09:40"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/e7b6098ba0e942d3830299a6b319b90e/d5fa02a3113e4dae9122d70fd365bee7/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MjQ1ODAwMCwic3RhcnQiOjE3OTIyODQwMDAsImlvcyI6MTgsImNwIjoiMjE0NDc5NjAwXzIxNDUyMjc5OSIsInBwdyI6IjQwayJ9.CCsELWsZzIGzy9wgqQ15Y4tqAxSvn-arap_QGr3Tmfc",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     },
     "boat.tokuyama": {
       "jcd": "18",
