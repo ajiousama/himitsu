@@ -13,6 +13,8 @@ function option(name, fallback) {
   return args[i + 1];
 }
 const channel = option('--channel', process.env.CHANNEL || 'nouvelle_paradise');
+// Extra channel endpoints are opt-in tests, not part of the FreeWiFi playlist.
+const trialChannels = new Set(['teletama', 'tvk']);
 if (!/^[a-zA-Z0-9_()-]+$/.test(channel)) throw Error('Invalid channel name');
 const upstream = new URL(option('--base-url', process.env.UPSTREAM_BASE || 'https://linxei.biz.id'));
 if (!['http:', 'https:'].includes(upstream.protocol) || upstream.username || upstream.password) throw Error('Invalid upstream');
@@ -161,6 +163,11 @@ async function main() {
       }
       let target;
       if (route === '/playlist.m3u8') target = sourceURL(`/stream/jp/${encodeURIComponent(channel)}/stream-output.m3u8?mode=hls`);
+      else if (/^\/channel\/[a-z0-9_]+\/playlist\.m3u8$/.test(route)) {
+        const selected = route.split('/')[2];
+        if (!trialChannels.has(selected)) return send(res, 404, Buffer.from('Unknown trial channel'), 'text/plain');
+        target = sourceURL(`/stream/jp/${selected}/stream-output.m3u8?mode=hls`);
+      }
       else if (route === '/master.m3u') target = sourceURL('/stream/master.m3u');
       else if (route.startsWith('/resource/')) {
         const token = route.slice('/resource/'.length);
