@@ -102,7 +102,14 @@ def refresh_playlist(text: str, base_url: str) -> tuple[str, int, int]:
 
 
 def main() -> None:
-    base_url = fetch_current_base()
+    try:
+        base_url = fetch_current_base()
+    except (RuntimeError, ValueError, OSError) as exc:
+        # Upstream may return an API body without data.link while HARUKA is down.
+        # Do not erase or rewrite the last saved HARUKA links, and do not block
+        # unrelated FreeWiFi TV/EPG updates.
+        print(f"HARUKA upstream unavailable ({type(exc).__name__}); keeping existing links unchanged")
+        return
     print(f"HARUKA current base: {base_url}")
 
     # Validate both outputs before writing either. The published aggregate can
