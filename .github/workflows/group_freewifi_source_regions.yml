@@ -12,8 +12,9 @@ on:
 permissions:
   contents: write
 
+# Run the one-time source retirement independently of the slower full EPG builder.
 concurrency:
-  group: himitsu-freewifi-state-writer
+  group: himitsu-haruka-source-retirement
   cancel-in-progress: false
 
 jobs:
@@ -21,51 +22,59 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: '3.x'
-
-      - name: Normalize terrestrial, BS and CS per-channel source order
+      - name: Retire HARUKA, reorder Arva trials, and publish without racing other writers
+        shell: bash
         run: |
-          python scripts/retire_haruka_freewifi.py
-          python group_freewifi_sources.py
-          python tv/sync_freewifi.py
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          for attempt in 1 2 3 4 5; do
+            echo "FreeWiFi source cleanup attempt $attempt/5"
+            git fetch origin main
+            git reset --hard origin/main
 
-      - name: Sync canonical Rakuten Rch block
-        run: python rakuten/sync_freewifi.py
+            python scripts/retire_haruka_freewifi.py
+            python group_freewifi_sources.py
+            python tv/sync_freewifi.py
+            python rakuten/sync_freewifi.py
 
-      - name: Validate playlist
-        run: |
-          python - <<'PY'
+            python - <<'PY'
           from pathlib import Path
           s = Path('freewifi').read_text(encoding='utf-8')
+          tv = Path('tv/playlist.m3u').read_text(encoding='utf-8')
+          rch = Path('rakuten/playlist.m3u').read_text(encoding='utf-8')
+          for filename, body in (('freewifi',s),('tv/playlist.m3u',tv),('rakuten/playlist.m3u',rch)):
+              assert 'haruka' not in body.casefold(), f'HARUKA returned in {filename}'
+              assert ':9394/stream/' not in body, f'old 9394 URL returned in {filename}'
           assert s.startswith('#EXTM3U')
-          assert '## 地上波' in s
-          assert '## BS' in s
-          assert '## その他' in s
-          assert '## Rch' in s
-          # Retired blog streams must not be required by source validation.
+          for section in ('## 地上波','## BS','## その他','## Rch'):
+              assert section in s
           assert 'haru.charandom.blog' not in s
-          assert 'group-title="地上波 5002直"' in s
-          assert "haruka" not in s.lower(), "retired HARUKA channel restored"
-          # NAORI including HD and CS must stay removed after rebuild.
-          assert 'naori' not in s.lower(), 'retired NAORI channel restored'
+          assert 'naori' not in s.casefold()
+          assert s.index('TOKYO MX1 (YoiTV)') < s.index('テレ玉 (Arva・試験)') < s.index('tvk (Arva・試験)') < s.index('サンテレビ (5002直)')
           for cid in ('rch_30','rch_35','rch_37','rch_46','rch_86','rch_113','rch_122','rch_123','rch_124','rch_125','rch_41'):
               assert cid in s
           assert '## Rakuten-JP' not in s
+          print('HARUKA removed from published/canonical lists; Arva ordering validated')
           PY
-          git diff --check
-
-      - name: Commit normalized FreeWiFi playlist
-        run: |
-          if git diff --quiet -- tv/playlist.m3u rakuten/playlist.m3u freewifi; then
-            echo "No freewifi changes"
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add tv/playlist.m3u rakuten/playlist.m3u freewifi
-          git commit -m "Normalize FreeWiFi per-channel source order and Rch block [skip render]"
-          git pull --rebase origin main
-          git push
+            git diff --check
+            git add freewifi tv/playlist.m3u rakuten/playlist.m3u
+            if git diff --cached --quiet; then
+              echo "FreeWiFi sources already cleaned"
+              exit 0
+            fi
+            git commit -m "Remove HARUKA from all FreeWiFi sources and position Arva after TOKYO MX1 [skip ci] [skip render]"
+            if git push origin HEAD:main; then
+              echo "FreeWiFi source cleanup published"
+              exit 0
+            fi
+            echo "Main moved; refreshing before retry"
+            sleep 3
+          done
+          echo "Unable to publish FreeWiFi source cleanup" >&2
+          exit 1
