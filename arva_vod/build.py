@@ -189,7 +189,7 @@ def main() -> None:
     config = json.loads(CONFIG.read_text(encoding="utf-8"))
     rules = config["programmes"]
     assert rules and len({r["id"] for r in rules}) == len(rules)
-    days = min(6, max(1, int(config.get("catchup_days", 6))))
+    days = min(14, max(1, int(config.get("catchup_days", 8))))
     now = datetime.now(timezone.utc)
     base, key = bridge_config(LIVE_CONFIG)
     found = candidates(args.epg, rules, now, days)
