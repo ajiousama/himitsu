@@ -53,11 +53,16 @@ def is_haru_blog(inf: str, url: str = "") -> bool:
     )
 
 
+def without_retired_naori(entries):
+    """Remove retired NAORI standard, HD and CS from channel sources."""
+    return [(inf, url, seq) for inf, url, seq in entries
+            if "naori" not in inf.lower() and "naori" not in url.lower()]
+
+
 def source_rank(inf: str) -> int:
     lower = inf.lower()
     # Prefer 5002 direct as primary for every channel where it is registered.
-    # Keep HARUKA as fallback; Naori test sources remain directly after HARUKA
-    # for channels that lack 5002. This is a display preference, not a health claim.
+    # Keep HARUKA as fallback. NAORI sources are retired.
     if "(5002直)" in lower:
         return 0
     if "(haruka" in lower or 'group-title="haruka bs"' in lower or 'group-title="haruka cs"' in lower:
@@ -130,7 +135,7 @@ def render(entries) -> str:
 def replace_section(text: str, start: str, end: str | None, prefix: str = "", terrestrial: bool = False) -> str:
     a = text.index(start) + len(start)
     b = text.index(end, a) if end is not None else len(text)
-    entries = parse_entries(text[a:b])
+    entries = without_retired_naori(parse_entries(text[a:b]))
     if terrestrial:
         entries = normalize_terrestrial_entries(entries)
     entries = group_by_channel(entries)
@@ -138,8 +143,7 @@ def replace_section(text: str, start: str, end: str | None, prefix: str = "", te
 
 
 def normalize(text: str) -> str:
-    # Terrestrial channels are channel-first, with source groups exposed in the
-    # player: 5002 -> HARUKA -> Naori -> primehomeHD -> primehome -> jpnettv -> TVer.
+    # Terrestrial source order: 5002 -> HARUKA -> primehomeHD -> primehome -> jpnettv -> TVer.
     text = replace_section(text, "## 地上波\n", "## BS", terrestrial=True)
     text = replace_section(text, "## BS\n", "# === GREEN_CHANNEL_PERSISTENT_START ===")
 
@@ -147,7 +151,7 @@ def normalize(text: str) -> str:
     ge = "# === GREEN_CHANNEL_PERSISTENT_END ==="
     a = text.index(gs) + len(gs)
     b = text.index(ge, a)
-    text = text[:a] + "## グリーンCh\n\n" + render(group_by_channel(parse_entries(text[a:b]))) + text[b:]
+    text = text[:a] + "## グリーンCh\n\n" + render(group_by_channel(without_retired_naori(parse_entries(text[a:b])))) + text[b:]
 
     text = replace_section(text, "## CS\n", None)
 
@@ -198,18 +202,12 @@ def main() -> None:
     validate_grouping(updated, "# === GREEN_CHANNEL_PERSISTENT_START ===\n", "# === GREEN_CHANNEL_PERSISTENT_END ===")
     validate_grouping(updated, "## CS\n", None)
     validate_no_haru_blogs(updated)
-
-    # Keep separate player groups after every source normalisation.
-    terrestrial_body = updated.split("## 地上波", 1)[1].split("## BS", 1)[0]
-    for inf, _url, _seq in parse_entries(terrestrial_body):
-        if "(naori HD)" in inf:
-            assert 'group-title="地上波 naori HD"' in inf, "NAORI HD group reverted"
-        elif "(naori)" in inf:
-            assert 'group-title="地上波 naori"' in inf, "NAORI standard group reverted"
+    if "naori" in updated.lower():
+        raise RuntimeError("Retired NAORI TV source returned")
 
     if updated != original:
         FREEWIFI.write_text(updated, encoding="utf-8")
-        print("Normalized TV order: 5002 -> HARUKA -> Naori -> primehomeHD -> primehome -> jpnettv -> TVer")
+        print("Normalized TV order: 5002 -> HARUKA -> primehomeHD -> primehome -> jpnettv -> TVer")
     else:
         print("TV playlist per-channel source order already normalized")
 
