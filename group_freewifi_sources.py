@@ -54,19 +54,18 @@ def is_haru_blog(inf: str, url: str = "") -> bool:
 
 
 def without_retired_naori(entries):
-    """Remove retired NAORI standard, HD and CS from channel sources."""
+    """Remove retired NAORI and HARUKA sources from channel playlists."""
     return [(inf, url, seq) for inf, url, seq in entries
-            if "naori" not in inf.lower() and "naori" not in url.lower()]
+            if "naori" not in inf.lower() and "naori" not in url.lower()
+            and "haruka" not in inf.lower() and ":9394/stream/" not in url.lower()]
 
 
 def source_rank(inf: str) -> int:
     lower = inf.lower()
     # Prefer 5002 direct as primary for every channel where it is registered.
-    # Keep HARUKA as fallback. NAORI sources are retired.
+    # HARUKA and NAORI sources are retired.
     if "(5002直)" in lower:
         return 0
-    if "(haruka" in lower or 'group-title="haruka bs"' in lower or 'group-title="haruka cs"' in lower:
-        return 1
     if "(naori" in lower or 'group-title="naori bs"' in lower or 'group-title="naori cs"' in lower:
         return 2
     if "(primehomehd)" in lower:
@@ -90,8 +89,6 @@ def terrestrial_group_title(inf: str, url: str) -> str:
     lower = inf.lower()
     if "(yoitv)" in lower:
         return "地上波 YoiTV"
-    if "(haruka" in lower:
-        return "地上波 haruka"
     if "(naori hd)" in lower:
         return "地上波 naori HD"
     if "(naori" in lower:
@@ -143,7 +140,7 @@ def replace_section(text: str, start: str, end: str | None, prefix: str = "", te
 
 
 def normalize(text: str) -> str:
-    # Terrestrial source order: 5002 -> HARUKA -> primehomeHD -> primehome -> jpnettv -> TVer.
+    # Terrestrial source order: 5002 -> primehomeHD -> primehome -> jpnettv -> TVer.
     text = replace_section(text, "## 地上波\n", "## BS", terrestrial=True)
     text = replace_section(text, "## BS\n", "# === GREEN_CHANNEL_PERSISTENT_START ===")
 
@@ -202,12 +199,14 @@ def main() -> None:
     validate_grouping(updated, "# === GREEN_CHANNEL_PERSISTENT_START ===\n", "# === GREEN_CHANNEL_PERSISTENT_END ===")
     validate_grouping(updated, "## CS\n", None)
     validate_no_haru_blogs(updated)
+    if "haruka" in updated.lower():
+        raise RuntimeError("Retired HARUKA TV source returned")
     if "naori" in updated.lower():
         raise RuntimeError("Retired NAORI TV source returned")
 
     if updated != original:
         FREEWIFI.write_text(updated, encoding="utf-8")
-        print("Normalized TV order: 5002 -> HARUKA -> primehomeHD -> primehome -> jpnettv -> TVer")
+        print("Normalized TV order: 5002 -> primehomeHD -> primehome -> jpnettv -> TVer")
     else:
         print("TV playlist per-channel source order already normalized")
 
