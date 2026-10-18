@@ -30,6 +30,11 @@ CHANNELS = {
     "関西テレビ_jp": "kansai_tv",
     "読売テレビ_jp": "ytv",
     "KBS京都_jp": "kbs",
+    "NHK東京・総合_jp": "nhk_g",
+    "NHK大阪・総合_jp": "nhk_g_osaka",
+    "NHK・BS_jp": "nhk_bs",
+    "フジテレビONE_jp": "fuji_tv_one",
+
     "サンテレビ_jp": "sun",
 }
 
