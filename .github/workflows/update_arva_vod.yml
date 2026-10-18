@@ -1,0 +1,67 @@
+name: Update Arva favourite catch-up VOD
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "43 * * * *"
+  push:
+    branches: [main]
+    paths:
+      - 'arva_vod/**'
+      - '.github/workflows/update_arva_vod.yml'
+
+permissions:
+  contents: write
+
+# Share mutex with the canonical FreeWiFi EPG writer to prevent lost updates.
+concurrency:
+  group: himitsu-freewifi-state-writer
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Refresh programme history
+        run: python haru/build_haru_kai_epg.py
+
+      - name: Find current catch-up programmes and check manifests
+        run: python arva_vod/build.py --probe --timeout 8 --max-probes 40
+
+      - name: Publish isolated Arva VOD without touching Kick VOD5
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          snapshot="$(mktemp -d)"
+          cp arva_vod/playlist.m3u "$snapshot/playlist.m3u"
+          cp arva_vod/status.json "$snapshot/status.json"
+          for attempt in 1 2 3 4 5; do
+            git fetch origin main
+            git reset --hard origin/main
+            cp "$snapshot/playlist.m3u" arva_vod/playlist.m3u
+            cp "$snapshot/status.json" arva_vod/status.json
+            python arva_vod/sync_freewifi.py
+            git add arva_vod/playlist.m3u arva_vod/status.json freewifi
+            if git diff --cached --quiet; then
+              echo "Arva catch-up VOD already current"
+              exit 0
+            fi
+            git commit -m "Update verified Arva catch-up VOD shelf [skip ci] [skip render]"
+            if git push origin HEAD:main; then
+              echo "Published isolated Arva catch-up VOD shelf"
+              exit 0
+            fi
+            sleep 3
+          done
+          echo "::error::Arva VOD publish failed after five retries"
+          exit 1
