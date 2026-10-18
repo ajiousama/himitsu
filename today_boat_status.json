@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-18",
-  "generated_at": "2026-10-18T09:54:10.324069+09:00",
+  "generated_at": "2026-10-18T09:55:10.432158+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261018.json",
   "schedule_checked_at": "2026-10-18T09:53:10.432105+09:00",
@@ -19,7 +19,7 @@
   "alert_lead_minutes": 30,
   "card_count": 13,
   "held_count": 13,
-  "visible_count": 6,
+  "visible_count": 7,
   "active_count": 4,
   "ended_kept": [],
   "seed_required": false,
@@ -36,7 +36,7 @@
     },
     "day": {
       "held": 7,
-      "acquired": 3,
+      "acquired": 4,
       "active": 1,
       "ended": 0,
       "seed_required": 0,
@@ -53,7 +53,7 @@
   },
   "cloud_acquisition": {
     "requested": 10,
-    "fetched": 6,
+    "fetched": 7,
     "failures": [],
     "deferred": [
       {
@@ -65,11 +65,6 @@
         "jcd": "03",
         "name": "江戸川",
         "start": "2026-10-18T10:39:00+09:00"
-      },
-      {
-        "jcd": "09",
-        "name": "津",
-        "start": "2026-10-18T09:55:00+09:00"
       },
       {
         "jcd": "23",
@@ -114,6 +109,22 @@
         "ok": true,
         "sequence": 8565061,
         "last_segment": "/172982613b234d46a3bcfd8ce9936610/99d6d250d1b747f181f14778f83c9a86/manifest_4_8565148.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
+    },
+    "boat.tsu": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/ff471e7dbafb4289bc0309a90cc81ccb/73b17d8afc3e431a8e3a69872630611d/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MjQ1ODAwMCwic3RhcnQiOjE3OTIyODQ5MDAsImlvcyI6MTgsImNwIjoiMjE0NDgwNTAwXzIxNDUyMzY5OSIsInBwdyI6IjQwayJ9.vOFxyuK0ngNUYcJ7yk4knTRshq-nVHCWDjdSiRInPks",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-10-18T09:55:37.577284+09:00",
+      "checked_at": "2026-10-18T09:55:37.577284+09:00",
+      "first_verified_at": "2026-10-18T09:55:37.577284+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 8588013,
+        "last_segment": "/ff471e7dbafb4289bc0309a90cc81ccb/73b17d8afc3e431a8e3a69872630611d/manifest_4_8588018.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -645,7 +656,7 @@
       "jcd": "09",
       "name": "津",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
       "active": false,
       "cancelled": false,
@@ -663,9 +674,9 @@
       "guidance_switch_at": "2026-10-18T17:00:00+09:00",
       "seed_required": false,
       "reverify_due": false,
-      "playback_verified": false,
-      "first_verified_at": null,
-      "ready_before_first_race": false,
+      "playback_verified": true,
+      "first_verified_at": "2026-10-18T09:55:37.577284+09:00",
+      "ready_before_first_race": true,
       "acquire_from": "2026-10-18T08:02:00+09:00",
       "races": [
         {
@@ -729,8 +740,9 @@
           "name": "ツッキー選抜戦"
         }
       ],
-      "provider_stream_start": "2026-10-18T09:55:00+09:00",
-      "source": "公式BR配信開始待ち 09:55"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/ff471e7dbafb4289bc0309a90cc81ccb/73b17d8afc3e431a8e3a69872630611d/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MjQ1ODAwMCwic3RhcnQiOjE3OTIyODQ5MDAsImlvcyI6MTgsImNwIjoiMjE0NDgwNTAwXzIxNDUyMzY5OSIsInBwdyI6IjQwayJ9.vOFxyuK0ngNUYcJ7yk4knTRshq-nVHCWDjdSiRInPks",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     },
     "boat.mikuni": {
       "jcd": "10",
