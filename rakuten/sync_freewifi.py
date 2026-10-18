@@ -67,6 +67,8 @@ def main():
     if a < 0 or b < 0:
         raise SystemExit("Rakuten Rch section boundary missing in freewifi")
     updated = text[:a] + payload() + text[b:]
+    # The Rch job is independent; retire legacy rows elsewhere before enforcing the guard.
+    updated = strip_retired_haruka(updated)
     updated, reused = reuse_known_contrast_logos(updated)
     if "haruka" in updated.lower():
         raise RuntimeError("Retired HARUKA source unexpectedly restored")
