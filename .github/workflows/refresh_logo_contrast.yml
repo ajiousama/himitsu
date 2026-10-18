@@ -97,7 +97,7 @@ jobs:
             grep -F 'tvg-id="radiko.FMT"' freewifi >/dev/null
             ! grep -F 'tvg-logo="tvg-logo=' freewifi
 
-            git add freewifi logos/contrast_sources.json logos/contrast
+            git add freewifi tv/playlist.m3u logos/contrast_sources.json logos/contrast
             if git diff --cached --quiet; then
               echo "Contrast-safe logos already current"
               exit 0
