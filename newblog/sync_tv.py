@@ -52,6 +52,8 @@ def apply(text):
     lines = kept
     for slug, meta, uri in get_source():
         cat = "グリーンCh" if slug == "green_channel" else meta["category"]
+        if cat == "Rch":
+            continue
         start = {"地上波":"## 地上波", "BS":"## BS",
                  "グリーンCh":"# === GREEN_CHANNEL_PERSISTENT_START ===",
                  "CS":"## CS", "その他":"## CS"}[cat]
@@ -70,11 +72,48 @@ def apply(text):
                + meta["name"] + LABEL)
         lines[at:at] = ["", inf, uri]
     result = re.sub(r"\n{4,}", "\n\n\n", "\n".join(lines)).rstrip() + "\n"
-    if result.count(LABEL) != COUNT:
+    if result.count(LABEL) != COUNT - 2:
         raise ValueError("newblog row count incorrect")
     if "haru.charandom.blog" in result or ":9394/stream/" in result:
         raise ValueError("Retired HARUKA returned")
     return result
+
+def inject_rch(body: str) -> str:
+    """Place the 2 newblog Rch streams directly after their existing sources."""
+    import re
+    rows = {slug: (meta, uri) for slug, meta, uri in get_source()
+            if slug in {"pigoo_nsfw", "nouvelle_paradise"}}
+    if len(rows) != 2:
+        raise ValueError("Missing newblog Rch records")
+    ls = body.splitlines()
+    kept = []
+    i = 0
+    while i < len(ls):
+        if ls[i].startswith("#EXTINF:") and LABEL in ls[i]:
+            i += 1
+            while i < len(ls) and not ls[i].strip():
+                i += 1
+            if i >= len(ls) or ls[i].startswith("#"):
+                raise ValueError("Incomplete newblog Rch record")
+            i += 1
+            continue
+        kept.append(ls[i])
+        i += 1
+    ls = kept
+    for slug in ("pigoo_nsfw", "nouvelle_paradise"):
+        meta, uri = rows[slug]
+        matches = [j for j, line in enumerate(ls)
+                   if line.startswith("#EXTINF:")
+                   and ('tvg-id="' + meta["id"] + '"') in line]
+        if not matches:
+            raise ValueError("Rch existing source missing for " + slug)
+        j = matches[-1]
+        insert = j + 2
+        inf = ('#EXTINF:-1 tvg-id="' + meta["id"] + '" tvg-logo="'
+               + meta["logo"] + '" group-title="Rch",'
+               + meta["name"] + LABEL)
+        ls[insert:insert] = ["", inf, uri]
+    return re.sub(r"\n{4,}", "\n\n\n", "\n".join(ls)).strip() + "\n\n"
 
 def main():
     current = TV.read_text(encoding="utf-8-sig")

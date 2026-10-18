@@ -58,7 +58,8 @@ def payload():
     extra = EXTRA.read_text(encoding="utf-8-sig", errors="strict").strip()
     if not extra.startswith("#EXTINF:") or 'group-title="Rch"' not in extra:
         raise RuntimeError("Rch FreeWiFi extras missing or malformed")
-    return "\n".join(lines).strip() + "\n\n" + extra + "\n\n"
+    from newblog.sync_tv import inject_rch
+    return inject_rch("\n".join(lines).strip() + "\n\n" + extra + "\n\n")
 
 def main():
     text = FREEWIFI.read_text(encoding="utf-8-sig", errors="replace")
