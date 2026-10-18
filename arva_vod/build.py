@@ -193,6 +193,10 @@ def main() -> None:
     now = datetime.now(timezone.utc)
     base, key = bridge_config(LIVE_CONFIG)
     found = candidates(args.epg, rules, now, days)
+    # The daily 0655 shelf must not retain episodes from previous days.
+    today_jst = now.astimezone(JST).date()
+    found = [entry for entry in found if entry["rule"]["id"] != "0655"
+             or entry["airtime"].astimezone(JST).date() == today_jst]
     accepted = []
     if args.probe:
         for item in found[:args.max_probes]:
