@@ -34,6 +34,8 @@ CHANNELS = {
     "NHK大阪・総合_jp": "nhk_g_osaka",
     "NHK・BS_jp": "nhk_bs",
     "フジテレビONE_jp": "fuji_tv_one",
+    "フジテレビTWO_jp": "fuji_tv_two",
+    "フジテレビNEXT_jp": "fuji_tv_next",
 
     "サンテレビ_jp": "sun",
 }
