@@ -456,7 +456,7 @@ def main():
     if missing_keirin_logos:
         raise SystemExit('missing KEIRIN logo mappings: ' + ', '.join(missing_keirin_logos))
     rows=[]; status={}
-    # GCH MAIN and PH/HARUKA are permanently owned by freewifi_today_jra.py.
+    # GCH MAIN and 5002/YoiTV are permanently owned by freewifi_today_jra.py.
     # The fast public-sports builder must never gate or duplicate them.
     for cid, (section, block) in entries.items():
         if cid.startswith('boat.') or cid not in real:
@@ -490,7 +490,7 @@ def main():
     managed = START+'\n## 今日の開催場\n'+'\n'.join(body).rstrip()+('\n' if body else '')+END
     base = FREEWIFI.read_text(encoding='utf-8-sig', errors='replace')
     owned_ids = {cid for cid in entries if not cid.startswith('boat.')}
-    # JRA's managed TODAY_JRA block owns GCH HQ/LQ (including PH and HARUKA
+    # JRA's managed TODAY_JRA block owns GCH HQ/LQ (including 5002 and YoiTV
     # backup routes).  Never erase those entries during the 10-minute sports refresh.
     base = strip_ids(base, owned_ids)
     updated = replace_block(base, managed).rstrip()+'\n'
