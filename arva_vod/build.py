@@ -38,6 +38,22 @@ def normalized(value: str) -> str:
     return unicodedata.normalize("NFKC", value or "").casefold()
 
 
+def asahi_allowed_dates(now: datetime) -> set:
+    """Keep Fri+Sat across the weekend, but only the current weekday after 07:35 JST."""
+    local = now.astimezone(JST)
+    date = local.date()
+    weekday = date.weekday()  # Mon=0, Sat=5, Sun=6
+    after_clip = (local.hour, local.minute) >= (7, 35)
+    if weekday == 6 or (weekday == 0 and not after_clip) or (weekday == 5 and after_clip):
+        saturday = date - timedelta(days=(weekday - 5) % 7)
+        return {saturday, saturday - timedelta(days=1)}
+    if weekday == 5 and not after_clip:
+        return {date - timedelta(days=1)}
+    if not after_clip:
+        return {date - timedelta(days=1)}
+    return {date}
+
+
 def timestamp(value: str) -> datetime:
     match = re.fullmatch(r"\s*(\d{14})\s*([+-]\d{4})\s*", value or "")
     if not match:
@@ -98,6 +114,8 @@ def candidates(epg: Path, rules: list[dict], now: datetime, days: int) -> list[d
         for cid, slug in rule["channels"].items():
             for start, end, title in by_channel.get(cid, []):
                 t = normalized(title)
+                if rule.get("retention_policy") == "asahi_latest" and start.astimezone(JST).date() not in asahi_allowed_dates(now):
+                    continue
                 if not any(x in t for x in includes) or any(x in t for x in excludes):
                     continue
                 clip = rule.get("clip_start_jst")
@@ -148,7 +166,8 @@ def render(items: list[dict], group: str, base: str, key: str) -> str:
     for item in items:
         rule, epoch = item["rule"], item["epoch"]
         slug = item["slug"]
-        label = f"📼 {rule['name']} {item['airtime'].astimezone(JST):%m/%d %H:%M}｜{item['title']}"
+        show_time = datetime.fromtimestamp(epoch, timezone.utc).astimezone(JST) if item["seconds"] else item["airtime"].astimezone(JST)
+        label = f"📼 {rule['name']} {show_time:%m/%d %H:%M}｜{item['title']}"
         label = label.replace('"', "'").replace("\n", " ").replace("\r", " ")
         if item["seconds"]:
             url = clip_link(base, key, slug, epoch, item["seconds"])
@@ -169,7 +188,7 @@ def main() -> None:
     args = parser.parse_args()
     config = json.loads(CONFIG.read_text(encoding="utf-8"))
     rules = config["programmes"]
-    assert len(rules) == 9 and len({r["id"] for r in rules}) == 9
+    assert rules and len({r["id"] for r in rules}) == len(rules)
     days = min(6, max(1, int(config.get("catchup_days", 6))))
     now = datetime.now(timezone.utc)
     base, key = bridge_config(LIVE_CONFIG)
