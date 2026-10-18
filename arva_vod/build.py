@@ -206,8 +206,9 @@ def main() -> None:
     else:
         accepted = found
     playlist = render(accepted, config.get("group_title", "VOD"), base, key)
-    if accepted or not PLAYLIST.exists():
-        PLAYLIST.write_text(playlist, encoding="utf-8")
+    # Always publish the verified snapshot, including an empty shelf. Otherwise
+    # expired programmes survive indefinitely and reappear in FreeWiFi.
+    PLAYLIST.write_text(playlist, encoding="utf-8")
     STATUS.write_text(json.dumps({
         "version": VERSION,
         "updated_at": now.isoformat(),
