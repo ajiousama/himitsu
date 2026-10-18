@@ -58,6 +58,8 @@ EXPECTED_RADIO_COUNT = len(RADIO_SIDS)
 # refresh runs. Seed these sources explicitly so their assets remain
 # regeneratable and cannot disappear from the contrast database.
 EXPLICIT_SOURCES = {
+    "テレ玉_jp": "https://tvguide.myjcom.jp/monomedia/ch_logo/otd/logo-7E27-031-400x400.png",
+    "テレビ神奈川_jp": "https://tvguide.myjcom.jp/monomedia/ch_logo/otd/logo-7E77-031-400x400.png",
     "community.FMOTOKUNI": "https://www.simulradio.info/data/161.jpg",
     "tver_tbs": "https://statics.tver.jp/images/icon/tbs.jpg?v=2",
     "tver_ex": "https://statics.tver.jp/images/icon/ex.jpg?v=2",
@@ -239,6 +241,21 @@ def main() -> int:
         if count:
             text = text.replace(src, local)
             replaced += count
+
+    # Persist Arva trial logos in the canonical TV source once both assets exist.
+    # This stops TV source refreshes from restoring transparent external artwork.
+    trial_logo_map = {
+        "テレ玉_jp": EXPLICIT_SOURCES["テレ玉_jp"],
+        "テレビ神奈川_jp": EXPLICIT_SOURCES["テレビ神奈川_jp"],
+    }
+    tv_path = Path("tv/playlist.m3u")
+    if tv_path.exists():
+        canonical = tv_path.read_text(encoding="utf-8-sig")
+        for tvgid, src in trial_logo_map.items():
+            local_path = db[src]["path"]
+            if Path(local_path).exists():
+                canonical = canonical.replace('tvg-logo="' + src + '"', 'tvg-logo="' + raw_url(local_path) + '"')
+        tv_path.write_text(canonical, encoding="utf-8")
 
     FREEWIFI.write_text(text, encoding="utf-8")
     DB_PATH.write_text(json.dumps(db, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
