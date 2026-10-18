@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-18",
-  "generated_at": "2026-10-18T12:45:43.060710+09:00",
+  "generated_at": "2026-10-18T12:46:43.057863+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261018.json",
   "schedule_checked_at": "2026-10-18T12:33:43.059889+09:00",
@@ -52,10 +52,16 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 10,
+    "requested": 11,
     "fetched": 10,
     "failures": [],
-    "deferred": []
+    "deferred": [
+      {
+        "jcd": "20",
+        "name": "若松",
+        "start": "2026-10-18T14:45:00+09:00"
+      }
+    ]
   },
   "epg_programmes_written": {
     "public_sports_epg_local.xml": 182,
@@ -1232,7 +1238,8 @@
           "name": "優勝戦"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "provider_stream_start": "2026-10-18T14:45:00+09:00",
+      "source": "公式BR配信開始待ち 14:45"
     },
     "boat.ashiya": {
       "jcd": "21",
