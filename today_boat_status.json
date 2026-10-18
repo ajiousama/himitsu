@@ -2,10 +2,10 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-18",
-  "generated_at": "2026-10-18T16:48:24.763467+09:00",
+  "generated_at": "2026-10-18T16:50:37.204371+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261018.json",
-  "schedule_checked_at": "2026-10-18T16:34:02.428818+09:00",
+  "schedule_checked_at": "2026-10-18T16:50:37.204371+09:00",
   "schedule_warnings": [
     "official_cards: TimeoutError"
   ],
@@ -19,8 +19,8 @@
   "alert_lead_minutes": 30,
   "card_count": 13,
   "held_count": 13,
-  "visible_count": 3,
-  "active_count": 3,
+  "visible_count": 2,
+  "active_count": 2,
   "ended_kept": [],
   "seed_required": false,
   "seed_required_venues": [],
@@ -36,9 +36,9 @@
     },
     "day": {
       "held": 7,
-      "acquired": 1,
-      "active": 1,
-      "ended": 6,
+      "acquired": 0,
+      "active": 0,
+      "ended": 7,
       "seed_required": 0,
       "cancelled": 0
     },
@@ -52,8 +52,8 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 4,
-    "fetched": 3,
+    "requested": 3,
+    "fetched": 2,
     "failures": [
       {
         "jcd": "19",
@@ -83,22 +83,6 @@
         "ok": true,
         "sequence": 8585944,
         "last_segment": "/56499f59ab3a416c9e47126701dd07bc/f91bef63b62d47b1b4d848aeacac0bd6/manifest_1_8587164.ts",
-        "video_decoded": true,
-        "audio_decoded": true
-      },
-      "consecutive_failures": 0
-    },
-    "boat.kojima": {
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/e7b6098ba0e942d3830299a6b319b90e/d5fa02a3113e4dae9122d70fd365bee7/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MjQ1ODAwMCwic3RhcnQiOjE3OTIyODQwMDAsImlvcyI6MTgsImNwIjoiMjE0NDc5NjAwXzIxNDUyMjc5OSIsInBwdyI6IjQwayJ9.CCsELWsZzIGzy9wgqQ15Y4tqAxSvn-arap_QGr3Tmfc",
-      "source": "automatic acquisition + audio/video decode",
-      "acquired_at": "2026-10-18T09:40:37.615965+09:00",
-      "checked_at": "2026-10-18T16:47:06.538503+09:00",
-      "first_verified_at": "2026-10-18T09:40:37.615965+09:00",
-      "playback_verified": true,
-      "probe": {
-        "ok": true,
-        "sequence": 8566527,
-        "last_segment": "/e7b6098ba0e942d3830299a6b319b90e/d5fa02a3113e4dae9122d70fd365bee7/manifest_4_8570797.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -740,9 +724,9 @@
       "jcd": "16",
       "name": "児島",
       "held": true,
-      "visible": true,
-      "ended": false,
-      "active": true,
+      "visible": false,
+      "ended": true,
+      "active": false,
       "cancelled": false,
       "mode": "day",
       "mode_label": "デイ",
@@ -750,11 +734,11 @@
       "last_race": "16:47",
       "alert_from": "2026-10-18T10:25:00+09:00",
       "next_race": null,
-      "stream_window": "live_or_prestart",
+      "stream_window": "ended_hidden",
       "intermission": null,
       "guidance_switch_at": "2026-10-18T17:32:00+09:00",
       "seed_required": false,
-      "reverify_due": true,
+      "reverify_due": false,
       "playback_verified": true,
       "first_verified_at": "2026-10-18T09:40:37.615965+09:00",
       "ready_before_first_race": true,
@@ -821,9 +805,7 @@
           "name": "記者選抜戦"
         }
       ],
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/e7b6098ba0e942d3830299a6b319b90e/d5fa02a3113e4dae9122d70fd365bee7/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MjQ1ODAwMCwic3RhcnQiOjE3OTIyODQwMDAsImlvcyI6MTgsImNwIjoiMjE0NDc5NjAwXzIxNDUyMjc5OSIsInBwdyI6IjQwayJ9.CCsELWsZzIGzy9wgqQ15Y4tqAxSvn-arap_QGr3Tmfc",
-      "source": "automatic acquisition + audio/video decode",
-      "token_expired": false
+      "source": "automatic cloud SEED pending"
     },
     "boat.tokuyama": {
       "jcd": "18",
