@@ -20,7 +20,7 @@ def strip_retired_naori(text: str) -> str:
     drop_url = False
     for line in lines:
         if line.startswith("#EXTINF:"):
-            drop_url = "naori" in line.lower()
+            drop_url = "naori" in line.lower() or "haruka" in line.lower()
             if drop_url:
                 continue
         if drop_url:
@@ -107,6 +107,8 @@ def main():
     updated = base[:a] + tv + base[b:]
     updated, reused = reuse_known_contrast_logos(updated)
     updated = strip_retired_naori(updated)
+    if "haruka" in updated.lower():
+        raise SystemExit("Retired HARUKA entry detected in FreeWiFi; refusing publish")
     if "naori" in updated.lower():
         raise SystemExit("Retired NAORI entry detected in FreeWiFi; refusing publish")
     FREEWIFI.write_text(updated.rstrip() + "\n", encoding="utf-8")
