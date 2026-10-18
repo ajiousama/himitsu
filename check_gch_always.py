@@ -59,9 +59,21 @@ def main() -> None:
         if is_haruka_stream_url(url):
             parsed = urlparse(url)
             haruka_bases.add(f"{parsed.scheme}://{parsed.netloc}")
-    if len(haruka_bases) != 1:
-        raise SystemExit(f"GCH always-on guard: HARUKA host disagreement: {sorted(haruka_bases)}")
-    haruka_base = next(iter(haruka_bases))
+    if not haruka_bases:
+        raise SystemExit("GCH always-on guard: no saved HARUKA stream URLs found")
+    if len(haruka_bases) == 1:
+        haruka_base = next(iter(haruka_bases))
+    else:
+        # When the HARUKA API is unavailable, existing playlist rows may retain
+        # different old 9394 hosts. Never rewrite or reject them merely for
+        # disagreement: validate the always-on GCH row against its own saved host.
+        gch = found.get("グリーンチャンネル (HARUKA)")
+        gch_url = gch[1] if gch else ""
+        if not is_haruka_stream_url(gch_url):
+            raise SystemExit("GCH always-on guard: saved HARUKA Green Channel URL invalid")
+        parsed = urlparse(gch_url)
+        haruka_base = f"{parsed.scheme}://{parsed.netloc}"
+        print(f"GCH always-on guard: mixed saved HARUKA hosts kept unchanged ({len(haruka_bases)} hosts); GCH checked independently")
 
     for name, (expected_id, expected_url) in REQUIRED.items():
         if name == "グリーンチャンネル (HARUKA)":
