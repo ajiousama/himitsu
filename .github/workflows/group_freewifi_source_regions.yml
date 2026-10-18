@@ -49,12 +49,8 @@ jobs:
           assert 'haru.charandom.blog' not in s
           assert 'group-title="地上波 haruka"' in s
           assert 'group-title="地上波 5002直"' in s
-          # Each NAORI HD/standard station keeps its own player group.
-          entries = [line for line in s.splitlines() if line.startswith('#EXTINF:')]
-          hd = [line for line in entries if '(naori HD)' in line]
-          sd = [line for line in entries if '(naori)' in line and 'group-title="地上波 ' in line]
-          assert hd and all('group-title="地上波 naori HD"' in line for line in hd)
-          assert sd and all('group-title="地上波 naori"' in line for line in sd)
+          # NAORI including HD and CS must stay removed after rebuild.
+          assert 'naori' not in s.lower(), 'retired NAORI channel restored'
           for cid in ('rch_30','rch_35','rch_37','rch_46','rch_86','rch_113','rch_122','rch_123','rch_124','rch_125','rch_41'):
               assert cid in s
           assert '## Rakuten-JP' not in s
