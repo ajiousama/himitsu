@@ -4168,6 +4168,7 @@ def _mark_provisional_titles(
     reference_confirmed = (start_ep, end_ep) in {
         (267, 276), (277, 286), (287, 296), (307, 316),
         (317, 326), (327, 336), (337, 346), (347, 356),
+        (357, 366), (367, 376),
     }
     out = []
     for chapter in chapters:
@@ -4450,6 +4451,17 @@ def main() -> int:
             "oldest_range_probe": oldest_range_probe if start_ep == 207 else None,
             "seekbar_probe": seekbar_probe if start_ep in {197, 207, 217} else None,
             "wide_211_probe": wide_211_probe if start_ep == 207 else None,
+            # Keep official episode labels for #367-376 even while this mixed
+            # archive awaits king/caption verified chapter boundaries.
+            "episode_titles": [
+                {
+                    "episode": ep,
+                    "title": titles.get(str(ep), f"第{ep}回"),
+                    "title_status": "confirmed-reference",
+                    "title_source": "broadcast-reference",
+                }
+                for ep in range(start_ep, end_ep + 1)
+            ] if (start_ep, end_ep) == (367, 376) else [],
             "ai_windows": build_ai_windows(start_ep, end_ep, duration) if status == "ai_required" else [],
         })
 
