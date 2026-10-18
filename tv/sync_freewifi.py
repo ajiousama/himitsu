@@ -13,8 +13,17 @@ RAW_BASE = "https://raw.githubusercontent.com/ajiousama/himitsu/main"
 MANUAL_START = "# === MANUAL_TV_START ==="
 MANUAL_END = "# === MANUAL_TV_END ==="
 
+def strip_retired_naori(text: str) -> str:
+    """Exclude retired NAORI, NAORI HD and NAORI CS channels."""
+    return re.sub(
+        r"(?mi)^#EXTINF:[^\\r\\n]*naori[^\\r\\n]*\\r?\\n[^\\r\\n]*\\r?\\n?",
+        "",
+        text,
+    )
+
+
 def payload():
-    text = PLAYLIST.read_text(encoding="utf-8-sig", errors="replace")
+    text = strip_retired_naori(PLAYLIST.read_text(encoding="utf-8-sig", errors="replace"))
     lines = text.splitlines()
     if lines and lines[0].startswith("#EXTM3U"):
         lines = lines[1:]
@@ -29,14 +38,7 @@ def manual_block(text: str) -> str:
     )
     if match:
         body = match.group(1).strip("\n")
-        # Retire the old NAORI test relay. BS朝日 and スカイA already have
-        # working HARUKA/PrimeHome/5002 alternatives, so preserving the
-        # permanently-403 test rows only creates dead duplicates.
-        body = re.sub(
-            r'(?m)^#EXTINF:[^\\n]*(?:NAORI|naori)[^\\n]*\\nhttps://naori-test\\.netgenx\\.site/[^\\n]+\\n*',
-            '',
-            body,
-        ).strip("\n")
+        body = strip_retired_naori(body).strip("\n")
     else:
         body = (
             "# 手動追加TV保護枠: この2つのマーカーの間は自動更新でも保持されます。\n"
@@ -92,6 +94,9 @@ def main():
     tv = payload().rstrip() + "\n\n" + protected + "\n\n"
     updated = base[:a] + tv + base[b:]
     updated, reused = reuse_known_contrast_logos(updated)
+    updated = strip_retired_naori(updated)
+    if "naori" in updated.lower():
+        raise SystemExit("Retired NAORI entry detected in FreeWiFi; refusing publish")
     FREEWIFI.write_text(updated.rstrip() + "\n", encoding="utf-8")
     print(
         f"TV synced from tv/playlist.m3u; manual TV block preserved; "
