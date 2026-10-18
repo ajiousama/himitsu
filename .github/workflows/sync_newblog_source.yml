@@ -1,0 +1,54 @@
+name: Refresh newblog source M3U
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Before the existing FreeWiFi rebuild at minute 07.
+    - cron: '41 * * * *'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: refresh-newblog-source
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out newest main
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Synchronize main
+        run: git pull --ff-only origin main
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Test guarded channel refresh
+        run: python -m unittest discover -s newblog -p test_refresh_source.py -v
+      - name: Fetch and validate latest approved newblog stations
+        env:
+          NEWBLOG_MASTER_URL: ${{ secrets.NEWBLOG_MASTER_URL }}
+        run: python newblog/refresh_source.py
+      - name: Publish only changed source M3U
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add -- newblog/source.m3u
+          if git diff --cached --quiet; then
+            echo 'No channel URL changes'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'chore(newblog): refresh approved FreeWiFi source URLs'
+          if ! git push origin HEAD:main; then
+            echo 'main advanced; rebasing the validated newblog change'
+            git fetch origin main
+            git rebase origin/main
+            git push origin HEAD:main
+          fi
