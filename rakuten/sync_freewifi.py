@@ -33,8 +33,25 @@ def reuse_known_contrast_logos(text: str) -> tuple[str, int]:
     return text, replaced
 
 
+def strip_retired_haruka(text: str) -> str:
+    lines = text.splitlines()
+    kept = []
+    i = 0
+    while i < len(lines):
+        if lines[i].startswith("#EXTINF:") and "haruka" in lines[i].lower():
+            i += 1
+            while i < len(lines) and not lines[i].strip():
+                i += 1
+            if i < len(lines) and not lines[i].startswith("#"):
+                i += 1
+            continue
+        kept.append(lines[i])
+        i += 1
+    return "\n".join(kept)
+
+
 def payload():
-    text = PLAYLIST.read_text(encoding="utf-8-sig", errors="replace")
+    text = strip_retired_haruka(PLAYLIST.read_text(encoding="utf-8-sig", errors="replace"))
     lines = text.splitlines()
     if lines and lines[0].startswith("#EXTM3U"):
         lines = lines[1:]
@@ -51,6 +68,8 @@ def main():
         raise SystemExit("Rakuten Rch section boundary missing in freewifi")
     updated = text[:a] + payload() + text[b:]
     updated, reused = reuse_known_contrast_logos(updated)
+    if "haruka" in updated.lower():
+        raise RuntimeError("Retired HARUKA source unexpectedly restored")
     FREEWIFI.write_text(updated.rstrip() + "\n", encoding="utf-8")
     print(f"Rakuten Rch synced from rakuten/playlist.m3u; reused white-card logos={reused}")
 
