@@ -68,7 +68,29 @@ def vod_payload(now_epoch=None):
     return "\n".join([VOD_START, *entries, VOD_END])
 
 
+def strip_generated_vod_entries(text):
+    """Remove prior replay rows even if a section normalizer stripped markers."""
+    lines = text.splitlines()
+    kept = []
+    i = 0
+    while i < len(lines):
+        if (lines[i].startswith("#EXTINF:")
+                and re.search(r'tvg-id="newblog\.vod\.[^"]+"', lines[i])):
+            i += 1
+            while i < len(lines) and not lines[i].strip():
+                i += 1
+            if i < len(lines) and not lines[i].lstrip().startswith("#"):
+                i += 1
+            continue
+        kept.append(lines[i])
+        i += 1
+    return "\n".join(kept)
+
+
+
+
 def replace_vod_block(text):
+    text = strip_generated_vod_entries(text)
     payload = vod_payload()
     pattern = re.compile(r"(?m)^" + re.escape(VOD_START) + r"\n.*?^"
                          + re.escape(VOD_END) + r"(?:\n|$)", re.S)
@@ -139,7 +161,7 @@ def apply(text):
         at = matches[-1] + 2 if matches else b
         inf = ('#EXTINF:-1 tvg-id="' + meta["id"] + '" tvg-logo="'
                + meta["logo"] + '" group-title="' + group_title + '",'
-               + meta["name"] + LABEL)
+               + meta["name"].replace(" (Arva)", "").replace("（Arva）", "") + LABEL)
         lines[at:at] = ["", inf, uri]
     result = re.sub(r"\n{4,}", "\n\n\n", "\n".join(lines)).rstrip() + "\n"
     if result.count(LABEL) != COUNT - 2:
@@ -181,7 +203,7 @@ def inject_rch(body: str) -> str:
         insert = j + 2
         inf = ('#EXTINF:-1 tvg-id="' + meta["id"] + '" tvg-logo="'
                + meta["logo"] + '" group-title="Rch",'
-               + meta["name"] + LABEL)
+               + meta["name"].replace(" (Arva)", "").replace("（Arva）", "") + LABEL)
         ls[insert:insert] = ["", inf, uri]
     return re.sub(r"\n{4,}", "\n\n\n", "\n".join(ls)).strip() + "\n\n"
 
