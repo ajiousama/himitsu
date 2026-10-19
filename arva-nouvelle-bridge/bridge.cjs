@@ -118,7 +118,21 @@ async function resource(url) {
   if (pending.has(key)) return pending.get(key);
   const job = (async () => {
     const raw = await download(url);
-    const output = decode(raw.data);
+    let output;
+    try {
+      output = decode(raw.data);
+    } catch (error) {
+      // Diagnostics only: no URL, request token, response body, or decrypted media.
+      // Record safe metadata to distinguish a valid encrypted envelope from an
+      // upstream error page or truncated download.
+      const magic = raw.data.subarray(0, 4).toString('ascii');
+      const digest = createHash('sha256').update(raw.data).digest('hex').slice(0, 16);
+      const mime = raw.mime.replace(/[\r\n]/g, '').slice(0, 80);
+      console.warn('Decode input diagnostic: magic=' + JSON.stringify(magic)
+        + ' bytes=' + raw.data.length + ' mime=' + JSON.stringify(mime)
+        + ' sha256-prefix=' + digest);
+      throw error;
+    }
     const playlist = output.magic === 'NTXP' || output.data.subarray(0, 7).toString() === '#EXTM3U';
     const result = playlist
       ? { data: Buffer.from(rewritePlaylist(output.data.toString('utf8'), url)), mime: 'application/vnd.apple.mpegurl; charset=utf-8' }
