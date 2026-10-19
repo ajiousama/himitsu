@@ -90,7 +90,18 @@ async function download(url, limit = maxBody) {
       chunks.push(chunk);
     }
   } catch (e) { throw Error(`Download incomplete: ${e.message}`); }
-  return { data: Buffer.concat(chunks), mime: res.headers.get('content-type') || 'application/octet-stream' };
+  const lengthHeader = res.headers.get('content-length') || '';
+  // Keep only the Cloudflare datacenter suffix; never log full request IDs.
+  const edgeHeader = res.headers.get('cf-ray') || '';
+  const edge = /^[A-Za-z0-9]+-([A-Za-z]{3})$/.exec(edgeHeader)?.[1] || 'unknown';
+  const advertisedLength = /^[0-9]+$/.test(lengthHeader) ? lengthHeader : 'unknown';
+  return {
+    data: Buffer.concat(chunks),
+    mime: res.headers.get('content-type') || 'application/octet-stream',
+    advertisedLength,
+    edge,
+    cacheStatus: (res.headers.get('cf-cache-status') || 'unknown').slice(0, 32),
+  };
 }
 function putCache(key, value, ttl) {
   const old = cache.get(key);
@@ -129,8 +140,9 @@ async function resource(url) {
       const digest = createHash('sha256').update(raw.data).digest('hex').slice(0, 16);
       const mime = raw.mime.replace(/[\r\n]/g, '').slice(0, 80);
       console.warn('Decode input diagnostic: magic=' + JSON.stringify(magic)
-        + ' bytes=' + raw.data.length + ' mime=' + JSON.stringify(mime)
-        + ' sha256-prefix=' + digest);
+        + ' bytes=' + raw.data.length + ' advertisedBytes=' + raw.advertisedLength
+        + ' edge=' + raw.edge + ' cfCache=' + raw.cacheStatus
+        + ' mime=' + JSON.stringify(mime) + ' sha256-prefix=' + digest);
       throw error;
     }
     const playlist = output.magic === 'NTXP' || output.data.subarray(0, 7).toString() === '#EXTM3U';
