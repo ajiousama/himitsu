@@ -52,6 +52,10 @@ def apply(text):
     lines = kept
     for slug, meta, uri in get_source():
         cat = "グリーンCh" if slug == "green_channel" else meta["category"]
+        # Group labels are a protected user-facing FreeWiFi setting.
+        # A source refresh must never merge newblog back into PH/5002 groups.
+        group_title = ("今日の開催場" if cat == "グリーンCh" else
+                       f"{cat} newblog系" if cat in {"地上波", "BS", "CS", "その他"} else cat)
         if cat == "Rch":
             continue
         start = {"地上波":"## 地上波", "BS":"## BS",
@@ -68,7 +72,7 @@ def apply(text):
                    and ('tvg-id="' + meta["id"] + '"') in lines[j]]
         at = matches[-1] + 2 if matches else b
         inf = ('#EXTINF:-1 tvg-id="' + meta["id"] + '" tvg-logo="'
-               + meta["logo"] + '" group-title="' + cat + '",'
+               + meta["logo"] + '" group-title="' + group_title + '",'
                + meta["name"] + LABEL)
         lines[at:at] = ["", inf, uri]
     result = re.sub(r"\n{4,}", "\n\n\n", "\n".join(lines)).rstrip() + "\n"
