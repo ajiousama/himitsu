@@ -111,3 +111,14 @@ main `freewifi` に登録されている `group-title="VOD"` は46件（Arva9 / 
 - 次のチャットでの最初の短い応答は「GitHubに保存された引継ぎを読み、実環境を確認してArvaの原因究明を再開する」でよい。あとは実際にツールで調べること。
 
 **終了時点：Arvaの再生未復旧。VOD保全とnewblogフォールバックの修正は検証済み。次は復号障害の根本原因の比較・特定。**
+
+
+## G. Arva retirement decision (2026-10-19)
+
+The user later directed removal of Arva from FreeWiFi and migration of VOD entries to another supported format. This decision supersedes the earlier no-removal guard above.
+
+- Remove the Arva Teletama/tvk test rows and the Arva Nouvelle Paradise live row from published FreeWiFi while retaining the approved newblog Nouvelle Paradise row.
+- Remove all nine Arva bridge VOD rows. Keep the two programmes already validated for newblog replay (`探偵！ナイトスクープ` via ABC and `土曜のあさはほめるちゃん` via MBS) as explicit newblog replay VOD entries, using the current six-day replay templates and expiring entries outside the supported window.
+- Do not substitute unrelated KICK recordings for the seven unavailable Arva broadcasts. Keep the existing KICK catalogue unchanged.
+- Disable the Arva VOD scheduled publisher so later runs cannot restore Arva entries. Keep EPG source data and other FreeWiFi/Newblog/KICK workflows intact.
+- Arva playback remains unverified; successful repository update or workflow run is not playback success.

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Maintain 101 approved newblog entries after existing FreeWiFi TV sources."""
 from __future__ import annotations
-import json, re
+import json, re, time
 from pathlib import Path
 from urllib.parse import urlsplit, parse_qs
 ROOT = Path(__file__).resolve().parent.parent
@@ -10,6 +10,72 @@ CATALOG = ROOT / "newblog/channel_map.json"
 TV = ROOT / "tv/playlist.m3u"
 LABEL = "（newblog系）"
 COUNT = 101
+
+VOD_REPLAYS = ROOT / "newblog/vod_replays.json"
+VOD_START = "# === NEWBLOG_VOD_START ==="
+VOD_END = "# === NEWBLOG_VOD_END ==="
+SIX_DAYS_SECONDS = 6 * 86400
+APPROVED_REPLAY_SLUGS = {"knight_scoop": "abc", "homeru_chan": "mbs"}
+
+
+def replay_templates():
+    """Read current newblog replay templates without logging signed URLs."""
+    if not SOURCE.is_file():
+        return {}
+    templates = {}
+    for line in SOURCE.read_text(encoding="utf-8-sig").splitlines():
+        if not line.startswith("#EXTINF:"):
+            continue
+        match = re.search(r'catchup-source="([^"]+)"', line)
+        if not match:
+            continue
+        url = match.group(1)
+        parsed = urlsplit(url)
+        slug_match = re.fullmatch(r"/stream/jp/([a-z0-9_-]+)/replay\.m3u8", parsed.path)
+        if (parsed.scheme == "https" and parsed.hostname == "0i4neux01.charandom.blog"
+                and slug_match and parse_qs(parsed.query).get("ac_tk")
+                and ("$" + "{start}") in url):
+            templates[slug_match.group(1)] = url
+    return templates
+
+
+def vod_payload(now_epoch=None):
+    """Publish only approved newblog replays inside their six-day window."""
+    if not VOD_REPLAYS.is_file():
+        return VOD_START + "\n" + VOD_END
+    records = json.loads(VOD_REPLAYS.read_text(encoding="utf-8"))
+    if not isinstance(records, list):
+        raise ValueError("newblog VOD registry must be a list")
+    templates = replay_templates()
+    now_epoch = int(time.time()) if now_epoch is None else int(now_epoch)
+    entries = []
+    for item in records:
+        if not isinstance(item, dict) or item.get("id") not in APPROVED_REPLAY_SLUGS:
+            raise ValueError("Unapproved newblog VOD item")
+        slug = APPROVED_REPLAY_SLUGS[item["id"]]
+        if item.get("slug") != slug:
+            raise ValueError("newblog VOD slug mismatch")
+        start = int(item["start"])
+        if not 0 <= now_epoch - start < SIX_DAYS_SECONDS or slug not in templates:
+            continue
+        uri = templates[slug].replace("$" + "{start}", str(start))
+        extinf = (
+            '#EXTINF:-1 tvg-id="newblog.vod.' + item["id"] + "." + str(start)
+            + '" tvg-name="' + item["tvg_name"] + '" tvg-logo="' + item["logo"]
+            + '" group-title="VOD",' + item["title"]
+        )
+        entries.extend([extinf, uri])
+    return "\n".join([VOD_START, *entries, VOD_END])
+
+
+def replace_vod_block(text):
+    payload = vod_payload()
+    pattern = re.compile(r"(?m)^" + re.escape(VOD_START) + r"\n.*?^"
+                         + re.escape(VOD_END) + r"(?:\n|$)", re.S)
+    if pattern.search(text):
+        return pattern.sub(payload + "\n", text, count=1)
+    return text.rstrip() + "\n\n" + payload + "\n"
+
 
 def get_source():
     metadata = json.loads(CATALOG.read_text(encoding="utf-8"))
@@ -80,7 +146,7 @@ def apply(text):
         raise ValueError("newblog row count incorrect")
     if "haru.charandom.blog" in result or ":9394/stream/" in result:
         raise ValueError("Retired HARUKA returned")
-    return result
+    return replace_vod_block(result)
 
 def inject_rch(body: str) -> str:
     """Place the 2 newblog Rch streams directly after their existing sources."""
