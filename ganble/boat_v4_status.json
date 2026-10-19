@@ -1,11 +1,11 @@
 {
   "system": "boat-auto-v3",
   "architecture_version": 4,
-  "date": "2026-10-18",
-  "generated_at": "2026-10-18T08:54:10.374704+09:00",
+  "date": "2026-10-19",
+  "generated_at": "2026-10-19T09:59:43.520976+09:00",
   "last_update_ok": true,
-  "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261018.json",
-  "schedule_checked_at": "2026-10-18T08:51:10.373715+09:00",
+  "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261019.json",
+  "schedule_checked_at": "2026-10-19T09:50:43.620166+09:00",
   "schedule_warnings": [
     "official_cards: TimeoutError"
   ],
@@ -17,9 +17,9 @@
   "epg_finished_title": "本日の開催は終了しました",
   "acquire_lead_minutes": 150,
   "alert_lead_minutes": 30,
-  "card_count": 13,
-  "held_count": 13,
-  "visible_count": 4,
+  "card_count": 11,
+  "held_count": 11,
+  "visible_count": 6,
   "active_count": 3,
   "ended_kept": [],
   "seed_required": false,
@@ -27,17 +27,17 @@
   "system_errors": [],
   "phase_counts": {
     "morning": {
-      "held": 3,
-      "acquired": 3,
-      "active": 3,
+      "held": 2,
+      "acquired": 2,
+      "active": 2,
       "ended": 0,
       "seed_required": 0,
       "cancelled": 0
     },
     "day": {
-      "held": 7,
-      "acquired": 1,
-      "active": 0,
+      "held": 6,
+      "acquired": 4,
+      "active": 1,
       "ended": 0,
       "seed_required": 0,
       "cancelled": 0
@@ -52,110 +52,122 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 10,
-    "fetched": 4,
+    "requested": 8,
+    "fetched": 6,
     "failures": [],
     "deferred": [
       {
         "jcd": "02",
         "name": "戸田",
-        "start": "2026-10-18T10:09:00+09:00"
+        "start": "2026-10-19T10:09:00+09:00"
       },
       {
         "jcd": "03",
         "name": "江戸川",
-        "start": "2026-10-18T10:39:00+09:00"
-      },
-      {
-        "jcd": "08",
-        "name": "常滑",
-        "start": "2026-10-18T09:45:00+09:00"
-      },
-      {
-        "jcd": "09",
-        "name": "津",
-        "start": "2026-10-18T09:55:00+09:00"
-      },
-      {
-        "jcd": "16",
-        "name": "児島",
-        "start": "2026-10-18T09:40:00+09:00"
-      },
-      {
-        "jcd": "23",
-        "name": "唐津",
-        "start": "2026-10-18T10:00:00+09:00"
+        "start": "2026-10-19T10:39:00+09:00"
       }
     ]
   },
   "epg_programmes_written": {
-    "public_sports_epg_local.xml": 182,
-    "guides.xml": 182
+    "public_sports_epg_local.xml": 154,
+    "guides.xml": 154
   },
   "alert": {
     "active": false,
     "kind": "healthy"
   },
   "streams": {
-    "boat.heiwajima": {
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/af943683bc734c9d8ef3d6da78ca0682/8504d6ea47df4d7dbd958db44f2c2506/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MjQ1NDQwMCwic3RhcnQiOjE3OTIyNzk1MDAsImlvcyI6MTgsImNwIjoiMjE0NDc1MTAwXzIxNDUxODI5OSIsInBwdyI6IjQwayJ9._NIHkpMyn9a4q96ZBSIlfyrZc268UHAOwE_pFzUESYI",
+    "boat.tokoname": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/a7927a2521d340b4bff218280f93ea19/1edf240c78714eaeb318b7a25cf62fcb/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MjU0NDQwMCwic3RhcnQiOjE3OTIzNzA3MDAsImlvcyI6MTgsImNwIjoiMjE0NTY2MzAwXzIxNDYwOTQ5OSIsInBwdyI6IjQwayJ9.18V_Vg1pQ-EPs_uOtEO8RqHU2ukeAfvoa3l1Dfs81uQ",
       "source": "automatic acquisition + audio/video decode",
-      "acquired_at": "2026-10-18T08:25:37.591115+09:00",
-      "checked_at": "2026-10-18T08:51:45.645258+09:00",
-      "first_verified_at": "2026-10-18T08:25:37.591115+09:00",
+      "acquired_at": "2026-10-19T09:45:11.258476+09:00",
+      "checked_at": "2026-10-19T10:00:10.627714+09:00",
+      "first_verified_at": "2026-10-19T09:45:11.258476+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
-        "sequence": 8562373,
-        "last_segment": "/af943683bc734c9d8ef3d6da78ca0682/8504d6ea47df4d7dbd958db44f2c2506/manifest_1_8562640.ts",
+        "sequence": 8579461,
+        "last_segment": "/a7927a2521d340b4bff218280f93ea19/1edf240c78714eaeb318b7a25cf62fcb/manifest_4_8579612.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
+    },
+    "boat.tsu": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/733e5ed7594046c4aaadb7491f706fca/b17ea6f04cfd4879bcec53846faef1b9/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MjU0NDQwMCwic3RhcnQiOjE3OTIzNzEzMDAsImlvcyI6MTgsImNwIjoiMjE0NTY2OTAwXzIxNDYxMDA5OSIsInBwdyI6IjQwayJ9.fKU4PL_wWJUFQtqZLhrNDFiEOmuRtrSczVfCuPhBaJ0",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-10-19T09:55:10.613888+09:00",
+      "checked_at": "2026-10-19T10:00:10.628128+09:00",
+      "first_verified_at": "2026-10-19T09:55:10.613888+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 8602413,
+        "last_segment": "/733e5ed7594046c4aaadb7491f706fca/b17ea6f04cfd4879bcec53846faef1b9/manifest_4_8602463.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
       "consecutive_failures": 0
     },
     "boat.mikuni": {
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/97f0ad1fdb7946ada131d5ef45ee5980/1ff8ca9967ef422ba0c553d00a4f4838/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MjQ1NDQwMCwic3RhcnQiOjE3OTIyNzg5NjAsImlvcyI6MTgsImNwIjoiMjE0NDc0NTYwXzIxNDUxNzc1OSIsInBwdyI6IjQwayJ9.i1zr-CfGisbyzqxCEy6wGd38hDAcnHygpeSQGA7zal0",
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/4edf69eeea0742e98b6be1e4d5f736cc/781c4f7702434685beff9dde5ff707fa/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MjU0MDgwMCwic3RhcnQiOjE3OTIzNjUxMjAsImlvcyI6MTgsImNwIjoiMjE0NTYwNzIwXzIxNDYwMzkxOSIsInBwdyI6IjQwayJ9.lCJuR-YYatgOC3AIiFSXYj38wDOBUSnWDnDZB6bkfoU",
       "source": "automatic acquisition + audio/video decode",
-      "acquired_at": "2026-10-18T08:16:37.524720+09:00",
-      "checked_at": "2026-10-18T08:51:45.646295+09:00",
-      "first_verified_at": "2026-10-18T08:16:37.524720+09:00",
+      "acquired_at": "2026-10-19T08:13:05.041166+09:00",
+      "checked_at": "2026-10-19T10:00:10.628614+09:00",
+      "first_verified_at": "2026-10-19T08:13:05.041166+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
-        "sequence": 8559285,
-        "last_segment": "/97f0ad1fdb7946ada131d5ef45ee5980/1ff8ca9967ef422ba0c553d00a4f4838/manifest_4_8559642.ts",
+        "sequence": 8573645,
+        "last_segment": "/4edf69eeea0742e98b6be1e4d5f736cc/781c4f7702434685beff9dde5ff707fa/manifest_4_8574726.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
+    },
+    "boat.kojima": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/c5a3e752aad047be93386e2fc3e0a297/67666532dca446e9b21f6f8be4dc03a4/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MjU0NDQwMCwic3RhcnQiOjE3OTIzNzA0MDAsImlvcyI6MTgsImNwIjoiMjE0NTY2MDAwXzIxNDYwOTE5OSIsInBwdyI6IjQwayJ9.Z0pR8143e-yeMFYo0QmcoDlVSB0tvSq3R9wPJWqs0ks",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-10-19T09:40:12.735021+09:00",
+      "checked_at": "2026-10-19T10:00:10.629014+09:00",
+      "first_verified_at": "2026-10-19T09:40:12.735021+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 8580927,
+        "last_segment": "/c5a3e752aad047be93386e2fc3e0a297/67666532dca446e9b21f6f8be4dc03a4/manifest_4_8581128.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
       "consecutive_failures": 0
     },
     "boat.tokuyama": {
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/502d034a729b4c1da8cbd418ff6b9696/c01de825bedc48e8b8ee0515c8e3c3cd/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MjQ1NDQwMCwic3RhcnQiOjE3OTIyNzgwMDAsImlvcyI6MTgsImNwIjoiMjE0NDczNjAwXzIxNDUxNjc5OSIsInBwdyI6IjQwayJ9.wP9xE76EaZJgks6iSQ8Ia3Y6mK7Kag7osafSMJsAnPw",
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/2abbc87c0a744859a7ebfbd0af15eb57/65ced5ccd49941b1b16338cc054deeba/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MjU0MDgwMCwic3RhcnQiOjE3OTIzNjQ0MDAsImlvcyI6MTgsImNwIjoiMjE0NTYwMDAwXzIxNDYwMzE5OSIsInBwdyI6IjQwayJ9.DsLmb-PKUFBlWGU4rUJU31tMFWCGf1171--Y9bC8zbM",
       "source": "automatic acquisition + audio/video decode",
-      "acquired_at": "2026-10-18T08:00:53.001660+09:00",
-      "checked_at": "2026-10-18T08:51:45.647108+09:00",
-      "first_verified_at": "2026-10-18T08:00:53.001660+09:00",
+      "acquired_at": "2026-10-19T08:01:05.034219+09:00",
+      "checked_at": "2026-10-19T10:00:10.629483+09:00",
+      "first_verified_at": "2026-10-19T08:01:05.034219+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
-        "sequence": 8564713,
-        "last_segment": "/502d034a729b4c1da8cbd418ff6b9696/c01de825bedc48e8b8ee0515c8e3c3cd/manifest_1_8565230.ts",
+        "sequence": 8579113,
+        "last_segment": "/2abbc87c0a744859a7ebfbd0af15eb57/65ced5ccd49941b1b16338cc054deeba/manifest_1_8580314.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
       "consecutive_failures": 0
     },
-    "boat.ashiya": {
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/3ca13a8d57b74691b6e401d6c83424fa/0e9959ad2ba04b3f8eded3041838c09d/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MjQ1NDQwMCwic3RhcnQiOjE3OTIyNzg0ODAsImlvcyI6MTgsImNwIjoiMjE0NDc0MDgwXzIxNDUxNzI3OSIsInBwdyI6IjQwayJ9.tYf6fE-5wkLaQpuxeJj6mWcwdRh1mizsz-sr6r2FvU4",
+    "boat.karatsu": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/343814dd71e040a9a1eb50f75bd23e52/bf50a9306e66435badaac3f32f864081/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MjU0ODAwMCwic3RhcnQiOjE3OTIzNzE2MDAsImlvcyI6MTgsImNwIjoiMjE0NTY3MjAwXzIxNDYxMDM5OSIsInBwdyI6IjQwayJ9.Khz-czn-k6I2VaKK56rZGmcpC87kw3ROrLiVVLu4TzM",
       "source": "automatic acquisition + audio/video decode",
-      "acquired_at": "2026-10-18T08:08:37.539231+09:00",
-      "checked_at": "2026-10-18T08:51:45.647463+09:00",
-      "first_verified_at": "2026-10-18T08:08:37.539231+09:00",
+      "acquired_at": "2026-10-19T10:00:10.629981+09:00",
+      "checked_at": "2026-10-19T10:00:10.629981+09:00",
+      "first_verified_at": "2026-10-19T10:00:10.629981+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
-        "sequence": 8579482,
-        "last_segment": "/3ca13a8d57b74691b6e401d6c83424fa/0e9959ad2ba04b3f8eded3041838c09d/manifest_1_8579918.ts",
+        "sequence": 8582561,
+        "last_segment": "/343814dd71e040a9a1eb50f75bd23e52/bf50a9306e66435badaac3f32f864081/manifest_4_8582562.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -175,20 +187,20 @@
       "mode_label": "ナイター",
       "first_race": "15:26",
       "last_race": "20:45",
-      "alert_from": "2026-10-18T14:56:00+09:00",
+      "alert_from": "2026-10-19T14:56:00+09:00",
       "next_race": {
         "race": 1,
         "start": "15:26"
       },
       "stream_window": "scheduled",
       "intermission": null,
-      "guidance_switch_at": "2026-10-18T21:30:00+09:00",
+      "guidance_switch_at": "2026-10-19T21:30:00+09:00",
       "seed_required": false,
       "reverify_due": false,
       "playback_verified": false,
       "first_verified_at": null,
       "ready_before_first_race": false,
-      "acquire_from": "2026-10-18T12:56:00+09:00",
+      "acquire_from": "2026-10-19T12:56:00+09:00",
       "races": [
         {
           "race": 1,
@@ -243,12 +255,12 @@
         {
           "race": 11,
           "start": "20:15",
-          "name": "予選特選"
+          "name": "一般特選"
         },
         {
           "race": 12,
           "start": "20:45",
-          "name": "桐生特選"
+          "name": "一般桐生特選"
         }
       ],
       "source": "automatic cloud SEED pending"
@@ -265,20 +277,20 @@
       "mode_label": "デイ",
       "first_race": "10:47",
       "last_race": "16:25",
-      "alert_from": "2026-10-18T10:17:00+09:00",
+      "alert_from": "2026-10-19T10:17:00+09:00",
       "next_race": {
         "race": 1,
         "start": "10:47"
       },
       "stream_window": "scheduled",
       "intermission": null,
-      "guidance_switch_at": "2026-10-18T17:10:00+09:00",
+      "guidance_switch_at": "2026-10-19T17:10:00+09:00",
       "seed_required": false,
       "reverify_due": false,
       "playback_verified": false,
       "first_verified_at": null,
       "ready_before_first_race": false,
-      "acquire_from": "2026-10-18T08:17:00+09:00",
+      "acquire_from": "2026-10-19T08:17:00+09:00",
       "races": [
         {
           "race": 1,
@@ -323,25 +335,25 @@
         {
           "race": 9,
           "start": "14:46",
-          "name": "戸田特賞"
+          "name": "戸田特選"
         },
         {
           "race": 10,
           "start": "15:18",
-          "name": "戸田特賞"
+          "name": "選抜戦"
         },
         {
           "race": 11,
           "start": "15:51",
-          "name": "準優勝戦"
+          "name": "選抜戦"
         },
         {
           "race": 12,
           "start": "16:25",
-          "name": "準優勝戦"
+          "name": "優勝戦"
         }
       ],
-      "provider_stream_start": "2026-10-18T10:09:00+09:00",
+      "provider_stream_start": "2026-10-19T10:09:00+09:00",
       "source": "公式BR配信開始待ち 10:09"
     },
     "boat.edogawa": {
@@ -356,20 +368,20 @@
       "mode_label": "デイ",
       "first_race": "11:14",
       "last_race": "16:25",
-      "alert_from": "2026-10-18T10:44:00+09:00",
+      "alert_from": "2026-10-19T10:44:00+09:00",
       "next_race": {
         "race": 1,
         "start": "11:14"
       },
       "stream_window": "scheduled",
       "intermission": null,
-      "guidance_switch_at": "2026-10-18T17:10:00+09:00",
+      "guidance_switch_at": "2026-10-19T17:10:00+09:00",
       "seed_required": false,
       "reverify_due": false,
       "playback_verified": false,
       "first_verified_at": null,
       "ready_before_first_race": false,
-      "acquire_from": "2026-10-18T08:44:00+09:00",
+      "acquire_from": "2026-10-19T08:44:00+09:00",
       "races": [
         {
           "race": 1,
@@ -432,12 +444,104 @@
           "name": "記者選抜戦"
         }
       ],
-      "provider_stream_start": "2026-10-18T10:39:00+09:00",
+      "provider_stream_start": "2026-10-19T10:39:00+09:00",
       "source": "公式BR配信開始待ち 10:39"
     },
-    "boat.heiwajima": {
-      "jcd": "04",
-      "name": "平和島",
+    "boat.tokoname": {
+      "jcd": "08",
+      "name": "常滑",
+      "held": true,
+      "visible": true,
+      "ended": false,
+      "active": true,
+      "cancelled": false,
+      "mode": "day",
+      "mode_label": "デイ",
+      "first_race": "10:16",
+      "last_race": "16:04",
+      "alert_from": "2026-10-19T09:46:00+09:00",
+      "next_race": {
+        "race": 1,
+        "start": "10:16"
+      },
+      "stream_window": "live_or_prestart",
+      "intermission": null,
+      "guidance_switch_at": "2026-10-19T16:49:00+09:00",
+      "seed_required": false,
+      "reverify_due": false,
+      "playback_verified": true,
+      "first_verified_at": "2026-10-19T09:45:11.258476+09:00",
+      "ready_before_first_race": true,
+      "acquire_from": "2026-10-19T07:46:00+09:00",
+      "races": [
+        {
+          "race": 1,
+          "start": "10:16",
+          "name": "朝トコ小判R"
+        },
+        {
+          "race": 2,
+          "start": "10:43",
+          "name": "一般"
+        },
+        {
+          "race": 3,
+          "start": "11:12",
+          "name": "一般"
+        },
+        {
+          "race": 4,
+          "start": "11:39",
+          "name": "一般"
+        },
+        {
+          "race": 5,
+          "start": "12:12",
+          "name": "三A傑戦"
+        },
+        {
+          "race": 6,
+          "start": "12:42",
+          "name": "昼トコ小判R"
+        },
+        {
+          "race": 7,
+          "start": "13:11",
+          "name": "一般"
+        },
+        {
+          "race": 8,
+          "start": "13:48",
+          "name": "一般"
+        },
+        {
+          "race": 9,
+          "start": "14:19",
+          "name": "一般"
+        },
+        {
+          "race": 10,
+          "start": "14:50",
+          "name": "準優勝戦"
+        },
+        {
+          "race": 11,
+          "start": "15:24",
+          "name": "準優勝戦"
+        },
+        {
+          "race": 12,
+          "start": "16:04",
+          "name": "準優勝戦"
+        }
+      ],
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/a7927a2521d340b4bff218280f93ea19/1edf240c78714eaeb318b7a25cf62fcb/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MjU0NDQwMCwic3RhcnQiOjE3OTIzNzA3MDAsImlvcyI6MTgsImNwIjoiMjE0NTY2MzAwXzIxNDYwOTQ5OSIsInBwdyI6IjQwayJ9.18V_Vg1pQ-EPs_uOtEO8RqHU2ukeAfvoa3l1Dfs81uQ",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
+    },
+    "boat.tsu": {
+      "jcd": "09",
+      "name": "津",
       "held": true,
       "visible": true,
       "ended": false,
@@ -445,205 +549,22 @@
       "cancelled": false,
       "mode": "day",
       "mode_label": "デイ",
-      "first_race": "10:30",
-      "last_race": "16:20",
-      "alert_from": "2026-10-18T10:00:00+09:00",
-      "next_race": {
-        "race": 1,
-        "start": "10:30"
-      },
-      "stream_window": "scheduled",
-      "intermission": null,
-      "guidance_switch_at": "2026-10-18T17:05:00+09:00",
-      "seed_required": false,
-      "reverify_due": false,
-      "playback_verified": true,
-      "first_verified_at": "2026-10-18T08:25:37.591115+09:00",
-      "ready_before_first_race": true,
-      "acquire_from": "2026-10-18T08:00:00+09:00",
-      "races": [
-        {
-          "race": 1,
-          "start": "10:30",
-          "name": "一般戦"
-        },
-        {
-          "race": 2,
-          "start": "10:58",
-          "name": "一般戦"
-        },
-        {
-          "race": 3,
-          "start": "11:26",
-          "name": "一般戦"
-        },
-        {
-          "race": 4,
-          "start": "11:55",
-          "name": "一般戦"
-        },
-        {
-          "race": 5,
-          "start": "12:24",
-          "name": "一般戦"
-        },
-        {
-          "race": 6,
-          "start": "12:54",
-          "name": "一般戦"
-        },
-        {
-          "race": 7,
-          "start": "13:24",
-          "name": "一般戦"
-        },
-        {
-          "race": 8,
-          "start": "13:56",
-          "name": "一般戦"
-        },
-        {
-          "race": 9,
-          "start": "14:29",
-          "name": "一般戦"
-        },
-        {
-          "race": 10,
-          "start": "15:03",
-          "name": "特別選抜戦"
-        },
-        {
-          "race": 11,
-          "start": "15:39",
-          "name": "特別選抜戦"
-        },
-        {
-          "race": 12,
-          "start": "16:20",
-          "name": "優勝戦"
-        }
-      ],
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/af943683bc734c9d8ef3d6da78ca0682/8504d6ea47df4d7dbd958db44f2c2506/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MjQ1NDQwMCwic3RhcnQiOjE3OTIyNzk1MDAsImlvcyI6MTgsImNwIjoiMjE0NDc1MTAwXzIxNDUxODI5OSIsInBwdyI6IjQwayJ9._NIHkpMyn9a4q96ZBSIlfyrZc268UHAOwE_pFzUESYI",
-      "source": "automatic acquisition + audio/video decode",
-      "token_expired": false
-    },
-    "boat.tokoname": {
-      "jcd": "08",
-      "name": "常滑",
-      "held": true,
-      "visible": false,
-      "ended": false,
-      "active": false,
-      "cancelled": false,
-      "mode": "day",
-      "mode_label": "デイ",
-      "first_race": "10:18",
-      "last_race": "16:03",
-      "alert_from": "2026-10-18T09:48:00+09:00",
-      "next_race": {
-        "race": 1,
-        "start": "10:18"
-      },
-      "stream_window": "scheduled",
-      "intermission": null,
-      "guidance_switch_at": "2026-10-18T16:48:00+09:00",
-      "seed_required": false,
-      "reverify_due": false,
-      "playback_verified": false,
-      "first_verified_at": null,
-      "ready_before_first_race": false,
-      "acquire_from": "2026-10-18T07:48:00+09:00",
-      "races": [
-        {
-          "race": 1,
-          "start": "10:18",
-          "name": "朝トコ小判R"
-        },
-        {
-          "race": 2,
-          "start": "10:45",
-          "name": "予選"
-        },
-        {
-          "race": 3,
-          "start": "11:19",
-          "name": "予選"
-        },
-        {
-          "race": 4,
-          "start": "11:49",
-          "name": "予選"
-        },
-        {
-          "race": 5,
-          "start": "12:18",
-          "name": "三A傑戦"
-        },
-        {
-          "race": 6,
-          "start": "12:48",
-          "name": "昼トコ小判R"
-        },
-        {
-          "race": 7,
-          "start": "13:20",
-          "name": "予選"
-        },
-        {
-          "race": 8,
-          "start": "13:48",
-          "name": "予選"
-        },
-        {
-          "race": 9,
-          "start": "14:18",
-          "name": "予選特賞"
-        },
-        {
-          "race": 10,
-          "start": "14:50",
-          "name": "予選特賞"
-        },
-        {
-          "race": 11,
-          "start": "15:29",
-          "name": "予選特選"
-        },
-        {
-          "race": 12,
-          "start": "16:03",
-          "name": "予選特選"
-        }
-      ],
-      "provider_stream_start": "2026-10-18T09:45:00+09:00",
-      "source": "公式BR配信開始待ち 09:45"
-    },
-    "boat.tsu": {
-      "jcd": "09",
-      "name": "津",
-      "held": true,
-      "visible": false,
-      "ended": false,
-      "active": false,
-      "cancelled": false,
-      "mode": "day",
-      "mode_label": "デイ",
       "first_race": "10:32",
       "last_race": "16:15",
-      "alert_from": "2026-10-18T10:02:00+09:00",
+      "alert_from": "2026-10-19T10:02:00+09:00",
       "next_race": {
         "race": 1,
         "start": "10:32"
       },
       "stream_window": "scheduled",
       "intermission": null,
-      "guidance_switch_at": "2026-10-18T17:00:00+09:00",
+      "guidance_switch_at": "2026-10-19T17:00:00+09:00",
       "seed_required": false,
       "reverify_due": false,
-      "playback_verified": false,
-      "first_verified_at": null,
-      "ready_before_first_race": false,
-      "acquire_from": "2026-10-18T08:02:00+09:00",
+      "playback_verified": true,
+      "first_verified_at": "2026-10-19T09:55:10.613888+09:00",
+      "ready_before_first_race": true,
+      "acquire_from": "2026-10-19T08:02:00+09:00",
       "races": [
         {
           "race": 1,
@@ -706,8 +627,9 @@
           "name": "ツッキー選抜戦"
         }
       ],
-      "provider_stream_start": "2026-10-18T09:55:00+09:00",
-      "source": "公式BR配信開始待ち 09:55"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/733e5ed7594046c4aaadb7491f706fca/b17ea6f04cfd4879bcec53846faef1b9/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MjU0NDQwMCwic3RhcnQiOjE3OTIzNzEzMDAsImlvcyI6MTgsImNwIjoiMjE0NTY2OTAwXzIxNDYxMDA5OSIsInBwdyI6IjQwayJ9.fKU4PL_wWJUFQtqZLhrNDFiEOmuRtrSczVfCuPhBaJ0",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     },
     "boat.mikuni": {
       "jcd": "10",
@@ -719,168 +641,258 @@
       "cancelled": false,
       "mode": "morning",
       "mode_label": "モーニング",
-      "first_race": "08:51",
-      "last_race": "14:26",
-      "alert_from": "2026-10-18T08:21:00+09:00",
+      "first_race": "08:47",
+      "last_race": "14:28",
+      "alert_from": "2026-10-19T08:17:00+09:00",
       "next_race": {
-        "race": 2,
-        "start": "09:17"
+        "race": 4,
+        "start": "10:05"
       },
       "stream_window": "live_or_prestart",
       "intermission": null,
-      "guidance_switch_at": "2026-10-18T15:11:00+09:00",
+      "guidance_switch_at": "2026-10-19T15:13:00+09:00",
       "seed_required": false,
-      "reverify_due": false,
+      "reverify_due": true,
       "playback_verified": true,
-      "first_verified_at": "2026-10-18T08:16:37.524720+09:00",
+      "first_verified_at": "2026-10-19T08:13:05.041166+09:00",
       "ready_before_first_race": true,
-      "acquire_from": "2026-10-18T06:21:00+09:00",
+      "acquire_from": "2026-10-19T06:17:00+09:00",
       "races": [
         {
           "race": 1,
-          "start": "08:51",
+          "start": "08:47",
           "name": "みくにあさイチ"
         },
         {
           "race": 2,
-          "start": "09:17",
+          "start": "09:13",
           "name": "みくにあさガチ"
         },
         {
           "race": 3,
-          "start": "09:43",
+          "start": "09:39",
           "name": "みくにあさズバ"
         },
         {
           "race": 4,
-          "start": "10:09",
+          "start": "10:05",
           "name": "みくにあさ推し"
         },
         {
           "race": 5,
-          "start": "10:41",
-          "name": "予選"
+          "start": "10:35",
+          "name": "一般"
         },
         {
           "race": 6,
-          "start": "11:11",
-          "name": "予選"
+          "start": "11:04",
+          "name": "一般"
         },
         {
           "race": 7,
-          "start": "11:39",
-          "name": "予選"
+          "start": "11:33",
+          "name": "一般"
         },
         {
           "race": 8,
-          "start": "12:11",
-          "name": "予選"
+          "start": "12:02",
+          "name": "一般"
         },
         {
           "race": 9,
-          "start": "12:41",
-          "name": "予選特賞"
+          "start": "12:39",
+          "name": "一般"
         },
         {
           "race": 10,
           "start": "13:17",
-          "name": "予選特賞"
+          "name": "準優勝戦"
         },
         {
           "race": 11,
-          "start": "13:51",
-          "name": "記者特選"
+          "start": "13:50",
+          "name": "準優勝戦"
         },
         {
           "race": 12,
-          "start": "14:26",
-          "name": "カニ坊選抜"
+          "start": "14:28",
+          "name": "準優勝戦"
         }
       ],
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/97f0ad1fdb7946ada131d5ef45ee5980/1ff8ca9967ef422ba0c553d00a4f4838/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MjQ1NDQwMCwic3RhcnQiOjE3OTIyNzg5NjAsImlvcyI6MTgsImNwIjoiMjE0NDc0NTYwXzIxNDUxNzc1OSIsInBwdyI6IjQwayJ9.i1zr-CfGisbyzqxCEy6wGd38hDAcnHygpeSQGA7zal0",
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/4edf69eeea0742e98b6be1e4d5f736cc/781c4f7702434685beff9dde5ff707fa/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MjU0MDgwMCwic3RhcnQiOjE3OTIzNjUxMjAsImlvcyI6MTgsImNwIjoiMjE0NTYwNzIwXzIxNDYwMzkxOSIsInBwdyI6IjQwayJ9.lCJuR-YYatgOC3AIiFSXYj38wDOBUSnWDnDZB6bkfoU",
       "source": "automatic acquisition + audio/video decode",
       "token_expired": false
     },
-    "boat.kojima": {
-      "jcd": "16",
-      "name": "児島",
+    "boat.suminoe": {
+      "jcd": "12",
+      "name": "住之江",
       "held": true,
       "visible": false,
       "ended": false,
       "active": false,
       "cancelled": false,
-      "mode": "day",
-      "mode_label": "デイ",
-      "first_race": "10:55",
-      "last_race": "16:47",
-      "alert_from": "2026-10-18T10:25:00+09:00",
+      "mode": "night",
+      "mode_label": "ナイター",
+      "first_race": "15:16",
+      "last_race": "20:36",
+      "alert_from": "2026-10-19T14:46:00+09:00",
       "next_race": {
         "race": 1,
-        "start": "10:55"
+        "start": "15:16"
       },
       "stream_window": "scheduled",
       "intermission": null,
-      "guidance_switch_at": "2026-10-18T17:32:00+09:00",
+      "guidance_switch_at": "2026-10-19T21:21:00+09:00",
       "seed_required": false,
       "reverify_due": false,
       "playback_verified": false,
       "first_verified_at": null,
       "ready_before_first_race": false,
-      "acquire_from": "2026-10-18T08:25:00+09:00",
+      "acquire_from": "2026-10-19T12:46:00+09:00",
       "races": [
         {
           "race": 1,
-          "start": "10:55",
-          "name": "朝得ガァ〜コ戦"
+          "start": "15:16",
+          "name": "住之江ONE"
         },
         {
           "race": 2,
-          "start": "11:24",
+          "start": "15:40",
           "name": "予選"
         },
         {
           "race": 3,
-          "start": "11:52",
+          "start": "16:06",
           "name": "予選"
         },
         {
           "race": 4,
-          "start": "12:22",
-          "name": "コジマだ4っ!"
+          "start": "16:29",
+          "name": "予選"
         },
         {
           "race": 5,
-          "start": "12:52",
-          "name": "日替艇食戦"
+          "start": "17:01",
+          "name": "住之江ファイブ"
         },
         {
           "race": 6,
-          "start": "13:32",
+          "start": "17:29",
           "name": "予選"
         },
         {
           "race": 7,
-          "start": "14:08",
+          "start": "17:59",
           "name": "予選"
         },
         {
           "race": 8,
-          "start": "14:42",
+          "start": "18:26",
           "name": "予選"
         },
         {
           "race": 9,
-          "start": "15:14",
+          "start": "18:55",
+          "name": "予選"
+        },
+        {
+          "race": 10,
+          "start": "19:38",
+          "name": "予選特別B戦"
+        },
+        {
+          "race": 11,
+          "start": "20:06",
+          "name": "予選特別A戦"
+        },
+        {
+          "race": 12,
+          "start": "20:36",
+          "name": "レディスD"
+        }
+      ],
+      "source": "automatic cloud SEED pending"
+    },
+    "boat.kojima": {
+      "jcd": "16",
+      "name": "児島",
+      "held": true,
+      "visible": true,
+      "ended": false,
+      "active": false,
+      "cancelled": false,
+      "mode": "day",
+      "mode_label": "デイ",
+      "first_race": "10:58",
+      "last_race": "16:47",
+      "alert_from": "2026-10-19T10:28:00+09:00",
+      "next_race": {
+        "race": 1,
+        "start": "10:58"
+      },
+      "stream_window": "scheduled",
+      "intermission": null,
+      "guidance_switch_at": "2026-10-19T17:32:00+09:00",
+      "seed_required": false,
+      "reverify_due": false,
+      "playback_verified": true,
+      "first_verified_at": "2026-10-19T09:40:12.735021+09:00",
+      "ready_before_first_race": true,
+      "acquire_from": "2026-10-19T08:28:00+09:00",
+      "races": [
+        {
+          "race": 1,
+          "start": "10:58",
+          "name": "朝得ガァ〜コ戦"
+        },
+        {
+          "race": 2,
+          "start": "11:27",
+          "name": "予選"
+        },
+        {
+          "race": 3,
+          "start": "11:57",
+          "name": "予選"
+        },
+        {
+          "race": 4,
+          "start": "12:25",
+          "name": "コジマだ4っ!"
+        },
+        {
+          "race": 5,
+          "start": "12:55",
+          "name": "日替艇食戦"
+        },
+        {
+          "race": 6,
+          "start": "13:25",
+          "name": "予選"
+        },
+        {
+          "race": 7,
+          "start": "13:54",
+          "name": "予選"
+        },
+        {
+          "race": 8,
+          "start": "14:22",
+          "name": "予選"
+        },
+        {
+          "race": 9,
+          "start": "15:00",
           "name": "これしか9じゃ"
         },
         {
           "race": 10,
-          "start": "15:46",
+          "start": "15:33",
           "name": "予選特賞"
         },
         {
           "race": 11,
-          "start": "16:14",
+          "start": "16:12",
           "name": "予選特選"
         },
         {
@@ -889,8 +901,9 @@
           "name": "記者選抜戦"
         }
       ],
-      "provider_stream_start": "2026-10-18T09:40:00+09:00",
-      "source": "公式BR配信開始待ち 09:40"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/c5a3e752aad047be93386e2fc3e0a297/67666532dca446e9b21f6f8be4dc03a4/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MjU0NDQwMCwic3RhcnQiOjE3OTIzNzA0MDAsImlvcyI6MTgsImNwIjoiMjE0NTY2MDAwXzIxNDYwOTE5OSIsInBwdyI6IjQwayJ9.Z0pR8143e-yeMFYo0QmcoDlVSB0tvSq3R9wPJWqs0ks",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     },
     "boat.tokuyama": {
       "jcd": "18",
@@ -904,20 +917,20 @@
       "mode_label": "モーニング",
       "first_race": "08:35",
       "last_race": "14:13",
-      "alert_from": "2026-10-18T08:05:00+09:00",
+      "alert_from": "2026-10-19T08:05:00+09:00",
       "next_race": {
-        "race": 2,
-        "start": "09:01"
+        "race": 5,
+        "start": "10:20"
       },
       "stream_window": "live_or_prestart",
       "intermission": null,
-      "guidance_switch_at": "2026-10-18T14:58:00+09:00",
+      "guidance_switch_at": "2026-10-19T14:58:00+09:00",
       "seed_required": false,
-      "reverify_due": true,
+      "reverify_due": false,
       "playback_verified": true,
-      "first_verified_at": "2026-10-18T08:00:53.001660+09:00",
+      "first_verified_at": "2026-10-19T08:01:05.034219+09:00",
       "ready_before_first_race": true,
-      "acquire_from": "2026-10-18T06:05:00+09:00",
+      "acquire_from": "2026-10-19T06:05:00+09:00",
       "races": [
         {
           "race": 1,
@@ -977,10 +990,10 @@
         {
           "race": 12,
           "start": "14:13",
-          "name": "ドリーム戦"
+          "name": "すなっち特選"
         }
       ],
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/502d034a729b4c1da8cbd418ff6b9696/c01de825bedc48e8b8ee0515c8e3c3cd/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MjQ1NDQwMCwic3RhcnQiOjE3OTIyNzgwMDAsImlvcyI6MTgsImNwIjoiMjE0NDczNjAwXzIxNDUxNjc5OSIsInBwdyI6IjQwayJ9.wP9xE76EaZJgks6iSQ8Ia3Y6mK7Kag7osafSMJsAnPw",
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/2abbc87c0a744859a7ebfbd0af15eb57/65ced5ccd49941b1b16338cc054deeba/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MjU0MDgwMCwic3RhcnQiOjE3OTIzNjQ0MDAsImlvcyI6MTgsImNwIjoiMjE0NTYwMDAwXzIxNDYwMzE5OSIsInBwdyI6IjQwayJ9.DsLmb-PKUFBlWGU4rUJU31tMFWCGf1171--Y9bC8zbM",
       "source": "automatic acquisition + audio/video decode",
       "token_expired": false
     },
@@ -996,271 +1009,89 @@
       "mode_label": "ナイター",
       "first_race": "17:41",
       "last_race": "22:45",
-      "alert_from": "2026-10-18T17:11:00+09:00",
+      "alert_from": "2026-10-19T17:11:00+09:00",
       "next_race": {
         "race": 1,
         "start": "17:41"
       },
       "stream_window": "scheduled",
       "intermission": null,
-      "guidance_switch_at": "2026-10-18T23:30:00+09:00",
+      "guidance_switch_at": "2026-10-19T23:30:00+09:00",
       "seed_required": false,
       "reverify_due": false,
       "playback_verified": false,
       "first_verified_at": null,
       "ready_before_first_race": false,
-      "acquire_from": "2026-10-18T15:11:00+09:00",
+      "acquire_from": "2026-10-19T15:11:00+09:00",
       "races": [
         {
           "race": 1,
           "start": "17:41",
-          "name": "予選"
+          "name": "一般"
         },
         {
           "race": 2,
           "start": "18:08",
-          "name": "予選"
+          "name": "一般"
         },
         {
           "race": 3,
           "start": "18:34",
-          "name": "予選"
+          "name": "一般"
         },
         {
           "race": 4,
           "start": "19:03",
-          "name": "予選"
+          "name": "一般"
         },
         {
           "race": 5,
           "start": "19:30",
-          "name": "シーモ戦"
+          "name": "シーモ"
         },
         {
           "race": 6,
           "start": "19:56",
-          "name": "予選"
+          "name": "一般"
         },
         {
           "race": 7,
           "start": "20:25",
-          "name": "ふく〜る特賞"
+          "name": "ふく〜る"
         },
         {
           "race": 8,
           "start": "20:59",
-          "name": "予選"
+          "name": "一般"
         },
         {
           "race": 9,
           "start": "21:25",
-          "name": "予選"
+          "name": "準優勝戦"
         },
         {
           "race": 10,
           "start": "21:51",
-          "name": "予選特賞"
+          "name": "準優勝戦"
         },
         {
           "race": 11,
-          "start": "22:18",
-          "name": "予選特選"
+          "start": "22:20",
+          "name": "準優勝戦"
         },
         {
           "race": 12,
           "start": "22:45",
-          "name": "一般シーボー選"
+          "name": "一般"
         }
       ],
       "source": "automatic cloud SEED pending"
-    },
-    "boat.wakamatsu": {
-      "jcd": "20",
-      "name": "若松",
-      "held": true,
-      "visible": false,
-      "ended": false,
-      "active": false,
-      "cancelled": false,
-      "mode": "night",
-      "mode_label": "ナイター",
-      "first_race": "15:16",
-      "last_race": "20:36",
-      "alert_from": "2026-10-18T14:46:00+09:00",
-      "next_race": {
-        "race": 1,
-        "start": "15:16"
-      },
-      "stream_window": "scheduled",
-      "intermission": null,
-      "guidance_switch_at": "2026-10-18T21:21:00+09:00",
-      "seed_required": false,
-      "reverify_due": false,
-      "playback_verified": false,
-      "first_verified_at": null,
-      "ready_before_first_race": false,
-      "acquire_from": "2026-10-18T12:46:00+09:00",
-      "races": [
-        {
-          "race": 1,
-          "start": "15:16",
-          "name": "一般戦"
-        },
-        {
-          "race": 2,
-          "start": "15:43",
-          "name": "一般戦"
-        },
-        {
-          "race": 3,
-          "start": "16:07",
-          "name": "一般戦"
-        },
-        {
-          "race": 4,
-          "start": "16:30",
-          "name": "一般戦"
-        },
-        {
-          "race": 5,
-          "start": "17:01",
-          "name": "進入固定戦隊"
-        },
-        {
-          "race": 6,
-          "start": "17:29",
-          "name": "一般戦"
-        },
-        {
-          "race": 7,
-          "start": "17:59",
-          "name": "一般戦"
-        },
-        {
-          "race": 8,
-          "start": "18:26",
-          "name": "エイトビート"
-        },
-        {
-          "race": 9,
-          "start": "18:55",
-          "name": "一般特選"
-        },
-        {
-          "race": 10,
-          "start": "19:38",
-          "name": "選抜戦"
-        },
-        {
-          "race": 11,
-          "start": "20:06",
-          "name": "選抜戦"
-        },
-        {
-          "race": 12,
-          "start": "20:36",
-          "name": "優勝戦"
-        }
-      ],
-      "source": "automatic cloud SEED pending"
-    },
-    "boat.ashiya": {
-      "jcd": "21",
-      "name": "芦屋",
-      "held": true,
-      "visible": true,
-      "ended": false,
-      "active": true,
-      "cancelled": false,
-      "mode": "morning",
-      "mode_label": "モーニング",
-      "first_race": "08:43",
-      "last_race": "14:20",
-      "alert_from": "2026-10-18T08:13:00+09:00",
-      "next_race": {
-        "race": 2,
-        "start": "09:09"
-      },
-      "stream_window": "live_or_prestart",
-      "intermission": null,
-      "guidance_switch_at": "2026-10-18T15:05:00+09:00",
-      "seed_required": false,
-      "reverify_due": true,
-      "playback_verified": true,
-      "first_verified_at": "2026-10-18T08:08:37.539231+09:00",
-      "ready_before_first_race": true,
-      "acquire_from": "2026-10-18T06:13:00+09:00",
-      "races": [
-        {
-          "race": 1,
-          "start": "08:43",
-          "name": "サンライズV戦"
-        },
-        {
-          "race": 2,
-          "start": "09:09",
-          "name": "サンライズW戦"
-        },
-        {
-          "race": 3,
-          "start": "09:35",
-          "name": "サンライズX戦"
-        },
-        {
-          "race": 4,
-          "start": "10:01",
-          "name": "サンライズY戦"
-        },
-        {
-          "race": 5,
-          "start": "10:34",
-          "name": "サンライズZ戦"
-        },
-        {
-          "race": 6,
-          "start": "11:03",
-          "name": "一般"
-        },
-        {
-          "race": 7,
-          "start": "11:33",
-          "name": "一般"
-        },
-        {
-          "race": 8,
-          "start": "12:02",
-          "name": "一般"
-        },
-        {
-          "race": 9,
-          "start": "12:32",
-          "name": "アシ夢特選"
-        },
-        {
-          "race": 10,
-          "start": "13:05",
-          "name": "選抜戦"
-        },
-        {
-          "race": 11,
-          "start": "13:42",
-          "name": "選抜戦"
-        },
-        {
-          "race": 12,
-          "start": "14:20",
-          "name": "優勝戦"
-        }
-      ],
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/3ca13a8d57b74691b6e401d6c83424fa/0e9959ad2ba04b3f8eded3041838c09d/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MjQ1NDQwMCwic3RhcnQiOjE3OTIyNzg0ODAsImlvcyI6MTgsImNwIjoiMjE0NDc0MDgwXzIxNDUxNzI3OSIsInBwdyI6IjQwayJ9.tYf6fE-5wkLaQpuxeJj6mWcwdRh1mizsz-sr6r2FvU4",
-      "source": "automatic acquisition + audio/video decode",
-      "token_expired": false
     },
     "boat.karatsu": {
       "jcd": "23",
       "name": "唐津",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
       "active": false,
       "cancelled": false,
@@ -1268,20 +1099,20 @@
       "mode_label": "デイ",
       "first_race": "10:38",
       "last_race": "16:36",
-      "alert_from": "2026-10-18T10:08:00+09:00",
+      "alert_from": "2026-10-19T10:08:00+09:00",
       "next_race": {
         "race": 1,
         "start": "10:38"
       },
       "stream_window": "scheduled",
       "intermission": null,
-      "guidance_switch_at": "2026-10-18T17:21:00+09:00",
+      "guidance_switch_at": "2026-10-19T17:21:00+09:00",
       "seed_required": false,
       "reverify_due": false,
-      "playback_verified": false,
-      "first_verified_at": null,
-      "ready_before_first_race": false,
-      "acquire_from": "2026-10-18T08:08:00+09:00",
+      "playback_verified": true,
+      "first_verified_at": "2026-10-19T10:00:10.629981+09:00",
+      "ready_before_first_race": true,
+      "acquire_from": "2026-10-19T08:08:00+09:00",
       "races": [
         {
           "race": 1,
@@ -1300,17 +1131,17 @@
         },
         {
           "race": 4,
-          "start": "12:06",
+          "start": "12:05",
           "name": "予選"
         },
         {
           "race": 5,
-          "start": "12:36",
+          "start": "12:34",
           "name": "予選"
         },
         {
           "race": 6,
-          "start": "13:07",
+          "start": "13:06",
           "name": "予選"
         },
         {
@@ -1341,11 +1172,12 @@
         {
           "race": 12,
           "start": "16:36",
-          "name": "ドリーム1st"
+          "name": "ドリーム2nd"
         }
       ],
-      "provider_stream_start": "2026-10-18T10:00:00+09:00",
-      "source": "公式BR配信開始待ち 10:00"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/343814dd71e040a9a1eb50f75bd23e52/bf50a9306e66435badaac3f32f864081/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MjU0ODAwMCwic3RhcnQiOjE3OTIzNzE2MDAsImlvcyI6MTgsImNwIjoiMjE0NTY3MjAwXzIxNDYxMDM5OSIsInBwdyI6IjQwayJ9.Khz-czn-k6I2VaKK56rZGmcpC87kw3ROrLiVVLu4TzM",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     }
   }
 }
