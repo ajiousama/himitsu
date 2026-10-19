@@ -87,6 +87,8 @@ def rewrite_group_title(inf: str, group: str) -> str:
 
 def terrestrial_group_title(inf: str, url: str) -> str:
     lower = inf.lower()
+    if "（newblog系）" in inf:
+        return "地上波 newblog系"
     if "(yoitv)" in lower:
         return "地上波 YoiTV"
     if "(naori hd)" in lower:
