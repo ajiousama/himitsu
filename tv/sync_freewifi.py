@@ -68,6 +68,31 @@ def strip_manual_block(text: str) -> str:
     )
 
 
+def strip_generated_newblog_vod(text: str) -> str:
+    """Remove prior generated replay rows before copying the canonical TV playlist."""
+    text = re.sub(
+        r"(?m)^# === NEWBLOG_VOD_START ===\n.*?^# === NEWBLOG_VOD_END ===(?:\n|$)",
+        "",
+        text,
+        flags=re.S,
+    )
+    lines = text.splitlines()
+    kept = []
+    i = 0
+    while i < len(lines):
+        if (lines[i].startswith("#EXTINF:")
+                and re.search(r'tvg-id="newblog\.vod\.[^"]+"', lines[i])):
+            i += 1
+            while i < len(lines) and not lines[i].strip():
+                i += 1
+            if i < len(lines) and not lines[i].lstrip().startswith("#"):
+                i += 1
+            continue
+        kept.append(lines[i])
+        i += 1
+    return "\n".join(kept)
+
+
 def reuse_known_contrast_logos(text: str) -> tuple[str, int]:
     """Reuse already-generated local contrast logos without fetching/rebuilding images."""
     if not CONTRAST_DB.exists():
@@ -113,7 +138,7 @@ def validate_source_groups(text: str) -> None:
 def main():
     text = FREEWIFI.read_text(encoding="utf-8-sig", errors="replace")
     protected = manual_block(text)
-    base = strip_manual_block(text)
+    base = strip_generated_newblog_vod(strip_manual_block(text))
 
     a = base.find(START)
     b = base.find(END, a + len(START))
