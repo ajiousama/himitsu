@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-19",
-  "generated_at": "2026-10-19T12:45:43.448101+09:00",
+  "generated_at": "2026-10-19T12:46:43.445313+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261019.json",
   "schedule_checked_at": "2026-10-19T12:41:43.546909+09:00",
@@ -52,10 +52,16 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 8,
+    "requested": 9,
     "fetched": 8,
     "failures": [],
-    "deferred": []
+    "deferred": [
+      {
+        "jcd": "12",
+        "name": "住之江",
+        "start": "2026-10-19T13:55:00+09:00"
+      }
+    ]
   },
   "epg_programmes_written": {
     "public_sports_epg_local.xml": 154,
@@ -834,7 +840,8 @@
           "name": "レディスD"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "provider_stream_start": "2026-10-19T13:55:00+09:00",
+      "source": "公式BR配信開始待ち 13:55"
     },
     "boat.kojima": {
       "jcd": "16",
