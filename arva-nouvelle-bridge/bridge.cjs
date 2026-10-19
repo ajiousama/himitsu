@@ -2,7 +2,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const http = require('node:http');
-const { webcrypto, timingSafeEqual } = require('node:crypto');
+const { webcrypto, timingSafeEqual, createHash } = require('node:crypto');
 globalThis.crypto ??= webcrypto;
 
 const args = process.argv.slice(2);
@@ -38,6 +38,8 @@ const maxBody = 32 * 1024 * 1024;
 const maxCache = 64 * 1024 * 1024;
 const cache = new Map(), pending = new Map();
 let cacheBytes = 0;
+// Respect temporary upstream rate limits across channel requests.
+let upstreamCooldownUntil = 0;
 
 function sourceURL(value, parent = upstream) {
   const u = new URL(value, parent);
@@ -61,7 +63,18 @@ function rewritePlaylist(text, parent) {
   }).join('\n');
 }
 async function download(url, limit = maxBody) {
+  if (url.origin === upstream.origin && Date.now() < upstreamCooldownUntil) {
+    throw Error('Upstream HTTP 429 cooldown active; retry after the source limit expires');
+  }
   const res = await fetch(url, { signal: AbortSignal.timeout(20000), redirect: 'error' });
+  if (res.status === 429 && url.origin === upstream.origin) {
+    const header = res.headers.get('retry-after') || '';
+    let delay = /^\\d+$/.test(header) ? Number(header) * 1000 : Date.parse(header) - Date.now();
+    if (!Number.isFinite(delay)) delay = 60000;
+    delay = Math.max(30000, Math.min(300000, delay));
+    upstreamCooldownUntil = Math.max(upstreamCooldownUntil, Date.now() + delay);
+    console.warn('Source rate-limited (429); cooldown active for ' + Math.ceil(delay / 1000) + 's');
+  }
   if (!res.ok) {
     await res.body?.cancel();
     throw Error(`Upstream HTTP ${res.status}. Access was not bypassed; try from a network where the source normally works.`);
@@ -167,6 +180,8 @@ async function setupDecoder() {
       fs.writeFileSync(dest + '.tmp', data);
       fs.renameSync(dest + '.tmp', dest);
     }
+    const localAsset = fs.readFileSync(dest);
+    console.log('Decoder asset ' + name + ': bytes=' + localAsset.length + ' sha256=' + createHash('sha256').update(localAsset).digest('hex').slice(0, 16));
   }
   require(path.join(vendor, 'wasm_exec.js'));
   const go = new globalThis.Go();
