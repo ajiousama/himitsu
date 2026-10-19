@@ -2,10 +2,10 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-19",
-  "generated_at": "2026-10-19T10:35:43.576549+09:00",
+  "generated_at": "2026-10-19T10:38:43.583438+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261019.json",
-  "schedule_checked_at": "2026-10-19T10:23:43.474564+09:00",
+  "schedule_checked_at": "2026-10-19T10:38:43.583438+09:00",
   "schedule_warnings": [
     "official_cards: TimeoutError"
   ],
@@ -19,7 +19,7 @@
   "alert_lead_minutes": 30,
   "card_count": 11,
   "held_count": 11,
-  "visible_count": 7,
+  "visible_count": 8,
   "active_count": 7,
   "ended_kept": [],
   "seed_required": false,
@@ -36,7 +36,7 @@
     },
     "day": {
       "held": 6,
-      "acquired": 5,
+      "acquired": 6,
       "active": 5,
       "ended": 0,
       "seed_required": 0,
@@ -53,15 +53,9 @@
   },
   "cloud_acquisition": {
     "requested": 8,
-    "fetched": 7,
+    "fetched": 8,
     "failures": [],
-    "deferred": [
-      {
-        "jcd": "03",
-        "name": "江戸川",
-        "start": "2026-10-19T10:39:00+09:00"
-      }
-    ]
+    "deferred": []
   },
   "epg_programmes_written": {
     "public_sports_epg_local.xml": 154,
@@ -83,6 +77,22 @@
         "ok": true,
         "sequence": 8580303,
         "last_segment": "/77ee94f1d5fc45bf95bc90f59afe7afd/9a4cff5b3a434533b0f47bb5429fd0e9/manifest_4_8580574.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
+    },
+    "boat.edogawa": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/4b1be2b09cf64baea9129eb33ceb51d7/565d52d1551a40799fa7893d26ae3a88/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MjU0ODAwMCwic3RhcnQiOjE3OTIzNzM5NDAsImlvcyI6MTgsImNwIjoiMjE0NTY5NTQwXzIxNDYxMjczOSIsInBwdyI6IjQwayJ9.UnL1CvkBwsndShBBhAFVGjc5R9J8l7g7WAlmezSlEFo",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-10-19T10:39:18.831333+09:00",
+      "checked_at": "2026-10-19T10:39:18.831333+09:00",
+      "first_verified_at": "2026-10-19T10:39:18.831333+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 8580391,
+        "last_segment": "/4b1be2b09cf64baea9129eb33ceb51d7/565d52d1551a40799fa7893d26ae3a88/manifest_1_8580394.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -372,7 +382,7 @@
       "jcd": "03",
       "name": "江戸川",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
       "active": false,
       "cancelled": false,
@@ -390,9 +400,9 @@
       "guidance_switch_at": "2026-10-19T17:10:00+09:00",
       "seed_required": false,
       "reverify_due": false,
-      "playback_verified": false,
-      "first_verified_at": null,
-      "ready_before_first_race": false,
+      "playback_verified": true,
+      "first_verified_at": "2026-10-19T10:39:18.831333+09:00",
+      "ready_before_first_race": true,
       "acquire_from": "2026-10-19T08:44:00+09:00",
       "races": [
         {
@@ -456,8 +466,9 @@
           "name": "記者選抜戦"
         }
       ],
-      "provider_stream_start": "2026-10-19T10:39:00+09:00",
-      "source": "公式BR配信開始待ち 10:39"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/4b1be2b09cf64baea9129eb33ceb51d7/565d52d1551a40799fa7893d26ae3a88/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MjU0ODAwMCwic3RhcnQiOjE3OTIzNzM5NDAsImlvcyI6MTgsImNwIjoiMjE0NTY5NTQwXzIxNDYxMjczOSIsInBwdyI6IjQwayJ9.UnL1CvkBwsndShBBhAFVGjc5R9J8l7g7WAlmezSlEFo",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     },
     "boat.tokoname": {
       "jcd": "08",
@@ -1113,14 +1124,14 @@
       "last_race": "16:36",
       "alert_from": "2026-10-19T10:08:00+09:00",
       "next_race": {
-        "race": 1,
-        "start": "10:38"
+        "race": 2,
+        "start": "11:07"
       },
       "stream_window": "live_or_prestart",
       "intermission": null,
       "guidance_switch_at": "2026-10-19T17:21:00+09:00",
       "seed_required": false,
-      "reverify_due": true,
+      "reverify_due": false,
       "playback_verified": true,
       "first_verified_at": "2026-10-19T10:00:10.629981+09:00",
       "ready_before_first_race": true,
