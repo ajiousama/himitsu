@@ -28,7 +28,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.x'
-      - name: Retire HARUKA, reorder Arva trials, and publish without racing other writers
+      - name: Retire HARUKA and Arva, normalize sources, and publish without racing other writers
         shell: bash
         run: |
           set -euo pipefail
@@ -58,11 +58,13 @@ jobs:
               assert section in s
           assert 'haru.charandom.blog' not in s
           assert 'naori' not in s.casefold()
-          assert s.index('TOKYO MX1 (YoiTV)') < s.index('テレ玉 (Arva・試験)') < s.index('tvk (Arva・試験)') < s.index('サンテレビ (5002直)')
+          assert 'arva' not in s.casefold()
+          assert 'arva' not in tv.casefold()
+          assert s.index('TOKYO MX1 (YoiTV)') < s.index('サンテレビ (5002直)')
           for cid in ('rch_30','rch_35','rch_37','rch_46','rch_86','rch_113','rch_122','rch_123','rch_124','rch_125','rch_41'):
               assert cid in s
           assert '## Rakuten-JP' not in s
-          print('HARUKA removed from published/canonical lists; Arva ordering validated')
+          print('HARUKA and Arva removed from published/canonical lists; source ordering validated')
           PY
             git diff --check
             git add freewifi tv/playlist.m3u rakuten/playlist.m3u
@@ -70,7 +72,7 @@ jobs:
               echo "FreeWiFi sources already cleaned"
               exit 0
             fi
-            git commit -m "Remove HARUKA from all FreeWiFi sources and position Arva after TOKYO MX1 [skip ci] [skip render]"
+            git commit -m "Retire HARUKA and Arva from FreeWiFi sources [skip ci] [skip render]"
             if git push origin HEAD:main; then
               echo "FreeWiFi source cleanup published"
               exit 0

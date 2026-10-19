@@ -113,12 +113,14 @@ main `freewifi` に登録されている `group-title="VOD"` は46件（Arva9 / 
 **終了時点：Arvaの再生未復旧。VOD保全とnewblogフォールバックの修正は検証済み。次は復号障害の根本原因の比較・特定。**
 
 
-## G. Arva retirement decision (2026-10-19)
+## G. Arva retirement decision and newblog migration (2026-10-19)
 
-The user later directed removal of Arva from FreeWiFi and migration of VOD entries to another supported format. This decision supersedes the earlier no-removal guard above.
+The user later directed removal of Arva from FreeWiFi and asked to try newblog as the replacement. This supersedes the earlier no-removal guard above.
 
-- Remove the Arva Teletama/tvk test rows and the Arva Nouvelle Paradise live row from published FreeWiFi while retaining the approved newblog Nouvelle Paradise row.
-- Remove all nine Arva bridge VOD rows. Keep the two programmes already validated for newblog replay (`探偵！ナイトスクープ` via ABC and `土曜のあさはほめるちゃん` via MBS) as explicit newblog replay VOD entries, using the current six-day replay templates and expiring entries outside the supported window.
-- Do not substitute unrelated KICK recordings for the seven unavailable Arva broadcasts. Keep the existing KICK catalogue unchanged.
-- Disable the Arva VOD scheduled publisher so later runs cannot restore Arva entries. Keep EPG source data and other FreeWiFi/Newblog/KICK workflows intact.
-- Arva playback remains unverified; successful repository update or workflow run is not playback success.
+- Remove Teletama/tvk Arva trial rows and the Arva Nouvelle Paradise live row from published FreeWiFi; retain the approved newblog Nouvelle Paradise live row.
+- Remove all nine Arva bridge VOD rows. Seven current recordings are now represented by newblog replay URLs: four Fuji TV ONE / GCCX entries, the current Nogizaka entry via TV Tokyo, Knight Scoop via ABC, and Homeru-chan via MBS. The direct replay template uses each station's current newblog source and its six-day catch-up window.
+- The 10/12 Nogizaka recording is outside the six-day newblog window and is not included. The 07:29-07:35 Ohayo Asahi clip is not included because the current newblog replay template does not establish the exact six-minute end boundary.
+- The newblog station registry has no Teletama or tvk entries, so it cannot replace those Arva live channels.
+- Keep the existing 37 KICK VOD entries and KICK live block unchanged.
+- The HARUKA cleanup workflow previously required restoring Teletama/tvk Arva trial rows. Its cleanup script and assertions are now changed so scheduled refreshes keep Arva removed.
+- newblog URLs are generated and published, but playback has not been independently confirmed for the four GCCX or current Nogizaka replay URLs. A GitHub commit or successful workflow is not playback success. The two existing Knight Scoop/Homeru replay routes were previously VLC-checked; Arva playback itself remains retired/unverified.
