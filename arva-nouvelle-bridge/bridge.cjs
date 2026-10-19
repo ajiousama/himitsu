@@ -204,6 +204,9 @@ function send(res, status, data, mime) {
   res.end(data);
 }
 async function main() {
+  // Log only the hostname: never include auth tokens, URI paths or query strings.
+  console.log('Configured source host: ' + upstream.hostname);
+  console.log('Decoder source host: ' + new URL(decoderOrigin).hostname);
   await setupDecoder();
   const server = http.createServer(async (req, res) => {
     if (req.method !== 'GET' && req.method !== 'HEAD') return send(res, 405, Buffer.from('GET and HEAD only'), 'text/plain');
