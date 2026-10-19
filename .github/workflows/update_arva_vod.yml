@@ -36,6 +36,35 @@ jobs:
       - name: Find current catch-up programmes and check manifests
         run: python arva_vod/build.py --probe --timeout 8 --max-probes 40
 
+      # Arva can fail while the independent newblog catch-up source is healthy.
+      # On that failure, keep the old Arva catalogue, but refresh its already
+      # approved newblog replay links from the latest source list.
+      - name: Keep newblog catch-up links current even if Arva fails
+        if: ${{ failure() }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          for attempt in 1 2 3 4 5; do
+            git fetch origin main
+            git reset --hard origin/main
+            python arva_vod/sync_freewifi.py
+            git add -- freewifi
+            if git diff --cached --quiet; then
+              echo "newblog VOD fallback already up to date"
+              exit 0
+            fi
+            git commit -m "Refresh newblog catch-up VOD links despite Arva outage [skip ci] [skip render]"
+            if git push origin HEAD:main; then
+              echo "Updated newblog VOD links without replacing Arva or Kick VOD"
+              exit 0
+            fi
+            sleep 3
+          done
+          echo "::error::newblog VOD link fallback publish failed after five retries"
+          exit 1
+
       - name: Publish isolated Arva VOD without touching Kick VOD5
         shell: bash
         run: |
