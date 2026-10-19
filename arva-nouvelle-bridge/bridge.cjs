@@ -69,7 +69,7 @@ async function download(url, limit = maxBody) {
   const res = await fetch(url, { signal: AbortSignal.timeout(20000), redirect: 'error' });
   if (res.status === 429 && url.origin === upstream.origin) {
     const header = res.headers.get('retry-after') || '';
-    let delay = /^\\d+$/.test(header) ? Number(header) * 1000 : Date.parse(header) - Date.now();
+    let delay = /^[0-9]+$/.test(header) ? Number(header) * 1000 : Date.parse(header) - Date.now();
     if (!Number.isFinite(delay)) delay = 60000;
     delay = Math.max(30000, Math.min(300000, delay));
     upstreamCooldownUntil = Math.max(upstreamCooldownUntil, Date.now() + delay);
