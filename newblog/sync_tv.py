@@ -197,10 +197,10 @@ def inject_rch(body: str) -> str:
         matches = [j for j, line in enumerate(ls)
                    if line.startswith("#EXTINF:")
                    and ('tvg-id="' + meta["id"] + '"') in line]
-        if not matches:
-            raise ValueError("Rch existing source missing for " + slug)
-        j = matches[-1]
-        insert = j + 2
+        # Pigoo normally follows its YoiTV source. Nouvelle Paradise's
+        # discontinued Arva source was removed, so its newblog row can
+        # be appended without an existing same-id anchor.
+        insert = matches[-1] + 2 if matches else len(ls)
         inf = ('#EXTINF:-1 tvg-id="' + meta["id"] + '" tvg-logo="'
                + meta["logo"] + '" group-title="Rch",'
                + meta["name"].replace(" (Arva)", "").replace("（Arva）", "") + LABEL)

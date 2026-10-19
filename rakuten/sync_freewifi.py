@@ -56,13 +56,19 @@ def payload():
     if lines and lines[0].startswith("#EXTM3U"):
         lines = lines[1:]
     extra = EXTRA.read_text(encoding="utf-8-sig", errors="strict").strip()
-    if not extra.startswith("#EXTINF:") or 'group-title="Rch"' not in extra:
-        raise RuntimeError("Rch FreeWiFi extras missing or malformed")
+    # Supplemental Rch sources are optional. The retired Arva bridge must
+    # not be restored by the scheduled 10-minute rebuild.
+    if "nouvelle-paradise-bridge" in extra.lower() or "ヌーヴェルパラダイス (Arva)" in extra:
+        raise RuntimeError("Retired Nouvelle Paradise Arva source detected")
+    if extra and (not extra.startswith("#EXTINF:") or 'group-title="Rch"' not in extra):
+        raise RuntimeError("Rch FreeWiFi extras malformed")
     # Running as python rakuten/sync_freewifi.py must resolve the repository root.
     import sys
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
     from newblog.sync_tv import inject_rch
-    return inject_rch("\n".join(lines).strip() + "\n\n" + extra + "\n\n")
+    base = "\n".join(lines).strip() + "\n\n"
+    body = base + (extra + "\n\n" if extra else "")
+    return inject_rch(body)
 
 def main():
     text = FREEWIFI.read_text(encoding="utf-8-sig", errors="replace")
@@ -76,6 +82,10 @@ def main():
     updated, reused = reuse_known_contrast_logos(updated)
     if "haruka" in updated.lower():
         raise RuntimeError("Retired HARUKA source unexpectedly restored")
+    if "nouvelle-paradise-bridge" in updated.lower() or "ヌーヴェルパラダイス (Arva)" in updated:
+        raise RuntimeError("Retired Nouvelle Paradise Arva source unexpectedly restored")
+    if updated.count("ヌーヴェルパラダイス（newblog系）") != 1:
+        raise RuntimeError("Nouvelle Paradise newblog stream is missing or duplicated")
     FREEWIFI.write_text(updated.rstrip() + "\n", encoding="utf-8")
     print(f"Rakuten Rch synced from rakuten/playlist.m3u; reused white-card logos={reused}")
 
