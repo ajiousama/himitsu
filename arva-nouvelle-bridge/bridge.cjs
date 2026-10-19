@@ -38,6 +38,8 @@ const maxBody = 32 * 1024 * 1024;
 const maxCache = 64 * 1024 * 1024;
 const cache = new Map(), pending = new Map();
 let cacheBytes = 0;
+let consecutiveResourceFailures = 0;
+let resourceCooldownUntil = 0;
 // Respect temporary upstream rate limits across channel requests.
 let upstreamCooldownUntil = 0;
 
@@ -124,10 +126,15 @@ function decode(data) {
 }
 async function resource(url) {
   const key = url.href;
+  if (Date.now() < resourceCooldownUntil) {
+    const seconds = Math.ceil((resourceCooldownUntil - Date.now()) / 1000);
+    throw Error(`Upstream resource cooldown active; retry in ${seconds}s`);
+  }
   const hit = cache.get(key);
   if (hit && hit.expires > Date.now()) return hit;
   if (pending.has(key)) return pending.get(key);
   const job = (async () => {
+   try {
     const raw = await download(url);
     let output;
     try {
@@ -150,7 +157,17 @@ async function resource(url) {
       ? { data: Buffer.from(rewritePlaylist(output.data.toString('utf8'), url)), mime: 'application/vnd.apple.mpegurl; charset=utf-8' }
       : { data: output.data, mime: output.magic === 'NTXS' ? 'video/mp2t' : raw.mime };
     putCache(key, result, playlist ? 750 : 60000);
+    consecutiveResourceFailures = 0;
     return result;
+   } catch (error) {
+    consecutiveResourceFailures += 1;
+    if (consecutiveResourceFailures >= 3) {
+      consecutiveResourceFailures = 0;
+      resourceCooldownUntil = Date.now() + 30000;
+      console.warn('Three consecutive resource failures; upstream cooldown active for 30s');
+    }
+    throw error;
+   }
   })();
   pending.set(key, job);
   try { return await job; } finally { pending.delete(key); }
