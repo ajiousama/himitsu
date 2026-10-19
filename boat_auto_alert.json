@@ -1,13 +1,19 @@
 {
   "system": "boat-auto-v3",
   "date": "2026-10-19",
-  "checked_at": "2026-10-19T15:10:47.230125+09:00",
+  "checked_at": "2026-10-19T15:11:47.379539+09:00",
   "active": false,
   "kind": "healthy",
   "title": "BOAT自動更新 正常",
   "message": "朝・デイ・ナイターを自動取得中です。",
   "seed_required_venues": [],
   "system_errors": [],
-  "cloud_failures": [],
+  "cloud_failures": [
+    {
+      "jcd": "19",
+      "name": "下関",
+      "error": "cloud and official acquisition unavailable: HTTPError"
+    }
+  ],
   "recovery": "automatic retry; no manual SEED dependency"
 }
