@@ -234,6 +234,24 @@ async function main() {
   console.log('Configured source host: ' + upstream.hostname);
   console.log('Decoder source host: ' + new URL(decoderOrigin).hostname);
   await setupDecoder();
+  // Read-only offline decoder reproducibility probe. Uses a previously captured
+  // encrypted response; never logs sample, media, tokens, or decoded content.
+  const sampleB64 = process.env.ARVA_DIAG_SAMPLE_B64 || '';
+  if (sampleB64) {
+    try {
+      if (!/^[A-Za-z0-9+/]+={0,2}$/.test(sampleB64) || sampleB64.length > 20000)
+        throw Error('Invalid sample format');
+      const bytes = Buffer.from(sampleB64, 'base64');
+      const header = bytes.subarray(0, 6).toString('hex');
+      const result = globalThis.natsuxDecodeNTXP(new Uint8Array(bytes));
+      console.log('Offline NTXP probe: bytes=' + bytes.length
+        + ' header6=' + header + ' ok=' + (result?.ok === true)
+        + (result?.ok === true ? ' outputBytes=' + (result.data?.byteLength || 0)
+          : ' reason=' + String(result?.error || 'not returned').slice(0, 120)));
+    } catch (err) {
+      console.warn('Offline NTXP probe error: ' + String(err?.message || err).slice(0, 120));
+    }
+  }
   const server = http.createServer(async (req, res) => {
     if (req.method !== 'GET' && req.method !== 'HEAD') return send(res, 405, Buffer.from('GET and HEAD only'), 'text/plain');
     try {
