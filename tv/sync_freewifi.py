@@ -93,6 +93,23 @@ def reuse_known_contrast_logos(text: str) -> tuple[str, int]:
     return text, replaced
 
 
+def validate_source_groups(text: str) -> None:
+    """Refuse to publish TV metadata that reverts the protected source groups."""
+    legacy_groups = {"地上波", "BS", "CS", "その他", "グリーンCh"}
+    for line in text.splitlines():
+        if not line.startswith("#EXTINF:"):
+            continue
+        match = re.search(r'group-title="([^"]+)"', line)
+        group = match.group(1) if match else ""
+        name = line.rsplit(",", 1)[-1]
+        if "（newblog系）" in name and group in legacy_groups:
+            raise RuntimeError(f"newblog source group reverted: {name} => {group}")
+        if "(5002直)" in name and group in {"地上波", "BS", "CS"}:
+            raise RuntimeError(f"5002 source group reverted: {name} => {group}")
+        if name.startswith("グリーンチャンネル") and group != "今日の開催場":
+            raise RuntimeError(f"Green Channel group reverted: {name} => {group}")
+
+
 def main():
     text = FREEWIFI.read_text(encoding="utf-8-sig", errors="replace")
     protected = manual_block(text)
@@ -107,6 +124,7 @@ def main():
     updated = base[:a] + tv + base[b:]
     updated, reused = reuse_known_contrast_logos(updated)
     updated = strip_retired_naori(updated)
+    validate_source_groups(updated)
     if "haruka" in updated.lower():
         raise SystemExit("Retired HARUKA entry detected in FreeWiFi; refusing publish")
     if "naori" in updated.lower():
