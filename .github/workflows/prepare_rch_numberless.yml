@@ -1,0 +1,37 @@
+name: Prepare Rch logos without CH numbers
+
+on:
+  push:
+    branches:
+      - rch-logos-no-channel-numbers-20261020
+    paths:
+      - 'logos/tools/make_rch_numberless.py'
+      - '.github/workflows/prepare_rch_numberless.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  make-icons:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - run: python -m pip install 'Pillow>=10,<13'
+      - name: Create original-design icons without channel numbers
+        run: python logos/tools/make_rch_numberless.py
+      - name: Verify exactly 11 number-free PNGs
+        run: |
+          test "$(find logos/rch_numberless -maxdepth 1 -name 'rch_*.png' | wc -l)" -eq 11
+      - name: Commit previews to this branch only
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add logos/rch_numberless/
+          git diff --staged --quiet && exit 0
+          git commit -m 'Prepare 11 numberless Rch PNG previews [skip ci]'
+          git push origin HEAD:${GITHUB_REF_NAME}
