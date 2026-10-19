@@ -141,6 +141,10 @@ def candidates(epg: Path, rules: list[dict], now: datetime, days: int) -> list[d
     return result
 
 
+class BridgeUnavailable(RuntimeError):
+    """Railway could not serve the requested HLS manifest (HTTP 502)."""
+
+
 def verify_hls(url: str, timeout: float) -> bool:
     request = urllib.request.Request(url, headers={
         "User-Agent": "FreeWiFi-ArvaVOD/1.0",
@@ -156,6 +160,8 @@ def verify_hls(url: str, timeout: float) -> bool:
     except urllib.error.HTTPError as exc:
         if exc.code == 429:
             raise RuntimeError("Upstream rate-limited (HTTP 429); preserve previous shelf") from None
+        if exc.code == 502:
+            raise BridgeUnavailable("Arva bridge HTTP 502") from None
         return False
     except (urllib.error.URLError, TimeoutError):
         return False
@@ -199,10 +205,23 @@ def main() -> None:
              or entry["airtime"].astimezone(JST).date() == today_jst]
     accepted = []
     if args.probe:
+        consecutive_bridge_failures = 0
         for item in found[:args.max_probes]:
             url = (clip_link(base, key, item["slug"], item["epoch"], item["seconds"])
                    if item["seconds"] else replay_link(base, key, item["slug"], item["epoch"]))
-            if verify_hls(url, args.timeout):
+            try:
+                available = verify_hls(url, args.timeout)
+            except BridgeUnavailable:
+                consecutive_bridge_failures += 1
+                if consecutive_bridge_failures >= 3:
+                    raise RuntimeError(
+                        "Arva bridge returned HTTP 502 on three consecutive manifests; "
+                        "preserving prior VOD and stopping probes to avoid rate limiting"
+                    ) from None
+                available = False
+            else:
+                consecutive_bridge_failures = 0
+            if available:
                 accepted.append(item)
             time.sleep(1.0)
         if found and not accepted:
