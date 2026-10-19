@@ -66,10 +66,7 @@ async function download(url, limit = maxBody) {
   if (url.origin === upstream.origin && Date.now() < upstreamCooldownUntil) {
     throw Error('Upstream HTTP 429 cooldown active; retry after the source limit expires');
   }
-  const headers = url.origin === upstream.origin
-    ? { Origin: decoderOrigin, Referer: decoderOrigin + '/' }
-    : undefined;
-  const res = await fetch(url, { headers, signal: AbortSignal.timeout(20000), redirect: 'error' });
+  const res = await fetch(url, { signal: AbortSignal.timeout(20000), redirect: 'error' });
   if (res.status === 429 && url.origin === upstream.origin) {
     const header = res.headers.get('retry-after') || '';
     let delay = /^[0-9]+$/.test(header) ? Number(header) * 1000 : Date.parse(header) - Date.now();
