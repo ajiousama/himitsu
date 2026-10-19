@@ -2,7 +2,7 @@ from pathlib import Path
 import re
 
 FREEWIFI = Path('freewifi')
-GROUP = 'グリーンCh'
+GROUP = '今日の開催場'
 
 # GCH viewing entries only. JRA EAST/WEST/HOKKAIDO remain in today's venue group.
 GCH_IDS = {
