@@ -158,7 +158,13 @@ def apply(text):
         matches = [j for j in range(a + 1, b)
                    if lines[j].startswith("#EXTINF:")
                    and ('tvg-id="' + meta["id"] + '"') in lines[j]]
-        at = matches[-1] + 2 if matches else b
+        # Preserve the source order across hourly canonical rebuilds:
+        # existing 5002/TVer -> newblog -> sinori.  A newblog refresh removes
+        # its old row first, so inserting after the last same-id row would
+        # otherwise move newblog behind the saved sinori backup.
+        sinori = [j for j in matches
+                  if re.search(r'group-title="[^"]* sinori"', lines[j])]
+        at = sinori[0] if sinori else (matches[-1] + 2 if matches else b)
         inf = ('#EXTINF:-1 tvg-id="' + meta["id"] + '" tvg-logo="'
                + meta["logo"] + '" group-title="' + group_title + '",'
                + meta["name"].replace(" (Arva)", "").replace("（Arva）", "") + LABEL)
