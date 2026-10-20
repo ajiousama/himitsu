@@ -120,7 +120,7 @@ jobs:
           PY
 
             python freewifi_today_public_sports.py
-            # Always republish JRA's GCH MAIN/5002/HARUKA routes, even on
+            # Always republish JRA's GCH MAIN/5002 routes, even on
             # days without scheduled races; this job runs every ten minutes.
             python freewifi_today_jra.py
             python finalize_today_public_sports.py
@@ -145,8 +145,9 @@ jobs:
           print("PUBLIC SPORTS FAST:", counts, "generated_at=", d["generated_at"])
           PY
 
-            # No race-day exception: all four GCH routes must always survive.
+            # No race-day exception: all three protected GCH routes must survive.
             python check_gch_always.py
+            python scripts/check_tv_source_partition.py
 
             git add public_sports_epg_local.xml verified_daily_status.json freewifi today_public_sports_status.json today_jra_status.json today_event_counts.json ganble/epg.xml guides.xml
             if git diff --cached --quiet; then
