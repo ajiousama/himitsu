@@ -163,7 +163,8 @@ def apply(text):
         # its old row first, so inserting after the last same-id row would
         # otherwise move newblog behind the saved sinori backup.
         sinori = [j for j in matches
-                  if re.search(r'group-title="[^"]* sinori"', lines[j])]
+                  if "（sinori）" in lines[j].lower()
+                  or re.search(r'group-title="[^"]* sinori"', lines[j])]
         at = sinori[0] if sinori else (matches[-1] + 2 if matches else b)
         inf = ('#EXTINF:-1 tvg-id="' + meta["id"] + '" tvg-logo="'
                + meta["logo"] + '" group-title="' + group_title + '",'
