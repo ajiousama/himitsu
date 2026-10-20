@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-20",
-  "generated_at": "2026-10-20T10:38:08.434419+09:00",
+  "generated_at": "2026-10-20T10:39:08.334587+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261020.json",
   "schedule_checked_at": "2026-10-20T10:24:08.480648+09:00",
@@ -19,7 +19,7 @@
   "alert_lead_minutes": 30,
   "card_count": 12,
   "held_count": 12,
-  "visible_count": 8,
+  "visible_count": 9,
   "active_count": 8,
   "ended_kept": [],
   "seed_required": false,
@@ -36,7 +36,7 @@
     },
     "day": {
       "held": 7,
-      "acquired": 6,
+      "acquired": 7,
       "active": 6,
       "ended": 0,
       "seed_required": 0,
@@ -53,15 +53,9 @@
   },
   "cloud_acquisition": {
     "requested": 9,
-    "fetched": 8,
+    "fetched": 9,
     "failures": [],
-    "deferred": [
-      {
-        "jcd": "03",
-        "name": "江戸川",
-        "start": "2026-10-20T10:39:00+09:00"
-      }
-    ]
+    "deferred": []
   },
   "epg_programmes_written": {
     "public_sports_epg_local.xml": 168,
@@ -72,6 +66,22 @@
     "kind": "healthy"
   },
   "streams": {
+    "boat.edogawa": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/a9ce9e3cee37437bbb0dd3b260b70f20/8768904eabac4f71b39c53d841a61661/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MjYzNDQwMCwic3RhcnQiOjE3OTI0NjAzNDAsImlvcyI6MTgsImNwIjoiMjE0NjU1OTQwXzIxNDY5OTEzOSIsInBwdyI6IjQwayJ9.njnHs-ydzki9oIOhZd9wTKjkSgIHBz_AkgeD1eG-M58",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-10-20T10:39:35.426504+09:00",
+      "checked_at": "2026-10-20T10:39:35.426504+09:00",
+      "first_verified_at": "2026-10-20T10:39:35.426504+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 8594791,
+        "last_segment": "/a9ce9e3cee37437bbb0dd3b260b70f20/8768904eabac4f71b39c53d841a61661/manifest_1_8594797.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
+    },
     "boat.tokoname": {
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/e000e89869be43dba5c7f2e92685fffe/7c2a4208bbe9412bbd29689ab97dfc71/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MjYzMDgwMCwic3RhcnQiOjE3OTI0NTcxMDAsImlvcyI6MTgsImNwIjoiMjE0NjUyNzAwXzIxNDY5NTg5OSIsInBwdyI6IjQwayJ9.MolPmM6awCb69ys79Sx78FAvoX7sG32luufabuCMdm8",
       "source": "automatic acquisition + audio/video decode",
@@ -296,7 +306,7 @@
       "jcd": "03",
       "name": "江戸川",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
       "active": false,
       "cancelled": false,
@@ -314,9 +324,9 @@
       "guidance_switch_at": "2026-10-20T17:10:00+09:00",
       "seed_required": false,
       "reverify_due": false,
-      "playback_verified": false,
-      "first_verified_at": null,
-      "ready_before_first_race": false,
+      "playback_verified": true,
+      "first_verified_at": "2026-10-20T10:39:35.426504+09:00",
+      "ready_before_first_race": true,
       "acquire_from": "2026-10-20T08:44:00+09:00",
       "races": [
         {
@@ -380,8 +390,9 @@
           "name": "準優勝戦"
         }
       ],
-      "provider_stream_start": "2026-10-20T10:39:00+09:00",
-      "source": "公式BR配信開始待ち 10:39"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/a9ce9e3cee37437bbb0dd3b260b70f20/8768904eabac4f71b39c53d841a61661/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MjYzNDQwMCwic3RhcnQiOjE3OTI0NjAzNDAsImlvcyI6MTgsImNwIjoiMjE0NjU1OTQwXzIxNDY5OTEzOSIsInBwdyI6IjQwayJ9.njnHs-ydzki9oIOhZd9wTKjkSgIHBz_AkgeD1eG-M58",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     },
     "boat.tokoname": {
       "jcd": "08",
