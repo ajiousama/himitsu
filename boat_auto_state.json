@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-21",
-  "generated_at": "2026-10-21T08:17:57.654499+09:00",
+  "generated_at": "2026-10-21T08:20:57.654616+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261021.json",
   "schedule_checked_at": "2026-10-21T08:16:57.652705+09:00",
@@ -52,7 +52,7 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 8,
+    "requested": 9,
     "fetched": 2,
     "failures": [],
     "deferred": [
@@ -75,6 +75,11 @@
         "jcd": "13",
         "name": "尼崎",
         "start": "2026-10-21T10:02:00+09:00"
+      },
+      {
+        "jcd": "16",
+        "name": "児島",
+        "start": "2026-10-21T09:40:00+09:00"
       },
       {
         "jcd": "17",
@@ -786,7 +791,7 @@
       "intermission": null,
       "guidance_switch_at": "2026-10-21T15:00:00+09:00",
       "seed_required": false,
-      "reverify_due": false,
+      "reverify_due": true,
       "playback_verified": true,
       "first_verified_at": "2026-10-21T08:00:40.151392+09:00",
       "ready_before_first_race": true,
@@ -945,7 +950,8 @@
           "name": "準優勝戦"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "provider_stream_start": "2026-10-21T09:40:00+09:00",
+      "source": "公式BR配信開始待ち 09:40"
     },
     "boat.miyajima": {
       "jcd": "17",
