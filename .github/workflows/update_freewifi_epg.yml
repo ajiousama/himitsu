@@ -57,6 +57,7 @@ on:
       - "public_sports_epg_local_fast.py"
       - "epg/epg_build.py"
       - "epg/epg_build_safe.py"
+      - "epg/align_freewifi_logos.py"
       - "epg/radiko_epg_merge.py"
       - "community_radio_epg_merge.py"
       - "nhk_radio_epg.py"
@@ -417,6 +418,9 @@ jobs:
 
       - name: Reapply TVer live EPG overlay
         run: python tver/epg.py
+
+      - name: Align XMLTV channel logos with FreeWiFi M3U
+        run: python -m epg.align_freewifi_logos
 
       - name: Verify 3-day GCH EPG and backup stream ID mapping
         run: |
