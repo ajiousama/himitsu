@@ -314,8 +314,9 @@ jobs:
           print(f'Stable logo guard: OK protected_entries={checked} white-card-hosts=OK')
           PY
 
-            # GCH MAIN, 5002 and YoiTV stay visible even on non-race days.
+            # GCH MAIN, 5002 and Shinori stay visible even on non-race days.
             python check_gch_always.py
+            python scripts/check_tv_source_partition.py
 
             git add tv/playlist.m3u rakuten/playlist.m3u ganble/playlist.m3u ehime_catv/playlist.m3u freewifi radio/freewifi.m3u gccx2_live_state.json today_public_sports_status.json today_jra_status.json today_event_counts.json verified_daily_status.json public_sports_epg_local.xml
 
