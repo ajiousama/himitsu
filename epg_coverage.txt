@@ -1,10 +1,10 @@
 FreeWiFi merged EPG coverage
-wanted=234
+wanted=228
 matched_real=125
-fallback=109
-unmatched_real=109
-covered_total=234
-output_bytes=12482477
+fallback=103
+unmatched_real=103
+covered_total=228
+output_bytes=12494513
 
 [source errors]
 none
@@ -14,10 +14,10 @@ OK	NHK東京・総合_jp	NHK東京・総合	jcom	jcom_2_1024_32736	192 programme
 OK	NHK大阪・総合_jp	NHK大阪・総合	jcom	jcom_2_40960_32112	190 programmes
 OK	NHK東京・教育_jp	NHK教育	jcom	jcom_2_1032_32737	226 programmes
 OK	TBS_jp	TBS	jcom	jcom_2_1048_32739	69 programmes
-OK	tver_tbs	Tver TBS系	tver	tbs	93 programmes
+OK	tver_tbs	Tver TBS系	tver	tbs	95 programmes
 OK	毎日テレビ_jp	MBS毎日放送	jcom	jcom_2_2064_32722	86 programmes
 OK	テレビ朝日_jp	テレビ朝日	jcom	jcom_2_1064_32741	97 programmes
-OK	tver_ex	Tver テレ朝系	tver	ex	55 programmes
+OK	tver_ex	Tver テレ朝系	tver	ex	57 programmes
 OK	ABCテレビ_jp	ABCテレビ	jcom	jcom_2_2072_32723	116 programmes
 OK	テレ東_jp	テレビ東京	jcom	jcom_2_1072_32742	126 programmes
 OK	tver_tx	Tver テレ東系	tver	tx	102 programmes
@@ -161,7 +161,7 @@ FALLBACK	ecatv.ainan_livecam	愛南ライブカメラ	愛媛CATV	12 programmes
 FALLBACK	ecatv.info	お知らせチャンネル	愛媛CATV	12 programmes
 FALLBACK	ecatv.program_promo	番組宣伝ch	愛媛CATV	12 programmes
 OK	ecatv.event_premium	イベントプレミアム	ecatv	52329	5105 programmes
-OK	ecatv.event_selection	イベントセレクション	ecatv	52330	2805 programmes
+OK	ecatv.event_selection	イベントセレクション	ecatv	52330	2949 programmes
 FALLBACK	ecatv.ehime_channel	えひめチャンネル	愛媛CATV	12 programmes
 OK	ecatv.bousai	えひめ・防災チャンネル	ecatv	115	3177 programmes
 OK	囲碁・将棋チャンネル_jp	囲碁・将棋チャンネル	japanterebi	IgoShogiChannel.jp	248 programmes
@@ -184,17 +184,11 @@ FALLBACK	tver.special.le3uu3shj5	【政治】最新ニュースライブ	TVerﾘ
 OK	tver.news24	日テレNEWS24	japanterebi	NTVNEWS24.jp	28 programmes
 FALLBACK	patapata.matsuyama	松山交通総合発着案内（R15・24fps）	松山交通案内	12 programmes
 FALLBACK	kick.nogizaka	乃木坂	その他	12 programmes
-FALLBACK	boat.suminoe	BOATRACE住之江	今日の開催場	12 programmes
-FALLBACK	boat.kiryu	BOATRACE桐生	今日の開催場	12 programmes
 FALLBACK	boat.shimonoseki	BOATRACE下関	今日の開催場	12 programmes
-FALLBACK	youtube.kana_tube	かなチューブ【配信予定 10/20 20:35】	今日の開催場	12 programmes
-FALLBACK	keirin.keiogatsu	京王閣けいりん	今日の開催場	12 programmes
+FALLBACK	youtube.kana_tube	かなチューブ【LIVE】	今日の開催場	12 programmes
 FALLBACK	keirin.sasebo	佐世保けいりん	今日の開催場	12 programmes
-FALLBACK	auto.sanyo	山陽オート	今日の開催場	12 programmes
-FALLBACK	keirin.hiroshima	広島けいりん	今日の開催場	12 programmes
-FALLBACK	chihou.mombetsu	門別けいば（ホッカイドウ競馬）	今日の開催場	12 programmes
 FALLBACK	auto.iizuka	飯塚オート	今日の開催場	12 programmes
-FALLBACK	keirin.kawasaki	かわさきけいりん	今日の開催場	12 programmes
+FALLBACK	keirin.hiroshima	広島けいりん	今日の開催場	12 programmes
 OK	jra.gch.hq	グリーンチャンネル MAIN HQ	japanterebi	GreenChannel.jp	210 programmes
 OK	jra.gch.lq	グリーンチャンネル MAIN LQ	japanterebi	GreenChannel.jp	210 programmes
 FALLBACK	kick.gccx2.replay.c11867ee-d62	📼 ゲームセンターCX 第27シーズン ＃367-376／さいたまスーパーアリーナ（10/17 09:08）	VOD	12 programmes
@@ -256,8 +250,8 @@ Rakuten API yielded no target programmes for 2026-10-23
 Rakuten browser fallback failed: Error: DevTools target not found |     at file:///home/runner/work/himitsu/himitsu/rakuten/rakuten_schedule_browser.mjs:43:44
 
 [FINAL MERGED EPG AUDIT]
-generated=2026-10-20T20:31:15.588535+09:00
-healthy_current_real=163
+generated=2026-10-20T22:14:46.042637+09:00
+healthy_current_real=157
 fallback_only_current=70
 missing_tvg_id_entries=0
 xml_channel_missing=0
@@ -347,7 +341,7 @@ patapata.matsuyama	current=9	group=松山交通案内	name=松山交通総合発
 rch_37	current=9	group=Rch	name=エンタメ～テレDEEP
 tver.special.le3uu3shj5	current=9	group=TVerﾘｱﾙﾀｲﾑ	name=【政治】最新ニュースライブ
 tver.tbs_newsdig	current=9	group=TVerﾘｱﾙﾀｲﾑ	name=TBS NEWS DIG Powered by JNN
-youtube.kana_tube	current=9	group=今日の開催場	name=かなチューブ【配信予定 10/20 20:35】
+youtube.kana_tube	current=9	group=今日の開催場	name=かなチューブ【LIVE】
 
 [FINAL PUBLIC_SPORTS_INVALID]
 none
