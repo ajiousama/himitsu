@@ -76,6 +76,9 @@ def source_rank(inf: str) -> int:
         return 5
     if tvg_id(inf).startswith("tver_") or ",tver " in lower:
         return 6
+    # A scheduled group rebuild must keep each Shinori backup after newblog.
+    if "（sinori）" in lower or "group-title=\"地上波 sinori\"" in lower:
+        return 8
     return 7
 
 
@@ -89,6 +92,8 @@ def terrestrial_group_title(inf: str, url: str) -> str:
     lower = inf.lower()
     if "（newblog系）" in inf:
         return "地上波 newblog系"
+    if "（sinori）" in lower or "ri.shinori.my.id/" in url.lower():
+        return "地上波 sinori"
     if "(yoitv)" in lower:
         return "地上波 YoiTV"
     if "(naori hd)" in lower:
