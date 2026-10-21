@@ -72,7 +72,7 @@ jobs:
         shell: bash
         run: |
           # Only audio-verified candidates may change; confirmed cuts are locked.
-          python -m unittest -q test_gmcx_bgm_autocut.py
+          python -m unittest -q test_gmcx_bgm_autocut.py test_gmcx_bgm_autocut_apply.py
           cp kick_gmcx_chapters.json /tmp/kick_gmcx_chapters_before_bgm.json
           cp kick_gmcx_chapters.m3u /tmp/kick_gmcx_chapters_before_bgm.m3u
           if ! python -u gmcx_bgm_autocut.py --ranges 357 377 387; then
