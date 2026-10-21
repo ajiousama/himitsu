@@ -58,6 +58,16 @@ jobs:
           python -u gmcx_auto_cut_probe.py \
             --range-start "$RANGE_START" --radius "$RADIUS" \
             --workers 3 --output gmcx_auto_cut_review.json
+      - name: Save diagnostic boundary contact sheets
+        if: always()
+        run: python -u gmcx_auto_cut_frames.py
+      - name: Upload frame diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gccx-cut-frames
+          path: gmcx_cut_frames/
+          if-no-files-found: warn
       - name: Upload analysis only
         if: always()
         uses: actions/upload-artifact@v4
