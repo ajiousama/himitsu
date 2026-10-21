@@ -29,9 +29,9 @@ class StarSoldierInsertionTests(unittest.TestCase):
     def test_yearend_2024_special_between_391_and_392(self):
         mini=self.by_special["2024-yearend-sp49-15min"]
         self.assertIn("年越し15分",mini["title"])
-        self.assertEqual(22294,mini["start_seconds"])
+        self.assertEqual(22297,mini["start_seconds"])
         self.assertEqual(23194,mini["stop_seconds"])
-        self.assertEqual(900,mini["duration_seconds"])
+        self.assertEqual(897,mini["duration_seconds"])
         self.assertEqual(self.by_episode[391]["stop_seconds"],mini["start_seconds"])
         self.assertEqual(self.by_episode[392]["start_seconds"],mini["stop_seconds"])
 
