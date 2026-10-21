@@ -2,8 +2,8 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-21",
-  "generated_at": "2026-10-21T13:25:00.594253+09:00",
-  "last_update_ok": true,
+  "generated_at": "2026-10-21T13:26:00.496608+09:00",
+  "last_update_ok": false,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261021.json",
   "schedule_checked_at": "2026-10-21T13:16:00.643324+09:00",
   "schedule_warnings": [
@@ -20,11 +20,15 @@
   "card_count": 13,
   "held_count": 13,
   "visible_count": 9,
-  "active_count": 9,
+  "active_count": 10,
   "ended_kept": [],
-  "seed_required": false,
-  "seed_required_venues": [],
-  "system_errors": [],
+  "seed_required": true,
+  "seed_required_venues": [
+    "江戸川"
+  ],
+  "system_errors": [
+    "開始時刻が近い開催場の当日中継を取得・再生確認できません"
+  ],
   "phase_counts": {
     "morning": {
       "held": 2,
@@ -37,9 +41,9 @@
     "day": {
       "held": 8,
       "acquired": 7,
-      "active": 7,
+      "active": 8,
       "ended": 0,
-      "seed_required": 0,
+      "seed_required": 1,
       "cancelled": 0
     },
     "night": {
@@ -52,9 +56,15 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 11,
+    "requested": 12,
     "fetched": 9,
-    "failures": [],
+    "failures": [
+      {
+        "jcd": "03",
+        "name": "江戸川",
+        "error": "ValueError: ended VOD playlist is not a live stream"
+      }
+    ],
     "deferred": [
       {
         "jcd": "01",
@@ -73,8 +83,8 @@
     "guides.xml": 182
   },
   "alert": {
-    "active": false,
-    "kind": "healthy"
+    "active": true,
+    "kind": "system_error"
   },
   "streams": {
     "boat.hamanako": {
@@ -320,7 +330,7 @@
       "held": true,
       "visible": false,
       "ended": false,
-      "active": false,
+      "active": true,
       "cancelled": false,
       "mode": "day",
       "mode_label": "デイ",
@@ -331,16 +341,11 @@
         "race": 7,
         "start": "13:56"
       },
-      "stream_window": "intermission",
-      "intermission": {
-        "after_race": 6,
-        "next_race": 7,
-        "from": "2026-10-21T10:33:00+09:00",
-        "until": "2026-10-21T13:26:00+09:00"
-      },
+      "stream_window": "live_or_prestart",
+      "intermission": null,
       "guidance_switch_at": "2026-10-21T17:10:00+09:00",
-      "seed_required": false,
-      "reverify_due": false,
+      "seed_required": true,
+      "reverify_due": true,
       "playback_verified": false,
       "first_verified_at": null,
       "ready_before_first_race": false,
