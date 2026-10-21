@@ -3464,12 +3464,14 @@ MANUAL_EPISODE_START_OVERRIDES: dict[int, int] = {
     # actually the DVD-BOX21 'Star Soldier' bonus programme.  Preserve
     # the special as its own chapter, then move numbered #391-396 after it.
     # 4886s is DVD runtime reference (1:21:26), not yet measured in HLS.
-    391: 18814,  # provisional: 13928 + 4886
-    392: 22294,  # provisional
-    393: 25774,  # provisional
-    394: 29254,  # provisional
-    395: 32734,  # provisional
-    396: 36214,  # provisional
+    391: 18814,  # DVD-BOX21 bonus finishes; audio auto-match may refine to 18817
+    # User confirmed 2024-12-31 SP49 (15 min) between #391 and #392.
+    # Later episode starts are +900s; maintain DVD-BOX21 and SP49 separately.
+    392: 23194,  # provisional (old 22294 + 900)
+    393: 26674,  # provisional
+    394: 30154,  # provisional
+    395: 33634,  # provisional
+    396: 37114,  # provisional
 }
 
 
@@ -3530,12 +3532,20 @@ def _apply_manual_episode_start_overrides(
                     "note": "user-identified DVD bonus at old #391 head; start provisional",
                 })
                 continue
+            if item.get("special_key") == "2024-yearend-sp49-15min":
+                starts[index] = 22294
+                rows.append({
+                    "special_key": "2024-yearend-sp49-15min",
+                    "manual_start": 22294,
+                    "note": "user-identified 2024 new-year 15-minute SP49 between #391 and #392; provisional cut",
+                })
+                continue
             if item.get("special_key") == "387-396-unclassified-tail":
-                starts[index] = 39694
+                starts[index] = 40594
                 rows.append({
                     "special_key": "387-396-unclassified-tail",
-                    "manual_start": 39694,
-                    "note": "remaining source footage after inserted 4886s DVD special; provisional",
+                    "manual_start": 40594,
+                    "note": "source remainder after DVD-BOX21 bonus and 2024 SP49 yearend mini; provisional",
                 })
                 continue
         if item.get("kind") != "episode":
@@ -3766,14 +3776,23 @@ def make_fixed_test_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict
         # DVD-BOX21 bonus "Star Soldier" occurs between broadcast #390 and #391.
         # User confirmed programme identity/order.  DVD reference length 1:21:26
         # (4,886 seconds) is a provisional guide until KICK playback verification.
-        # Retain the remaining footage as a separate tail rather than absorbing
-        # the bonus into any numbered episode.
+        # Between broadcast #391 (2024-12-26) and #392 (2025-01-23),
+        # user identified the 2024-12-31 new-year 15-minute SP49.
+        # Official Fuji TV schedule confirms this programme and its runtime.
+        # Keep both specials independent of the regular episode numbers,
+        # preserving any as-yet-unclassified VOD remainder.
         for ep in range(387, 397):
             if ep == 391:
                 append_special(
                     "2024-dvdbox21-star-soldier",
                     "DVD-BOX21 特典映像「スターソルジャー」",
                     4886,
+                )
+            if ep == 392:
+                append_special(
+                    "2024-yearend-sp49-15min",
+                    "SP49 年越し15分 おっさん3人 もうええっしょ 年越し爺面師たち",
+                    15 * 60,
                 )
             append_episode(ep)
 
@@ -4270,6 +4289,9 @@ def _mark_provisional_titles(
         elif row.get("special_key") == "2024-dvdbox21-star-soldier":
             row["title_status"] = "confirmed-reference"
             row["title_source"] = "official-DVD-BOX21-programme-list"
+        elif row.get("special_key") == "2024-yearend-sp49-15min":
+            row["title_status"] = "confirmed-reference"
+            row["title_source"] = "fuji-tv-2024-yearend-programme-list"
         elif reference_confirmed and row.get("kind") == "episode":
             # #267-276 programme titles and the 15th-anniversary special are
             # independently verified from broadcast/reference listings.  This
