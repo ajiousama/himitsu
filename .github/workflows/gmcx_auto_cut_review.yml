@@ -43,6 +43,8 @@ jobs:
             sudo apt-get install -y -qq ffmpeg
           fi
           ffmpeg -version | head -1
+      - name: Verify calibration guards without network
+        run: python -m unittest -v test_gmcx_auto_cut_probe.py
       - name: Analyse episode-head boundaries (dry run)
         env:
           RANGE_START: ${{ inputs.range_start }}
