@@ -1,4 +1,4 @@
-name: GCCX Star Soldier Cut Regression
+name: GCCX Star Soldier and Year-End SP49 Cut Regression
 
 on:
   workflow_dispatch:
@@ -6,6 +6,7 @@ on:
     branches: [main]
     paths:
       - ".github/workflows/test_gmcx_star_soldier.yml"
+      - "test_gmcx_star_soldier_insert.py"
 
 permissions:
   contents: read
@@ -19,5 +20,5 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
-      - name: Verify DVD-BOX21 special and consecutive chapter timings
+      - name: Verify both inserted GCCX specials and #392-396 timings
         run: python -m unittest -v test_gmcx_star_soldier_insert.py
