@@ -4564,6 +4564,26 @@ def main() -> int:
                 "reason": "source-unavailable-kept-broadcast-order-seed",
                 "boundary_version": TITLECARD_BOUNDARY_VERSION,
             }
+        elif status == "ready" and chapters and (start_ep, end_ep) == (397, 403):
+            # This archive's six regular chapter starts were independently
+            # confirmed against three title-BGM recordings, cross-calibrated to
+            # manually verified #388.  The generic visual title-logo detector
+            # can shift these starts by 1-8 seconds and can even label the
+            # unclassified trailing 2m47s "high-confidence". Never let it
+            # overwrite the stronger audio cut evidence or low-confidence tail.
+            titlecard_refinement = {
+                "status": "skipped",
+                "reason": "three-source-audio-chapters-protected",
+                "audio_boundaries": {
+                    str(c["episode"]): int(c["start_seconds"])
+                    for c in chapters
+                    if c.get("kind") == "episode"
+                    and c.get("method") == "auto-title-bgm-three-source"
+                },
+                "special_start": 10440,
+                "special_end": 37449,
+                "unclassified_tail_preserved": True,
+            }
         elif status == "ready" and chapters and vod.get("playable"):
             chapters, titlecard_refinement = refine_with_titlecard(
                 vod,
