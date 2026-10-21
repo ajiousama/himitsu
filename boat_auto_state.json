@@ -2,10 +2,10 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-21",
-  "generated_at": "2026-10-21T14:49:00.563420+09:00",
-  "last_update_ok": true,
+  "generated_at": "2026-10-21T14:52:00.558347+09:00",
+  "last_update_ok": false,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261021.json",
-  "schedule_checked_at": "2026-10-21T14:36:00.704677+09:00",
+  "schedule_checked_at": "2026-10-21T14:52:00.558347+09:00",
   "schedule_warnings": [
     "official_cards: TimeoutError"
   ],
@@ -20,11 +20,15 @@
   "card_count": 13,
   "held_count": 13,
   "visible_count": 9,
-  "active_count": 8,
+  "active_count": 9,
   "ended_kept": [],
-  "seed_required": false,
-  "seed_required_venues": [],
-  "system_errors": [],
+  "seed_required": true,
+  "seed_required_venues": [
+    "江戸川"
+  ],
+  "system_errors": [
+    "開始時刻が近い開催場の当日中継を取得・再生確認できません"
+  ],
   "phase_counts": {
     "morning": {
       "held": 2,
@@ -37,9 +41,9 @@
     "day": {
       "held": 8,
       "acquired": 7,
-      "active": 7,
+      "active": 8,
       "ended": 0,
-      "seed_required": 0,
+      "seed_required": 1,
       "cancelled": 0
     },
     "night": {
@@ -52,9 +56,15 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 9,
+    "requested": 10,
     "fetched": 9,
-    "failures": [],
+    "failures": [
+      {
+        "jcd": "03",
+        "name": "江戸川",
+        "error": "ValueError: ended VOD playlist is not a live stream"
+      }
+    ],
     "deferred": []
   },
   "epg_programmes_written": {
@@ -62,21 +72,21 @@
     "guides.xml": 182
   },
   "alert": {
-    "active": false,
-    "kind": "healthy"
+    "active": true,
+    "kind": "system_error"
   },
   "streams": {
     "boat.kiryu": {
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/c49dfea08f3c45be9490b52f4de54dd6/cc5f9420217648a0a5bd7d03e8cdc5b6/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MjczNTIwMCwic3RhcnQiOjE3OTI1NjE1MDAsImlvcyI6MTgsImNwIjoiMjE0NzU3MTAwXzIxNDc5NzU5OSIsInBwdyI6IjQwayJ9.XabSJ47hKlWntI4MhEqJPCZFq3AiVtyal10NiKxAH5w",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-10-21T14:45:28.004649+09:00",
-      "checked_at": "2026-10-21T14:45:28.004649+09:00",
+      "checked_at": "2026-10-21T14:52:36.077933+09:00",
       "first_verified_at": "2026-10-21T14:45:28.004649+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
         "sequence": 8629144,
-        "last_segment": "/c49dfea08f3c45be9490b52f4de54dd6/cc5f9420217648a0a5bd7d03e8cdc5b6/manifest_1_8629148.ts",
+        "last_segment": "/c49dfea08f3c45be9490b52f4de54dd6/cc5f9420217648a0a5bd7d03e8cdc5b6/manifest_1_8629219.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -310,7 +320,7 @@
       "held": true,
       "visible": false,
       "ended": false,
-      "active": false,
+      "active": true,
       "cancelled": false,
       "mode": "day",
       "mode_label": "デイ",
@@ -321,16 +331,11 @@
         "race": 10,
         "start": "15:22"
       },
-      "stream_window": "intermission",
-      "intermission": {
-        "after_race": 9,
-        "next_race": 10,
-        "from": "2026-10-21T10:51:00+09:00",
-        "until": "2026-10-21T14:52:00+09:00"
-      },
+      "stream_window": "live_or_prestart",
+      "intermission": null,
       "guidance_switch_at": "2026-10-21T17:10:00+09:00",
-      "seed_required": false,
-      "reverify_due": false,
+      "seed_required": true,
+      "reverify_due": true,
       "playback_verified": false,
       "first_verified_at": null,
       "ready_before_first_race": false,
@@ -512,7 +517,7 @@
       "intermission": null,
       "guidance_switch_at": "2026-10-21T17:00:00+09:00",
       "seed_required": false,
-      "reverify_due": false,
+      "reverify_due": true,
       "playback_verified": true,
       "first_verified_at": "2026-10-21T09:55:24.771823+09:00",
       "ready_before_first_race": true,
