@@ -1,0 +1,39 @@
+name: GCCX 397-403 and SP52 BGM / Video Review
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/gmcx_397_sp52_probe.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    timeout-minutes: 26
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Install audio and video probe dependencies
+        run: |
+          if ! command -v ffmpeg >/dev/null; then
+            sudo apt-get update -qq
+            sudo apt-get install -y -qq ffmpeg
+          fi
+          python -m pip install -q numpy
+      - name: Verify ordered chapters include SP52 after 399
+        run: python -m unittest -v test_gmcx_397_sp52.py
+      - name: Probe original Kick source using three BGM references
+        run: python -u gmcx_397_sp52_probe.py
+      - name: Upload independent diagnostic evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gccx-397-sp52-bgm-and-video-review
+          path: gmcx_397_sp52_review/
+          if-no-files-found: warn
