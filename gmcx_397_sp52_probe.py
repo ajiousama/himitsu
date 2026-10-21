@@ -72,7 +72,11 @@ def main():
     calibration={k:v["raw_delay_seconds"] for k,v in anchor["matches"].items()
                  if v.get("status")=="matched"}
     if len(calibration)<2:raise RuntimeError("Insufficient manual anchor votes")
-    targets=[c for c in chapters if c.get("kind")=="episode" and c.get("episode")!=397]
+    # Test if the source's 3177s remainder actually extends the live show
+    # rather than forming a separate clip after #403.
+    remaining=int(vod["duration_seconds"])-7*3480-400*60
+    targets=[{**c,"start_seconds":int(c["start_seconds"])+(remaining if c.get("episode",0)>=400 else 0)}
+             for c in chapters if c.get("kind")=="episode" and c.get("episode")!=397]
     scanned=[]
     with ThreadPoolExecutor(max_workers=3) as pool:
         future_to_ep={
@@ -107,11 +111,13 @@ def main():
     sheets=[]
     for c in scans:
         sheets.append(contact(target_url,int(c["start_seconds"]),"sp52_start"))
-        sheets.append(contact(target_url,int(c["stop_seconds"]),"sp52_end"))
+        sheets.append(contact(target_url,int(c["stop_seconds"]),"sp52_advertised_end"))
+        sheets.append(contact(target_url,int(c["stop_seconds"])+remaining,"sp52_extended_end"))
     report={"mode":"review_only","vod_id":VOD,"duration":vod["duration_seconds"],
            "reference_states":read_state,"manual_anchor":anchor,
            "manual_calibration_offsets":calibration,
            "broadcast_order":[c.get("episode") or c.get("special_key") for c in chapters],
+           "late_shift_hypothesis_seconds":remaining,
            "bounds":sorted(scanned,key=lambda x:x["expected_seconds"]),
            "special_sheets":sheets,"production_changed":False}
     (OUTPUT/"report.json").write_text(json.dumps(report,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
