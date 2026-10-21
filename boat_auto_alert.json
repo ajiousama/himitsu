@@ -1,13 +1,23 @@
 {
   "system": "boat-auto-v3",
   "date": "2026-10-21",
-  "checked_at": "2026-10-21T15:21:00.761521+09:00",
-  "active": false,
-  "kind": "healthy",
-  "title": "BOAT自動更新 正常",
-  "message": "朝・デイ・ナイターを自動取得中です。",
-  "seed_required_venues": [],
-  "system_errors": [],
-  "cloud_failures": [],
+  "checked_at": "2026-10-21T15:23:00.613076+09:00",
+  "active": true,
+  "kind": "system_error",
+  "title": "BOAT自動更新エラー",
+  "message": "開始時刻が近い開催場の当日中継を取得・再生確認できません",
+  "seed_required_venues": [
+    "江戸川"
+  ],
+  "system_errors": [
+    "開始時刻が近い開催場の当日中継を取得・再生確認できません"
+  ],
+  "cloud_failures": [
+    {
+      "jcd": "03",
+      "name": "江戸川",
+      "error": "ValueError: ended VOD playlist is not a live stream"
+    }
+  ],
   "recovery": "automatic retry; no manual SEED dependency"
 }
