@@ -3545,12 +3545,15 @@ def _apply_manual_episode_start_overrides(
                     "note": "source video verified ~22300; HLS segment starts 22296.4; choose 22297 to preserve opening",
                 })
                 continue
-            if item.get("special_key") == "387-396-unclassified-tail":
+            if item.get("special_key") == "2025-400min-live-preview-sp51":
+                # User identified the post-#396 recording tail as the 2025-03-31
+                # 400-minute live-broadcast PREVIEW, not the 400-minute live itself.
+                # Protect the existing post-#396 boundary from hourly regeneration.
                 starts[index] = 40594
                 rows.append({
-                    "special_key": "387-396-unclassified-tail",
+                    "special_key": "2025-400min-live-preview-sp51",
                     "manual_start": 40594,
-                    "note": "source remainder after DVD-BOX21 bonus and 2024 SP49 yearend mini; provisional",
+                    "note": "user-identified 400min live PREVIEW after #396; start remains provisional",
                 })
                 continue
         if item.get("kind") != "episode":
@@ -3782,8 +3785,9 @@ def make_fixed_test_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict
         # User confirmed programme identity/order.  DVD reference length 1:21:26
         # (4,886 seconds) is a provisional guide until KICK playback verification.
         # Between broadcast #391 (2024-12-26) and #392 (2025-01-23),
-        # user identified the 2024-12-31 new-year 15-minute SP49.
-        # Official Fuji TV schedule confirms this programme and its runtime.
+        # user identified the 2024-12-31 new-year 15-minute special.
+        # Fuji TV lists it as SP50 (SP49 was the 2023 year-end programme).
+        # The legacy special_key retains 'sp49' for playlist URL stability.
         # Keep both specials independent of the regular episode numbers,
         # preserving any as-yet-unclassified VOD remainder.
         for ep in range(387, 397):
@@ -3796,7 +3800,7 @@ def make_fixed_test_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict
             if ep == 392:
                 append_special(
                     "2024-yearend-sp49-15min",
-                    "SP49 年越し15分 おっさん3人 もうええっしょ 年越し爺面師たち",
+                    "SP50 年越し15分 おっさん3人 もうええっしょ 年越し爺面師たち",
                     15 * 60,
                 )
             append_episode(ep)
@@ -3822,16 +3826,30 @@ def make_fixed_test_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict
     # stretching numbered episodes and hiding the anomaly.
     if cursor < duration and (duration - cursor) >= 10:
         clip_duration = duration - cursor
+        is_400min_preview = (
+            (start_ep, end_ep) == (387, 396)
+            and vod_id == "a640717e-6b99-4a10-a0d4-152d50117319"
+        )
         chapters.append({
             "kind": "special",
-            "special_key": f"{start_ep}-{end_ep}-unclassified-tail",
-            "title": f"GMCX 第{start_ep}～{end_ep}回 追加映像（確認待ち）",
+            "special_key": (
+                "2025-400min-live-preview-sp51"
+                if is_400min_preview else f"{start_ep}-{end_ep}-unclassified-tail"
+            ),
+            "title": (
+                "SP51 400分生放送！大予習SP"
+                if is_400min_preview
+                else f"GMCX 第{start_ep}～{end_ep}回 追加映像（確認待ち）"
+            ),
             "start_seconds": cursor,
             "stop_seconds": duration,
             "duration_seconds": clip_duration,
             "replay_url": clip_url(vod_id, cursor, clip_duration),
-            "method": "user-test-unclassified-tail",
-            "confidence": "low",
+            "method": (
+                "user-identified-2025-special"
+                if is_400min_preview else "user-test-unclassified-tail"
+            ),
+            "confidence": "provisional" if is_400min_preview else "low",
         })
 
     # Playback-confirmed offsets for newer KICK bundles.  The #307-316
@@ -4297,6 +4315,9 @@ def _mark_provisional_titles(
         elif row.get("special_key") == "2024-yearend-sp49-15min":
             row["title_status"] = "confirmed-reference"
             row["title_source"] = "fuji-tv-2024-yearend-programme-list"
+        elif row.get("special_key") == "2025-400min-live-preview-sp51":
+            row["title_status"] = "confirmed-reference"
+            row["title_source"] = "fuji-tv-2025-03-31-SP51-programme-list"
         elif reference_confirmed and row.get("kind") == "episode":
             # #267-276 programme titles and the 15th-anniversary special are
             # independently verified from broadcast/reference listings.  This
