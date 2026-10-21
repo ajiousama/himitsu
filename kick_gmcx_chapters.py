@@ -3780,6 +3780,21 @@ def make_fixed_test_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict
         for ep in range(250, 257):
             append_episode(ep)
 
+    elif (start_ep, end_ep) == (397, 403) and vod_id == "c60eb405-0e1a-4679-beca-79d8c95b2e7f":
+        # Broadcast order, independently cross-checked with Fuji TV:
+        # #397, #398, #399 -> 2025-06-13 SP52 400-minute live programme ->
+        # #400, #401, #402, #403.  This SP is NOT numbered episode #400.
+        # Each regular episode is provisionally 58min, SP 400min exactly;
+        # preserve the unclassified remainder for manual playback checks.
+        for ep in range(397, 404):
+            if ep == 400:
+                append_special(
+                    "2025-sp52-400min-live",
+                    "SP52 放送400回記念 400分生放送「パンチアウト!!」",
+                    400 * 60,
+                )
+            append_episode(ep)
+
     elif (start_ep, end_ep) == (387, 396) and vod_id == "a640717e-6b99-4a10-a0d4-152d50117319":
         # DVD-BOX21 bonus "Star Soldier" occurs between broadcast #390 and #391.
         # User confirmed programme identity/order.  DVD reference length 1:21:26
@@ -4301,7 +4316,7 @@ def _mark_provisional_titles(
     reference_confirmed = (start_ep, end_ep) in {
         (267, 276), (277, 286), (287, 296), (307, 316),
         (317, 326), (327, 336), (337, 346), (347, 356),
-        (357, 366), (367, 376), (377, 386), (387, 396),
+        (357, 366), (367, 376), (377, 386), (387, 396), (397, 403),
     }
     out = []
     for chapter in chapters:
@@ -4318,6 +4333,9 @@ def _mark_provisional_titles(
         elif row.get("special_key") == "2025-400min-live-preview-sp51":
             row["title_status"] = "confirmed-reference"
             row["title_source"] = "fuji-tv-2025-03-31-SP51-programme-list"
+        elif row.get("special_key") == "2025-sp52-400min-live":
+            row["title_status"] = "confirmed-reference"
+            row["title_source"] = "fuji-tv-2025-06-13-SP52-programme-list"
         elif reference_confirmed and row.get("kind") == "episode":
             # #267-276 programme titles and the 15th-anniversary special are
             # independently verified from broadcast/reference listings.  This
@@ -4388,7 +4406,7 @@ def main() -> int:
         elif known_mixed:
             chapters = make_mixed_chapters(vod, start_ep, end_ep, titles)
             status = "ready" if chapters else "ai_required"
-        elif (start_ep, end_ep) in {(227, 236), (237, 246), (247, 256), (257, 266), (307, 316)} or fixed_58m_later:
+        elif (start_ep, end_ep) in {(227, 236), (237, 246), (247, 256), (257, 266), (307, 316), (397, 403)} or fixed_58m_later:
             # User verification pass: #307 onward is cut into exact 58:00 slots.
             # Earlier provisional ranges retain their prior cadence.
             # Do not stretch slots to fill the VOD; preserve any remainder.
@@ -4445,7 +4463,7 @@ def main() -> int:
             status == "ready"
             and chapters
             and start_ep >= 207
-            and (start_ep, end_ep) not in {(227, 236), (237, 246), (247, 256), (307, 316)}
+            and (start_ep, end_ep) not in {(227, 236), (237, 246), (247, 256), (307, 316), (397, 403)}
             and not fixed_58m_later
             and vod.get("playable")
         ):
@@ -4603,7 +4621,7 @@ def main() -> int:
                     "title_source": "broadcast-reference",
                 }
                 for ep in range(start_ep, end_ep + 1)
-            ] if (start_ep, end_ep) in {(367, 376), (387, 396)} else [],
+            ] if (start_ep, end_ep) in {(367, 376), (387, 396), (397, 403)} else [],
             "ai_windows": build_ai_windows(start_ep, end_ep, duration) if status == "ai_required" else [],
         })
 
