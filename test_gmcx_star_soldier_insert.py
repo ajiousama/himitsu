@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""GCCX #390 -> DVD Star Soldier -> #391 -> year-end SP49 -> #392 guard."""
+"""GCCX DVD bonus, 2024 SP50 and 2025 SP51 separation regression guard."""
 import unittest
 from kick_gmcx_chapters import (
     make_fixed_test_chapters, _apply_manual_episode_start_overrides,
@@ -38,10 +38,12 @@ class StarSoldierInsertionTests(unittest.TestCase):
     def test_remaining_episodes_and_source_tail(self):
         self.assertEqual(37114,self.by_episode[396]["start_seconds"])
         self.assertEqual(40594,self.by_episode[396]["stop_seconds"])
-        remaining=self.by_special["387-396-unclassified-tail"]
+        remaining=self.by_special["2025-400min-live-preview-sp51"]
         self.assertEqual(40594,remaining["start_seconds"])
         self.assertEqual(42836,remaining["stop_seconds"])
         self.assertEqual(2242,remaining["duration_seconds"])
+        self.assertIn("400分生放送！大予習SP",remaining["title"])
+        self.assertEqual("provisional",remaining["confidence"])
         self.assertEqual(13,len(self.rows))
         self.assertEqual(0,self.rows[0]["start_seconds"])
         for a,b in zip(self.rows,self.rows[1:]):
@@ -62,6 +64,11 @@ class StarSoldierInsertionTests(unittest.TestCase):
         self.assertEqual("manual-playback-offset-propagated",mini["method"])
         self.assertEqual("provisional",mini["confidence"])
         self.assertNotIn("（仮）",mini["title"])
+        self.assertTrue(mini["title"].startswith("SP50 "))
+        trailer=next(c for c in marked if c.get("special_key")=="2025-400min-live-preview-sp51")
+        self.assertEqual("confirmed-reference",trailer["title_status"])
+        self.assertTrue(trailer["title"].startswith("SP51 "))
+        self.assertNotIn("（仮）",trailer["title"])
 
 
 if __name__=="__main__":
