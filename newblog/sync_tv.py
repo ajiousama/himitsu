@@ -2,6 +2,9 @@
 """Maintain 101 approved newblog entries after existing FreeWiFi TV sources."""
 from __future__ import annotations
 import json, re, time
+from datetime import datetime
+from html import unescape
+from zoneinfo import ZoneInfo
 from pathlib import Path
 from urllib.parse import urlsplit, parse_qs
 ROOT = Path(__file__).resolve().parent.parent
@@ -15,7 +18,7 @@ VOD_REPLAYS = ROOT / "newblog/vod_replays.json"
 VOD_START = "# === NEWBLOG_VOD_START ==="
 VOD_END = "# === NEWBLOG_VOD_END ==="
 SIX_DAYS_SECONDS = 6 * 86400
-APPROVED_REPLAY_SLUGS = {"gccx_one": "fuji_tv_one", "nogizaka_koujichuu": "tv_tokyo", "knight_scoop": "abc", "homeru_chan": "mbs", "bakobako_kbs": "kbs", "bakobako_sun": "sun", "tsurigoro": "kansai_tv"}
+APPROVED_REPLAY_SLUGS = {"gccx_one": "fuji_tv_one", "nogizaka_koujichuu": "tv_tokyo", "knight_scoop": "abc", "homeru_chan": "mbs", "bakobako_kbs": "kbs", "bakobako_sun": "sun", "tsurigoro": "kansai_tv", "big_fishing_kbs": "kbs", "big_fishing_sun": "sun"}
 
 
 def replay_templates():
@@ -39,6 +42,45 @@ def replay_templates():
     return templates
 
 
+
+BIG_FISHING_IDS = {"big_fishing_kbs", "big_fishing_sun"}
+
+
+def discover_big_fishing(now_epoch):
+    """Find broadcast-matched replays from the existing EPG history, not guessed times."""
+    history = ROOT / "haru/haru_kai_epg_history.xml"
+    if not history.is_file():
+        return []
+    body = history.read_text(encoding="utf-8", errors="replace")
+    pairs = re.finditer(
+        r"<!--\\s*https://haru\\.charandom\\.blog/stream/jp/(kbs|sun)/replay\\.m3u8\\?[^<]*?start=(\\d+)[^<]*?-->\\s*<programme\\b[^>]*>(.*?)</programme>",
+        body, re.S | re.I
+    )
+    logos = json.loads(CATALOG.read_text(encoding="utf-8"))
+    found = []
+    for match in pairs:
+        slug, start = match.group(1), int(match.group(2))
+        if not 0 <= now_epoch - start < SIX_DAYS_SECONDS:
+            continue
+        title_match = re.search(r"<title(?:\\s+[^>]*)?>(.*?)</title>", match.group(3), re.S | re.I)
+        if not title_match:
+            continue
+        title = unescape(re.sub(r"<[^>]+>", "", title_match.group(1))).strip()
+        if not re.search(r"ビッグ[・･\\s]*フィッシング", title):
+            continue
+        name = "ビッグ・フィッシング（KBS京都版）" if slug == "kbs" else "ビッグ・フィッシング（サンテレビ版）"
+        local = datetime.fromtimestamp(start, ZoneInfo("Asia/Tokyo"))
+        found.append({
+            "id": "big_fishing_kbs" if slug == "kbs" else "big_fishing_sun",
+            "slug": slug,
+            "start": start,
+            "tvg_name": name,
+            "logo": logos[slug]["logo"],
+            "title": f"📼 {name} {local:%m/%d %H:%M}｜{title.replace(chr(34), chr(39))}",
+        })
+    return found
+
+
 def vod_payload(now_epoch=None):
     """Publish only approved newblog replays inside their six-day window."""
     if not VOD_REPLAYS.is_file():
@@ -48,6 +90,25 @@ def vod_payload(now_epoch=None):
         raise ValueError("newblog VOD registry must be a list")
     templates = replay_templates()
     now_epoch = int(time.time()) if now_epoch is None else int(now_epoch)
+    records.extend(discover_big_fishing(now_epoch))
+    # The same weekly programme airs on SUN then KBS. Publish one copy:
+    # prefer KBS whenever its catch-up template and programme both exist.
+    chosen = {}
+    ordinary = []
+    for item in records:
+        if not isinstance(item, dict):
+            raise ValueError("Malformed newblog VOD item")
+        if item.get("id") not in BIG_FISHING_IDS:
+            ordinary.append(item)
+            continue
+        slug, start = item["slug"], int(item["start"])
+        if not 0 <= now_epoch - start < SIX_DAYS_SECONDS or slug not in templates:
+            continue
+        week = datetime.fromtimestamp(start, ZoneInfo("Asia/Tokyo")).strftime("%G-W%V")
+        old = chosen.get(week)
+        if old is None or (slug == "kbs" and old["slug"] != "kbs") or (slug == old["slug"] and start > int(old["start"])):
+            chosen[week] = item
+    records = ordinary + sorted(chosen.values(), key=lambda row: -int(row["start"]))
     entries = []
     for item in records:
         if not isinstance(item, dict) or item.get("id") not in APPROVED_REPLAY_SLUGS:
