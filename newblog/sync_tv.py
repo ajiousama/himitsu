@@ -53,7 +53,7 @@ def discover_big_fishing(now_epoch):
         return []
     body = history.read_text(encoding="utf-8", errors="replace")
     pairs = re.finditer(
-        r"<!--\\s*https://haru\\.charandom\\.blog/stream/jp/(kbs|sun)/replay\\.m3u8\\?[^<]*?start=(\\d+)[^<]*?-->\\s*<programme\\b[^>]*>(.*?)</programme>",
+        r"<!--\s*https://haru\.charandom\.blog/stream/jp/(kbs|sun)/replay\.m3u8\?[^<]*?start=(\d+)[^<]*?-->\s*<programme\b[^>]*>(.*?)</programme>",
         body, re.S | re.I
     )
     logos = json.loads(CATALOG.read_text(encoding="utf-8"))
@@ -62,11 +62,11 @@ def discover_big_fishing(now_epoch):
         slug, start = match.group(1), int(match.group(2))
         if not 0 <= now_epoch - start < SIX_DAYS_SECONDS:
             continue
-        title_match = re.search(r"<title(?:\\s+[^>]*)?>(.*?)</title>", match.group(3), re.S | re.I)
+        title_match = re.search(r"<title(?:\s+[^>]*)?>(.*?)</title>", match.group(3), re.S | re.I)
         if not title_match:
             continue
         title = unescape(re.sub(r"<[^>]+>", "", title_match.group(1))).strip()
-        if not re.search(r"ビッグ[・･\\s]*フィッシング", title):
+        if not re.search(r"ビッグ[・･\s]*フィッシング", title):
             continue
         name = "ビッグ・フィッシング（KBS京都版）" if slug == "kbs" else "ビッグ・フィッシング（サンテレビ版）"
         local = datetime.fromtimestamp(start, ZoneInfo("Asia/Tokyo"))
