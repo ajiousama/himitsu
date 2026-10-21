@@ -2,10 +2,10 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-22",
-  "generated_at": "2026-10-22T07:59:36.510333+09:00",
+  "generated_at": "2026-10-22T08:04:56.486574+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261022.json",
-  "schedule_checked_at": "2026-10-22T07:48:29.217576+09:00",
+  "schedule_checked_at": "2026-10-22T08:04:56.486574+09:00",
   "schedule_warnings": [
     "official_cards: TimeoutError"
   ],
@@ -52,10 +52,15 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 4,
+    "requested": 5,
     "fetched": 1,
     "failures": [],
     "deferred": [
+      {
+        "jcd": "05",
+        "name": "多摩川",
+        "start": "2026-10-22T10:00:00+09:00"
+      },
       {
         "jcd": "11",
         "name": "びわこ",
@@ -86,13 +91,13 @@
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/89c6a12d8c994e068e3507a9830d00a0/d98156acd093466a9fae97e5e19754bf/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MjgwMDAwMCwic3RhcnQiOjE3OTI2MjM2MDAsImlvcyI6MTgsImNwIjoiMjE0ODE5MjAwXzIxNDg2MjM5OSIsInBwdyI6IjQwayJ9.a-nf4Hxy4B_UGbkEUkN98yeBFeRVGk_raKd1H4FEeGA",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-10-22T08:00:31.112236+09:00",
-      "checked_at": "2026-10-22T08:00:31.112236+09:00",
+      "checked_at": "2026-10-22T08:05:59.181429+09:00",
       "first_verified_at": "2026-10-22T08:00:31.112236+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
         "sequence": 8644314,
-        "last_segment": "/89c6a12d8c994e068e3507a9830d00a0/d98156acd093466a9fae97e5e19754bf/manifest_1_8644318.ts",
+        "last_segment": "/89c6a12d8c994e068e3507a9830d00a0/d98156acd093466a9fae97e5e19754bf/manifest_1_8644373.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -368,7 +373,8 @@
           "name": "ドリーム1st"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "provider_stream_start": "2026-10-22T10:00:00+09:00",
+      "source": "公式BR配信開始待ち 10:00"
     },
     "boat.hamanako": {
       "jcd": "06",
