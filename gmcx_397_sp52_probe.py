@@ -55,7 +55,14 @@ def main():
     entry=next(g for g in state["results"] if g["episode_start"]==397)
     chapters=entry["chapters"]
     if not chapters:
-        raise RuntimeError("The #397 SP52 provisional chapter scaffold has not been built yet.")
+        # The live-catalog writer and its concurrency mutex may still be
+        # running when this independent review job starts. Build the EXACT
+        # same provisional layout in memory; never write catalogue files.
+        from kick_gmcx_chapters import make_fixed_test_chapters
+        labels=json.loads(Path("gmcx_episode_titles.json").read_text(encoding="utf-8"))
+        chapters=make_fixed_test_chapters(vod,397,403,labels)
+        if not chapters:
+            raise RuntimeError("No playable source or no provisional chapter skeleton")
     refs,read_state=match.read_reference_sources(catalog["vods"])
     if len(refs)<2:raise RuntimeError("At least two live reference sources required")
     # A cross-recording anchor: #388 manual playback confirmed at 3488s.
