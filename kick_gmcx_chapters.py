@@ -3894,6 +3894,51 @@ def make_fixed_test_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict
             elif index > 1:
                 item["method"] = "user-playback-offset-propagated"
 
+    # Audibly verified GCCX #397-403 cuts: three independent BGM references
+    # (#357/#367/#377), aligned against playback-confirmed #388. A wide
+    # search on the actual 14h18m57s KICK archive detected #400 at 37449,
+    # not after the advertised 400 minutes. This preserves the entire SP52
+    # stream and prevents the hourly generator from reverting to a false
+    # 58-minute / 400-minute grid.
+    if (start_ep, end_ep) == (397, 403) and vod_id == "c60eb405-0e1a-4679-beca-79d8c95b2e7f":
+        # #397 begins with the source VOD. #398/#399 and #400-403 have
+        # matched spectral fingerprints from three unrelated reference VODs.
+        bgm_detected = {
+            398: 3490,
+            399: 6962,
+            400: 37449,
+            401: 40933,
+            402: 44406,
+            403: 47890,
+        }
+        extra_clip_start = 51370  # provisional: #403 end at 58:00, keep 2:47 separately
+        for item in chapters:
+            ep = item.get("episode")
+            if item.get("kind") == "episode" and ep in bgm_detected:
+                item["start_seconds"] = bgm_detected[ep]
+                item["method"] = "auto-title-bgm-three-source"
+                item["confidence"] = "high"
+            if item.get("special_key") == "397-403-unclassified-tail":
+                item["start_seconds"] = extra_clip_start
+                item["method"] = "user-test-unclassified-tail"
+                item["confidence"] = "low"
+            if item.get("special_key") == "2025-sp52-400min-live":
+                item["method"] = "broadcast-order-start-and-audio-confirmed-end"
+                item["confidence"] = "provisional"  # SP start still needs playback confirmation
+                item["scheduled_seconds"] = 24000
+                item["boundary_note"] = (
+                    "Source footage reaches next-title BGM at 37449, "
+                    "later than the nominal 400-minute running time."
+                )
+        for i, item in enumerate(chapters):
+            start = int(item["start_seconds"])
+            stop = duration if i + 1 == len(chapters) else int(chapters[i + 1]["start_seconds"])
+            if stop - start < 120 or start < 0 or stop > duration:
+                raise ValueError(f"Invalid #397-403 / SP52 chronology at item {i}: {start}-{stop}")
+            item["stop_seconds"] = stop
+            item["duration_seconds"] = stop - start
+            item["replay_url"] = clip_url(vod_id, start, stop - start)
+
     return chapters
 
 def make_exact_177_196_chapters(vod: dict, titles: dict[str, str]) -> list[dict]:
