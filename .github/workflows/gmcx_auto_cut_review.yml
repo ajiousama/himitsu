@@ -1,0 +1,60 @@
+name: Review automatic GCCX episode cuts
+
+# Trial run only. Never edits the published playlists or VOD metadata.
+on:
+  workflow_dispatch:
+    inputs:
+      range_start:
+        description: "GCCX bundle first episode number"
+        type: choice
+        required: true
+        default: "387"
+        options:
+          - "357"
+          - "367"
+          - "377"
+          - "387"
+      radius:
+        description: "Seconds around each proposed cut to scan"
+        type: choice
+        required: true
+        default: "40"
+        options:
+          - "30"
+          - "40"
+          - "60"
+
+permissions:
+  contents: read
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Ensure ffmpeg
+        run: |
+          if ! command -v ffmpeg >/dev/null 2>&1; then
+            sudo apt-get update -qq
+            sudo apt-get install -y -qq ffmpeg
+          fi
+          ffmpeg -version | head -1
+      - name: Analyse episode-head boundaries (dry run)
+        env:
+          RANGE_START: ${{ inputs.range_start }}
+          RADIUS: ${{ inputs.radius }}
+        run: |
+          python -u gmcx_auto_cut_probe.py \
+            --range-start "$RANGE_START" --radius "$RADIUS" \
+            --workers 3 --output gmcx_auto_cut_review.json
+      - name: Upload analysis only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gccx-auto-cut-review-${{ inputs.range_start }}
+          path: gmcx_auto_cut_review.json
+          if-no-files-found: warn
