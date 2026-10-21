@@ -64,7 +64,7 @@ jobs:
         run: python -m pip install --quiet numpy
 
       - name: Verify GCCX 2024/2025 special programme layout
-        run: python -m unittest -v test_gmcx_star_soldier_insert.py
+        run: python -m unittest -v test_gmcx_star_soldier_insert.py test_gmcx_397_sp52.py
 
       - name: Build KICK replay catalog
         run: python -u kick_replay.py
