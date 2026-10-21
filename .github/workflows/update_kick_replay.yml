@@ -16,6 +16,7 @@ on:
       - "kick_gmcx_chapters.py"
       - "kick_replay_freewifi.py"
       - "gmcx_episode_titles.json"
+      - "test_gmcx_star_soldier_insert.py"
       - ".github/workflows/update_kick_replay.yml"
 
 permissions:
@@ -61,6 +62,9 @@ jobs:
 
       - name: Prepare spectral GCCX title BGM matcher
         run: python -m pip install --quiet numpy
+
+      - name: Verify GCCX 2024/2025 special programme layout
+        run: python -m unittest -v test_gmcx_star_soldier_insert.py
 
       - name: Build KICK replay catalog
         run: python -u kick_replay.py
