@@ -3460,12 +3460,16 @@ MANUAL_EPISODE_START_OVERRIDES: dict[int, int] = {
     388: 3488,  # playback-confirmed +8s
     389: 6968,
     390: 10448,
-    391: 13928,
-    392: 17408,
-    393: 20888,
-    394: 24368,
-    395: 27848,
-    396: 31328,
+    # User playback observation: the apparent '#391' block at 13928 is
+    # actually the DVD-BOX21 'Star Soldier' bonus programme.  Preserve
+    # the special as its own chapter, then move numbered #391-396 after it.
+    # 4886s is DVD runtime reference (1:21:26), not yet measured in HLS.
+    391: 18814,  # provisional: 13928 + 4886
+    392: 22294,  # provisional
+    393: 25774,  # provisional
+    394: 29254,  # provisional
+    395: 32734,  # provisional
+    396: 36214,  # provisional
 }
 
 
@@ -3517,17 +3521,23 @@ def _apply_manual_episode_start_overrides(
                 "note": "provisional +13s propagated from #378",
             })
             continue
-        if (
-            vod_id == "a640717e-6b99-4a10-a0d4-152d50117319"
-            and item.get("special_key") == "387-396-unclassified-tail"
-        ):
-            starts[index] = 34808
-            rows.append({
-                "special_key": "387-396-unclassified-tail",
-                "manual_start": 34808,
-                "note": "provisional +8s propagated from #388",
-            })
-            continue
+        if vod_id == "a640717e-6b99-4a10-a0d4-152d50117319":
+            if item.get("special_key") == "2024-dvdbox21-star-soldier":
+                starts[index] = 13928
+                rows.append({
+                    "special_key": "2024-dvdbox21-star-soldier",
+                    "manual_start": 13928,
+                    "note": "user-identified DVD bonus at old #391 head; start provisional",
+                })
+                continue
+            if item.get("special_key") == "387-396-unclassified-tail":
+                starts[index] = 39694
+                rows.append({
+                    "special_key": "387-396-unclassified-tail",
+                    "manual_start": 39694,
+                    "note": "remaining source footage after inserted 4886s DVD special; provisional",
+                })
+                continue
         if item.get("kind") != "episode":
             continue
         ep = int(item.get("episode") or 0)
@@ -3750,6 +3760,21 @@ def make_fixed_test_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict
         # It is represented by the manual episode starts below; never compact
         # the source timeline around it.
         for ep in range(250, 257):
+            append_episode(ep)
+
+    elif (start_ep, end_ep) == (387, 396) and vod_id == "a640717e-6b99-4a10-a0d4-152d50117319":
+        # DVD-BOX21 bonus "Star Soldier" occurs between broadcast #390 and #391.
+        # User confirmed programme identity/order.  DVD reference length 1:21:26
+        # (4,886 seconds) is a provisional guide until KICK playback verification.
+        # Retain the remaining footage as a separate tail rather than absorbing
+        # the bonus into any numbered episode.
+        for ep in range(387, 397):
+            if ep == 391:
+                append_special(
+                    "2024-dvdbox21-star-soldier",
+                    "DVD-BOX21 特典映像「スターソルジャー」",
+                    4886,
+                )
             append_episode(ep)
 
     elif (start_ep, end_ep) == (307, 316):
@@ -4242,6 +4267,9 @@ def _mark_provisional_titles(
         if confirmed:
             row["title_status"] = "confirmed-filelist"
             row["title_source"] = "source-player-filelist"
+        elif row.get("special_key") == "2024-dvdbox21-star-soldier":
+            row["title_status"] = "confirmed-reference"
+            row["title_source"] = "official-DVD-BOX21-programme-list"
         elif reference_confirmed and row.get("kind") == "episode":
             # #267-276 programme titles and the 15th-anniversary special are
             # independently verified from broadcast/reference listings.  This
