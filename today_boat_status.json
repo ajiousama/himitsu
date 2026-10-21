@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-21",
-  "generated_at": "2026-10-21T10:37:57.621323+09:00",
+  "generated_at": "2026-10-21T10:38:57.621537+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261021.json",
   "schedule_checked_at": "2026-10-21T10:35:57.719165+09:00",
@@ -54,14 +54,14 @@
   "cloud_acquisition": {
     "requested": 10,
     "fetched": 9,
-    "failures": [],
-    "deferred": [
+    "failures": [
       {
         "jcd": "03",
         "name": "江戸川",
-        "start": "2026-10-21T10:39:00+09:00"
+        "error": "ValueError: ended VOD playlist is not a live stream"
       }
-    ]
+    ],
+    "deferred": []
   },
   "epg_programmes_written": {
     "public_sports_epg_local.xml": 182,
@@ -396,8 +396,7 @@
           "name": "優勝戦"
         }
       ],
-      "provider_stream_start": "2026-10-21T10:39:00+09:00",
-      "source": "公式BR配信開始待ち 10:39"
+      "source": "automatic cloud SEED pending"
     },
     "boat.hamanako": {
       "jcd": "06",
@@ -1329,14 +1328,14 @@
       "last_race": "16:36",
       "alert_from": "2026-10-21T10:08:00+09:00",
       "next_race": {
-        "race": 1,
-        "start": "10:38"
+        "race": 2,
+        "start": "11:07"
       },
       "stream_window": "live_or_prestart",
       "intermission": null,
       "guidance_switch_at": "2026-10-21T17:21:00+09:00",
       "seed_required": false,
-      "reverify_due": true,
+      "reverify_due": false,
       "playback_verified": true,
       "first_verified_at": "2026-10-21T10:00:24.764743+09:00",
       "ready_before_first_race": true,
