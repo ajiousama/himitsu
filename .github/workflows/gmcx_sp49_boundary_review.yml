@@ -27,6 +27,15 @@ jobs:
           python -m pip install -q numpy pillow
       - name: Inspect original KICK footage around SP49 and 392 boundaries
         run: python -u gmcx_sp49_boundary_verify.py
+      - name: Check segment-aligned playback starts
+        run: python -u gmcx_sp49_segment_probe.py
+      - name: Preserve segment selections
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gmcx-sp49-segment-boundaries
+          path: gmcx_sp49_segment_review.json
+          if-no-files-found: warn
       - name: Preserve evidence images and report
         if: always()
         uses: actions/upload-artifact@v4
