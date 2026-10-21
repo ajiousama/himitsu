@@ -3533,11 +3533,16 @@ def _apply_manual_episode_start_overrides(
                 })
                 continue
             if item.get("special_key") == "2024-yearend-sp49-15min":
-                starts[index] = 22294
+                # Source video changes into SP49 at ~22300.  With HLS
+                # segmentation the chosen request must cross 22296.4s to
+                # avoid beginning with the previous chapter's promos.
+                # 22297 yields playback from the HLS segment at 22296.4
+                # while retaining the SP49's actual opening seconds.
+                starts[index] = 22297
                 rows.append({
                     "special_key": "2024-yearend-sp49-15min",
-                    "manual_start": 22294,
-                    "note": "user-identified 2024 new-year 15-minute SP49 between #391 and #392; provisional cut",
+                    "manual_start": 22297,
+                    "note": "source video verified ~22300; HLS segment starts 22296.4; choose 22297 to preserve opening",
                 })
                 continue
             if item.get("special_key") == "387-396-unclassified-tail":
