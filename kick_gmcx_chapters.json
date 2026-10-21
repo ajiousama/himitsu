@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-21T22:53:33.452836+09:00",
+  "generated_at": "2026-10-22T03:43:51.811802+09:00",
   "reference_episode_seconds": 3501,
   "results": [
     {
@@ -8,10 +8,10 @@
       "episode_start": 397,
       "episode_end": 403,
       "episode_count": 7,
-      "duration_seconds": 0,
-      "average_seconds": 0,
+      "duration_seconds": 51537,
+      "average_seconds": 7362.429,
       "extra_label": "400回記念400分生放送",
-      "status": "waiting_live_end",
+      "status": "ai_required",
       "chapters": [],
       "titlecard_refinement": {
         "status": "not_applicable"
@@ -28,7 +28,50 @@
       "seekbar_probe": null,
       "wide_211_probe": null,
       "episode_titles": [],
-      "ai_windows": []
+      "ai_windows": [
+        {
+          "before_episode": 397,
+          "next_episode": 398,
+          "expected_offset_seconds": 3501,
+          "search_from_seconds": 2901,
+          "search_to_seconds": 4101
+        },
+        {
+          "before_episode": 398,
+          "next_episode": 399,
+          "expected_offset_seconds": 7002,
+          "search_from_seconds": 6402,
+          "search_to_seconds": 7602
+        },
+        {
+          "before_episode": 399,
+          "next_episode": 400,
+          "expected_offset_seconds": 10503,
+          "search_from_seconds": 9903,
+          "search_to_seconds": 11103
+        },
+        {
+          "before_episode": 400,
+          "next_episode": 401,
+          "expected_offset_seconds": 14004,
+          "search_from_seconds": 13404,
+          "search_to_seconds": 14604
+        },
+        {
+          "before_episode": 401,
+          "next_episode": 402,
+          "expected_offset_seconds": 17505,
+          "search_from_seconds": 16905,
+          "search_to_seconds": 18105
+        },
+        {
+          "before_episode": 402,
+          "next_episode": 403,
+          "expected_offset_seconds": 21006,
+          "search_from_seconds": 20406,
+          "search_to_seconds": 21606
+        }
+      ]
     },
     {
       "vod_id": "a640717e-6b99-4a10-a0d4-152d50117319",
@@ -54,10 +97,10 @@
           "hls_diagnostics": {
             "requested_start_seconds": 0,
             "requested_duration_seconds": 3488,
-            "actual_segment_start_seconds": 0,
+            "actual_segment_start_seconds": 0.0,
             "actual_segment_stop_seconds": 3489.75,
             "actual_hls_duration_seconds": 3489.75,
-            "lead_overlap_seconds": 0,
+            "lead_overlap_seconds": 0.0,
             "tail_overlap_seconds": 1.75
           },
           "title_status": "confirmed-reference",
@@ -315,135 +358,8 @@
           "stop_seconds": 42836,
           "duration_seconds": 2242,
           "replay_url": "https://kick-resolver.onrender.com/kick?vod=a640717e-6b99-4a10-a0d4-152d50117319&start=40594&duration=2242",
-          "method": "user-identified-2025-special",
+          "method": "manual-playback-offset-propagated",
           "confidence": "provisional",
-          "title_sequence_probe": {
-            "status": "candidate_found",
-            "method": "king-enters-then-caption",
-            "candidate_count": 12,
-            "candidates": [
-              {
-                "king_entry_seconds": 40656,
-                "caption_onset_seconds": 40658,
-                "delay_seconds": 2,
-                "king_warm_before": 0.1081,
-                "king_warm_entry": 0.1327,
-                "caption_dark_before": 0.1317,
-                "caption_dark_onset": 0.4178,
-                "caption_bright_onset": 0.0196
-              },
-              {
-                "king_entry_seconds": 40701,
-                "caption_onset_seconds": 40701.5,
-                "delay_seconds": 0.5,
-                "king_warm_before": 0.087,
-                "king_warm_entry": 0.0927,
-                "caption_dark_before": 0.1199,
-                "caption_dark_onset": 0.5309,
-                "caption_bright_onset": 0.0603
-              },
-              {
-                "king_entry_seconds": 40726.5,
-                "caption_onset_seconds": 40730.5,
-                "delay_seconds": 4,
-                "king_warm_before": 0.0778,
-                "king_warm_entry": 0.1396,
-                "caption_dark_before": 0.037,
-                "caption_dark_onset": 0.4872,
-                "caption_bright_onset": 0.1282
-              },
-              {
-                "king_entry_seconds": 40786,
-                "caption_onset_seconds": 40786,
-                "delay_seconds": 0,
-                "king_warm_before": 0.0309,
-                "king_warm_entry": 0.0629,
-                "caption_dark_before": 0.0518,
-                "caption_dark_onset": 0.4133,
-                "caption_bright_onset": 0.4495
-              },
-              {
-                "king_entry_seconds": 40846,
-                "caption_onset_seconds": 40850,
-                "delay_seconds": 4,
-                "king_warm_before": 0.1028,
-                "king_warm_entry": 0.1098,
-                "caption_dark_before": 0.0845,
-                "caption_dark_onset": 0.6395,
-                "caption_bright_onset": 0.0784
-              },
-              {
-                "king_entry_seconds": 41155.5,
-                "caption_onset_seconds": 41158,
-                "delay_seconds": 2.5,
-                "king_warm_before": 0.0515,
-                "king_warm_entry": 0.0904,
-                "caption_dark_before": 0.2288,
-                "caption_dark_onset": 0.4133,
-                "caption_bright_onset": 0.1946
-              },
-              {
-                "king_entry_seconds": 41463.5,
-                "caption_onset_seconds": 41465,
-                "delay_seconds": 1.5,
-                "king_warm_before": 0.0273,
-                "king_warm_entry": 0.0332,
-                "caption_dark_before": 0.0412,
-                "caption_dark_onset": 0.6139,
-                "caption_bright_onset": 0.2609
-              },
-              {
-                "king_entry_seconds": 41501,
-                "caption_onset_seconds": 41501,
-                "delay_seconds": 0,
-                "king_warm_before": 0.0023,
-                "king_warm_entry": 0.0481,
-                "caption_dark_before": 0.0405,
-                "caption_dark_onset": 0.5173,
-                "caption_bright_onset": 0.1116
-              },
-              {
-                "king_entry_seconds": 41545,
-                "caption_onset_seconds": 41546.5,
-                "delay_seconds": 1.5,
-                "king_warm_before": 0.21,
-                "king_warm_entry": 0.2826,
-                "caption_dark_before": 0.2164,
-                "caption_dark_onset": 0.7195,
-                "caption_bright_onset": 0.0317
-              },
-              {
-                "king_entry_seconds": 41563.5,
-                "caption_onset_seconds": 41566.5,
-                "delay_seconds": 3,
-                "king_warm_before": 0.1302,
-                "king_warm_entry": 0.1602,
-                "caption_dark_before": 0.2423,
-                "caption_dark_onset": 0.4992,
-                "caption_bright_onset": 0.1131
-              },
-              {
-                "king_entry_seconds": 41572,
-                "caption_onset_seconds": 41576,
-                "delay_seconds": 4,
-                "king_warm_before": 0.041,
-                "king_warm_entry": 0.0595,
-                "caption_dark_before": 0.0835,
-                "caption_dark_onset": 0.641,
-                "caption_bright_onset": 0.1161
-              },
-              {
-                "king_entry_seconds": 41770,
-                "caption_onset_seconds": 41774,
-                "delay_seconds": 4,
-                "king_warm_before": 0.0124,
-                "king_warm_entry": 0.0297,
-                "caption_dark_before": 0.0455,
-                "caption_dark_onset": 0.4012,
-                "caption_bright_onset": 0.0407
-              }
-            ]
-          },
           "hls_diagnostics": {
             "requested_start_seconds": 40594,
             "requested_duration_seconds": 2242,
@@ -451,7 +367,7 @@
             "actual_segment_stop_seconds": 42833.584,
             "actual_hls_duration_seconds": 2249.651,
             "lead_overlap_seconds": 10.067,
-            "tail_overlap_seconds": 0
+            "tail_overlap_seconds": 0.0
           },
           "title_status": "confirmed-reference",
           "title_source": "fuji-tv-2025-03-31-SP51-programme-list"
@@ -531,9 +447,9 @@
             "shift_seconds": 8
           },
           {
-            "special_key": "387-396-unclassified-tail",
+            "special_key": "2025-400min-live-preview-sp51",
             "manual_start": 40594,
-            "note": "source remainder after DVD-BOX21 bonus and 2024 SP49 yearend mini; provisional"
+            "note": "user-identified 400min live PREVIEW after #396; start remains provisional"
           }
         ]
       },
@@ -649,10 +565,10 @@
           "hls_diagnostics": {
             "requested_start_seconds": 0,
             "requested_duration_seconds": 3493,
-            "actual_segment_start_seconds": 0,
+            "actual_segment_start_seconds": 0.0,
             "actual_segment_stop_seconds": 3499.383,
             "actual_hls_duration_seconds": 3499.383,
-            "lead_overlap_seconds": 0,
+            "lead_overlap_seconds": 0.0,
             "tail_overlap_seconds": 6.383
           },
           "title_status": "confirmed-reference",
@@ -879,7 +795,7 @@
             "actual_segment_stop_seconds": 34858.051,
             "actual_hls_duration_seconds": 50.318,
             "lead_overlap_seconds": 5.267,
-            "tail_overlap_seconds": 0
+            "tail_overlap_seconds": 0.0
           },
           "title_status": "provisional",
           "title_source": "pending-user-check"
@@ -1161,10 +1077,10 @@
           "hls_diagnostics": {
             "requested_start_seconds": 0,
             "requested_duration_seconds": 3488,
-            "actual_segment_start_seconds": 0,
+            "actual_segment_start_seconds": 0.0,
             "actual_segment_stop_seconds": 3490.166,
             "actual_hls_duration_seconds": 3490.166,
-            "lead_overlap_seconds": 0,
+            "lead_overlap_seconds": 0.0,
             "tail_overlap_seconds": 2.166
           },
           "title_status": "confirmed-reference",
@@ -1391,7 +1307,7 @@
             "actual_segment_stop_seconds": 35104.984,
             "actual_hls_duration_seconds": 298.468,
             "lead_overlap_seconds": 1.484,
-            "tail_overlap_seconds": 0
+            "tail_overlap_seconds": 0.0
           },
           "title_status": "provisional",
           "title_source": "pending-user-check"
