@@ -1,0 +1,36 @@
+name: Review SP49 and 392 Source Boundaries
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/gmcx_sp49_boundary_review.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 14
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Install video and chart tools
+        run: |
+          if ! command -v ffmpeg >/dev/null; then
+            sudo apt-get update -qq
+            sudo apt-get install -y -qq ffmpeg
+          fi
+          python -m pip install -q numpy pillow
+      - name: Inspect original KICK footage around SP49 and 392 boundaries
+        run: python -u gmcx_sp49_boundary_verify.py
+      - name: Preserve evidence images and report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gmcx-sp49-and-392-boundary-verification
+          path: gmcx_sp49_boundary_review/
+          if-no-files-found: warn
