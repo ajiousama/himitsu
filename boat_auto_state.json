@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-21",
-  "generated_at": "2026-10-21T10:01:57.616474+09:00",
+  "generated_at": "2026-10-21T10:02:57.616233+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261021.json",
   "schedule_checked_at": "2026-10-21T09:48:57.663138+09:00",
@@ -19,7 +19,7 @@
   "alert_lead_minutes": 30,
   "card_count": 13,
   "held_count": 13,
-  "visible_count": 8,
+  "visible_count": 9,
   "active_count": 4,
   "ended_kept": [],
   "seed_required": false,
@@ -36,7 +36,7 @@
     },
     "day": {
       "held": 8,
-      "acquired": 6,
+      "acquired": 7,
       "active": 2,
       "ended": 0,
       "seed_required": 0,
@@ -53,18 +53,13 @@
   },
   "cloud_acquisition": {
     "requested": 10,
-    "fetched": 8,
+    "fetched": 9,
     "failures": [],
     "deferred": [
       {
         "jcd": "03",
         "name": "江戸川",
         "start": "2026-10-21T10:39:00+09:00"
-      },
-      {
-        "jcd": "06",
-        "name": "浜名湖",
-        "start": "2026-10-21T10:03:00+09:00"
       }
     ]
   },
@@ -77,6 +72,22 @@
     "kind": "healthy"
   },
   "streams": {
+    "boat.hamanako": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/ec7be6446421487080679dd31e231841/65c4564b155c4901bb870cf04f987307/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MjcyMDgwMCwic3RhcnQiOjE3OTI1NDQ1ODAsImlvcyI6MTgsImNwIjoiMjE0NzQwMTgwXzIxNDc4MzM3OSIsInBwdyI6IjQwayJ9.uVP680EGAHW54F0P4LnRFTnzGWSrh5cH0yGGKRK0aiI",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-10-21T10:03:25.033383+09:00",
+      "checked_at": "2026-10-21T10:03:25.033383+09:00",
+      "first_verified_at": "2026-10-21T10:03:25.033383+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 8631589,
+        "last_segment": "/ec7be6446421487080679dd31e231841/65c4564b155c4901bb870cf04f987307/manifest_1_8631593.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
+    },
     "boat.tsu": {
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/caa3493b64ae4f01bae1df2ca58dd14b/223bd3c12a7c47fda179d886e4e0b93d/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MjcxNzIwMCwic3RhcnQiOjE3OTI1NDQxMDAsImlvcyI6MTgsImNwIjoiMjE0NzM5NzAwXzIxNDc4Mjg5OSIsInBwdyI6IjQwayJ9.qG0p2fTJjwdY95eKWDY1ErNkyINnY4s2ihf4guERk-k",
       "source": "automatic acquisition + audio/video decode",
@@ -392,7 +403,7 @@
       "jcd": "06",
       "name": "浜名湖",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
       "active": false,
       "cancelled": false,
@@ -410,9 +421,9 @@
       "guidance_switch_at": "2026-10-21T17:05:00+09:00",
       "seed_required": false,
       "reverify_due": false,
-      "playback_verified": false,
-      "first_verified_at": null,
-      "ready_before_first_race": false,
+      "playback_verified": true,
+      "first_verified_at": "2026-10-21T10:03:25.033383+09:00",
+      "ready_before_first_race": true,
       "acquire_from": "2026-10-21T08:16:00+09:00",
       "races": [
         {
@@ -476,8 +487,9 @@
           "name": "ドリーム戦"
         }
       ],
-      "provider_stream_start": "2026-10-21T10:03:00+09:00",
-      "source": "公式BR配信開始待ち 10:03"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/ec7be6446421487080679dd31e231841/65c4564b155c4901bb870cf04f987307/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MjcyMDgwMCwic3RhcnQiOjE3OTI1NDQ1ODAsImlvcyI6MTgsImNwIjoiMjE0NzQwMTgwXzIxNDc4MzM3OSIsInBwdyI6IjQwayJ9.uVP680EGAHW54F0P4LnRFTnzGWSrh5cH0yGGKRK0aiI",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     },
     "boat.tsu": {
       "jcd": "09",
