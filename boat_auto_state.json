@@ -2,10 +2,10 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-21",
-  "generated_at": "2026-10-21T14:04:00.547248+09:00",
-  "last_update_ok": false,
+  "generated_at": "2026-10-21T14:05:00.498816+09:00",
+  "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261021.json",
-  "schedule_checked_at": "2026-10-21T13:49:00.597850+09:00",
+  "schedule_checked_at": "2026-10-21T14:05:00.498816+09:00",
   "schedule_warnings": [
     "official_cards: TimeoutError"
   ],
@@ -20,15 +20,11 @@
   "card_count": 13,
   "held_count": 13,
   "visible_count": 10,
-  "active_count": 10,
+  "active_count": 9,
   "ended_kept": [],
-  "seed_required": true,
-  "seed_required_venues": [
-    "江戸川"
-  ],
-  "system_errors": [
-    "開始時刻が近い開催場の当日中継を取得・再生確認できません"
-  ],
+  "seed_required": false,
+  "seed_required_venues": [],
+  "system_errors": [],
   "phase_counts": {
     "morning": {
       "held": 2,
@@ -41,9 +37,9 @@
     "day": {
       "held": 8,
       "acquired": 7,
-      "active": 8,
+      "active": 7,
       "ended": 0,
-      "seed_required": 1,
+      "seed_required": 0,
       "cancelled": 0
     },
     "night": {
@@ -56,15 +52,9 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 12,
+    "requested": 11,
     "fetched": 10,
-    "failures": [
-      {
-        "jcd": "03",
-        "name": "江戸川",
-        "error": "ValueError: ended VOD playlist is not a live stream"
-      }
-    ],
+    "failures": [],
     "deferred": [
       {
         "jcd": "01",
@@ -78,8 +68,8 @@
     "guides.xml": 182
   },
   "alert": {
-    "active": true,
-    "kind": "system_error"
+    "active": false,
+    "kind": "healthy"
   },
   "streams": {
     "boat.hamanako": {
@@ -341,7 +331,7 @@
       "held": true,
       "visible": false,
       "ended": false,
-      "active": true,
+      "active": false,
       "cancelled": false,
       "mode": "day",
       "mode_label": "デイ",
@@ -349,14 +339,19 @@
       "last_race": "16:25",
       "alert_from": "2026-10-21T09:30:00+09:00",
       "next_race": {
-        "race": 8,
-        "start": "14:24"
+        "race": 9,
+        "start": "14:52"
       },
-      "stream_window": "live_or_prestart",
-      "intermission": null,
+      "stream_window": "intermission",
+      "intermission": {
+        "after_race": 8,
+        "next_race": 9,
+        "from": "2026-10-21T10:45:00+09:00",
+        "until": "2026-10-21T14:22:00+09:00"
+      },
       "guidance_switch_at": "2026-10-21T17:10:00+09:00",
-      "seed_required": true,
-      "reverify_due": true,
+      "seed_required": false,
+      "reverify_due": false,
       "playback_verified": false,
       "first_verified_at": null,
       "ready_before_first_race": false,
@@ -399,7 +394,7 @@
         },
         {
           "race": 8,
-          "start": "14:24",
+          "start": "10:42",
           "name": "一般"
         },
         {
