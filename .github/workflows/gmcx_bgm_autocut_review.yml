@@ -1,0 +1,49 @@
+name: GCCX BGM Auto Cut - Review Only
+
+on:
+  workflow_dispatch:
+    inputs:
+      ranges:
+        description: "Starting episode numbers, separated by spaces"
+        required: false
+        default: "357 377 387"
+        type: string
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/gmcx_bgm_autocut_review.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    timeout-minutes: 28
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Install tools
+        run: |
+          if ! command -v ffmpeg >/dev/null; then
+            sudo apt-get update -qq
+            sudo apt-get install -y -qq ffmpeg
+          fi
+          python -m pip install -q numpy
+      - name: Test signal matching and protection of verified cuts
+        run: python -m unittest -v test_gmcx_bgm_autocut.py
+      - name: Find repeated title BGM around chapter heads
+        env:
+          RANGES: ${{ inputs.ranges || '357 377 387' }}
+        run: |
+          read -ra ids <<< "$RANGES"
+          python -u gmcx_bgm_autocut.py --ranges "${ids[@]}"
+      - name: Save review findings
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gmcx-bgm-autocut-review
+          path: gmcx_bgm_autocut_review.json
+          if-no-files-found: warn
