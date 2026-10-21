@@ -17,10 +17,12 @@ class TestMixed2025Archive(unittest.TestCase):
         self.assertEqual(seq,[397,398,399,"2025-sp52-400min-live",400,401,402,403,"397-403-unclassified-tail"])
         sp=self.rows[3]
         self.assertEqual(sp["start_seconds"],10440)
-        self.assertEqual(sp["duration_seconds"],24000)
+        self.assertEqual(sp["duration_seconds"],27009)
+        self.assertEqual(sp["scheduled_seconds"],24000)
         self.assertIn("400分生放送",sp["title"])
-        self.assertEqual(self.rows[4]["start_seconds"],34440)
-        self.assertEqual(self.rows[8]["duration_seconds"],3177)
+        self.assertEqual(self.rows[4]["start_seconds"],37449)
+        self.assertEqual(self.rows[8]["duration_seconds"],167)
+        self.assertEqual(self.rows[8]["start_seconds"],51370)
         self.assertEqual(self.rows[8]["stop_seconds"],51537)
         self.assertEqual(len(self.rows),9)
     def test_no_gaps_and_user_checked_old_ranges_not_modified(self):
@@ -28,8 +30,15 @@ class TestMixed2025Archive(unittest.TestCase):
         for current,next_ in zip(self.rows,self.rows[1:]):
             self.assertEqual(current["stop_seconds"],next_["start_seconds"])
             self.assertEqual(current["duration_seconds"],current["stop_seconds"]-current["start_seconds"])
+        confirmed_by_bgm={398:3490,399:6962,400:37449,401:40933,402:44406,403:47890}
         for row in self.rows:
-            self.assertEqual(row["confidence"],"provisional" if row["kind"]=="episode" or row["special_key"]=="2025-sp52-400min-live" else "low")
+            if row.get("episode") in confirmed_by_bgm:
+                self.assertEqual(row["start_seconds"],confirmed_by_bgm[row["episode"]])
+                self.assertEqual(row["method"],"auto-title-bgm-three-source")
+                self.assertEqual(row["confidence"],"high")
+            else:
+                self.assertEqual(row["confidence"],
+                    "provisional" if row.get("episode")==397 or row.get("special_key")=="2025-sp52-400min-live" else "low")
     def test_special_title_reference_but_boundary_not_confirmed(self):
         rows=_mark_provisional_titles(self.rows,397,403)
         by_key={c.get("special_key"):c for c in rows if c["kind"]=="special"}
@@ -39,7 +48,7 @@ class TestMixed2025Archive(unittest.TestCase):
         for c in rows:
             if c["kind"]=="episode":
                 self.assertEqual(c["title_status"],"confirmed-reference")
-                self.assertEqual(c["confidence"],"provisional")
+                self.assertEqual(c["confidence"],"provisional" if c["episode"]==397 else "high")
 
 if __name__=="__main__":
     unittest.main()
