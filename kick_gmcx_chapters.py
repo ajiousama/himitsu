@@ -3455,6 +3455,17 @@ MANUAL_EPISODE_START_OVERRIDES: dict[int, int] = {
     384: 24373,
     385: 27853,
     386: 31333,
+    # #388: user playback check: head 8s early. Keep downstream
+    # #389-396 and unclassified tail +8s pending separate verification.
+    388: 3488,  # playback-confirmed +8s
+    389: 6968,
+    390: 10448,
+    391: 13928,
+    392: 17408,
+    393: 20888,
+    394: 24368,
+    395: 27848,
+    396: 31328,
 }
 
 
@@ -3506,6 +3517,17 @@ def _apply_manual_episode_start_overrides(
                 "note": "provisional +13s propagated from #378",
             })
             continue
+        if (
+            vod_id == "a640717e-6b99-4a10-a0d4-152d50117319"
+            and item.get("special_key") == "387-396-unclassified-tail"
+        ):
+            starts[index] = 34808
+            rows.append({
+                "special_key": "387-396-unclassified-tail",
+                "manual_start": 34808,
+                "note": "provisional +8s propagated from #388",
+            })
+            continue
         if item.get("kind") != "episode":
             continue
         ep = int(item.get("episode") or 0)
@@ -3536,7 +3558,7 @@ def _apply_manual_episode_start_overrides(
     for index in starts:
         if 0 <= index < len(rebuilt):
             ep = int(rebuilt[index].get("episode") or 0)
-            if 289 <= ep <= 296 or 302 <= ep <= 306 or 359 <= ep <= 366 or 379 <= ep <= 386 or rebuilt[index].get("kind") == "special":
+            if 289 <= ep <= 296 or 302 <= ep <= 306 or 359 <= ep <= 366 or 379 <= ep <= 386 or 389 <= ep <= 396 or rebuilt[index].get("kind") == "special":
                 rebuilt[index]["method"] = "manual-playback-offset-propagated"
                 rebuilt[index]["confidence"] = "provisional"
             else:
