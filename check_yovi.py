@@ -152,7 +152,7 @@ def main():
             continue
         prefix, title = line.split(",", 1)
         was_red = bool(re.match(r"^🟥", title))
-        title = re.sub(r"^[🟢🟥]\\s*", "", title)
+        title = re.sub(r"^[🟢🟥]\s*", "", title)
         host = host_of(e["url"]).lower()
         is_manual_green = (
             title in manual_green and (
