@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-22",
-  "generated_at": "2026-10-22T10:38:27.912456+09:00",
+  "generated_at": "2026-10-22T10:39:27.968975+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261022.json",
   "schedule_checked_at": "2026-10-22T10:31:27.968686+09:00",
@@ -19,7 +19,7 @@
   "alert_lead_minutes": 30,
   "card_count": 14,
   "held_count": 14,
-  "visible_count": 10,
+  "visible_count": 11,
   "active_count": 10,
   "ended_kept": [],
   "seed_required": false,
@@ -36,7 +36,7 @@
     },
     "day": {
       "held": 9,
-      "acquired": 8,
+      "acquired": 9,
       "active": 8,
       "ended": 0,
       "seed_required": 0,
@@ -53,15 +53,9 @@
   },
   "cloud_acquisition": {
     "requested": 11,
-    "fetched": 10,
+    "fetched": 11,
     "failures": [],
-    "deferred": [
-      {
-        "jcd": "03",
-        "name": "江戸川",
-        "start": "2026-10-22T10:39:00+09:00"
-      }
-    ]
+    "deferred": []
   },
   "epg_programmes_written": {
     "public_sports_epg_local.xml": 196,
@@ -72,6 +66,22 @@
     "kind": "healthy"
   },
   "streams": {
+    "boat.edogawa": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/00dea21795f54d53bdf3727e0d64e894/81413004709748d2b373e633a1bb9d2f/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MjgwNzIwMCwic3RhcnQiOjE3OTI2MzMxNDAsImlvcyI6MTgsImNwIjoiMjE0ODI4NzQwXzIxNDg3MTkzOSIsInBwdyI6IjQwayJ9.rTfImFZRa8Fn5txYbgzVQW87PowaMZcwHBVpA0VncLI",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-10-22T10:39:55.179113+09:00",
+      "checked_at": "2026-10-22T10:39:55.179113+09:00",
+      "first_verified_at": "2026-10-22T10:39:55.179113+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 8623591,
+        "last_segment": "/00dea21795f54d53bdf3727e0d64e894/81413004709748d2b373e633a1bb9d2f/manifest_1_8623600.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
+    },
     "boat.heiwajima": {
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/1305c8f00959463bb06d7c239ea33bfa/14a0391318a14f2697412f640325b4d5/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MjgwNzIwMCwic3RhcnQiOjE3OTI2MzA4MDAsImlvcyI6MTgsImNwIjoiMjE0ODI2NDAwXzIxNDg2OTU5OSIsInBwdyI6IjQwayJ9.RrLbQcSb9g8FQKHoVB3JBybG51laORwLVxzSnl0Sjn8",
       "source": "automatic acquisition + audio/video decode",
@@ -238,7 +248,7 @@
       "jcd": "03",
       "name": "江戸川",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
       "active": false,
       "cancelled": false,
@@ -256,9 +266,9 @@
       "guidance_switch_at": "2026-10-22T17:10:00+09:00",
       "seed_required": false,
       "reverify_due": false,
-      "playback_verified": false,
-      "first_verified_at": null,
-      "ready_before_first_race": false,
+      "playback_verified": true,
+      "first_verified_at": "2026-10-22T10:39:55.179113+09:00",
+      "ready_before_first_race": true,
       "acquire_from": "2026-10-22T08:44:00+09:00",
       "races": [
         {
@@ -322,8 +332,9 @@
           "name": "優勝戦"
         }
       ],
-      "provider_stream_start": "2026-10-22T10:39:00+09:00",
-      "source": "公式BR配信開始待ち 10:39"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/00dea21795f54d53bdf3727e0d64e894/81413004709748d2b373e633a1bb9d2f/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MjgwNzIwMCwic3RhcnQiOjE3OTI2MzMxNDAsImlvcyI6MTgsImNwIjoiMjE0ODI4NzQwXzIxNDg3MTkzOSIsInBwdyI6IjQwayJ9.rTfImFZRa8Fn5txYbgzVQW87PowaMZcwHBVpA0VncLI",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     },
     "boat.heiwajima": {
       "jcd": "04",
