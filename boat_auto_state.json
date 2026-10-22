@@ -2,10 +2,10 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-23",
-  "generated_at": "2026-10-23T08:00:49.758159+09:00",
+  "generated_at": "2026-10-23T08:04:03.394694+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261023.json",
-  "schedule_checked_at": "2026-10-23T07:47:52.934580+09:00",
+  "schedule_checked_at": "2026-10-23T08:04:03.394694+09:00",
   "schedule_warnings": [
     "official_cards: TimeoutError"
   ],
@@ -52,14 +52,24 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 5,
+    "requested": 7,
     "fetched": 1,
     "failures": [],
     "deferred": [
       {
+        "jcd": "05",
+        "name": "多摩川",
+        "start": "2026-10-23T10:00:00+09:00"
+      },
+      {
         "jcd": "11",
         "name": "びわこ",
         "start": "2026-10-23T09:50:00+09:00"
+      },
+      {
+        "jcd": "13",
+        "name": "尼崎",
+        "start": "2026-10-23T10:02:00+09:00"
       },
       {
         "jcd": "17",
@@ -283,7 +293,8 @@
           "name": "ドリーム2nd"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "provider_stream_start": "2026-10-23T10:00:00+09:00",
+      "source": "公式BR配信開始待ち 10:00"
     },
     "boat.hamanako": {
       "jcd": "06",
@@ -644,7 +655,8 @@
           "name": "準優勝戦"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "provider_stream_start": "2026-10-23T10:02:00+09:00",
+      "source": "公式BR配信開始待ち 10:02"
     },
     "boat.naruto": {
       "jcd": "14",
