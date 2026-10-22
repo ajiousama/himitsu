@@ -50,7 +50,7 @@ def parse_entries(lines):
         if not re.match(r"^https?://", url, re.I):
             continue
         title = line.split(",", 1)[1] if "," in line else ""
-        title = re.sub(r"^🟢", "", title)
+        title = re.sub(r"^[🟢🟥]", "", title)
         entries.append({"line": i, "url_line": j, "url": url, "title": title})
     return entries
 
@@ -133,6 +133,17 @@ def main():
                     "final_url": None,
                 }
 
+    # VLC-confirmed results take precedence over HTTP-only probes.
+    # Match both the channel label and its stream family. Do not extrapolate
+    # results to other channels merely because they share a provider.
+    manual_green = {
+        "テレ東(primehome)", "NHK G HD (Primehome)", "NHK総合 (YoiTV)"
+    }
+    manual_red = {
+        "TOKYO MX2 (HD 720p)", "Fuji TV", "ＮＨＫ-ＢＳ(haruka)",
+        "NHK BS(utako)", "NHK BS(zhenix)", "NHK総合・東京",
+        "J SPORTS 3"
+    }
     green_entries = 0
     for e in entries:
         i = e["line"]
@@ -140,8 +151,22 @@ def main():
         if "," not in line:
             continue
         prefix, title = line.split(",", 1)
-        title = re.sub(r"^🟢", "", title)
-        if results.get(e["url"], {}).get("ok"):
+        was_red = bool(re.match(r"^🟥", title))
+        title = re.sub(r"^[🟢🟥]\\s*", "", title)
+        host = host_of(e["url"]).lower()
+        is_manual_green = (
+            title in manual_green and (
+                ("primehome" in title.lower() and "cdns.jp-primehome.com" in host)
+                or ("YoiTV" in title and "linxei.netgenx.site" in host)
+            )
+        )
+        is_manual_red = was_red and title in manual_red
+        if is_manual_green:
+            title = "🟢" + title
+            green_entries += 1
+        elif is_manual_red:
+            title = "🟥" + title
+        elif results.get(e["url"], {}).get("ok"):
             title = "🟢" + title
             green_entries += 1
         lines[i] = prefix + "," + title
