@@ -133,17 +133,10 @@ def main():
                     "final_url": None,
                 }
 
-    # VLC-confirmed results take precedence over HTTP-only probes.
-    # Match both the channel label and its stream family. Do not extrapolate
-    # results to other channels merely because they share a provider.
-    manual_green = {
-        "テレ東(primehome)", "NHK G HD (Primehome)", "NHK総合 (YoiTV)"
-    }
-    manual_red = {
-        "TOKYO MX2 (HD 720p)", "Fuji TV", "ＮＨＫ-ＢＳ(haruka)",
-        "NHK BS(utako)", "NHK BS(zhenix)", "NHK総合・東京",
-        "J SPORTS 3"
-    }
+    # The owner's playback decisions override lightweight HTTP manifest probes.
+    # The newly signed PrimeHome batch and YoiTV lineup are marked playable.
+    # Existing red flags are kept unless the owner explicitly changes them.
+    primehome_sign = "2a87d11ca6d93311ef31ab7f2b8e5919140bd936c2dd98a4b18d07936b94a3ed"
     green_entries = 0
     for e in entries:
         i = e["line"]
@@ -152,21 +145,25 @@ def main():
             continue
         prefix, title = line.split(",", 1)
         was_red = bool(re.match(r"^🟥", title))
-        title = re.sub(r"^[🟢🟥]\s*", "", title)
-        host = host_of(e["url"]).lower()
-        is_manual_green = (
-            title in manual_green and (
-                ("primehome" in title.lower() and "cdns.jp-primehome.com" in host)
-                or ("YoiTV" in title and "linxei.netgenx.site" in host)
-            )
+        title = re.sub(r"^[🟢🟥]\\s*", "", title)
+        url = e["url"]
+        host = host_of(url).lower()
+        is_updated_primehome = (
+            host == "cdns.jp-primehome.com:8000"
+            and "/zhongying/live/playlist.m3u8?" in url
+            and "timestamp=1732380849&sign=" + primehome_sign in url
+            and not re.search(r"[?&]cid=bs14(?:&|$)", url)
         )
-        is_manual_red = was_red and title in manual_red
-        if is_manual_green:
+        is_yoitv = (
+            host == "linxei.netgenx.site"
+            and "/tv/yoitv.php?" in url
+        )
+        if is_updated_primehome or is_yoitv:
             title = "🟢" + title
             green_entries += 1
-        elif is_manual_red:
+        elif was_red:
             title = "🟥" + title
-        elif results.get(e["url"], {}).get("ok"):
+        elif results.get(url, {}).get("ok"):
             title = "🟢" + title
             green_entries += 1
         lines[i] = prefix + "," + title
