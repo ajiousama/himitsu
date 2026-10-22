@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-22",
-  "generated_at": "2026-10-22T09:48:27.962431+09:00",
+  "generated_at": "2026-10-22T09:50:27.963711+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261022.json",
   "schedule_checked_at": "2026-10-22T09:40:11.075251+09:00",
@@ -19,7 +19,7 @@
   "alert_lead_minutes": 30,
   "card_count": 14,
   "held_count": 14,
-  "visible_count": 4,
+  "visible_count": 5,
   "active_count": 3,
   "ended_kept": [],
   "seed_required": false,
@@ -36,7 +36,7 @@
     },
     "day": {
       "held": 9,
-      "acquired": 2,
+      "acquired": 3,
       "active": 1,
       "ended": 0,
       "seed_required": 0,
@@ -53,7 +53,7 @@
   },
   "cloud_acquisition": {
     "requested": 11,
-    "fetched": 4,
+    "fetched": 5,
     "failures": [],
     "deferred": [
       {
@@ -77,11 +77,6 @@
         "start": "2026-10-22T10:03:00+09:00"
       },
       {
-        "jcd": "11",
-        "name": "びわこ",
-        "start": "2026-10-22T09:50:00+09:00"
-      },
-      {
         "jcd": "13",
         "name": "尼崎",
         "start": "2026-10-22T10:02:00+09:00"
@@ -102,6 +97,22 @@
     "kind": "healthy"
   },
   "streams": {
+    "boat.biwako": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/8a3ed4262f2546b196af87fe48d67b68/e3a75b38b0da48d5a2ae92416c2821b3/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MjgwMzYwMCwic3RhcnQiOjE3OTI2MzAyMDAsImlvcyI6MTgsImNwIjoiMjE0ODI1ODAwXzIxNDg2ODk5OSIsInBwdyI6IjQwayJ9.H2870Kxr3e5NapP2XJUBwmIMCYIrVx8C8cubKev6WkE",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-10-22T09:50:55.194558+09:00",
+      "checked_at": "2026-10-22T09:50:55.194558+09:00",
+      "first_verified_at": "2026-10-22T09:50:55.194558+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 8633034,
+        "last_segment": "/8a3ed4262f2546b196af87fe48d67b68/e3a75b38b0da48d5a2ae92416c2821b3/manifest_4_8633043.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
+    },
     "boat.naruto": {
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/89c6a12d8c994e068e3507a9830d00a0/d98156acd093466a9fae97e5e19754bf/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MjgwMDAwMCwic3RhcnQiOjE3OTI2MjM2MDAsImlvcyI6MTgsImNwIjoiMjE0ODE5MjAwXzIxNDg2MjM5OSIsInBwdyI6IjQwayJ9.a-nf4Hxy4B_UGbkEUkN98yeBFeRVGk_raKd1H4FEeGA",
       "source": "automatic acquisition + audio/video decode",
@@ -536,7 +547,7 @@
       "jcd": "11",
       "name": "びわこ",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
       "active": false,
       "cancelled": false,
@@ -554,9 +565,9 @@
       "guidance_switch_at": "2026-10-22T16:33:00+09:00",
       "seed_required": false,
       "reverify_due": false,
-      "playback_verified": false,
-      "first_verified_at": null,
-      "ready_before_first_race": false,
+      "playback_verified": true,
+      "first_verified_at": "2026-10-22T09:50:55.194558+09:00",
+      "ready_before_first_race": true,
       "acquire_from": "2026-10-22T07:54:00+09:00",
       "races": [
         {
@@ -620,8 +631,9 @@
           "name": "予選特選"
         }
       ],
-      "provider_stream_start": "2026-10-22T09:50:00+09:00",
-      "source": "公式BR配信開始待ち 09:50"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/8a3ed4262f2546b196af87fe48d67b68/e3a75b38b0da48d5a2ae92416c2821b3/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MjgwMzYwMCwic3RhcnQiOjE3OTI2MzAyMDAsImlvcyI6MTgsImNwIjoiMjE0ODI1ODAwXzIxNDg2ODk5OSIsInBwdyI6IjQwayJ9.H2870Kxr3e5NapP2XJUBwmIMCYIrVx8C8cubKev6WkE",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     },
     "boat.suminoe": {
       "jcd": "12",
@@ -1101,7 +1113,7 @@
       "intermission": null,
       "guidance_switch_at": "2026-10-22T15:14:00+09:00",
       "seed_required": false,
-      "reverify_due": false,
+      "reverify_due": true,
       "playback_verified": true,
       "first_verified_at": "2026-10-22T08:12:16.024926+09:00",
       "ready_before_first_race": true,
