@@ -145,7 +145,7 @@ def main():
             continue
         prefix, title = line.split(",", 1)
         was_red = bool(re.match(r"^🟥", title))
-        title = re.sub(r"^[🟢🟥]\\s*", "", title)
+        title = re.sub(r"^[🟢🟥]\s*", "", title)
         url = e["url"]
         host = host_of(url).lower()
         is_updated_primehome = (
