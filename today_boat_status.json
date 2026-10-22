@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-22",
-  "generated_at": "2026-10-22T10:02:27.965989+09:00",
+  "generated_at": "2026-10-22T10:03:27.966133+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261022.json",
   "schedule_checked_at": "2026-10-22T09:55:27.964503+09:00",
@@ -19,7 +19,7 @@
   "alert_lead_minutes": 30,
   "card_count": 14,
   "held_count": 14,
-  "visible_count": 9,
+  "visible_count": 10,
   "active_count": 4,
   "ended_kept": [],
   "seed_required": false,
@@ -36,7 +36,7 @@
     },
     "day": {
       "held": 9,
-      "acquired": 7,
+      "acquired": 8,
       "active": 2,
       "ended": 0,
       "seed_required": 0,
@@ -53,18 +53,13 @@
   },
   "cloud_acquisition": {
     "requested": 11,
-    "fetched": 9,
+    "fetched": 10,
     "failures": [],
     "deferred": [
       {
         "jcd": "03",
         "name": "江戸川",
         "start": "2026-10-22T10:39:00+09:00"
-      },
-      {
-        "jcd": "06",
-        "name": "浜名湖",
-        "start": "2026-10-22T10:03:00+09:00"
       }
     ]
   },
@@ -104,6 +99,22 @@
         "ok": true,
         "sequence": 8646001,
         "last_segment": "/4fd2f3fe44b64be597ddb98ea0506f97/94430e42f6bb4f3dbf3f1b36662ac0d6/manifest_1_8646009.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
+    },
+    "boat.hamanako": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/e49c5f418a414718ba45526a73e853dc/3002efc663704938a22347eb286767e6/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MjgwNzIwMCwic3RhcnQiOjE3OTI2MzA5ODAsImlvcyI6MTgsImNwIjoiMjE0ODI2NTgwXzIxNDg2OTc3OSIsInBwdyI6IjQwayJ9.ixorCYv8QBLI3o8FxafLB4E3CC9kcSFKZxtXxTaj_Dc",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-10-22T10:03:55.243539+09:00",
+      "checked_at": "2026-10-22T10:03:55.243539+09:00",
+      "first_verified_at": "2026-10-22T10:03:55.243539+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 8645989,
+        "last_segment": "/e49c5f418a414718ba45526a73e853dc/3002efc663704938a22347eb286767e6/manifest_1_8645998.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -502,7 +513,7 @@
       "jcd": "06",
       "name": "浜名湖",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
       "active": false,
       "cancelled": false,
@@ -520,9 +531,9 @@
       "guidance_switch_at": "2026-10-22T17:08:00+09:00",
       "seed_required": false,
       "reverify_due": false,
-      "playback_verified": false,
-      "first_verified_at": null,
-      "ready_before_first_race": false,
+      "playback_verified": true,
+      "first_verified_at": "2026-10-22T10:03:55.243539+09:00",
+      "ready_before_first_race": true,
       "acquire_from": "2026-10-22T08:16:00+09:00",
       "races": [
         {
@@ -586,8 +597,9 @@
           "name": "予選特選"
         }
       ],
-      "provider_stream_start": "2026-10-22T10:03:00+09:00",
-      "source": "公式BR配信開始待ち 10:03"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/e49c5f418a414718ba45526a73e853dc/3002efc663704938a22347eb286767e6/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MjgwNzIwMCwic3RhcnQiOjE3OTI2MzA5ODAsImlvcyI6MTgsImNwIjoiMjE0ODI2NTgwXzIxNDg2OTc3OSIsInBwdyI6IjQwayJ9.ixorCYv8QBLI3o8FxafLB4E3CC9kcSFKZxtXxTaj_Dc",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     },
     "boat.biwako": {
       "jcd": "11",
@@ -1068,7 +1080,7 @@
       "intermission": null,
       "guidance_switch_at": "2026-10-22T16:20:00+09:00",
       "seed_required": false,
-      "reverify_due": false,
+      "reverify_due": true,
       "playback_verified": true,
       "first_verified_at": "2026-10-22T09:41:13.724980+09:00",
       "ready_before_first_race": true,
