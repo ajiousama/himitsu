@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-23",
-  "generated_at": "2026-10-23T08:14:06.586932+09:00",
+  "generated_at": "2026-10-23T08:15:15.303910+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261023.json",
   "schedule_checked_at": "2026-10-23T08:04:03.394694+09:00",
@@ -19,7 +19,7 @@
   "alert_lead_minutes": 30,
   "card_count": 14,
   "held_count": 14,
-  "visible_count": 2,
+  "visible_count": 3,
   "active_count": 2,
   "ended_kept": [],
   "seed_required": false,
@@ -28,7 +28,7 @@
   "phase_counts": {
     "morning": {
       "held": 3,
-      "acquired": 2,
+      "acquired": 3,
       "active": 2,
       "ended": 0,
       "seed_required": 0,
@@ -53,7 +53,7 @@
   },
   "cloud_acquisition": {
     "requested": 9,
-    "fetched": 2,
+    "fetched": 3,
     "failures": [],
     "deferred": [
       {
@@ -80,11 +80,6 @@
         "jcd": "17",
         "name": "宮島",
         "start": "2026-10-23T09:40:00+09:00"
-      },
-      {
-        "jcd": "21",
-        "name": "芦屋",
-        "start": "2026-10-23T08:16:00+09:00"
       },
       {
         "jcd": "23",
@@ -129,6 +124,22 @@
         "ok": true,
         "sequence": 8636793,
         "last_segment": "/b8544db5b6314894be15d61ed9f6175a/11f82f2a24e84e6e980d67c478806269/manifest_1_8636863.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
+    },
+    "boat.ashiya": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/f4e0469c7d86489baaf0a6296e972fbb/ee2de561655448c6b75148b18009dc37/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5Mjg4NjQwMCwic3RhcnQiOjE3OTI3MTA5NjAsImlvcyI6MTgsImNwIjoiMjE0OTA2NTYwXzIxNDk0OTc1OSIsInBwdyI6IjQwayJ9.uXW1wbl1SBDIFzu6PxGyyd2XOtbf_XEScRtqPxYGUyg",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-10-23T08:16:10.110488+09:00",
+      "checked_at": "2026-10-23T08:16:10.110488+09:00",
+      "first_verified_at": "2026-10-23T08:16:10.110488+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 8651562,
+        "last_segment": "/f4e0469c7d86489baaf0a6296e972fbb/ee2de561655448c6b75148b18009dc37/manifest_1_8651563.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -1049,7 +1060,7 @@
       "jcd": "21",
       "name": "芦屋",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
       "active": false,
       "cancelled": false,
@@ -1067,9 +1078,9 @@
       "guidance_switch_at": "2026-10-23T15:11:00+09:00",
       "seed_required": false,
       "reverify_due": false,
-      "playback_verified": false,
-      "first_verified_at": null,
-      "ready_before_first_race": false,
+      "playback_verified": true,
+      "first_verified_at": "2026-10-23T08:16:10.110488+09:00",
+      "ready_before_first_race": true,
       "acquire_from": "2026-10-23T06:21:00+09:00",
       "races": [
         {
@@ -1133,8 +1144,9 @@
           "name": "ドリームレース"
         }
       ],
-      "provider_stream_start": "2026-10-23T08:16:00+09:00",
-      "source": "公式BR配信開始待ち 08:16"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/f4e0469c7d86489baaf0a6296e972fbb/ee2de561655448c6b75148b18009dc37/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5Mjg4NjQwMCwic3RhcnQiOjE3OTI3MTA5NjAsImlvcyI6MTgsImNwIjoiMjE0OTA2NTYwXzIxNDk0OTc1OSIsInBwdyI6IjQwayJ9.uXW1wbl1SBDIFzu6PxGyyd2XOtbf_XEScRtqPxYGUyg",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     },
     "boat.fukuoka": {
       "jcd": "22",
