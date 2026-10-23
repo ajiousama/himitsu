@@ -3,6 +3,11 @@ from pathlib import Path
 import json
 import re
 from urllib.parse import quote
+import sys
+
+# Works both as a direct script and inside GitHub Actions.
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from newblog.vod_order import position_newblog_vod
 
 FREEWIFI = Path("freewifi")
 PLAYLIST = Path("tv/playlist.m3u")
@@ -154,6 +159,7 @@ def main():
         raise SystemExit("Retired HARUKA entry detected in FreeWiFi; refusing publish")
     if "naori" in updated.lower():
         raise SystemExit("Retired NAORI entry detected in FreeWiFi; refusing publish")
+    updated = position_newblog_vod(updated)
     FREEWIFI.write_text(updated.rstrip() + "\n", encoding="utf-8")
     print(
         f"TV synced from tv/playlist.m3u; manual TV block preserved; "
