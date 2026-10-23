@@ -197,15 +197,15 @@ def replace_vod_block(text):
 
 
 def catchup_attributes(slug: str, templates: dict[str, str]) -> str:
-    """Expose 14-day rewind metadata for each approved newblog channel.
+    """Expose source-specific rewind metadata for each approved newblog channel.
 
     These attributes reference upstream recordings, not locally downloaded
-    videos. A 14-day playlist setting does not guarantee archive availability.
+    videos. A playlist limit does not guarantee archive availability.
     """
     url = templates.get(slug)
     if not url:
         raise ValueError("Missing validated newblog catchup template: " + slug)
-    return (' catchup="default" catchup-days="' + str(REPLAY_DAYS)
+    return (' catchup="default" catchup-days="' + str(REPLAY_DAYS_BY_SLUG.get(slug, REPLAY_DAYS))
             + '" catchup-source="' + url + '"')
 
 
