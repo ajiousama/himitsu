@@ -14,7 +14,7 @@ function option(name, fallback) {
 }
 const channel = option('--channel', process.env.CHANNEL || 'nouvelle_paradise');
 // Extra channel endpoints are opt-in tests, not part of the FreeWiFi playlist.
-const trialChannels = new Set(['teletama', 'tvk', 'tokyo_mx2']);
+const trialChannels = new Set(['teletama', 'tvk', 'tokyo_mx2', 'fuji_tv']);
 if (!/^[a-zA-Z0-9_()-]+$/.test(channel)) throw Error('Invalid channel name');
 const upstream = new URL(option('--base-url', process.env.UPSTREAM_BASE || 'https://linxei.biz.id'));
 if (!['http:', 'https:'].includes(upstream.protocol) || upstream.username || upstream.password) throw Error('Invalid upstream');
