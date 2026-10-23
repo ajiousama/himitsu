@@ -2,10 +2,10 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-23",
-  "generated_at": "2026-10-23T14:16:48.352334+09:00",
+  "generated_at": "2026-10-23T14:18:48.201841+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261023.json",
-  "schedule_checked_at": "2026-10-23T14:03:48.200985+09:00",
+  "schedule_checked_at": "2026-10-23T14:18:48.201841+09:00",
   "schedule_warnings": [
     "official_cards: TimeoutError"
   ],
@@ -19,8 +19,8 @@
   "alert_lead_minutes": 30,
   "card_count": 14,
   "held_count": 14,
-  "visible_count": 12,
-  "active_count": 11,
+  "visible_count": 11,
+  "active_count": 10,
   "ended_kept": [],
   "seed_required": false,
   "seed_required_venues": [],
@@ -28,9 +28,9 @@
   "phase_counts": {
     "morning": {
       "held": 3,
-      "acquired": 3,
-      "active": 3,
-      "ended": 0,
+      "acquired": 2,
+      "active": 2,
+      "ended": 1,
       "seed_required": 0,
       "cancelled": 0
     },
@@ -52,8 +52,8 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 13,
-    "fetched": 12,
+    "requested": 12,
+    "fetched": 11,
     "failures": [],
     "deferred": [
       {
@@ -163,22 +163,6 @@
         "ok": true,
         "sequence": 8658325,
         "last_segment": "/a3693819c93d4a1e9cbc1892cb880dd4/9e26f8ba28434ffc8a6ea7a0d65dc9e0/manifest_4_8660877.ts",
-        "video_decoded": true,
-        "audio_decoded": true
-      },
-      "consecutive_failures": 0
-    },
-    "boat.naruto": {
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/eb9bdca611554b0784054908ef9292c8/50a4f70b75e641fbb98f835475831c6c/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5Mjg4NjQwMCwic3RhcnQiOjE3OTI3MTAwMDAsImlvcyI6MTgsImNwIjoiMjE0OTA1NjAwXzIxNDk0ODc5OSIsInBwdyI6IjQwayJ9.IAYhlzPD53nQ8vkl4LhFwIuMyEBe8zV0lTEyrjrJ4Z4",
-      "source": "automatic acquisition + audio/video decode",
-      "acquired_at": "2026-10-23T08:00:31.902519+09:00",
-      "checked_at": "2026-10-23T14:17:15.711925+09:00",
-      "first_verified_at": "2026-10-23T08:00:31.902519+09:00",
-      "playback_verified": true,
-      "probe": {
-        "ok": true,
-        "sequence": 8658714,
-        "last_segment": "/eb9bdca611554b0784054908ef9292c8/50a4f70b75e641fbb98f835475831c6c/manifest_1_8662485.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -822,9 +806,9 @@
       "jcd": "14",
       "name": "鳴門",
       "held": true,
-      "visible": true,
-      "ended": false,
-      "active": true,
+      "visible": false,
+      "ended": true,
+      "active": false,
       "cancelled": false,
       "mode": "morning",
       "mode_label": "モーニング",
@@ -832,11 +816,11 @@
       "last_race": "14:15",
       "alert_from": "2026-10-23T08:05:00+09:00",
       "next_race": null,
-      "stream_window": "live_or_prestart",
+      "stream_window": "ended_hidden",
       "intermission": null,
       "guidance_switch_at": "2026-10-23T15:00:00+09:00",
       "seed_required": false,
-      "reverify_due": true,
+      "reverify_due": false,
       "playback_verified": true,
       "first_verified_at": "2026-10-23T08:00:31.902519+09:00",
       "ready_before_first_race": true,
@@ -903,9 +887,7 @@
           "name": "特選"
         }
       ],
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/eb9bdca611554b0784054908ef9292c8/50a4f70b75e641fbb98f835475831c6c/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5Mjg4NjQwMCwic3RhcnQiOjE3OTI3MTAwMDAsImlvcyI6MTgsImNwIjoiMjE0OTA1NjAwXzIxNDk0ODc5OSIsInBwdyI6IjQwayJ9.IAYhlzPD53nQ8vkl4LhFwIuMyEBe8zV0lTEyrjrJ4Z4",
-      "source": "automatic acquisition + audio/video decode",
-      "token_expired": false
+      "source": "automatic cloud SEED pending"
     },
     "boat.miyajima": {
       "jcd": "17",
