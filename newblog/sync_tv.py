@@ -46,37 +46,60 @@ def replay_templates():
 
 BIG_FISHING_IDS = {"big_fishing_kbs", "big_fishing_sun"}
 
+# Search only programmes already approved in the VOD registry. The EPG
+# carries broadcast start times, so no replay URL or airtime is guessed.
+EPG_TITLE_MATCHES = {
+    "gccx_one": ("ゲームセンターCX",),
+    "nogizaka_koujichuu": ("乃木坂工事中",),
+    "knight_scoop": ("探偵！ナイトスクープ", "探偵!ナイトスクープ"),
+    "homeru_chan": ("土曜のあさはほめるちゃん", "土曜の朝はほめるちゃん"),
+    "bakobako_kbs": ("ケンコバのバコバコナイト",),
+    "bakobako_sun": ("ケンコバのバコバコナイト",),
+    "tsurigoro": ("釣りごろつられごろ", "釣りごろ釣られごろ"),
+    "big_fishing_kbs": ("ビッグ・フィッシング", "ビッグフィッシング"),
+    "big_fishing_sun": ("ビッグ・フィッシング", "ビッグフィッシング"),
+}
 
-def discover_big_fishing(now_epoch):
-    """Find broadcast-matched replays from the existing EPG history, not guessed times."""
+
+def discover_registered_replays(now_epoch, registered):
+    """Refresh approved show episodes using broadcast-matched EPG history."""
     history = ROOT / "haru/haru_kai_epg_history.xml"
     if not history.is_file():
         return []
+    by_slug = {}
+    for item in registered:
+        item_id = item.get("id")
+        if item_id in EPG_TITLE_MATCHES:
+            by_slug[APPROVED_REPLAY_SLUGS[item_id]] = item
     body = history.read_text(encoding="utf-8", errors="replace")
     pairs = re.finditer(
-        r"<!--\s*https://haru\.charandom\.blog/stream/jp/(kbs|sun)/replay\.m3u8\?[^<]*?start=(\d+)[^<]*?-->\s*<programme\b[^>]*>(.*?)</programme>",
-        body, re.S | re.I
+        r"<!--\\s*https://haru\\.charandom\\.blog/stream/jp/([a-z0-9_+\\-]+)/replay\\.m3u8\\?[^<]*?start=(\\d+)[^<]*?-->\\s*<programme\\b[^>]*>(.*?)</programme>",
+        body, re.S | re.I,
     )
-    logos = json.loads(CATALOG.read_text(encoding="utf-8"))
     found = []
+    seen = set()
     for match in pairs:
         slug, start = match.group(1), int(match.group(2))
-        if not 0 <= now_epoch - start < REPLAY_RETENTION_SECONDS:
+        item = by_slug.get(slug)
+        if item is None or not 0 <= now_epoch - start < REPLAY_RETENTION_SECONDS:
             continue
-        title_match = re.search(r"<title(?:\s+[^>]*)?>(.*?)</title>", match.group(3), re.S | re.I)
+        local = datetime.fromtimestamp(start, ZoneInfo("Asia/Tokyo"))
+        if local.strftime("%Y-%m-%d") == "2026-10-10":
+            continue
+        title_match = re.search(r"<title(?:\\s+[^>]*)?>(.*?)</title>", match.group(3), re.S | re.I)
         if not title_match:
             continue
         title = unescape(re.sub(r"<[^>]+>", "", title_match.group(1))).strip()
-        if not re.search(r"ビッグ[・･\s]*フィッシング", title):
+        if not any(word in title for word in EPG_TITLE_MATCHES[item["id"]]):
             continue
-        name = "ビッグ・フィッシング（KBS京都版）" if slug == "kbs" else "ビッグ・フィッシング（サンテレビ版）"
-        local = datetime.fromtimestamp(start, ZoneInfo("Asia/Tokyo"))
+        key = (item["id"], start)
+        if key in seen:
+            continue
+        seen.add(key)
+        name = item["tvg_name"]
         found.append({
-            "id": "big_fishing_kbs" if slug == "kbs" else "big_fishing_sun",
-            "slug": slug,
-            "start": start,
-            "tvg_name": name,
-            "logo": logos[slug]["logo"],
+            "id": item["id"], "slug": slug, "start": start,
+            "tvg_name": name, "logo": item["logo"],
             "title": f"📼 {name} {local:%m/%d %H:%M}｜{title.replace(chr(34), chr(39))}",
         })
     return found
@@ -91,7 +114,7 @@ def vod_payload(now_epoch=None):
         raise ValueError("newblog VOD registry must be a list")
     templates = replay_templates()
     now_epoch = int(time.time()) if now_epoch is None else int(now_epoch)
-    records.extend(discover_big_fishing(now_epoch))
+    records.extend(discover_registered_replays(now_epoch, records))
     # The same weekly programme airs on SUN then KBS. Publish one copy:
     # prefer KBS whenever its catch-up template and programme both exist.
     chosen = {}
@@ -111,6 +134,7 @@ def vod_payload(now_epoch=None):
             chosen[week] = item
     records = ordinary + sorted(chosen.values(), key=lambda row: -int(row["start"]))
     entries = []
+    seen = set()
     for item in records:
         if not isinstance(item, dict) or item.get("id") not in APPROVED_REPLAY_SLUGS:
             raise ValueError("Unapproved newblog VOD item")
@@ -123,6 +147,10 @@ def vod_payload(now_epoch=None):
         # Explicitly remove the 2026-10-10 broadcasts from the current shelf.
         if datetime.fromtimestamp(start, ZoneInfo("Asia/Tokyo")).strftime("%Y-%m-%d") == "2026-10-10":
             continue
+        key = (item["id"], start)
+        if key in seen:
+            continue
+        seen.add(key)
         uri = templates[slug].replace("$" + "{start}", str(start))
         extinf = (
             '#EXTINF:-1 tvg-id="newblog.vod.' + item["id"] + "." + str(start)
