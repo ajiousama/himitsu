@@ -122,6 +122,20 @@ def discover_registered_replays(now_epoch, registered):
     return found
 
 
+
+def tatsujin_episode_key(item):
+    """Identify a Tatsujin instalment across its original and repeat airings."""
+    detail = item["title"].partition("｜")[2]
+    kind = "selection" if "セレクション" in item["tvg_name"] or "セレクション" in detail else "regular"
+    guest = re.search(r"競馬場の達人(?:セレクション)?[（(]([^）)]+)[）)]", detail)
+    if not guest:
+        guest = re.search(r"#\\s*\\d+\\s+([^\\s]+)", detail)
+    if guest:
+        return kind, guest.group(1).strip()
+    number = re.search(r"#\\s*(\\d+)", detail)
+    return kind, number.group(1) if number else detail.strip()
+
+
 def vod_payload(now_epoch=None):
     """Publish approved newblog replay records inside a rolling 14-day window."""
     if not VOD_REPLAYS.is_file():
@@ -168,6 +182,7 @@ def vod_payload(now_epoch=None):
     ))
     entries = []
     seen = set()
+    seen_tatsujin = set()
     for item in records:
         if not isinstance(item, dict) or item.get("id") not in APPROVED_REPLAY_SLUGS:
             raise ValueError("Unapproved newblog VOD item")
@@ -183,6 +198,11 @@ def vod_payload(now_epoch=None):
         key = (item["id"], start)
         if key in seen:
             continue
+        if item["id"] == "keibajou_no_tatsujin":
+            episode = tatsujin_episode_key(item)
+            if episode in seen_tatsujin:
+                continue
+            seen_tatsujin.add(episode)
         seen.add(key)
         uri = templates[slug].replace("$" + "{start}", str(start))
         extinf = (
