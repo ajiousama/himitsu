@@ -17,8 +17,9 @@ COUNT = 101
 VOD_REPLAYS = ROOT / "newblog/vod_replays.json"
 VOD_START = "# === NEWBLOG_VOD_START ==="
 VOD_END = "# === NEWBLOG_VOD_END ==="
-SIX_DAYS_SECONDS = 6 * 86400
-APPROVED_REPLAY_SLUGS = {"gccx_one": "fuji_tv_one", "nogizaka_koujichuu": "tv_tokyo", "knight_scoop": "abc", "homeru_chan": "mbs", "bakobako_kbs": "kbs", "bakobako_sun": "sun", "tsurigoro": "kansai_tv", "big_fishing_kbs": "kbs", "big_fishing_sun": "sun"}
+REPLAY_DAYS = 28  # Successful playback through 29 days; keep a safety margin.
+REPLAY_RETENTION_SECONDS = REPLAY_DAYS * 86400
+APPROVED_REPLAY_SLUGS = {"gccx_one": "fuji_tv_one", "nogizaka_koujichuu": "tv_tokyo", "knight_scoop": "abc", "homeru_chan": "mbs", "bakobako_kbs": "kbs", "bakobako_sun": "sun", "tsurigoro": "kansai_tv", "big_fishing_kbs": "kbs", "big_fishing_sun": "sun", "keibajou_no_tatsujin": "green_channel"}
 
 
 def replay_templates():
@@ -60,7 +61,7 @@ def discover_big_fishing(now_epoch):
     found = []
     for match in pairs:
         slug, start = match.group(1), int(match.group(2))
-        if not 0 <= now_epoch - start < SIX_DAYS_SECONDS:
+        if not 0 <= now_epoch - start < REPLAY_RETENTION_SECONDS:
             continue
         title_match = re.search(r"<title(?:\s+[^>]*)?>(.*?)</title>", match.group(3), re.S | re.I)
         if not title_match:
@@ -82,7 +83,7 @@ def discover_big_fishing(now_epoch):
 
 
 def vod_payload(now_epoch=None):
-    """Publish only approved newblog replays inside their six-day window."""
+    """Publish approved newblog replay records inside a rolling 28-day window."""
     if not VOD_REPLAYS.is_file():
         return VOD_START + "\n" + VOD_END
     records = json.loads(VOD_REPLAYS.read_text(encoding="utf-8"))
@@ -102,7 +103,7 @@ def vod_payload(now_epoch=None):
             ordinary.append(item)
             continue
         slug, start = item["slug"], int(item["start"])
-        if not 0 <= now_epoch - start < SIX_DAYS_SECONDS or slug not in templates:
+        if not 0 <= now_epoch - start < REPLAY_RETENTION_SECONDS or slug not in templates:
             continue
         week = datetime.fromtimestamp(start, ZoneInfo("Asia/Tokyo")).strftime("%G-W%V")
         old = chosen.get(week)
@@ -117,7 +118,7 @@ def vod_payload(now_epoch=None):
         if item.get("slug") != slug:
             raise ValueError("newblog VOD slug mismatch")
         start = int(item["start"])
-        if not 0 <= now_epoch - start < SIX_DAYS_SECONDS or slug not in templates:
+        if not 0 <= now_epoch - start < REPLAY_RETENTION_SECONDS or slug not in templates:
             continue
         uri = templates[slug].replace("$" + "{start}", str(start))
         extinf = (
@@ -160,6 +161,19 @@ def replace_vod_block(text):
     return text.rstrip() + "\n\n" + payload + "\n"
 
 
+def catchup_attributes(slug: str, templates: dict[str, str]) -> str:
+    """Expose 28-day rewind metadata for each approved newblog channel.
+
+    These attributes reference upstream recordings, not locally downloaded
+    videos. A 28-day playlist setting does not guarantee archive availability.
+    """
+    url = templates.get(slug)
+    if not url:
+        raise ValueError("Missing validated newblog catchup template: " + slug)
+    return (' catchup="default" catchup-days="' + str(REPLAY_DAYS)
+            + '" catchup-source="' + url + '"')
+
+
 def get_source():
     metadata = json.loads(CATALOG.read_text(encoding="utf-8"))
     lines = SOURCE.read_text(encoding="utf-8-sig").splitlines()
@@ -199,6 +213,9 @@ def apply(text):
         kept.append(lines[i])
         i += 1
     lines = kept
+    templates = replay_templates()
+    if len(templates) != COUNT:
+        raise ValueError("newblog catchup templates incomplete")
     for slug, meta, uri in get_source():
         cat = "グリーンCh" if slug == "green_channel" else meta["category"]
         # Group labels are a protected user-facing FreeWiFi setting.
@@ -228,7 +245,8 @@ def apply(text):
                   or re.search(r'group-title="[^"]* sinori"', lines[j])]
         at = sinori[0] if sinori else (matches[-1] + 2 if matches else b)
         inf = ('#EXTINF:-1 tvg-id="' + meta["id"] + '" tvg-logo="'
-               + meta["logo"] + '" group-title="' + group_title + '",'
+               + meta["logo"] + '" group-title="' + group_title + '"'
+               + catchup_attributes(slug, templates) + ','
                + meta["name"].replace(" (Arva)", "").replace("（Arva）", "") + LABEL)
         lines[at:at] = ["", inf, uri]
     result = re.sub(r"\n{4,}", "\n\n\n", "\n".join(lines)).rstrip() + "\n"
@@ -245,6 +263,9 @@ def inject_rch(body: str) -> str:
             if slug in {"pigoo_nsfw", "nouvelle_paradise"}}
     if len(rows) != 2:
         raise ValueError("Missing newblog Rch records")
+    templates = replay_templates()
+    if len(templates) != COUNT:
+        raise ValueError("newblog catchup templates incomplete")
     ls = body.splitlines()
     kept = []
     i = 0
@@ -270,7 +291,8 @@ def inject_rch(body: str) -> str:
         # be appended without an existing same-id anchor.
         insert = matches[-1] + 2 if matches else len(ls)
         inf = ('#EXTINF:-1 tvg-id="' + meta["id"] + '" tvg-logo="'
-               + meta["logo"] + '" group-title="Rch",'
+               + meta["logo"] + '" group-title="Rch"'
+               + catchup_attributes(slug, templates) + ','
                + meta["name"].replace(" (Arva)", "").replace("（Arva）", "") + LABEL)
         ls[insert:insert] = ["", inf, uri]
     return re.sub(r"\n{4,}", "\n\n\n", "\n".join(ls)).strip() + "\n\n"
