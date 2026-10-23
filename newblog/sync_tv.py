@@ -35,7 +35,7 @@ def replay_templates():
             continue
         url = match.group(1)
         parsed = urlsplit(url)
-        slug_match = re.fullmatch(r"/stream/jp/([a-z0-9_-]+)/replay\.m3u8", parsed.path)
+        slug_match = re.fullmatch(r"/stream/jp/([a-z0-9_+\-]+)/replay\.m3u8", parsed.path)
         if (parsed.scheme == "https" and parsed.hostname == "0i4neux01.charandom.blog"
                 and slug_match and parse_qs(parsed.query).get("ac_tk")
                 and ("$" + "{start}") in url):
