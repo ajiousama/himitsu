@@ -5,6 +5,7 @@ import json
 import re
 from pathlib import Path
 from urllib.parse import quote
+from newblog.vod_order import pop_newblog_vod, insert_newblog_vod
 
 FREEWIFI = Path("freewifi")
 VOD5 = Path("vod5/playlist.m3u")
@@ -212,7 +213,9 @@ def main() -> int:
 
     assert_recent_gmcx_generation()
 
-    text = FREEWIFI.read_text(encoding="utf-8-sig", errors="replace")
+    original_text = FREEWIFI.read_text(encoding="utf-8-sig", errors="replace")
+    # Avoid deleting nested newblog VOD when replacing VOD5's managed block.
+    newblog_vod, text = pop_newblog_vod(original_text)
     cleaned = remove_old(text).rstrip() + "\n"
 
     vod5 = build_vod5()
@@ -246,7 +249,8 @@ def main() -> int:
         # is already projected above. Keep freewifi_specials.m3u as a standalone
         # specials-only view without duplicating entries in the main playlist.
 
-    if cleaned != text:
+    cleaned = insert_newblog_vod(cleaned, newblog_vod)
+    if cleaned != original_text:
         FREEWIFI.write_text(cleaned, encoding="utf-8")
 
     FREEWIFI_SPECIALS.write_text(
