@@ -137,6 +137,21 @@ def vod_payload(now_epoch=None):
         if old is None or (slug == "kbs" and old["slug"] != "kbs") or (slug == old["slug"] and start > int(old["start"])):
             chosen[week] = item
     records = ordinary + sorted(chosen.values(), key=lambda row: -int(row["start"]))
+    # Keep each programme together, newest broadcast first. Put the newblog
+    # GCCX episodes last so the adjacent VOD5 GCCX catalog follows them.
+    programme_order = {
+        "nogizaka_koujichuu": 0,
+        "knight_scoop": 1,
+        "homeru_chan": 2,
+        "bakobako_kbs": 3, "bakobako_sun": 3,
+        "tsurigoro": 4,
+        "big_fishing_kbs": 5, "big_fishing_sun": 5,
+        "keibajou_no_tatsujin": 6,
+        "gccx_one": 7,
+    }
+    records.sort(key=lambda item: (
+        programme_order.get(item["id"], 99), -int(item["start"])
+    ))
     entries = []
     seen = set()
     for item in records:
@@ -146,7 +161,7 @@ def vod_payload(now_epoch=None):
         if item.get("slug") != slug:
             raise ValueError("newblog VOD slug mismatch")
         start = int(item["start"])
-        if not 0 <= now_epoch - start < REPLAY_RETENTION_SECONDS or slug not in templates:
+        if not 0 <= now_epoch - start < replay_retention_seconds(slug) or slug not in templates:
             continue
         # The current requested range begins on October 10, JST (inclusive).
         if datetime.fromtimestamp(start, ZoneInfo("Asia/Tokyo")).strftime("%Y-%m-%d") < "2026-10-10":
