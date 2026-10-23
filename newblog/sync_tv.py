@@ -129,10 +129,10 @@ def tatsujin_episode_key(item):
     kind = "selection" if "セレクション" in item["tvg_name"] or "セレクション" in detail else "regular"
     guest = re.search(r"競馬場の達人(?:セレクション)?[（(]([^）)]+)[）)]", detail)
     if not guest:
-        guest = re.search(r"#\\s*\\d+\\s+([^\\s]+)", detail)
+        guest = re.search(r"#\s*\d+\s+([^\s]+)", detail)
     if guest:
         return kind, guest.group(1).strip()
-    number = re.search(r"#\\s*(\\d+)", detail)
+    number = re.search(r"#\s*(\d+)", detail)
     return kind, number.group(1) if number else detail.strip()
 
 
