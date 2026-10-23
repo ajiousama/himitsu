@@ -73,7 +73,7 @@ def discover_registered_replays(now_epoch, registered):
             by_slug[APPROVED_REPLAY_SLUGS[item_id]] = item
     body = history.read_text(encoding="utf-8", errors="replace")
     pairs = re.finditer(
-        r"<!--\\s*https://haru\\.charandom\\.blog/stream/jp/([a-z0-9_+\\-]+)/replay\\.m3u8\\?[^<]*?start=(\\d+)[^<]*?-->\\s*<programme\\b[^>]*>(.*?)</programme>",
+        r"<!--\s*https://haru\.charandom\.blog/stream/jp/([a-z0-9_+\-]+)/replay\.m3u8\?[^<]*?start=(\d+)[^<]*?-->\s*<programme\b[^>]*>(.*?)</programme>",
         body, re.S | re.I,
     )
     found = []
@@ -86,7 +86,7 @@ def discover_registered_replays(now_epoch, registered):
         local = datetime.fromtimestamp(start, ZoneInfo("Asia/Tokyo"))
         if local.strftime("%Y-%m-%d") == "2026-10-10":
             continue
-        title_match = re.search(r"<title(?:\\s+[^>]*)?>(.*?)</title>", match.group(3), re.S | re.I)
+        title_match = re.search(r"<title(?:\s+[^>]*)?>(.*?)</title>", match.group(3), re.S | re.I)
         if not title_match:
             continue
         title = unescape(re.sub(r"<[^>]+>", "", title_match.group(1))).strip()
