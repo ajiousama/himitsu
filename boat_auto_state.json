@@ -2,10 +2,10 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-23",
-  "generated_at": "2026-10-23T12:56:48.144874+09:00",
+  "generated_at": "2026-10-23T12:57:48.195480+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261023.json",
-  "schedule_checked_at": "2026-10-23T12:42:27.467091+09:00",
+  "schedule_checked_at": "2026-10-23T12:57:48.195480+09:00",
   "schedule_warnings": [
     "official_cards: TimeoutError"
   ],
@@ -52,7 +52,7 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 12,
+    "requested": 13,
     "fetched": 11,
     "failures": [],
     "deferred": [
@@ -60,6 +60,11 @@
         "jcd": "12",
         "name": "住之江",
         "start": "2026-10-23T13:55:00+09:00"
+      },
+      {
+        "jcd": "24",
+        "name": "大村",
+        "start": "2026-10-23T14:45:00+09:00"
       }
     ]
   },
@@ -448,14 +453,14 @@
       "last_race": "16:23",
       "alert_from": "2026-10-23T10:06:00+09:00",
       "next_race": {
-        "race": 6,
-        "start": "12:57"
+        "race": 7,
+        "start": "13:32"
       },
       "stream_window": "live_or_prestart",
       "intermission": null,
       "guidance_switch_at": "2026-10-23T17:08:00+09:00",
       "seed_required": false,
-      "reverify_due": true,
+      "reverify_due": false,
       "playback_verified": true,
       "first_verified_at": "2026-10-23T10:03:54.951879+09:00",
       "ready_before_first_race": true,
@@ -1531,7 +1536,8 @@
           "name": "予選特選"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "provider_stream_start": "2026-10-23T14:45:00+09:00",
+      "source": "公式BR配信開始待ち 14:45"
     }
   }
 }
