@@ -63,6 +63,7 @@ EPG_TITLE_MATCHES = {
     "tsurigoro": ("釣りごろつられごろ", "釣りごろ釣られごろ"),
     "big_fishing_kbs": ("ビッグ・フィッシング", "ビッグフィッシング"),
     "big_fishing_sun": ("ビッグ・フィッシング", "ビッグフィッシング"),
+    "keibajou_no_tatsujin": ("競馬場の達人",),
 }
 
 
@@ -101,6 +102,8 @@ def discover_registered_replays(now_epoch, registered):
                 continue
             seen.add(key)
             name = item["tvg_name"]
+            if item["id"] == "keibajou_no_tatsujin":
+                name = "競馬場の達人セレクション" if "セレクション" in title else "競馬場の達人"
             found.append({
                 "id": item["id"], "slug": slug, "start": start,
                 "tvg_name": name, "logo": item["logo"],
