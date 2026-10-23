@@ -143,6 +143,9 @@ def vod_payload(now_epoch=None):
         start = int(item["start"])
         if not 0 <= now_epoch - start < REPLAY_RETENTION_SECONDS or slug not in templates:
             continue
+        # The current requested range begins on October 10, JST (inclusive).
+        if datetime.fromtimestamp(start, ZoneInfo("Asia/Tokyo")).strftime("%Y-%m-%d") < "2026-10-10":
+            continue
         key = (item["id"], start)
         if key in seen:
             continue
