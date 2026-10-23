@@ -19,6 +19,11 @@ VOD_START = "# === NEWBLOG_VOD_START ==="
 VOD_END = "# === NEWBLOG_VOD_END ==="
 REPLAY_DAYS = 14  # Keep replay controls and the VOD shelf within two weeks.
 REPLAY_RETENTION_SECONDS = REPLAY_DAYS * 86400
+REPLAY_DAYS_BY_SLUG = {"kbs": 7}  # KBS Kyoto replay appears to expire earlier.
+
+
+def replay_retention_seconds(slug):
+    return REPLAY_DAYS_BY_SLUG.get(slug, REPLAY_DAYS) * 86400
 APPROVED_REPLAY_SLUGS = {"gccx_one": "fuji_tv_one", "nogizaka_koujichuu": "tv_tokyo", "knight_scoop": "abc", "homeru_chan": "mbs", "bakobako_kbs": "kbs", "bakobako_sun": "sun", "tsurigoro": "kansai_tv", "big_fishing_kbs": "kbs", "big_fishing_sun": "sun", "keibajou_no_tatsujin": "green_channel"}
 
 
@@ -81,7 +86,7 @@ def discover_registered_replays(now_epoch, registered):
     for match in pairs:
         slug, start = match.group(1), int(match.group(2))
         candidates = by_slug.get(slug, {})
-        if not candidates or not 0 <= now_epoch - start < REPLAY_RETENTION_SECONDS:
+        if not candidates or not 0 <= now_epoch - start < replay_retention_seconds(slug):
             continue
         local = datetime.fromtimestamp(start, ZoneInfo("Asia/Tokyo"))
         title_match = re.search(r"<title(?:\s+[^>]*)?>(.*?)</title>", match.group(3), re.S | re.I)
@@ -125,7 +130,7 @@ def vod_payload(now_epoch=None):
             ordinary.append(item)
             continue
         slug, start = item["slug"], int(item["start"])
-        if not 0 <= now_epoch - start < REPLAY_RETENTION_SECONDS or slug not in templates:
+        if not 0 <= now_epoch - start < replay_retention_seconds(slug) or slug not in templates:
             continue
         week = datetime.fromtimestamp(start, ZoneInfo("Asia/Tokyo")).strftime("%G-W%V")
         old = chosen.get(week)
