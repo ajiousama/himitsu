@@ -24,7 +24,7 @@ REPLAY_DAYS_BY_SLUG = {"kbs": 7}  # KBS Kyoto replay appears to expire earlier.
 
 def replay_retention_seconds(slug):
     return REPLAY_DAYS_BY_SLUG.get(slug, REPLAY_DAYS) * 86400
-APPROVED_REPLAY_SLUGS = {"gccx_one": "fuji_tv_one", "nogizaka_koujichuu": "tv_tokyo", "knight_scoop": "abc", "homeru_chan": "mbs", "bakobako_kbs": "kbs", "bakobako_sun": "sun", "tsurigoro": "kansai_tv", "big_fishing_kbs": "kbs", "big_fishing_sun": "sun", "keibajou_no_tatsujin": "green_channel"}
+APPROVED_REPLAY_SLUGS = {"gccx_one": "fuji_tv_one", "nogizaka_koujichuu": "tv_tokyo", "knight_scoop": "abc", "homeru_chan": "mbs", "bakobako_kbs": "kbs", "bakobako_sun": "sun", "tsurigoro": "kansai_tv", "big_fishing_kbs": "kbs", "big_fishing_sun": "sun", "keibajou_no_tatsujin": "green_channel", "keiba_wanderer": "green_channel"}
 
 
 def replay_templates():
@@ -64,6 +64,7 @@ EPG_TITLE_MATCHES = {
     "big_fishing_kbs": ("ビッグ・フィッシング", "ビッグフィッシング"),
     "big_fishing_sun": ("ビッグ・フィッシング", "ビッグフィッシング"),
     "keibajou_no_tatsujin": ("競馬場の達人",),
+    "keiba_wanderer": ("競馬ワンダラー",),
 }
 
 
@@ -77,6 +78,12 @@ def discover_registered_replays(now_epoch, registered):
         item_id = item.get("id")
         if item_id in EPG_TITLE_MATCHES:
             by_slug.setdefault(APPROVED_REPLAY_SLUGS[item_id], {})[item_id] = item
+    # Register recurring shows directly; no guessed broadcast timestamp is needed.
+    channel_meta = json.loads(CATALOG.read_text(encoding="utf-8"))["green_channel"]
+    by_slug.setdefault("green_channel", {})["keiba_wanderer"] = {
+        "id": "keiba_wanderer", "slug": "green_channel",
+        "tvg_name": "競馬ワンダラー", "logo": channel_meta["logo"],
+    }
     body = history.read_text(encoding="utf-8", errors="replace")
     pairs = re.finditer(
         r"<!--\s*https://haru\.charandom\.blog/stream/jp/([a-z0-9_+\-]+)/replay\.m3u8\?[^<]*?start=(\d+)[^<]*?-->\s*<programme\b[^>]*>(.*?)</programme>",
@@ -104,6 +111,9 @@ def discover_registered_replays(now_epoch, registered):
             name = item["tvg_name"]
             if item["id"] == "keibajou_no_tatsujin":
                 name = "競馬場の達人セレクション" if "セレクション" in title else "競馬場の達人"
+            elif item["id"] == "keiba_wanderer":
+                match_name = re.search(r"(?:新・)?競馬ワンダラー[0-9０-９]*", title)
+                name = match_name.group(0) if match_name else "競馬ワンダラー"
             found.append({
                 "id": item["id"], "slug": slug, "start": start,
                 "tvg_name": name, "logo": item["logo"],
@@ -150,7 +160,8 @@ def vod_payload(now_epoch=None):
         "tsurigoro": 4,
         "big_fishing_kbs": 5, "big_fishing_sun": 5,
         "keibajou_no_tatsujin": 6,
-        "gccx_one": 7,
+        "keiba_wanderer": 7,
+        "gccx_one": 8,
     }
     records.sort(key=lambda item: (
         programme_order.get(item["id"], 99), -int(item["start"])
