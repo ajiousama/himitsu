@@ -70,7 +70,7 @@ def discover_registered_replays(now_epoch, registered):
     for item in registered:
         item_id = item.get("id")
         if item_id in EPG_TITLE_MATCHES:
-            by_slug[APPROVED_REPLAY_SLUGS[item_id]] = item
+            by_slug.setdefault(APPROVED_REPLAY_SLUGS[item_id], {})[item_id] = item
     body = history.read_text(encoding="utf-8", errors="replace")
     pairs = re.finditer(
         r"<!--\s*https://haru\.charandom\.blog/stream/jp/([a-z0-9_+\-]+)/replay\.m3u8\?[^<]*?start=(\d+)[^<]*?-->\s*<programme\b[^>]*>(.*?)</programme>",
@@ -80,8 +80,8 @@ def discover_registered_replays(now_epoch, registered):
     seen = set()
     for match in pairs:
         slug, start = match.group(1), int(match.group(2))
-        item = by_slug.get(slug)
-        if item is None or not 0 <= now_epoch - start < REPLAY_RETENTION_SECONDS:
+        candidates = by_slug.get(slug, {})
+        if not candidates or not 0 <= now_epoch - start < REPLAY_RETENTION_SECONDS:
             continue
         local = datetime.fromtimestamp(start, ZoneInfo("Asia/Tokyo"))
         if local.strftime("%Y-%m-%d") == "2026-10-10":
@@ -90,18 +90,19 @@ def discover_registered_replays(now_epoch, registered):
         if not title_match:
             continue
         title = unescape(re.sub(r"<[^>]+>", "", title_match.group(1))).strip()
-        if not any(word in title for word in EPG_TITLE_MATCHES[item["id"]]):
-            continue
-        key = (item["id"], start)
-        if key in seen:
-            continue
-        seen.add(key)
-        name = item["tvg_name"]
-        found.append({
-            "id": item["id"], "slug": slug, "start": start,
-            "tvg_name": name, "logo": item["logo"],
-            "title": f"📼 {name} {local:%m/%d %H:%M}｜{title.replace(chr(34), chr(39))}",
-        })
+        for item in candidates.values():
+            if not any(word in title for word in EPG_TITLE_MATCHES[item["id"]]):
+                continue
+            key = (item["id"], start)
+            if key in seen:
+                continue
+            seen.add(key)
+            name = item["tvg_name"]
+            found.append({
+                "id": item["id"], "slug": slug, "start": start,
+                "tvg_name": name, "logo": item["logo"],
+                "title": f"📼 {name} {local:%m/%d %H:%M}｜{title.replace(chr(34), chr(39))}",
+            })
     return found
 
 
