@@ -102,9 +102,6 @@ def parse_epg(text: str, rules: list[dict], max_age_days: int) -> list[dict]:
         if not tm or not sm:
             continue
         title, start = clean(tm.group(1)), int(sm.group(1))
-        # October 10 recordings were explicitly removed from the VOD shelf.
-        if datetime.fromtimestamp(start, JST).strftime("%Y-%m-%d") == "2026-10-10":
-            continue
         dur = duration(attrs)
         end = start + dur
         if end > now + 60 or end < oldest:
