@@ -36,6 +36,7 @@ CHANNELS = {
     "フジテレビONE_jp": "fuji_tv_one",
     "フジテレビTWO_jp": "fuji_tv_two",
     "フジテレビNEXT_jp": "fuji_tv_next",
+    "グリーンチャンネル_jp": "green_channel",
 
     "サンテレビ_jp": "sun",
 }
@@ -173,7 +174,15 @@ def main() -> None:
     # The first run (or a damaged/thin cache) walks daily guides.xml commits so
     # programmes already aired during the last two weeks can still become VOD.
     oldest = oldest_start(programmes)
-    if oldest is None or oldest > now - timedelta(days=10):
+    # A newly registered channel also needs its own two-week backfill even
+    # when the other channels already have a complete rolling history.
+    green_starts = [
+        value[0] for key, value in programmes.items()
+        if key[0] == "グリーンチャンネル_jp" and value[0] <= now
+    ]
+    oldest_green = min(green_starts) if green_starts else None
+    if (oldest is None or oldest > now - timedelta(days=10)
+            or oldest_green is None or oldest_green > now - timedelta(days=10)):
         added = backfill_from_git(programmes, channels, cutoff, future_limit)
         print(f"HARU KAI EPG historical backfill: +{added}")
 
