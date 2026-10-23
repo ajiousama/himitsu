@@ -84,8 +84,6 @@ def discover_registered_replays(now_epoch, registered):
         if not candidates or not 0 <= now_epoch - start < REPLAY_RETENTION_SECONDS:
             continue
         local = datetime.fromtimestamp(start, ZoneInfo("Asia/Tokyo"))
-        if local.strftime("%Y-%m-%d") == "2026-10-10":
-            continue
         title_match = re.search(r"<title(?:\s+[^>]*)?>(.*?)</title>", match.group(3), re.S | re.I)
         if not title_match:
             continue
@@ -144,9 +142,6 @@ def vod_payload(now_epoch=None):
             raise ValueError("newblog VOD slug mismatch")
         start = int(item["start"])
         if not 0 <= now_epoch - start < REPLAY_RETENTION_SECONDS or slug not in templates:
-            continue
-        # Explicitly remove the 2026-10-10 broadcasts from the current shelf.
-        if datetime.fromtimestamp(start, ZoneInfo("Asia/Tokyo")).strftime("%Y-%m-%d") == "2026-10-10":
             continue
         key = (item["id"], start)
         if key in seen:
