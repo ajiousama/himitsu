@@ -17,7 +17,7 @@ COUNT = 101
 VOD_REPLAYS = ROOT / "newblog/vod_replays.json"
 VOD_START = "# === NEWBLOG_VOD_START ==="
 VOD_END = "# === NEWBLOG_VOD_END ==="
-REPLAY_DAYS = 29  # 29-day playback confirmed; the 30-day probe stalled.
+REPLAY_DAYS = 14  # Keep replay controls and the VOD shelf within two weeks.
 REPLAY_RETENTION_SECONDS = REPLAY_DAYS * 86400
 APPROVED_REPLAY_SLUGS = {"gccx_one": "fuji_tv_one", "nogizaka_koujichuu": "tv_tokyo", "knight_scoop": "abc", "homeru_chan": "mbs", "bakobako_kbs": "kbs", "bakobako_sun": "sun", "tsurigoro": "kansai_tv", "big_fishing_kbs": "kbs", "big_fishing_sun": "sun", "keibajou_no_tatsujin": "green_channel"}
 
@@ -83,7 +83,7 @@ def discover_big_fishing(now_epoch):
 
 
 def vod_payload(now_epoch=None):
-    """Publish approved newblog replay records inside a rolling 29-day window."""
+    """Publish approved newblog replay records inside a rolling 14-day window."""
     if not VOD_REPLAYS.is_file():
         return VOD_START + "\n" + VOD_END
     records = json.loads(VOD_REPLAYS.read_text(encoding="utf-8"))
@@ -162,10 +162,10 @@ def replace_vod_block(text):
 
 
 def catchup_attributes(slug: str, templates: dict[str, str]) -> str:
-    """Expose 29-day rewind metadata for each approved newblog channel.
+    """Expose 14-day rewind metadata for each approved newblog channel.
 
     These attributes reference upstream recordings, not locally downloaded
-    videos. A 29-day playlist setting does not guarantee archive availability.
+    videos. A 14-day playlist setting does not guarantee archive availability.
     """
     url = templates.get(slug)
     if not url:
