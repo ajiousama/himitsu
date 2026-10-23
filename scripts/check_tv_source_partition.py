@@ -66,14 +66,20 @@ def validate():
     if count_yovi < EXPECTED_YOITV:
         raise SystemExit(f"yovi: YoiTV shrank below {EXPECTED_YOITV}: {count_yovi}")
 
+    # Yovi's former 29 rows contained 11 exact-URL duplicates, deliberately
+    # removed on 2026-10-22. Protect the 18 distinct remaining streams instead
+    # of blocking refreshes or restoring deleted duplicates.
     for name, rows, minimum in (
         ("freewifi", free, 49),
         ("tv/playlist.m3u", canonical, 48),
-        ("yovi", yovi, 29),
+        ("yovi", yovi, 18),
     ):
-        preserved = sum(":5002/" in url for _id, _tag, url in rows)
-        if preserved < minimum:
-            raise SystemExit(f"{name}: 5002 entries shrank below {minimum}: {preserved}")
+        urls = [url for _id, _tag, url in rows if ":5002/" in url]
+        unique = len(set(urls))
+        if unique < minimum:
+            raise SystemExit(f"{name}: unique 5002 URLs shrank below {minimum}: {unique}")
+        if name == "yovi" and len(urls) != unique:
+            raise SystemExit(f"yovi: {len(urls) - unique} duplicate 5002 URLs were restored")
 
     required_gch = ["グリーンチャンネル (5002直)", "グリーンチャンネル（newblog系）",
                     "グリーンチャンネル（sinori）"]
