@@ -120,6 +120,9 @@ def vod_payload(now_epoch=None):
         start = int(item["start"])
         if not 0 <= now_epoch - start < REPLAY_RETENTION_SECONDS or slug not in templates:
             continue
+        # Explicitly remove the 2026-10-10 broadcasts from the current shelf.
+        if datetime.fromtimestamp(start, ZoneInfo("Asia/Tokyo")).strftime("%Y-%m-%d") == "2026-10-10":
+            continue
         uri = templates[slug].replace("$" + "{start}", str(start))
         extinf = (
             '#EXTINF:-1 tvg-id="newblog.vod.' + item["id"] + "." + str(start)
