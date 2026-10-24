@@ -102,7 +102,11 @@ def discover_registered_replays(now_epoch, registered):
             continue
         title = unescape(re.sub(r"<[^>]+>", "", title_match.group(1))).strip()
         for item in candidates.values():
-            if not any(word in title for word in EPG_TITLE_MATCHES[item["id"]]):
+            # Broadcasters may insert ASCII/full-width spaces in programme names.
+            # Compare without whitespace so "釣りごろ　つられごろ" matches.
+            compact_title = re.sub(r"\s+", "", title)
+            if not any(re.sub(r"\s+", "", word) in compact_title
+                       for word in EPG_TITLE_MATCHES[item["id"]]):
                 continue
             key = (item["id"], start)
             if key in seen:
