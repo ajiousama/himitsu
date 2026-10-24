@@ -327,7 +327,9 @@ def apply(text):
         sinori = [j for j in matches
                   if "（sinori）" in lines[j].lower()
                   or re.search(r'group-title="[^"]* sinori"', lines[j])]
-        at = sinori[0] if sinori else (matches[-1] + 2 if matches else b)
+        # Keep YoiTV after newblog even when this script rebuilds the sources.
+        yoitv = [j for j in matches if re.search(r'group-title="[^"]* YoiTV"', lines[j])]
+        at = sinori[0] if sinori else (yoitv[0] if yoitv else (matches[-1] + 2 if matches else b))
         inf = ('#EXTINF:-1 tvg-id="' + meta["id"] + '" tvg-logo="'
                + meta["logo"] + '" group-title="' + group_title + '"'
                + catchup_attributes(slug, templates) + ','
