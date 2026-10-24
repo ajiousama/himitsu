@@ -8,6 +8,29 @@ EXPECTED_SHINORI = 66
 EXPECTED_YOITV = 75
 
 
+# CS-only YoiTV additions approved for FreeWiFi on 2026-10-24.
+# The full YoiTV list remains in yovi; reject any unapproved restoration.
+ALLOWED_FREEWIFI_CS_YOITV = frozenset({
+    "Dlife(ディーライフ)_jp",
+    "FIGHTING-TV-サムライ_jp",
+    "MUSIC-ON!-TV(エムオン!)_jp",
+    "TBSチャンネル1_jp",
+    "TBSチャンネル2_jp",
+    "アニメシアター(AT-X)_jp",
+    "ザ・シネマ_jp",
+    "スポーツライブ+_jp",
+    "テレ朝チャンネル1_jp",
+    "テレ朝チャンネル2_jp",
+    "フジテレビONE_jp",
+    "フジテレビTWO_jp",
+    "ミステリーチャンネル_jp",
+    "メ～テレNEXT_jp",
+    "鉄道チャンネル_jp",
+    "日テレNEWS24_jp",
+    "日テレプラス_jp",
+})
+
+
 def entries(filename):
     lines = (BASE / filename).read_text(encoding="utf-8-sig").splitlines()
     result = []
@@ -29,15 +52,33 @@ def validate():
     yovi = entries("yovi")
     rakuten = entries("rakuten/playlist.m3u")
 
-    for name, rows in (
-        ("freewifi", free),
-        ("tv/playlist.m3u", canonical),
-        ("rakuten/playlist.m3u", rakuten),
-    ):
-        leaked = [tag for _id, tag, url in rows
-                  if "/tv/yoitv.php" in url or "(YoiTV)" in tag]
-        if leaked:
-            raise SystemExit(f"{name}: YoiTV was restored ({len(leaked)} entries)")
+    # FreeWiFi is allowed precisely these 17 CS-only YoiTV copies.
+    # Every other YoiTV entry belongs to yovi, not FreeWiFi/canonical TV.
+    def approved_cs_yoi(name, rows):
+        found = {}
+        for channel_id, tag, url in rows:
+            if "/tv/yoitv.php" not in url and "(YoiTV)" not in tag:
+                continue
+            if (channel_id not in ALLOWED_FREEWIFI_CS_YOITV
+                    or 'group-title="CS YoiTV"' not in tag
+                    or "(YoiTV)" not in tag
+                    or "/tv/yoitv.php" not in url):
+                raise SystemExit(f"{name}: unexpected YoiTV entry: {channel_id}")
+            if channel_id in found:
+                raise SystemExit(f"{name}: duplicate CS YoiTV {channel_id}")
+            found[channel_id] = url
+        if set(found) != ALLOWED_FREEWIFI_CS_YOITV:
+            missing = ALLOWED_FREEWIFI_CS_YOITV - set(found)
+            raise SystemExit(f"{name}: approved CS YoiTV missing {sorted(missing)}")
+        return found
+
+    free_yoi = approved_cs_yoi("freewifi", free)
+    canonical_yoi = approved_cs_yoi("tv/playlist.m3u", canonical)
+    if free_yoi != canonical_yoi:
+        raise SystemExit("freewifi/canonical: CS YoiTV IDs or URLs differ")
+    if any("/tv/yoitv.php" in url or "(YoiTV)" in tag
+           for _id, tag, url in rakuten):
+        raise SystemExit("rakuten: YoiTV was restored")
 
     if any("ri.shinori.my.id/" in url for _id, _tag, url in yovi):
         raise SystemExit("yovi: Shinori was restored")
@@ -88,7 +129,7 @@ def validate():
             raise SystemExit(f"freewifi: required GCH source missing: {label}")
 
     print(f"TV SOURCE PARTITION OK: FreeWiFi Shinori={len(source_maps[0])}, "
-          f"YoiTV=0, yovi YoiTV={count_yovi}, Shinori=0, "
+          f"YoiTV CS={len(free_yoi)}, yovi YoiTV={count_yovi}, Shinori=0, "
           f"5002 entries protected.")
 
 
