@@ -101,6 +101,9 @@ def download_source(url: str) -> str:
             if response.geturl().split("?", 1)[0] != url.split("?", 1)[0]:
                 raise UnsafeSource("Unexpected master URL redirect")
             data = response.read(MAX_DOWNLOAD_BYTES + 1)
+    except urllib.error.HTTPError as exc:
+        # Report only the numeric status; never disclose the secret master URL.
+        raise UnsafeSource(f"Failed to retrieve master M3U (HTTP {exc.code})") from None
     except (urllib.error.URLError, TimeoutError, OSError) as exc:
         # An exception message may contain the master-URL password.
         raise UnsafeSource(f"Failed to retrieve master M3U ({type(exc).__name__})") from None
