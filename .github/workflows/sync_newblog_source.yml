@@ -3,7 +3,7 @@ name: Refresh newblog source M3U
 on:
   workflow_dispatch:
   schedule:
-    # Before the existing FreeWiFi rebuild at minute 07.
+    # Check master, ZXArkin and kamonka; FreeWiFi rebuild is at minute 07.
     - cron: '41 * * * *'
 
 permissions:
@@ -39,17 +39,15 @@ jobs:
           if [ -z "$NEWBLOG_MASTER_URL" ]; then
             echo 'configured=false' >> "$GITHUB_OUTPUT"
             echo '::notice::Set NEWBLOG_MASTER_URL in repository Actions secrets to enable updates'
-            echo 'Secret is not configured; last-good M3U is preserved.' >> "$GITHUB_STEP_SUMMARY"
+            echo 'Master secret is not configured; checking public mirrors safely.' >> "$GITHUB_STEP_SUMMARY"
           else
             echo 'configured=true' >> "$GITHUB_OUTPUT"
           fi
-      - name: Fetch and validate latest approved newblog stations
-        if: steps.source_config.outputs.configured == 'true'
+      - name: Compare validated master, ZXArkin, and kamonka candidates
         env:
           NEWBLOG_MASTER_URL: ${{ secrets.NEWBLOG_MASTER_URL }}
         run: python newblog/refresh_source.py
-      - name: Publish only changed source M3U
-        if: steps.source_config.outputs.configured == 'true'
+      - name: Publish only verified changed source M3U
         shell: bash
         run: |
           set -euo pipefail
