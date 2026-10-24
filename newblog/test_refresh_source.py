@@ -99,17 +99,18 @@ class TestNewblogRefresh(unittest.TestCase):
         self.assertEqual(set(result), approved)
         self.assertEqual(len(set(result.values())), 1)
 
-    def test_kamonka_partial_retains_missing_channels_and_catchup(self):
+    def test_kamonka_infers_shared_token_for_missing_channels_and_catchup(self):
         old = ('#EXTM3U\n' +
                '#EXTINF:-1 catchup-source="https://0i4neux01.charandom.blog/stream/jp/nhk_g/replay.m3u8?ac_tk=old&mode=hls&start=123",NHK\n'
                'https://0i4neux01.charandom.blog/stream/jp/nhk_g/stream-output.m3u8?ac_tk=old&mode=hls\n' +
                row("tbs"))
         updated, changed = apply_kamonka_tokens(old, {"nhk_g": "valid-kamonka"}, self.approved)
-        self.assertEqual(changed, ["nhk_g"])
+        self.assertEqual(set(changed), self.approved)
         self.assertIn("ac_tk=valid-kamonka&mode=hls", updated)
-        self.assertIn("ac_tk=old&mode=hls", updated)
+        self.assertNotIn("ac_tk=old&mode=hls", updated)
+        self.assertEqual(updated.count("ac_tk=valid-kamonka"), 3)
         self.assertIn("start=123", updated)
-        self.assertNotIn("valid-kamonka&mode=hls&start", old)
+        self.assertIn("/stream/jp/tbs/stream-output.m3u8?ac_tk=valid-kamonka&mode=hls", updated)
 
     def test_kamonka_rejects_inconsistent_tokens(self):
         approved = {f"station_{i:03d}" for i in range(90)}
