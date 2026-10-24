@@ -1,7 +1,8 @@
 """Regression tests for newblog URL refresh: no destructive updates."""
 import unittest
 from unittest.mock import call, patch
-from refresh_source import UnsafeSource, update_source, download_source, PUBLIC_MIRROR
+from refresh_source import (UnsafeSource, update_source, download_source, PUBLIC_MIRROR,
+                            extract_kamonka_tokens, apply_kamonka_tokens, choose_source, KAMONKA_MIRROR)
 
 
 def row(slug: str, token: str = "old", name: str = "Station") -> str:
@@ -85,6 +86,61 @@ class TestNewblogRefresh(unittest.TestCase):
         master = "#EXTM3U\n" + row("nhk_g") + row("tbs") + '#EXTINF:-1,International\nhttps://example.com/stream/foreign.m3u8\n'
         _, _, unknown = update_source(self.old, master, self.approved)
         self.assertEqual(unknown, [])
+
+
+    def test_kamonka_plaintext_imports_only_whitelisted_slugs(self):
+        approved = {f"station_{i:03d}" for i in range(90)}
+        plaintext = "\n".join(
+            f"Japanese {slug},https://0i4nEUX01.charandom.blog/stream/jp/{slug}/stream-output.m3u8?ac_tk=example.long.token-1234567890123456789&mode=hls"
+            for slug in sorted(approved)
+        )
+        plaintext += "\nUnrelated,https://untrusted.example/stream/jp/other/stream-output.m3u8?ac_tk=arbitrary&mode=hls"
+        result = extract_kamonka_tokens(plaintext, approved)
+        self.assertEqual(set(result), approved)
+        self.assertEqual(len(set(result.values())), 1)
+
+    def test_kamonka_partial_retains_missing_channels_and_catchup(self):
+        old = ('#EXTM3U\n' +
+               '#EXTINF:-1 catchup-source="https://0i4neux01.charandom.blog/stream/jp/nhk_g/replay.m3u8?ac_tk=old&mode=hls&start=123",NHK\n'
+               'https://0i4neux01.charandom.blog/stream/jp/nhk_g/stream-output.m3u8?ac_tk=old&mode=hls\n' +
+               row("tbs"))
+        updated, changed = apply_kamonka_tokens(old, {"nhk_g": "valid-kamonka"}, self.approved)
+        self.assertEqual(changed, ["nhk_g"])
+        self.assertIn("ac_tk=valid-kamonka&mode=hls", updated)
+        self.assertIn("ac_tk=old&mode=hls", updated)
+        self.assertIn("start=123", updated)
+        self.assertNotIn("valid-kamonka&mode=hls&start", old)
+
+    def test_kamonka_rejects_inconsistent_tokens(self):
+        approved = {f"station_{i:03d}" for i in range(90)}
+        plaintext = "\n".join(
+            f"{slug},https://0i4neux01.charandom.blog/stream/jp/{slug}/stream-output.m3u8?ac_tk=abcdefghijklmnop1234567890.{i%2}0123456789&mode=hls"
+            for i, slug in enumerate(sorted(approved))
+        )
+        with self.assertRaisesRegex(UnsafeSource, "inconsistent"):
+            extract_kamonka_tokens(plaintext, approved)
+
+    def test_unverified_candidates_preserve_existing_playlist(self):
+        zx = "#EXTM3U\n" + row("nhk_g", "zx") + row("tbs", "zx")
+        with patch("refresh_source._fetch_playlist", side_effect=[zx, "kamonka text"]), \
+             patch("refresh_source.extract_kamonka_tokens", return_value={"nhk_g":"k"}), \
+             patch("refresh_source.probe_candidate", return_value="unknown"):
+            updated, selected, changed = choose_source(self.old, "", self.approved)
+        self.assertEqual(updated, self.old)
+        self.assertEqual(selected, "preserved")
+        self.assertEqual(changed, 0)
+
+    def test_verified_kamonka_overrides_expired_zx(self):
+        zx = "#EXTM3U\n" + row("nhk_g", "expired") + row("tbs", "expired")
+        with patch("refresh_source._fetch_playlist", side_effect=[zx, "kamonka text"]), \
+             patch("refresh_source.extract_kamonka_tokens", return_value={"nhk_g":"valid", "tbs":"valid"}), \
+             patch("refresh_source.probe_candidate", side_effect=lambda body, name: "ok" if name == "kamonka" else "forbidden"):
+            updated, selected, changed = choose_source(self.old, "", self.approved)
+        self.assertEqual(selected, "kamonka")
+        self.assertEqual(changed, 2)
+        self.assertIn("ac_tk=valid", updated)
+        self.assertNotIn("ac_tk=expired", updated)
+
 
 
 if __name__ == "__main__":
