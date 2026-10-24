@@ -21,6 +21,9 @@ SOURCE = ROOT / "newblog/source.m3u"
 HOST = "0i4neux01.charandom.blog"
 JP_STREAM = re.compile(r"/stream/jp/([\w+\-]+)/stream-output\.m3u8\Z")
 MAX_DOWNLOAD_BYTES = 2 * 1024 * 1024
+# Publicly maintained mirror. Used ONLY when the approved upstream rejects authentication.
+PUBLIC_MIRROR = "https://raw.githubusercontent.com/ZXArkin/my-personal-iptv/main/jp-playlist.m3u"
+TOKEN_PATTERN = re.compile(r'ac_tk=[^&"\\s]+')
 
 
 class UnsafeSource(ValueError):
@@ -79,11 +82,42 @@ def update_source(original: str, master: str, approved: set[str]) -> tuple[str, 
     updated_lines = original_lines[:]
     for slug, (line_index, old_inf, old_url) in existing.items():
         _, new_inf, new_url = latest[slug]
+        # An external mirror may refresh tokens, but must not rewrite names,
+        # logos, catchup configuration, stream paths, or other URL parameters.
+        # Approved changes are limited strictly to the ac_tk value.
+        if TOKEN_PATTERN.sub("ac_tk=<TOKEN>", new_inf) != TOKEN_PATTERN.sub("ac_tk=<TOKEN>", old_inf):
+            raise UnsafeSource(f"Unapproved metadata change for {slug}")
+        if TOKEN_PATTERN.sub("ac_tk=<TOKEN>", new_url) != TOKEN_PATTERN.sub("ac_tk=<TOKEN>", old_url):
+            raise UnsafeSource(f"Unapproved stream URL change for {slug}")
         if new_inf != old_inf or new_url != old_url:
             changed.append(slug)
         updated_lines[line_index] = new_inf
         updated_lines[line_index + 1] = new_url
     return "\n".join(updated_lines).rstrip("\n") + "\n", changed, unexpected
+
+
+def _fetch_playlist(url: str, *, label: str) -> str:
+    """Fetch a fixed HTTPS source; reject redirects and keep credentials out of logs."""
+    request = urllib.request.Request(url, headers={
+        "User-Agent": "freewifi-newblog-sync/1.0",
+        "Accept": "application/x-mpegURL, application/vnd.apple.mpegurl, text/plain, */*",
+    })
+    try:
+        with urllib.request.urlopen(request, timeout=30) as response:
+            if response.geturl().split("?", 1)[0] != url.split("?", 1)[0]:
+                raise UnsafeSource(f"Unexpected {label} URL redirect")
+            data = response.read(MAX_DOWNLOAD_BYTES + 1)
+    except urllib.error.HTTPError as exc:
+        raise UnsafeSource(f"Failed to retrieve {label} M3U (HTTP {exc.code})") from None
+    except (urllib.error.URLError, TimeoutError, OSError) as exc:
+        # Exceptions may contain sensitive URLs; only report their type.
+        raise UnsafeSource(f"Failed to retrieve {label} M3U ({type(exc).__name__})") from None
+    if len(data) > MAX_DOWNLOAD_BYTES:
+        raise UnsafeSource(f"{label} playlist exceeds 2 MiB")
+    try:
+        return data.decode("utf-8-sig")
+    except UnicodeDecodeError:
+        raise UnsafeSource(f"{label} playlist is not UTF-8") from None
 
 
 def download_source(url: str) -> str:
@@ -92,27 +126,19 @@ def download_source(url: str) -> str:
         raise UnsafeSource("NEWBLOG_MASTER_URL is not the expected HTTPS master playlist")
     if not parse_qs(parsed.query).get("pass"):
         raise UnsafeSource("NEWBLOG_MASTER_URL must contain the master playlist pass parameter")
-    request = urllib.request.Request(url, headers={
-        "User-Agent": "freewifi-newblog-sync/1.0",
-        "Accept": "application/x-mpegURL, application/vnd.apple.mpegurl, text/plain, */*",
-    })
     try:
-        with urllib.request.urlopen(request, timeout=30) as response:
-            if response.geturl().split("?", 1)[0] != url.split("?", 1)[0]:
-                raise UnsafeSource("Unexpected master URL redirect")
-            data = response.read(MAX_DOWNLOAD_BYTES + 1)
-    except urllib.error.HTTPError as exc:
-        # Report only the numeric status; never disclose the secret master URL.
-        raise UnsafeSource(f"Failed to retrieve master M3U (HTTP {exc.code})") from None
-    except (urllib.error.URLError, TimeoutError, OSError) as exc:
-        # An exception message may contain the master-URL password.
-        raise UnsafeSource(f"Failed to retrieve master M3U ({type(exc).__name__})") from None
-    if len(data) > MAX_DOWNLOAD_BYTES:
-        raise UnsafeSource("Master playlist exceeds 2 MiB")
-    try:
-        return data.decode("utf-8-sig")
-    except UnicodeDecodeError:
-        raise UnsafeSource("Master playlist is not UTF-8") from None
+        return _fetch_playlist(url, label="master")
+    except UnsafeSource as exc:
+        # A password-protected primary source may temporarily reject the secret.
+        # Fallback is fixed to one public mirror; it must pass the SAME 101-station
+        # validation as the direct master before any source file can be published.
+        if str(exc) not in {
+            "Failed to retrieve master M3U (HTTP 401)",
+            "Failed to retrieve master M3U (HTTP 403)",
+        }:
+            raise
+        print("::warning::Primary newblog master denied access; checking approved public mirror", file=sys.stderr)
+        return _fetch_playlist(PUBLIC_MIRROR, label="public mirror")
 
 
 def main() -> int:
