@@ -192,17 +192,25 @@ def extract_kamonka_tokens(body: str, approved: set[str]) -> dict[str, str]:
 
 
 def apply_kamonka_tokens(original: str, tokens: dict[str, str], approved: set[str]) -> tuple[str, list[str]]:
-    """Safely update only known slugs, preserving all 101 original rows."""
+    """Apply kamonka's verified shared ac_tk to all 101 approved stations.
+
+    Kamonka publishes 94 of our stations today; all 94 use one identical
+    stream token. The user confirmed four different stations play, and approved
+    inferred use of the same token for the seven absent stations. Change
+    only the ac_tk value, including each channel's catchup template; never
+    modify metadata, channel paths, ordering, or unrelated FreeWiFi providers.
+    """
     lines, existing = parse_playlist(original, old=True)
     if set(existing) != approved:
         raise UnsafeSource("Stored channel list does not match channel_map.json")
+    values = set(tokens.values())
+    if not tokens or len(values) != 1 or not set(tokens).issubset(approved):
+        raise UnsafeSource("Kamonka token missing, ambiguous, or unapproved")
+    shared_token = next(iter(values))
+    replacement = "ac_tk=" + shared_token
     updated = lines[:]
     changed = []
     for slug, (i, info, url) in existing.items():
-        if slug not in tokens:
-            continue
-        # Metadata contains catchup-source with the same ac_tk as the live URL.
-        replacement = "ac_tk=" + tokens[slug]
         new_info = TOKEN_PATTERN.sub(lambda _: replacement, info)
         new_url = TOKEN_PATTERN.sub(lambda _: replacement, url)
         if new_info != info or new_url != url:
