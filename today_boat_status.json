@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-24",
-  "generated_at": "2026-10-24T09:55:36.685956+09:00",
+  "generated_at": "2026-10-24T09:59:36.689551+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261024.json",
   "schedule_checked_at": "2026-10-24T09:53:36.685652+09:00",
@@ -54,18 +54,19 @@
   "cloud_acquisition": {
     "requested": 11,
     "fetched": 6,
-    "failures": [],
-    "deferred": [
+    "failures": [
       {
         "jcd": "04",
         "name": "平和島",
-        "start": "2026-10-24T10:00:00+09:00"
+        "error": "HTTPError: playback check failed"
       },
       {
         "jcd": "05",
         "name": "多摩川",
-        "start": "2026-10-24T10:00:00+09:00"
-      },
+        "error": "HTTPError: playback check failed"
+      }
+    ],
+    "deferred": [
       {
         "jcd": "06",
         "name": "浜名湖",
@@ -112,13 +113,13 @@
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/c5eb247d6a504ad3a970f23dcbd469cb/5f64e840ed9e4002ace67c3a778c71ce/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5Mjk3MjgwMCwic3RhcnQiOjE3OTI3OTczNjAsImlvcyI6MTgsImNwIjoiMjE0OTkyOTYwXzIxNTAzNjE1OSIsInBwdyI6IjQwayJ9.I8GslHwpnX5-vZIJ8Y4mQ0RrhNnOWTc7FEu6FKtBfnE",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-10-24T08:16:21.278201+09:00",
-      "checked_at": "2026-10-24T09:55:04.076297+09:00",
+      "checked_at": "2026-10-24T10:00:04.083602+09:00",
       "first_verified_at": "2026-10-24T08:16:21.278201+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
         "sequence": 8645685,
-        "last_segment": "/c5eb247d6a504ad3a970f23dcbd469cb/5f64e840ed9e4002ace67c3a778c71ce/manifest_4_8646675.ts",
+        "last_segment": "/c5eb247d6a504ad3a970f23dcbd469cb/5f64e840ed9e4002ace67c3a778c71ce/manifest_4_8646725.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -144,13 +145,13 @@
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/6b71bd589fca422a8e57d3094f1c6738/9a2ab918976b4e89b2a43f2dd0381039/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5Mjk3MjgwMCwic3RhcnQiOjE3OTI3OTY0MDAsImlvcyI6MTgsImNwIjoiMjE0OTkyMDAwXzIxNTAzNTE5OSIsInBwdyI6IjQwayJ9.KctyPiwiC36wCcMGFXxNnbtpMY4OpY6qFhUqOctYTDg",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-10-24T08:01:05.222680+09:00",
-      "checked_at": "2026-10-24T09:55:04.076901+09:00",
+      "checked_at": "2026-10-24T10:00:04.084004+09:00",
       "first_verified_at": "2026-10-24T08:01:05.222680+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
         "sequence": 8673114,
-        "last_segment": "/6b71bd589fca422a8e57d3094f1c6738/9a2ab918976b4e89b2a43f2dd0381039/manifest_1_8674263.ts",
+        "last_segment": "/6b71bd589fca422a8e57d3094f1c6738/9a2ab918976b4e89b2a43f2dd0381039/manifest_1_8674313.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -160,13 +161,13 @@
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/eace33d2f76b49a5a2f99db52cece468/78a465293d7b4c4ea3284666c1921fd8/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5Mjk3NjQwMCwic3RhcnQiOjE3OTI4MDI0MDAsImlvcyI6MTgsImNwIjoiMjE0OTk4MDAwXzIxNTA0MTE5OSIsInBwdyI6IjQwayJ9.1HLW8TmUOW5PdhQaFD_kGrh_BQW81vqCb8l08jkeco4",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-10-24T09:41:03.857645+09:00",
-      "checked_at": "2026-10-24T09:54:13.276761+09:00",
+      "checked_at": "2026-10-24T10:00:04.084290+09:00",
       "first_verified_at": "2026-10-24T09:41:03.857645+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
         "sequence": 8638033,
-        "last_segment": "/eace33d2f76b49a5a2f99db52cece468/78a465293d7b4c4ea3284666c1921fd8/manifest_1_8638174.ts",
+        "last_segment": "/eace33d2f76b49a5a2f99db52cece468/78a465293d7b4c4ea3284666c1921fd8/manifest_1_8638233.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -176,13 +177,13 @@
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/2e36085b37484ac380b8b5152de72fc4/e32a30a00ba140c9835f4cc57bee1eb9/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5Mjk3MjgwMCwic3RhcnQiOjE3OTI3OTY4ODAsImlvcyI6MTgsImNwIjoiMjE0OTkyNDgwXzIxNTAzNTY3OSIsInBwdyI6IjQwayJ9.xtaNf0L6k5eNx4hBMSCA-6GSCNvvfxMcy7ZZy2m6-oc",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-10-24T08:08:47.402939+09:00",
-      "checked_at": "2026-10-24T09:55:04.077642+09:00",
+      "checked_at": "2026-10-24T10:00:04.084490+09:00",
       "first_verified_at": "2026-10-24T08:08:47.402939+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
         "sequence": 8665882,
-        "last_segment": "/2e36085b37484ac380b8b5152de72fc4/e32a30a00ba140c9835f4cc57bee1eb9/manifest_1_8666951.ts",
+        "last_segment": "/2e36085b37484ac380b8b5152de72fc4/e32a30a00ba140c9835f4cc57bee1eb9/manifest_1_8667001.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -278,8 +279,7 @@
           "name": "記者選抜"
         }
       ],
-      "provider_stream_start": "2026-10-24T10:00:00+09:00",
-      "source": "公式BR配信開始待ち 10:00"
+      "source": "automatic cloud SEED pending"
     },
     "boat.tamagawa": {
       "jcd": "05",
@@ -369,8 +369,7 @@
           "name": "記者選抜戦"
         }
       ],
-      "provider_stream_start": "2026-10-24T10:00:00+09:00",
-      "source": "公式BR配信開始待ち 10:00"
+      "source": "automatic cloud SEED pending"
     },
     "boat.hamanako": {
       "jcd": "06",
