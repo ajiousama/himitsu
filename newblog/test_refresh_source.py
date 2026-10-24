@@ -1,6 +1,7 @@
 """Regression tests for newblog URL refresh: no destructive updates."""
 import unittest
-from refresh_source import UnsafeSource, update_source
+from unittest.mock import call, patch
+from refresh_source import UnsafeSource, update_source, download_source, PUBLIC_MIRROR
 
 
 def row(slug: str, token: str = "old", name: str = "Station") -> str:
@@ -45,6 +46,39 @@ class TestNewblogRefresh(unittest.TestCase):
     def test_duplicate_station_blocks_publish(self):
         master = "#EXTM3U\n" + row("nhk_g") + row("nhk_g") + row("tbs")
         with self.assertRaisesRegex(UnsafeSource, "Duplicate"):
+            update_source(self.old, master, self.approved)
+
+    def test_public_mirror_only_on_authentication_error(self):
+        secret = "https://0i4neux01.charandom.blog/stream/master.m3u?pass=not-a-real-password"
+        text = "#EXTM3U\n"
+        with patch("refresh_source._fetch_playlist", side_effect=[
+            UnsafeSource("Failed to retrieve master M3U (HTTP 401)"), text
+        ]) as loader:
+            self.assertEqual(download_source(secret), text)
+            self.assertEqual(loader.call_args_list, [
+                call(secret, label="master"),
+                call(PUBLIC_MIRROR, label="public mirror"),
+            ])
+
+    def test_public_mirror_not_used_for_other_errors(self):
+        secret = "https://0i4neux01.charandom.blog/stream/master.m3u?pass=not-a-real-password"
+        with patch("refresh_source._fetch_playlist", side_effect=UnsafeSource("Bad redirect")) as loader:
+            with self.assertRaisesRegex(UnsafeSource, "Bad redirect"):
+                download_source(secret)
+            loader.assert_called_once_with(secret, label="master")
+
+    def test_unapproved_metadata_change_blocks_publish(self):
+        master = "#EXTM3U\n" + row("nhk_g", "new").replace(
+            'group-title="JP"', 'group-title="UNTRUSTED"'
+        ) + row("tbs", "new")
+        with self.assertRaisesRegex(UnsafeSource, "Unapproved metadata change"):
+            update_source(self.old, master, self.approved)
+
+    def test_unapproved_stream_options_block_publish(self):
+        master = "#EXTM3U\n" + row("nhk_g", "new") + row("tbs", "new").replace(
+            "&mode=hls", "&mode=other"
+        )
+        with self.assertRaisesRegex(UnsafeSource, "Unapproved stream URL change"):
             update_source(self.old, master, self.approved)
 
     def test_unrelated_region_ignored(self):
