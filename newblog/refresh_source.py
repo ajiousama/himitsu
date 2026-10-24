@@ -22,7 +22,7 @@ HOST = "0i4neux01.charandom.blog"
 JP_STREAM = re.compile(r"/stream/jp/([\w+\-]+)/stream-output\.m3u8\Z")
 MAX_DOWNLOAD_BYTES = 2 * 1024 * 1024
 # Publicly maintained mirror. Used ONLY when the approved upstream rejects authentication.
-PUBLIC_MIRROR = "https://raw.githubusercontent.com/ZXArkin/my-personal-iptv/main/jp-playlist.m3u"
+PUBLIC_MIRROR = "https://raw.githubusercontent.com/ZXArkin/my-personal-iptv/iptv-radio/jp-playlist.m3u"
 TOKEN_PATTERN = re.compile(r'ac_tk=[^&"\s]+')
 
 
