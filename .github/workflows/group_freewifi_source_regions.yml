@@ -60,7 +60,9 @@ jobs:
           assert 'naori' not in s.casefold()
           assert 'arva' not in s.casefold()
           assert 'arva' not in tv.casefold()
-          assert s.index('TOKYO MX1 (YoiTV)') < s.index('サンテレビ (5002直)')
+          # YoiTV was deliberately moved to yovi; never put it back in FreeWiFi.
+          assert 'TOKYO MX1 (YoiTV)' not in s, 'Retired YoiTV entry returned to FreeWiFi'
+          assert 'サンテレビ (5002直)' in s, 'Required PrimeHome/5002 station missing'
           for cid in ('rch_30','rch_35','rch_37','rch_46','rch_86','rch_113','rch_122','rch_123','rch_124','rch_125','rch_41'):
               assert cid in s
           assert '## Rakuten-JP' not in s
