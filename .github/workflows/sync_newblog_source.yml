@@ -61,9 +61,26 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git commit -m 'chore(newblog): refresh approved FreeWiFi source URLs'
-          if ! git push origin HEAD:main; then
-            echo 'main advanced; rebasing the validated newblog change'
-            git fetch origin main
-            git rebase origin/main
-            git push origin HEAD:main
-          fi
+          # Other Actions continuously update main (sports, BOAT, EPG, etc.).
+          # Only the validated newblog/source.m3u is committed here. Never force-push.
+          # Fetch/rebase against the newest main BEFORE every attempt, rather than
+          # letting an unrelated update cause a one-shot push failure.
+          for attempt in $(seq 1 15); do
+            git fetch --quiet origin main
+            if ! git merge-base --is-ancestor origin/main HEAD; then
+              echo "main advanced: preserving other updates (attempt ${attempt}/15)"
+              if ! git rebase origin/main; then
+                git rebase --abort || true
+                echo '::error::Newblog rebase conflict; preserving all remote changes, no overwrite'
+                exit 1
+              fi
+            fi
+            if git push origin HEAD:main; then
+              echo 'Newblog published while preserving concurrent main updates'
+              exit 0
+            fi
+            echo "::warning::main changed during push; retrying safely (${attempt}/15)"
+            sleep 2
+          done
+          echo '::error::Newblog publish was not possible after 15 safe retries; no force push performed'
+          exit 1
