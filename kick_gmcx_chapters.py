@@ -3827,7 +3827,8 @@ def make_fixed_test_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict
         # Preserve #411's end; extend this special by 7s and shift #412+,
         # including the unclassified tail, to the right by 7s.
         # User playback: #416 ends at 57:00, followed by Metal Gear Solid.
-        # The latter's end is not yet confirmed; retain remaining footage.
+        # MGS ending at 2:59:35 is confirmed by user's playback. The remaining
+        # 17:06 is reportedly black; flag it for removal only after validation.
         cursor = 10
         for ep in range(404, 417):
             if ep == 412:
@@ -3875,6 +3876,11 @@ def make_fixed_test_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict
             (start_ep, end_ep) == (387, 396)
             and vod_id == "a640717e-6b99-4a10-a0d4-152d50117319"
         )
+        is_black_tail_candidate = (
+            (start_ep, end_ep) == (404, 416)
+            and vod_id == "4b6ff754-ab2f-43b3-bc30-ec3e9f0d8208"
+            and cursor == 56930
+        )
         chapters.append({
             "kind": "special",
             "special_key": (
@@ -3884,8 +3890,8 @@ def make_fixed_test_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict
             "title": (
                 "SP51 400分生放送！大予習SP"
                 if is_400min_preview
-                else "GMCX 第404～416回 後続映像（内容確認待ち）"
-                if (start_ep, end_ep) == (404, 416)
+                else "GMCX 第404～416回 黒画面（カット候補・要確認）"
+                if is_black_tail_candidate
                 else f"GMCX 第{start_ep}～{end_ep}回 追加映像（確認待ち）"
             ),
             "start_seconds": cursor,
@@ -3898,6 +3904,11 @@ def make_fixed_test_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict
                 else "user-test-unclassified-tail"
             ),
             "confidence": "provisional" if is_400min_preview else "low",
+            **({
+                "cut_candidate": True,
+                "cut_candidate_status": "pending-full-black-frame-check",
+                "cut_candidate_reason": "User reports black background after MGS ending at 2:59:35",
+            } if is_black_tail_candidate else {}),
         })
 
     # Playback-confirmed offsets for newer KICK bundles.  The #307-316
