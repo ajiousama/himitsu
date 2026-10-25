@@ -3826,6 +3826,8 @@ def make_fixed_test_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict
         # programme. User playback: its final seven seconds were in #412.
         # Preserve #411's end; extend this special by 7s and shift #412+,
         # including the unclassified tail, to the right by 7s.
+        # User playback: #416 ends at 57:00, followed by Metal Gear Solid.
+        # The latter's end is not yet confirmed; retain remaining footage.
         cursor = 10
         for ep in range(404, 417):
             if ep == 412:
@@ -3836,6 +3838,7 @@ def make_fixed_test_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict
                 )
             length = (56 * 60 + 51 if ep == 409
                       else 57 * 60 + 37 if ep == 411
+                      else 57 * 60 if ep == 416
                       else 58 * 60 + 15)
             append_episode(ep, length)
 
@@ -3864,6 +3867,10 @@ def make_fixed_test_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict
             (start_ep, end_ep) == (387, 396)
             and vod_id == "a640717e-6b99-4a10-a0d4-152d50117319"
         )
+        is_metal_gear_tail = (
+            (start_ep, end_ep) == (404, 416)
+            and vod_id == "4b6ff754-ab2f-43b3-bc30-ec3e9f0d8208"
+        )
         chapters.append({
             "kind": "special",
             "special_key": (
@@ -3873,6 +3880,8 @@ def make_fixed_test_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict
             "title": (
                 "SP51 400分生放送！大予習SP"
                 if is_400min_preview
+                else "メタルギアソリッド（以降の追加映像・終了位置未確認）"
+                if is_metal_gear_tail
                 else f"GMCX 第{start_ep}～{end_ep}回 追加映像（確認待ち）"
             ),
             "start_seconds": cursor,
@@ -3881,9 +3890,12 @@ def make_fixed_test_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict
             "replay_url": clip_url(vod_id, cursor, clip_duration),
             "method": (
                 "user-identified-2025-special"
-                if is_400min_preview else "user-test-unclassified-tail"
+                if is_400min_preview
+                else "user-identified-mgs-start-unclassified-tail"
+                if is_metal_gear_tail
+                else "user-test-unclassified-tail"
             ),
-            "confidence": "provisional" if is_400min_preview else "low",
+            "confidence": "provisional" if (is_400min_preview or is_metal_gear_tail) else "low",
         })
 
     # Playback-confirmed offsets for newer KICK bundles.  The #307-316
