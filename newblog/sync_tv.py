@@ -19,7 +19,7 @@ VOD_START = "# === NEWBLOG_VOD_START ==="
 VOD_END = "# === NEWBLOG_VOD_END ==="
 REPLAY_DAYS = 14  # Keep replay controls and the VOD shelf within two weeks.
 REPLAY_RETENTION_SECONDS = REPLAY_DAYS * 86400
-REPLAY_DAYS_BY_SLUG = {"kbs": 7}  # KBS Kyoto replay appears to expire earlier.
+REPLAY_DAYS_BY_SLUG = {"kbs": 7, "fuji_tv_one": 7}  # Verified shorter catch-up: KBS Kyoto and Fuji TV ONE.
 
 
 def replay_retention_seconds(slug):
@@ -141,7 +141,7 @@ def tatsujin_episode_key(item):
 
 
 def vod_payload(now_epoch=None):
-    """Publish approved newblog replay records inside a rolling 14-day window."""
+    """Publish approved replays using each channel\u0027s rolling retention window."""
     if not VOD_REPLAYS.is_file():
         return VOD_START + "\n" + VOD_END
     records = json.loads(VOD_REPLAYS.read_text(encoding="utf-8"))
