@@ -198,9 +198,9 @@ def build_vod5() -> str:
 
     lines = ["#EXTM3U"]
     for extinf, url in whole:
-        lines.extend([extinf.replace('group-title="VOD"', 'group-title="VOD"'), url])
+        lines.extend([extinf.replace('group-title="VOD"', 'group-title="KICK系VOD"'), url])
     for extinf, url in chapters:
-        lines.extend([extinf.replace('group-title="GMCX Replay"', 'group-title="VOD"'), url])
+        lines.extend([extinf.replace('group-title="GMCX Replay"', 'group-title="KICK系VOD"'), url])
     return "\n".join(lines) + "\n"
 
 def main() -> int:
@@ -241,7 +241,7 @@ def main() -> int:
         block = [LONG_START]
         for extinf, url in long_entries:
             block.extend([
-                extinf.replace('group-title="GMCX Replay"', 'group-title="VOD"'),
+                extinf.replace('group-title="GMCX Replay"', 'group-title="KICK系VOD"'),
                 url,
             ])
         block.append(LONG_END)
@@ -257,7 +257,7 @@ def main() -> int:
         "#EXTM3U\n\n" + ("\n".join(block) + "\n" if long_entries else ""),
         encoding="utf-8",
     )
-    vod_count = vod5.count('group-title="VOD"')
+    vod_count = vod5.count('group-title="KICK系VOD"')
     print(f"KICK VOD published to VOD5: {vod_count} entries; reused white-card logos={reused_logos}")
     return 0
 

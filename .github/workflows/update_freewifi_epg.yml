@@ -138,6 +138,7 @@ jobs:
           python tver/sync_freewifi.py
           python patapata/sync_freewifi.py
           python vod5/sync_freewifi.py
+          python -m unittest -q test_vod_source_groups.py
           python youtube/manager.py --sync-only
 
       - name: Prepare YouTube logos before regression tests
@@ -234,6 +235,7 @@ jobs:
             python tver/sync_freewifi.py
             python patapata/sync_freewifi.py
             python vod5/sync_freewifi.py
+            python -m unittest -q test_vod_source_groups.py
             python youtube/manager.py --sync-only
 
             python boat_publish.py --epg-only

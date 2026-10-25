@@ -212,7 +212,7 @@ def vod_payload(now_epoch=None):
         extinf = (
             '#EXTINF:-1 tvg-id="newblog.vod.' + item["id"] + "." + str(start)
             + '" tvg-name="' + item["tvg_name"] + '" tvg-logo="' + item["logo"]
-            + '" group-title="VOD",' + item["title"]
+            + '" group-title="blog系VOD",' + item["title"]
         )
         entries.extend([extinf, uri])
     return "\n".join([VOD_START, *entries, VOD_END])

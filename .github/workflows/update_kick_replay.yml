@@ -207,6 +207,7 @@ jobs:
             # Rebuild vod5 from the newest replay metadata.
             # The helper also removes any legacy KICK replay block from FreeWiFi.
             python -u kick_replay_freewifi.py
+            python -m unittest -q test_vod_source_groups.py
 
             python - <<'PY'
           from pathlib import Path
@@ -216,8 +217,10 @@ jobs:
           assert '# === KICK_REPLAY_END ===' not in text
           assert 'Mirumo' not in text
           assert 'tvg-id="kick.gccx"' not in text
-          count = text.count('group-title="VOD"')
+          count = text.count('group-title="KICK系VOD"')
           assert count > 0
+          assert 'group-title="VOD"' not in text
+          assert 'group-title="blog系VOD"' not in text
           print('vod5 KICK VOD catalog validated:', count, 'entries')
           PY
 
