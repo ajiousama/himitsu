@@ -18,6 +18,7 @@ on:
       - "gmcx_episode_titles.json"
       - "test_gmcx_star_soldier_insert.py"
       - "test_gmcx_404_trial_cuts.py"
+      - "test_gmcx_417_review_cuts.py"
       - ".github/workflows/update_kick_replay.yml"
 
 permissions:
@@ -65,7 +66,7 @@ jobs:
         run: python -m pip install --quiet numpy
 
       - name: Verify GCCX 2024/2025 special programme layout
-        run: python -m unittest -v test_gmcx_star_soldier_insert.py test_gmcx_397_sp52.py test_gmcx_404_trial_cuts.py
+        run: python -m unittest -v test_gmcx_star_soldier_insert.py test_gmcx_397_sp52.py test_gmcx_404_trial_cuts.py test_gmcx_417_review_cuts.py
 
       - name: Build KICK replay catalog
         run: python -u kick_replay.py
@@ -81,13 +82,10 @@ jobs:
           cp kick_gmcx_chapters.json /tmp/kick_gmcx_chapters_before_bgm.json
           cp kick_gmcx_chapters.m3u /tmp/kick_gmcx_chapters_before_bgm.m3u
           # Cross-recording BGM offset calibration uses confirmed #378 as baseline.
-          # Modern source fixture regression covered (377/378/379); #417+
-          # remains excluded until specials are verified.
-          # All current bundles are checked with independent recordings; #417+
-          # remains excluded because its bonus/special boundaries are unverified.
-          # Use current recordings. #417+ contains bonuses and remains review-only
-          # until an actual episode order/boundary map has been established.
-          if ! python -u gmcx_bgm_autocut.py --ranges 377 387 397 404; then
+          # #417+ keeps 58:00 fallback cuts. Only independently calibrated,
+          # high-consensus title-BGM boundaries within the timing guard can
+          # override them; unverified bonus/special footage stays separate.
+          if ! python -u gmcx_bgm_autocut.py --ranges 377 387 397 404 417; then
             echo "::warning::GCCX audio detection failed; cached verified cuts are used"
           fi
           if ! python -u gmcx_bgm_autocut_apply.py; then

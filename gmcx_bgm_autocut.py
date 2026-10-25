@@ -143,11 +143,11 @@ def analyze_group(result: dict, source: dict, references: dict[int,np.ndarray],
               and x.get("confidence")=="confirmed" and int(x.get("start_seconds") or 0)>100]
     if len(references) < 3:
         return {"status":"needs_three_independent_references","rows":[]}
-    # Without a same-recording manual anchor, permit only the 404-416
-    # ordinary-episode bundle, whose baseline is an already catalogued chapter
-    # sequence. Strict 3-source agreement is still required before publication.
+    # For #404-416 and #417-427, allow no-local-anchor candidates only
+    # against three independently recorded and externally calibrated BGMs.
+    # Missing/conflicting detection never changes the 58:00 fallback.
     absolute_mode = not bool(anchor)
-    if absolute_mode and int(result.get("episode_start") or -1) != 404:
+    if absolute_mode and int(result.get("episode_start") or -1) not in {404, 417}:
         return {"status":"needs_local_manual_anchor","rows":[]}
     if absolute_mode and (external_calibration is None or
                           set(external_calibration) != {str(ep) for ep in references}):
@@ -260,7 +260,7 @@ def main():
         independent = {ep: audio for ep, audio in refs.items()
                        if ref_owners.get(ep) != str(group.get("vod_id"))}
         external_calibration = None
-        if start == 404:
+        if start in {404, 417}:
             # Source #377 contains manually confirmed #378. Its independent
             # BGM offsets for #388 and #398 were measured against THAT SAME
             # chapter. The #378 reference is the reference baseline (0s).

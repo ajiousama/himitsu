@@ -83,7 +83,7 @@ def main():
         vod_id=str(group.get("vod_id") or "")
         start_ep=int(group.get("episode_start") or -1)
         duration=int(group.get("duration_seconds") or 0)
-        if start_ep not in {377,387,397,404} or not vod_id or duration<=0:
+        if start_ep not in {377,387,397,404,417} or not vod_id or duration<=0:
             continue
         if start_ep == 404 and vod_id == "4b6ff754-ab2f-43b3-bc30-ec3e9f0d8208":
             # Keep the user's 10s + 58m15s test grid until playback feedback.
@@ -110,6 +110,7 @@ def main():
             if ep in HOLD_EPISODES or ep not in existing_by_ep:continue
             i,c=existing_by_ep[ep]
             if protected(c):continue
+            if start_ep == 417 and c.get("method") in {"titlecard-detected", "king-caption-detected"} and c.get("confidence") == "high":continue
             if abs(old_val-int(c["start_seconds"]))>MAX_CORRECTION:continue
             if not check_chapter_time(chapters,i,old_val,duration)["ok"]:continue
             chosen[k]=old_val
@@ -120,11 +121,10 @@ def main():
             anchor_eps=set(trial.get("manual_anchor_episodes") or [])
             local_manual = bool(anchor_eps and any(ep in existing_by_ep
                 and protected(existing_by_ep[ep][1]) for ep in anchor_eps))
-            # A source with no local verified chapter may be cut automatically
-            # ONLY for #404-416, with two externally manual-confirmed references
-            # and a third independently BGM-confirmed source.
+            # #404-416 and #417-427 require two manually verified recordings
+            # and one independent BGM-confirmed recording for external audio cuts.
             external_manual = (
-                start_ep == 404
+                start_ep in {404, 417}
                 and trial.get("calibration_mode") == "cross-recording-manual-anchor"
                 and trial.get("external_calibration_anchor_episode") == 378
                 and set(trial.get("external_manual_reference_episodes") or []) == {378,388}
@@ -135,6 +135,7 @@ def main():
                     if ep not in existing_by_ep:continue
                     i,c=existing_by_ep[ep]
                     if protected(c):continue
+                    if start_ep == 417 and c.get("method") in {"titlecard-detected", "king-caption-detected"} and c.get("confidence") == "high":continue
                     original_start=int(c.get("start_seconds") or 0)
                     if report_candidate_valid(row,ep,original_start):
                         timing=check_chapter_time(chapters,i,int(row["proposed_start_seconds"]),duration)

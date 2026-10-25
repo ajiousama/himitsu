@@ -73,6 +73,16 @@ class BgmCuts(unittest.TestCase):
         self.assertEqual(per[390]["status"],"disagreement")
 
 
+    def test_417_requires_shared_external_reference_alignment(self):
+        group={"episode_start":417,"status":"ready","duration_seconds":58952,
+               "chapters":[
+                   {"kind":"episode","episode":417,"start_seconds":0,"method":"review-grid-58m00-pending-audio-video-detection","confidence":"provisional"},
+                   {"kind":"episode","episode":418,"start_seconds":3480,"method":"review-grid-58m00-pending-audio-video-detection","confidence":"provisional"}]}
+        refs={k:np.array([[k]],dtype=np.float32) for k in (378,388,398)}
+        source={"playable":True,"source_url":"https://example.invalid/a.m3u8"}
+        self.assertEqual(ac.analyze_group(group,source,refs)["status"],
+                         "needs_verified_cross_recording_alignment")
+
     def test_404_requires_shared_external_reference_alignment(self):
         group = {"episode_start":404,"status":"ready","duration_seconds":7500,
                  "chapters":[

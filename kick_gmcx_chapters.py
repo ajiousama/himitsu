@@ -3854,12 +3854,13 @@ def make_fixed_test_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict
         chapters[-1]["confidence"] = "confirmed"
 
     elif (start_ep, end_ep) == (417, 427) and vod_id == "670c9223-f162-48b1-b684-e7f567d80b48":
-        # Provisional index: auto-refine against real titlecards below, fail closed.
-        # No equal division of the long specials-containing recording.
+        # User-requested #417+ fallback: exactly 58:00 per normal episode.
+        # Prefer verified recurring title-card/screen cuts or independently
+        # calibrated title BGM when available; keep unknown bonus footage separate.
         cursor = 0
         for ep in range(417, 428):
-            append_episode(ep, 58 * 60 + 15)
-            chapters[-1]["method"] = "review-grid-58m15-pending-auto-detection"
+            append_episode(ep, 58 * 60)
+            chapters[-1]["method"] = "review-grid-58m00-pending-audio-video-detection"
 
     elif (start_ep, end_ep) == (307, 316):
         # User playback confirmed a separate 15-minute programme between
@@ -4543,8 +4544,8 @@ def main() -> int:
                 "boundary_version": TITLECARD_BOUNDARY_VERSION,
             }
         elif status == "ready" and chapters and (start_ep, end_ep) == (417, 427):
-            # Existing title-logo & king-caption automatic detector. Since
-            # bonus programmes can shift later starts, accept only >=95%
+            # Prefer screen/title-logo cuts over the 58:00 fallback.
+            # Bonus programmes can shift later starts, so require >=95%
             # visual agreement AND <=180s displacement. Reject otherwise.
             if vod.get("playable") and vod.get("source_url"):
                 scanned, detected_meta = refine_with_titlecard(vod, chapters, previous_result)
