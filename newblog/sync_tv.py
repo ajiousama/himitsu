@@ -140,6 +140,56 @@ def tatsujin_episode_key(item):
     return kind, number.group(1) if number else detail.strip()
 
 
+def format_vod_display(item):
+    """Show the challenged game FIRST for blog-series GCCX replays only.
+
+    Some IPTV clients prefer tvg-name while others show the text after the
+    EXTINF comma, so both labels must start with the software title.
+    The stored programme metadata, EPG matching, replay URL and group stay
+    untouched; this is a presentation-only change.
+    """
+    title, tvg_name = item["title"], item["tvg_name"]
+    if item["id"] != "gccx_one":
+        return title, tvg_name
+
+    detail = title.partition("｜")[2].strip()
+    if not detail:
+        return title, tvg_name
+
+    archive = "アーカイブス" in detail
+    series = "ゲームセンターCX アーカイブス" if archive else "ゲームセンターCX"
+    broadcast = datetime.fromtimestamp(int(item["start"]), ZoneInfo("Asia/Tokyo"))
+    date = broadcast.strftime("%m/%d %H:%M")
+    episode = re.search(r"#\s*(\d+)", detail)
+    quoted_game = re.search(r"「([^」]+)」", detail)
+    if quoted_game:
+        game = quoted_game.group(1).strip()
+        if not game:
+            return title, tvg_name
+        first = game + (f" #{episode.group(1)}" if episode else "")
+        # Preserve the programme subtitle, but move it after the key title.
+        subtitle = re.sub(r"^ゲームセンターCX\s*(?:有野の挑戦\s*アーカイブス)?\s*", "", detail)
+        if episode:
+            subtitle = subtitle.replace(episode.group(0), "", 1)
+        subtitle = subtitle.replace(quoted_game.group(0), "", 1)
+        subtitle = subtitle.strip(" \u3000:：-―")
+        if subtitle in ("に挑戦", "に挑戦！"):
+            subtitle = ""
+    else:
+        # Specials and travel segments do not have a challenged game. Put
+        # their specific episode subject first, not a guessed game title.
+        first = re.sub(r"^ゲームセンターCX\s*", "", detail).strip()
+        if not first:
+            return title, tvg_name
+        subtitle = ""
+
+    display = f"📼 {first}｜{series} {date}"
+    if subtitle:
+        display += "｜" + subtitle
+    tvg_display = f"{first}｜{series}"
+    return display, tvg_display
+
+
 def vod_payload(now_epoch=None):
     """Publish approved replays using each channel\u0027s rolling retention window."""
     if not VOD_REPLAYS.is_file():
@@ -209,10 +259,11 @@ def vod_payload(now_epoch=None):
             seen_tatsujin.add(episode)
         seen.add(key)
         uri = templates[slug].replace("$" + "{start}", str(start))
+        display_title, display_name = format_vod_display(item)
         extinf = (
             '#EXTINF:-1 tvg-id="newblog.vod.' + item["id"] + "." + str(start)
-            + '" tvg-name="' + item["tvg_name"] + '" tvg-logo="' + item["logo"]
-            + '" group-title="blog系VOD",' + item["title"]
+            + '" tvg-name="' + display_name + '" tvg-logo="' + item["logo"]
+            + '" group-title="blog系VOD",' + display_title
         )
         entries.extend([extinf, uri])
     return "\n".join([VOD_START, *entries, VOD_END])
