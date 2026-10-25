@@ -34,7 +34,7 @@ class GuardedPublishTests(unittest.TestCase):
             state={"results":[{"vod_id":source,"episode_start":357,"episode_end":359,
                               "duration_seconds":10800,"chapters":items}]}
             votes=[{"reference_episode":ep,"correction_seconds":-3.1,
-                    "similarity":.9,"support_templates":5} for ep in (357,367,377)]
+                    "similarity":.9,"support_templates":5} for ep in (378,388,398)]
             report={"bundles":[{"episode_start":357,"status":"review_only",
                  "reference_sources_used":3,"manual_anchor_episodes":[358],
                  "rows":[{"episode":359,"existing_start_seconds":6968,

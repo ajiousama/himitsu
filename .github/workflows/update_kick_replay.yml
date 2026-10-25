@@ -79,7 +79,9 @@ jobs:
           python -m unittest -q test_gmcx_bgm_autocut.py test_gmcx_bgm_autocut_apply.py
           cp kick_gmcx_chapters.json /tmp/kick_gmcx_chapters_before_bgm.json
           cp kick_gmcx_chapters.m3u /tmp/kick_gmcx_chapters_before_bgm.m3u
-          if ! python -u gmcx_bgm_autocut.py --ranges 357 377 387; then
+          # Use current recordings. #417+ contains bonuses and remains review-only
+          # until an actual episode order/boundary map has been established.
+          if ! python -u gmcx_bgm_autocut.py --ranges 377 387 397 404; then
             echo "::warning::GCCX audio detection failed; cached verified cuts are used"
           fi
           if ! python -u gmcx_bgm_autocut_apply.py; then

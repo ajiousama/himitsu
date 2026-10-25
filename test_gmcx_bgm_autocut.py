@@ -47,9 +47,9 @@ class BgmCuts(unittest.TestCase):
                 "confidence":"confirmed" if ep==388 else "provisional",
             })
         group={"status":"ready","chapters":chapters,"duration_seconds":15000}
-        samples={388:{"357":14,"367":7,"377":-2},389:{"357":21,"367":14,"377":5},
-                 390:{"357":14,"367":7,"377":19}}
-        refs={357:np.zeros((1,32)),367:np.zeros((1,32)),377:np.zeros((1,32))}
+        samples={388:{"378":14,"388":7,"398":-2},389:{"378":21,"388":14,"398":5},
+                 390:{"378":14,"388":7,"398":19}}
+        refs={378:np.zeros((1,32)),388:np.zeros((1,32)),398:np.zeros((1,32))}
         def decode(url,start,seconds):
             ep=next(k for k,x in ((int(c["episode"]),int(c["start_seconds"])) for c in chapters)
                     if start==x-ac.WINDOW_BEFORE)

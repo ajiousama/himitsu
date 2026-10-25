@@ -44,7 +44,7 @@ def report_candidate_valid(row:dict, episode:int, existing:int)->bool:
     proposals=row.get("independent_reference_proposals") or []
     if len(proposals)!=3:
         return False
-    if {int(x.get("reference_episode",-1)) for x in proposals}!={357,367,377}:
+    if {int(x.get("reference_episode",-1)) for x in proposals}!={378,388,398}:
         return False
     if any(int(x.get("support_templates",0))<3 or
            float(x.get("similarity",0))<.74 for x in proposals):
@@ -76,7 +76,7 @@ def main():
         vod_id=str(group.get("vod_id") or "")
         start_ep=int(group.get("episode_start") or -1)
         duration=int(group.get("duration_seconds") or 0)
-        if start_ep not in {357,377,387} or not vod_id or duration<=0:
+        if start_ep not in {377,387,397,404} or not vod_id or duration<=0:
             continue
         chapters=group.get("chapters") or []
         if len(chapters)<2: continue
@@ -107,8 +107,17 @@ def main():
         if trial.get("status")=="review_only" and trial.get("reference_sources_used")==3:
             trial_rows=trial.get("rows") or []
             anchor_eps=set(trial.get("manual_anchor_episodes") or [])
-            if anchor_eps and any(ep in existing_by_ep and protected(existing_by_ep[ep][1])
-                                  for ep in anchor_eps):
+            local_manual = bool(anchor_eps and any(ep in existing_by_ep
+                and protected(existing_by_ep[ep][1]) for ep in anchor_eps))
+            # A source with no local verified chapter may be cut automatically
+            # ONLY for #404-416, with two externally manual-confirmed references
+            # and a third independently BGM-confirmed source.
+            external_manual = (
+                start_ep == 404
+                and trial.get("calibration_mode") == "absolute-manual-references"
+                and set(trial.get("external_manual_reference_episodes") or []) == {378,388}
+            )
+            if local_manual or external_manual:
                 for row in trial_rows:
                     ep=int(row.get("episode") or -1)
                     if ep not in existing_by_ep:continue

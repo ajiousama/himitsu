@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Read-only audio-based cut detector using independent GCCX title-music exemplars.
 
-Three reference VOD openings (#357/#367/#377) are searched near EVERY regular
-chapter boundary in one target VOD. A manually playback-confirmed chapter in
-that SAME VOD calibrates the delay between repeated BGM and true chapter start.
+Available title-BGM openings (#378/#388/#398/#404, one per independent VOD)
+are searched near regular chapter boundaries. Two references have manually
+confirmed boundaries. For #404-416 only, strict independent-source consensus
+can propose cuts without a same-recording manual anchor.
 
 No list, chapter, or previously confirmed cut is rewritten. The JSON report
 is intended for review before any changes to published FreeWiFi/VOD5.
@@ -19,7 +20,18 @@ import numpy as np
 from gmcx_auto_cut_audio import read_audio, fingerprint, SAMPLE_RATE, HOP
 from kick_gmcx_chapters import _lowest_hls_variant
 
-REFERENCE_EPISODES = (357, 367, 377)
+# Title samples from independent, currently present KICK VOD files.
+# 378 and 388 were manually confirmed; 398 has a previously BGM-refined start.
+# 404 is only a provisional recording-head reference and can never be
+# considered a manual reference.
+REFERENCE_SOURCES = (
+    (377, 378, "manual-playback-confirmed", "confirmed"),
+    (387, 388, "manual-playback-confirmed", "confirmed"),
+    (397, 398, "auto-title-bgm-three-source", "high"),
+    (404, 404, "user-test-broadcast-order", "provisional"),
+)
+MANUALLY_VERIFIED_REFERENCES = frozenset((378, 388))
+REFERENCE_EPISODES = tuple(ep for _, ep, _, _ in REFERENCE_SOURCES)
 TEMPLATE_OFFSETS = (10, 15, 20, 55, 60)
 TEMPLATE_LENGTH = 6  # seconds: capture distinctive score and transitions
 REFERENCE_CAPTURE = 85
@@ -36,25 +48,39 @@ MAX_CUT_SHIFT = 50
 JST = timezone(timedelta(hours=9))
 
 
-def read_reference_sources(vods: list[dict]) -> tuple[dict[int,np.ndarray], list[dict]]:
-    vectors, entries = {}, []
-    for ep in REFERENCE_EPISODES:
-        matching = next((v for v in vods if
-            str(v.get("tvg_id") or "").startswith("kick.gccx")
-            and str(v.get("title") or "").split("＃")[-1].startswith(str(ep))), None)
-        if not matching or not matching.get("playable") or not matching.get("source_url"):
-            entries.append({"reference_episode": ep, "status": "unavailable"})
+def read_reference_sources(vods: list[dict], groups: list[dict]) -> tuple[dict[int,np.ndarray], list[dict], dict[int,str]]:
+    """Decode multiple independent *available* KICK recordings; never use vanished legacy VODs."""
+    vectors, entries, owners = {}, [], {}
+    by_vod = {str(v.get("vod_id")): v for v in vods}
+    by_first = {int(g.get("episode_start") or -1): g for g in groups}
+    for first, ep, required_method, required_confidence in REFERENCE_SOURCES:
+        group = by_first.get(first) or {}
+        vod_id = str(group.get("vod_id") or "")
+        chapter = next((c for c in (group.get("chapters") or [])
+                        if c.get("kind") == "episode" and int(c.get("episode") or -1) == ep), None)
+        source = by_vod.get(vod_id)
+        if not chapter or (chapter.get("method"), chapter.get("confidence")) != (required_method, required_confidence):
+            entries.append({"reference_episode": ep, "status": "unavailable",
+                            "reason": "missing_or_changed_verified_chapter"})
+            continue
+        if not source or not source.get("playable") or not source.get("source_url"):
+            entries.append({"reference_episode": ep, "status": "unavailable",
+                            "reason": "source_recording_unavailable"})
             continue
         try:
-            signal = read_audio(_lowest_hls_variant(str(matching["source_url"])),
-                                0, REFERENCE_CAPTURE)
+            seconds = int(chapter.get("start_seconds") or 0)
+            signal = read_audio(_lowest_hls_variant(str(source["source_url"])),
+                                seconds, REFERENCE_CAPTURE)
             vectors[ep] = fingerprint(signal)
+            owners[ep] = vod_id
             entries.append({"reference_episode": ep, "status": "decoded",
-                            "vod_id": matching["vod_id"]})
+                            "vod_id": vod_id, "verified_manual": ep in MANUALLY_VERIFIED_REFERENCES,
+                            "start_seconds": seconds})
         except Exception as exc:
             entries.append({"reference_episode": ep, "status": "unavailable",
                             "reason": str(exc)[:250]})
-    return vectors, entries
+    print("BGM_REFERENCES", json.dumps(entries, ensure_ascii=False), flush=True)
+    return vectors, entries, owners
 
 
 def correlate_one(reference: np.ndarray, observed: np.ndarray) -> dict:
@@ -113,10 +139,14 @@ def analyze_group(result: dict, source: dict, references: dict[int,np.ndarray]) 
         return {"status":"skipped","reason":"source_unavailable","rows":[]}
     anchor = [x for x in rows if x.get("method")=="manual-playback-confirmed"
               and x.get("confidence")=="confirmed" and int(x.get("start_seconds") or 0)>100]
-    if not anchor:
-        return {"status":"needs_manual_anchor","rows":[]}
-    if len(references)<2:
-        return {"status":"needs_two_references","rows":[]}
+    if len(references) < 3:
+        return {"status":"needs_three_independent_references","rows":[]}
+    # Without a same-recording manual anchor, permit only the 404-416
+    # ordinary-episode bundle, whose baseline is an already catalogued chapter
+    # sequence. Strict 3-source agreement is still required before publication.
+    absolute_mode = not bool(anchor)
+    if absolute_mode and int(result.get("episode_start") or -1) != 404:
+        return {"status":"needs_local_manual_anchor","rows":[]}
     candidates=[x for x in rows if int(x.get("start_seconds") or 0)>WINDOW_BEFORE
                 and int(x.get("start_seconds") or 0)+WINDOW_AFTER < duration]
     url = _lowest_hls_variant(str(source["source_url"]))
@@ -150,6 +180,10 @@ def analyze_group(result: dict, source: dict, references: dict[int,np.ndarray]) 
         if verified:
             calibrations[str(ref_ep)]=float(np.median([
                 r["reference_matches"][str(ref_ep)]["raw_delay_seconds"] for r in verified]))
+    if absolute_mode:
+        # Both manual references are independently aligned to the chapter start.
+        # The third BGM-derived reference must agree; do not invent a calibration.
+        calibrations = {str(ep): 0.0 for ep in references}
     confirmed_eps=set(int(x["episode"]) for x in anchor)
     for row in all_rows:
         proposals=[]
@@ -179,6 +213,8 @@ def analyze_group(result: dict, source: dict, references: dict[int,np.ndarray]) 
             "proposed_start_seconds":row.get("proposed_start_seconds"),
             "reference_votes":len(proposals)},ensure_ascii=False),flush=True)
     return {"status":"review_only","calibration_from_manual_anchor":calibrations,
+            "calibration_mode": "absolute-manual-references" if absolute_mode else "local-manual-anchor",
+            "external_manual_reference_episodes": sorted(MANUALLY_VERIFIED_REFERENCES.intersection(references)),
             "manual_anchor_episodes":sorted(confirmed_eps),
             "reference_sources_used":len(references),
             "candidates":sum(r["status"]=="candidate" for r in all_rows),
@@ -192,7 +228,7 @@ def main():
     args=parser.parse_args()
     catalog=json.loads(Path("kick_replay.json").read_text(encoding="utf-8"))
     state=json.loads(Path("kick_gmcx_chapters.json").read_text(encoding="utf-8"))
-    refs,ref_status=read_reference_sources(catalog["vods"])
+    refs,ref_status,ref_owners=read_reference_sources(catalog["vods"],state["results"])
     report={"generated_at":datetime.now(JST).isoformat(),
             "mode":"BGM_audio_fingerprint_cuts_review_only",
             "production_changed":False,"references":ref_status,"bundles":[]}
@@ -202,7 +238,10 @@ def main():
         if not group:
             report["bundles"].append({"episode_start":start,"status":"not_found"})
             continue
-        result=analyze_group(group,by_vod.get(str(group["vod_id"])),refs)
+        # One recording must never vote for itself as an independent reference.
+        independent = {ep: audio for ep, audio in refs.items()
+                       if ref_owners.get(ep) != str(group.get("vod_id"))}
+        result=analyze_group(group,by_vod.get(str(group["vod_id"])),independent)
         result["episode_start"]=start
         report["bundles"].append(result)
     Path(args.output).write_text(json.dumps(report,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
