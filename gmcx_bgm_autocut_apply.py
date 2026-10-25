@@ -44,7 +44,13 @@ def report_candidate_valid(row:dict, episode:int, existing:int)->bool:
     proposals=row.get("independent_reference_proposals") or []
     if len(proposals)!=3:
         return False
-    if {int(x.get("reference_episode",-1)) for x in proposals}!={378,388,398}:
+    sources={int(x.get("reference_episode",-1)) for x in proposals}
+    # Any three DIFFERENT available recordings may be used, but at least
+    # one must have a human-verified title-head boundary. The local anchor,
+    # when present, is protected separately.
+    if len(sources)!=3 or not sources.issubset({378,388,398,404}):
+        return False
+    if not sources.intersection({378,388}):
         return False
     if any(int(x.get("support_templates",0))<3 or
            float(x.get("similarity",0))<.74 for x in proposals):

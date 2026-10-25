@@ -67,6 +67,19 @@ class GuardedPublishTests(unittest.TestCase):
             saved=json.loads(paths["LEDGER"].read_text())["vods"]
             self.assertEqual(6965,saved[source]["starts"]["359"])
 
+    def test_current_independent_reference_triplets(self):
+        def row(ids):
+            return {"status":"candidate","existing_start_seconds":10000,
+                    "proposed_start_seconds":10003,
+                    "independent_reference_proposals":[
+                        {"reference_episode":n,"correction_seconds":3.0,
+                         "similarity":.96,"support_templates":5} for n in ids]}
+        self.assertTrue(publisher.report_candidate_valid(row([388,398,404]), 385, 10000))
+        self.assertTrue(publisher.report_candidate_valid(row([378,398,404]), 395, 10000))
+        self.assertTrue(publisher.report_candidate_valid(row([378,388,398]), 405, 10000))
+        self.assertFalse(publisher.report_candidate_valid(row([398,404,404]), 405, 10000))
+        self.assertFalse(publisher.report_candidate_valid(row([378,388]), 405, 10000))
+
     def test_previous_conflict_episode_is_held(self):
         self.assertIn(390,publisher.HOLD_EPISODES)
         row={"status":"candidate","existing_start_seconds":10448,
