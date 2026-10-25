@@ -130,7 +130,8 @@ def correlate_one(reference: np.ndarray, observed: np.ndarray) -> dict:
             "strong":len(best),"templates":rows}
 
 
-def analyze_group(result: dict, source: dict, references: dict[int,np.ndarray]) -> dict:
+def analyze_group(result: dict, source: dict, references: dict[int,np.ndarray],
+                  external_calibration: dict[str,float] | None = None) -> dict:
     if result.get("status")!="ready" or not result.get("chapters"):
         return {"status":"skipped","reason":"missing_chapters","rows":[]}
     duration = int(result.get("duration_seconds") or 0)
@@ -147,6 +148,9 @@ def analyze_group(result: dict, source: dict, references: dict[int,np.ndarray]) 
     absolute_mode = not bool(anchor)
     if absolute_mode and int(result.get("episode_start") or -1) != 404:
         return {"status":"needs_local_manual_anchor","rows":[]}
+    if absolute_mode and (external_calibration is None or
+                          set(external_calibration) != {str(ep) for ep in references}):
+        return {"status":"needs_verified_cross_recording_alignment","rows":[]}
     candidates=[x for x in rows if int(x.get("start_seconds") or 0)>WINDOW_BEFORE
                 and int(x.get("start_seconds") or 0)+WINDOW_AFTER < duration]
     url = _lowest_hls_variant(str(source["source_url"]))
@@ -181,9 +185,11 @@ def analyze_group(result: dict, source: dict, references: dict[int,np.ndarray]) 
             calibrations[str(ref_ep)]=float(np.median([
                 r["reference_matches"][str(ref_ep)]["raw_delay_seconds"] for r in verified]))
     if absolute_mode:
-        # Both manual references are independently aligned to the chapter start.
-        # The third BGM-derived reference must agree; do not invent a calibration.
-        calibrations = {str(ep): 0.0 for ep in references}
+        # Calibrate the three reference openings against the SAME separately
+        # confirmed #378 start. Different recordings' intros have different
+        # offsets; assuming all start at music second zero incorrectly labels
+        # every candidate a disagreement.
+        calibrations = dict(external_calibration)
     confirmed_eps=set(int(x["episode"]) for x in anchor)
     for row in all_rows:
         proposals=[]
@@ -213,7 +219,8 @@ def analyze_group(result: dict, source: dict, references: dict[int,np.ndarray]) 
             "proposed_start_seconds":row.get("proposed_start_seconds"),
             "reference_votes":len(proposals)},ensure_ascii=False),flush=True)
     return {"status":"review_only","calibration_from_manual_anchor":calibrations,
-            "calibration_mode": "absolute-manual-references" if absolute_mode else "local-manual-anchor",
+            "calibration_mode": "cross-recording-manual-anchor" if absolute_mode else "local-manual-anchor",
+            "external_calibration_anchor_episode": 378 if absolute_mode else None,
             "external_manual_reference_episodes": sorted(MANUALLY_VERIFIED_REFERENCES.intersection(references)),
             "manual_anchor_episodes":sorted(confirmed_eps),
             "reference_sources_used":len(references),
@@ -233,6 +240,7 @@ def main():
             "mode":"BGM_audio_fingerprint_cuts_review_only",
             "production_changed":False,"references":ref_status,"bundles":[]}
     by_vod={str(x.get("vod_id")):x for x in catalog["vods"]}
+    analyzed = {}
     for start in args.ranges:
         group=next((r for r in state["results"] if r.get("episode_start")==start),None)
         if not group:
@@ -241,8 +249,26 @@ def main():
         # One recording must never vote for itself as an independent reference.
         independent = {ep: audio for ep, audio in refs.items()
                        if ref_owners.get(ep) != str(group.get("vod_id"))}
-        result=analyze_group(group,by_vod.get(str(group["vod_id"])),independent)
+        external_calibration = None
+        if start == 404:
+            # Source #377 contains manually confirmed #378. Its independent
+            # BGM offsets for #388 and #398 were measured against THAT SAME
+            # chapter. The #378 reference is the reference baseline (0s).
+            reference_anchor = analyzed.get(377, {})
+            measured = reference_anchor.get("calibration_from_manual_anchor") or {}
+            if (reference_anchor.get("status") == "review_only"
+                    and 378 in reference_anchor.get("manual_anchor_episodes", [])
+                    and set(independent) == {378,388,398}
+                    and all(str(ep) in measured for ep in (388,398))):
+                external_calibration = {
+                    "378": 0.0,
+                    "388": float(measured["388"]),
+                    "398": float(measured["398"]),
+                }
+        result=analyze_group(group,by_vod.get(str(group["vod_id"])),independent,
+                             external_calibration=external_calibration)
         result["episode_start"]=start
+        analyzed[start]=result
         report["bundles"].append(result)
     Path(args.output).write_text(json.dumps(report,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
     print("SUMMARY",json.dumps([{"start":r.get("episode_start"),"status":r["status"],

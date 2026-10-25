@@ -79,6 +79,7 @@ jobs:
           python -m unittest -q test_gmcx_bgm_autocut.py test_gmcx_bgm_autocut_apply.py
           cp kick_gmcx_chapters.json /tmp/kick_gmcx_chapters_before_bgm.json
           cp kick_gmcx_chapters.m3u /tmp/kick_gmcx_chapters_before_bgm.m3u
+          # Cross-recording BGM offset calibration uses confirmed #378 as baseline.
           # Modern source fixture regression covered (377/378/379); #417+
           # remains excluded until specials are verified.
           # All current bundles are checked with independent recordings; #417+

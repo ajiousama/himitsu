@@ -73,5 +73,33 @@ class BgmCuts(unittest.TestCase):
         self.assertEqual(per[390]["status"],"disagreement")
 
 
+    def test_404_requires_shared_external_reference_alignment(self):
+        group = {"episode_start":404,"status":"ready","duration_seconds":7500,
+                 "chapters":[
+                     {"kind":"episode","episode":404,"start_seconds":0,"method":"user-test-broadcast-order","confidence":"provisional"},
+                     {"kind":"episode","episode":405,"start_seconds":3480,"method":"user-test-broadcast-order","confidence":"provisional"},
+                 ]}
+        refs={k:np.array([[k]],dtype=np.float32) for k in (378,388,398)}
+        source={"playable":True,"source_url":"https://example.invalid/a.m3u8"}
+        no_cal=ac.analyze_group(group,source,refs)
+        self.assertEqual(no_cal["status"],"needs_verified_cross_recording_alignment")
+        def decode(url, start, duration):
+            return np.array([405],dtype=np.float32)
+        raw={378:2.0,388:-4.5,398:-4.8}
+        def compare(reference,observed):
+            ep=int(reference[0,0])
+            return {"status":"matched","raw_delay_seconds":raw[ep],
+                    "mean_similarity":.92,"strong":5}
+        with patch.object(ac,"_lowest_hls_variant",return_value="local"), \
+             patch.object(ac,"read_audio",side_effect=decode), \
+             patch.object(ac,"fingerprint",side_effect=lambda x:x), \
+             patch.object(ac,"correlate_one",side_effect=compare):
+            result=ac.analyze_group(group,source,refs,
+                                    external_calibration={"378":0.0,"388":-6.5,"398":-6.8})
+        self.assertEqual(result["status"],"review_only")
+        self.assertEqual(result["calibration_mode"],"cross-recording-manual-anchor")
+        self.assertEqual(result["candidates"],1)
+        self.assertEqual(result["rows"][0]["proposed_start_seconds"],3482)
+
 if __name__=="__main__":
     unittest.main()

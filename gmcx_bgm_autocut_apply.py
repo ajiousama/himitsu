@@ -120,7 +120,8 @@ def main():
             # and a third independently BGM-confirmed source.
             external_manual = (
                 start_ep == 404
-                and trial.get("calibration_mode") == "absolute-manual-references"
+                and trial.get("calibration_mode") == "cross-recording-manual-anchor"
+                and trial.get("external_calibration_anchor_episode") == 378
                 and set(trial.get("external_manual_reference_episodes") or []) == {378,388}
             )
             if local_manual or external_manual:
