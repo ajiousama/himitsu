@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-25",
-  "generated_at": "2026-10-25T09:42:46.417474+09:00",
+  "generated_at": "2026-10-25T09:44:46.418242+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261025.json",
   "schedule_checked_at": "2026-10-25T09:42:46.417474+09:00",
@@ -19,7 +19,7 @@
   "alert_lead_minutes": 30,
   "card_count": 14,
   "held_count": 14,
-  "visible_count": 4,
+  "visible_count": 5,
   "active_count": 3,
   "ended_kept": [],
   "seed_required": false,
@@ -36,7 +36,7 @@
     },
     "day": {
       "held": 8,
-      "acquired": 1,
+      "acquired": 2,
       "active": 0,
       "ended": 0,
       "seed_required": 0,
@@ -53,7 +53,7 @@
   },
   "cloud_acquisition": {
     "requested": 11,
-    "fetched": 4,
+    "fetched": 5,
     "failures": [],
     "deferred": [
       {
@@ -70,11 +70,6 @@
         "jcd": "06",
         "name": "浜名湖",
         "start": "2026-10-25T10:03:00+09:00"
-      },
-      {
-        "jcd": "08",
-        "name": "常滑",
-        "start": "2026-10-25T09:45:00+09:00"
       },
       {
         "jcd": "09",
@@ -102,6 +97,22 @@
     "kind": "healthy"
   },
   "streams": {
+    "boat.tokoname": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/0a0205406e0b449e96bde27dcec6c970/4efdd5ab5d1a48b99948a0559e54f5e1/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MzA2MjgwMCwic3RhcnQiOjE3OTI4ODkxMDAsImlvcyI6MTgsImNwIjoiMjE1MDg0NzAwXzIxNTEyNzg5OSIsInBwdyI6IjQwayJ9.saKp3vQxuDxJIeRIU6gTlhVXq0kjecCGyswH8cbVp90",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-10-25T09:45:13.759315+09:00",
+      "checked_at": "2026-10-25T09:45:13.759315+09:00",
+      "first_verified_at": "2026-10-25T09:45:13.759315+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 8665861,
+        "last_segment": "/0a0205406e0b449e96bde27dcec6c970/4efdd5ab5d1a48b99948a0559e54f5e1/manifest_4_8665863.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
+    },
     "boat.mikuni": {
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/a6b53de1d35546de8bc101e32e91e513/623382bbc6e442bdb005152440c48638/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MzA1OTIwMCwic3RhcnQiOjE3OTI4ODM3NjAsImlvcyI6MTgsImNwIjoiMjE1MDc5MzYwXzIxNTEyMjU1OSIsInBwdyI6IjQwayJ9.-9xLq9phnGGDBzgdOwt7CHdJu7rRaj0YhG9UJTCMXNY",
       "source": "automatic acquisition + audio/video decode",
@@ -535,7 +546,7 @@
       "jcd": "08",
       "name": "常滑",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
       "active": false,
       "cancelled": false,
@@ -553,9 +564,9 @@
       "guidance_switch_at": "2026-10-25T16:47:00+09:00",
       "seed_required": false,
       "reverify_due": false,
-      "playback_verified": false,
-      "first_verified_at": null,
-      "ready_before_first_race": false,
+      "playback_verified": true,
+      "first_verified_at": "2026-10-25T09:45:13.759315+09:00",
+      "ready_before_first_race": true,
       "acquire_from": "2026-10-25T07:46:00+09:00",
       "races": [
         {
@@ -619,8 +630,9 @@
           "name": "予選ドリーム戦"
         }
       ],
-      "provider_stream_start": "2026-10-25T09:45:00+09:00",
-      "source": "公式BR配信開始待ち 09:45"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/0a0205406e0b449e96bde27dcec6c970/4efdd5ab5d1a48b99948a0559e54f5e1/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MzA2MjgwMCwic3RhcnQiOjE3OTI4ODkxMDAsImlvcyI6MTgsImNwIjoiMjE1MDg0NzAwXzIxNTEyNzg5OSIsInBwdyI6IjQwayJ9.saKp3vQxuDxJIeRIU6gTlhVXq0kjecCGyswH8cbVp90",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     },
     "boat.tsu": {
       "jcd": "09",
@@ -727,14 +739,14 @@
       "last_race": "14:29",
       "alert_from": "2026-10-25T08:21:00+09:00",
       "next_race": {
-        "race": 3,
-        "start": "09:44"
+        "race": 4,
+        "start": "10:10"
       },
       "stream_window": "live_or_prestart",
       "intermission": null,
       "guidance_switch_at": "2026-10-25T15:14:00+09:00",
       "seed_required": false,
-      "reverify_due": true,
+      "reverify_due": false,
       "playback_verified": true,
       "first_verified_at": "2026-10-25T08:16:19.639466+09:00",
       "ready_before_first_race": true,
