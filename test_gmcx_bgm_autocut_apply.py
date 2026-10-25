@@ -12,32 +12,32 @@ class GuardedPublishTests(unittest.TestCase):
     def test_verified_cuts_untouched_and_consensus_published(self):
         with tempfile.TemporaryDirectory() as d:
             folder=Path(d)
-            source="example-vod-357"
+            source="example-vod-377"
             items=[
-                {"kind":"episode","episode":357,"title":"Ep357","start_seconds":0,
+                {"kind":"episode","episode":377,"title":"Ep377","start_seconds":0,
                  "stop_seconds":3488,"duration_seconds":3488,
                  "replay_url":"https://example.test/?vod=x&start=0&duration=3488",
                  "method":"user-test-broadcast-order","confidence":"provisional"},
-                {"kind":"episode","episode":358,"title":"Ep358","start_seconds":3488,
+                {"kind":"episode","episode":378,"title":"Ep378","start_seconds":3488,
                  "stop_seconds":6968,"duration_seconds":3480,
                  "replay_url":"https://example.test/?vod=x&start=3488&duration=3480",
                  "method":"manual-playback-confirmed","confidence":"confirmed"},
-                {"kind":"episode","episode":359,"title":"Ep359","start_seconds":6968,
+                {"kind":"episode","episode":379,"title":"Ep379","start_seconds":6968,
                  "stop_seconds":10448,"duration_seconds":3480,
                  "replay_url":"https://example.test/?vod=x&start=6968&duration=3480",
                  "method":"manual-playback-offset-propagated","confidence":"provisional"},
-                {"kind":"special","special_key":"357-359-tail","title":"Tail","start_seconds":10448,
+                {"kind":"special","special_key":"377-379-tail","title":"Tail","start_seconds":10448,
                  "stop_seconds":10800,"duration_seconds":352,
                  "replay_url":"https://example.test/?vod=x&start=10448&duration=352",
                  "method":"manual-playback-offset-propagated","confidence":"provisional"},
             ]
-            state={"results":[{"vod_id":source,"episode_start":357,"episode_end":359,
+            state={"results":[{"vod_id":source,"episode_start":377,"episode_end":379,
                               "duration_seconds":10800,"chapters":items}]}
             votes=[{"reference_episode":ep,"correction_seconds":-3.1,
-                    "similarity":.9,"support_templates":5} for ep in (378,388,398)]
-            report={"bundles":[{"episode_start":357,"status":"review_only",
-                 "reference_sources_used":3,"manual_anchor_episodes":[358],
-                 "rows":[{"episode":359,"existing_start_seconds":6968,
+                    "similarity":.9,"support_templates":5} for ep in (388,398,404)]
+            report={"bundles":[{"episode_start":377,"status":"review_only",
+                 "reference_sources_used":3,"manual_anchor_episodes":[378],
+                 "rows":[{"episode":379,"existing_start_seconds":6968,
                           "proposed_start_seconds":6965,"status":"candidate",
                           "independent_reference_proposals":votes}]}]}
             play=["#EXTM3U"]
@@ -65,7 +65,7 @@ class GuardedPublishTests(unittest.TestCase):
             self.assertIn("start=6965&duration=3483",
                           paths["M3U"].read_text())
             saved=json.loads(paths["LEDGER"].read_text())["vods"]
-            self.assertEqual(6965,saved[source]["starts"]["359"])
+            self.assertEqual(6965,saved[source]["starts"]["379"])
 
     def test_current_independent_reference_triplets(self):
         def row(ids):
