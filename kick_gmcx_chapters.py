@@ -3823,14 +3823,16 @@ def make_fixed_test_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict
     elif (start_ep, end_ep) == (404, 416) and vod_id == "4b6ff754-ab2f-43b3-bc30-ec3e9f0d8208":
         # User listening review: #404 starts +10s, normally 58:15 each.
         # #409 lasts 56:51, #411 lasts 57:37, then 15-minute year-end
-        # programme. Keep #412 separate and preserve the unknown tail.
+        # programme. User playback: its final seven seconds were in #412.
+        # Preserve #411's end; extend this special by 7s and shift #412+,
+        # including the unclassified tail, to the right by 7s.
         cursor = 10
         for ep in range(404, 417):
             if ep == 412:
                 append_special(
                     "404-416-yearend-15min-after-411",
                     "ゲームセンターCX 年越し15分番組（確認中）",
-                    15 * 60,
+                    15 * 60 + 7,
                 )
             length = (56 * 60 + 51 if ep == 409
                       else 57 * 60 + 37 if ep == 411
