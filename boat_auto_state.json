@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-26",
-  "generated_at": "2026-10-26T06:59:58.056644+09:00",
+  "generated_at": "2026-10-26T07:00:58.000166+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261026.json",
   "schedule_checked_at": "2026-10-26T06:50:58.456535+09:00",
@@ -54,18 +54,17 @@
   "cloud_acquisition": {
     "requested": 2,
     "fetched": 0,
-    "failures": [
-      {
-        "jcd": "21",
-        "name": "芦屋",
-        "error": "cloud and official acquisition unavailable: HTTPError"
-      }
-    ],
+    "failures": [],
     "deferred": [
       {
         "jcd": "10",
         "name": "三国",
         "start": "2026-10-26T08:12:00+09:00"
+      },
+      {
+        "jcd": "21",
+        "name": "芦屋",
+        "start": "2026-10-26T08:00:00+09:00"
       }
     ]
   },
@@ -978,7 +977,8 @@
           "name": "優勝戦"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "provider_stream_start": "2026-10-26T08:00:00+09:00",
+      "source": "公式BR配信開始待ち 08:00"
     },
     "boat.fukuoka": {
       "jcd": "22",
