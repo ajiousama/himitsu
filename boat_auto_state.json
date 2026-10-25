@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-25",
-  "generated_at": "2026-10-25T14:29:46.748069+09:00",
+  "generated_at": "2026-10-25T14:32:46.749107+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261025.json",
   "schedule_checked_at": "2026-10-25T14:26:46.693614+09:00",
@@ -19,8 +19,8 @@
   "alert_lead_minutes": 30,
   "card_count": 14,
   "held_count": 14,
-  "visible_count": 9,
-  "active_count": 9,
+  "visible_count": 8,
+  "active_count": 8,
   "ended_kept": [],
   "seed_required": false,
   "seed_required_venues": [],
@@ -28,9 +28,9 @@
   "phase_counts": {
     "morning": {
       "held": 3,
-      "acquired": 1,
-      "active": 1,
-      "ended": 2,
+      "acquired": 0,
+      "active": 0,
+      "ended": 3,
       "seed_required": 0,
       "cancelled": 0
     },
@@ -52,8 +52,8 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 11,
-    "fetched": 9,
+    "requested": 10,
+    "fetched": 8,
     "failures": [],
     "deferred": [
       {
@@ -152,22 +152,6 @@
         "ok": true,
         "sequence": 8688813,
         "last_segment": "/c4d8d0e976fb472cbde945937fba5d5a/e270c58e3bd747a0bce3cab8c84bae87/manifest_4_8691564.ts",
-        "video_decoded": true,
-        "audio_decoded": true
-      },
-      "consecutive_failures": 0
-    },
-    "boat.mikuni": {
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/a6b53de1d35546de8bc101e32e91e513/623382bbc6e442bdb005152440c48638/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MzA1OTIwMCwic3RhcnQiOjE3OTI4ODM3NjAsImlvcyI6MTgsImNwIjoiMjE1MDc5MzYwXzIxNTEyMjU1OSIsInBwdyI6IjQwayJ9.-9xLq9phnGGDBzgdOwt7CHdJu7rRaj0YhG9UJTCMXNY",
-      "source": "automatic acquisition + audio/video decode",
-      "acquired_at": "2026-10-25T08:16:19.639466+09:00",
-      "checked_at": "2026-10-25T14:30:14.116586+09:00",
-      "first_verified_at": "2026-10-25T08:16:19.639466+09:00",
-      "playback_verified": true,
-      "probe": {
-        "ok": true,
-        "sequence": 8660085,
-        "last_segment": "/a6b53de1d35546de8bc101e32e91e513/623382bbc6e442bdb005152440c48638/manifest_4_8663826.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -778,9 +762,9 @@
       "jcd": "10",
       "name": "三国",
       "held": true,
-      "visible": true,
-      "ended": false,
-      "active": true,
+      "visible": false,
+      "ended": true,
+      "active": false,
       "cancelled": false,
       "mode": "morning",
       "mode_label": "モーニング",
@@ -788,11 +772,11 @@
       "last_race": "14:29",
       "alert_from": "2026-10-25T08:21:00+09:00",
       "next_race": null,
-      "stream_window": "live_or_prestart",
+      "stream_window": "ended_hidden",
       "intermission": null,
       "guidance_switch_at": "2026-10-25T15:14:00+09:00",
       "seed_required": false,
-      "reverify_due": true,
+      "reverify_due": false,
       "playback_verified": true,
       "first_verified_at": "2026-10-25T08:16:19.639466+09:00",
       "ready_before_first_race": true,
@@ -859,9 +843,7 @@
           "name": "カニ坊選抜"
         }
       ],
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/a6b53de1d35546de8bc101e32e91e513/623382bbc6e442bdb005152440c48638/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MzA1OTIwMCwic3RhcnQiOjE3OTI4ODM3NjAsImlvcyI6MTgsImNwIjoiMjE1MDc5MzYwXzIxNTEyMjU1OSIsInBwdyI6IjQwayJ9.-9xLq9phnGGDBzgdOwt7CHdJu7rRaj0YhG9UJTCMXNY",
-      "source": "automatic acquisition + audio/video decode",
-      "token_expired": false
+      "source": "automatic cloud SEED pending"
     },
     "boat.biwako": {
       "jcd": "11",
@@ -884,7 +866,7 @@
       "intermission": null,
       "guidance_switch_at": "2026-10-25T16:27:00+09:00",
       "seed_required": false,
-      "reverify_due": false,
+      "reverify_due": true,
       "playback_verified": true,
       "first_verified_at": "2026-10-25T09:50:13.918691+09:00",
       "ready_before_first_race": true,
