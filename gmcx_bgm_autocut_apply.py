@@ -14,6 +14,7 @@ import json
 import re
 from pathlib import Path
 from kick_gmcx_chapters import _apply_refined_chapter_starts
+from gmcx_cut_timing import check_chapter_time
 
 REPORT=Path("gmcx_bgm_autocut_review.json")
 LEDGER=Path("gmcx_bgm_auto_starts.json")
@@ -107,6 +108,7 @@ def main():
             i,c=existing_by_ep[ep]
             if protected(c):continue
             if abs(old_val-int(c["start_seconds"]))>MAX_CORRECTION:continue
+            if not check_chapter_time(chapters,i,old_val,duration)["ok"]:continue
             chosen[k]=old_val
 
         trial=incoming.get(start_ep,{})
@@ -132,7 +134,11 @@ def main():
                     if protected(c):continue
                     original_start=int(c.get("start_seconds") or 0)
                     if report_candidate_valid(row,ep,original_start):
-                        chosen[str(ep)]=int(row["proposed_start_seconds"])
+                        timing=check_chapter_time(chapters,i,int(row["proposed_start_seconds"]),duration)
+                        if timing["ok"]:
+                            chosen[str(ep)]=int(row["proposed_start_seconds"])
+                        else:
+                            print(f"::warning::GCCX #{ep} failed timing guard: {timing['status']}")
 
         # A single invalid boundary must never prevent other valid chapters
         # from retaining their already-verified positions.

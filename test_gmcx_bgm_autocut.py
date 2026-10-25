@@ -100,6 +100,7 @@ class BgmCuts(unittest.TestCase):
         self.assertEqual(result["calibration_mode"],"cross-recording-manual-anchor")
         self.assertEqual(result["candidates"],1)
         self.assertEqual(result["rows"][0]["proposed_start_seconds"],3482)
+        self.assertEqual(result["rows"][0]["timing_check"]["status"],"audio_and_time_consistent")
 
 if __name__=="__main__":
     unittest.main()

@@ -19,6 +19,7 @@ from pathlib import Path
 import numpy as np
 from gmcx_auto_cut_audio import read_audio, fingerprint, SAMPLE_RATE, HOP
 from kick_gmcx_chapters import _lowest_hls_variant
+from gmcx_cut_timing import check_chapter_time
 
 # Title samples from independent, currently present KICK VOD files.
 # 378 and 388 were manually confirmed; 398 has a previously BGM-refined start.
@@ -191,6 +192,8 @@ def analyze_group(result: dict, source: dict, references: dict[int,np.ndarray],
         # every candidate a disagreement.
         calibrations = dict(external_calibration)
     confirmed_eps=set(int(x["episode"]) for x in anchor)
+    episode_index={int(ch["episode"]):i for i,ch in enumerate(result["chapters"])
+                   if ch.get("kind")=="episode" and ch.get("episode")}
     for row in all_rows:
         proposals=[]
         for ref_ep, calibration in calibrations.items():
@@ -215,9 +218,16 @@ def analyze_group(result: dict, source: dict, references: dict[int,np.ndarray],
                 row["proposed_start_seconds"]=int(round(row["existing_start_seconds"]+shift))
                 row["proposed_shift_seconds"]=round(shift,2)
                 row["status"]="candidate" if abs(shift)<=MAX_CUT_SHIFT else "large_shift_review"
+                if row["status"]=="candidate":
+                    timing=check_chapter_time(result["chapters"],episode_index[row["episode"]],
+                                              row["proposed_start_seconds"],duration)
+                    row["timing_check"]=timing
+                    if not timing["ok"]:
+                        row["status"]="time_inconsistent"
         print("CUT",json.dumps({"episode":row["episode"],"status":row["status"],
             "proposed_start_seconds":row.get("proposed_start_seconds"),
-            "reference_votes":len(proposals)},ensure_ascii=False),flush=True)
+            "reference_votes":len(proposals),
+            "time_status":row.get("timing_check",{}).get("status")},ensure_ascii=False),flush=True)
     return {"status":"review_only","calibration_from_manual_anchor":calibrations,
             "calibration_mode": "cross-recording-manual-anchor" if absolute_mode else "local-manual-anchor",
             "external_calibration_anchor_episode": 378 if absolute_mode else None,
