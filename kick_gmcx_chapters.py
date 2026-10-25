@@ -3825,7 +3825,9 @@ def make_fixed_test_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict
         # then use 58m15s for each chapter. Not yet playback-confirmed.
         cursor = 10
         for ep in range(404, 417):
-            append_episode(ep, 58 * 60 + 15)
+            # User playback check: #409 starts 56:51 after #408's start.
+            # All following regular chapters resume the 58:15 cadence.
+            append_episode(ep, 56 * 60 + 51 if ep == 408 else 58 * 60 + 15)
 
     elif (start_ep, end_ep) == (307, 316):
         # User playback confirmed a separate 15-minute programme between

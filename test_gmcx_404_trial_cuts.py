@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""#404-416 playback trial: 10s start and 58m15s steps."""
+"""#404-416 playback trial: #409 at 56:51 after #408, others 58:15."""
 import unittest
 from kick_gmcx_chapters import make_fixed_test_chapters
 
@@ -9,13 +9,16 @@ class TrialCuts(unittest.TestCase):
         rows=make_fixed_test_chapters(VOD,404,416,{})
         self.assertEqual(len(rows),14)
         for i,row in enumerate(rows[:-1]):
-            start=10+i*3495
+            ep=404+i
+            start=10+i*3495-(84 if ep>=409 else 0)
+            length=3411 if ep==408 else 3495
             self.assertEqual((row["episode"],row["start_seconds"],row["stop_seconds"],row["duration_seconds"]),
-                             (404+i,start,start+3495,3495))
+                             (ep,start,start+length,length))
             self.assertEqual(row["confidence"],"provisional")
-            self.assertIn(f"start={start}&duration=3495",row["replay_url"])
+            self.assertIn(f"start={start}&duration={length}",row["replay_url"])
+        self.assertEqual(rows[5]["start_seconds"]-rows[4]["start_seconds"],56*60+51)
         self.assertEqual((rows[-1]["special_key"],rows[-1]["start_seconds"],rows[-1]["stop_seconds"],rows[-1]["duration_seconds"]),
-                         ("404-416-unclassified-tail",45445,57956,12511))
+                         ("404-416-unclassified-tail",45361,57956,12595))
     def test_does_not_affect_other_vods(self):
         rows=make_fixed_test_chapters({**VOD,"vod_id":"other"},404,416,{})
         self.assertEqual((rows[0]["start_seconds"],rows[1]["start_seconds"]),(0,3480))
