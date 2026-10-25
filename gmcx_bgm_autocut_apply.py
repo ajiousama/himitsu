@@ -85,6 +85,9 @@ def main():
         duration=int(group.get("duration_seconds") or 0)
         if start_ep not in {377,387,397,404} or not vod_id or duration<=0:
             continue
+        if start_ep == 404 and vod_id == "4b6ff754-ab2f-43b3-bc30-ec3e9f0d8208":
+            # Keep the user's 10s + 58m15s test grid until playback feedback.
+            continue
         chapters=group.get("chapters") or []
         if len(chapters)<2: continue
 

@@ -3820,6 +3820,13 @@ def make_fixed_test_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict
                 )
             append_episode(ep)
 
+    elif (start_ep, end_ep) == (404, 416) and vod_id == "4b6ff754-ab2f-43b3-bc30-ec3e9f0d8208":
+        # User's provisional playback check: offset the source head by 10s,
+        # then use 58m15s for each chapter. Not yet playback-confirmed.
+        cursor = 10
+        for ep in range(404, 417):
+            append_episode(ep, 58 * 60 + 15)
+
     elif (start_ep, end_ep) == (307, 316):
         # User playback confirmed a separate 15-minute programme between
         # #310 and #311. Keep it as an independent entry; do not absorb it
