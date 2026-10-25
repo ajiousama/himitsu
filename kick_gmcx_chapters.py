@@ -3841,6 +3841,14 @@ def make_fixed_test_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict
                       else 57 * 60 if ep == 416
                       else 58 * 60 + 15)
             append_episode(ep, length)
+        # User playback identified a 2:59:35 Metal Gear Solid DVD special
+        # immediately after #416. Its ending is fixed; do not infer a
+        # first/second-half boundary without an actual visual/audio cue.
+        append_special(
+            "2022-dvdbox19-metal-gear-solid",
+            "DVD-BOX19 特典映像「METAL GEAR SOLID」（前後編構成未確認）",
+            2 * 3600 + 59 * 60 + 35,
+        )
 
     elif (start_ep, end_ep) == (307, 316):
         # User playback confirmed a separate 15-minute programme between
@@ -3867,10 +3875,6 @@ def make_fixed_test_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict
             (start_ep, end_ep) == (387, 396)
             and vod_id == "a640717e-6b99-4a10-a0d4-152d50117319"
         )
-        is_metal_gear_tail = (
-            (start_ep, end_ep) == (404, 416)
-            and vod_id == "4b6ff754-ab2f-43b3-bc30-ec3e9f0d8208"
-        )
         chapters.append({
             "kind": "special",
             "special_key": (
@@ -3880,8 +3884,8 @@ def make_fixed_test_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict
             "title": (
                 "SP51 400分生放送！大予習SP"
                 if is_400min_preview
-                else "メタルギアソリッド（以降の追加映像・終了位置未確認）"
-                if is_metal_gear_tail
+                else "GMCX 第404～416回 後続映像（内容確認待ち）"
+                if (start_ep, end_ep) == (404, 416)
                 else f"GMCX 第{start_ep}～{end_ep}回 追加映像（確認待ち）"
             ),
             "start_seconds": cursor,
@@ -3891,11 +3895,9 @@ def make_fixed_test_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict
             "method": (
                 "user-identified-2025-special"
                 if is_400min_preview
-                else "user-identified-mgs-start-unclassified-tail"
-                if is_metal_gear_tail
                 else "user-test-unclassified-tail"
             ),
-            "confidence": "provisional" if (is_400min_preview or is_metal_gear_tail) else "low",
+            "confidence": "provisional" if is_400min_preview else "low",
         })
 
     # Playback-confirmed offsets for newer KICK bundles.  The #307-316
@@ -4400,6 +4402,9 @@ def _mark_provisional_titles(
         if confirmed:
             row["title_status"] = "confirmed-filelist"
             row["title_source"] = "source-player-filelist"
+        elif row.get("special_key") == "2022-dvdbox19-metal-gear-solid":
+            row["title_status"] = "confirmed-reference"
+            row["title_source"] = "dvd-box19-vol38-bonus-list"
         elif row.get("special_key") == "2024-dvdbox21-star-soldier":
             row["title_status"] = "confirmed-reference"
             row["title_source"] = "official-DVD-BOX21-programme-list"
