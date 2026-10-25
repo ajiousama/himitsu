@@ -3850,6 +3850,16 @@ def make_fixed_test_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict
             "DVD-BOX19 特典映像「METAL GEAR SOLID」（前後編構成未確認）",
             2 * 3600 + 59 * 60 + 35,
         )
+        chapters[-1]["method"] = "user-playback-confirmed-start-and-end"
+        chapters[-1]["confidence"] = "confirmed"
+
+    elif (start_ep, end_ep) == (417, 427) and vod_id == "670c9223-f162-48b1-b684-e7f567d80b48":
+        # Provisional index: auto-refine against real titlecards below, fail closed.
+        # No equal division of the long specials-containing recording.
+        cursor = 0
+        for ep in range(417, 428):
+            append_episode(ep, 58 * 60 + 15)
+            chapters[-1]["method"] = "review-grid-58m15-pending-auto-detection"
 
     elif (start_ep, end_ep) == (307, 316):
         # User playback confirmed a separate 15-minute programme between
@@ -3881,15 +3891,20 @@ def make_fixed_test_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict
             and vod_id == "4b6ff754-ab2f-43b3-bc30-ec3e9f0d8208"
             and cursor == 56930
         )
+        is_417_pending = (start_ep, end_ep) == (417, 427) and vod_id == "670c9223-f162-48b1-b684-e7f567d80b48"
         chapters.append({
             "kind": "special",
             "special_key": (
                 "2025-400min-live-preview-sp51"
-                if is_400min_preview else f"{start_ep}-{end_ep}-unclassified-tail"
+                if is_400min_preview
+                else "417-427-specials-review"
+                if is_417_pending else f"{start_ep}-{end_ep}-unclassified-tail"
             ),
             "title": (
                 "SP51 400分生放送！大予習SP"
                 if is_400min_preview
+                else "サンハトヤ・九州弾丸ツアーなど（特番位置未検証）"
+                if is_417_pending
                 else "GMCX 第404～416回 黒画面（カット候補・要確認）"
                 if is_black_tail_candidate
                 else f"GMCX 第{start_ep}～{end_ep}回 追加映像（確認待ち）"
@@ -3901,9 +3916,14 @@ def make_fixed_test_chapters(vod: dict, start_ep: int, end_ep: int, titles: dict
             "method": (
                 "user-identified-2025-special"
                 if is_400min_preview
+                else "mixed-specials-review-not-yet-detected"
+                if is_417_pending
                 else "user-test-unclassified-tail"
             ),
             "confidence": "provisional" if is_400min_preview else "low",
+            **({"review_status": "special-time-unknown",
+                "expected_specials": ["サンハトヤ完全決着SP", "九州弾丸ツアー"]}
+                if is_417_pending else {}),
             **({
                 "cut_candidate": True,
                 "cut_candidate_status": "pending-full-black-frame-check",
@@ -4492,6 +4512,9 @@ def main() -> int:
         elif not vod.get("vod_id"):
             status = "source_unavailable"
             chapters = []
+        elif (start_ep, end_ep) == (417, 427) and str(vod.get("vod_id")) == "670c9223-f162-48b1-b684-e7f567d80b48":
+            chapters = make_fixed_test_chapters(vod, start_ep, end_ep, titles)
+            status = "ready" if chapters else "ai_required"
         elif (start_ep, end_ep) == (247, 256):
             chapters = make_exact_247_256_chapters(vod, titles)
             status = "ready" if chapters else "ai_required"
@@ -4519,6 +4542,36 @@ def main() -> int:
                 "reason": "source-filelist-exact",
                 "boundary_version": TITLECARD_BOUNDARY_VERSION,
             }
+        elif status == "ready" and chapters and (start_ep, end_ep) == (417, 427):
+            # Existing title-logo & king-caption automatic detector. Since
+            # bonus programmes can shift later starts, accept only >=95%
+            # visual agreement AND <=180s displacement. Reject otherwise.
+            if vod.get("playable") and vod.get("source_url"):
+                scanned, detected_meta = refine_with_titlecard(vod, chapters, previous_result)
+                good = (
+                    detected_meta.get("status") == "applied"
+                    and float(detected_meta.get("coverage") or 0) >= 0.95
+                    and len(scanned) == len(chapters)
+                    and all(
+                        abs(int(scanned[i]["start_seconds"]) - int(chapters[i]["start_seconds"])) <= 180
+                        for i in range(1, 11)
+                    )
+                )
+                if good:
+                    chapters = scanned
+                    titlecard_refinement = detected_meta
+                else:
+                    titlecard_refinement = {
+                        "status": "no_consensus",
+                        "reason": "season30-specials-visual-check-not-conclusive",
+                        "boundary_version": TITLECARD_BOUNDARY_VERSION,
+                        "scan": detected_meta,
+                    }
+            else:
+                titlecard_refinement = {
+                    "status": "skipped", "reason": "source-unavailable",
+                    "boundary_version": TITLECARD_BOUNDARY_VERSION,
+                }
         elif status == "ready" and chapters and (start_ep, end_ep) == (277, 286):
             # The first full scan matched all ten regular episode heads.
             # Reuse that verified chapter map on later runs so scheduled refreshes
