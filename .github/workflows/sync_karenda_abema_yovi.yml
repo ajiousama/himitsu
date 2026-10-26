@@ -1,0 +1,65 @@
+name: Sync karenda ABEMA to yovi
+
+on:
+  workflow_dispatch:
+  schedule:
+    # 03:53 / 09:53 / 15:53 / 21:53 JST.
+    # karenda's usual 07:37 JST update is picked up at 09:53.
+    - cron: "53 */6 * * *"
+  push:
+    branches: [main]
+    paths:
+      - "scripts/sync_karenda_abema_yovi.py"
+      - "scripts/test_sync_karenda_abema_yovi.py"
+      - ".github/workflows/sync_karenda_abema_yovi.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: yovi-karenda-abema-writer
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Validate sync behavior and unrelated source preservation
+        run: python -m unittest discover -s scripts -p 'test_sync_karenda_abema_yovi.py' -v
+
+      - name: Sync ABEMA系 into latest yovi without overwriting other updates
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          for attempt in 1 2 3 4 5; do
+            echo "ABEMA yovi sync attempt ${attempt}/5"
+            git fetch origin main
+            git reset --hard origin/main
+            python scripts/sync_karenda_abema_yovi.py
+            if git diff --quiet -- yovi; then
+              echo "ABEMA系 already matches karenda; nothing to commit"
+              exit 0
+            fi
+            git add -- yovi
+            git commit -m "chore(yovi): sync ABEMA系 with karenda-jp/AbemaTV"
+            if git push origin HEAD:main; then
+              echo "Published yovi ABEMA系 update"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Could not publish yovi ABEMA系 after retries" >&2
+          exit 1
