@@ -159,7 +159,9 @@ def main():
         raise SystemExit("Retired HARUKA entry detected in FreeWiFi; refusing publish")
     if "naori" in updated.lower():
         raise SystemExit("Retired NAORI entry detected in FreeWiFi; refusing publish")
-    updated = position_newblog_vod(updated)
+    # Never restore demoted newblog LIVE/VOD to FreeWiFi.
+    if "（newblog系）" in updated or "newblog.vod." in updated:
+        raise RuntimeError("demoted newblog source returned to FreeWiFi")
     FREEWIFI.write_text(updated.rstrip() + "\n", encoding="utf-8")
     print(
         f"TV synced from tv/playlist.m3u; manual TV block preserved; "
