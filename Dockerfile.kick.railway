@@ -1,0 +1,8 @@
+# Isolated KICK/GCCX resolver. Does not run the unrelated repository Procfile.
+FROM node:22-alpine
+RUN apk add --no-cache ffmpeg
+WORKDIR /app
+COPY kick_render_server.js kick_channels.json ./
+ENV NODE_ENV=production
+EXPOSE 8080
+CMD ["node", "kick_render_server.js"]
