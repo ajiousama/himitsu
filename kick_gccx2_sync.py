@@ -10,7 +10,7 @@ LIVE_OUT = Path("vod5/freewifi_live.m3u")
 STATE_OUT = Path("vod5/kick_live_state.json")
 
 PROXIES = {
-    "kick.gccx2": "https://kick-resolver.onrender.com/kick?ch=gccx2",
+    "kick.gccx2": "https://kick-resolver-production.up.railway.app/kick?ch=gccx2",
     "kick.nogizaka": "https://himitsu-six.vercel.app/api/kick?ch=nogizaka",
 }
 ORDER = ["kick.gccx2", "kick.nogizaka"]

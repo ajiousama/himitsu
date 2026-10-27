@@ -14,7 +14,7 @@ OUT_JSON = Path("kick_replay.json")
 OUT_M3U = Path("kick_replay.m3u")
 JST = timezone(timedelta(hours=9))
 UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/140 Safari/537.36"
-REPLAY_BASE = "https://kick-resolver.onrender.com/kick?vod="
+REPLAY_BASE = "https://kick-resolver-production.up.railway.app/kick?vod="
 MAX_VODS_PER_CHANNEL = 12
 
 
@@ -223,7 +223,7 @@ def normalize_vod(vod_id, listed_obj, channel):
         "source_url": source_url if source_ok else None,
         "playable": source_alive,
         "ready_for_publish": ready_for_publish,
-        # Whole VODs can go directly to KICK HLS. The stable Render resolver is kept
+        # Whole VODs can go directly to KICK HLS. The stable Railway resolver is kept
         # only as a fallback and for chapter/clip slicing.
         "replay_url": source_url if ready_for_publish else resolver_url,
         "resolver_url": resolver_url,
@@ -292,7 +292,7 @@ def main():
     generated_at = datetime.now(JST).isoformat()
 
     # Preserve generated_at when nothing meaningful changed. This keeps the
-    # hourly watcher from committing and redeploying Render for timestamp-only
+    # hourly watcher from committing and redeploying Railway for timestamp-only
     # refreshes.
     if OUT_JSON.exists():
         try:

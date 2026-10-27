@@ -7,7 +7,7 @@ const { URL } = require("url");
 const channels = require("./kick_channels.json");
 const PORT = Number(process.env.PORT || 10000);
 const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/140 Safari/537.36";
-const VERSION = "2026-10-12-render-v16-kick-precise-seek";
+const VERSION = "2026-10-27-railway-v17-kick-precise-seek";
 
 async function getJson(url){for(let a=0;a<3;a++){try{const r=await fetch(url,{headers:{accept:"application/json, text/plain, */*","user-agent":UA,referer:"https://kick.com/","cache-control":"no-cache"},cache:"no-store"});if(r.ok){try{return await r.json()}catch{}}}catch{}if(a<2)await new Promise(r=>setTimeout(r,300*(a+1)))}return null}
 async function getJsonHeaders(url,extra={}){for(let a=0;a<3;a++){try{const r=await fetch(url,{headers:{accept:"application/json, text/plain, */*","user-agent":UA,"cache-control":"no-cache",...extra},cache:"no-store"});if(r.ok){try{return await r.json()}catch{}}}catch{}if(a<2)await new Promise(r=>setTimeout(r,300*(a+1)))}return null}
