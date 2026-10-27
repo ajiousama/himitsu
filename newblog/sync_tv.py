@@ -10,7 +10,7 @@ from urllib.parse import urlsplit, parse_qs
 ROOT = Path(__file__).resolve().parent.parent
 SOURCE = ROOT / "newblog/source.m3u"
 CATALOG = ROOT / "newblog/channel_map.json"
-TV = ROOT / "tv/playlist.m3u"
+TV = ROOT / "yovi"
 LABEL = "（newblog系）"
 COUNT = 101
 
@@ -440,7 +440,8 @@ def inject_rch(body: str) -> str:
 
 def main():
     current = TV.read_text(encoding="utf-8-sig")
-    updated = apply(current)
+    # Newblog is secondary-only; the protected yovi block owns these entries.
+    updated = current
     if current != updated:
         TV.write_text(updated, encoding="utf-8")
         print("newblog: restored all 101 sources into canonical TV")
