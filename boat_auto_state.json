@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-27",
-  "generated_at": "2026-10-27T09:53:52.118816+09:00",
+  "generated_at": "2026-10-27T09:54:52.217645+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261027.json",
   "schedule_checked_at": "2026-10-27T09:44:52.164672+09:00",
@@ -19,7 +19,7 @@
   "alert_lead_minutes": 30,
   "card_count": 14,
   "held_count": 14,
-  "visible_count": 4,
+  "visible_count": 5,
   "active_count": 3,
   "ended_kept": [],
   "seed_required": false,
@@ -36,7 +36,7 @@
     },
     "day": {
       "held": 8,
-      "acquired": 2,
+      "acquired": 3,
       "active": 1,
       "ended": 0,
       "seed_required": 0,
@@ -53,7 +53,7 @@
   },
   "cloud_acquisition": {
     "requested": 10,
-    "fetched": 4,
+    "fetched": 5,
     "failures": [],
     "deferred": [
       {
@@ -70,11 +70,6 @@
         "jcd": "05",
         "name": "多摩川",
         "start": "2026-10-27T10:00:00+09:00"
-      },
-      {
-        "jcd": "09",
-        "name": "津",
-        "start": "2026-10-27T09:55:00+09:00"
       },
       {
         "jcd": "13",
@@ -108,6 +103,22 @@
         "ok": true,
         "sequence": 8694661,
         "last_segment": "/e9b9e948cee14f3ea4a8b94b7ea495af/8d74f08fa2074535bfd4fae622d50cb2/manifest_4_8694723.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
+    },
+    "boat.tsu": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/33376260b68f4864b0134fbfe55bc3be/3fca679a9e7e4671bf3cec90b12c12ea/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MzIzNTYwMCwic3RhcnQiOjE3OTMwNjI1MDAsImlvcyI6MTgsImNwIjoiMjE1MjU4MTAwXzIxNTMwMTI5OSIsInBwdyI6IjQwayJ9.yKl4rCZgxJKj62IUdarh13Zr-AIpWGLjPqHzlaucQzg",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-10-27T09:55:19.516783+09:00",
+      "checked_at": "2026-10-27T09:55:19.516783+09:00",
+      "first_verified_at": "2026-10-27T09:55:19.516783+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 8717613,
+        "last_segment": "/33376260b68f4864b0134fbfe55bc3be/3fca679a9e7e4671bf3cec90b12c12ea/manifest_4_8717616.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -712,7 +723,7 @@
       "jcd": "09",
       "name": "津",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
       "active": false,
       "cancelled": false,
@@ -730,9 +741,9 @@
       "guidance_switch_at": "2026-10-27T17:00:00+09:00",
       "seed_required": false,
       "reverify_due": false,
-      "playback_verified": false,
-      "first_verified_at": null,
-      "ready_before_first_race": false,
+      "playback_verified": true,
+      "first_verified_at": "2026-10-27T09:55:19.516783+09:00",
+      "ready_before_first_race": true,
       "acquire_from": "2026-10-27T07:58:00+09:00",
       "races": [
         {
@@ -796,8 +807,9 @@
           "name": "準優勝戦"
         }
       ],
-      "provider_stream_start": "2026-10-27T09:55:00+09:00",
-      "source": "公式BR配信開始待ち 09:55"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/33376260b68f4864b0134fbfe55bc3be/3fca679a9e7e4671bf3cec90b12c12ea/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MzIzNTYwMCwic3RhcnQiOjE3OTMwNjI1MDAsImlvcyI6MTgsImNwIjoiMjE1MjU4MTAwXzIxNTMwMTI5OSIsInBwdyI6IjQwayJ9.yKl4rCZgxJKj62IUdarh13Zr-AIpWGLjPqHzlaucQzg",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     },
     "boat.mikuni": {
       "jcd": "10",
