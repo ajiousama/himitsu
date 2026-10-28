@@ -45,6 +45,9 @@ def strip_newblog(text):
     output = []
     i = 0
     while i < len(lines):
+        if lines[i].startswith("#EXTM3U") and "haru.charandom.blog" in lines[i]:
+            i += 1
+            continue
         if lines[i].strip() == VOD_START:
             i += 1
             while i < len(lines) and lines[i].strip() != VOD_END:

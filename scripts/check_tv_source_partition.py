@@ -40,7 +40,8 @@ def check():
     for label, rows in (("freewifi",free),("tv",tv),("rakuten",rch)):
         leaked = [cid for cid,tag,url in rows if ("（newblog系）" in tag
                   or 'tvg-id="newblog.vod.' in tag
-                  or "0i4neux01.charandom.blog/stream/jp/" in url)]
+                  or "0i4neux01.charandom.blog/stream/jp/" in url
+                       or "haru-clip?src=" in url or 'tvg-id="haru.vod.' in tag)]
         if leaked:
             raise SystemExit(f"{label}: newblog sources returned: {len(leaked)}")
     for label, rows in (("freewifi",free),("tv",tv),("yovi",yovi),("rakuten",rch)):
@@ -51,6 +52,8 @@ def check():
         if retired:
             raise SystemExit(f"{label}: retired blog returned: {len(retired)}")
     yovi_text = (ROOT / "yovi").read_text(encoding="utf-8-sig")
+    if any("haru.charandom.blog" in x for x in yovi_text.splitlines() if x.startswith("#EXTM3U")):
+        raise SystemExit("yovi: stale HARU EPG playlist header returned")
     if "# === NEWBLOG_VOD_START ===" in yovi_text or "# === NEWBLOG_VOD_END ===" in yovi_text:
         raise SystemExit("yovi: retired newblog VOD markers returned")
     if any("ri.shinori.my.id/" in url for _,_,url in yovi):

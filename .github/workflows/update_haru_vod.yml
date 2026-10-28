@@ -1,99 +1,15 @@
-name: Update HARU VOD
+name: Retired HARU VOD (disabled)
 
+# The former scheduled HARU VOD playlist generator has been disabled.
+# Do not regenerate the removed M3U files.
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '23 * * * *'
-  push:
-    branches: [main]
-    paths:
-      - 'haru/haru_vod.py'
-      - 'haru/haru_vod_clips.py'
-      - 'haru/haru_vod_freewifi.py'
-      - 'haru/haru_vod_favorites.json'
-      - 'haru/build_haru_kai_epg.py'
-      - 'api/haru-clip.js'
-      - 'assets/haru_vod/**'
-      - '.github/workflows/update_haru_vod.yml'
 
 permissions:
-  contents: write
-
-concurrency:
-  group: update-haru-vod-standalone
-  cancel-in-progress: false
+  contents: read
 
 jobs:
-  update:
+  retired:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-      - uses: actions/setup-python@v6
-        with:
-          python-version: '3.12'
-      - name: Build HARU VOD and publish into FreeWiFi on latest main
-        shell: bash
-        run: |
-          set -euo pipefail
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          python - <<'PY'
-          import urllib.request, urllib.error
-          start = '1789312500'
-          urls = [
-              'https://haru.charandom.blog/stream/jp/tv_tokyo/stream-output.m3u8?mode=hls',
-              f'https://haru.charandom.blog/stream/jp/tv_tokyo/stream-output.m3u8?mode=hls&start={start}',
-              f'https://haru.charandom.blog/stream/jp/tv_tokyo/replay.m3u8?mode=hls&start={start}',
-              f'https://akariko-bck1.sankuria.sbs/stream/jp/tv_tokyo/replay.m3u8?start={start}',
-              'https://akariko-bck1.sankuria.sbs/stream/jp/tv_tokyo/stream-output.m3u8?mode=hls',
-          ]
-          print('=== HARU CATCHUP DIAGNOSTIC ===')
-          for url in urls:
-              req = urllib.request.Request(url, headers={
-                  'User-Agent':'Mozilla/5.0 HARU-DIAG/1.0',
-                  'Accept':'application/vnd.apple.mpegurl,application/x-mpegURL,text/plain,*/*',
-                  'Referer':'https://haru.charandom.blog/',
-              })
-              try:
-                  with urllib.request.urlopen(req, timeout=12) as r:
-                      data = r.read(512)
-                      print('DIAG', r.status, len(data), data[:80].decode('utf-8','replace').replace('\n','\\n'), url)
-              except urllib.error.HTTPError as e:
-                  try: body=e.read(160).decode('utf-8','replace').replace('\n','\\n')
-                  except Exception: body=''
-                  print('DIAG HTTP', e.code, body, url)
-              except Exception as e:
-                  print('DIAG ERR', type(e).__name__, str(e), url)
-          print('=== END HARU CATCHUP DIAGNOSTIC ===')
-          PY
-          for attempt in 1 2 3 4 5; do
-            echo "HARU VOD publish attempt $attempt/5"
-            git fetch origin main
-            git reset --hard origin/main
-            python haru/build_haru_kai_epg.py
-            HARU_EPG_URL="file://${GITHUB_WORKSPACE}/haru/haru_kai_epg.xml" python haru/haru_vod.py \
-              --check \
-              --probe-timeout 4 \
-              --max-age-days 14 \
-              --max-per-program 20
-            python haru/haru_vod_clips.py
-            # FreeWiFi injection disabled while HARU/blog is out of service
-            cp haru/haru_vod.m3u haru_vod.m3u
-            cp haru/haru_kai_epg_history.xml haru_kai_epg_history.xml
-            git add haru/haru_vod.m3u haru/haru_kai_epg_history.xml haru_vod.m3u haru_kai_epg_history.xml
-            if git diff --cached --quiet; then
-              echo 'HARU VOD / FreeWiFi already current'
-              exit 0
-            fi
-            git commit -m 'Update HARU VOD in FreeWiFi [skip ci] [skip render]'
-            if git push origin HEAD:main; then
-              echo 'HARU VOD / FreeWiFi published'
-              exit 0
-            fi
-            sleep 2
-          done
-          echo '::error::HARU VOD / FreeWiFi publish failed after retries'
-          exit 1
+      - run: echo 'HARU VOD source retired; automatic updates disabled.'
