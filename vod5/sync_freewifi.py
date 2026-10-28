@@ -1,11 +1,6 @@
 #!/usr/bin/env python3
 from pathlib import Path
 import re
-import sys
-
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from newblog.vod_order import pop_newblog_vod, insert_newblog_vod
-
 FREEWIFI = Path("freewifi")
 LIVE = Path("vod5/freewifi_live.m3u")
 SPECIALS = Path("vod5/freewifi_specials.m3u")
@@ -43,14 +38,11 @@ def replace(text: str, start: str, end: str, payload: str) -> str:
 
 def main():
     text = FREEWIFI.read_text(encoding="utf-8-sig", errors="replace")
-    # NEWBLOG_VOD can sit inside VOD5; lift it before the catalog is replaced.
-    newblog_vod, text = pop_newblog_vod(text)
     text = replace(text, LIVE_START, LIVE_END, managed(LIVE, LIVE_START, LIVE_END))
     text = replace(text, VOD5_START, VOD5_END, playlist_block(PLAYLIST, VOD5_START, VOD5_END))
     # The full VOD5 catalog already contains the GMCX long specials.
     # Remove the legacy separate specials projection to prevent duplicate IDs/URLs.
     text = replace(text, SP_START, SP_END, "")
-    text = insert_newblog_vod(text, newblog_vod)
     FREEWIFI.write_text(text.rstrip() + "\n", encoding="utf-8")
     print("vod5 KICK live/full catalog projections synced without duplicate specials")
 
