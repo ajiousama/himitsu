@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-28",
-  "generated_at": "2026-10-28T13:26:16.993490+09:00",
+  "generated_at": "2026-10-28T13:28:17.049848+09:00",
   "last_update_ok": false,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261028.json",
   "schedule_checked_at": "2026-10-28T13:18:17.048643+09:00",
@@ -23,11 +23,14 @@
   "visible_count": 8,
   "active_count": 8,
   "ended_kept": [],
-  "seed_required": false,
-  "seed_required_venues": [],
+  "seed_required": true,
+  "seed_required_venues": [
+    "江戸川"
+  ],
   "system_errors": [
     "official_cards: TimeoutError",
-    "開催表から場が消失したため当日確認済みの開催表を保持"
+    "開催表から場が消失したため当日確認済みの開催表を保持",
+    "開始時刻が近い開催場の当日中継を取得・再生確認できません"
   ],
   "phase_counts": {
     "morning": {
@@ -43,7 +46,7 @@
       "acquired": 6,
       "active": 6,
       "ended": 0,
-      "seed_required": 0,
+      "seed_required": 1,
       "cancelled": 0
     },
     "night": {
@@ -57,8 +60,13 @@
   },
   "cloud_acquisition": {
     "requested": 11,
-    "fetched": 8,
+    "fetched": 7,
     "failures": [
+      {
+        "jcd": "03",
+        "name": "江戸川",
+        "error": "ValueError: ended VOD playlist is not a live stream"
+      },
       {
         "jcd": "07",
         "name": "蒲郡",
@@ -91,9 +99,9 @@
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/54569c78334a4c57b6548bc6fa950b0d/b76fda63cff34d0aa34c76bbed771c79/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MzMyNTYwMCwic3RhcnQiOjE3OTMxNTA3MDAsImlvcyI6MTgsImNwIjoiMjE1MzQ2MzAwXzIxNTM4OTQ5OSIsInBwdyI6IjQwayJ9.D6AQGl3mo6GboqQMweMcgf0DI2z01lvZvZPc96IoZWw",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-10-28T10:25:44.123243+09:00",
-      "checked_at": "2026-10-28T13:26:44.149694+09:00",
+      "checked_at": "2026-10-28T13:28:44.391588+09:00",
       "first_verified_at": "2026-10-28T10:25:44.123243+09:00",
-      "playback_verified": true,
+      "playback_verified": false,
       "probe": {
         "ok": true,
         "sequence": 8709851,
@@ -101,7 +109,7 @@
         "video_decoded": true,
         "audio_decoded": true
       },
-      "consecutive_failures": 1
+      "consecutive_failures": 2
     },
     "boat.tokoname": {
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/ff15030c3abb406da0bd2689e9360cca/a4a60d8bfd6143169c0f5635fce2279f/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MzMyMjAwMCwic3RhcnQiOjE3OTMxNDgzMDAsImlvcyI6MTgsImNwIjoiMjE1MzQzOTAwXzIxNTM4NzA5OSIsInBwdyI6IjQwayJ9.wlLFvExQsd2yxWRDkl-vzxaCZ1ftdw6PHzlhM0JWlfc",
@@ -328,9 +336,9 @@
       "stream_window": "live_or_prestart",
       "intermission": null,
       "guidance_switch_at": "2026-10-28T16:45:00+09:00",
-      "seed_required": false,
+      "seed_required": true,
       "reverify_due": true,
-      "playback_verified": true,
+      "playback_verified": false,
       "first_verified_at": "2026-10-28T10:25:44.123243+09:00",
       "ready_before_first_race": true,
       "acquire_from": "2026-10-28T08:29:00+09:00",
@@ -1055,14 +1063,14 @@
       "last_race": "16:40",
       "alert_from": "2026-10-28T10:39:00+09:00",
       "next_race": {
-        "race": 6,
-        "start": "13:28"
+        "race": 7,
+        "start": "13:55"
       },
       "stream_window": "live_or_prestart",
       "intermission": null,
       "guidance_switch_at": "2026-10-28T17:25:00+09:00",
       "seed_required": false,
-      "reverify_due": true,
+      "reverify_due": false,
       "playback_verified": true,
       "first_verified_at": "2026-10-28T10:25:44.125000+09:00",
       "ready_before_first_race": true,
