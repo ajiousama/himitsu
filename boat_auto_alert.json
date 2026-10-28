@@ -1,13 +1,19 @@
 {
   "system": "boat-auto-v3",
   "date": "2026-10-29",
-  "checked_at": "2026-10-29T04:41:28.114755+09:00",
+  "checked_at": "2026-10-29T06:05:45.909786+09:00",
   "active": false,
   "kind": "healthy",
   "title": "BOAT自動更新 正常",
   "message": "朝・デイ・ナイターを自動取得中です。",
   "seed_required_venues": [],
   "system_errors": [],
-  "cloud_failures": [],
+  "cloud_failures": [
+    {
+      "jcd": "14",
+      "name": "鳴門",
+      "error": "cloud and official acquisition unavailable: HTTPError"
+    }
+  ],
   "recovery": "automatic retry; no manual SEED dependency"
 }
