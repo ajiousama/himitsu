@@ -222,9 +222,7 @@ jobs:
             python kick_gccx2_sync.py
 
             # Keep terrestrial/BS/CS source groups stable after every full publish.
-            python newblog/sync_yovi.py
             python group_freewifi_sources.py
-            python newblog/sync_yovi.py
           python scripts/retire_haruka_freewifi.py
             python tv/sync_freewifi.py
             python radio_tv_nationwide_freewifi.py
