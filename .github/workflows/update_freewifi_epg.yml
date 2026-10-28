@@ -128,7 +128,7 @@ jobs:
       - name: Sync canonical subsystem projections
         run: |
           python newblog/sync_yovi.py
-          python scripts/retire_haruka_freewifi.py
+            python scripts/retire_haruka_freewifi.py
           python tv/sync_freewifi.py
           python radio_tv_nationwide_freewifi.py
           python radio/sync_freewifi.py

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Guard the 2026-10-28 split: newblog only in yovi; FreeWiFi retains proven alternatives."""
+"""Verify retired blogs stay absent while approved YoiTV/5002/Shinori remain."""
 from pathlib import Path
 import re
 
@@ -7,7 +7,6 @@ ROOT = Path(__file__).resolve().parent.parent
 REQUIRED_SHINORI = 66
 REQUIRED_FREEWIFI_YOITV = 49
 REQUIRED_YOVI_YOITV = 75
-REQUIRED_NEWBLOG = 101
 ALLOWED_FREEWIFI_CS_YOITV = frozenset({
     "Dlife(ディーライフ)_jp","FIGHTING-TV-サムライ_jp",
     "MUSIC-ON!-TV(エムオン!)_jp","TBSチャンネル1_jp","TBSチャンネル2_jp",
@@ -44,13 +43,16 @@ def check():
                   or "0i4neux01.charandom.blog/stream/jp/" in url)]
         if leaked:
             raise SystemExit(f"{label}: newblog sources returned: {len(leaked)}")
-    live = [(cid,tag,url) for cid,tag,url in yovi if "（newblog系）" in tag]
-    if len(live) != REQUIRED_NEWBLOG or len({url for _,_,url in live}) != REQUIRED_NEWBLOG:
-        raise SystemExit(f"yovi: expected 101 unique newblog channels, found {len(live)}")
+    for label, rows in (("freewifi",free),("tv",tv),("yovi",yovi),("rakuten",rch)):
+        retired = [(cid,url) for cid,tag,url in rows
+                   if ("（newblog系）" in tag or 'tvg-id="newblog.vod.' in tag
+                       or "haru.charandom.blog/stream/jp/" in url
+                       or "0i4neux01.charandom.blog/stream/jp/" in url)]
+        if retired:
+            raise SystemExit(f"{label}: retired blog returned: {len(retired)}")
     yovi_text = (ROOT / "yovi").read_text(encoding="utf-8-sig")
-    if yovi_text.count("# === NEWBLOG_VOD_START ===") != 1 or yovi_text.count("# === NEWBLOG_VOD_END ===") != 1:
-        raise SystemExit("yovi: managed newblog VOD block missing")
-    # The 14-day VOD shelf may legitimately become empty when recordings expire.
+    if "# === NEWBLOG_VOD_START ===" in yovi_text or "# === NEWBLOG_VOD_END ===" in yovi_text:
+        raise SystemExit("yovi: retired newblog VOD markers returned")
     if any("ri.shinori.my.id/" in url for _,_,url in yovi):
         raise SystemExit("yovi: Shinori backup moved back")
     for label,rows in (("freewifi",free),("tv",tv)):
@@ -77,7 +79,7 @@ def check():
     for name in ("グリーンチャンネル MAIN HQ","グリーンチャンネル MAIN LQ","グリーンチャンネル (5002直)"):
         if not any(tag.rsplit(",",1)[-1]==name for _,tag,_ in free):
             raise SystemExit(f"freewifi: required GCH source missing: {name}")
-    print("Source partition OK: FreeWiFi no newblog; yovi 101 newblog + VOD; 5002, sinori and YoiTV preserved")
+    print("Source partition OK: retired HARU/newblog absent; 5002, sinori, YoiTV preserved")
 
 
 if __name__ == "__main__":

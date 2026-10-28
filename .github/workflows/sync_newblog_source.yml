@@ -1,86 +1,14 @@
-name: Refresh newblog source M3U
+name: Retired newblog source (disabled)
 
+# Source M3U deleted at the owner's request. Never re-create it automatically.
 on:
   workflow_dispatch:
-  schedule:
-    # Check master, ZXArkin and kamonka; FreeWiFi rebuild is at minute 07.
-    - cron: '41 * * * *'
 
 permissions:
-  contents: write
-
-concurrency:
-  group: refresh-newblog-source
-  cancel-in-progress: false
+  contents: read
 
 jobs:
-  refresh:
+  retired:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
     steps:
-      - name: Check out newest main
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Synchronize main
-        run: git pull --ff-only origin main
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - name: Test guarded channel refresh
-        run: |
-          python -m unittest discover -s newblog -p test_refresh_source.py -v
-          python -m unittest discover -s newblog -p test_vod_display.py -v
-      - name: Check source secret configuration
-        id: source_config
-        env:
-          NEWBLOG_MASTER_URL: ${{ secrets.NEWBLOG_MASTER_URL }}
-        shell: bash
-        run: |
-          if [ -z "$NEWBLOG_MASTER_URL" ]; then
-            echo 'configured=false' >> "$GITHUB_OUTPUT"
-            echo '::notice::Set NEWBLOG_MASTER_URL in repository Actions secrets to enable updates'
-            echo 'Master secret is not configured; checking public mirrors safely.' >> "$GITHUB_STEP_SUMMARY"
-          else
-            echo 'configured=true' >> "$GITHUB_OUTPUT"
-          fi
-      - name: Compare validated master, ZXArkin, and kamonka candidates
-        env:
-          NEWBLOG_MASTER_URL: ${{ secrets.NEWBLOG_MASTER_URL }}
-        run: python newblog/refresh_source.py
-      - name: Publish only verified changed source M3U
-        shell: bash
-        run: |
-          set -euo pipefail
-          git add -- newblog/source.m3u
-          if git diff --cached --quiet; then
-            echo 'No channel URL changes'
-            exit 0
-          fi
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git commit -m 'chore(newblog): refresh approved FreeWiFi source URLs'
-          # Other Actions continuously update main (sports, BOAT, EPG, etc.).
-          # Only the validated newblog/source.m3u is committed here. Never force-push.
-          # Fetch/rebase against the newest main BEFORE every attempt, rather than
-          # letting an unrelated update cause a one-shot push failure.
-          for attempt in $(seq 1 15); do
-            git fetch --quiet origin main
-            if ! git merge-base --is-ancestor origin/main HEAD; then
-              echo "main advanced: preserving other updates (attempt ${attempt}/15)"
-              if ! git rebase origin/main; then
-                git rebase --abort || true
-                echo '::error::Newblog rebase conflict; preserving all remote changes, no overwrite'
-                exit 1
-              fi
-            fi
-            if git push origin HEAD:main; then
-              echo 'Newblog published while preserving concurrent main updates'
-              exit 0
-            fi
-            echo "::warning::main changed during push; retrying safely (${attempt}/15)"
-            sleep 2
-          done
-          echo '::error::Newblog publish was not possible after 15 safe retries; no force push performed'
-          exit 1
+      - run: echo 'Retired newblog M3U disabled; no regeneration.'

@@ -1,4 +1,4 @@
-"""Regression: KICK replay catalog in FreeWiFi, newblog replays only in yovi."""
+"""Regression: KICK replays stay; retired blog sources do not return."""
 from pathlib import Path
 import re
 import unittest
@@ -21,11 +21,12 @@ class VodGroupTests(unittest.TestCase):
         self.assertTrue(any(cid.startswith(("kick.gmcx.","kick.gccx2.replay.")) and g=="KICK系VOD" for cid,g in rows))
     def test_canonical_without_blog_replays(self):
         self.assertFalse(any(cid.startswith("newblog.vod.") for cid,g in ids("tv/playlist.m3u")))
-    def test_yovi_blog_replays(self):
-        blog=[cid for cid,g in ids("yovi") if cid.startswith("newblog.vod.")]
-        self.assertIn("# === NEWBLOG_VOD_START ===", (ROOT/"yovi").read_text(encoding="utf-8-sig"))
-        self.assertEqual(len(blog),len(set(blog)))
-        self.assertTrue(all(g=="blog系VOD" for cid,g in ids("yovi") if cid.startswith("newblog.vod.")))
+    def test_yovi_retired_blog_absent(self):
+        content=(ROOT/"yovi").read_text(encoding="utf-8-sig")
+        self.assertFalse(any(cid.startswith("newblog.vod.") for cid,g in ids("yovi")))
+        for value in ("haru.charandom.blog/stream/jp/", "0i4neux01.charandom.blog/stream/jp/",
+                      "# === NEWBLOG_VOD_START ===", "# === NEWBLOG_VOD_END ==="):
+            self.assertNotIn(value,content)
     def test_kick_catalog_still_mirrored(self):
         self.assertEqual((ROOT/"VOD5").read_bytes(),(ROOT/"vod5/playlist.m3u").read_bytes())
 

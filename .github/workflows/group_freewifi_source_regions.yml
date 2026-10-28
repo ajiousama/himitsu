@@ -61,6 +61,9 @@ jobs:
           assert '（newblog系）' not in s
           assert 'newblog.vod.' not in s
           assert 'haru.charandom.blog' not in s
+          yovi = Path('yovi').read_text(encoding='utf-8')
+          assert 'haru.charandom.blog/stream/jp/' not in yovi, 'Retired HARU returned to yovi'
+          assert '0i4neux01.charandom.blog/stream/jp/' not in yovi, 'Retired newblog returned to yovi'
           assert 'naori' not in s.casefold()
           assert 'arva' not in s.casefold()
           assert 'arva' not in tv.casefold()

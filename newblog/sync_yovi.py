@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Keep newblog live streams and replay VOD out of yovi, FreeWiFi and TV.
+"""Keep retired HARU/newblog live streams and VOD out of all active playlists.
 
 Never reintroduce retired newblog streams into FreeWiFi or TV canonical.
 No changes to 5002, Sinori or 49 approved FreeWiFi YoiTV rows (14 terrestrial, 18 BS, 17 CS).
@@ -36,7 +36,8 @@ def parse_rows(text):
 def is_newblog(inf, url):
     return (LABEL in inf
             or 'tvg-id="newblog.vod.' in inf
-            or "0i4neux01.charandom.blog/stream/jp/" in url)
+            or "0i4neux01.charandom.blog/stream/jp/" in url
+            or "haru.charandom.blog/stream/jp/" in url)
 
 
 def strip_newblog(text):
@@ -120,7 +121,7 @@ def sync():
                 raise RuntimeError(f"{label}: protected source changed: {term}")
         if any(is_newblog(tag, url) for tag, url in parse_rows(after)):
             raise RuntimeError(f"{label}: retired newblog stream returned")
-    # Owner policy: keep yovi free of all newblog live and VOD entries.
+    # Retire HARU and newblog from yovi on every auto-rebuild.
     # This must stay idempotent even when an older workflow invokes sync().
     updated_yovi = strip_newblog(before_yovi)
     for path, old, new in ((FREEWIFI,before_free,clean_free),
