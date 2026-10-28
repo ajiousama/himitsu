@@ -47,8 +47,10 @@ def check():
     live = [(cid,tag,url) for cid,tag,url in yovi if "（newblog系）" in tag]
     if len(live) != REQUIRED_NEWBLOG or len({url for _,_,url in live}) != REQUIRED_NEWBLOG:
         raise SystemExit(f"yovi: expected 101 unique newblog channels, found {len(live)}")
-    if not any(cid.startswith("newblog.vod.") for cid,_,_ in yovi):
-        raise SystemExit("yovi: newblog VOD missing")
+    yovi_text = (ROOT / "yovi").read_text(encoding="utf-8-sig")
+    if yovi_text.count("# === NEWBLOG_VOD_START ===") != 1 or yovi_text.count("# === NEWBLOG_VOD_END ===") != 1:
+        raise SystemExit("yovi: managed newblog VOD block missing")
+    # The 14-day VOD shelf may legitimately become empty when recordings expire.
     if any("ri.shinori.my.id/" in url for _,_,url in yovi):
         raise SystemExit("yovi: Shinori backup moved back")
     for label,rows in (("freewifi",free),("tv",tv)):
