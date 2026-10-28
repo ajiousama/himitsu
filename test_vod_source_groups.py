@@ -23,7 +23,7 @@ class VodGroupTests(unittest.TestCase):
         self.assertFalse(any(cid.startswith("newblog.vod.") for cid,g in ids("tv/playlist.m3u")))
     def test_yovi_blog_replays(self):
         blog=[cid for cid,g in ids("yovi") if cid.startswith("newblog.vod.")]
-        self.assertTrue(blog)
+        self.assertIn("# === NEWBLOG_VOD_START ===", (ROOT/"yovi").read_text(encoding="utf-8-sig"))
         self.assertEqual(len(blog),len(set(blog)))
         self.assertTrue(all(g=="blog系VOD" for cid,g in ids("yovi") if cid.startswith("newblog.vod.")))
     def test_kick_catalog_still_mirrored(self):
