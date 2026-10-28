@@ -6,7 +6,7 @@ No changes to 5002, Sinori or 17 manually approved FreeWiFi YoiTV rows.
 """
 from pathlib import Path
 import re
-from newblog.sync_tv import get_source, catchup_attributes, replay_templates, vod_payload, VOD_START, VOD_END
+from sync_tv import get_source, catchup_attributes, replay_templates, vod_payload, VOD_START, VOD_END
 
 ROOT = Path(__file__).resolve().parent.parent
 SOURCE = ROOT / "newblog/source.m3u"
