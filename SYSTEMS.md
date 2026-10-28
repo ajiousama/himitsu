@@ -29,10 +29,9 @@ Compatibility:
 - root `VOD5` is a generated compatibility mirror
 - the old root `ganble` file has been replaced by the `ganble/` system directory
 
-11. **haru/** — HARU replay/VOD and replay-history subsystem
-12. **council/** — dynamic council live channels
-13. **apps/** — client app builds and app-specific EPG outputs
-14. **services/** — runtime resolver/proxy implementations behind stable API routes
+11. **council/** — dynamic council live channels
+12. **apps/** — client app builds and app-specific EPG outputs
+13. **services/** — runtime resolver/proxy implementations behind stable API routes
 
 State/tests policy:
 - runtime state belongs to the subsystem that owns it (for example public-sports state -> `ganble/`)
