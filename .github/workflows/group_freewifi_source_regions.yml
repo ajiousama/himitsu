@@ -39,7 +39,6 @@ jobs:
             git fetch origin main
             git reset --hard origin/main
 
-            python scripts/retire_haruka_freewifi.py
             python group_freewifi_sources.py
             python tv/sync_freewifi.py
             python rakuten/sync_freewifi.py
