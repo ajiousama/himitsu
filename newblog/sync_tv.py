@@ -337,6 +337,7 @@ def get_source():
     return out
 
 def apply(text):
+    raise RuntimeError('newblog moved to yovi: use newblog/sync_yovi.py')
     lines = text.splitlines()
     kept = []
     i = 0
@@ -398,6 +399,7 @@ def apply(text):
     return replace_vod_block(result)
 
 def inject_rch(body: str) -> str:
+    raise RuntimeError('newblog Rch moved to yovi: use newblog/sync_yovi.py')
     """Place the 2 newblog Rch streams directly after their existing sources."""
     import re
     rows = {slug: (meta, uri) for slug, meta, uri in get_source()
@@ -439,6 +441,7 @@ def inject_rch(body: str) -> str:
     return re.sub(r"\n{4,}", "\n\n\n", "\n".join(ls)).strip() + "\n\n"
 
 def main():
+    raise RuntimeError('Retired FreeWiFi importer. Run newblog/sync_yovi.py')
     current = TV.read_text(encoding="utf-8-sig")
     updated = apply(current)
     if current != updated:

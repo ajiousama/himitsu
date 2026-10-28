@@ -41,7 +41,7 @@ jobs:
             git fetch origin main
             git reset --hard origin/main
 
-            python newblog/sync_tv.py
+            python newblog/sync_yovi.py
             python scripts/retire_haruka_freewifi.py
             python group_freewifi_sources.py
             python tv/sync_freewifi.py
@@ -58,6 +58,8 @@ jobs:
           assert s.startswith('#EXTM3U')
           for section in ('## 地上波','## BS','## その他','## Rch'):
               assert section in s
+          assert '（newblog系）' not in s
+          assert 'newblog.vod.' not in s
           assert 'haru.charandom.blog' not in s
           assert 'naori' not in s.casefold()
           assert 'arva' not in s.casefold()
@@ -71,7 +73,7 @@ jobs:
           print('HARUKA and Arva removed from published/canonical lists; source ordering validated')
           PY
             git diff --check
-            git add freewifi tv/playlist.m3u rakuten/playlist.m3u
+            git add freewifi yovi tv/playlist.m3u rakuten/playlist.m3u
             if git diff --cached --quiet; then
               echo "FreeWiFi sources already cleaned"
               exit 0

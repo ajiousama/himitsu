@@ -65,10 +65,9 @@ def payload():
     # Running as python rakuten/sync_freewifi.py must resolve the repository root.
     import sys
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-    from newblog.sync_tv import inject_rch
     base = "\n".join(lines).strip() + "\n\n"
     body = base + (extra + "\n\n" if extra else "")
-    return inject_rch(body)
+    return body
 
 def main():
     text = FREEWIFI.read_text(encoding="utf-8-sig", errors="replace")
@@ -84,8 +83,8 @@ def main():
         raise RuntimeError("Retired HARUKA source unexpectedly restored")
     if "nouvelle-paradise-bridge" in updated.lower() or "ヌーヴェルパラダイス (Arva)" in updated:
         raise RuntimeError("Retired Nouvelle Paradise Arva source unexpectedly restored")
-    if updated.count("ヌーヴェルパラダイス（newblog系）") != 1:
-        raise RuntimeError("Nouvelle Paradise newblog stream is missing or duplicated")
+    if "（newblog系）" in updated or "0i4neux01.charandom.blog/stream/jp/" in updated:
+        raise RuntimeError("Retired newblog Rch was restored into FreeWiFi")
     FREEWIFI.write_text(updated.rstrip() + "\n", encoding="utf-8")
     print(f"Rakuten Rch synced from rakuten/playlist.m3u; reused white-card logos={reused}")
 

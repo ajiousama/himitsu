@@ -127,7 +127,7 @@ jobs:
 
       - name: Sync canonical subsystem projections
         run: |
-          python newblog/sync_tv.py
+          python newblog/sync_yovi.py
           python scripts/retire_haruka_freewifi.py
           python tv/sync_freewifi.py
           python radio_tv_nationwide_freewifi.py
@@ -223,9 +223,9 @@ jobs:
             python kick_gccx2_sync.py
 
             # Keep terrestrial/BS/CS source groups stable after every full publish.
-            python newblog/sync_tv.py
+            python newblog/sync_yovi.py
             python group_freewifi_sources.py
-            python newblog/sync_tv.py
+            python newblog/sync_yovi.py
           python scripts/retire_haruka_freewifi.py
             python tv/sync_freewifi.py
             python radio_tv_nationwide_freewifi.py
@@ -321,7 +321,7 @@ jobs:
             python check_gch_always.py
             python scripts/check_tv_source_partition.py
 
-            git add tv/playlist.m3u rakuten/playlist.m3u ganble/playlist.m3u ehime_catv/playlist.m3u freewifi radio/freewifi.m3u gccx2_live_state.json today_public_sports_status.json today_jra_status.json today_event_counts.json verified_daily_status.json public_sports_epg_local.xml
+            git add yovi tv/playlist.m3u rakuten/playlist.m3u ganble/playlist.m3u ehime_catv/playlist.m3u freewifi radio/freewifi.m3u gccx2_live_state.json today_public_sports_status.json today_jra_status.json today_event_counts.json verified_daily_status.json public_sports_epg_local.xml
 
             if git diff --cached --quiet; then
               echo "Local venue/CX2 state already current"
