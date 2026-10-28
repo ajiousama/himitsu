@@ -52,6 +52,8 @@ def check():
         if retired:
             raise SystemExit(f"{label}: retired blog returned: {len(retired)}")
     yovi_text = (ROOT / "yovi").read_text(encoding="utf-8-sig")
+    if ":9394/stream/" in yovi_text:
+        raise SystemExit("yovi: obsolete HARUKA URLs reappeared")
     if any("haru.charandom.blog" in x for x in yovi_text.splitlines() if x.startswith("#EXTM3U")):
         raise SystemExit("yovi: stale HARU EPG playlist header returned")
     if "# === NEWBLOG_VOD_START ===" in yovi_text or "# === NEWBLOG_VOD_END ===" in yovi_text:
