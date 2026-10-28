@@ -5,7 +5,7 @@ import re
 
 ROOT = Path(__file__).resolve().parent.parent
 REQUIRED_SHINORI = 66
-REQUIRED_FREEWIFI_YOITV = 17
+REQUIRED_FREEWIFI_YOITV = 49
 REQUIRED_YOVI_YOITV = 75
 REQUIRED_NEWBLOG = 101
 ALLOWED_FREEWIFI_CS_YOITV = frozenset({
@@ -57,9 +57,17 @@ def check():
         ids = [cid for cid,_,url in rows if "ri.shinori.my.id/" in url]
         if len(ids) != REQUIRED_SHINORI or len(ids) != len(set(ids)):
             raise SystemExit(f"{label}: Shinori 66 unique sources required")
-        actual = {cid for cid,tag,url in rows if "(YoiTV)" in tag or "/tv/yoitv.php" in url}
-        if actual != ALLOWED_FREEWIFI_CS_YOITV:
-            raise SystemExit(f"{label}: expected 17 approved YoiTV CS, got {len(actual)}")
+        yoitv_rows = [(cid, tag, url) for cid,tag,url in rows if "/tv/yoitv.php" in url]
+        if len(yoitv_rows) != REQUIRED_FREEWIFI_YOITV or len({url for _,_,url in yoitv_rows}) != REQUIRED_FREEWIFI_YOITV:
+            raise SystemExit(f"{label}: expected 49 unique YoiTV sources, got {len(yoitv_rows)}")
+        for group, required in (("地上波 YoiTV", 14), ("BS YoiTV", 18)):
+            expected = [(cid, url) for cid,tag,url in yovi if f'group-title="{group}"' in tag]
+            actual = [(cid, url) for cid,tag,url in rows if f'group-title="{group}"' in tag]
+            if len(expected) != required or len(actual) != required or set(actual) != set(expected):
+                raise SystemExit(f"{label}: {group} mismatch (expected {required}, got {len(actual)})")
+        cs_rows = [(cid, url) for cid,tag,url in rows if 'group-title="CS YoiTV"' in tag]
+        if len(cs_rows) != 17 or {cid for cid,_ in cs_rows} != ALLOWED_FREEWIFI_CS_YOITV:
+            raise SystemExit(f"{label}: expected 17 approved YoiTV CS, got {len(cs_rows)}")
     if sum("/tv/yoitv.php" in url for _,_,url in yovi) < REQUIRED_YOVI_YOITV:
         raise SystemExit("yovi: YoiTV minimum 75 violated")
     for label, rows,minimum in (("freewifi",free,49),("tv",tv,48),("yovi",yovi,18)):

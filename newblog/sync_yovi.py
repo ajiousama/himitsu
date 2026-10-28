@@ -2,7 +2,7 @@
 """Keep newblog live streams and replay VOD out of yovi, FreeWiFi and TV.
 
 Never reintroduce retired newblog streams into FreeWiFi or TV canonical.
-No changes to 5002, Sinori or 17 manually approved FreeWiFi YoiTV rows.
+No changes to 5002, Sinori or 49 approved FreeWiFi YoiTV rows (14 terrestrial, 18 BS, 17 CS).
 """
 from pathlib import Path
 import re
