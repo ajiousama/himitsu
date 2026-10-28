@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Keep the 101 newblog streams and eligible replay VOD in yovi only.
+"""Keep newblog live streams and replay VOD out of yovi, FreeWiFi and TV.
 
 Never reintroduce retired newblog streams into FreeWiFi or TV canonical.
 No changes to 5002, Sinori or 17 manually approved FreeWiFi YoiTV rows.
@@ -120,29 +120,15 @@ def sync():
                 raise RuntimeError(f"{label}: protected source changed: {term}")
         if any(is_newblog(tag, url) for tag, url in parse_rows(after)):
             raise RuntimeError(f"{label}: retired newblog stream returned")
-    live = build_live()
-    yovi_lines = strip_newblog(before_yovi).rstrip().splitlines()
-    for tag, url in live:
-        insert_beside(yovi_lines, tag, url)
-    payload = vod_payload().strip()
-    if not payload.startswith(VOD_START) or not payload.endswith(VOD_END):
-        raise RuntimeError("Invalid VOD block")
-    updated_yovi = "\n".join(yovi_lines).rstrip() + "\n\n" + payload + "\n"
-    yovi_rows = parse_rows(updated_yovi)
-    if sum(LABEL in tag for tag, _ in yovi_rows) != 101:
-        raise RuntimeError("Yovi missing some of its 101 newblog backups")
-    if len({url for tag, url in yovi_rows if LABEL in tag}) != 101:
-        raise RuntimeError("Yovi contains duplicate newblog source URLs")
-    previous_yovi = {(tag,url) for tag,url in parse_rows(before_yovi) if not is_newblog(tag,url)}
-    current_yovi = {(tag,url) for tag,url in yovi_rows if not is_newblog(tag,url)}
-    if previous_yovi != current_yovi:
-        raise RuntimeError("Unrelated Yovi channels changed")
+    # Owner policy: keep yovi free of all newblog live and VOD entries.
+    # This must stay idempotent even when an older workflow invokes sync().
+    updated_yovi = strip_newblog(before_yovi)
     for path, old, new in ((FREEWIFI,before_free,clean_free),
                            (CANONICAL,before_tv,clean_tv),
                            (YOVI,before_yovi,updated_yovi)):
         if old != new:
             path.write_text(new, encoding="utf-8")
-    print("newblog -> yovi: 101 live, " + str(sum('tvg-id="newblog.vod.' in tag for tag, _ in yovi_rows)) + " VOD; FreeWiFi and canonical cleared")
+    print("newblog live and VOD removed from yovi; FreeWiFi and canonical cleared")
 
 
 if __name__ == "__main__":
