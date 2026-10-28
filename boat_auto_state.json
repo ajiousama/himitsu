@@ -2,12 +2,13 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-28",
-  "generated_at": "2026-10-28T13:15:16.998205+09:00",
-  "last_update_ok": true,
+  "generated_at": "2026-10-28T13:18:17.048643+09:00",
+  "last_update_ok": false,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261028.json",
-  "schedule_checked_at": "2026-10-28T13:03:17.047762+09:00",
+  "schedule_checked_at": "2026-10-28T13:18:17.048643+09:00",
   "schedule_warnings": [
-    "official_cards: TimeoutError"
+    "official_cards: TimeoutError",
+    "開催表から場が消失したため当日確認済みの開催表を保持"
   ],
   "cancelled_jcd": [],
   "cancelled_venues": [],
@@ -24,7 +25,10 @@
   "ended_kept": [],
   "seed_required": false,
   "seed_required_venues": [],
-  "system_errors": [],
+  "system_errors": [
+    "official_cards: TimeoutError",
+    "開催表から場が消失したため当日確認済みの開催表を保持"
+  ],
   "phase_counts": {
     "morning": {
       "held": 2,
@@ -79,8 +83,8 @@
     "guides.xml": 154
   },
   "alert": {
-    "active": false,
-    "kind": "healthy"
+    "active": true,
+    "kind": "system_error"
   },
   "streams": {
     "boat.edogawa": {
@@ -501,7 +505,7 @@
       "alert_from": "2026-10-28T09:46:00+09:00",
       "next_race": {
         "race": 8,
-        "start": "13:41"
+        "start": "13:46"
       },
       "stream_window": "live_or_prestart",
       "intermission": null,
@@ -550,7 +554,7 @@
         },
         {
           "race": 8,
-          "start": "13:41",
+          "start": "13:46",
           "name": "予選"
         },
         {
