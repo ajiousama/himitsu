@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-29",
-  "generated_at": "2026-10-29T14:09:23.512724+09:00",
+  "generated_at": "2026-10-29T14:10:23.621009+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261029.json",
   "schedule_checked_at": "2026-10-29T14:09:23.512724+09:00",
@@ -19,7 +19,7 @@
   "alert_lead_minutes": 30,
   "card_count": 10,
   "held_count": 10,
-  "visible_count": 8,
+  "visible_count": 9,
   "active_count": 7,
   "ended_kept": [],
   "seed_required": false,
@@ -44,7 +44,7 @@
     },
     "night": {
       "held": 3,
-      "acquired": 1,
+      "acquired": 2,
       "active": 0,
       "ended": 0,
       "seed_required": 0,
@@ -53,14 +53,8 @@
   },
   "cloud_acquisition": {
     "requested": 10,
-    "fetched": 8,
-    "failures": [
-      {
-        "jcd": "07",
-        "name": "蒲郡",
-        "error": "HTTPError: playback check failed"
-      }
-    ],
+    "fetched": 9,
+    "failures": [],
     "deferred": [
       {
         "jcd": "01",
@@ -89,6 +83,22 @@
         "ok": true,
         "sequence": 8724251,
         "last_segment": "/244a10df062b45f0a9b605f0922c08e3/5ba5bc512715480280b3fcc65f36af27/manifest_1_8726489.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
+    },
+    "boat.gamagori": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/34faa53da8de49b2b868c47d4381b278/f1b16ef889e0441da9fe4b8e063bf48c/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MzQyNjQwMCwic3RhcnQiOjE3OTMyNTA2MDAsImlvcyI6MTgsImNwIjoiMjE1NDQ2MjAwXzIxNTQ4ODc5OSIsInBwdyI6IjQwayJ9.YT-dQoBpeC1P5BUuvL1SduXTFfEDvShTEoPV7S9MsUA",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-10-29T14:10:51.086533+09:00",
+      "checked_at": "2026-10-29T14:10:51.086533+09:00",
+      "first_verified_at": "2026-10-29T14:10:51.086533+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 8725106,
+        "last_segment": "/34faa53da8de49b2b868c47d4381b278/f1b16ef889e0441da9fe4b8e063bf48c/manifest_4_8725114.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -395,7 +405,7 @@
       "jcd": "07",
       "name": "蒲郡",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
       "active": false,
       "cancelled": false,
@@ -413,9 +423,9 @@
       "guidance_switch_at": "2026-10-29T21:23:00+09:00",
       "seed_required": false,
       "reverify_due": false,
-      "playback_verified": false,
-      "first_verified_at": null,
-      "ready_before_first_race": false,
+      "playback_verified": true,
+      "first_verified_at": "2026-10-29T14:10:51.086533+09:00",
+      "ready_before_first_race": true,
       "acquire_from": "2026-10-29T12:51:00+09:00",
       "races": [
         {
@@ -479,7 +489,9 @@
           "name": "予選記者特選"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/34faa53da8de49b2b868c47d4381b278/f1b16ef889e0441da9fe4b8e063bf48c/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MzQyNjQwMCwic3RhcnQiOjE3OTMyNTA2MDAsImlvcyI6MTgsImNwIjoiMjE1NDQ2MjAwXzIxNTQ4ODc5OSIsInBwdyI6IjQwayJ9.YT-dQoBpeC1P5BUuvL1SduXTFfEDvShTEoPV7S9MsUA",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     },
     "boat.tokoname": {
       "jcd": "08",
@@ -870,7 +882,7 @@
       "intermission": null,
       "guidance_switch_at": "2026-10-29T17:15:00+09:00",
       "seed_required": false,
-      "reverify_due": false,
+      "reverify_due": true,
       "playback_verified": true,
       "first_verified_at": "2026-10-29T09:40:21.069163+09:00",
       "ready_before_first_race": true,
