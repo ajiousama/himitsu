@@ -133,10 +133,10 @@ def main():
                     "final_url": None,
                 }
 
-    # The owner's playback decisions override lightweight HTTP manifest probes.
-    # The newly signed PrimeHome batch and YoiTV lineup are marked playable.
+    # The owner's VLC-confirmed playback results override lightweight HTTP probes.
+    # Only the seven verified GX isp=10 channels and YoiTV receive this override.
+    # Other PrimeHome channels rely on probes until individually verified.
     # Existing red flags are kept unless the owner explicitly changes them.
-    primehome_sign = "2a87d11ca6d93311ef31ab7f2b8e5919140bd936c2dd98a4b18d07936b94a3ed"
     green_entries = 0
     for e in entries:
         i = e["line"]
@@ -148,17 +148,18 @@ def main():
         title = re.sub(r"^[🟢🟥]\s*", "", title)
         url = e["url"]
         host = host_of(url).lower()
-        is_updated_primehome = (
+        is_verified_gx_isp10 = (
             host == "cdns.jp-primehome.com:8000"
             and "/zhongying/live/playlist.m3u8?" in url
-            and "timestamp=1732380849&sign=" + primehome_sign in url
+            and re.search(r"[?&]cid=gx0[1-7](?:&|$)", url)
+            and re.search(r"[?&]isp=10(?:&|$)", url)
             and not re.search(r"[?&]cid=bs14(?:&|$)", url)
         )
         is_yoitv = (
             host == "linxei.netgenx.site"
             and "/tv/yoitv.php?" in url
         )
-        if is_updated_primehome or is_yoitv:
+        if is_verified_gx_isp10 or is_yoitv:
             title = "🟢" + title
             green_entries += 1
         elif was_red:
