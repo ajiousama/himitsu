@@ -50,6 +50,7 @@ jobs:
           print(f'Tracked files scanned: {checked}, binary skipped: {skipped_binary}')
           if found:
               for path, reason in found:
+                  print(f'REMAINING FILE: {path} ({reason})')
                   print(f'::error file={path}::Retired account reference: {reason}')
               raise SystemExit(f'{len(found)} remaining file/filename references')
           print('PASS: no retired account references in current tracked textual files')
