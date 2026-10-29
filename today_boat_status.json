@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-30",
-  "generated_at": "2026-10-30T08:08:11.284363+09:00",
+  "generated_at": "2026-10-30T08:13:11.239199+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261030.json",
   "schedule_checked_at": "2026-10-30T08:07:11.289871+09:00",
@@ -20,7 +20,7 @@
   "card_count": 12,
   "held_count": 12,
   "visible_count": 2,
-  "active_count": 1,
+  "active_count": 2,
   "ended_kept": [],
   "seed_required": false,
   "seed_required_venues": [],
@@ -29,7 +29,7 @@
     "morning": {
       "held": 3,
       "acquired": 2,
-      "active": 1,
+      "active": 2,
       "ended": 0,
       "seed_required": 0,
       "cancelled": 0
@@ -52,10 +52,15 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 5,
+    "requested": 6,
     "fetched": 2,
     "failures": [],
     "deferred": [
+      {
+        "jcd": "06",
+        "name": "浜名湖",
+        "start": "2026-10-30T10:04:00+09:00"
+      },
       {
         "jcd": "08",
         "name": "常滑",
@@ -86,13 +91,13 @@
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/beaac2b5ce2f4fe6b8043a2176061553/986919055a1140ccbf8f1ac60421cf37/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MzQ5MTIwMCwic3RhcnQiOjE3OTMzMTQ4MDAsImlvcyI6MTgsImNwIjoiMjE1NTEwNDAwXzIxNTU1MzU5OSIsInBwdyI6IjQwayJ9._rUNAPb4aiOvCGJEEJYN-UqD0KzTNusUd1-dXwA5D3I",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-10-30T08:00:38.601398+09:00",
-      "checked_at": "2026-10-30T08:07:46.926403+09:00",
+      "checked_at": "2026-10-30T08:13:38.702953+09:00",
       "first_verified_at": "2026-10-30T08:00:38.601398+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
         "sequence": 8759514,
-        "last_segment": "/beaac2b5ce2f4fe6b8043a2176061553/986919055a1140ccbf8f1ac60421cf37/manifest_1_8759591.ts",
+        "last_segment": "/beaac2b5ce2f4fe6b8043a2176061553/986919055a1140ccbf8f1ac60421cf37/manifest_1_8759649.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -102,13 +107,13 @@
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/ee5aa527ff68474cbd166b920b8f28c0/ec8158776df04459a68adae182cbc0f2/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MzQ5MTIwMCwic3RhcnQiOjE3OTMzMTUyODAsImlvcyI6MTgsImNwIjoiMjE1NTEwODgwXzIxNTU1NDA3OSIsInBwdyI6IjQwayJ9.wpHP-rc25d0hNUu9sNgotATBQCxNijB64g7Hrg1nb20",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-10-30T08:08:38.622666+09:00",
-      "checked_at": "2026-10-30T08:08:38.622666+09:00",
+      "checked_at": "2026-10-30T08:13:38.703792+09:00",
       "first_verified_at": "2026-10-30T08:08:38.622666+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
         "sequence": 8739841,
-        "last_segment": "/ee5aa527ff68474cbd166b920b8f28c0/ec8158776df04459a68adae182cbc0f2/manifest_4_8739847.ts",
+        "last_segment": "/ee5aa527ff68474cbd166b920b8f28c0/ec8158776df04459a68adae182cbc0f2/manifest_4_8739897.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -384,7 +389,8 @@
           "name": "ドリーム戦"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "provider_stream_start": "2026-10-30T10:04:00+09:00",
+      "source": "公式BR配信開始待ち 10:04"
     },
     "boat.gamagori": {
       "jcd": "07",
@@ -1027,7 +1033,7 @@
       "held": true,
       "visible": true,
       "ended": false,
-      "active": false,
+      "active": true,
       "cancelled": false,
       "mode": "morning",
       "mode_label": "モーニング",
@@ -1038,7 +1044,7 @@
         "race": 1,
         "start": "08:43"
       },
-      "stream_window": "scheduled",
+      "stream_window": "live_or_prestart",
       "intermission": null,
       "guidance_switch_at": "2026-10-30T15:08:00+09:00",
       "seed_required": false,
