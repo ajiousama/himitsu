@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-30",
-  "generated_at": "2026-10-30T08:13:11.239199+09:00",
+  "generated_at": "2026-10-30T08:16:11.238757+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261030.json",
   "schedule_checked_at": "2026-10-30T08:07:11.289871+09:00",
@@ -19,7 +19,7 @@
   "alert_lead_minutes": 30,
   "card_count": 12,
   "held_count": 12,
-  "visible_count": 2,
+  "visible_count": 3,
   "active_count": 2,
   "ended_kept": [],
   "seed_required": false,
@@ -28,7 +28,7 @@
   "phase_counts": {
     "morning": {
       "held": 3,
-      "acquired": 2,
+      "acquired": 3,
       "active": 2,
       "ended": 0,
       "seed_required": 0,
@@ -53,7 +53,7 @@
   },
   "cloud_acquisition": {
     "requested": 6,
-    "fetched": 2,
+    "fetched": 3,
     "failures": [],
     "deferred": [
       {
@@ -70,11 +70,6 @@
         "jcd": "13",
         "name": "尼崎",
         "start": "2026-10-30T10:02:00+09:00"
-      },
-      {
-        "jcd": "18",
-        "name": "徳山",
-        "start": "2026-10-30T08:16:00+09:00"
       }
     ]
   },
@@ -98,6 +93,22 @@
         "ok": true,
         "sequence": 8759514,
         "last_segment": "/beaac2b5ce2f4fe6b8043a2176061553/986919055a1140ccbf8f1ac60421cf37/manifest_1_8759649.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
+    },
+    "boat.tokuyama": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/53d97b292553400fad8e2cfe98ff394b/bd77c2ac15e94783b84e714a30b039bc/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MzQ5MTIwMCwic3RhcnQiOjE3OTMzMTU3NjAsImlvcyI6MTgsImNwIjoiMjE1NTExMzYwXzIxNTU1NDU1OSIsInBwdyI6IjQwayJ9.oD0ihNf72qYBPUBtfwvaWKrTStcxCvqSITDSm7rtDVk",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-10-30T08:16:38.706305+09:00",
+      "checked_at": "2026-10-30T08:16:38.706305+09:00",
+      "first_verified_at": "2026-10-30T08:16:38.706305+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 8737673,
+        "last_segment": "/53d97b292553400fad8e2cfe98ff394b/bd77c2ac15e94783b84e714a30b039bc/manifest_1_8737679.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -940,7 +951,7 @@
       "jcd": "18",
       "name": "徳山",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
       "active": false,
       "cancelled": false,
@@ -958,9 +969,9 @@
       "guidance_switch_at": "2026-10-30T15:12:00+09:00",
       "seed_required": false,
       "reverify_due": false,
-      "playback_verified": false,
-      "first_verified_at": null,
-      "ready_before_first_race": false,
+      "playback_verified": true,
+      "first_verified_at": "2026-10-30T08:16:38.706305+09:00",
+      "ready_before_first_race": true,
       "acquire_from": "2026-10-30T06:21:00+09:00",
       "races": [
         {
@@ -1024,8 +1035,9 @@
           "name": "ドリーム戦"
         }
       ],
-      "provider_stream_start": "2026-10-30T08:16:00+09:00",
-      "source": "公式BR配信開始待ち 08:16"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/53d97b292553400fad8e2cfe98ff394b/bd77c2ac15e94783b84e714a30b039bc/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MzQ5MTIwMCwic3RhcnQiOjE3OTMzMTU3NjAsImlvcyI6MTgsImNwIjoiMjE1NTExMzYwXzIxNTU1NDU1OSIsInBwdyI6IjQwayJ9.oD0ihNf72qYBPUBtfwvaWKrTStcxCvqSITDSm7rtDVk",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     },
     "boat.karatsu": {
       "jcd": "23",
