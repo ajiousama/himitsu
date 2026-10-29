@@ -1,0 +1,56 @@
+name: Audit retired account references
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/audit_retired_owner.yml"
+  schedule:
+    - cron: "15 23 * * *"
+
+permissions:
+  contents: read
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check tracked files for retired account references
+        shell: bash
+        run: |
+          python - <<'PY'
+          import pathlib
+          import re
+          import subprocess
+
+          pattern = re.compile(r'earphone\s*1981', re.IGNORECASE)
+          paths = [pathlib.Path(p.decode('utf-8')) for p in
+                   subprocess.check_output(['git', 'ls-files', '-z']).split(b'\x00') if p]
+          found = []
+          checked = 0
+          skipped_binary = 0
+          for path in paths:
+              if pattern.search(str(path)):
+                  found.append((str(path), 'filename'))
+              try:
+                  data = path.read_bytes()
+              except OSError:
+                  continue
+              if b'\x00' in data[:4096]:
+                  skipped_binary += 1
+                  continue
+              checked += 1
+              text = data.decode('utf-8', 'replace')
+              hits = len(pattern.findall(text))
+              if hits:
+                  found.append((str(path), f'{hits} mention(s)'))
+          print(f'Tracked files scanned: {checked}, binary skipped: {skipped_binary}')
+          if found:
+              for path, reason in found:
+                  print(f'::error file={path}::Retired account reference: {reason}')
+              raise SystemExit(f'{len(found)} remaining file/filename references')
+          print('PASS: no retired account references in current tracked textual files')
+          PY
