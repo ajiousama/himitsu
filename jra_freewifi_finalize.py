@@ -36,7 +36,7 @@ def main():
         raise SystemExit('freewifi not found')
     text = FREEWIFI.read_text(encoding='utf-8-sig', errors='replace')
     FREEWIFI.write_text(strip_legacy(text), encoding='utf-8')
-    print('Legacy JRA free A/B entries removed; earphone HQ/LQ set is canonical')
+    print('Legacy JRA free A/B entries removed; ajiousama local HQ/LQ set is canonical')
 
 
 if __name__ == '__main__':

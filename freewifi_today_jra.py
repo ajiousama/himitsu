@@ -6,14 +6,14 @@ import xml.etree.ElementTree as ET
 
 FREEWIFI=Path('freewifi'); VERIFIED=Path('verified_daily_status.json'); STATUS=Path('today_jra_status.json'); LOCAL_EPG=Path('public_sports_epg_local.xml'); GUIDES=Path('guides.xml')
 JST=timezone(timedelta(hours=9)); START='# === TODAY_JRA_START ==='; END='# === TODAY_JRA_END ==='; GROUP='今日の開催場'
-RAW='https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main'
-LOGO=RAW+'/public_sports_logos_github_43/jra_quality'
+RAW='https://raw.githubusercontent.com/ajiousama/himitsu/main'
+LOGO=RAW+'/logos/public_sports/jra_quality'
 GCH_LOCAL_LOGO='https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/public_sports/jra_quality'
 SOURCES={
- 'jra.gch':('グリーンチャンネル MAIN','gchmain.m3u8','gchmain_LQ.m3u8','gch_hq.png','gch_lq.png'),
- 'jra.east':('JRA EAST WEB3','EAST_test.m3u8','EAST_test_LQ.m3u8','east_hq.png','east_lq.png'),
- 'jra.west':('JRA WEST WEB4','WEST_master%20.m3u8','WEST_master_LQ.m3u8','west_hq.png','west_lq.png'),
- 'jra.hokkaido':('JRA LOCAL WEB5','hokaido_master%20(1).m3u8','hokaido_master_LQ.m3u8','local_hq.png','local_lq.png'),
+ 'jra.gch':('グリーンチャンネル MAIN','gchmain_master.m3u8','gchmain_LQ.m3u8','gch_hq.png','gch_lq.png'),
+ 'jra.east':('JRA EAST WEB3','gch_east_master.m3u8','gch_east_LQ.m3u8','gch_hq.png','gch_lq.png'),
+ 'jra.west':('JRA WEST WEB4','gch_west_master.m3u8','gch_west_LQ.m3u8','gch_hq.png','gch_lq.png'),
+ 'jra.hokkaido':('JRA LOCAL WEB5','gch_hokkaido_master.m3u8','gch_hokkaido_LQ.m3u8','gch_hq.png','gch_lq.png'),
 }
 QUALITY_IDS={f'{base}.{q}' if base!='jra.hokkaido' else f'jra.local.{q}' for base in SOURCES for q in ('hq','lq')}
 # Additional viewing routes; programme EPG remains tied to jra.gch.hq.
@@ -131,6 +131,10 @@ def main():
  active.insert(0,'jra.gch')
  base=strip(FREEWIFI.read_text(encoding='utf-8-sig',errors='replace')); rows=[]; exposed=[]
  for source in active:
+  for filename in SOURCES[source][1:3]:
+   if not Path(filename).is_file():
+    raise SystemExit(f'Local JRA source missing: {filename}')
+ for source in active:
   name,hq,lq,hqlogo,lqlogo=SOURCES[source]
   outbase='jra.local' if source=='jra.hokkaido' else source
   for q,stream,logo in (('hq',hq,hqlogo),('lq',lq,lqlogo)):
@@ -141,10 +145,10 @@ def main():
   if source=='jra.gch':
    for backup_label, backup_url in GCH_PROVIDER_BACKUPS:
     rows += [f'#EXTINF:-1 tvg-id="jra.gch.hq" tvg-name="{backup_label}" tvg-logo="{GCH_LOCAL_LOGO}/gch_hq.png" group-title="{GROUP}",{backup_label}',backup_url,'']
- managed=START+'\n## 本日の開催場（JRA / earphone HQ・LQ）\n'+'\n'.join(rows).rstrip()+('\n' if rows else '')+END
+ managed=START+'\n## 本日の開催場（JRA / ajiousama HQ・LQ）\n'+'\n'.join(rows).rstrip()+('\n' if rows else '')+END
  anchor='# === GENERAL_YOUTUBE_MANAGED_START ==='
  text=base.replace(anchor,managed+'\n\n'+anchor,1) if anchor in base else base.rstrip()+'\n\n'+managed+'\n'
  FREEWIFI.write_text(text.rstrip()+'\n',encoding='utf-8')
- STATUS.write_text(json.dumps({'generated_at':now.isoformat(),'active_count':len(active),'active_ids':active,'active_labels':[SOURCES[x][0] for x in active],'exposed_quality_ids':exposed,'gch_special_broadcasts':gch_special,'gch_official_broadcasts':official_fallback,'jra_race_day':jra_race_day,'gch_reason':('JRA race day / always visible' if jra_race_day else 'Always visible: MAIN HQ/LQ, 5002 direct'),'channels':{x:{'active':x in active,'source':'earphone HQ/LQ canonical'} for x in SOURCES}},ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
- print('JRA earphone HQ/LQ active:',exposed)
+ STATUS.write_text(json.dumps({'generated_at':now.isoformat(),'active_count':len(active),'active_ids':active,'active_labels':[SOURCES[x][0] for x in active],'exposed_quality_ids':exposed,'gch_special_broadcasts':gch_special,'gch_official_broadcasts':official_fallback,'jra_race_day':jra_race_day,'gch_reason':('JRA race day / always visible' if jra_race_day else 'Always visible: MAIN HQ/LQ, 5002 direct'),'channels':{x:{'active':x in active,'source':'ajiousama HQ/LQ canonical'} for x in SOURCES}},ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+ print('JRA ajiousama HQ/LQ active:',exposed)
 if __name__=='__main__': main()

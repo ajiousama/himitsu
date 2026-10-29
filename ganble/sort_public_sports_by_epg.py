@@ -19,7 +19,7 @@ BOAT_LOGO_SLUG={
     'boat.miyajima':'miyajima','boat.tokuyama':'tokuyama','boat.shimonoseki':'shimonoseki','boat.wakamatsu':'wakamatsu',
     'boat.ashiya':'ashiya','boat.fukuoka':'fukuoka','boat.karatsu':'karatsu','boat.omura':'omura',
 }
-BOAT_LOGO_BASE='https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports_logos_github_43/boatrace_24_spaced_cut_1024'
+BOAT_LOGO_BASE='https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/public_sports/venues/boat'
 
 
 def current_order():
@@ -122,7 +122,7 @@ def repair_boat_logo(block):
     if not block:return block
     cid=block_id(block); slug=BOAT_LOGO_SLUG.get(cid)
     if not slug:return block
-    logo=f'{BOAT_LOGO_BASE}/{slug}.png'; ext=block[0]
+    logo=f'{BOAT_LOGO_BASE}_{slug}.png'; ext=block[0]
     if re.search(r'tvg-logo="[^"]*"',ext,re.I):ext=re.sub(r'tvg-logo="[^"]*"',f'tvg-logo="{logo}"',ext,flags=re.I)
     else:ext=ext.replace(' group-title=',f' tvg-logo="{logo}" group-title=',1)
     block[0]=ext; return block

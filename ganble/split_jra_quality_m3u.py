@@ -2,8 +2,8 @@ from pathlib import Path
 import re
 
 M3U = Path(__file__).resolve().parent / 'public_sports.m3u'
-RAW = 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main'
-LOGO_BASE = RAW + '/public_sports_logos_github_43/jra_quality'
+RAW = 'https://raw.githubusercontent.com/ajiousama/himitsu/main'
+LOGO_BASE = RAW + '/logos/public_sports/jra_quality'
 GCH_LOCAL_LOGO_BASE = 'https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/public_sports/jra_quality'
 
 SERVICES = {
@@ -14,25 +14,25 @@ SERVICES = {
     },
     'jra.east': {
         'name': 'JRA EAST',
-        'hq_logo': 'east_hq.png',
-        'lq_logo': 'east_lq.png',
+        'hq_logo': 'gch_hq.png',
+        'lq_logo': 'gch_lq.png',
     },
     'jra.west': {
         'name': 'JRA WEST',
-        'hq_logo': 'west_hq.png',
-        'lq_logo': 'west_lq.png',
+        'hq_logo': 'gch_hq.png',
+        'lq_logo': 'gch_lq.png',
     },
     'jra.hokkaido': {
         'name': 'JRA LOCAL',
         'output_base': 'jra.local',
-        'hq_logo': 'local_hq.png',
-        'lq_logo': 'local_lq.png',
+        'hq_logo': 'gch_hq.png',
+        'lq_logo': 'gch_lq.png',
     },
     'jra.local': {
         'name': 'JRA LOCAL',
         'output_base': 'jra.local',
-        'hq_logo': 'local_hq.png',
-        'lq_logo': 'local_lq.png',
+        'hq_logo': 'gch_hq.png',
+        'lq_logo': 'gch_lq.png',
     },
 }
 

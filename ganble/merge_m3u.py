@@ -7,8 +7,8 @@ import xml.etree.ElementTree as ET
 BASE = Path(__file__).resolve().parent
 OUT = BASE / 'public_sports.m3u'
 EPG = BASE / 'epg.xml'
-RAW = 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main'
-EPG_URL = RAW + '/epg.xml'
+RAW = 'https://raw.githubusercontent.com/ajiousama/himitsu/main'
+EPG_URL = RAW + '/ganble/epg.xml'
 JST = datetime.timezone(datetime.timedelta(hours=9))
 
 INPUTS = [
@@ -19,14 +19,14 @@ INPUTS = [
 ]
 
 JRA = [
-    ('jra.gch.hq','グリーンチャンネル HQ','グリーンチャンネル（高画質）','gchmain.m3u8','public_sports_logos_github_43/jra_quality/gch_hq.png'),
-    ('jra.gch.lq','グリーンチャンネル LQ','グリーンチャンネル（低画質）','gchmain_LQ.m3u8','public_sports_logos_github_43/jra_quality/gch_lq.png'),
-    ('jra.east.hq','JRA EAST HQ','JRA EAST（高画質）','EAST_test.m3u8','public_sports_logos_github_43/jra_quality/east_hq.png'),
-    ('jra.east.lq','JRA EAST LQ','JRA EAST（低画質）','EAST_test_LQ.m3u8','public_sports_logos_github_43/jra_quality/east_lq.png'),
-    ('jra.west.hq','JRA WEST HQ','JRA WEST（高画質）','WEST_master .m3u8','public_sports_logos_github_43/jra_quality/west_hq.png'),
-    ('jra.west.lq','JRA WEST LQ','JRA WEST（低画質）','WEST_master_LQ.m3u8','public_sports_logos_github_43/jra_quality/west_lq.png'),
-    ('jra.local.hq','JRA LOCAL WEB5 HQ','JRA LOCAL WEB5（高画質）','hokaido_master (1).m3u8','public_sports_logos_github_43/jra_quality/local_hq.png'),
-    ('jra.local.lq','JRA LOCAL WEB5 LQ','JRA LOCAL WEB5（低画質）','hokaido_master_LQ.m3u8','public_sports_logos_github_43/jra_quality/local_lq.png'),
+    ('jra.gch.hq','グリーンチャンネル HQ','グリーンチャンネル（高画質）','gchmain_master.m3u8','logos/public_sports/jra_quality/gch_hq.png'),
+    ('jra.gch.lq','グリーンチャンネル LQ','グリーンチャンネル（低画質）','gchmain_LQ.m3u8','logos/public_sports/jra_quality/gch_lq.png'),
+    ('jra.east.hq','JRA EAST HQ','JRA EAST（高画質）','gch_east_master.m3u8','logos/public_sports/jra_quality/gch_hq.png'),
+    ('jra.east.lq','JRA EAST LQ','JRA EAST（低画質）','gch_east_LQ.m3u8','logos/public_sports/jra_quality/gch_lq.png'),
+    ('jra.west.hq','JRA WEST HQ','JRA WEST（高画質）','gch_west_master.m3u8','logos/public_sports/jra_quality/gch_hq.png'),
+    ('jra.west.lq','JRA WEST LQ','JRA WEST（低画質）','gch_west_LQ.m3u8','logos/public_sports/jra_quality/gch_lq.png'),
+    ('jra.local.hq','JRA LOCAL WEB5 HQ','JRA LOCAL WEB5（高画質）','gch_hokkaido_master.m3u8','logos/public_sports/jra_quality/gch_hq.png'),
+    ('jra.local.lq','JRA LOCAL WEB5 LQ','JRA LOCAL WEB5（低画質）','gch_hokkaido_LQ.m3u8','logos/public_sports/jra_quality/gch_lq.png'),
 ]
 
 
@@ -175,6 +175,9 @@ def main():
     for label,path in INPUTS:
         total += append_file(out,label,path,order)
 
+    for _, _, _, filename, logo in JRA:
+        if not (BASE.parent / filename).is_file() or not (BASE.parent / logo).is_file():
+            raise SystemExit(f'Local JRA stream or logo missing: {filename} / {logo}')
     out.append('## 中央競馬')
     for tvg,name,display,filename,logo in JRA:
         out += [f'#EXTINF:-1 tvg-id="{tvg}" tvg-name="{name}" tvg-logo="{raw(logo)}" group-title="中央競馬",{display}',raw(filename),'']
