@@ -4,7 +4,7 @@ import urllib.request
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-SPORTS_EPG = "https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/epg.xml"
+SPORTS_EPG = "https://raw.githubusercontent.com/ajiousama/himitsu/main/ganble/epg.xml"
 LOCAL_EPG = Path("guides.xml")
 OUT = Path("apps/iptvm3u/iptvm3u_epg.xml")
 

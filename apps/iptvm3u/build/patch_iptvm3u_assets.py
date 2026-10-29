@@ -116,7 +116,7 @@ function iptvm3uApplyExtHttp( aChannel, sJson ) {
 function grabIptvM3uDefault( oPlaylist ) {
 \tvar aSources = [
 \t\t'https://raw.githubusercontent.com/ajiousama/himitsu/main/freewifi',
-\t\t'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/public_sports.m3u',
+\t\t'https://raw.githubusercontent.com/ajiousama/himitsu/main/ganble/public_sports.m3u',
 \t\t'https://raw.githubusercontent.com/ajiousama/himitsu/main/radio.m3u',
 \t\t'https://raw.githubusercontent.com/ajiousama/himitsu/main/general_youtube.m3u'
 \t];
