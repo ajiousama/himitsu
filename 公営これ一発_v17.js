@@ -10,23 +10,23 @@
 // ・ajiousama/himitsu の boat_stream_seed.m3u を取得結果で強制置換（0件でも空seedへ置換）
 // ・直後に BOAT状態更新 / FreeWiFi / EPG / ラジオ更新を起動
 
-const OWNER="earphone1981", REPO="public-sports-iptv", BRANCH="main";
+const OWNER="ajiousama", REPO="himitsu", BRANCH="main";
 const TOKEN_KEY="public_sports_github_pat_v4";
 const HIM_OWNER="ajiousama", HIM_REPO="himitsu", HIM_BRANCH="main";
 const HIM_TOKEN_KEY="himitsu_github_pat";
 const HIM_ALL_WORKFLOW="update_freewifi_epg.yml";
 const HIM_RADIO_WORKFLOW="refresh_radio_ts_180p.yml";
-const HIM_BOAT_WORKFLOW="update_boat_today.yml";
+const HIM_BOAT_WORKFLOW="update_boat_auto.yml";
 const RAW_BASE=`https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}`;
 const API_REPO=`/repos/${OWNER}/${REPO}`;
 const HIM_API_REPO=`/repos/${HIM_OWNER}/${HIM_REPO}`;
-const EPG_URL=`${RAW_BASE}/epg.xml`;
+const EPG_URL=`${RAW_BASE}/ganble/epg.xml`;
 const UA="Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Version/18.0 Mobile/15E148 Safari/604.1";
 const TOKEN_STORE_FILE="kouei_freewifi_tokens_v17.json";
 
 const BOAT=[
 ["01kiryu","boat.kiryu","BOATRACE桐生","桐生","01_kiryu.png"],["02toda","boat.toda","BOATRACE戸田","戸田","02_toda.png"],["03edogawa","boat.edogawa","BOATRACE江戸川","江戸川","03_edogawa.png"],["04heiwajima","boat.heiwajima","BOATRACE平和島","平和島","04_heiwajima.png"],["05tamagawa","boat.tamagawa","BOATRACE多摩川","多摩川","05_tamagawa.png"],["06hamanako","boat.hamanako","BOATRACE浜名湖","浜名湖","06_hamanako.png"],["07gamagori","boat.gamagori","BOATRACE蒲郡","蒲郡","07_gamagori.png"],["08tokoname","boat.tokoname","BOATRACE常滑","常滑","08_tokoname.png"],["09tsu","boat.tsu","BOATRACE津","津","09_tsu.png"],["10mikuni","boat.mikuni","BOATRACE三国","三国","10_mikuni.png"],["11biwako","boat.biwako","BOATRACEびわこ","びわこ","11_biwako.png"],["12suminoe","boat.suminoe","BOATRACE住之江","住之江","12_suminoe.png"],["13amagasaki","boat.amagasaki","BOATRACE尼崎","尼崎","13_amagasaki.png"],["14naruto","boat.naruto","BOATRACE鳴門","鳴門","14_naruto.png"],["15marugame","boat.marugame","BOATRACE丸亀","丸亀","15_marugame.png"],["16kojima","boat.kojima","BOATRACE児島","児島","16_kojima.png"],["17miyajima","boat.miyajima","BOATRACE宮島","宮島","17_miyajima.png"],["18tokuyama","boat.tokuyama","BOATRACE徳山","徳山","18_tokuyama.png"],["19shimonoseki","boat.shimonoseki","BOATRACE下関","下関","19_shimonoseki.png"],["20wakamatsu","boat.wakamatsu","BOATRACE若松","若松","20_wakamatsu.png"],["21ashiya","boat.ashiya","BOATRACE芦屋","芦屋","21_ashiya.png"],["22fukuoka","boat.fukuoka","BOATRACE福岡","福岡","22_fukuoka.png"],["23karatsu","boat.karatsu","BOATRACE唐津","唐津","23_karatsu.png"],["24omura","boat.omura","BOATRACE大村","大村","24_omura.png"]];
-const JRA=[["jra.gch","グリーンチャンネル","グリーンチャンネル（高画質）","gchmain.m3u8","gch.png"],["jra.gch","グリーンチャンネル","グリーンチャンネル（低画質）","gchmain_LQ.m3u8","gch.png"],["jra.east","JRA EAST","JRA EAST（高画質）","EAST_test.m3u8","east_web3.png"],["jra.east","JRA EAST","JRA EAST（低画質）","EAST_test_LQ.m3u8","east_web3.png"],["jra.west","JRA WEST","JRA WEST（高画質）","WEST_master .m3u8","west_web4.png"],["jra.west","JRA WEST","JRA WEST（低画質）","WEST_master_LQ.m3u8","west_web4.png"],["jra.hokkaido","JRA HOKKAIDO","JRA HOKKAIDO（高画質）","hokaido_master (1).m3u8","hokkaido_local.png"],["jra.hokkaido","JRA HOKKAIDO","JRA HOKKAIDO（低画質）","hokaido_master_LQ.m3u8","hokkaido_local.png"]];
+const JRA=[["jra.gch","グリーンチャンネル","グリーンチャンネル（高画質）","gchmain_master.m3u8","logos/public_sports/jra_quality/gch_hq.png"],["jra.gch","グリーンチャンネル","グリーンチャンネル（低画質）","gchmain_LQ.m3u8","logos/public_sports/jra_quality/gch_hq.png"],["jra.east","JRA EAST","JRA EAST（高画質）","gch_east_master.m3u8","logos/public_sports/jra_quality/gch_hq.png"],["jra.east","JRA EAST","JRA EAST（低画質）","gch_east_LQ.m3u8","logos/public_sports/jra_quality/gch_hq.png"],["jra.west","JRA WEST","JRA WEST（高画質）","gch_west_master.m3u8","logos/public_sports/jra_quality/gch_hq.png"],["jra.west","JRA WEST","JRA WEST（低画質）","gch_west_LQ.m3u8","logos/public_sports/jra_quality/gch_hq.png"],["jra.hokkaido","JRA HOKKAIDO","JRA HOKKAIDO（高画質）","gch_hokkaido_master.m3u8","logos/public_sports/jra_quality/gch_hq.png"],["jra.hokkaido","JRA HOKKAIDO","JRA HOKKAIDO（低画質）","gch_hokkaido_LQ.m3u8","logos/public_sports/jra_quality/gch_hq.png"]];
 
 function rawUrl(p){return RAW_BASE+"/"+p.split("/").map(encodeURIComponent).join("/");}
 function japanDate(){const p=new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Tokyo",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(new Date());return p.find(x=>x.type==="year").value+p.find(x=>x.type==="month").value+p.find(x=>x.type==="day").value;}
@@ -43,11 +43,11 @@ function isDirectStreaks(u){return typeof u==="string"&&u.startsWith("https://ma
 
 async function fetchBoatNow(apiId,venue,date){const api=`https://playback.api.streaks.jp/v1/projects/cp-boatrace-prod/medias/ref:lm-br-${apiId}-tokyo-${date}?audio_only=false`;try{const r=new Request(api);r.headers={"User-Agent":UA,"Origin":"https://front.player.boatrace-cdn.jp","Referer":"https://front.player.boatrace-cdn.jp/","Cache-Control":"no-cache, no-store","Pragma":"no-cache"};r.timeoutInterval=15;const stream=findStreamUrl(await r.loadJSON());return isDirectStreaks(stream)?stream:null;}catch(e){console.warn(`${venue} 強制取得失敗`,e);return null;}}
 
-async function makeBoatForce(){const date=japanDate();let text="#EXTM3U\n\n",seedText="#EXTM3U\n\n",fresh=0,missing=[],freshNames=[];for(const [apiId,id,display,venue,logoFile] of BOAT){const stream=await fetchBoatNow(apiId,venue,date);if(!stream){missing.push(venue);continue;}const logo=rawUrl(`public_sports_logos_github_43/boatrace/${logoFile}`);const entry=`#EXTINF:-1 tvg-id="${id}" tvg-name="${display}" tvg-logo="${logo}" group-title="ボートレース",${display}\n${stream}\n\n`;text+=entry;seedText+=entry;fresh++;freshNames.push(venue);}return{date,text,seedText,directSeedCount:fresh,fresh,missing,total:fresh,freshNames};}
+async function makeBoatForce(){const date=japanDate();let text="#EXTM3U\n\n",seedText="#EXTM3U\n\n",fresh=0,missing=[],freshNames=[];for(const [apiId,id,display,venue,logoFile] of BOAT){const stream=await fetchBoatNow(apiId,venue,date);if(!stream){missing.push(venue);continue;}const logo=rawUrl(`logos/public_sports/venues/boat_${id.slice(5)}.png`);const entry=`#EXTINF:-1 tvg-id="${id}" tvg-name="${display}" tvg-logo="${logo}" group-title="ボートレース",${display}\n${stream}\n\n`;text+=entry;seedText+=entry;fresh++;freshNames.push(venue);}return{date,text,seedText,directSeedCount:fresh,fresh,missing,total:fresh,freshNames};}
 function append(out,label,text){const e=readEntries(text);if(!e.length)return;out.push(`## ${label}`);for(const x of e){out.push(x.extinf,...x.options,x.url,"");}}
-async function makePublic(boat){const out=[`#EXTM3U url-tvg="${EPG_URL}"`,""];append(out,"競輪",await getRaw("keirin_master.m3u"));append(out,"地方競馬",await getRaw("keiba_master.m3u"));append(out,"オートレース",await getRaw("autorace_master.m3u"));append(out,"ボートレース",boat);out.push("## 中央競馬");for(const [id,name,display,file,logo] of JRA)out.push(`#EXTINF:-1 tvg-id="${id}" tvg-name="${name}" tvg-logo="${rawUrl(logo)}" group-title="中央競馬",${display}`,rawUrl(file),"");return out.join("\n").replace(/\n{3,}/g,"\n\n").trimEnd()+"\n";}
+async function makePublic(boat){const out=[`#EXTM3U url-tvg="${EPG_URL}"`,""];append(out,"競輪",await getRaw("ganble/keirin_master.m3u"));append(out,"地方競馬",await getRaw("ganble/keiba_master.m3u"));append(out,"オートレース",await getRaw("ganble/autorace_master.m3u"));append(out,"ボートレース",boat);out.push("## 中央競馬");for(const [id,name,display,file,logo] of JRA)out.push(`#EXTINF:-1 tvg-id="${id}" tvg-name="${name}" tvg-logo="${rawUrl(logo)}" group-title="中央競馬",${display}`,rawUrl(file),"");return out.join("\n").replace(/\n{3,}/g,"\n\n").trimEnd()+"\n";}
 function saveICloud(name,text){const fm=FileManager.iCloud(),p=fm.joinPath(fm.documentsDirectory(),name);fm.writeString(p,text);}
-async function dispatchPublicEPG(t){await githubRequest(`${API_REPO}/actions/workflows/update_epg_3days.yml/dispatches`,t,"POST",{ref:BRANCH});}
+async function dispatchPublicEPG(t){await githubRequest(`${API_REPO}/actions/workflows/update_ganble_epg.yml/dispatches`,t,"POST",{ref:BRANCH});}
 async function dispatchHimitsuWorkflow(t,w){await githubRequest(`${HIM_API_REPO}/actions/workflows/${w}/dispatches`,t,"POST",{ref:HIM_BRANCH});}
 async function show(title,message){const a=new Alert();a.title=title;a.message=message;a.addAction("OK");await a.present();}
 
@@ -57,8 +57,8 @@ try{
   const publicM3U=await makePublic(boat.text);
   saveICloud("boatrace_today.m3u",boat.text);
   saveICloud("public_sports.m3u",publicM3U);
-  await uploadFileTo(API_REPO,BRANCH,"boatrace_today.m3u",boat.text,token,`Force refresh BOATRACE M3U v17 ${boat.date}`);
-  const changed=await uploadFileTo(API_REPO,BRANCH,"public_sports.m3u",publicM3U,token,`Force refresh public sports M3U v17 ${boat.date}`);
+  await uploadFileTo(API_REPO,BRANCH,"ganble/boatrace_today.m3u",boat.text,token,`Force refresh BOATRACE M3U v17 ${boat.date}`);
+  const changed=await uploadFileTo(API_REPO,BRANCH,"ganble/public_sports.m3u",publicM3U,token,`Force refresh public sports M3U v17 ${boat.date}`);
 
   let epg=false,manual=false,radio=false,freeToken=false,boatSeedOk=false,boatSeedChanged=false,boatState=false;
   try{await dispatchPublicEPG(token);epg=true;}catch(e){console.warn("公営EPG起動失敗",e);}

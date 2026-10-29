@@ -3,7 +3,7 @@ import re
 
 PATH = Path('ganble/playlist.m3u')
 LOCAL_EPG = 'https://raw.githubusercontent.com/ajiousama/himitsu/main/guides.xml'
-EARPHONE = re.compile(r'https://raw\.githubusercontent\.com/earphone1981/public-sports-iptv/[^"\s]+', re.I)
+RETIRED_SOURCE = re.compile(r'https://raw\.githubusercontent\.com/[^/]+/public-sports-iptv/[^"\s]+', re.I)
 
 
 def main():
@@ -22,22 +22,22 @@ def main():
     out = []
     removed_logos = 0
     for line in lines:
-        if line.startswith('#EXTINF:') and 'tvg-logo=' in line and 'earphone1981/public-sports-iptv' in line:
-            line2 = re.sub(r'\s+tvg-logo="[^"]*earphone1981/public-sports-iptv[^"]*"', '', line, flags=re.I)
+        if line.startswith('#EXTINF:') and 'tvg-logo=' in line and 'public-sports-iptv' in line:
+            line2 = re.sub(r'\s+tvg-logo="[^"]*public-sports-iptv[^"]*"', '', line, flags=re.I)
             if line2 != line:
                 removed_logos += 1
                 line = line2
-        # A bare earphone raw URL is never a valid stream entry in this master;
+        # A bare retired raw URL is never a valid stream entry in this master;
         # remove it instead of leaving an external runtime dependency.
-        if not line.startswith('#') and EARPHONE.search(line):
+        if not line.startswith('#') and RETIRED_SOURCE.search(line):
             continue
         out.append(line)
 
     normalized = '\n'.join(out).rstrip() + '\n'
     PATH.write_text(normalized, encoding='utf-8')
-    leftovers = [x for x in normalized.splitlines() if 'earphone1981/public-sports-iptv' in x]
+    leftovers = [x for x in normalized.splitlines() if 'public-sports-iptv' in x]
     if leftovers:
-        raise SystemExit(f'ganble still has {len(leftovers)} earphone references')
+        raise SystemExit(f'ganble still has {len(leftovers)} retired references')
     print(f'ganble normalized: local EPG, removed external logos={removed_logos}')
 
 

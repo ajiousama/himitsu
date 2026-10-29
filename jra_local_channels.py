@@ -3,20 +3,20 @@ import json, re
 
 FREEWIFI = Path('freewifi')
 STATUS = Path('today_jra_status.json')
-START = '# === JRA_EARPHONE_QUALITY_START ==='
-END = '# === JRA_EARPHONE_QUALITY_END ==='
-RAW = 'https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main'
-LOGO = RAW + '/public_sports_logos_github_43/jra_quality'
+START = '# === JRA_LOCAL_QUALITY_START ==='
+END = '# === JRA_LOCAL_QUALITY_END ==='
+RAW = 'https://raw.githubusercontent.com/ajiousama/himitsu/main'
+LOGO = RAW + '/logos/public_sports/jra_quality'
 
 CHANNELS = [
-    ('jra.gch.hq','グリーンチャンネル HQ','gchmain.m3u8','gch_hq.png','jra.gch'),
+    ('jra.gch.hq','グリーンチャンネル HQ','gchmain_master.m3u8','gch_hq.png','jra.gch'),
     ('jra.gch.lq','グリーンチャンネル LQ','gchmain_LQ.m3u8','gch_lq.png','jra.gch'),
-    ('jra.east.hq','JRA EAST HQ','EAST_test.m3u8','east_hq.png','jra.east'),
-    ('jra.east.lq','JRA EAST LQ','EAST_test_LQ.m3u8','east_lq.png','jra.east'),
-    ('jra.west.hq','JRA WEST HQ','WEST_master%20.m3u8','west_hq.png','jra.west'),
-    ('jra.west.lq','JRA WEST LQ','WEST_master_LQ.m3u8','west_lq.png','jra.west'),
-    ('jra.local.hq','JRA LOCAL WEB5 HQ','hokaido_master%20(1).m3u8','local_hq.png','jra.hokkaido'),
-    ('jra.local.lq','JRA LOCAL WEB5 LQ','hokaido_master_LQ.m3u8','local_lq.png','jra.hokkaido'),
+    ('jra.east.hq','JRA EAST HQ','gch_east_master.m3u8','gch_hq.png','jra.east'),
+    ('jra.east.lq','JRA EAST LQ','gch_east_LQ.m3u8','gch_lq.png','jra.east'),
+    ('jra.west.hq','JRA WEST HQ','gch_west_master.m3u8','gch_hq.png','jra.west'),
+    ('jra.west.lq','JRA WEST LQ','gch_west_LQ.m3u8','gch_lq.png','jra.west'),
+    ('jra.local.hq','JRA LOCAL WEB5 HQ','gch_hokkaido_master.m3u8','gch_hq.png','jra.hokkaido'),
+    ('jra.local.lq','JRA LOCAL WEB5 LQ','gch_hokkaido_LQ.m3u8','gch_lq.png','jra.hokkaido'),
 ]
 
 
@@ -51,7 +51,7 @@ def main():
     active=active_sources()
     if not active:
         FREEWIFI.write_text(text,encoding='utf-8')
-        print('JRA inactive: earphone HQ/LQ block removed')
+        print('JRA inactive: ajiousama HQ/LQ block removed')
         return
     rows=[]
     for cid,name,stream,logo,source in CHANNELS:
@@ -61,10 +61,10 @@ def main():
         if source not in active:
             continue
         rows += [f'#EXTINF:-1 tvg-id="{cid}" tvg-name="{name}" tvg-logo="{LOGO}/{logo}" group-title="今日の開催場",{name}', f'{RAW}/{stream}', '']
-    block=START+'\n## JRA / GCH HQ・LQ（earphone正本）\n'+'\n'.join(rows).rstrip()+'\n'+END+'\n'
+    block=START+'\n## JRA / GCH HQ・LQ（ajiousama正本）\n'+'\n'.join(rows).rstrip()+'\n'+END+'\n'
     anchor='# === TODAY_JRA_END ==='
     text=text.replace(anchor,block+anchor,1) if anchor in text else text.rstrip()+'\n\n'+block
     FREEWIFI.write_text(text.rstrip()+'\n',encoding='utf-8')
-    print('earphone JRA quality channels installed:', len(rows)//3)
+    print('ajiousama JRA quality channels installed:', len(rows)//3)
 
 if __name__=='__main__': main()

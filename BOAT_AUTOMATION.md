@@ -2,7 +2,7 @@
 
 ## 2026-09-08の再構成
 
-対象は `ajiousama/himitsu` の FreeWiFi。外部の `earphone1981/public-sports-iptv` は更新元にしない。
+対象は `ajiousama/himitsu` の FreeWiFi。配信一覧・EPG・ロゴは `ajiousama/himitsu` の管理データを正本とする。
 
 今日確認した問題:
 

@@ -24,7 +24,7 @@ SOURCES = [
     ("tver", "https://raw.githubusercontent.com/dbghelp/TVer-EPG/refs/heads/main/tver.xml"),
     ("abema", "https://raw.githubusercontent.com/dbghelp/Abema-TV-EPG/refs/heads/main/abema.xml"),
     ("karenda", "https://raw.githubusercontent.com/karenda-jp/etc/main/guides.xml"),
-    ("public_sports", "https://raw.githubusercontent.com/earphone1981/public-sports-iptv/main/epg.xml"),
+    ("public_sports", "https://raw.githubusercontent.com/ajiousama/himitsu/main/public_sports_epg_local.xml"),
     ("epgshare_jp1", "https://epgshare01.online/epgshare01/epg_ripper_JP1.xml.gz"),
     ("epgshare_jp2", "https://epgshare01.online/epgshare01/epg_ripper_JP2.xml.gz"),
 ]
