@@ -2,10 +2,10 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-30",
-  "generated_at": "2026-10-30T08:05:11.239129+09:00",
+  "generated_at": "2026-10-30T08:07:11.289871+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261030.json",
-  "schedule_checked_at": "2026-10-30T07:50:11.286134+09:00",
+  "schedule_checked_at": "2026-10-30T08:07:11.289871+09:00",
   "schedule_warnings": [
     "official_cards: TimeoutError"
   ],
@@ -52,7 +52,7 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 4,
+    "requested": 5,
     "fetched": 1,
     "failures": [],
     "deferred": [
@@ -60,6 +60,11 @@
         "jcd": "08",
         "name": "常滑",
         "start": "2026-10-30T09:45:00+09:00"
+      },
+      {
+        "jcd": "13",
+        "name": "尼崎",
+        "start": "2026-10-30T10:02:00+09:00"
       },
       {
         "jcd": "18",
@@ -86,13 +91,13 @@
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/beaac2b5ce2f4fe6b8043a2176061553/986919055a1140ccbf8f1ac60421cf37/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MzQ5MTIwMCwic3RhcnQiOjE3OTMzMTQ4MDAsImlvcyI6MTgsImNwIjoiMjE1NTEwNDAwXzIxNTU1MzU5OSIsInBwdyI6IjQwayJ9._rUNAPb4aiOvCGJEEJYN-UqD0KzTNusUd1-dXwA5D3I",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-10-30T08:00:38.601398+09:00",
-      "checked_at": "2026-10-30T08:00:38.601398+09:00",
+      "checked_at": "2026-10-30T08:07:46.926403+09:00",
       "first_verified_at": "2026-10-30T08:00:38.601398+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
         "sequence": 8759514,
-        "last_segment": "/beaac2b5ce2f4fe6b8043a2176061553/986919055a1140ccbf8f1ac60421cf37/manifest_1_8759519.ts",
+        "last_segment": "/beaac2b5ce2f4fe6b8043a2176061553/986919055a1140ccbf8f1ac60421cf37/manifest_1_8759591.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -639,7 +644,8 @@
           "name": "予選"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "provider_stream_start": "2026-10-30T10:02:00+09:00",
+      "source": "公式BR配信開始待ち 10:02"
     },
     "boat.naruto": {
       "jcd": "14",
