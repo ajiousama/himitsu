@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-30",
-  "generated_at": "2026-10-30T12:44:50.250499+09:00",
+  "generated_at": "2026-10-30T12:47:50.401920+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261030.json",
   "schedule_checked_at": "2026-10-30T12:33:50.198368+09:00",
@@ -52,10 +52,16 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 8,
+    "requested": 9,
     "fetched": 8,
     "failures": [],
-    "deferred": []
+    "deferred": [
+      {
+        "jcd": "15",
+        "name": "丸亀",
+        "start": "2026-10-30T13:55:00+09:00"
+      }
+    ]
   },
   "epg_programmes_written": {
     "public_sports_epg_local.xml": 168,
@@ -924,7 +930,8 @@
           "name": "一般"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "provider_stream_start": "2026-10-30T13:55:00+09:00",
+      "source": "公式BR配信開始待ち 13:55"
     },
     "boat.kojima": {
       "jcd": "16",
