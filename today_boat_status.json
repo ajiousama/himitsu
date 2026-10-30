@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-30",
-  "generated_at": "2026-10-30T09:43:11.249922+09:00",
+  "generated_at": "2026-10-30T09:45:11.249862+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261030.json",
   "schedule_checked_at": "2026-10-30T09:35:11.248856+09:00",
@@ -19,7 +19,7 @@
   "alert_lead_minutes": 30,
   "card_count": 12,
   "held_count": 12,
-  "visible_count": 4,
+  "visible_count": 5,
   "active_count": 3,
   "ended_kept": [],
   "seed_required": false,
@@ -36,7 +36,7 @@
     },
     "day": {
       "held": 5,
-      "acquired": 1,
+      "acquired": 2,
       "active": 0,
       "ended": 0,
       "seed_required": 0,
@@ -53,7 +53,7 @@
   },
   "cloud_acquisition": {
     "requested": 8,
-    "fetched": 4,
+    "fetched": 5,
     "failures": [],
     "deferred": [
       {
@@ -65,11 +65,6 @@
         "jcd": "06",
         "name": "浜名湖",
         "start": "2026-10-30T10:04:00+09:00"
-      },
-      {
-        "jcd": "08",
-        "name": "常滑",
-        "start": "2026-10-30T09:45:00+09:00"
       },
       {
         "jcd": "13",
@@ -87,6 +82,22 @@
     "kind": "healthy"
   },
   "streams": {
+    "boat.tokoname": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/610e13903b7444a4a0b842af47e11709/f3a939bdb6c843b5818ae6cb0589f6ea/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MzQ5NDgwMCwic3RhcnQiOjE3OTMzMjExMDAsImlvcyI6MTgsImNwIjoiMjE1NTE2NzAwXzIxNTU1OTg5OSIsInBwdyI6IjQwayJ9.RgHNBiXyo63vdyQ5KYaD4DUphdAlBeeZlmklzYPvvlc",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-10-30T09:45:38.508268+09:00",
+      "checked_at": "2026-10-30T09:45:38.508268+09:00",
+      "first_verified_at": "2026-10-30T09:45:38.508268+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 8737861,
+        "last_segment": "/610e13903b7444a4a0b842af47e11709/f3a939bdb6c843b5818ae6cb0589f6ea/manifest_4_8737867.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
+    },
     "boat.naruto": {
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/beaac2b5ce2f4fe6b8043a2176061553/986919055a1140ccbf8f1ac60421cf37/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MzQ5MTIwMCwic3RhcnQiOjE3OTMzMTQ4MDAsImlvcyI6MTgsImNwIjoiMjE1NTEwNDAwXzIxNTU1MzU5OSIsInBwdyI6IjQwayJ9._rUNAPb4aiOvCGJEEJYN-UqD0KzTNusUd1-dXwA5D3I",
       "source": "automatic acquisition + audio/video decode",
@@ -519,7 +530,7 @@
       "jcd": "08",
       "name": "常滑",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
       "active": false,
       "cancelled": false,
@@ -537,9 +548,9 @@
       "guidance_switch_at": "2026-10-30T16:49:00+09:00",
       "seed_required": false,
       "reverify_due": false,
-      "playback_verified": false,
-      "first_verified_at": null,
-      "ready_before_first_race": false,
+      "playback_verified": true,
+      "first_verified_at": "2026-10-30T09:45:38.508268+09:00",
+      "ready_before_first_race": true,
       "acquire_from": "2026-10-30T07:50:00+09:00",
       "races": [
         {
@@ -603,8 +614,9 @@
           "name": "優勝戦"
         }
       ],
-      "provider_stream_start": "2026-10-30T09:45:00+09:00",
-      "source": "公式BR配信開始待ち 09:45"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/610e13903b7444a4a0b842af47e11709/f3a939bdb6c843b5818ae6cb0589f6ea/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MzQ5NDgwMCwic3RhcnQiOjE3OTMzMjExMDAsImlvcyI6MTgsImNwIjoiMjE1NTE2NzAwXzIxNTU1OTg5OSIsInBwdyI6IjQwayJ9.RgHNBiXyo63vdyQ5KYaD4DUphdAlBeeZlmklzYPvvlc",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     },
     "boat.amagasaki": {
       "jcd": "13",
