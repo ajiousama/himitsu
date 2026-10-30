@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-30",
-  "generated_at": "2026-10-30T10:22:11.255156+09:00",
+  "generated_at": "2026-10-30T10:25:11.255427+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261030.json",
   "schedule_checked_at": "2026-10-30T10:22:11.255156+09:00",
@@ -19,7 +19,7 @@
   "alert_lead_minutes": 30,
   "card_count": 12,
   "held_count": 12,
-  "visible_count": 7,
+  "visible_count": 8,
   "active_count": 7,
   "ended_kept": [],
   "seed_required": false,
@@ -36,7 +36,7 @@
     },
     "day": {
       "held": 5,
-      "acquired": 4,
+      "acquired": 5,
       "active": 4,
       "ended": 0,
       "seed_required": 0,
@@ -53,15 +53,9 @@
   },
   "cloud_acquisition": {
     "requested": 8,
-    "fetched": 7,
+    "fetched": 8,
     "failures": [],
-    "deferred": [
-      {
-        "jcd": "03",
-        "name": "江戸川",
-        "start": "2026-10-30T10:25:00+09:00"
-      }
-    ]
+    "deferred": []
   },
   "epg_programmes_written": {
     "public_sports_epg_local.xml": 168,
@@ -72,6 +66,22 @@
     "kind": "healthy"
   },
   "streams": {
+    "boat.edogawa": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/f465f71d6d904acbba9891f36efa4d75/ca26a6165d6548839423bef3835b131f/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MzQ5ODQwMCwic3RhcnQiOjE3OTMzMjM1MDAsImlvcyI6MTgsImNwIjoiMjE1NTE5MTAwXzIxNTU2MjI5OSIsInBwdyI6IjQwayJ9.E0uqDSgv2G0Sq0qa9tznMydNNRXC0P_9FeZSButI_A4",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-10-30T10:25:38.621430+09:00",
+      "checked_at": "2026-10-30T10:25:38.621430+09:00",
+      "first_verified_at": "2026-10-30T10:25:38.621430+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 8738651,
+        "last_segment": "/f465f71d6d904acbba9891f36efa4d75/ca26a6165d6548839423bef3835b131f/manifest_1_8738657.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
+    },
     "boat.hamanako": {
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/0d8b75127387474782e6ec0f9ed37def/223e5824be624269b1b0516639733762/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MzQ5ODQwMCwic3RhcnQiOjE3OTMzMjIyNDAsImlvcyI6MTgsImNwIjoiMjE1NTE3ODQwXzIxNTU2MTAzOSIsInBwdyI6IjQwayJ9.qKF9q9UM5q0YaFKHTkjWltZh4MW7lG2_pCzVPjVYkUE",
       "source": "automatic acquisition + audio/video decode",
@@ -280,7 +290,7 @@
       "jcd": "03",
       "name": "江戸川",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
       "active": false,
       "cancelled": false,
@@ -298,9 +308,9 @@
       "guidance_switch_at": "2026-10-30T16:45:00+09:00",
       "seed_required": false,
       "reverify_due": false,
-      "playback_verified": false,
-      "first_verified_at": null,
-      "ready_before_first_race": false,
+      "playback_verified": true,
+      "first_verified_at": "2026-10-30T10:25:38.621430+09:00",
+      "ready_before_first_race": true,
       "acquire_from": "2026-10-30T08:29:00+09:00",
       "races": [
         {
@@ -364,8 +374,9 @@
           "name": "記者選抜戦"
         }
       ],
-      "provider_stream_start": "2026-10-30T10:25:00+09:00",
-      "source": "公式BR配信開始待ち 10:25"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/f465f71d6d904acbba9891f36efa4d75/ca26a6165d6548839423bef3835b131f/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MzQ5ODQwMCwic3RhcnQiOjE3OTMzMjM1MDAsImlvcyI6MTgsImNwIjoiMjE1NTE5MTAwXzIxNTU2MjI5OSIsInBwdyI6IjQwayJ9.E0uqDSgv2G0Sq0qa9tznMydNNRXC0P_9FeZSButI_A4",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     },
     "boat.hamanako": {
       "jcd": "06",
@@ -1028,7 +1039,7 @@
       "intermission": null,
       "guidance_switch_at": "2026-10-30T15:12:00+09:00",
       "seed_required": false,
-      "reverify_due": false,
+      "reverify_due": true,
       "playback_verified": true,
       "first_verified_at": "2026-10-30T08:16:38.706305+09:00",
       "ready_before_first_race": true,
