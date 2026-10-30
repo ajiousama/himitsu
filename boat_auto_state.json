@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-31",
-  "generated_at": "2026-10-31T08:16:06.880032+09:00",
+  "generated_at": "2026-10-31T08:19:06.935418+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261031.json",
   "schedule_checked_at": "2026-10-31T08:11:06.987809+09:00",
@@ -52,7 +52,7 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 7,
+    "requested": 8,
     "fetched": 3,
     "failures": [],
     "deferred": [
@@ -75,6 +75,11 @@
         "jcd": "13",
         "name": "尼崎",
         "start": "2026-10-31T10:02:00+09:00"
+      },
+      {
+        "jcd": "16",
+        "name": "児島",
+        "start": "2026-10-31T09:40:00+09:00"
       }
     ]
   },
@@ -91,13 +96,13 @@
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/de84d61bc96e4dacb375bb92802817dd/b4f2f498367842e08506f18bc5a2c457/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MzU3NzYwMCwic3RhcnQiOjE3OTM0MDEyMDAsImlvcyI6MTgsImNwIjoiMjE1NTk2ODAwXzIxNTYzOTk5OSIsInBwdyI6IjQwayJ9.15aamftWWZs8VDP7alqHhh2PPG7DfwKzEjAb2uVBa5Q",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-10-31T08:00:15.099001+09:00",
-      "checked_at": "2026-10-31T08:11:42.240746+09:00",
+      "checked_at": "2026-10-31T08:19:34.217951+09:00",
       "first_verified_at": "2026-10-31T08:00:15.099001+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
         "sequence": 8773914,
-        "last_segment": "/de84d61bc96e4dacb375bb92802817dd/b4f2f498367842e08506f18bc5a2c457/manifest_1_8774030.ts",
+        "last_segment": "/de84d61bc96e4dacb375bb92802817dd/b4f2f498367842e08506f18bc5a2c457/manifest_1_8774108.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -1041,7 +1046,8 @@
           "name": "優勝戦"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "provider_stream_start": "2026-10-31T09:40:00+09:00",
+      "source": "公式BR配信開始待ち 09:40"
     },
     "boat.tokuyama": {
       "jcd": "18",
