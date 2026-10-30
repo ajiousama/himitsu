@@ -38,8 +38,31 @@ def strip_retired_naori(text: str) -> str:
     return "".join(kept)
 
 
+def strip_retired_yoitv(text: str) -> str:
+    """Never republish retired YoiTV entries, even from an old source snapshot."""
+    lines = text.splitlines(keepends=True)
+    kept = []
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        if line.startswith("#EXTINF:"):
+            j = i + 1
+            while j < len(lines) and not lines[j].strip():
+                j += 1
+            if (j < len(lines) and not lines[j].lstrip().startswith("#")
+                    and ("yoitv" in line.casefold()
+                         or "/tv/yoitv.php" in lines[j].casefold())):
+                i = j + 1
+                while i < len(lines) and not lines[i].strip():
+                    i += 1
+                continue
+        kept.append(line)
+        i += 1
+    return "".join(kept)
+
+
 def payload():
-    text = strip_retired_naori(PLAYLIST.read_text(encoding="utf-8-sig", errors="replace"))
+    text = strip_retired_yoitv(strip_retired_naori(PLAYLIST.read_text(encoding="utf-8-sig", errors="replace")))
     lines = text.splitlines()
     if lines and lines[0].startswith("#EXTM3U"):
         lines = lines[1:]
@@ -152,8 +175,12 @@ def main():
     tv = payload().rstrip() + "\n\n" + protected + "\n\n"
     updated = base[:a] + tv + base[b:]
     updated, reused = reuse_known_contrast_logos(updated)
-    updated = strip_retired_naori(updated)
+    updated = strip_retired_yoitv(strip_retired_naori(updated))
     validate_source_groups(updated)
+    if "/tv/yoitv.php" in updated.casefold() or any(
+            "yoitv" in line.casefold() for line in updated.splitlines()
+            if line.startswith("#EXTINF:")):
+        raise SystemExit("Retired YoiTV entry detected in FreeWiFi; refusing publish")
     if "haruka" in updated.lower():
         raise SystemExit("Retired HARUKA entry detected in FreeWiFi; refusing publish")
     if "naori" in updated.lower():

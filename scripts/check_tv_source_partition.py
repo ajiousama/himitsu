@@ -1,20 +1,12 @@
 #!/usr/bin/env python3
-"""Verify retired blogs stay absent while approved YoiTV/5002/Shinori remain."""
+"""Verify retired blogs and YoiTV stay out of FreeWiFi while backups stay in yovi."""
 from pathlib import Path
 import re
 
 ROOT = Path(__file__).resolve().parent.parent
 REQUIRED_SHINORI = 66
-REQUIRED_FREEWIFI_YOITV = 49
+REQUIRED_FREEWIFI_YOITV = 0
 REQUIRED_YOVI_YOITV = 75
-ALLOWED_FREEWIFI_CS_YOITV = frozenset({
-    "Dlife(ディーライフ)_jp","FIGHTING-TV-サムライ_jp",
-    "MUSIC-ON!-TV(エムオン!)_jp","TBSチャンネル1_jp","TBSチャンネル2_jp",
-    "アニメシアター(AT-X)_jp","ザ・シネマ_jp","スポーツライブ+_jp",
-    "テレ朝チャンネル1_jp","テレ朝チャンネル2_jp",
-    "フジテレビONE_jp","フジテレビTWO_jp","ミステリーチャンネル_jp",
-    "メ～テレNEXT_jp","鉄道チャンネル_jp","日テレNEWS24_jp","日テレプラス_jp",
-})
 
 
 def entries(path):
@@ -64,17 +56,10 @@ def check():
         ids = [cid for cid,_,url in rows if "ri.shinori.my.id/" in url]
         if len(ids) != REQUIRED_SHINORI or len(ids) != len(set(ids)):
             raise SystemExit(f"{label}: Shinori 66 unique sources required")
-        yoitv_rows = [(cid, tag, url) for cid,tag,url in rows if "/tv/yoitv.php" in url]
-        if len(yoitv_rows) != REQUIRED_FREEWIFI_YOITV or len({url for _,_,url in yoitv_rows}) != REQUIRED_FREEWIFI_YOITV:
-            raise SystemExit(f"{label}: expected 49 unique YoiTV sources, got {len(yoitv_rows)}")
-        for group, required in (("地上波 YoiTV", 14), ("BS YoiTV", 18)):
-            expected = [(cid, url) for cid,tag,url in yovi if f'group-title="{group}"' in tag]
-            actual = [(cid, url) for cid,tag,url in rows if f'group-title="{group}"' in tag]
-            if len(expected) != required or len(actual) != required or set(actual) != set(expected):
-                raise SystemExit(f"{label}: {group} mismatch (expected {required}, got {len(actual)})")
-        cs_rows = [(cid, url) for cid,tag,url in rows if 'group-title="CS YoiTV"' in tag]
-        if len(cs_rows) != 17 or {cid for cid,_ in cs_rows} != ALLOWED_FREEWIFI_CS_YOITV:
-            raise SystemExit(f"{label}: expected 17 approved YoiTV CS, got {len(cs_rows)}")
+        yoitv_rows = [(cid, tag, url) for cid,tag,url in rows
+                      if "/tv/yoitv.php" in url.casefold() or "yoitv" in tag.casefold()]
+        if len(yoitv_rows) != REQUIRED_FREEWIFI_YOITV:
+            raise SystemExit(f"{label}: retired YoiTV sources reappeared: {len(yoitv_rows)}")
     if sum("/tv/yoitv.php" in url for _,_,url in yovi) < REQUIRED_YOVI_YOITV:
         raise SystemExit("yovi: YoiTV minimum 75 violated")
     for label, rows,minimum in (("freewifi",free,49),("tv",tv,48),("yovi",yovi,18)):
@@ -84,7 +69,7 @@ def check():
     for name in ("グリーンチャンネル MAIN HQ","グリーンチャンネル MAIN LQ","グリーンチャンネル (5002直)"):
         if not any(tag.rsplit(",",1)[-1]==name for _,tag,_ in free):
             raise SystemExit(f"freewifi: required GCH source missing: {name}")
-    print("Source partition OK: retired HARU/newblog absent; 5002, sinori, YoiTV preserved")
+    print("Source partition OK: retired HARU/newblog/YoiTV absent from FreeWiFi; 5002 and sinori preserved; yovi unchanged")
 
 
 if __name__ == "__main__":

@@ -61,10 +61,12 @@ jobs:
           assert 'naori' not in s.casefold()
           assert 'arva' not in s.casefold()
           assert 'arva' not in tv.casefold()
-          # Keep approved YoiTV terrestrial/BS backups alongside 5002 and Sinori.
-          assert s.count('group-title="地上波 YoiTV"') == 14, 'Terrestrial YoiTV sources lost'
-          assert s.count('group-title="BS YoiTV"') == 18, 'BS YoiTV sources lost'
-          assert s.count('group-title="CS YoiTV"') == 17, 'Approved CS YoiTV sources changed'
+          # YoiTV is retired from FreeWiFi and canonical TV; retain it only in yovi.
+          for path in ('freewifi', 'tv/playlist.m3u'):
+              body = Path(path).read_text(encoding='utf-8-sig')
+              assert '/tv/yoitv.php' not in body.casefold(), f'Retired YoiTV URL returned in {path}'
+              assert not any('yoitv' in line.casefold() for line in body.splitlines()
+                             if line.startswith('#EXTINF:')), f'Retired YoiTV row returned in {path}'
           assert 'サンテレビ (5002直)' in s, 'Required PrimeHome/5002 station missing'
           for cid in ('rch_30','rch_35','rch_37','rch_46','rch_86','rch_113','rch_122','rch_123','rch_124','rch_125','rch_41'):
               assert cid in s

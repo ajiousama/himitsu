@@ -57,7 +57,8 @@ def without_retired_naori(entries):
     """Remove retired NAORI and HARUKA sources from channel playlists."""
     return [(inf, url, seq) for inf, url, seq in entries
             if "naori" not in inf.lower() and "naori" not in url.lower()
-            and "haruka" not in inf.lower() and ":9394/stream/" not in url.lower()]
+            and "haruka" not in inf.lower() and ":9394/stream/" not in url.lower()
+            and "yoitv" not in inf.casefold() and "/tv/yoitv.php" not in url.casefold()]
 
 
 def source_rank(inf: str) -> int:
@@ -206,6 +207,9 @@ def main() -> None:
     validate_grouping(updated, "# === GREEN_CHANNEL_PERSISTENT_START ===\n", "# === GREEN_CHANNEL_PERSISTENT_END ===")
     validate_grouping(updated, "## CS\n", None)
     validate_no_haru_blogs(updated)
+    if any('yoitv' in inf.casefold() or '/tv/yoitv.php' in url.casefold()
+           for inf, url, _ in parse_entries(updated)):
+        raise RuntimeError('Retired YoiTV source returned to canonical TV')
     if "haruka" in updated.lower():
         raise RuntimeError("Retired HARUKA TV source returned")
     if "naori" in updated.lower():
