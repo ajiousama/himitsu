@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-30",
-  "generated_at": "2026-10-30T12:49:50.145670+09:00",
+  "generated_at": "2026-10-30T12:51:50.200831+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261030.json",
   "schedule_checked_at": "2026-10-30T12:49:50.145670+09:00",
@@ -52,7 +52,7 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 10,
+    "requested": 11,
     "fetched": 8,
     "failures": [
       {
@@ -62,6 +62,11 @@
       }
     ],
     "deferred": [
+      {
+        "jcd": "01",
+        "name": "桐生",
+        "start": "2026-10-30T14:45:00+09:00"
+      },
       {
         "jcd": "15",
         "name": "丸亀",
@@ -296,7 +301,8 @@
           "name": "優勝戦"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "provider_stream_start": "2026-10-30T14:45:00+09:00",
+      "source": "公式BR配信開始待ち 14:45"
     },
     "boat.edogawa": {
       "jcd": "03",
