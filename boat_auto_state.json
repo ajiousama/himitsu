@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-31",
-  "generated_at": "2026-10-31T16:16:04.324307+09:00",
+  "generated_at": "2026-10-31T16:17:04.274322+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261031.json",
   "schedule_checked_at": "2026-10-31T16:16:04.324307+09:00",
@@ -19,8 +19,8 @@
   "alert_lead_minutes": 30,
   "card_count": 13,
   "held_count": 13,
-  "visible_count": 6,
-  "active_count": 6,
+  "visible_count": 5,
+  "active_count": 5,
   "ended_kept": [],
   "seed_required": false,
   "seed_required_venues": [],
@@ -36,9 +36,9 @@
     },
     "day": {
       "held": 7,
-      "acquired": 3,
-      "active": 3,
-      "ended": 4,
+      "acquired": 2,
+      "active": 2,
+      "ended": 5,
       "seed_required": 0,
       "cancelled": 0
     },
@@ -52,8 +52,8 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 6,
-    "fetched": 6,
+    "requested": 5,
+    "fetched": 5,
     "failures": [],
     "deferred": []
   },
@@ -66,22 +66,6 @@
     "kind": "healthy"
   },
   "streams": {
-    "boat.heiwajima": {
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/8cb91d12a9494eebaa0eecce86fbf1ea/6e6ff6886b614973a5f5771595706274/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MzU4NDgwMCwic3RhcnQiOjE3OTM0MDg0MDAsImlvcyI6MTgsImNwIjoiMjE1NjA0MDAwXzIxNTY0NzE5OSIsInBwdyI6IjQwayJ9.0h7Y6kh804xuVRbmZcB0zpOYnTsHT1n5KEKEQIZW_o4",
-      "source": "automatic acquisition + audio/video decode",
-      "acquired_at": "2026-10-31T10:00:34.335840+09:00",
-      "checked_at": "2026-10-31T16:12:31.530160+09:00",
-      "first_verified_at": "2026-10-31T10:00:34.335840+09:00",
-      "playback_verified": true,
-      "probe": {
-        "ok": true,
-        "sequence": 8750523,
-        "last_segment": "/8cb91d12a9494eebaa0eecce86fbf1ea/6e6ff6886b614973a5f5771595706274/manifest_1_8754248.ts",
-        "video_decoded": true,
-        "audio_decoded": true
-      },
-      "consecutive_failures": 0
-    },
     "boat.gamagori": {
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/48b6f8aaf9504758a407bec752309ee3/f8ffe7126f9f447ab424751869655f06/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MzU5OTIwMCwic3RhcnQiOjE3OTM0MjM0MDAsImlvcyI6MTgsImNwIjoiMjE1NjE5MDAwXzIxNTY2MTU5OSIsInBwdyI6IjQwayJ9.L3PYViYWWAWmmHX7rYzdFRsjCtZJQ6Z3OEtCQLGMYNI",
       "source": "automatic acquisition + audio/video decode",
@@ -342,9 +326,9 @@
       "jcd": "04",
       "name": "平和島",
       "held": true,
-      "visible": true,
-      "ended": false,
-      "active": true,
+      "visible": false,
+      "ended": true,
+      "active": false,
       "cancelled": false,
       "mode": "day",
       "mode_label": "デイ",
@@ -352,11 +336,11 @@
       "last_race": "16:14",
       "alert_from": "2026-10-31T10:21:00+09:00",
       "next_race": null,
-      "stream_window": "live_or_prestart",
+      "stream_window": "ended_hidden",
       "intermission": null,
       "guidance_switch_at": "2026-10-31T16:59:00+09:00",
       "seed_required": false,
-      "reverify_due": true,
+      "reverify_due": false,
       "playback_verified": true,
       "first_verified_at": "2026-10-31T10:00:34.335840+09:00",
       "ready_before_first_race": true,
@@ -423,9 +407,7 @@
           "name": "平和島選抜"
         }
       ],
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/8cb91d12a9494eebaa0eecce86fbf1ea/6e6ff6886b614973a5f5771595706274/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MzU4NDgwMCwic3RhcnQiOjE3OTM0MDg0MDAsImlvcyI6MTgsImNwIjoiMjE1NjA0MDAwXzIxNTY0NzE5OSIsInBwdyI6IjQwayJ9.0h7Y6kh804xuVRbmZcB0zpOYnTsHT1n5KEKEQIZW_o4",
-      "source": "automatic acquisition + audio/video decode",
-      "token_expired": false
+      "source": "automatic cloud SEED pending"
     },
     "boat.hamanako": {
       "jcd": "06",
@@ -893,7 +875,7 @@
       "intermission": null,
       "guidance_switch_at": "2026-10-31T21:15:00+09:00",
       "seed_required": false,
-      "reverify_due": false,
+      "reverify_due": true,
       "playback_verified": true,
       "first_verified_at": "2026-10-31T13:55:29.611266+09:00",
       "ready_before_first_race": true,
