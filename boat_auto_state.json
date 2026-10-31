@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-01",
-  "generated_at": "2026-11-01T08:13:58.650381+09:00",
+  "generated_at": "2026-11-01T08:15:06.463524+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261101.json",
   "schedule_checked_at": "2026-11-01T08:05:07.761460+09:00",
@@ -52,10 +52,21 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 7,
+    "requested": 8,
     "fetched": 2,
-    "failures": [],
+    "failures": [
+      {
+        "jcd": "21",
+        "name": "芦屋",
+        "error": "HTTPError: playback check failed"
+      }
+    ],
     "deferred": [
+      {
+        "jcd": "02",
+        "name": "戸田",
+        "start": "2026-11-01T10:09:00+09:00"
+      },
       {
         "jcd": "06",
         "name": "浜名湖",
@@ -75,11 +86,6 @@
         "jcd": "17",
         "name": "宮島",
         "start": "2026-11-01T09:40:00+09:00"
-      },
-      {
-        "jcd": "21",
-        "name": "芦屋",
-        "start": "2026-11-01T08:16:00+09:00"
       }
     ]
   },
@@ -214,7 +220,8 @@
           "name": "記者選抜戦"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "provider_stream_start": "2026-11-01T10:09:00+09:00",
+      "source": "公式BR配信開始待ち 10:09"
     },
     "boat.edogawa": {
       "jcd": "03",
@@ -1212,8 +1219,7 @@
           "name": "ドリームレース"
         }
       ],
-      "provider_stream_start": "2026-11-01T08:16:00+09:00",
-      "source": "公式BR配信開始待ち 08:16"
+      "source": "automatic cloud SEED pending"
     },
     "boat.fukuoka": {
       "jcd": "22",
