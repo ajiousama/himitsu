@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-10-31",
-  "generated_at": "2026-10-31T09:54:06.998661+09:00",
+  "generated_at": "2026-10-31T09:55:06.997071+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261031.json",
   "schedule_checked_at": "2026-10-31T09:48:07.000927+09:00",
@@ -19,7 +19,7 @@
   "alert_lead_minutes": 30,
   "card_count": 13,
   "held_count": 13,
-  "visible_count": 4,
+  "visible_count": 5,
   "active_count": 3,
   "ended_kept": [],
   "seed_required": false,
@@ -36,7 +36,7 @@
     },
     "day": {
       "held": 7,
-      "acquired": 1,
+      "acquired": 2,
       "active": 0,
       "ended": 0,
       "seed_required": 0,
@@ -53,7 +53,7 @@
   },
   "cloud_acquisition": {
     "requested": 10,
-    "fetched": 4,
+    "fetched": 5,
     "failures": [],
     "deferred": [
       {
@@ -77,11 +77,6 @@
         "start": "2026-10-31T10:04:00+09:00"
       },
       {
-        "jcd": "09",
-        "name": "津",
-        "start": "2026-10-31T09:55:00+09:00"
-      },
-      {
         "jcd": "13",
         "name": "尼崎",
         "start": "2026-10-31T10:02:00+09:00"
@@ -97,6 +92,22 @@
     "kind": "healthy"
   },
   "streams": {
+    "boat.tsu": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/ce93b89fb40a40ceb43eb72277987176/d8b79cb994df424d8b7da8da87206114/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MzU4MTIwMCwic3RhcnQiOjE3OTM0MDgxMDAsImlvcyI6MTgsImNwIjoiMjE1NjAzNzAwXzIxNTY0Njg5OSIsInBwdyI6IjQwayJ9.iqU8BTYDnNYT2NW8x7xpn8a6D-48fXqfSlh97fyxh8o",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-10-31T09:55:34.099795+09:00",
+      "checked_at": "2026-10-31T09:55:34.099795+09:00",
+      "first_verified_at": "2026-10-31T09:55:34.099795+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 8775213,
+        "last_segment": "/ce93b89fb40a40ceb43eb72277987176/d8b79cb994df424d8b7da8da87206114/manifest_4_8775218.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
+    },
     "boat.naruto": {
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/de84d61bc96e4dacb375bb92802817dd/b4f2f498367842e08506f18bc5a2c457/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MzU3NzYwMCwic3RhcnQiOjE3OTM0MDEyMDAsImlvcyI6MTgsImNwIjoiMjE1NTk2ODAwXzIxNTYzOTk5OSIsInBwdyI6IjQwayJ9.15aamftWWZs8VDP7alqHhh2PPG7DfwKzEjAb2uVBa5Q",
       "source": "automatic acquisition + audio/video decode",
@@ -621,7 +632,7 @@
       "jcd": "09",
       "name": "津",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
       "active": false,
       "cancelled": false,
@@ -639,9 +650,9 @@
       "guidance_switch_at": "2026-10-31T16:57:00+09:00",
       "seed_required": false,
       "reverify_due": false,
-      "playback_verified": false,
-      "first_verified_at": null,
-      "ready_before_first_race": false,
+      "playback_verified": true,
+      "first_verified_at": "2026-10-31T09:55:34.099795+09:00",
+      "ready_before_first_race": true,
       "acquire_from": "2026-10-31T07:59:00+09:00",
       "races": [
         {
@@ -705,8 +716,9 @@
           "name": "ドリーム戦"
         }
       ],
-      "provider_stream_start": "2026-10-31T09:55:00+09:00",
-      "source": "公式BR配信開始待ち 09:55"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/ce93b89fb40a40ceb43eb72277987176/d8b79cb994df424d8b7da8da87206114/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MzU4MTIwMCwic3RhcnQiOjE3OTM0MDgxMDAsImlvcyI6MTgsImNwIjoiMjE1NjAzNzAwXzIxNTY0Njg5OSIsInBwdyI6IjQwayJ9.iqU8BTYDnNYT2NW8x7xpn8a6D-48fXqfSlh97fyxh8o",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     },
     "boat.amagasaki": {
       "jcd": "13",
