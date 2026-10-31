@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-01",
-  "generated_at": "2026-11-01T08:16:09.613206+09:00",
+  "generated_at": "2026-11-01T08:19:38.917798+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261101.json",
   "schedule_checked_at": "2026-11-01T08:05:07.761460+09:00",
@@ -52,7 +52,7 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 8,
+    "requested": 9,
     "fetched": 3,
     "failures": [],
     "deferred": [
@@ -80,6 +80,11 @@
         "jcd": "17",
         "name": "宮島",
         "start": "2026-11-01T09:40:00+09:00"
+      },
+      {
+        "jcd": "22",
+        "name": "福岡",
+        "start": "2026-11-01T10:10:00+09:00"
       }
     ]
   },
@@ -96,13 +101,13 @@
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/4f3663865f30473b920fb369acbe7e23/ac6e981068224cada063e2de5b7980be/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MzY2NDAwMCwic3RhcnQiOjE3OTM0ODc2MDAsImlvcyI6MTgsImNwIjoiMjE1NjgzMjAwXzIxNTcyNjM5OSIsInBwdyI6IjQwayJ9.9xw5XwYv-f5Kpfjp5v_dBNOZGJ73uBBncWMylb87vHU",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-11-01T08:00:48.522757+09:00",
-      "checked_at": "2026-11-01T08:14:52.826398+09:00",
+      "checked_at": "2026-11-01T08:20:06.258912+09:00",
       "first_verified_at": "2026-11-01T08:00:48.522757+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
         "sequence": 8788314,
-        "last_segment": "/4f3663865f30473b920fb369acbe7e23/ac6e981068224cada063e2de5b7980be/manifest_1_8788462.ts",
+        "last_segment": "/4f3663865f30473b920fb369acbe7e23/ac6e981068224cada063e2de5b7980be/manifest_1_8788514.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -112,13 +117,13 @@
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/345fac00c6bb44718a3f370886cdc8ca/8bc2d777efd1466c8a98d2f6df5c772b/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MzY2NDAwMCwic3RhcnQiOjE3OTM0ODgwODAsImlvcyI6MTgsImNwIjoiMjE1NjgzNjgwXzIxNTcyNjg3OSIsInBwdyI6IjQwayJ9.237VX4FMmffj3BBG24RBU-l9j_OR0RNcK4N203P-VY4",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-11-01T08:08:19.851921+09:00",
-      "checked_at": "2026-11-01T08:14:52.827070+09:00",
+      "checked_at": "2026-11-01T08:20:06.259603+09:00",
       "first_verified_at": "2026-11-01T08:08:19.851921+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
         "sequence": 8766393,
-        "last_segment": "/345fac00c6bb44718a3f370886cdc8ca/8bc2d777efd1466c8a98d2f6df5c772b/manifest_1_8766461.ts",
+        "last_segment": "/345fac00c6bb44718a3f370886cdc8ca/8bc2d777efd1466c8a98d2f6df5c772b/manifest_1_8766514.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -1321,7 +1326,8 @@
           "name": "ドリームレース"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "provider_stream_start": "2026-11-01T10:10:00+09:00",
+      "source": "公式BR配信開始待ち 10:10"
     },
     "boat.omura": {
       "jcd": "24",
