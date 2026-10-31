@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-01",
-  "generated_at": "2026-11-01T07:49:37.056877+09:00",
+  "generated_at": "2026-11-01T07:59:54.193473+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261101.json",
   "schedule_checked_at": "2026-11-01T07:49:37.056877+09:00",
@@ -19,7 +19,7 @@
   "alert_lead_minutes": 30,
   "card_count": 14,
   "held_count": 14,
-  "visible_count": 0,
+  "visible_count": 1,
   "active_count": 0,
   "ended_kept": [],
   "seed_required": false,
@@ -28,7 +28,7 @@
   "phase_counts": {
     "morning": {
       "held": 3,
-      "acquired": 0,
+      "acquired": 1,
       "active": 0,
       "ended": 0,
       "seed_required": 0,
@@ -52,14 +52,14 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 4,
-    "fetched": 0,
+    "requested": 5,
+    "fetched": 1,
     "failures": [],
     "deferred": [
       {
-        "jcd": "14",
-        "name": "鳴門",
-        "start": "2026-11-01T08:00:00+09:00"
+        "jcd": "09",
+        "name": "津",
+        "start": "2026-11-01T09:55:00+09:00"
       },
       {
         "jcd": "17",
@@ -86,7 +86,24 @@
     "active": false,
     "kind": "healthy"
   },
-  "streams": {},
+  "streams": {
+    "boat.naruto": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/4f3663865f30473b920fb369acbe7e23/ac6e981068224cada063e2de5b7980be/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MzY2NDAwMCwic3RhcnQiOjE3OTM0ODc2MDAsImlvcyI6MTgsImNwIjoiMjE1NjgzMjAwXzIxNTcyNjM5OSIsInBwdyI6IjQwayJ9.9xw5XwYv-f5Kpfjp5v_dBNOZGJ73uBBncWMylb87vHU",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-11-01T08:00:48.522757+09:00",
+      "checked_at": "2026-11-01T08:00:48.522757+09:00",
+      "first_verified_at": "2026-11-01T08:00:48.522757+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 8788314,
+        "last_segment": "/4f3663865f30473b920fb369acbe7e23/ac6e981068224cada063e2de5b7980be/manifest_1_8788321.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
+    }
+  },
   "venues": {
     "boat.toda": {
       "jcd": "02",
@@ -626,7 +643,8 @@
           "name": "ツッピー選抜戦"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "provider_stream_start": "2026-11-01T09:55:00+09:00",
+      "source": "公式BR配信開始待ち 09:55"
     },
     "boat.amagasaki": {
       "jcd": "13",
@@ -722,7 +740,7 @@
       "jcd": "14",
       "name": "鳴門",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
       "active": false,
       "cancelled": false,
@@ -740,9 +758,9 @@
       "guidance_switch_at": "2026-11-01T14:56:00+09:00",
       "seed_required": false,
       "reverify_due": false,
-      "playback_verified": false,
-      "first_verified_at": null,
-      "ready_before_first_race": false,
+      "playback_verified": true,
+      "first_verified_at": "2026-11-01T08:00:48.522757+09:00",
+      "ready_before_first_race": true,
       "acquire_from": "2026-11-01T06:05:00+09:00",
       "races": [
         {
@@ -806,8 +824,9 @@
           "name": "準優勝戦"
         }
       ],
-      "provider_stream_start": "2026-11-01T08:00:00+09:00",
-      "source": "公式BR配信開始待ち 08:00"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/4f3663865f30473b920fb369acbe7e23/ac6e981068224cada063e2de5b7980be/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MzY2NDAwMCwic3RhcnQiOjE3OTM0ODc2MDAsImlvcyI6MTgsImNwIjoiMjE1NjgzMjAwXzIxNTcyNjM5OSIsInBwdyI6IjQwayJ9.9xw5XwYv-f5Kpfjp5v_dBNOZGJ73uBBncWMylb87vHU",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     },
     "boat.miyajima": {
       "jcd": "17",
