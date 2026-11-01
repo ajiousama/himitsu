@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-02",
-  "generated_at": "2026-11-02T08:16:11.339296+09:00",
+  "generated_at": "2026-11-02T08:19:11.287268+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261102.json",
   "schedule_checked_at": "2026-11-02T08:15:11.286135+09:00",
@@ -52,7 +52,7 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 7,
+    "requested": 8,
     "fetched": 3,
     "failures": [],
     "deferred": [
@@ -75,6 +75,11 @@
         "jcd": "17",
         "name": "宮島",
         "start": "2026-11-02T09:40:00+09:00"
+      },
+      {
+        "jcd": "22",
+        "name": "福岡",
+        "start": "2026-11-02T10:10:00+09:00"
       }
     ]
   },
@@ -91,13 +96,13 @@
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/a15ac2cd2f7d4c6d844bc12240bf1e3f/ba9bae64c8984fb6b72697b038eaa7ef/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5Mzc1MDQwMCwic3RhcnQiOjE3OTM1NzQwMDAsImlvcyI6MTgsImNwIjoiMjE1NzY5NjAwXzIxNTgxMjc5OSIsInBwdyI6IjQwayJ9.hWy9ZRrPFU0upYVGz9FA0Oy3AacOC4i09PRJp0Iu_mE",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-11-02T08:00:12.852704+09:00",
-      "checked_at": "2026-11-02T08:12:38.615136+09:00",
+      "checked_at": "2026-11-02T08:19:38.569010+09:00",
       "first_verified_at": "2026-11-02T08:00:12.852704+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
         "sequence": 8802714,
-        "last_segment": "/a15ac2cd2f7d4c6d844bc12240bf1e3f/ba9bae64c8984fb6b72697b038eaa7ef/manifest_1_8802839.ts",
+        "last_segment": "/a15ac2cd2f7d4c6d844bc12240bf1e3f/ba9bae64c8984fb6b72697b038eaa7ef/manifest_1_8802909.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -1225,7 +1230,8 @@
           "name": "福岡選抜"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "provider_stream_start": "2026-11-02T10:10:00+09:00",
+      "source": "公式BR配信開始待ち 10:10"
     },
     "boat.omura": {
       "jcd": "24",
