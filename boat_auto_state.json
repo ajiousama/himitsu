@@ -2,10 +2,10 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-02",
-  "generated_at": "2026-11-02T08:13:11.237629+09:00",
+  "generated_at": "2026-11-02T08:15:11.286135+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261102.json",
-  "schedule_checked_at": "2026-11-02T07:59:09.856542+09:00",
+  "schedule_checked_at": "2026-11-02T08:15:11.286135+09:00",
   "schedule_warnings": [
     "official_cards: TimeoutError"
   ],
@@ -52,10 +52,15 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 6,
+    "requested": 7,
     "fetched": 2,
     "failures": [],
     "deferred": [
+      {
+        "jcd": "02",
+        "name": "戸田",
+        "start": "2026-11-02T10:09:00+09:00"
+      },
       {
         "jcd": "06",
         "name": "浜名湖",
@@ -107,13 +112,13 @@
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/1a984260dfaf4083b73feaa382dc720a/2d5a86357b5f4f8bb4c304edc77a10cd/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5Mzc1MDQwMCwic3RhcnQiOjE3OTM1NzQ0ODAsImlvcyI6MTgsImNwIjoiMjE1NzcwMDgwXzIxNTgxMzI3OSIsInBwdyI6IjQwayJ9.Rw2cK9502VP8PAtqqmYAr6OtLplzRsrp4idOf_YQPaY",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-11-02T08:08:54.619533+09:00",
-      "checked_at": "2026-11-02T08:08:54.619533+09:00",
+      "checked_at": "2026-11-02T08:15:46.791946+09:00",
       "first_verified_at": "2026-11-02T08:08:54.619533+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
         "sequence": 8780793,
-        "last_segment": "/1a984260dfaf4083b73feaa382dc720a/2d5a86357b5f4f8bb4c304edc77a10cd/manifest_1_8780802.ts",
+        "last_segment": "/1a984260dfaf4083b73feaa382dc720a/2d5a86357b5f4f8bb4c304edc77a10cd/manifest_1_8780870.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -209,7 +214,8 @@
           "name": "記者選抜戦"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "provider_stream_start": "2026-11-02T10:09:00+09:00",
+      "source": "公式BR配信開始待ち 10:09"
     },
     "boat.edogawa": {
       "jcd": "03",
