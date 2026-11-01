@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-01",
-  "generated_at": "2026-11-01T09:53:38.586555+09:00",
+  "generated_at": "2026-11-01T09:54:38.481444+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261101.json",
   "schedule_checked_at": "2026-11-01T09:43:38.682086+09:00",
@@ -54,7 +54,13 @@
   "cloud_acquisition": {
     "requested": 11,
     "fetched": 4,
-    "failures": [],
+    "failures": [
+      {
+        "jcd": "09",
+        "name": "津",
+        "error": "HTTPError: playback check failed"
+      }
+    ],
     "deferred": [
       {
         "jcd": "02",
@@ -75,11 +81,6 @@
         "jcd": "06",
         "name": "浜名湖",
         "start": "2026-11-01T10:04:00+09:00"
-      },
-      {
-        "jcd": "09",
-        "name": "津",
-        "start": "2026-11-01T09:55:00+09:00"
       },
       {
         "jcd": "13",
@@ -106,13 +107,13 @@
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/4f3663865f30473b920fb369acbe7e23/ac6e981068224cada063e2de5b7980be/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MzY2NDAwMCwic3RhcnQiOjE3OTM0ODc2MDAsImlvcyI6MTgsImNwIjoiMjE1NjgzMjAwXzIxNTcyNjM5OSIsInBwdyI6IjQwayJ9.9xw5XwYv-f5Kpfjp5v_dBNOZGJ73uBBncWMylb87vHU",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-11-01T08:00:48.522757+09:00",
-      "checked_at": "2026-11-01T09:50:05.880383+09:00",
+      "checked_at": "2026-11-01T09:55:05.980535+09:00",
       "first_verified_at": "2026-11-01T08:00:48.522757+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
         "sequence": 8788314,
-        "last_segment": "/4f3663865f30473b920fb369acbe7e23/ac6e981068224cada063e2de5b7980be/manifest_1_8789414.ts",
+        "last_segment": "/4f3663865f30473b920fb369acbe7e23/ac6e981068224cada063e2de5b7980be/manifest_1_8789464.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -138,13 +139,13 @@
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/345fac00c6bb44718a3f370886cdc8ca/8bc2d777efd1466c8a98d2f6df5c772b/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MzY2NDAwMCwic3RhcnQiOjE3OTM0ODgwODAsImlvcyI6MTgsImNwIjoiMjE1NjgzNjgwXzIxNTcyNjg3OSIsInBwdyI6IjQwayJ9.237VX4FMmffj3BBG24RBU-l9j_OR0RNcK4N203P-VY4",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-11-01T08:08:19.851921+09:00",
-      "checked_at": "2026-11-01T09:50:05.880845+09:00",
+      "checked_at": "2026-11-01T09:55:05.981265+09:00",
       "first_verified_at": "2026-11-01T08:08:19.851921+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
         "sequence": 8766393,
-        "last_segment": "/345fac00c6bb44718a3f370886cdc8ca/8bc2d777efd1466c8a98d2f6df5c772b/manifest_1_8767413.ts",
+        "last_segment": "/345fac00c6bb44718a3f370886cdc8ca/8bc2d777efd1466c8a98d2f6df5c772b/manifest_1_8767463.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -154,13 +155,13 @@
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/6cec15c59c4b4852bd83aba899c1e516/53b92e190b454faeb93a3560855e9722/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MzY2NDAwMCwic3RhcnQiOjE3OTM0ODg1NjAsImlvcyI6MTgsImNwIjoiMjE1Njg0MTYwXzIxNTcyNzM1OSIsInBwdyI6IjQwayJ9.xFjxSm0PRpD-9xEWBszX4kvh55cDvmn2qc5_f2e27m8",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-11-01T08:17:03.798365+09:00",
-      "checked_at": "2026-11-01T09:50:05.880859+09:00",
+      "checked_at": "2026-11-01T09:55:05.981283+09:00",
       "first_verified_at": "2026-11-01T08:17:03.798365+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
         "sequence": 8781162,
-        "last_segment": "/6cec15c59c4b4852bd83aba899c1e516/53b92e190b454faeb93a3560855e9722/manifest_1_8782102.ts",
+        "last_segment": "/6cec15c59c4b4852bd83aba899c1e516/53b92e190b454faeb93a3560855e9722/manifest_1_8782152.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -710,8 +711,7 @@
           "name": "ツッピー選抜戦"
         }
       ],
-      "provider_stream_start": "2026-11-01T09:55:00+09:00",
-      "source": "公式BR配信開始待ち 09:55"
+      "source": "automatic cloud SEED pending"
     },
     "boat.amagasaki": {
       "jcd": "13",
@@ -1191,7 +1191,7 @@
       "intermission": null,
       "guidance_switch_at": "2026-11-01T15:12:00+09:00",
       "seed_required": false,
-      "reverify_due": false,
+      "reverify_due": true,
       "playback_verified": true,
       "first_verified_at": "2026-11-01T08:17:03.798365+09:00",
       "ready_before_first_race": true,
