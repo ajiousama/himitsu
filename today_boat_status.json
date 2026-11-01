@@ -2,10 +2,10 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-01",
-  "generated_at": "2026-11-01T16:30:42.839994+09:00",
+  "generated_at": "2026-11-01T16:33:55.633345+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261101.json",
-  "schedule_checked_at": "2026-11-01T16:18:45.823799+09:00",
+  "schedule_checked_at": "2026-11-01T16:33:55.633345+09:00",
   "schedule_warnings": [
     "official_cards: TimeoutError"
   ],
@@ -19,8 +19,8 @@
   "alert_lead_minutes": 30,
   "card_count": 14,
   "held_count": 14,
-  "visible_count": 4,
-  "active_count": 4,
+  "visible_count": 3,
+  "active_count": 3,
   "ended_kept": [],
   "seed_required": false,
   "seed_required_venues": [],
@@ -36,9 +36,9 @@
     },
     "day": {
       "held": 8,
-      "acquired": 2,
-      "active": 2,
-      "ended": 6,
+      "acquired": 1,
+      "active": 1,
+      "ended": 7,
       "seed_required": 0,
       "cancelled": 0
     },
@@ -52,8 +52,8 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 5,
-    "fetched": 4,
+    "requested": 4,
+    "fetched": 3,
     "failures": [
       {
         "jcd": "19",
@@ -99,22 +99,6 @@
         "ok": true,
         "sequence": 8787925,
         "last_segment": "/2d147f31fcc94605ae17a0f0184f183e/4818c45047684bb69f92f6a81cf239fd/manifest_4_8791820.ts",
-        "video_decoded": true,
-        "audio_decoded": true
-      },
-      "consecutive_failures": 0
-    },
-    "boat.fukuoka": {
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/d1e05abed4bb45a989c19559306f664a/701d74ed2a5e4924b4b78fba465455f5/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MzY3MTIwMCwic3RhcnQiOjE3OTM0OTU0MDAsImlvcyI6MTgsImNwIjoiMjE1NjkxMDAwXzIxNTczNDE5OSIsInBwdyI6IjQwayJ9.nVMuYMtMeqeK4Y948DM1Rk1vu7BY9fCTyo6W6yC_tkw",
-      "source": "automatic acquisition + audio/video decode",
-      "acquired_at": "2026-11-01T10:10:05.797872+09:00",
-      "checked_at": "2026-11-01T16:31:36.977668+09:00",
-      "first_verified_at": "2026-11-01T10:10:05.797872+09:00",
-      "playback_verified": true,
-      "probe": {
-        "ok": true,
-        "sequence": 8788589,
-        "last_segment": "/d1e05abed4bb45a989c19559306f664a/701d74ed2a5e4924b4b78fba465455f5/manifest_1_8792405.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -1199,9 +1183,9 @@
       "jcd": "22",
       "name": "福岡",
       "held": true,
-      "visible": true,
-      "ended": false,
-      "active": true,
+      "visible": false,
+      "ended": true,
+      "active": false,
       "cancelled": false,
       "mode": "day",
       "mode_label": "デイ",
@@ -1209,11 +1193,11 @@
       "last_race": "16:30",
       "alert_from": "2026-11-01T10:19:00+09:00",
       "next_race": null,
-      "stream_window": "live_or_prestart",
+      "stream_window": "ended_hidden",
       "intermission": null,
       "guidance_switch_at": "2026-11-01T17:15:00+09:00",
       "seed_required": false,
-      "reverify_due": true,
+      "reverify_due": false,
       "playback_verified": true,
       "first_verified_at": "2026-11-01T10:10:05.797872+09:00",
       "ready_before_first_race": true,
@@ -1280,9 +1264,7 @@
           "name": "ドリームレース"
         }
       ],
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/d1e05abed4bb45a989c19559306f664a/701d74ed2a5e4924b4b78fba465455f5/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MzY3MTIwMCwic3RhcnQiOjE3OTM0OTU0MDAsImlvcyI6MTgsImNwIjoiMjE1NjkxMDAwXzIxNTczNDE5OSIsInBwdyI6IjQwayJ9.nVMuYMtMeqeK4Y948DM1Rk1vu7BY9fCTyo6W6yC_tkw",
-      "source": "automatic acquisition + audio/video decode",
-      "token_expired": false
+      "source": "automatic cloud SEED pending"
     },
     "boat.omura": {
       "jcd": "24",
@@ -1305,7 +1287,7 @@
       "intermission": null,
       "guidance_switch_at": "2026-11-01T21:30:00+09:00",
       "seed_required": false,
-      "reverify_due": false,
+      "reverify_due": true,
       "playback_verified": true,
       "first_verified_at": "2026-11-01T14:45:13.132274+09:00",
       "ready_before_first_race": true,
