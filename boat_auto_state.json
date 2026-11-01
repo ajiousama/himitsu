@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-01",
-  "generated_at": "2026-11-01T09:38:38.578484+09:00",
+  "generated_at": "2026-11-01T09:39:38.535359+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261101.json",
   "schedule_checked_at": "2026-11-01T09:27:38.523286+09:00",
@@ -54,7 +54,13 @@
   "cloud_acquisition": {
     "requested": 11,
     "fetched": 3,
-    "failures": [],
+    "failures": [
+      {
+        "jcd": "17",
+        "name": "宮島",
+        "error": "HTTPError: playback check failed"
+      }
+    ],
     "deferred": [
       {
         "jcd": "02",
@@ -85,11 +91,6 @@
         "jcd": "13",
         "name": "尼崎",
         "start": "2026-11-01T10:02:00+09:00"
-      },
-      {
-        "jcd": "17",
-        "name": "宮島",
-        "start": "2026-11-01T09:40:00+09:00"
       },
       {
         "jcd": "22",
@@ -973,8 +974,7 @@
           "name": "ドリーム"
         }
       ],
-      "provider_stream_start": "2026-11-01T09:40:00+09:00",
-      "source": "公式BR配信開始待ち 09:40"
+      "source": "automatic cloud SEED pending"
     },
     "boat.tokuyama": {
       "jcd": "18",
