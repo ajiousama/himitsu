@@ -127,6 +127,14 @@ def _file_cmd(station: str, source: str, path: pathlib.Path) -> list[str]:
     else:
         specific = community.ffmpeg_input_options(station, source)
         cmd += specific if specific else _normal_audio_input_options()
+        # NHK Matsuyama's existing Vercel audio relay returns AAC HLS
+        # segments via an API query URL without a .aac extension.
+        # Relax the HLS extension check only for these two known stations
+        # and this controlled relay; retain FFmpeg defaults elsewhere.
+        if station in {"nhk_r1_matsuyama", "nhk_fm_matsuyama"} and source.startswith(
+            "https://himitsu-six.vercel.app/api/radio-tv?"
+        ):
+            cmd += ["-allowed_extensions", "ALL"]
         cmd += ["-i", source]
 
     cmd += [
