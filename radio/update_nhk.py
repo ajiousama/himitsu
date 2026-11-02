@@ -13,8 +13,11 @@ MAP = ROOT / "nhk_stations.json"
 LOGO_R1 = "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/77/NHK_Radio_1_2024.svg/500px-NHK_Radio_1_2024.svg.png"
 LOGO_FM = "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c8/NHK_FM_2024.svg/500px-NHK_FM_2024.svg.png"
 VIDEO_BASE = os.environ.get("RADIO_VIDEO_BASE", "https://ajiousama-radiko.onrender.com/radio-tv").rstrip("/")
-VERCEL_VIDEO_BASE = os.environ.get("RADIO_VIDEO_BASE_VERCEL", "https://himitsu-six.vercel.app/api/radio-tv").rstrip("/")
-VERCEL_STATIONS = {"nhk_r1_matsuyama", "nhk_fm_matsuyama"}
+RAILWAY_VIDEO_BASE = os.environ.get(
+    "RADIO_VIDEO_BASE_RAILWAY",
+    "https://freewifi-radio-production.up.railway.app/radio-tv",
+).rstrip("/")
+RAILWAY_STATIONS = {"nhk_r1_matsuyama", "nhk_fm_matsuyama"}
 
 WANTED = ["札幌", "仙台", "東京", "名古屋", "大阪", "広島", "松山", "福岡"]
 SLUG = {
@@ -94,8 +97,8 @@ def main():
                 "id": tvgid, "kind": kind, "slug": slug, "name": name,
                 "display": display, "url": source,
             })
-            if tvgid in VERCEL_STATIONS:
-                video = f"{VERCEL_VIDEO_BASE}?station={urllib.parse.quote(tvgid, safe='')}"
+            if tvgid in RAILWAY_STATIONS:
+                video = f"{RAILWAY_VIDEO_BASE}/{urllib.parse.quote(tvgid, safe='')}"
             else:
                 video = f"{VIDEO_BASE}/{urllib.parse.quote(tvgid, safe='')}"
             m3u.append(
