@@ -214,16 +214,16 @@ core.latest_master = _fast_latest_master
 def _audio_sources(station: str) -> list[str]:
     _display, _freq, _accent_value, radiko_sid, fixed = base.STATIONS[station]
     if fixed:
-        # NHK Matsuyama returns HTTP 403 to the Railway FFmpeg instance.
-        # Keep the NHK official master as primary; use the existing Vercel
-        # audio-only HLS relay as a fallback, while Railway remains the
-        # public MPEG-TS static-image radio endpoint.
+        # The official NHK host currently replies 403 to Railway FFmpeg.
+        # Prefer the existing Vercel audio HLS relay for these two stations,
+        # while continuing to serve the final MPEG-TS via freewifi-radio.
+        # Keep the official master as fallback for any future recovery.
         if station in {"nhk_r1_matsuyama", "nhk_fm_matsuyama"}:
-            fallback = (
+            relay = (
                 f"{PUBLIC_RADIKO_BASE}/api/radio-tv?"
                 f"station={urllib.parse.quote(station, safe='')}&stage=audio"
             )
-            return [fixed, fallback]
+            return [relay, fixed]
         return [fixed]
     sid = urllib.parse.quote(radiko_sid, safe="")
     direct = f"{PUBLIC_RADIKO_BASE}/api/radiko?station={sid}&stage=media"
