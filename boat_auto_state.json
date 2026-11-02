@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-02",
-  "generated_at": "2026-11-02T13:54:31.283827+09:00",
+  "generated_at": "2026-11-02T13:55:31.332048+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261102.json",
   "schedule_checked_at": "2026-11-02T13:51:31.283141+09:00",
@@ -19,7 +19,7 @@
   "alert_lead_minutes": 30,
   "card_count": 13,
   "held_count": 13,
-  "visible_count": 10,
+  "visible_count": 11,
   "active_count": 10,
   "ended_kept": [],
   "seed_required": false,
@@ -44,7 +44,7 @@
     },
     "night": {
       "held": 3,
-      "acquired": 0,
+      "acquired": 1,
       "active": 0,
       "ended": 0,
       "seed_required": 0,
@@ -53,14 +53,9 @@
   },
   "cloud_acquisition": {
     "requested": 12,
-    "fetched": 10,
+    "fetched": 11,
     "failures": [],
     "deferred": [
-      {
-        "jcd": "15",
-        "name": "丸亀",
-        "start": "2026-11-02T13:55:00+09:00"
-      },
       {
         "jcd": "24",
         "name": "大村",
@@ -168,6 +163,22 @@
         "ok": true,
         "sequence": 8802714,
         "last_segment": "/a15ac2cd2f7d4c6d844bc12240bf1e3f/ba9bae64c8984fb6b72697b038eaa7ef/manifest_1_8806234.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
+    },
+    "boat.marugame": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/5733a05525834b44bcfd96d3f6632bc1/15d36e438abf431684c241df9f1221f3/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5Mzc2ODQwMCwic3RhcnQiOjE3OTM1OTUzMDAsImlvcyI6MTgsImNwIjoiMjE1NzkwOTAwXzIxNTgzNDA5OSIsInBwdyI6IjQwayJ9.VGG-7Q8wq8CXsk_7WjLOgOMJrEHvVT2H4S2KxyQahAY",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-11-02T13:55:58.862051+09:00",
+      "checked_at": "2026-11-02T13:55:58.862051+09:00",
+      "first_verified_at": "2026-11-02T13:55:58.862051+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 8806303,
+        "last_segment": "/5733a05525834b44bcfd96d3f6632bc1/15d36e438abf431684c241df9f1221f3/manifest_4_8806312.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -352,7 +363,7 @@
       "intermission": null,
       "guidance_switch_at": "2026-11-02T16:45:00+09:00",
       "seed_required": false,
-      "reverify_due": false,
+      "reverify_due": true,
       "playback_verified": true,
       "first_verified_at": "2026-11-02T10:25:38.654472+09:00",
       "ready_before_first_race": true,
@@ -795,7 +806,7 @@
       "jcd": "15",
       "name": "丸亀",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
       "active": false,
       "cancelled": false,
@@ -813,9 +824,9 @@
       "guidance_switch_at": "2026-11-02T21:21:00+09:00",
       "seed_required": false,
       "reverify_due": false,
-      "playback_verified": false,
-      "first_verified_at": null,
-      "ready_before_first_race": false,
+      "playback_verified": true,
+      "first_verified_at": "2026-11-02T13:55:58.862051+09:00",
+      "ready_before_first_race": true,
       "acquire_from": "2026-11-02T12:50:00+09:00",
       "races": [
         {
@@ -879,8 +890,9 @@
           "name": "ドリーム"
         }
       ],
-      "provider_stream_start": "2026-11-02T13:55:00+09:00",
-      "source": "公式BR配信開始待ち 13:55"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/5733a05525834b44bcfd96d3f6632bc1/15d36e438abf431684c241df9f1221f3/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5Mzc2ODQwMCwic3RhcnQiOjE3OTM1OTUzMDAsImlvcyI6MTgsImNwIjoiMjE1NzkwOTAwXzIxNTgzNDA5OSIsInBwdyI6IjQwayJ9.VGG-7Q8wq8CXsk_7WjLOgOMJrEHvVT2H4S2KxyQahAY",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     },
     "boat.miyajima": {
       "jcd": "17",
