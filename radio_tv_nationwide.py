@@ -20,7 +20,7 @@ import radio_tv as base
 
 # Keep the working ABC/Osaka/Ehime definitions, but allow every station ID
 # returned by the existing Radiko Premium nationwide station list.
-# NHK-FM Matsuyama intentionally remains the existing direct feed.
+# NHK Matsuyama remains on the official feed, with a fallback HLS audio relay.
 REGION_LABELS = {
     "北海道": "HOKKAIDO",
     "東北": "TOHOKU",
@@ -214,6 +214,16 @@ core.latest_master = _fast_latest_master
 def _audio_sources(station: str) -> list[str]:
     _display, _freq, _accent_value, radiko_sid, fixed = base.STATIONS[station]
     if fixed:
+        # NHK Matsuyama returns HTTP 403 to the Railway FFmpeg instance.
+        # Keep the NHK official master as primary; use the existing Vercel
+        # audio-only HLS relay as a fallback, while Railway remains the
+        # public MPEG-TS static-image radio endpoint.
+        if station in {"nhk_r1_matsuyama", "nhk_fm_matsuyama"}:
+            fallback = (
+                f"{PUBLIC_RADIKO_BASE}/api/radio-tv?"
+                f"station={urllib.parse.quote(station, safe='')}&stage=audio"
+            )
+            return [fixed, fallback]
         return [fixed]
     sid = urllib.parse.quote(radiko_sid, safe="")
     direct = f"{PUBLIC_RADIKO_BASE}/api/radiko?station={sid}&stage=media"
