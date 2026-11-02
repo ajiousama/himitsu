@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-02",
-  "generated_at": "2026-11-02T14:12:31.287809+09:00",
+  "generated_at": "2026-11-02T14:14:31.235768+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261102.json",
   "schedule_checked_at": "2026-11-02T14:07:31.285307+09:00",
@@ -19,8 +19,8 @@
   "alert_lead_minutes": 30,
   "card_count": 13,
   "held_count": 13,
-  "visible_count": 11,
-  "active_count": 10,
+  "visible_count": 10,
+  "active_count": 9,
   "ended_kept": [],
   "seed_required": false,
   "seed_required_venues": [],
@@ -28,9 +28,9 @@
   "phase_counts": {
     "morning": {
       "held": 3,
-      "acquired": 3,
-      "active": 3,
-      "ended": 0,
+      "acquired": 2,
+      "active": 2,
+      "ended": 1,
       "seed_required": 0,
       "cancelled": 0
     },
@@ -52,8 +52,8 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 12,
-    "fetched": 11,
+    "requested": 11,
+    "fetched": 10,
     "failures": [],
     "deferred": [
       {
@@ -152,33 +152,17 @@
       },
       "consecutive_failures": 0
     },
-    "boat.naruto": {
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/a15ac2cd2f7d4c6d844bc12240bf1e3f/ba9bae64c8984fb6b72697b038eaa7ef/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5Mzc1MDQwMCwic3RhcnQiOjE3OTM1NzQwMDAsImlvcyI6MTgsImNwIjoiMjE1NzY5NjAwXzIxNTgxMjc5OSIsInBwdyI6IjQwayJ9.hWy9ZRrPFU0upYVGz9FA0Oy3AacOC4i09PRJp0Iu_mE",
-      "source": "automatic acquisition + audio/video decode",
-      "acquired_at": "2026-11-02T08:00:12.852704+09:00",
-      "checked_at": "2026-11-02T14:11:58.632485+09:00",
-      "first_verified_at": "2026-11-02T08:00:12.852704+09:00",
-      "playback_verified": true,
-      "probe": {
-        "ok": true,
-        "sequence": 8802714,
-        "last_segment": "/a15ac2cd2f7d4c6d844bc12240bf1e3f/ba9bae64c8984fb6b72697b038eaa7ef/manifest_1_8806432.ts",
-        "video_decoded": true,
-        "audio_decoded": true
-      },
-      "consecutive_failures": 0
-    },
     "boat.marugame": {
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/5733a05525834b44bcfd96d3f6632bc1/15d36e438abf431684c241df9f1221f3/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5Mzc2ODQwMCwic3RhcnQiOjE3OTM1OTUzMDAsImlvcyI6MTgsImNwIjoiMjE1NzkwOTAwXzIxNTgzNDA5OSIsInBwdyI6IjQwayJ9.VGG-7Q8wq8CXsk_7WjLOgOMJrEHvVT2H4S2KxyQahAY",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-11-02T13:55:58.862051+09:00",
-      "checked_at": "2026-11-02T14:09:58.462021+09:00",
+      "checked_at": "2026-11-02T14:14:58.501780+09:00",
       "first_verified_at": "2026-11-02T13:55:58.862051+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
         "sequence": 8806303,
-        "last_segment": "/5733a05525834b44bcfd96d3f6632bc1/15d36e438abf431684c241df9f1221f3/manifest_4_8806452.ts",
+        "last_segment": "/5733a05525834b44bcfd96d3f6632bc1/15d36e438abf431684c241df9f1221f3/manifest_4_8806502.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -271,7 +255,7 @@
       "intermission": null,
       "guidance_switch_at": "2026-11-02T16:50:00+09:00",
       "seed_required": false,
-      "reverify_due": false,
+      "reverify_due": true,
       "playback_verified": true,
       "first_verified_at": "2026-11-02T10:09:38.527809+09:00",
       "ready_before_first_race": true,
@@ -714,9 +698,9 @@
       "jcd": "14",
       "name": "鳴門",
       "held": true,
-      "visible": true,
-      "ended": false,
-      "active": true,
+      "visible": false,
+      "ended": true,
+      "active": false,
       "cancelled": false,
       "mode": "morning",
       "mode_label": "モーニング",
@@ -724,11 +708,11 @@
       "last_race": "14:11",
       "alert_from": "2026-11-02T08:05:00+09:00",
       "next_race": null,
-      "stream_window": "live_or_prestart",
+      "stream_window": "ended_hidden",
       "intermission": null,
       "guidance_switch_at": "2026-11-02T14:56:00+09:00",
       "seed_required": false,
-      "reverify_due": true,
+      "reverify_due": false,
       "playback_verified": true,
       "first_verified_at": "2026-11-02T08:00:12.852704+09:00",
       "ready_before_first_race": true,
@@ -795,9 +779,7 @@
           "name": "優勝戦"
         }
       ],
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/a15ac2cd2f7d4c6d844bc12240bf1e3f/ba9bae64c8984fb6b72697b038eaa7ef/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5Mzc1MDQwMCwic3RhcnQiOjE3OTM1NzQwMDAsImlvcyI6MTgsImNwIjoiMjE1NzY5NjAwXzIxNTgxMjc5OSIsInBwdyI6IjQwayJ9.hWy9ZRrPFU0upYVGz9FA0Oy3AacOC4i09PRJp0Iu_mE",
-      "source": "automatic acquisition + audio/video decode",
-      "token_expired": false
+      "source": "automatic cloud SEED pending"
     },
     "boat.marugame": {
       "jcd": "15",
