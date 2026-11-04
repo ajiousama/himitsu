@@ -16,6 +16,11 @@ SOURCES={
  'jra.hokkaido':('JRA LOCAL WEB5','gch_hokkaido_master.m3u8','gch_hokkaido_LQ.m3u8','gch_hq.png','gch_lq.png'),
 }
 QUALITY_IDS={f'{base}.{q}' if base!='jra.hokkaido' else f'jra.local.{q}' for base in SOURCES for q in ('hq','lq')}
+# Keep sinori with the JRA-managed GCH rows, not a separate persistent section.
+GCH_SINORI_ID='グリーンチャンネル_jp'
+GCH_SINORI_NAME='グリーンチャンネル（sinori）'
+GCH_SINORI_URL='https://ri.shinori.my.id/pxx.php?shk_cid=bs14'
+GCH_SINORI_LOGO=RAW+'/logos/contrast/jp_d11ee186.png'
 # Additional viewing routes; programme EPG remains tied to jra.gch.hq.
 GCH_PROVIDER_BACKUPS=(
  ('グリーンチャンネル (5002直)', 'http://67.215.237.218:5002/bs14.m3u8?gid=bs14&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0'),
@@ -109,7 +114,7 @@ def strip(text):
  lines=text.splitlines(); out=[]; i=0
  while i<len(lines):
   line=lines[i]; m=re.search(r'tvg-id="([^"]+)"',line) if line.startswith('#EXTINF:') else None
-  if m and (m.group(1) in SOURCES or m.group(1) in QUALITY_IDS or m.group(1) in LEGACY_FREE_IDS):
+  if m and (m.group(1) in SOURCES or m.group(1) in QUALITY_IDS or m.group(1) in LEGACY_FREE_IDS or m.group(1)==GCH_SINORI_ID):
    i+=1
    while i<len(lines) and not lines[i].startswith(('#EXTINF:','## ','# ===')): i+=1
    continue
@@ -135,6 +140,9 @@ def main():
    if not Path(filename).is_file():
     raise SystemExit(f'Local JRA source missing: {filename}')
  for source in active:
+  if source=='jra.gch':
+   # Source-owned: regenerate this entry each time and keep it beside HQ/LQ/5002.
+   rows += [f'#EXTINF:-1 tvg-id="{GCH_SINORI_ID}" tvg-name="{GCH_SINORI_NAME}" tvg-logo="{GCH_SINORI_LOGO}" group-title="{GROUP}",{GCH_SINORI_NAME}',GCH_SINORI_URL,'']
   name,hq,lq,hqlogo,lqlogo=SOURCES[source]
   outbase='jra.local' if source=='jra.hokkaido' else source
   for q,stream,logo in (('hq',hq,hqlogo),('lq',lq,lqlogo)):
