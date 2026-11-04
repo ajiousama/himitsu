@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-05",
-  "generated_at": "2026-11-05T07:55:08.832180+09:00",
+  "generated_at": "2026-11-05T07:59:08.835895+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261105.json",
   "schedule_checked_at": "2026-11-05T07:46:08.833019+09:00",
@@ -52,14 +52,25 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 5,
+    "requested": 6,
     "fetched": 0,
-    "failures": [],
+    "failures": [
+      {
+        "jcd": "21",
+        "name": "芦屋",
+        "error": "HTTPError: playback check failed"
+      }
+    ],
     "deferred": [
       {
         "jcd": "08",
         "name": "常滑",
         "start": "2026-11-05T09:45:00+09:00"
+      },
+      {
+        "jcd": "09",
+        "name": "津",
+        "start": "2026-11-05T09:55:00+09:00"
       },
       {
         "jcd": "10",
@@ -75,11 +86,6 @@
         "jcd": "17",
         "name": "宮島",
         "start": "2026-11-05T09:40:00+09:00"
-      },
-      {
-        "jcd": "21",
-        "name": "芦屋",
-        "start": "2026-11-05T08:00:00+09:00"
       }
     ]
   },
@@ -542,7 +548,8 @@
           "name": "優勝戦"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "provider_stream_start": "2026-11-05T09:55:00+09:00",
+      "source": "公式BR配信開始待ち 09:55"
     },
     "boat.mikuni": {
       "jcd": "10",
@@ -1085,8 +1092,7 @@
           "name": "優勝戦"
         }
       ],
-      "provider_stream_start": "2026-11-05T08:00:00+09:00",
-      "source": "公式BR配信開始待ち 08:00"
+      "source": "automatic cloud SEED pending"
     },
     "boat.fukuoka": {
       "jcd": "22",
