@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-04",
-  "generated_at": "2026-11-04T16:15:43.516653+09:00",
+  "generated_at": "2026-11-04T16:18:43.573584+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261104.json",
   "schedule_checked_at": "2026-11-04T16:07:43.571250+09:00",
@@ -19,8 +19,8 @@
   "alert_lead_minutes": 30,
   "card_count": 12,
   "held_count": 12,
-  "visible_count": 6,
-  "active_count": 6,
+  "visible_count": 4,
+  "active_count": 4,
   "ended_kept": [],
   "seed_required": false,
   "seed_required_venues": [],
@@ -36,9 +36,9 @@
     },
     "day": {
       "held": 6,
-      "acquired": 3,
-      "active": 3,
-      "ended": 3,
+      "acquired": 1,
+      "active": 1,
+      "ended": 5,
       "seed_required": 0,
       "cancelled": 0
     },
@@ -52,8 +52,8 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 7,
-    "fetched": 6,
+    "requested": 5,
+    "fetched": 4,
     "failures": [
       {
         "jcd": "19",
@@ -83,38 +83,6 @@
         "ok": true,
         "sequence": 8830744,
         "last_segment": "/e6ed587284824e51966fe63170cacf3e/e8131a6dcfa34248b124865dd7a7ee4c/manifest_1_8831654.ts",
-        "video_decoded": true,
-        "audio_decoded": true
-      },
-      "consecutive_failures": 0
-    },
-    "boat.heiwajima": {
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/4a7a323ac1fd47a3a5a1d71bf67752df/768cfdb55bd6468c8af28fdae38ddace/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MzkzMDQwMCwic3RhcnQiOjE3OTM3NTQwMDAsImlvcyI6MTgsImNwIjoiMjE1OTQ5NjAwXzIxNTk5Mjc5OSIsInBwdyI6IjQwayJ9.drq1_B6XtNd0se1F4tVp1zHt_Yc2Zaoqs_KIijV9ZcU",
-      "source": "automatic acquisition + audio/video decode",
-      "acquired_at": "2026-11-04T10:00:23.850732+09:00",
-      "checked_at": "2026-11-04T16:16:10.820689+09:00",
-      "first_verified_at": "2026-11-04T10:00:23.850732+09:00",
-      "playback_verified": true,
-      "probe": {
-        "ok": true,
-        "sequence": 8808123,
-        "last_segment": "/4a7a323ac1fd47a3a5a1d71bf67752df/768cfdb55bd6468c8af28fdae38ddace/manifest_1_8811884.ts",
-        "video_decoded": true,
-        "audio_decoded": true
-      },
-      "consecutive_failures": 0
-    },
-    "boat.tsu": {
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/fed0351f06e64573b8fe6d4c44b88d21/3843f8dc81014fc2bcf24daac5650ccd/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MzkyNjgwMCwic3RhcnQiOjE3OTM3NTM3MDAsImlvcyI6MTgsImNwIjoiMjE1OTQ5MzAwXzIxNTk5MjQ5OSIsInBwdyI6IjQwayJ9.m0g1on1WrsyctWXkcueRouv2JHobRN4OTvkEngih9zQ",
-      "source": "automatic acquisition + audio/video decode",
-      "acquired_at": "2026-11-04T09:55:15.724175+09:00",
-      "checked_at": "2026-11-04T16:16:10.821092+09:00",
-      "first_verified_at": "2026-11-04T09:55:15.724175+09:00",
-      "playback_verified": true,
-      "probe": {
-        "ok": true,
-        "sequence": 8832813,
-        "last_segment": "/fed0351f06e64573b8fe6d4c44b88d21/3843f8dc81014fc2bcf24daac5650ccd/manifest_4_8836623.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -266,9 +234,9 @@
       "jcd": "04",
       "name": "平和島",
       "held": true,
-      "visible": true,
-      "ended": false,
-      "active": true,
+      "visible": false,
+      "ended": true,
+      "active": false,
       "cancelled": false,
       "mode": "day",
       "mode_label": "デイ",
@@ -276,11 +244,11 @@
       "last_race": "16:14",
       "alert_from": "2026-11-04T10:22:00+09:00",
       "next_race": null,
-      "stream_window": "live_or_prestart",
+      "stream_window": "ended_hidden",
       "intermission": null,
       "guidance_switch_at": "2026-11-04T16:59:00+09:00",
       "seed_required": false,
-      "reverify_due": true,
+      "reverify_due": false,
       "playback_verified": true,
       "first_verified_at": "2026-11-04T10:00:23.850732+09:00",
       "ready_before_first_race": true,
@@ -347,9 +315,7 @@
           "name": "準優勝戦"
         }
       ],
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/4a7a323ac1fd47a3a5a1d71bf67752df/768cfdb55bd6468c8af28fdae38ddace/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MzkzMDQwMCwic3RhcnQiOjE3OTM3NTQwMDAsImlvcyI6MTgsImNwIjoiMjE1OTQ5NjAwXzIxNTk5Mjc5OSIsInBwdyI6IjQwayJ9.drq1_B6XtNd0se1F4tVp1zHt_Yc2Zaoqs_KIijV9ZcU",
-      "source": "automatic acquisition + audio/video decode",
-      "token_expired": false
+      "source": "automatic cloud SEED pending"
     },
     "boat.hamanako": {
       "jcd": "06",
@@ -529,9 +495,9 @@
       "jcd": "09",
       "name": "津",
       "held": true,
-      "visible": true,
-      "ended": false,
-      "active": true,
+      "visible": false,
+      "ended": true,
+      "active": false,
       "cancelled": false,
       "mode": "day",
       "mode_label": "デイ",
@@ -539,11 +505,11 @@
       "last_race": "16:15",
       "alert_from": "2026-11-04T09:59:00+09:00",
       "next_race": null,
-      "stream_window": "live_or_prestart",
+      "stream_window": "ended_hidden",
       "intermission": null,
       "guidance_switch_at": "2026-11-04T17:00:00+09:00",
       "seed_required": false,
-      "reverify_due": true,
+      "reverify_due": false,
       "playback_verified": true,
       "first_verified_at": "2026-11-04T09:55:15.724175+09:00",
       "ready_before_first_race": true,
@@ -610,9 +576,7 @@
           "name": "準優勝戦"
         }
       ],
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/fed0351f06e64573b8fe6d4c44b88d21/3843f8dc81014fc2bcf24daac5650ccd/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5MzkyNjgwMCwic3RhcnQiOjE3OTM3NTM3MDAsImlvcyI6MTgsImNwIjoiMjE1OTQ5MzAwXzIxNTk5MjQ5OSIsInBwdyI6IjQwayJ9.m0g1on1WrsyctWXkcueRouv2JHobRN4OTvkEngih9zQ",
-      "source": "automatic acquisition + audio/video decode",
-      "token_expired": false
+      "source": "automatic cloud SEED pending"
     },
     "boat.mikuni": {
       "jcd": "10",
@@ -715,14 +679,14 @@
       "last_race": "20:38",
       "alert_from": "2026-11-04T14:52:00+09:00",
       "next_race": {
-        "race": 3,
-        "start": "16:18"
+        "race": 4,
+        "start": "16:43"
       },
       "stream_window": "live_or_prestart",
       "intermission": null,
       "guidance_switch_at": "2026-11-04T21:23:00+09:00",
       "seed_required": false,
-      "reverify_due": true,
+      "reverify_due": false,
       "playback_verified": true,
       "first_verified_at": "2026-11-04T13:55:10.729312+09:00",
       "ready_before_first_race": true,
