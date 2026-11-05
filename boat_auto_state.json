@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-06",
-  "generated_at": "2026-11-06T08:13:59.555041+09:00",
+  "generated_at": "2026-11-06T08:15:59.607558+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261106.json",
   "schedule_checked_at": "2026-11-06T08:05:17.592248+09:00",
@@ -52,10 +52,15 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 7,
+    "requested": 8,
     "fetched": 2,
     "failures": [],
     "deferred": [
+      {
+        "jcd": "02",
+        "name": "戸田",
+        "start": "2026-11-06T10:09:00+09:00"
+      },
       {
         "jcd": "05",
         "name": "多摩川",
@@ -304,7 +309,8 @@
           "name": "戸田選抜戦"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "provider_stream_start": "2026-11-06T10:09:00+09:00",
+      "source": "公式BR配信開始待ち 10:09"
     },
     "boat.edogawa": {
       "jcd": "03",
