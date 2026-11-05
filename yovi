@@ -1,4 +1,4 @@
-#EXTM3U url-tvg="https://github.com/karenda-jp/etc/raw/refs/heads/main/guides.xml,https://github.com/mathlabroom/SKyperfectv-EPG-/releases/download/latest/epg_ultimate.xml,http://akariko.netgenx.site/epg/kai-epg.xml" tvg-shift=0 m3uautoload=1
+#EXTM3U url-tvg="https://github.com/karenda-jp/etc/raw/refs/heads/main/guides.xml,https://github.com/mathlabroom/SKyperfectv-EPG-/releases/download/latest/epg_ultimate.xml,http://akariko.netgenx.site/epg/kai-epg.xml,https://coffee.linxei.biz.id/epg/kai-epg.xml" tvg-shift=0 m3uautoload=1
 
 # === Tokyo Terrestrial ===
 
@@ -1638,6 +1638,313 @@ https://linxei.netgenx.site/tv/yoitv.php?mode=stream&id=pigoo
 #EXTINF:-1 tvg-id="jra.gch.hq" tvg-name="グリーンチャンネル (YoiTV)" tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/public_sports/jra_quality/gch_hq.png" group-title="今日の開催場",🟢グリーンチャンネル (YoiTV)
 https://linxei.netgenx.site/tv/yoitv.php?mode=stream&id=green_ch
 # === YOITV_FROM_FREEWIFI_END ===
+
+# === YOVI_COFFEE_START ===
+# Imported 101 coffee entries (live + 6-day catchup); keep separate from FreeWiFi/YoiTV.
+#EXTINF:-1 group-title="地上波 coffee（東京）" tvg-id="gd05" tvg-logo="https://p.sankuria.sbs/icons/icon_4.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/fuji_tv/replay.m3u8?mode=hls&start=${start}",☕Fuji TV（coffee）
+https://coffee.linxei.biz.id/stream/jp/fuji_tv/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="地上波 coffee（東京）" tvg-id="gd02" tvg-logo="https://p.sankuria.sbs/icons/icon_1.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/nhk_e/replay.m3u8?mode=hls&start=${start}",☕NHK E（coffee）
+https://coffee.linxei.biz.id/stream/jp/nhk_e/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="地上波 coffee（東京）" tvg-id="gd01" tvg-logo="https://p.sankuria.sbs/icons/icon_0.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/nhk_g/replay.m3u8?mode=hls&start=${start}",☕NHK G（coffee）
+https://coffee.linxei.biz.id/stream/jp/nhk_g/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="地上波 coffee（東京）" tvg-id="gd03" tvg-logo="https://p.sankuria.sbs/icons/icon_2.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/ntv/replay.m3u8?mode=hls&start=${start}",☕NTV（coffee）
+https://coffee.linxei.biz.id/stream/jp/ntv/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="地上波 coffee（東京）" tvg-id="gd04" tvg-logo="https://p.sankuria.sbs/icons/icon_3.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/tbs/replay.m3u8?mode=hls&start=${start}",☕TBS（coffee）
+https://coffee.linxei.biz.id/stream/jp/tbs/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="地上波 coffee（東京）" tvg-id="gd08" tvg-logo="https://p.sankuria.sbs/icons/icon_7.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/tokyo_mx1/replay.m3u8?mode=hls&start=${start}",☕TOKYO MX1（coffee）
+https://coffee.linxei.biz.id/stream/jp/tokyo_mx1/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="地上波 coffee（東京）" tvg-id="tokyo_mx2" tvg-logo="https://p.sankuria.sbs/icons/icon_8.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/tokyo_mx2/replay.m3u8?mode=hls&start=${start}",☕TOKYO MX2（coffee）
+https://coffee.linxei.biz.id/stream/jp/tokyo_mx2/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="地上波 coffee（東京）" tvg-id="gd06" tvg-logo="https://p.sankuria.sbs/icons/icon_5.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/tv_asahi/replay.m3u8?mode=hls&start=${start}",☕TV Asahi（coffee）
+https://coffee.linxei.biz.id/stream/jp/tv_asahi/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="地上波 coffee（東京）" tvg-id="gd07" tvg-logo="https://p.sankuria.sbs/icons/icon_6.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/tv_tokyo/replay.m3u8?mode=hls&start=${start}",☕TV Tokyo（coffee）
+https://coffee.linxei.biz.id/stream/jp/tv_tokyo/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="地上波 coffee（関西）" tvg-id="gx02" tvg-logo="https://p.sankuria.sbs/icons/icon_10.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/abc/replay.m3u8?mode=hls&start=${start}",☕ABC（coffee）
+https://coffee.linxei.biz.id/stream/jp/abc/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="地上波 coffee（関西）" tvg-id="kbs" tvg-logo="https://p.sankuria.sbs/icons/icon_14.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/kbs/replay.m3u8?mode=hls&start=${start}",☕KBS（coffee）
+https://coffee.linxei.biz.id/stream/jp/kbs/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="地上波 coffee（関西）" tvg-id="gx03" tvg-logo="https://p.sankuria.sbs/icons/icon_11.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/kansai_tv/replay.m3u8?mode=hls&start=${start}",☕Kansai TV（coffee）
+https://coffee.linxei.biz.id/stream/jp/kansai_tv/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="地上波 coffee（関西）" tvg-id="gx01" tvg-logo="https://p.sankuria.sbs/icons/icon_9.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/mbs/replay.m3u8?mode=hls&start=${start}",☕MBS（coffee）
+https://coffee.linxei.biz.id/stream/jp/mbs/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="地上波 coffee（関西）" tvg-id="gx06" tvg-logo="https://p.sankuria.sbs/" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/nhk_g_osaka/replay.m3u8?mode=hls&start=${start}",☕NHK G Osaka（coffee）
+https://coffee.linxei.biz.id/stream/jp/nhk_g_osaka/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="地上波 coffee（関西）" tvg-id="gx07" tvg-logo="https://p.sankuria.sbs/icons/icon_sun.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/sun/replay.m3u8?mode=hls&start=${start}",☕SUN（coffee）
+https://coffee.linxei.biz.id/stream/jp/sun/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="地上波 coffee（関西）" tvg-id="gx05" tvg-logo="https://p.sankuria.sbs/icons/icon_13.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/tv_osaka/replay.m3u8?mode=hls&start=${start}",☕TV Osaka（coffee）
+https://coffee.linxei.biz.id/stream/jp/tv_osaka/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="地上波 coffee（関西）" tvg-id="gx04" tvg-logo="https://p.sankuria.sbs/icons/icon_12.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/ytv/replay.m3u8?mode=hls&start=${start}",☕ytv（coffee）
+https://coffee.linxei.biz.id/stream/jp/ytv/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="BS coffee" tvg-id="bs15" tvg-logo="https://p.sankuria.sbs/icons/icon_42.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/animax/replay.m3u8?mode=hls&start=${start}",☕Animax（coffee）
+https://coffee.linxei.biz.id/stream/jp/animax/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="BS coffee" tvg-id="bs08" tvg-logo="https://p.sankuria.sbs/icons/icon_32.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/bs_10_premium/replay.m3u8?mode=hls&start=${start}",☕BS 10 Premium（coffee）
+https://coffee.linxei.biz.id/stream/jp/bs_10_premium/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="BS coffee" tvg-id="bs_12" tvg-logo="https://p.sankuria.sbs/icons/icon_26.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/bs_12/replay.m3u8?mode=hls&start=${start}",☕BS 12（coffee）
+https://coffee.linxei.biz.id/stream/jp/bs_12/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="BS coffee" tvg-id="bs03" tvg-logo="https://p.sankuria.sbs/icons/icon_19.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/bs_asahi/replay.m3u8?mode=hls&start=${start}",☕BS Asahi（coffee）
+https://coffee.linxei.biz.id/stream/jp/bs_asahi/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="BS coffee" tvg-id="bs06" tvg-logo="https://p.sankuria.sbs/icons/icon_24.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/bs_fuji/replay.m3u8?mode=hls&start=${start}",☕BS Fuji（coffee）
+https://coffee.linxei.biz.id/stream/jp/bs_fuji/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="BS coffee" tvg-id="bs02" tvg-logo="https://p.sankuria.sbs/icons/icon_18.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/bs_ntv/replay.m3u8?mode=hls&start=${start}",☕BS NTV（coffee）
+https://coffee.linxei.biz.id/stream/jp/bs_ntv/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="BS coffee" tvg-id="bs04" tvg-logo="https://p.sankuria.sbs/icons/icon_21.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/bs_tbs/replay.m3u8?mode=hls&start=${start}",☕BS TBS（coffee）
+https://coffee.linxei.biz.id/stream/jp/bs_tbs/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="BS coffee" tvg-id="bs05" tvg-logo="https://p.sankuria.sbs/icons/icon_23.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/bs_tv_tokyo/replay.m3u8?mode=hls&start=${start}",☕BS TV Tokyo（coffee）
+https://coffee.linxei.biz.id/stream/jp/bs_tv_tokyo/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="BS coffee" tvg-id="bs_yoshimoto" tvg-logo="https://p.sankuria.sbs/icons/icon_35.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/bs_yoshimoto/replay.m3u8?mode=hls&start=${start}",☕BS Yoshimoto（coffee）
+https://coffee.linxei.biz.id/stream/jp/bs_yoshimoto/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="BS coffee" tvg-id="bs10" tvg-logo="https://p.sankuria.sbs/icons/icon_31.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/bs10/replay.m3u8?mode=hls&start=${start}",☕BS10（coffee）
+https://coffee.linxei.biz.id/stream/jp/bs10/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="BS coffee" tvg-id="bs_11" tvg-logo="https://p.sankuria.sbs/icons/icon_25.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/bs11/replay.m3u8?mode=hls&start=${start}",☕BS11（coffee）
+https://coffee.linxei.biz.id/stream/jp/bs11/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="BS coffee" tvg-id="bs24" tvg-logo="https://p.sankuria.sbs/icons/icon_43.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/disney_channel/replay.m3u8?mode=hls&start=${start}",☕Disney Channel（coffee）
+https://coffee.linxei.biz.id/stream/jp/disney_channel/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="BS coffee" tvg-id="bs25" tvg-logo="https://p.sankuria.sbs/icons/icon_41.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/fishing_vision/replay.m3u8?mode=hls&start=${start}",☕Fishing Vision（coffee）
+https://coffee.linxei.biz.id/stream/jp/fishing_vision/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="BS coffee" tvg-id="bs14" tvg-logo="https://p.sankuria.sbs/icons/icon_36.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/green_channel/replay.m3u8?mode=hls&start=${start}",☕Green Channel（coffee）
+https://coffee.linxei.biz.id/stream/jp/green_channel/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="BS coffee" tvg-id="bs31" tvg-logo="https://p.sankuria.sbs/icons/icon_jcom_bs.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/jcom_bs/replay.m3u8?mode=hls&start=${start}",☕JCOM BS（coffee）
+https://coffee.linxei.biz.id/stream/jp/jcom_bs/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="BS coffee" tvg-id="bs18" tvg-logo="https://p.sankuria.sbs/icons/icon_37.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/jsport_1/replay.m3u8?mode=hls&start=${start}",☕JSport 1（coffee）
+https://coffee.linxei.biz.id/stream/jp/jsport_1/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="BS coffee" tvg-id="bs19" tvg-logo="https://p.sankuria.sbs/icons/icon_38.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/jsport_2/replay.m3u8?mode=hls&start=${start}",☕JSport 2（coffee）
+https://coffee.linxei.biz.id/stream/jp/jsport_2/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="BS coffee" tvg-id="bs21" tvg-logo="https://p.sankuria.sbs/icons/icon_39.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/jsport_3/replay.m3u8?mode=hls&start=${start}",☕JSport 3（coffee）
+https://coffee.linxei.biz.id/stream/jp/jsport_3/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="BS coffee" tvg-id="bs22" tvg-logo="https://p.sankuria.sbs/icons/icon_40.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/jsport_4/replay.m3u8?mode=hls&start=${start}",☕JSport 4（coffee）
+https://coffee.linxei.biz.id/stream/jp/jsport_4/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="BS coffee" tvg-id="bs11" tvg-logo="https://p.sankuria.sbs/icons/icon_17.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/nhk_bs/replay.m3u8?mode=hls&start=${start}",☕NHK BS（coffee）
+https://coffee.linxei.biz.id/stream/jp/nhk_bs/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="BS coffee" tvg-id="nhk_bs_2" tvg-logo="https://p.sankuria.sbs/icons/icon_17.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/nhk_bs_2/replay.m3u8?mode=hls&start=${start}",☕NHK BS 2（coffee）
+https://coffee.linxei.biz.id/stream/jp/nhk_bs_2/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="BS coffee" tvg-id="bs01" tvg-logo="https://p.sankuria.sbs/icons/icon_15.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/nhk_bs4k/replay.m3u8?mode=hls&start=${start}",☕NHK BS4K（coffee）
+https://coffee.linxei.biz.id/stream/jp/nhk_bs4k/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="BS coffee" tvg-id="bs23" tvg-logo="https://p.sankuria.sbs/icons/icon_33.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/nihon_eiga_senmon/replay.m3u8?mode=hls&start=${start}",☕Nihon Eiga Senmon（coffee）
+https://coffee.linxei.biz.id/stream/jp/nihon_eiga_senmon/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="BS coffee" tvg-id="bs07" tvg-logo="https://p.sankuria.sbs/icons/icon_29.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/wowow_cinema/replay.m3u8?mode=hls&start=${start}",☕WOWOW Cinema（coffee）
+https://coffee.linxei.biz.id/stream/jp/wowow_cinema/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="BS coffee" tvg-id="bs20" tvg-logo="https://p.sankuria.sbs/icons/icon_28.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/wowow_live/replay.m3u8?mode=hls&start=${start}",☕WOWOW Live（coffee）
+https://coffee.linxei.biz.id/stream/jp/wowow_live/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="BS coffee" tvg-id="wowow_plus" tvg-logo="https://p.sankuria.sbs/icons/icon_30.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/wowow_plus/replay.m3u8?mode=hls&start=${start}",☕WOWOW Plus（coffee）
+https://coffee.linxei.biz.id/stream/jp/wowow_plus/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="BS coffee" tvg-id="CH.621" tvg-logo="https://p.sankuria.sbs/icons/icon_27.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/wowow_prime/replay.m3u8?mode=hls&start=${start}",☕WOWOW Prime（coffee）
+https://coffee.linxei.biz.id/stream/jp/wowow_prime/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="CS coffee" tvg-id="at-x" tvg-logo="https://p.sankuria.sbs/icons/icon_80.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/at-x/replay.m3u8?mode=hls&start=${start}",☕AT-X（coffee）
+https://coffee.linxei.biz.id/stream/jp/at-x/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="CS coffee" tvg-id="action_channel" tvg-logo="https://p.sankuria.sbs/icons/icon_56.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/action_channel/replay.m3u8?mode=hls&start=${start}",☕Action Channel（coffee）
+https://coffee.linxei.biz.id/stream/jp/action_channel/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="CS coffee" tvg-id="cs24" tvg-logo="https://p.sankuria.sbs/icons/icon_88.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/animal_planet/replay.m3u8?mode=hls&start=${start}",☕Animal Planet（coffee）
+https://coffee.linxei.biz.id/stream/jp/animal_planet/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="CS coffee" tvg-id="cs15" tvg-logo="https://p.sankuria.sbs/icons/icon_bbc.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/bbc_news/replay.m3u8?mode=hls&start=${start}",☕BBC News（coffee）
+https://coffee.linxei.biz.id/stream/jp/bbc_news/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="CS coffee" tvg-id="cs16" tvg-logo="https://p.sankuria.sbs/icons/icon_cnnj.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/cnnj/replay.m3u8?mode=hls&start=${start}",☕CNNj（coffee）
+https://coffee.linxei.biz.id/stream/jp/cnnj/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="CS coffee" tvg-id="cs25" tvg-logo="https://p.sankuria.sbs/icons/icon_84.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/cartoon_network/replay.m3u8?mode=hls&start=${start}",☕Cartoon Network（coffee）
+https://coffee.linxei.biz.id/stream/jp/cartoon_network/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="CS coffee" tvg-id="cs29" tvg-logo="https://p.sankuria.sbs/icons/icon_69.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/channel_ginga/replay.m3u8?mode=hls&start=${start}",☕Channel Ginga（coffee）
+https://coffee.linxei.biz.id/stream/jp/channel_ginga/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="CS coffee" tvg-id="dlife" tvg-logo="https://p.sankuria.sbs/icons/icon_54.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/dlife/replay.m3u8?mode=hls&start=${start}",☕DLife（coffee）
+https://coffee.linxei.biz.id/stream/jp/dlife/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="CS coffee" tvg-id="cs08" tvg-logo="https://p.sankuria.sbs/icons/icon_87.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/discovery_channel/replay.m3u8?mode=hls&start=${start}",☕Discovery Channel（coffee）
+https://coffee.linxei.biz.id/stream/jp/discovery_channel/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="CS coffee" tvg-id="cs23" tvg-logo="https://p.sankuria.sbs/icons/icon_81.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/disney_junior/replay.m3u8?mode=hls&start=${start}",☕Disney Junior（coffee）
+https://coffee.linxei.biz.id/stream/jp/disney_junior/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="CS coffee" tvg-id="cs22" tvg-logo="https://p.sankuria.sbs/icons/icon_45.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/eisei_gekijo/replay.m3u8?mode=hls&start=${start}",☕Eisei Gekijo（coffee）
+https://coffee.linxei.biz.id/stream/jp/eisei_gekijo/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="CS coffee" tvg-id="cs20" tvg-logo="https://p.sankuria.sbs/icons/icon_50.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/family_gekijyo/replay.m3u8?mode=hls&start=${start}",☕Family Gekijyo（coffee）
+https://coffee.linxei.biz.id/stream/jp/family_gekijyo/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="CS coffee" tvg-id="fighting_tv_samurai" tvg-logo="https://p.sankuria.sbs/icons/icon_62.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/fighting_tv_samurai/replay.m3u8?mode=hls&start=${start}",☕Fighting TV Samurai（coffee）
+https://coffee.linxei.biz.id/stream/jp/fighting_tv_samurai/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="CS coffee" tvg-id="cs26" tvg-logo="https://p.sankuria.sbs/icons/icon_72.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/fuji_tv_next/replay.m3u8?mode=hls&start=${start}",☕Fuji TV Next（coffee）
+https://coffee.linxei.biz.id/stream/jp/fuji_tv_next/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="CS coffee" tvg-id="fuji_tv_one" tvg-logo="https://p.sankuria.sbs/icons/icon_70.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/fuji_tv_one/replay.m3u8?mode=hls&start=${start}",☕Fuji TV ONE（coffee）
+https://coffee.linxei.biz.id/stream/jp/fuji_tv_one/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="CS coffee" tvg-id="fuji_tv_two" tvg-logo="https://p.sankuria.sbs/icons/icon_71.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/fuji_tv_two/replay.m3u8?mode=hls&start=${start}",☕Fuji TV TWO（coffee）
+https://coffee.linxei.biz.id/stream/jp/fuji_tv_two/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="CS coffee" tvg-id="cs17" tvg-logo="https://p.sankuria.sbs/icons/icon_59.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/gaora_sports/replay.m3u8?mode=hls&start=${start}",☕GAORA SPORTS（coffee）
+https://coffee.linxei.biz.id/stream/jp/gaora_sports/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="CS coffee" tvg-id="cs03" tvg-logo="https://p.sankuria.sbs/icons/icon_61.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/golf_network/replay.m3u8?mode=hls&start=${start}",☕Golf Network（coffee）
+https://coffee.linxei.biz.id/stream/jp/golf_network/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="CS coffee" tvg-id="cs09" tvg-logo="https://p.sankuria.sbs/icons/icon_85.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/history/replay.m3u8?mode=hls&start=${start}",☕History（coffee）
+https://coffee.linxei.biz.id/stream/jp/history/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="CS coffee" tvg-id="cs05" tvg-logo="https://p.sankuria.sbs/icons/icon_51.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/home_drama_channel/replay.m3u8?mode=hls&start=${start}",☕Home Drama Channel（coffee）
+https://coffee.linxei.biz.id/stream/jp/home_drama_channel/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="CS coffee" tvg-id="cs04" tvg-logo="https://p.sankuria.sbs/icons/icon_49.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/jidaigeki_senmon/replay.m3u8?mode=hls&start=${start}",☕Jidaigeki Senmon（coffee）
+https://coffee.linxei.biz.id/stream/jp/jidaigeki_senmon/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="CS coffee" tvg-id="kbs-world_jp" tvg-logo="https://p.sankuria.sbs/icons/icon_kbs.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/kbs_world/replay.m3u8?mode=hls&start=${start}",☕KBS World（coffee）
+https://coffee.linxei.biz.id/stream/jp/kbs_world/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="CS coffee" tvg-id="kntv" tvg-logo="https://p.sankuria.sbs/icons/icon_96.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/kntv/replay.m3u8?mode=hls&start=${start}",☕KNTV（coffee）
+https://coffee.linxei.biz.id/stream/jp/kntv/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="CS coffee" tvg-id="cs13" tvg-logo="https://p.sankuria.sbs/icons/icon_78.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/kayo_pops/replay.m3u8?mode=hls&start=${start}",☕Kayo Pops（coffee）
+https://coffee.linxei.biz.id/stream/jp/kayo_pops/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="CS coffee" tvg-id="cs07" tvg-logo="https://p.sankuria.sbs/icons/icon_79.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/kids_station_tv/replay.m3u8?mode=hls&start=${start}",☕Kids Station TV（coffee）
+https://coffee.linxei.biz.id/stream/jp/kids_station_tv/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="CS coffee" tvg-id="cs19" tvg-logo="https://p.sankuria.sbs/icons/icon_55.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/lala_tv/replay.m3u8?mode=hls&start=${start}",☕LaLa TV（coffee）
+https://coffee.linxei.biz.id/stream/jp/lala_tv/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="CS coffee" tvg-id="cs18" tvg-logo="https://p.sankuria.sbs/icons/icon_74.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/mtv/replay.m3u8?mode=hls&start=${start}",☕MTV（coffee）
+https://coffee.linxei.biz.id/stream/jp/mtv/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="CS coffee" tvg-id="me-tele_next" tvg-logo="https://p.sankuria.sbs/icons/icon_mtele.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/me-tele_next/replay.m3u8?mode=hls&start=${start}",☕Me-Tele NEXT（coffee）
+https://coffee.linxei.biz.id/stream/jp/me-tele_next/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="CS coffee" tvg-id="mnet_jp" tvg-logo="https://p.sankuria.sbs/icons/icon_mnet.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/mnet/replay.m3u8?mode=hls&start=${start}",☕Mnet（coffee）
+https://coffee.linxei.biz.id/stream/jp/mnet/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="CS coffee" tvg-id="cs21" tvg-logo="https://p.sankuria.sbs/icons/icon_52.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/mondo_tv/replay.m3u8?mode=hls&start=${start}",☕Mondo TV（coffee）
+https://coffee.linxei.biz.id/stream/jp/mondo_tv/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="CS coffee" tvg-id="movie_plus" tvg-logo="https://p.sankuria.sbs/icons/icon_48.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/movie_plus/replay.m3u8?mode=hls&start=${start}",☕Movie Plus（coffee）
+https://coffee.linxei.biz.id/stream/jp/movie_plus/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="CS coffee" tvg-id="cs06" tvg-logo="https://p.sankuria.sbs/icons/icon_77.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/music_japan_tv/replay.m3u8?mode=hls&start=${start}",☕Music Japan TV（coffee）
+https://coffee.linxei.biz.id/stream/jp/music_japan_tv/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="CS coffee" tvg-id="music_on_tv" tvg-logo="https://p.sankuria.sbs/icons/icon_75.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/music_on_tv/replay.m3u8?mode=hls&start=${start}",☕Music ON TV（coffee）
+https://coffee.linxei.biz.id/stream/jp/music_on_tv/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="CS coffee" tvg-id="mystery_channel" tvg-logo="https://p.sankuria.sbs/icons/icon_57.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/mystery_channel/replay.m3u8?mode=hls&start=${start}",☕Mystery Channel（coffee）
+https://coffee.linxei.biz.id/stream/jp/mystery_channel/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="CS coffee" tvg-id="neco_ch" tvg-logo="https://p.sankuria.sbs/icons/icon_46.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/neco_ch/replay.m3u8?mode=hls&start=${start}",☕NECO Ch（coffee）
+https://coffee.linxei.biz.id/stream/jp/neco_ch/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="CS coffee" tvg-id="ntv_news24" tvg-logo="https://p.sankuria.sbs/icons/icon_ntv24.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/ntv_news24/replay.m3u8?mode=hls&start=${start}",☕NTV News24（coffee）
+https://coffee.linxei.biz.id/stream/jp/ntv_news24/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="CS coffee" tvg-id="cs10" tvg-logo="https://p.sankuria.sbs/icons/icon_86.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/national_geographic_japan/replay.m3u8?mode=hls&start=${start}",☕National Geographic Japan（coffee）
+https://coffee.linxei.biz.id/stream/jp/national_geographic_japan/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="CS coffee" tvg-id="cs02" tvg-logo="https://p.sankuria.sbs/icons/icon_60.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/nittele_g+/replay.m3u8?mode=hls&start=${start}",☕Nittele G+（coffee）
+https://coffee.linxei.biz.id/stream/jp/nittele_g+/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="CS coffee" tvg-id="nittele_plus" tvg-logo="https://p.sankuria.sbs/icons/icon_68.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/nittele_plus/replay.m3u8?mode=hls&start=${start}",☕Nittele Plus（coffee）
+https://coffee.linxei.biz.id/stream/jp/nittele_plus/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="CS coffee" tvg-id="nouve_para" tvg-logo="https://p.sankuria.sbs/" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/nouvelle_paradise/replay.m3u8?mode=hls&start=${start}",☕Nouvelle Paradise（coffee）
+https://coffee.linxei.biz.id/stream/jp/nouvelle_paradise/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="CS coffee" tvg-id="pigoo_nsfw" tvg-logo="https://p.sankuria.sbs/icons/icon_94.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/pigoo_nsfw/replay.m3u8?mode=hls&start=${start}",☕Pigoo NSFW（coffee）
+https://coffee.linxei.biz.id/stream/jp/pigoo_nsfw/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="CS coffee" tvg-id="shogi_channel" tvg-logo="https://p.sankuria.sbs/icons/icon_95.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/shogi_channel/replay.m3u8?mode=hls&start=${start}",☕Shogi Channel（coffee）
+https://coffee.linxei.biz.id/stream/jp/shogi_channel/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="CS coffee" tvg-id="cs01" tvg-logo="https://p.sankuria.sbs/icons/icon_58.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/sky_a/replay.m3u8?mode=hls&start=${start}",☕Sky A（coffee）
+https://coffee.linxei.biz.id/stream/jp/sky_a/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="CS coffee" tvg-id="bs26" tvg-logo="https://p.sankuria.sbs/icons/icon_73.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/space_shower_tv/replay.m3u8?mode=hls&start=${start}",☕Space Shower TV（coffee）
+https://coffee.linxei.biz.id/stream/jp/space_shower_tv/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="CS coffee" tvg-id="sport_live_plus" tvg-logo="https://p.sankuria.sbs/icons/icon_63.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/sport_live_plus/replay.m3u8?mode=hls&start=${start}",☕Sport Live Plus（coffee）
+https://coffee.linxei.biz.id/stream/jp/sport_live_plus/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="CS coffee" tvg-id="tbs_channel_1" tvg-logo="https://p.sankuria.sbs/icons/icon_64.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/tbs_channel_1/replay.m3u8?mode=hls&start=${start}",☕TBS Channel 1（coffee）
+https://coffee.linxei.biz.id/stream/jp/tbs_channel_1/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="CS coffee" tvg-id="tbs_channel_2" tvg-logo="https://p.sankuria.sbs/icons/icon_65.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/tbs_channel_2/replay.m3u8?mode=hls&start=${start}",☕TBS Channel 2（coffee）
+https://coffee.linxei.biz.id/stream/jp/tbs_channel_2/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="CS coffee" tvg-id="cs11" tvg-logo="https://p.sankuria.sbs/icons/icon_93.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/tbs_news/replay.m3u8?mode=hls&start=${start}",☕TBS News（coffee）
+https://coffee.linxei.biz.id/stream/jp/tbs_news/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="CS coffee" tvg-id="tv_asahi_channel_1" tvg-logo="https://p.sankuria.sbs/icons/icon_66.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/tv_asahi_channel_1/replay.m3u8?mode=hls&start=${start}",☕TV Asahi Channel 1（coffee）
+https://coffee.linxei.biz.id/stream/jp/tv_asahi_channel_1/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="CS coffee" tvg-id="tv_asahi_channel_2" tvg-logo="https://p.sankuria.sbs/icons/icon_67.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/tv_asahi_channel_2/replay.m3u8?mode=hls&start=${start}",☕TV Asahi Channel 2（coffee）
+https://coffee.linxei.biz.id/stream/jp/tv_asahi_channel_2/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="CS coffee" tvg-id="cs12" tvg-logo="https://p.sankuria.sbs/icons/icon_89.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/tabi_channel/replay.m3u8?mode=hls&start=${start}",☕Tabi Channel（coffee）
+https://coffee.linxei.biz.id/stream/jp/tabi_channel/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="CS coffee" tvg-id="cs28" tvg-logo="https://p.sankuria.sbs/icons/icon_91.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/takarazuka_sky_stage/replay.m3u8?mode=hls&start=${start}",☕Takarazuka Sky Stage（coffee）
+https://coffee.linxei.biz.id/stream/jp/takarazuka_sky_stage/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="CS coffee" tvg-id="the_cinema" tvg-logo="https://p.sankuria.sbs/icons/icon_47.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/the_cinema/replay.m3u8?mode=hls&start=${start}",☕The Cinema（coffee）
+https://coffee.linxei.biz.id/stream/jp/the_cinema/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="CS coffee" tvg-id="cs27" tvg-logo="https://p.sankuria.sbs/icons/icon_44.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/toei_channel/replay.m3u8?mode=hls&start=${start}",☕Toei Channel（coffee）
+https://coffee.linxei.biz.id/stream/jp/toei_channel/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="CS coffee" tvg-id="v_paradise_nsfw" tvg-logo="https://p.sankuria.sbs/icons/icon_vpara.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/v_paradise_nsfw/replay.m3u8?mode=hls&start=${start}",☕V Paradise NSFW（coffee）
+https://coffee.linxei.biz.id/stream/jp/v_paradise_nsfw/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="試験 coffee" tvg-id="RAD_none" tvg-logo="https://p.sankuria.sbs/" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/rad/replay.m3u8?mode=hls&start=${start}",☕RAD（coffee）
+https://coffee.linxei.biz.id/stream/jp/rad/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 group-title="その他 coffee" tvg-id="weather_news" tvg-logo="https://p.sankuria.sbs/icons/icon_101.png" catchup="default" catchup-days="6" catchup-source="https://coffee.linxei.biz.id/stream/jp/weather_news/replay.m3u8?mode=hls&start=${start}",☕Weather News（coffee）
+https://coffee.linxei.biz.id/stream/jp/weather_news/stream-output.m3u8?mode=hls
+
+# === YOVI_COFFEE_END ===
 
 # === YOVI_KARENDA_ABEMA_BEGIN ===
 # Upstream: https://github.com/karenda-jp/AbemaTV/blob/main/abema240P.m3u
