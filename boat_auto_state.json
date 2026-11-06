@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-06",
-  "generated_at": "2026-11-06T14:04:19.236117+09:00",
+  "generated_at": "2026-11-06T14:05:19.135000+09:00",
   "last_update_ok": false,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261106.json",
   "schedule_checked_at": "2026-11-06T14:00:19.084508+09:00",
@@ -19,7 +19,7 @@
   "alert_lead_minutes": 30,
   "card_count": 13,
   "held_count": 13,
-  "visible_count": 10,
+  "visible_count": 11,
   "active_count": 10,
   "ended_kept": [],
   "seed_required": true,
@@ -48,7 +48,7 @@
     },
     "night": {
       "held": 3,
-      "acquired": 1,
+      "acquired": 2,
       "active": 0,
       "ended": 0,
       "seed_required": 0,
@@ -57,7 +57,7 @@
   },
   "cloud_acquisition": {
     "requested": 13,
-    "fetched": 10,
+    "fetched": 11,
     "failures": [
       {
         "jcd": "08",
@@ -70,11 +70,6 @@
         "jcd": "01",
         "name": "桐生",
         "start": "2026-11-06T14:45:00+09:00"
-      },
-      {
-        "jcd": "12",
-        "name": "住之江",
-        "start": "2026-11-06T14:05:00+09:00"
       }
     ]
   },
@@ -162,6 +157,22 @@
         "ok": true,
         "sequence": 8849034,
         "last_segment": "/5d81d87768054e9eb4dcaf9562abc744/0ba85cf600cd4c0086e4d3efaa802a7a/manifest_4_8851581.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
+    },
+    "boat.suminoe": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/6b33154ca23949fbb7d878dd85c95edf/765fb78d4b2b46c78e078c16dacc8ef1/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NDExNzYwMCwic3RhcnQiOjE3OTM5NDE1MDAsImlvcyI6MTgsImNwIjoiMjE2MTM3MTAwXzIxNjE3OTk5OSIsInBwdyI6IjQwayJ9._wJOBOwG5Y2FqPUat055t2XESWgawGZ0b7LwPYk9_TY",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-11-06T14:05:46.503404+09:00",
+      "checked_at": "2026-11-06T14:05:46.503404+09:00",
+      "first_verified_at": "2026-11-06T14:05:46.503404+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 8839876,
+        "last_segment": "/6b33154ca23949fbb7d878dd85c95edf/765fb78d4b2b46c78e078c16dacc8ef1/manifest_4_8839883.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -819,7 +830,7 @@
       "intermission": null,
       "guidance_switch_at": "2026-11-06T16:43:00+09:00",
       "seed_required": false,
-      "reverify_due": false,
+      "reverify_due": true,
       "playback_verified": true,
       "first_verified_at": "2026-11-06T09:50:42.526487+09:00",
       "ready_before_first_race": true,
@@ -894,7 +905,7 @@
       "jcd": "12",
       "name": "住之江",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
       "active": false,
       "cancelled": false,
@@ -912,9 +923,9 @@
       "guidance_switch_at": "2026-11-06T21:30:00+09:00",
       "seed_required": false,
       "reverify_due": false,
-      "playback_verified": false,
-      "first_verified_at": null,
-      "ready_before_first_race": false,
+      "playback_verified": true,
+      "first_verified_at": "2026-11-06T14:05:46.503404+09:00",
+      "ready_before_first_race": true,
       "acquire_from": "2026-11-06T12:47:00+09:00",
       "races": [
         {
@@ -978,8 +989,9 @@
           "name": "ジャンピー特選"
         }
       ],
-      "provider_stream_start": "2026-11-06T14:05:00+09:00",
-      "source": "公式BR配信開始待ち 14:05"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/6b33154ca23949fbb7d878dd85c95edf/765fb78d4b2b46c78e078c16dacc8ef1/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NDExNzYwMCwic3RhcnQiOjE3OTM5NDE1MDAsImlvcyI6MTgsImNwIjoiMjE2MTM3MTAwXzIxNjE3OTk5OSIsInBwdyI6IjQwayJ9._wJOBOwG5Y2FqPUat055t2XESWgawGZ0b7LwPYk9_TY",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     },
     "boat.naruto": {
       "jcd": "14",
