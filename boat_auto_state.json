@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-06",
-  "generated_at": "2026-11-06T09:50:15.045165+09:00",
+  "generated_at": "2026-11-06T09:53:15.092681+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261106.json",
   "schedule_checked_at": "2026-11-06T09:40:15.041788+09:00",
@@ -20,7 +20,7 @@
   "card_count": 13,
   "held_count": 13,
   "visible_count": 4,
-  "active_count": 3,
+  "active_count": 4,
   "ended_kept": [],
   "seed_required": false,
   "seed_required_venues": [],
@@ -37,7 +37,7 @@
     "day": {
       "held": 8,
       "acquired": 2,
-      "active": 1,
+      "active": 2,
       "ended": 0,
       "seed_required": 0,
       "cancelled": 0
@@ -134,13 +134,13 @@
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/0719f07429ba459da4f817edfca9765f/1c64ad69f9df44d192913cac8c051fdd/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NDA5OTYwMCwic3RhcnQiOjE3OTM5MjU2MDAsImlvcyI6MTgsImNwIjoiMjE2MTIxMjAwXzIxNjE2NDM5OSIsInBwdyI6IjQwayJ9.XnqXcTZ4kQ9u3Ez0XXSAVCw0uMcY8GYltrgQNbTWAng",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-11-06T09:40:50.454860+09:00",
-      "checked_at": "2026-11-06T09:46:42.459250+09:00",
+      "checked_at": "2026-11-06T09:53:42.427838+09:00",
       "first_verified_at": "2026-11-06T09:40:50.454860+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
         "sequence": 8825233,
-        "last_segment": "/0719f07429ba459da4f817edfca9765f/1c64ad69f9df44d192913cac8c051fdd/manifest_1_8825299.ts",
+        "last_segment": "/0719f07429ba459da4f817edfca9765f/1c64ad69f9df44d192913cac8c051fdd/manifest_1_8825369.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -715,7 +715,7 @@
       "held": true,
       "visible": true,
       "ended": false,
-      "active": false,
+      "active": true,
       "cancelled": false,
       "mode": "day",
       "mode_label": "デイ",
@@ -726,7 +726,7 @@
         "race": 1,
         "start": "10:23"
       },
-      "stream_window": "scheduled",
+      "stream_window": "live_or_prestart",
       "intermission": null,
       "guidance_switch_at": "2026-11-06T16:43:00+09:00",
       "seed_required": false,
@@ -1269,14 +1269,14 @@
       "last_race": "14:14",
       "alert_from": "2026-11-06T08:05:00+09:00",
       "next_race": {
-        "race": 4,
-        "start": "09:53"
+        "race": 5,
+        "start": "10:20"
       },
       "stream_window": "live_or_prestart",
       "intermission": null,
       "guidance_switch_at": "2026-11-06T14:59:00+09:00",
       "seed_required": false,
-      "reverify_due": true,
+      "reverify_due": false,
       "playback_verified": true,
       "first_verified_at": "2026-11-06T08:00:27.795201+09:00",
       "ready_before_first_race": true,
