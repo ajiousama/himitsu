@@ -2,8 +2,8 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-06",
-  "generated_at": "2026-11-06T11:22:18.988901+09:00",
-  "last_update_ok": true,
+  "generated_at": "2026-11-06T11:23:18.938096+09:00",
+  "last_update_ok": false,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261106.json",
   "schedule_checked_at": "2026-11-06T11:11:18.995624+09:00",
   "schedule_warnings": [
@@ -20,11 +20,15 @@
   "card_count": 13,
   "held_count": 13,
   "visible_count": 9,
-  "active_count": 9,
+  "active_count": 10,
   "ended_kept": [],
-  "seed_required": false,
-  "seed_required_venues": [],
-  "system_errors": [],
+  "seed_required": true,
+  "seed_required_venues": [
+    "常滑"
+  ],
+  "system_errors": [
+    "開始時刻が近い開催場の当日中継を取得・再生確認できません"
+  ],
   "phase_counts": {
     "morning": {
       "held": 2,
@@ -37,9 +41,9 @@
     "day": {
       "held": 8,
       "acquired": 7,
-      "active": 7,
+      "active": 8,
       "ended": 0,
-      "seed_required": 0,
+      "seed_required": 1,
       "cancelled": 0
     },
     "night": {
@@ -52,9 +56,15 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 9,
+    "requested": 10,
     "fetched": 9,
-    "failures": [],
+    "failures": [
+      {
+        "jcd": "08",
+        "name": "常滑",
+        "error": "ValueError: ended VOD playlist is not a live stream"
+      }
+    ],
     "deferred": []
   },
   "epg_programmes_written": {
@@ -62,8 +72,8 @@
     "guides.xml": 182
   },
   "alert": {
-    "active": false,
-    "kind": "healthy"
+    "active": true,
+    "kind": "system_error"
   },
   "streams": {
     "boat.toda": {
@@ -182,13 +192,13 @@
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/f67941f22bf14c419d4a9426c9fe2bd6/c5bab123f9a4411f8ad7b2ae3bbce389/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NDEwMzIwMCwic3RhcnQiOjE3OTM5Mjc0MDAsImlvcyI6MTgsImNwIjoiMjE2MTIzMDAwXzIxNjE2NjE5OSIsInBwdyI6IjQwayJ9.6ySVOKLCNjHsMyFH7QndSLVSQ2ja9Hl9pCCy6ydmw0o",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-11-06T10:10:54.580519+09:00",
-      "checked_at": "2026-11-06T11:17:46.405225+09:00",
+      "checked_at": "2026-11-06T11:23:46.296271+09:00",
       "first_verified_at": "2026-11-06T10:10:54.580519+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
         "sequence": 8860589,
-        "last_segment": "/f67941f22bf14c419d4a9426c9fe2bd6/c5bab123f9a4411f8ad7b2ae3bbce389/manifest_1_8861266.ts",
+        "last_segment": "/f67941f22bf14c419d4a9426c9fe2bd6/c5bab123f9a4411f8ad7b2ae3bbce389/manifest_1_8861326.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -584,7 +594,7 @@
       "held": true,
       "visible": false,
       "ended": false,
-      "active": false,
+      "active": true,
       "cancelled": false,
       "mode": "day",
       "mode_label": "デイ",
@@ -595,16 +605,11 @@
         "race": 4,
         "start": "11:53"
       },
-      "stream_window": "intermission",
-      "intermission": {
-        "after_race": 3,
-        "next_race": 4,
-        "from": "2026-11-06T10:15:00+09:00",
-        "until": "2026-11-06T11:23:00+09:00"
-      },
+      "stream_window": "live_or_prestart",
+      "intermission": null,
       "guidance_switch_at": "2026-11-06T16:53:00+09:00",
-      "seed_required": false,
-      "reverify_due": false,
+      "seed_required": true,
+      "reverify_due": true,
       "playback_verified": false,
       "first_verified_at": null,
       "ready_before_first_race": false,
@@ -1327,14 +1332,14 @@
       "last_race": "14:14",
       "alert_from": "2026-11-06T08:05:00+09:00",
       "next_race": {
-        "race": 7,
-        "start": "11:23"
+        "race": 8,
+        "start": "12:00"
       },
       "stream_window": "live_or_prestart",
       "intermission": null,
       "guidance_switch_at": "2026-11-06T14:59:00+09:00",
       "seed_required": false,
-      "reverify_due": true,
+      "reverify_due": false,
       "playback_verified": true,
       "first_verified_at": "2026-11-06T08:00:27.795201+09:00",
       "ready_before_first_race": true,
