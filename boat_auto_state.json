@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-06",
-  "generated_at": "2026-11-06T20:45:16.597821+09:00",
+  "generated_at": "2026-11-06T20:48:27.316287+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261106.json",
   "schedule_checked_at": "2026-11-06T20:38:47.025696+09:00",
@@ -19,8 +19,8 @@
   "alert_lead_minutes": 30,
   "card_count": 13,
   "held_count": 13,
-  "visible_count": 1,
-  "active_count": 1,
+  "visible_count": 0,
+  "active_count": 0,
   "ended_kept": [],
   "seed_required": false,
   "seed_required_venues": [],
@@ -44,18 +44,20 @@
     },
     "night": {
       "held": 3,
-      "acquired": 1,
-      "active": 1,
-      "ended": 2,
+      "acquired": 0,
+      "active": 0,
+      "ended": 3,
       "seed_required": 0,
       "cancelled": 0
     }
   },
   "cloud_acquisition": {
-    "requested": 1,
-    "fetched": 1,
+    "requested": 0,
+    "fetched": 0,
     "failures": [],
-    "deferred": []
+    "deferred": [],
+    "deferred_count": 13,
+    "reason": "stream acquisition waits until each venue 1R prefetch window"
   },
   "epg_programmes_written": {
     "public_sports_epg_local.xml": 182,
@@ -65,24 +67,7 @@
     "active": false,
     "kind": "healthy"
   },
-  "streams": {
-    "boat.suminoe": {
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/6b33154ca23949fbb7d878dd85c95edf/765fb78d4b2b46c78e078c16dacc8ef1/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NDExNzYwMCwic3RhcnQiOjE3OTM5NDE1MDAsImlvcyI6MTgsImNwIjoiMjE2MTM3MTAwXzIxNjE3OTk5OSIsInBwdyI6IjQwayJ9._wJOBOwG5Y2FqPUat055t2XESWgawGZ0b7LwPYk9_TY",
-      "source": "automatic acquisition + audio/video decode",
-      "acquired_at": "2026-11-06T14:05:46.503404+09:00",
-      "checked_at": "2026-11-06T20:46:11.201867+09:00",
-      "first_verified_at": "2026-11-06T14:05:46.503404+09:00",
-      "playback_verified": true,
-      "probe": {
-        "ok": true,
-        "sequence": 8839876,
-        "last_segment": "/6b33154ca23949fbb7d878dd85c95edf/765fb78d4b2b46c78e078c16dacc8ef1/manifest_4_8843887.ts",
-        "video_decoded": true,
-        "audio_decoded": true
-      },
-      "consecutive_failures": 0
-    }
-  },
+  "streams": {},
   "venues": {
     "boat.kiryu": {
       "jcd": "01",
@@ -697,9 +682,9 @@
       "jcd": "12",
       "name": "住之江",
       "held": true,
-      "visible": true,
-      "ended": false,
-      "active": true,
+      "visible": false,
+      "ended": true,
+      "active": false,
       "cancelled": false,
       "mode": "night",
       "mode_label": "ナイター",
@@ -707,11 +692,11 @@
       "last_race": "20:45",
       "alert_from": "2026-11-06T14:47:00+09:00",
       "next_race": null,
-      "stream_window": "live_or_prestart",
+      "stream_window": "ended_hidden",
       "intermission": null,
       "guidance_switch_at": "2026-11-06T21:30:00+09:00",
       "seed_required": false,
-      "reverify_due": true,
+      "reverify_due": false,
       "playback_verified": true,
       "first_verified_at": "2026-11-06T14:05:46.503404+09:00",
       "ready_before_first_race": true,
@@ -778,9 +763,7 @@
           "name": "ジャンピー特選"
         }
       ],
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/6b33154ca23949fbb7d878dd85c95edf/765fb78d4b2b46c78e078c16dacc8ef1/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NDExNzYwMCwic3RhcnQiOjE3OTM5NDE1MDAsImlvcyI6MTgsImNwIjoiMjE2MTM3MTAwXzIxNjE3OTk5OSIsInBwdyI6IjQwayJ9._wJOBOwG5Y2FqPUat055t2XESWgawGZ0b7LwPYk9_TY",
-      "source": "automatic acquisition + audio/video decode",
-      "token_expired": false
+      "source": "automatic cloud SEED pending"
     },
     "boat.naruto": {
       "jcd": "14",
