@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-08",
-  "generated_at": "2026-11-08T12:47:44.340195+09:00",
+  "generated_at": "2026-11-08T12:48:44.241980+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261108.json",
   "schedule_checked_at": "2026-11-08T12:38:44.286607+09:00",
@@ -52,10 +52,16 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 8,
+    "requested": 9,
     "fetched": 8,
     "failures": [],
-    "deferred": []
+    "deferred": [
+      {
+        "jcd": "12",
+        "name": "住之江",
+        "start": "2026-11-08T14:05:00+09:00"
+      }
+    ]
   },
   "epg_programmes_written": {
     "public_sports_epg_local.xml": 154,
@@ -668,14 +674,14 @@
       "last_race": "15:49",
       "alert_from": "2026-11-08T09:55:00+09:00",
       "next_race": {
-        "race": 6,
-        "start": "12:48"
+        "race": 7,
+        "start": "13:16"
       },
       "stream_window": "live_or_prestart",
       "intermission": null,
       "guidance_switch_at": "2026-11-08T16:34:00+09:00",
       "seed_required": false,
-      "reverify_due": true,
+      "reverify_due": false,
       "playback_verified": true,
       "first_verified_at": "2026-11-08T09:50:38.091646+09:00",
       "ready_before_first_race": true,
@@ -834,7 +840,8 @@
           "name": "一般戦"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "provider_stream_start": "2026-11-08T14:05:00+09:00",
+      "source": "公式BR配信開始待ち 14:05"
     },
     "boat.naruto": {
       "jcd": "14",
