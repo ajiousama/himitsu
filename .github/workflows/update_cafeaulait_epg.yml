@@ -1,0 +1,89 @@
+name: Update Cafe au lait hybrid EPG
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'cafeaulait.m3u'
+      - 'cafeaulait/build_epg.py'
+      - '.github/workflows/update_cafeaulait_epg.yml'
+  schedule:
+    - cron: '21 */3 * * *'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: cafeaulait-hybrid-epg-writer
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Validate XMLTV time conversion and 101 channels
+        shell: bash
+        run: |
+          python -m py_compile cafeaulait/build_epg.py
+          python - <<'PY'
+          import runpy
+          code = runpy.run_path('cafeaulait/build_epg.py', run_name='validation')
+          parse_time = code['parse_time']
+          assert parse_time('20261108063000 +0900').isoformat() == '2026-11-08T06:30:00+09:00'
+          assert parse_time('20261107213000 +0000').isoformat() == '2026-11-08T06:30:00+09:00'
+          rows = code['targets']()
+          assert len(rows) == 101
+          print('Validation OK: 101 entries and timezone-safe XMLTV parser')
+          PY
+
+      - name: Build real hybrid EPG (FreeWiFi Karenda JCOM Sky JapanTerebi)
+        run: python -u cafeaulait/build_epg.py
+
+      - name: Validate output before publishing
+        shell: bash
+        run: |
+          python - <<'PY'
+          import xml.etree.ElementTree as ET
+          root = ET.parse('cafeaulait_epg.xml').getroot()
+          channels = [x.get('id') for x in root.findall('channel')]
+          programmes = root.findall('programme')
+          assert len(channels) == 101 and len(set(channels)) == 101
+          assert len(programmes) > 0
+          assert all(x.get('channel') in channels for x in programmes)
+          print('Hybrid EPG validated:', len(channels), 'channels /', len(programmes), 'real programmes')
+          PY
+          test -s cafeaulait_epg_report.txt
+
+      - name: Publish Cafe au lait EPG without altering FreeWiFi/yovi
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add cafeaulait_epg.xml cafeaulait_epg_report.txt
+          if git diff --cached --quiet; then
+            echo "Cafe au lait EPG already current"
+            exit 0
+          fi
+          git commit -m "Update Cafe au lait hybrid EPG [skip ci] [skip render]"
+          for attempt in 1 2 3 4 5; do
+            git pull --rebase origin main
+            if git push origin HEAD:main; then
+              echo "Published Cafe au lait hybrid EPG"
+              exit 0
+            fi
+            sleep 3
+          done
+          exit 1
