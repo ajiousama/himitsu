@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-08",
-  "generated_at": "2026-11-08T12:48:44.241980+09:00",
+  "generated_at": "2026-11-08T12:51:44.440438+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261108.json",
   "schedule_checked_at": "2026-11-08T12:38:44.286607+09:00",
@@ -52,10 +52,15 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 9,
+    "requested": 10,
     "fetched": 8,
     "failures": [],
     "deferred": [
+      {
+        "jcd": "01",
+        "name": "桐生",
+        "start": "2026-11-08T14:45:00+09:00"
+      },
       {
         "jcd": "12",
         "name": "住之江",
@@ -290,7 +295,8 @@
           "name": "優勝戦"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "provider_stream_start": "2026-11-08T14:45:00+09:00",
+      "source": "公式BR配信開始待ち 14:45"
     },
     "boat.toda": {
       "jcd": "02",
@@ -589,7 +595,7 @@
       "intermission": null,
       "guidance_switch_at": "2026-11-08T16:40:00+09:00",
       "seed_required": false,
-      "reverify_due": false,
+      "reverify_due": true,
       "playback_verified": true,
       "first_verified_at": "2026-11-08T09:45:46.289075+09:00",
       "ready_before_first_race": true,
