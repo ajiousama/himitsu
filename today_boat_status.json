@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-09",
-  "generated_at": "2026-11-09T08:17:31.404816+09:00",
+  "generated_at": "2026-11-09T08:20:31.401262+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261109.json",
   "schedule_checked_at": "2026-11-09T08:05:31.451031+09:00",
@@ -52,7 +52,7 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 7,
+    "requested": 8,
     "fetched": 2,
     "failures": [],
     "deferred": [
@@ -77,6 +77,11 @@
         "start": "2026-11-09T09:50:00+09:00"
       },
       {
+        "jcd": "14",
+        "name": "鳴門",
+        "start": "2026-11-09T10:15:00+09:00"
+      },
+      {
         "jcd": "17",
         "name": "宮島",
         "start": "2026-11-09T09:40:00+09:00"
@@ -96,13 +101,13 @@
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/76bb240ac3a6497d8a1c78464b352ee0/992e7b565599482d900c2d73e8c7ee1a/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NDM1NTIwMCwic3RhcnQiOjE3OTQxNzk1MjAsImlvcyI6MTgsImNwIjoiMjE2Mzc1MTIwXzIxNjQxODMxOSIsInBwdyI6IjQwayJ9.QgUwj-QDw9i1c2hjtJABXaWryXtoCsx409yKe8rmDgw",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-11-09T08:12:58.539918+09:00",
-      "checked_at": "2026-11-09T08:12:58.539918+09:00",
+      "checked_at": "2026-11-09T08:20:58.584333+09:00",
       "first_verified_at": "2026-11-09T08:12:58.539918+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
         "sequence": 8896322,
-        "last_segment": "/76bb240ac3a6497d8a1c78464b352ee0/992e7b565599482d900c2d73e8c7ee1a/manifest_1_8896331.ts",
+        "last_segment": "/76bb240ac3a6497d8a1c78464b352ee0/992e7b565599482d900c2d73e8c7ee1a/manifest_1_8896410.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -758,7 +763,8 @@
           "name": "予選"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "provider_stream_start": "2026-11-09T10:15:00+09:00",
+      "source": "公式BR配信開始待ち 10:15"
     },
     "boat.miyajima": {
       "jcd": "17",
@@ -1054,7 +1060,7 @@
       "intermission": null,
       "guidance_switch_at": "2026-11-09T15:01:00+09:00",
       "seed_required": false,
-      "reverify_due": false,
+      "reverify_due": true,
       "playback_verified": true,
       "first_verified_at": "2026-11-09T08:00:58.496882+09:00",
       "ready_before_first_race": true,
