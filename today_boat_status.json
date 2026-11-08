@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-09",
-  "generated_at": "2026-11-09T07:57:31.398172+09:00",
+  "generated_at": "2026-11-09T08:00:31.399016+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261109.json",
   "schedule_checked_at": "2026-11-09T07:46:31.396841+09:00",
@@ -19,7 +19,7 @@
   "alert_lead_minutes": 30,
   "card_count": 11,
   "held_count": 11,
-  "visible_count": 0,
+  "visible_count": 1,
   "active_count": 0,
   "ended_kept": [],
   "seed_required": false,
@@ -28,7 +28,7 @@
   "phase_counts": {
     "morning": {
       "held": 2,
-      "acquired": 0,
+      "acquired": 1,
       "active": 0,
       "ended": 0,
       "seed_required": 0,
@@ -52,10 +52,15 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 5,
-    "fetched": 0,
+    "requested": 6,
+    "fetched": 1,
     "failures": [],
     "deferred": [
+      {
+        "jcd": "05",
+        "name": "多摩川",
+        "start": "2026-11-09T09:55:00+09:00"
+      },
       {
         "jcd": "08",
         "name": "常滑",
@@ -75,11 +80,6 @@
         "jcd": "21",
         "name": "芦屋",
         "start": "2026-11-09T08:12:00+09:00"
-      },
-      {
-        "jcd": "23",
-        "name": "唐津",
-        "start": "2026-11-09T08:00:00+09:00"
       }
     ]
   },
@@ -91,7 +91,24 @@
     "active": false,
     "kind": "healthy"
   },
-  "streams": {},
+  "streams": {
+    "boat.karatsu": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/bf6b04203713470aabea3b9c37ce6098/980ca3075ca044acb6c2a4126c2a8b68/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NDM1NTIwMCwic3RhcnQiOjE3OTQxNzg4MDAsImlvcyI6MTgsImNwIjoiMjE2Mzc0NDAwXzIxNjQxNzU5OSIsInBwdyI6IjQwayJ9.g6fMPbGs0poxDL7LbI1nyja1SsS4ZR7cNaPcsFkTI-I",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-11-09T08:00:58.496882+09:00",
+      "checked_at": "2026-11-09T08:00:58.496882+09:00",
+      "first_verified_at": "2026-11-09T08:00:58.496882+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 8883761,
+        "last_segment": "/bf6b04203713470aabea3b9c37ce6098/980ca3075ca044acb6c2a4126c2a8b68/manifest_4_8883770.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
+    }
+  },
   "venues": {
     "boat.toda": {
       "jcd": "02",
@@ -271,7 +288,8 @@
           "name": "記者選抜戦"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "provider_stream_start": "2026-11-09T09:55:00+09:00",
+      "source": "公式BR配信開始待ち 09:55"
     },
     "boat.gamagori": {
       "jcd": "07",
@@ -1001,7 +1019,7 @@
       "jcd": "23",
       "name": "唐津",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
       "active": false,
       "cancelled": false,
@@ -1019,9 +1037,9 @@
       "guidance_switch_at": "2026-11-09T15:01:00+09:00",
       "seed_required": false,
       "reverify_due": false,
-      "playback_verified": false,
-      "first_verified_at": null,
-      "ready_before_first_race": false,
+      "playback_verified": true,
+      "first_verified_at": "2026-11-09T08:00:58.496882+09:00",
+      "ready_before_first_race": true,
       "acquire_from": "2026-11-09T06:05:00+09:00",
       "races": [
         {
@@ -1085,8 +1103,9 @@
           "name": "優勝戦"
         }
       ],
-      "provider_stream_start": "2026-11-09T08:00:00+09:00",
-      "source": "公式BR配信開始待ち 08:00"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/bf6b04203713470aabea3b9c37ce6098/980ca3075ca044acb6c2a4126c2a8b68/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NDM1NTIwMCwic3RhcnQiOjE3OTQxNzg4MDAsImlvcyI6MTgsImNwIjoiMjE2Mzc0NDAwXzIxNjQxNzU5OSIsInBwdyI6IjQwayJ9.g6fMPbGs0poxDL7LbI1nyja1SsS4ZR7cNaPcsFkTI-I",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     }
   }
 }
