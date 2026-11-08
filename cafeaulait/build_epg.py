@@ -63,6 +63,9 @@ PIN = {
     "bbc_news": {"sky": ["CS353", "Ch.565"]},
     "kntv": {"sky": ["Ch.657"]},
     "mnet": {"sky": ["CS318", "Ch.658"]},
+    "bs11": {"jcom": ["jcom_3_211_4"]},
+    "wowow_plus": {"sky": ["BS252", "Ch.630"], "jcom": ["jcom_120_155_65406"]},
+    "music_on_tv": {"sky": ["CS325", "Ch.641"]},
 }
 
 ALIASES = {
