@@ -72,18 +72,29 @@ jobs:
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add cafeaulait_epg.xml cafeaulait_epg_report.txt
-          if git diff --cached --quiet; then
-            echo "Cafe au lait EPG already current"
-            exit 0
-          fi
-          git commit -m "Update Cafe au lait hybrid EPG [skip ci] [skip render]"
+          # Keep generated files independent of concurrent FreeWiFi writers.
+          # Rebase can conflict when another EPG run published in the meantime;
+          # restore our validated snapshot on top of the latest main instead.
+          snapshot="$(mktemp -d)"
+          cp cafeaulait_epg.xml "$snapshot/cafeaulait_epg.xml"
+          cp cafeaulait_epg_report.txt "$snapshot/cafeaulait_epg_report.txt"
+
           for attempt in 1 2 3 4 5; do
-            git pull --rebase origin main
+            git fetch origin main
+            git reset --hard origin/main
+            cp "$snapshot/cafeaulait_epg.xml" cafeaulait_epg.xml
+            cp "$snapshot/cafeaulait_epg_report.txt" cafeaulait_epg_report.txt
+            git add cafeaulait_epg.xml cafeaulait_epg_report.txt
+            if git diff --cached --quiet; then
+              echo "Cafe au lait EPG already current"
+              exit 0
+            fi
+            git commit -m "Update Cafe au lait hybrid EPG [skip ci] [skip render]"
             if git push origin HEAD:main; then
               echo "Published Cafe au lait hybrid EPG"
               exit 0
             fi
+            echo "::warning::Concurrent main update; retrying latest snapshot"
             sleep 3
           done
           exit 1
