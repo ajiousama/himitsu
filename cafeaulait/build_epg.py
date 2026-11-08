@@ -111,9 +111,11 @@ def parse_time(s: str | None) -> datetime | None:
     if not m:
         return None
     try:
-        return datetime.strptime(m.group(1) + (" " + m.group(2) if m.group(2) else ""),
-                                 "%Y%m%d%H%M%S %z" if m.group(2) else "%Y%m%d%H%M%S").replace(
-                                     tzinfo=None if m.group(2) else JST).astimezone(JST)
+        raw = datetime.strptime(m.group(1) + (" " + m.group(2) if m.group(2) else ""),
+                                "%Y%m%d%H%M%S %z" if m.group(2) else "%Y%m%d%H%M%S")
+        if raw.tzinfo is None:
+            raw = raw.replace(tzinfo=JST)
+        return raw.astimezone(JST)
     except (ValueError, OverflowError):
         return None
 
