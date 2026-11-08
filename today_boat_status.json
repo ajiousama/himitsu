@@ -2,10 +2,10 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-08",
-  "generated_at": "2026-11-08T09:39:10.704920+09:00",
+  "generated_at": "2026-11-08T09:45:10.728933+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261108.json",
-  "schedule_checked_at": "2026-11-08T09:27:10.703961+09:00",
+  "schedule_checked_at": "2026-11-08T09:45:10.728933+09:00",
   "schedule_warnings": [
     "official_cards: TimeoutError"
   ],
@@ -19,7 +19,7 @@
   "alert_lead_minutes": 30,
   "card_count": 11,
   "held_count": 11,
-  "visible_count": 2,
+  "visible_count": 3,
   "active_count": 2,
   "ended_kept": [],
   "seed_required": false,
@@ -36,7 +36,7 @@
     },
     "day": {
       "held": 6,
-      "acquired": 0,
+      "acquired": 1,
       "active": 0,
       "ended": 0,
       "seed_required": 0,
@@ -53,7 +53,7 @@
   },
   "cloud_acquisition": {
     "requested": 8,
-    "fetched": 2,
+    "fetched": 3,
     "failures": [],
     "deferred": [
       {
@@ -70,11 +70,6 @@
         "jcd": "05",
         "name": "多摩川",
         "start": "2026-11-08T09:55:00+09:00"
-      },
-      {
-        "jcd": "08",
-        "name": "常滑",
-        "start": "2026-11-08T09:45:00+09:00"
       },
       {
         "jcd": "11",
@@ -97,17 +92,33 @@
     "kind": "healthy"
   },
   "streams": {
+    "boat.tokoname": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/8f2b71eb50f6454fa056ca6de66efcfc/7e69939e3f5b492abf67259fa96d9b7d/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NDI3MjQwMCwic3RhcnQiOjE3OTQwOTg3MDAsImlvcyI6MTgsImNwIjoiMjE2Mjk0MzAwXzIxNjMzNzQ5OSIsInBwdyI6IjQwayJ9.ExXxQ-cG2vqmk0gnOC9s7fRfye2gyv5yTYMvjgLjkd4",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-11-08T09:45:46.289075+09:00",
+      "checked_at": "2026-11-08T09:45:46.289075+09:00",
+      "first_verified_at": "2026-11-08T09:45:46.289075+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 8867461,
+        "last_segment": "/8f2b71eb50f6454fa056ca6de66efcfc/7e69939e3f5b492abf67259fa96d9b7d/manifest_4_8867468.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
+    },
     "boat.ashiya": {
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/4f76104d0df44cd9a5fd1d715fcbc9e7/dff0d22c29e3428b84044d7f9c814d9c/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NDI2ODgwMCwic3RhcnQiOjE3OTQwOTMxMjAsImlvcyI6MTgsImNwIjoiMjE2Mjg4NzIwXzIxNjMzMTkxOSIsInBwdyI6IjQwayJ9.xwT2qnitcA-PJAsqeaWZSuyIiBTlUJerA-SS904QLKc",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-11-08T08:12:38.086359+09:00",
-      "checked_at": "2026-11-08T09:38:38.062959+09:00",
+      "checked_at": "2026-11-08T09:45:46.289628+09:00",
       "first_verified_at": "2026-11-08T08:12:38.086359+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
         "sequence": 8881922,
-        "last_segment": "/4f76104d0df44cd9a5fd1d715fcbc9e7/dff0d22c29e3428b84044d7f9c814d9c/manifest_1_8882787.ts",
+        "last_segment": "/4f76104d0df44cd9a5fd1d715fcbc9e7/dff0d22c29e3428b84044d7f9c814d9c/manifest_1_8882858.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -117,13 +128,13 @@
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/dd168b903ce34662a6c5934c8e65024d/31b642cd24364f2fb84701c5eef5f63f/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NDI2ODgwMCwic3RhcnQiOjE3OTQwOTI0MDAsImlvcyI6MTgsImNwIjoiMjE2Mjg4MDAwXzIxNjMzMTE5OSIsInBwdyI6IjQwayJ9.kZeea--6L7I9K86qPBZI-J9XxX36_M5EWPXuT0YHFfc",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-11-08T08:00:38.129052+09:00",
-      "checked_at": "2026-11-08T09:38:38.063222+09:00",
+      "checked_at": "2026-11-08T09:45:46.289878+09:00",
       "first_verified_at": "2026-11-08T08:00:38.129052+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
         "sequence": 8869361,
-        "last_segment": "/dd168b903ce34662a6c5934c8e65024d/31b642cd24364f2fb84701c5eef5f63f/manifest_4_8870346.ts",
+        "last_segment": "/dd168b903ce34662a6c5934c8e65024d/31b642cd24364f2fb84701c5eef5f63f/manifest_4_8870418.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -498,7 +509,7 @@
       "jcd": "08",
       "name": "常滑",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
       "active": false,
       "cancelled": false,
@@ -516,9 +527,9 @@
       "guidance_switch_at": "2026-11-08T16:40:00+09:00",
       "seed_required": false,
       "reverify_due": false,
-      "playback_verified": false,
-      "first_verified_at": null,
-      "ready_before_first_race": false,
+      "playback_verified": true,
+      "first_verified_at": "2026-11-08T09:45:46.289075+09:00",
+      "ready_before_first_race": true,
       "acquire_from": "2026-11-08T07:46:00+09:00",
       "races": [
         {
@@ -582,8 +593,9 @@
           "name": "予選特選"
         }
       ],
-      "provider_stream_start": "2026-11-08T09:45:00+09:00",
-      "source": "公式BR配信開始待ち 09:45"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/8f2b71eb50f6454fa056ca6de66efcfc/7e69939e3f5b492abf67259fa96d9b7d/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NDI3MjQwMCwic3RhcnQiOjE3OTQwOTg3MDAsImlvcyI6MTgsImNwIjoiMjE2Mjk0MzAwXzIxNjMzNzQ5OSIsInBwdyI6IjQwayJ9.ExXxQ-cG2vqmk0gnOC9s7fRfye2gyv5yTYMvjgLjkd4",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     },
     "boat.biwako": {
       "jcd": "11",
