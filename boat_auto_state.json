@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-10",
-  "generated_at": "2026-11-10T07:59:16.665609+09:00",
+  "generated_at": "2026-11-10T08:00:24.999055+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261110.json",
   "schedule_checked_at": "2026-11-10T07:58:07.237014+09:00",
@@ -52,10 +52,15 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 5,
+    "requested": 6,
     "fetched": 1,
     "failures": [],
     "deferred": [
+      {
+        "jcd": "05",
+        "name": "多摩川",
+        "start": "2026-11-10T09:55:00+09:00"
+      },
       {
         "jcd": "08",
         "name": "常滑",
@@ -283,7 +288,8 @@
           "name": "準優勝戦"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "provider_stream_start": "2026-11-10T09:55:00+09:00",
+      "source": "公式BR配信開始待ち 09:55"
     },
     "boat.gamagori": {
       "jcd": "07",
