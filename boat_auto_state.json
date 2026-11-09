@@ -2,10 +2,10 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-10",
-  "generated_at": "2026-11-10T08:05:32.071195+09:00",
+  "generated_at": "2026-11-10T08:13:48.695271+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261110.json",
-  "schedule_checked_at": "2026-11-10T07:58:07.237014+09:00",
+  "schedule_checked_at": "2026-11-10T08:13:48.695271+09:00",
   "schedule_warnings": [
     "official_cards: TimeoutError"
   ],
@@ -19,7 +19,7 @@
   "alert_lead_minutes": 30,
   "card_count": 13,
   "held_count": 13,
-  "visible_count": 1,
+  "visible_count": 2,
   "active_count": 1,
   "ended_kept": [],
   "seed_required": false,
@@ -28,7 +28,7 @@
   "phase_counts": {
     "morning": {
       "held": 2,
-      "acquired": 1,
+      "acquired": 2,
       "active": 1,
       "ended": 0,
       "seed_required": 0,
@@ -53,7 +53,7 @@
   },
   "cloud_acquisition": {
     "requested": 7,
-    "fetched": 1,
+    "fetched": 2,
     "failures": [],
     "deferred": [
       {
@@ -70,11 +70,6 @@
         "jcd": "09",
         "name": "津",
         "start": "2026-11-10T09:55:00+09:00"
-      },
-      {
-        "jcd": "10",
-        "name": "三国",
-        "start": "2026-11-10T08:12:00+09:00"
       },
       {
         "jcd": "11",
@@ -97,17 +92,33 @@
     "kind": "healthy"
   },
   "streams": {
+    "boat.mikuni": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/b227d6fc347946b1aa6eef5d640afe0f/44c0141b24bf4c2cb3cdd8d2e6f25e88/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NDQ0MTYwMCwic3RhcnQiOjE3OTQyNjU5MjAsImlvcyI6MTgsImNwIjoiMjE2NDYxNTIwXzIxNjUwNDcxOSIsInBwdyI6IjQwayJ9.R4dZUwmwCKfNM0p5lVUvGsgRMW8ASwvFaqVApTTrifM",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-11-10T08:14:51.559363+09:00",
+      "checked_at": "2026-11-10T08:14:51.559363+09:00",
+      "first_verified_at": "2026-11-10T08:14:51.559363+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 8890445,
+        "last_segment": "/b227d6fc347946b1aa6eef5d640afe0f/44c0141b24bf4c2cb3cdd8d2e6f25e88/manifest_4_8890473.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
+    },
     "boat.ashiya": {
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/6701410cc4904e2c9e43000ea2b087b4/16369a27a1cb423f994e8638849f433c/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NDQ0MTYwMCwic3RhcnQiOjE3OTQyNjUyMDAsImlvcyI6MTgsImNwIjoiMjE2NDYwODAwXzIxNjUwMzk5OSIsInBwdyI6IjQwayJ9.B7dgmTqBvmlh9z8XIZxrkLmv27D0dHLqbVM9rpW0mNo",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-11-10T08:00:11.012957+09:00",
-      "checked_at": "2026-11-10T08:06:26.732380+09:00",
+      "checked_at": "2026-11-10T08:14:51.560352+09:00",
       "first_verified_at": "2026-11-10T08:00:11.012957+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
         "sequence": 8910602,
-        "last_segment": "/6701410cc4904e2c9e43000ea2b087b4/16369a27a1cb423f994e8638849f433c/manifest_1_8910665.ts",
+        "last_segment": "/6701410cc4904e2c9e43000ea2b087b4/16369a27a1cb423f994e8638849f433c/manifest_1_8910749.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -572,7 +583,7 @@
       "jcd": "10",
       "name": "三国",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
       "active": false,
       "cancelled": false,
@@ -590,9 +601,9 @@
       "guidance_switch_at": "2026-11-10T15:10:00+09:00",
       "seed_required": false,
       "reverify_due": false,
-      "playback_verified": false,
-      "first_verified_at": null,
-      "ready_before_first_race": false,
+      "playback_verified": true,
+      "first_verified_at": "2026-11-10T08:14:51.559363+09:00",
+      "ready_before_first_race": true,
       "acquire_from": "2026-11-10T06:17:00+09:00",
       "races": [
         {
@@ -656,8 +667,9 @@
           "name": "三国選抜"
         }
       ],
-      "provider_stream_start": "2026-11-10T08:12:00+09:00",
-      "source": "公式BR配信開始待ち 08:12"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/b227d6fc347946b1aa6eef5d640afe0f/44c0141b24bf4c2cb3cdd8d2e6f25e88/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NDQ0MTYwMCwic3RhcnQiOjE3OTQyNjU5MjAsImlvcyI6MTgsImNwIjoiMjE2NDYxNTIwXzIxNjUwNDcxOSIsInBwdyI6IjQwayJ9.R4dZUwmwCKfNM0p5lVUvGsgRMW8ASwvFaqVApTTrifM",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     },
     "boat.biwako": {
       "jcd": "11",
