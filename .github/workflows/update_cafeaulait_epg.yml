@@ -45,7 +45,18 @@ jobs:
           assert parse_time('20261107213000 +0000').isoformat() == '2026-11-08T06:30:00+09:00'
           rows = code['targets']()
           assert len(rows) == 101
-          print('Validation OK: 101 entries and timezone-safe XMLTV parser')
+          from pathlib import Path
+          playlist_lines = Path('cafeaulait.m3u').read_text(encoding='utf-8-sig').splitlines()
+          entries = [line for line in playlist_lines if line.startswith('#EXTINF:')]
+          archives = [line for line in entries if 'catchup="default"' in line]
+          live_only = [line for line in entries if 'catchup="default"' not in line]
+          assert len(entries) == 101
+          assert len(archives) == 99
+          assert len(live_only) == 2
+          assert all('catchup-days="6"' in line and 'start={utc}' in line for line in archives)
+          assert all('catchup-source=' not in line for line in live_only)
+          assert all('${(b)timestamp}' not in line and 'start={utc}' in line for line in archives)
+          print('Validation OK: 101 EPG entries, 99 standard catch-up templates, 2 live-only channels')
           PY
 
       - name: Build real hybrid EPG (FreeWiFi Karenda JCOM Sky JapanTerebi)
