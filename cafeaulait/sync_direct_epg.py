@@ -2,7 +2,7 @@
 """Sync Cafe au lait's 101 M3U tvg-id attributes to EXISTING Karenda/ajiousama XMLTV IDs.
 
 Unlike the old hybrid EPG, we never republish or rename XMLTV programmes.
-The TV player loads the two original XMLTV guide feeds directly.
+The TV player loads the original Karenda XMLTV guide feed directly.
 """
 from __future__ import annotations
 
@@ -17,8 +17,7 @@ from build_epg import ALIASES, NOW, norm, programme_items, read_source
 M3U = Path("cafeaulait.m3u")
 REPORT = Path("cafeaulait_direct_epg_report.txt")
 KARENDA = "https://raw.githubusercontent.com/karenda-jp/etc/main/guides.xml"
-AJIOUSAMA = "https://raw.githubusercontent.com/ajiousama/himitsu/main/guides.xml"
-HEADER = f'#EXTM3U url-tvg="{KARENDA},{AJIOUSAMA}" tvg-shift=0 m3uautoload=1'
+HEADER = f'#EXTM3U url-tvg="{KARENDA}" tvg-shift=0 m3uautoload=1'
 
 # Verified / existing identifiers found in Yovi or from Karenda/ajiousama guide mappings.
 # Candidates are accepted ONLY if the referenced guide actually declares the ID.
@@ -98,7 +97,7 @@ def main():
 
     found = defaultdict(dict)
     provider_counts = {}
-    for name, url in [("karenda", KARENDA), ("ajiousama", None)]:
+    for name, url in [("karenda", KARENDA)]:
         root = read_source(name, url)
         ids, names = index_channels(root)
         candidate = {}
@@ -117,12 +116,7 @@ def main():
     new_ids = []
     records = []
     for pos, slug, current_id in rows:
-        if "karenda" in found[slug]:
-            source = "karenda"
-        elif "ajiousama" in found[slug]:
-            source = "ajiousama"
-        else:
-            source = "none"
+        source = "karenda" if "karenda" in found[slug] else "none"
         cid, count = found[slug][source] if source != "none" else (current_id, 0)
         new_ids.append(cid)
         records.append((slug, source, cid, count))
@@ -136,16 +130,16 @@ def main():
     lines[0] = HEADER
     for n, line in enumerate(lines):
         if line.startswith("# EPG IDs:"):
-            lines[n] = "# EPG IDs: existing upstream Karenda/ajiousama guides, no proprietary XMLTV."
+            lines[n] = "# EPG IDs: Karenda source XMLTV channel IDs directly; no proprietary XMLTV."
     if [lines[p+1] for p, _, _ in rows] != live_urls:
         raise AssertionError("Stream URLs changed unexpectedly")
     M3U.write_text("\n".join(lines) + "\n", encoding="utf-8")
     report = [
         "Café au lait DIRECT EPG mapping report",
         f"generated={NOW.isoformat()}",
-        f"epg_urls={KARENDA},{AJIOUSAMA}",
+        f"epg_urls={KARENDA}",
         f"supported={supported}/101",
-        "Source priority: Karenda -> ajiousama/FreeWiFi. Source IDs are copied unchanged.",
+        "Karenda channel IDs are copied unchanged. Unmapped channels have no Karenda EPG.",
         "",
         "slug\tsource\ttvg_id\tprogrammes",
     ]
