@@ -2,6 +2,7 @@
 """Build an independent hybrid XMLTV guide for the 101 Cafe au lait channels.
 
 Real schedules only: FreeWiFi -> Karenda -> J:COM -> Sky PerfecTV -> JapanTerebi.
+Live-only EPG: include only the last 2 hours and next 48 hours, with no catch-up history.
 Sources are matched to Cafe au lait's existing, stable tvg-id values.
 Never invent programme schedules or rewrite live/catch-up URLs.
 """
@@ -19,8 +20,8 @@ from pathlib import Path
 
 JST = timezone(timedelta(hours=9))
 NOW = datetime.now(JST)
-CUTOFF = NOW - timedelta(days=6)
-END = NOW + timedelta(days=7)
+CUTOFF = NOW - timedelta(hours=2)
+END = NOW + timedelta(days=2)
 M3U = Path("cafeaulait.m3u")
 OUT = Path("cafeaulait_epg.xml")
 REPORT = Path("cafeaulait_epg_report.txt")
@@ -186,11 +187,24 @@ def candidate_id(slug: str, tid: str, source: str, ids: set[str], names: dict[st
             return matches[0]
     return None
 
-def score(slug: str, source: str, programmes: list) -> tuple[int, int, int, int]:
-    current = sum(1 for st, en, p in programmes if st <= NOW < en)
-    nearby = sum(1 for st, en, p in programmes if st <= NOW + timedelta(hours=24) and en >= NOW - timedelta(hours=12))
-    within = sum(1 for st, en, p in programmes if st <= END and en >= CUTOFF)
-    return (int(current > 0), int(nearby > 0), -source_priority(slug, source), within)
+def covered_seconds(programmes: list, begin: datetime, end: datetime) -> int:
+    """Measure actual EPG coverage without counting overlapping schedules twice."""
+    spans = sorted((max(st, begin), min(en, end))
+                   for st, en, _ in programmes if st < end and en > begin)
+    covered = 0
+    cursor = begin
+    for st, en in spans:
+        if en <= cursor:
+            continue
+        covered += int((en - max(cursor, st)).total_seconds())
+        cursor = en
+    return covered
+
+def score(slug: str, source: str, programmes: list) -> tuple[int, int, int, int, int]:
+    current = any(st <= NOW < en for st, en, _ in programmes)
+    near = covered_seconds(programmes, NOW, NOW + timedelta(hours=3))
+    next_day = covered_seconds(programmes, NOW, NOW + timedelta(hours=24))
+    return (int(current), near, next_day, -source_priority(slug, source), len(programmes))
 
 def main():
     rows = targets()
@@ -227,35 +241,34 @@ def main():
             errors.append(f"{source}: {type(exc).__name__}: {exc}")
             print("SOURCE ERROR:", errors[-1], flush=True)
 
-    old = defaultdict(list)
-    if OUT.exists() and OUT.stat().st_size:
-        try:
-            old_root = ET.parse(OUT).getroot()
-            for p in old_root.iter("programme"):
-                st, en = parse_time(p.get("start")), parse_time(p.get("stop"))
-                if st and en and CUTOFF <= st < NOW and en > CUTOFF:
-                    old[p.get("channel", "")].append((st, en, p))
-        except (ET.ParseError, OSError) as exc:
-            errors.append(f"old archive: {exc}")
-
     doc = ET.Element("tv", {"generator-info-name": "Cafe au lait hybrid XMLTV",
                             "generator-info-url": "https://github.com/ajiousama/himitsu"})
     report = ["Cafe au lait EPG hybrid report", f"generated={NOW.isoformat()}",
               "Sources: FreeWiFi, Karenda, JCOM, Sky PerfectTV, JapanTerebi",
-              "History: retain actual programme data for up to six previous days, never synthesize programmes",
+              "Live-only: last 2 hours and next 48 hours; no six-day catch-up history",
               ""]
     now_count = history_count = matched = 0
+    # XMLTV requires the channel elements BEFORE any programme elements.
     for slug, tid, label in rows:
         ch = ET.SubElement(doc, "channel", {"id": tid})
         ET.SubElement(ch, "display-name", {"lang": "ja"}).text = label
+    for slug, tid, label in rows:
         opts = sorted(options[slug], key=lambda o: o[0], reverse=True)
         src = upstream = "none"
         chosen = []
         if opts:
             _, src, upstream, chosen = opts[0]
             matched += 1
-        items = list(chosen) + old.get(tid, [])
-        # The newest fetched provider wins collisions with retained historical data.
+        items = list(chosen)
+        # Add real programmes from fallback EPG providers only for uncovered slots.
+        # This avoids blank schedule gaps when the primary source is sparse.
+        for _, fallback_source, fallback_id, fallback in opts[1:]:
+            for st, en, p in fallback:
+                if st >= END or en <= CUTOFF:
+                    continue
+                if any(st < existing_en and existing_st < en for existing_st, existing_en, _ in items):
+                    continue
+                items.append((st, en, p))
         seen = set()
         saved = current = historical = 0
         items.sort(key=lambda x: (x[0], x[1]))

@@ -72,7 +72,15 @@ jobs:
           assert len(channels) == 101 and len(set(channels)) == 101
           assert len(programmes) > 0
           assert all(x.get('channel') in channels for x in programmes)
-          print('Hybrid EPG validated:', len(channels), 'channels /', len(programmes), 'real programmes')
+          # XMLTV DTD: (channel*, programme*); older output interleaved these.
+          seen_programme = False
+          for element in root:
+              if element.tag == 'programme':
+                  seen_programme = True
+              elif element.tag == 'channel':
+                  assert not seen_programme, 'XMLTV channel after programme'
+          assert len(programmes) < 15000, 'Live-only EPG is unexpectedly large'
+          print('Live-only XMLTV validated:', len(channels), 'channels /', len(programmes), 'real programmes')
           PY
           test -s cafeaulait_epg_report.txt
 
