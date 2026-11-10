@@ -1,4 +1,4 @@
-name: Sync Cafe au lait EPG to Karenda
+name: Sync Cafe au lait EPG to Karenda and KNTV JCOM
 
 on:
   workflow_dispatch:
@@ -46,6 +46,7 @@ jobs:
           data = Path('cafeaulait.m3u').read_text(encoding='utf-8')
           header, *lines = data.splitlines()
           assert 'https://raw.githubusercontent.com/karenda-jp/etc/main/guides.xml' in header
+          assert 'https://raw.githubusercontent.com/dbghelp/JCOM-TV-EPG/main/jcom.xml' in header
           assert 'ajiousama/himitsu/main/guides.xml' not in header
           entries = [line for line in lines if line.startswith('#EXTINF:')]
           assert len(entries) == 101
@@ -57,7 +58,8 @@ jobs:
           assert all('/stream-output.m3u8?mode=hls' in url for url in urls)
           report = Path('cafeaulait_direct_epg_report.txt').read_text(encoding='utf-8')
           assert 'supported=' in report
-          print('Direct Karenda EPG mapping verified:', len(entries), 'channels')
+          assert 'kntv\tjcom\tjcom_120_174_65406\t' in report
+          print('Direct Karenda+KNTV JCOM EPG mapping verified:', len(entries), 'channels')
           PY
 
       - name: Publish playlist and source-ID mapping report
@@ -79,7 +81,7 @@ jobs:
               echo "Direct EPG playlist already current"
               exit 0
             fi
-            git commit -m "Align Cafe au lait EPG to Karenda [skip ci]"
+            git commit -m "Align Cafe au lait EPG to Karenda and KNTV JCOM [skip ci]"
             if git push origin HEAD:main; then
               echo "Published direct EPG playlist"
               exit 0

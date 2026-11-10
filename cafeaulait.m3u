@@ -1,7 +1,7 @@
-#EXTM3U url-tvg="https://raw.githubusercontent.com/karenda-jp/etc/main/guides.xml" tvg-shift=0 m3uautoload=1
+#EXTM3U url-tvg="https://raw.githubusercontent.com/karenda-jp/etc/main/guides.xml,https://raw.githubusercontent.com/dbghelp/JCOM-TV-EPG/main/jcom.xml" tvg-shift=0 m3uautoload=1
 # Café au lait — independent coffee-only playlist (101 entries copied from yovi)
 # Live-only playlist: catch-up/replay is disabled on all 101 channels.
-# EPG IDs: Karenda source XMLTV channel IDs directly; no proprietary XMLTV.
+# EPG IDs: Karenda source XMLTV IDs; KNTV falls back to verified J:COM XMLTV ID.
 #EXTINF:-1 group-title="地上波 coffee（東京）" tvg-id="フジテレビ_jp" tvg-logo="https://p.sankuria.sbs/icons/icon_4.png",☕Fuji TV（coffee）
 https://coffee.linxei.biz.id/stream/jp/fuji_tv/stream-output.m3u8?mode=hls
 
@@ -200,7 +200,7 @@ https://coffee.linxei.biz.id/stream/jp/jidaigeki_senmon/stream-output.m3u8?mode=
 #EXTINF:-1 group-title="CS coffee" tvg-id="KBS-WORLD_jp" tvg-logo="https://p.sankuria.sbs/icons/icon_kbs.png",☕KBS World（coffee）
 https://coffee.linxei.biz.id/stream/jp/kbs_world/stream-output.m3u8?mode=hls
 
-#EXTINF:-1 group-title="CS coffee" tvg-id="kntv" tvg-logo="https://p.sankuria.sbs/icons/icon_96.png",☕KNTV（coffee）
+#EXTINF:-1 group-title="CS coffee" tvg-id="jcom_120_174_65406" tvg-logo="https://p.sankuria.sbs/icons/icon_96.png",☕KNTV（coffee）
 https://coffee.linxei.biz.id/stream/jp/kntv/stream-output.m3u8?mode=hls
 
 #EXTINF:-1 group-title="CS coffee" tvg-id="歌謡ポップスチャンネル_jp" tvg-logo="https://p.sankuria.sbs/icons/icon_78.png",☕Kayo Pops（coffee）

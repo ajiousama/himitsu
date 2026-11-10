@@ -2,7 +2,7 @@
 """Sync Cafe au lait's 101 M3U tvg-id attributes to EXISTING Karenda/ajiousama XMLTV IDs.
 
 Unlike the old hybrid EPG, we never republish or rename XMLTV programmes.
-The TV player loads the original Karenda XMLTV guide feed directly.
+The TV player loads Karenda directly, plus J:COM for KNTV only.
 """
 from __future__ import annotations
 
@@ -17,7 +17,8 @@ from build_epg import ALIASES, NOW, norm, programme_items, read_source
 M3U = Path("cafeaulait.m3u")
 REPORT = Path("cafeaulait_direct_epg_report.txt")
 KARENDA = "https://raw.githubusercontent.com/karenda-jp/etc/main/guides.xml"
-HEADER = f'#EXTM3U url-tvg="{KARENDA}" tvg-shift=0 m3uautoload=1'
+JCOM = "https://raw.githubusercontent.com/dbghelp/JCOM-TV-EPG/main/jcom.xml"
+HEADER = f'#EXTM3U url-tvg="{KARENDA},{JCOM}" tvg-shift=0 m3uautoload=1'
 
 # Verified / existing identifiers found in Yovi or from Karenda/ajiousama guide mappings.
 # Candidates are accepted ONLY if the referenced guide actually declares the ID.
@@ -36,7 +37,7 @@ EXACT = {
     "dlife": ["Dlife(ディーライフ)_jp", "Dlife.jp", "Dlife_jp"],
     "fuji_tv_one": ["フジテレビONE_jp"],
     "fuji_tv_two": ["フジテレビTWO_jp"],
-    "kntv": ["ＫＮＴＶ_jp", "KNTV_jp", "KNTV"],
+    "kntv": ["jcom_120_174_65406", "ＫＮＴＶ_jp", "KNTV_jp", "KNTV"],
     "music_on_tv": ["MUSIC-ON!-TV(エムオン!)_jp", "MUSIC ON! TV_jp"],
     "ntv_news24": ["tver.news24", "日テレNEWS24_jp"],
     "pigoo_nsfw": ["Pigoo_jp", "Pigoo"],
@@ -97,7 +98,7 @@ def main():
 
     found = defaultdict(dict)
     provider_counts = {}
-    for name, url in [("karenda", KARENDA)]:
+    for name, url in [("karenda", KARENDA), ("jcom", JCOM)]:
         root = read_source(name, url)
         ids, names = index_channels(root)
         candidate = {}
@@ -133,7 +134,9 @@ def main():
     new_ids = []
     records = []
     for pos, slug, current_id in rows:
-        source = "karenda" if "karenda" in found[slug] else "none"
+        source = ("karenda" if "karenda" in found[slug] else
+                  "jcom" if slug == "kntv" and "jcom" in found[slug] else
+                  "none")
         cid, count = found[slug][source] if source != "none" else (current_id, 0)
         new_ids.append(cid)
         records.append((slug, source, cid, count))
@@ -147,16 +150,16 @@ def main():
     lines[0] = HEADER
     for n, line in enumerate(lines):
         if line.startswith("# EPG IDs:"):
-            lines[n] = "# EPG IDs: Karenda source XMLTV channel IDs directly; no proprietary XMLTV."
+            lines[n] = "# EPG IDs: Karenda source XMLTV IDs; KNTV falls back to verified J:COM XMLTV ID."
     if [lines[p+1] for p, _, _ in rows] != live_urls:
         raise AssertionError("Stream URLs changed unexpectedly")
     M3U.write_text("\n".join(lines) + "\n", encoding="utf-8")
     report = [
         "Café au lait DIRECT EPG mapping report",
         f"generated={NOW.isoformat()}",
-        f"epg_urls={KARENDA}",
+        f"epg_urls={KARENDA},{JCOM}",
         f"supported={supported}/101",
-        "Karenda channel IDs are copied unchanged. Unmapped channels have no Karenda EPG.",
+        "Source IDs copied unchanged: Karenda for most channels, J:COM only for KNTV.",
         "",
         "slug\tsource\ttvg_id\tprogrammes",
     ]
