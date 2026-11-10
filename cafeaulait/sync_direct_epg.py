@@ -32,12 +32,12 @@ EXACT = {
     "tv_osaka": ["テレビ大阪_jp"],
     "ytv": ["読売テレビ_jp"],
     "bs11": ["BS11-イレブン_jp"],
-    "at-x": ["AT-X_jp", "AT-X"],
-    "dlife": ["Dlife.jp", "Dlife_jp"],
+    "at-x": ["アニメシアター(AT-X)_jp", "AT-X_jp", "AT-X"],
+    "dlife": ["Dlife(ディーライフ)_jp", "Dlife.jp", "Dlife_jp"],
     "fuji_tv_one": ["フジテレビONE_jp"],
     "fuji_tv_two": ["フジテレビTWO_jp"],
-    "kntv": ["KNTV_jp"],
-    "music_on_tv": ["MUSIC ON! TV_jp"],
+    "kntv": ["ＫＮＴＶ_jp", "KNTV_jp", "KNTV"],
+    "music_on_tv": ["MUSIC-ON!-TV(エムオン!)_jp", "MUSIC ON! TV_jp"],
     "ntv_news24": ["tver.news24", "日テレNEWS24_jp"],
     "pigoo_nsfw": ["Pigoo_jp", "Pigoo"],
     "v_paradise_nsfw": ["V☆パラダイス_jp"],
@@ -111,6 +111,23 @@ def main():
                 found[slug][name] = (cid, len(schedules[cid]))
         provider_counts[name] = (len(ids), len(candidate), sum(bool(schedules.get(cid)) for cid in candidate.values()))
         print(name, "indexed / matched / with programmes =", provider_counts[name], flush=True)
+        if name == "karenda":
+            probe = {
+                "at-x": ("atx", "アニメシアター"),
+                "dlife": ("dlife", "ディーライフ"),
+                "kntv": ("kntv", "ケーエヌ"),
+                "music_on_tv": ("musicon", "エムオン", "ミュージックオン"),
+            }
+            diagnostics = {}
+            for slug, needles in probe.items():
+                matches = []
+                for ch in root.iter("channel"):
+                    cid = ch.get("id") or ""
+                    labels = [v.text or "" for v in ch.findall("display-name")]
+                    haystack = norm(" ".join([cid, *labels]))
+                    if any(norm(needle) in haystack for needle in needles):
+                        matches.append((cid, " | ".join(labels[:2])))
+                diagnostics[slug] = matches[:20]
         del root
 
     new_ids = []
@@ -144,6 +161,12 @@ def main():
         "slug\tsource\ttvg_id\tprogrammes",
     ]
     report += [f"{slug}\t{src}\t{cid}\t{count}" for slug, src, cid, count in records]
+    report += ["", "[Karenda source channel diagnostics]"]
+    for slug, candidate_rows in diagnostics.items():
+        if candidate_rows:
+            report.extend(f"{slug}\t{cid}\t{label}" for cid, label in candidate_rows)
+        else:
+            report.append(f"{slug}\tNO_CANDIDATES")
     REPORT.write_text("\n".join(report) + "\n", encoding="utf-8")
     print("DIRECT EPG MAPPING:", supported, "/101; unmapped:",
           [slug for slug, src, _, _ in records if src == "none"], flush=True)
