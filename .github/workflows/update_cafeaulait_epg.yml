@@ -80,9 +80,25 @@ jobs:
           assert set(program_counts).issubset(set(ids))
           covered = sum(bool(program_counts.get(i)) for i in ids)
           assert covered >= 80, f'EPG regression: only {covered}/101 Coffee channels'
-          for wanted in ('TBSチャンネル1_jp', 'TBSチャンネル2_jp'):
-              assert program_counts.get(wanted, 0) > 0, f'Missing CS EPG: {wanted}'
-          print('Cafe au lait independent EPG verified:', covered, '/101;', len(programs), 'programmes')
+          for wanted in (
+              'TBSチャンネル1_jp', 'TBSチャンネル2_jp',
+              'NHK・BS_jp', 'nhk_bs_2', 'NHK・BSP_jp', 'メ～テレNEXT_jp',
+          ):
+              assert program_counts.get(wanted, 0) > 0, f'Missing verified EPG: {wanted}'
+
+          # NHK BS and BSP4K are different services. Reject cloned 4K schedules.
+          def title_grid(cid):
+              return {(p.get('start'), p.findtext('title')) for p in programs if p.get('channel') == cid}
+          assert title_grid('NHK・BS_jp') != title_grid('NHK・BSP_jp'), (
+              'NHK BS has incorrectly duplicated BSP4K schedule'
+          )
+
+          report = Path('cafeaulait_epg_report.txt').read_text(encoding='utf-8')
+          assert 'nhk_bs\tNHK・BS_jp\tnhk_official\tNHK・BS_jp\t' in report
+          assert 'nhk_bs4k\tNHK・BSP_jp\tnhk_official\tNHK・BSP_jp\t' in report
+          assert 'me-tele_next\tメ～テレNEXT_jp\tsky\tCS301\t' in report
+          print('Cafe au lait verified:', covered, '/101;', len(programs),
+                'programmes; NHK BS services separate; Me-Tele NEXT CS301')
           PY
 
       - name: Publish self-hosted guide and diagnostic report
