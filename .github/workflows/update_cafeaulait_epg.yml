@@ -29,10 +29,19 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
-      - name: Check out
+      - name: Check out only EPG dependencies (avoid large media checkout)
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 1
+          filter: blob:none
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /cafeaulait.m3u
+            /cafeaulait/build_epg.py
+            /cafeaulait_epg.xml
+            /cafeaulait_epg_report.txt
+            /guides.xml
+            /.github/workflows/update_cafeaulait_epg.yml
 
       - name: Set up Python
         uses: actions/setup-python@v5
