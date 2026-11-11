@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-12",
-  "generated_at": "2026-11-12T07:50:22.106045+09:00",
+  "generated_at": "2026-11-12T07:58:31.470629+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261112.json",
   "schedule_checked_at": "2026-11-12T07:50:22.106045+09:00",
@@ -52,10 +52,15 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 4,
+    "requested": 5,
     "fetched": 0,
     "failures": [],
     "deferred": [
+      {
+        "jcd": "09",
+        "name": "津",
+        "start": "2026-11-12T09:55:00+09:00"
+      },
       {
         "jcd": "10",
         "name": "三国",
@@ -446,7 +451,8 @@
           "name": "ツッキー選抜戦"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "provider_stream_start": "2026-11-12T09:55:00+09:00",
+      "source": "公式BR配信開始待ち 09:55"
     },
     "boat.mikuni": {
       "jcd": "10",
