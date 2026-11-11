@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Build an independent hybrid XMLTV guide for the 101 Cafe au lait channels.
 
-Real schedules only: FreeWiFi -> Karenda -> J:COM -> Sky PerfecTV -> JapanTerebi.
+Real schedules only: FreeWiFi -> J:COM -> Sky PerfecTV -> JapanTerebi (no direct Karenda dependency).
 Live-only EPG: include only the last 2 hours and next 48 hours, with no catch-up history.
 Sources are matched to Cafe au lait's existing, stable tvg-id values.
 Never invent programme schedules or rewrite live/catch-up URLs.
@@ -28,7 +28,6 @@ REPORT = Path("cafeaulait_epg_report.txt")
 
 SOURCES = [
     ("freewifi", None),
-    ("karenda", "https://raw.githubusercontent.com/karenda-jp/etc/main/guides.xml"),
     ("jcom", "https://raw.githubusercontent.com/dbghelp/JCOM-TV-EPG/main/jcom.xml"),
     ("sky", "https://raw.githubusercontent.com/dbghelp/SKY-PerfecTV-EPG/main/perfectv.xml"),
     ("japanterebi", "https://animenosekai.github.io/japanterebi-xmltv/guide.xml"),
@@ -54,8 +53,8 @@ PIN = {
     "at-x": {"sky": ["CS333", "Ch.667"]},
     "action_channel": {"sky": ["CS311", "Ch.650"]},
     "mystery_channel": {"sky": ["CS316", "Ch.649"]},
-    "tbs_channel_1": {"sky": ["CS296", "Ch.616"]},
-    "tbs_channel_2": {"sky": ["CS297", "Ch.617"]},
+    "tbs_channel_1": {"sky": ["CS296", "Ch.616"], "jcom": ["jcom_120_144_65406"]},
+    "tbs_channel_2": {"sky": ["CS297", "Ch.617"], "jcom": ["jcom_120_176_65406"]},
     "tv_asahi_channel_1": {"sky": ["CS298", "Ch.611"]},
     "tv_asahi_channel_2": {"sky": ["CS299", "Ch.612"]},
     "nittele_plus": {"sky": ["CS300", "Ch.619"]},
@@ -141,9 +140,9 @@ def targets():
 def source_priority(slug: str, name: str) -> int:
     if slug in {"abc", "kbs", "kansai_tv", "mbs", "nhk_g_osaka",
                 "sun", "tv_osaka", "ytv"}:
-        order = ["jcom", "freewifi", "karenda", "sky", "japanterebi"]
+        order = ["jcom", "freewifi", "sky", "japanterebi"]
     elif slug in {"nouvelle_paradise", "pigoo_nsfw", "fuji_tv_one", "fuji_tv_two"}:
-        order = ["sky", "jcom", "karenda", "freewifi", "japanterebi"]
+        order = ["sky", "jcom", "freewifi", "japanterebi"]
     else:
         order = [x[0] for x in SOURCES]
     return order.index(name)
@@ -244,7 +243,7 @@ def main():
     doc = ET.Element("tv", {"generator-info-name": "Cafe au lait hybrid XMLTV",
                             "generator-info-url": "https://github.com/ajiousama/himitsu"})
     report = ["Cafe au lait EPG hybrid report", f"generated={NOW.isoformat()}",
-              "Sources: FreeWiFi, Karenda, JCOM, Sky PerfectTV, JapanTerebi",
+              "Sources: FreeWiFi, JCOM, Sky PerfectTV, JapanTerebi (no direct Karenda)",
               "Live-only: last 2 hours and next 48 hours; no six-day catch-up history",
               ""]
     now_count = history_count = matched = 0
@@ -291,7 +290,7 @@ def main():
 
     report += ["", f"real_sources={matched}/101", f"current_programmes={now_count}/101",
                f"past_programmes={history_count}", "", "[source errors]", *(errors or ["none"])]
-    if matched < 20:
+    if matched < 80:
         raise RuntimeError(f"Hybrid EPG build blocked: only {matched}/101 real channels. " + "; ".join(errors))
     ET.ElementTree(doc).write(OUT, encoding="utf-8", xml_declaration=True)
     REPORT.write_text("\n".join(report) + "\n", encoding="utf-8")
