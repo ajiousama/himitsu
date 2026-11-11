@@ -71,8 +71,8 @@ jobs:
           grep -q 'NHK-FM（松山）' radio/nhk.m3u
           grep -q 'RNB南海放送（ラジオ）' radio/nationwide.m3u
           grep -q 'FM愛媛（ラジオ）' radio/nationwide.m3u
-          grep -Fq 'https://himitsu-six.vercel.app/api/radio-tv?station=nhk_r1_matsuyama' radio/nhk.m3u
-          grep -Fq 'https://himitsu-six.vercel.app/api/radio-tv?station=nhk_fm_matsuyama' radio/nhk.m3u
+          grep -Fq 'https://freewifi-radio-production.up.railway.app/radio-tv/nhk_r1_matsuyama' radio/nhk.m3u
+          grep -Fq 'https://freewifi-radio-production.up.railway.app/radio-tv/nhk_fm_matsuyama' radio/nhk.m3u
           grep -Fq 'NHK_Radio_1_2024.svg/500px-NHK_Radio_1_2024.svg.png' radio/nhk.m3u
           grep -Fq 'NHK_FM_2024.svg/500px-NHK_FM_2024.svg.png' radio/nhk.m3u
           ! grep -Fq 'NHK_logo_2020.svg' radio/nhk.m3u

@@ -162,6 +162,51 @@ def validate_source_groups(text: str) -> None:
             raise RuntimeError(f"Green Channel group reverted: {name} => {group}")
 
 
+GCH_SINORI_ID = "グリーンチャンネル_jp"
+GCH_SINORI_URL = "https://ri.shinori.my.id/pxx.php?shk_cid=bs14"
+JRA_START = "# === TODAY_JRA_START ==="
+JRA_END = "# === TODAY_JRA_END ==="
+
+
+def remove_jra_owned_gch_duplicate(tv_payload: str, freewifi_text: str) -> str:
+    """Keep the GCH Shinori backup in TODAY_JRA, not twice in FreeWiFi.
+
+    The canonical tv/playlist.m3u continues to own all 66 Shinori sources.
+    Only the *projection* into FreeWiFi excludes this one duplicate when the
+    JRA-managed GCH backup is already present.
+    """
+    jra = re.search(re.escape(JRA_START) + r"(.*?)" + re.escape(JRA_END),
+                    freewifi_text, flags=re.S)
+    if not jra:
+        return tv_payload
+    jra_rows = jra.group(1)
+    if not (f'tvg-id="{GCH_SINORI_ID}"' in jra_rows
+            and GCH_SINORI_URL in jra_rows):
+        return tv_payload
+
+    lines = tv_payload.splitlines()
+    result = []
+    i = 0
+    removed = 0
+    while i < len(lines):
+        line = lines[i]
+        if line.startswith("#EXTINF:") and f'tvg-id="{GCH_SINORI_ID}"' in line:
+            j = i + 1
+            while j < len(lines) and not lines[j].strip():
+                j += 1
+            if j < len(lines) and lines[j].strip() == GCH_SINORI_URL:
+                removed += 1
+                i = j + 1
+                continue
+        result.append(line)
+        i += 1
+    if removed > 1:
+        raise RuntimeError("multiple canonical GCH Shinori rows; refusing duplicate repair")
+    if removed:
+        print("GCH Shinori TV duplicate suppressed; JRA-owned backup preserved")
+    return "\n".join(result).rstrip() + "\n"
+
+
 def main():
     text = FREEWIFI.read_text(encoding="utf-8-sig", errors="replace")
     protected = manual_block(text)
@@ -172,7 +217,7 @@ def main():
     if a < 0 or b < 0:
         raise SystemExit("TV section boundary missing in freewifi")
 
-    tv = payload().rstrip() + "\n\n" + protected + "\n\n"
+    tv = remove_jra_owned_gch_duplicate(payload(), base).rstrip() + "\n\n" + protected + "\n\n"
     updated = base[:a] + tv + base[b:]
     updated, reused = reuse_known_contrast_logos(updated)
     updated = strip_retired_yoitv(strip_retired_naori(updated))
