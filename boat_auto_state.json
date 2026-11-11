@@ -2,10 +2,10 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-12",
-  "generated_at": "2026-11-12T06:33:14.458947+09:00",
+  "generated_at": "2026-11-12T07:00:14.463942+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261112.json",
-  "schedule_checked_at": "2026-11-12T06:21:14.460799+09:00",
+  "schedule_checked_at": "2026-11-12T07:00:14.463942+09:00",
   "schedule_warnings": [
     "official_cards: TimeoutError"
   ],
@@ -54,24 +54,24 @@
   "cloud_acquisition": {
     "requested": 3,
     "fetched": 0,
-    "failures": [
+    "failures": [],
+    "deferred": [
       {
         "jcd": "10",
         "name": "三国",
-        "error": "cloud and official acquisition unavailable: HTTPError"
+        "start": "2026-11-12T08:08:00+09:00"
       },
       {
         "jcd": "21",
         "name": "芦屋",
-        "error": "cloud and official acquisition unavailable: HTTPError"
+        "start": "2026-11-12T08:00:00+09:00"
       },
       {
         "jcd": "23",
         "name": "唐津",
-        "error": "cloud and official acquisition unavailable: HTTPError"
+        "start": "2026-11-12T08:16:00+09:00"
       }
-    ],
-    "deferred": []
+    ]
   },
   "epg_programmes_written": {
     "public_sports_epg_local.xml": 182,
@@ -531,7 +531,8 @@
           "name": "カニ坊選抜"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "provider_stream_start": "2026-11-12T08:08:00+09:00",
+      "source": "公式BR配信開始待ち 08:08"
     },
     "boat.amagasaki": {
       "jcd": "13",
@@ -981,7 +982,8 @@
           "name": "優勝戦"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "provider_stream_start": "2026-11-12T08:00:00+09:00",
+      "source": "公式BR配信開始待ち 08:00"
     },
     "boat.fukuoka": {
       "jcd": "22",
@@ -1161,7 +1163,8 @@
           "name": "ドリーム"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "provider_stream_start": "2026-11-12T08:16:00+09:00",
+      "source": "公式BR配信開始待ち 08:16"
     },
     "boat.omura": {
       "jcd": "24",
