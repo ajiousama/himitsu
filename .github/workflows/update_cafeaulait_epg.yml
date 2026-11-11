@@ -49,6 +49,8 @@ jobs:
           python-version: '3.12'
 
       - name: Generate independent 101-channel EPG
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
           python -m py_compile cafeaulait/build_epg.py
           python -u cafeaulait/build_epg.py
