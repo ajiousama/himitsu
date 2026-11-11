@@ -6,8 +6,7 @@ on:
     branches: [main]
     paths:
       - ".github/workflows/audit_retired_owner.yml"
-  schedule:
-    - cron: "15 23 * * *"
+  # Legacy retired-account audit: manual trigger only (daily schedule retired).
 
 permissions:
   contents: read
