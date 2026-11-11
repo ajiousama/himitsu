@@ -8,6 +8,12 @@ on:
       - 'cafeaulait.m3u'
       - 'cafeaulait/build_epg.py'
       - '.github/workflows/update_cafeaulait_epg.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'cafeaulait.m3u'
+      - 'cafeaulait/build_epg.py'
+      - '.github/workflows/update_cafeaulait_epg.yml'
   schedule:
     - cron: '33 * * * *'
 
@@ -71,6 +77,7 @@ jobs:
           PY
 
       - name: Publish self-hosted guide and diagnostic report
+        if: github.event_name != 'pull_request'
         shell: bash
         run: |
           set -euo pipefail
