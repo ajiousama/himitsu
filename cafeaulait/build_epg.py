@@ -2,7 +2,7 @@
 """Build an independent hybrid XMLTV guide for the 101 Cafe au lait channels.
 
 Real schedules only: FreeWiFi -> J:COM -> Sky PerfecTV -> JapanTerebi (no direct Karenda dependency).
-Live-only EPG: include only the last 2 hours and next 48 hours, with no catch-up history.
+Rolling EPG: preserve the past 5 days and next 48 hours for catch-up navigation.
 Sources are matched to Cafe au lait's existing, stable tvg-id values.
 Never invent programme schedules or rewrite live/catch-up URLs.
 """
@@ -20,7 +20,7 @@ from pathlib import Path
 
 JST = timezone(timedelta(hours=9))
 NOW = datetime.now(JST)
-CUTOFF = NOW - timedelta(hours=2)
+CUTOFF = NOW - timedelta(days=5)
 END = NOW + timedelta(days=2)
 M3U = Path("cafeaulait.m3u")
 OUT = Path("cafeaulait_epg.xml")
@@ -207,6 +207,23 @@ def score(slug: str, source: str, programmes: list) -> tuple[int, int, int, int,
 
 def main():
     rows = targets()
+    # Existing XMLTV is the history archive. Without it, a fresh upstream
+    # feed (often only future programmes) cannot provide five days of history.
+    history = defaultdict(list)
+    if OUT.exists():
+        try:
+            old_root = ET.parse(OUT).getroot()
+        except ET.ParseError as exc:
+            raise RuntimeError(f"Refusing to overwrite unreadable Coffee EPG history: {exc}") from exc
+        expected_ids = {tid for _, tid, _ in rows}
+        for old in old_root.iter("programme"):
+            tid = old.get("channel")
+            if tid not in expected_ids or not (old.findtext("title") or "").strip():
+                continue
+            st, en = parse_time(old.get("start")), parse_time(old.get("stop"))
+            if st and en and st < END and en > CUTOFF:
+                history[tid].append((st, en, old))
+        print("Retained historical programmes:", sum(map(len, history.values())), flush=True)
     options = defaultdict(list)
     errors = []
     for source, url in SOURCES:
@@ -244,7 +261,7 @@ def main():
                             "generator-info-url": "https://github.com/ajiousama/himitsu"})
     report = ["Cafe au lait EPG hybrid report", f"generated={NOW.isoformat()}",
               "Sources: FreeWiFi, JCOM, Sky PerfectTV, JapanTerebi (no direct Karenda)",
-              "Live-only: last 2 hours and next 48 hours; no six-day catch-up history",
+              "Rolling guide: past 5 days and next 48 hours; historical programmes retained across builds",
               ""]
     now_count = history_count = matched = 0
     # XMLTV requires the channel elements BEFORE any programme elements.
@@ -268,6 +285,12 @@ def main():
                 if any(st < existing_en and existing_st < en for existing_st, existing_en, _ in items):
                     continue
                 items.append((st, en, p))
+        # Prefer freshly fetched programmes; backfill only genuinely uncovered
+        # intervals from previous successful EPG builds. Never invent a show.
+        for st, en, old in history[tid]:
+            if any(st < existing_en and existing_st < en for existing_st, existing_en, _ in items):
+                continue
+            items.append((st, en, old))
         seen = set()
         saved = current = historical = 0
         items.sort(key=lambda x: (x[0], x[1]))
