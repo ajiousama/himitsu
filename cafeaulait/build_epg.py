@@ -38,6 +38,11 @@ SOURCES = [
 # Exact upstream XMLTV identifiers verified from provider channel listings.
 # Keep the independent Cafe au lait tvg-id stable; clone upstream programmes to it.
 PIN = {
+    # Verified J:COM terrestrial service IDs (do not confuse TBS with CS channels).
+    "ntv": {"jcom": ["jcom_2_1040_32738"]},
+    "tbs": {"jcom": ["jcom_2_1048_32739"]},
+    "fuji_tv": {"jcom": ["jcom_2_1056_32740"]},
+    "tv_asahi": {"jcom": ["jcom_2_1064_32741"]},
     "me-tele_next": {"sky": ["CS301", "Ch.618"]},
     "abc": {"jcom": ["jcom_2_2072_32723"]},
     "kbs": {"jcom": ["jcom_2_42032_32102"]},
