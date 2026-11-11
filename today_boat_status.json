@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-12",
-  "generated_at": "2026-11-12T08:06:22.811834+09:00",
+  "generated_at": "2026-11-12T08:07:32.023766+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261112.json",
   "schedule_checked_at": "2026-11-12T08:06:22.811834+09:00",
@@ -19,7 +19,7 @@
   "alert_lead_minutes": 30,
   "card_count": 13,
   "held_count": 13,
-  "visible_count": 1,
+  "visible_count": 2,
   "active_count": 1,
   "ended_kept": [],
   "seed_required": false,
@@ -28,7 +28,7 @@
   "phase_counts": {
     "morning": {
       "held": 3,
-      "acquired": 1,
+      "acquired": 2,
       "active": 1,
       "ended": 0,
       "seed_required": 0,
@@ -53,18 +53,13 @@
   },
   "cloud_acquisition": {
     "requested": 6,
-    "fetched": 1,
+    "fetched": 2,
     "failures": [],
     "deferred": [
       {
         "jcd": "09",
         "name": "津",
         "start": "2026-11-12T09:55:00+09:00"
-      },
-      {
-        "jcd": "10",
-        "name": "三国",
-        "start": "2026-11-12T08:08:00+09:00"
       },
       {
         "jcd": "13",
@@ -92,6 +87,22 @@
     "kind": "healthy"
   },
   "streams": {
+    "boat.mikuni": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/c0d9714959bd4420a84642589597c480/f52450810d7b4ccca04655be03198514/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NDYxNDQwMCwic3RhcnQiOjE3OTQ0Mzg0ODAsImlvcyI6MTgsImNwIjoiMjE2NjM0MDgwXzIxNjY3NzI3OSIsInBwdyI6IjQwayJ9.WMAPP8Y1oYRfcjjY8BNbfqYSBBibu_CEHejhZZ9k2VQ",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-11-12T08:08:26.680030+09:00",
+      "checked_at": "2026-11-12T08:08:26.680030+09:00",
+      "first_verified_at": "2026-11-12T08:08:26.680030+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 8919205,
+        "last_segment": "/c0d9714959bd4420a84642589597c480/f52450810d7b4ccca04655be03198514/manifest_4_8919209.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
+    },
     "boat.ashiya": {
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/d6bd96992d7747ab89021a00f1f6dd22/37a339c765954586b47ae4628d90004a/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NDYxNDQwMCwic3RhcnQiOjE3OTQ0MzgwMDAsImlvcyI6MTgsImNwIjoiMjE2NjMzNjAwXzIxNjY3Njc5OSIsInBwdyI6IjQwayJ9.8qn09pC41Q1CbTE-tJOfQ6AiUDHsbLxt6PzG-cX8Az8",
       "source": "automatic acquisition + audio/video decode",
@@ -475,7 +486,7 @@
       "jcd": "10",
       "name": "三国",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
       "active": false,
       "cancelled": false,
@@ -493,9 +504,9 @@
       "guidance_switch_at": "2026-11-12T15:05:00+09:00",
       "seed_required": false,
       "reverify_due": false,
-      "playback_verified": false,
-      "first_verified_at": null,
-      "ready_before_first_race": false,
+      "playback_verified": true,
+      "first_verified_at": "2026-11-12T08:08:26.680030+09:00",
+      "ready_before_first_race": true,
       "acquire_from": "2026-11-12T06:13:00+09:00",
       "races": [
         {
@@ -559,8 +570,9 @@
           "name": "カニ坊選抜"
         }
       ],
-      "provider_stream_start": "2026-11-12T08:08:00+09:00",
-      "source": "公式BR配信開始待ち 08:08"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/c0d9714959bd4420a84642589597c480/f52450810d7b4ccca04655be03198514/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NDYxNDQwMCwic3RhcnQiOjE3OTQ0Mzg0ODAsImlvcyI6MTgsImNwIjoiMjE2NjM0MDgwXzIxNjY3NzI3OSIsInBwdyI6IjQwayJ9.WMAPP8Y1oYRfcjjY8BNbfqYSBBibu_CEHejhZZ9k2VQ",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     },
     "boat.amagasaki": {
       "jcd": "13",
