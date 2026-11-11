@@ -1,4 +1,4 @@
-name: Sync Cafe au lait EPG to Karenda and KNTV JCOM
+name: Update Cafe au lait self-hosted EPG (no Karenda direct source)
 
 on:
   workflow_dispatch:
@@ -6,86 +6,111 @@ on:
     branches: [main]
     paths:
       - 'cafeaulait.m3u'
-      - 'cafeaulait/sync_direct_epg.py'
+      - 'cafeaulait/build_epg.py'
+      - '.github/workflows/update_cafeaulait_epg.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'cafeaulait.m3u'
+      - 'cafeaulait/build_epg.py'
       - '.github/workflows/update_cafeaulait_epg.yml'
   schedule:
-    - cron: '21 */6 * * *'
+    - cron: '33 * * * *'
 
 permissions:
   contents: write
 
 concurrency:
-  group: cafeaulait-direct-epg-writer
+  group: cafeaulait-selfhosted-epg-writer
   cancel-in-progress: false
 
 jobs:
-  sync:
+  build:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
-      - name: Check out
+      - name: Check out only EPG dependencies (avoid large media checkout)
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 1
+          filter: blob:none
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /cafeaulait.m3u
+            /cafeaulait/build_epg.py
+            /cafeaulait_epg.xml
+            /cafeaulait_epg_report.txt
+            /guides.xml
+            /.github/workflows/update_cafeaulait_epg.yml
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
-      - name: Sync 101 tvg-id values against Karenda XMLTV channels
+      - name: Generate independent 101-channel EPG
         run: |
-          python -m py_compile cafeaulait/sync_direct_epg.py
-          python -u cafeaulait/sync_direct_epg.py
+          python -m py_compile cafeaulait/build_epg.py
+          python -u cafeaulait/build_epg.py
 
-      - name: Validate direct upstream guide configuration
+      - name: Validate playlist, coverage and key CS channels
         run: |
           python - <<'PY'
-          from pathlib import Path
+          import collections
           import re
-          data = Path('cafeaulait.m3u').read_text(encoding='utf-8')
-          header, *lines = data.splitlines()
-          assert 'https://raw.githubusercontent.com/karenda-jp/etc/main/guides.xml' in header
-          assert 'https://raw.githubusercontent.com/dbghelp/JCOM-TV-EPG/main/jcom.xml' in header
-          assert 'ajiousama/himitsu/main/guides.xml' not in header
-          entries = [line for line in lines if line.startswith('#EXTINF:')]
-          assert len(entries) == 101
-          ids = [re.search(r'tvg-id="([^"]+)"', item).group(1) for item in entries]
+          import xml.etree.ElementTree as ET
+          from pathlib import Path
+
+          m3u = Path('cafeaulait.m3u').read_text(encoding='utf-8-sig')
+          assert m3u.startswith('#EXTM3U url-tvg="https://raw.githubusercontent.com/ajiousama/himitsu/main/cafeaulait_epg.xml"')
+          assert 'karenda-jp' not in m3u.lower()
+          extinfs = [line for line in m3u.splitlines() if line.startswith('#EXTINF:')]
+          assert len(extinfs) == 101, f'Unexpected Coffee playlist size: {len(extinfs)}'
+          ids = [re.search(r'tvg-id="([^"]+)"', line).group(1) for line in extinfs]
           assert len(set(ids)) == 101
-          assert all('catchup=' not in line and 'catchup-source=' not in line for line in entries)
-          urls = [line for line in lines if line.startswith('https://coffee.linxei.biz.id/stream/jp/')]
-          assert len(urls) == 101
-          assert all('/stream-output.m3u8?mode=hls' in url for url in urls)
-          report = Path('cafeaulait_direct_epg_report.txt').read_text(encoding='utf-8')
-          assert 'supported=' in report
-          assert 'kntv\tjcom\tjcom_120_174_65406\t' in report
-          print('Direct Karenda+KNTV JCOM EPG mapping verified:', len(entries), 'channels')
+          streams = [line for line in m3u.splitlines() if line.startswith('https://coffee.linxei.biz.id/stream/jp/')]
+          assert len(streams) == 101, f'Unexpected Coffee stream URL count: {len(streams)}'
+          assert all('/stream-output.m3u8?mode=hls' in line for line in streams)
+
+          root = ET.parse('cafeaulait_epg.xml').getroot()
+          channels = root.findall('channel')
+          programs = root.findall('programme')
+          assert len(channels) == 101, f'Expected 101 channel entries, got {len(channels)}'
+          program_counts = collections.Counter(p.get('channel') for p in programs)
+          assert set(program_counts).issubset(set(ids))
+          covered = sum(bool(program_counts.get(i)) for i in ids)
+          assert covered >= 80, f'EPG regression: only {covered}/101 Coffee channels'
+          for wanted in ('TBSチャンネル1_jp', 'TBSチャンネル2_jp'):
+              assert program_counts.get(wanted, 0) > 0, f'Missing CS EPG: {wanted}'
+          print('Cafe au lait independent EPG verified:', covered, '/101;', len(programs), 'programmes')
           PY
 
-      - name: Publish playlist and source-ID mapping report
+      - name: Publish self-hosted guide and diagnostic report
+        if: github.event_name != 'pull_request'
         shell: bash
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           snapshot="$(mktemp -d)"
-          cp cafeaulait.m3u "$snapshot/cafeaulait.m3u"
-          cp cafeaulait_direct_epg_report.txt "$snapshot/cafeaulait_direct_epg_report.txt"
+          cp cafeaulait_epg.xml "$snapshot/cafeaulait_epg.xml"
+          cp cafeaulait_epg_report.txt "$snapshot/cafeaulait_epg_report.txt"
           for attempt in 1 2 3 4 5; do
             git fetch origin main
             git reset --hard origin/main
-            cp "$snapshot/cafeaulait.m3u" cafeaulait.m3u
-            cp "$snapshot/cafeaulait_direct_epg_report.txt" cafeaulait_direct_epg_report.txt
-            git add cafeaulait.m3u cafeaulait_direct_epg_report.txt
+            cp "$snapshot/cafeaulait_epg.xml" cafeaulait_epg.xml
+            cp "$snapshot/cafeaulait_epg_report.txt" cafeaulait_epg_report.txt
+            git add cafeaulait_epg.xml cafeaulait_epg_report.txt
             if git diff --cached --quiet; then
-              echo "Direct EPG playlist already current"
+              echo "Self-hosted Cafe au lait guide already current"
               exit 0
             fi
-            git commit -m "Align Cafe au lait EPG to Karenda and KNTV JCOM [skip ci]"
+            git commit -m "Refresh self-hosted Cafe au lait XMLTV [skip ci]"
             if git push origin HEAD:main; then
-              echo "Published direct EPG playlist"
+              echo "Self-hosted Cafe au lait guide published"
               exit 0
             fi
             sleep 3
           done
+          echo "Failed to publish Cafe au lait guide" >&2
           exit 1
