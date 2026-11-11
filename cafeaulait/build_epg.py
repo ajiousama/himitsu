@@ -2,7 +2,7 @@
 """Build an independent hybrid XMLTV guide for the 101 Cafe au lait channels.
 
 Real schedules only: FreeWiFi -> J:COM -> Sky PerfecTV -> JapanTerebi (no direct Karenda dependency).
-Rolling EPG: preserve the past 5 days and next 48 hours for catch-up navigation.
+Rolling EPG: preserve the past 5 days and next 24 hours for catch-up navigation.
 Sources are matched to Cafe au lait's existing, stable tvg-id values.
 Never invent programme schedules or rewrite live/catch-up URLs.
 """
@@ -21,7 +21,7 @@ from pathlib import Path
 JST = timezone(timedelta(hours=9))
 NOW = datetime.now(JST)
 CUTOFF = NOW - timedelta(days=5)
-END = NOW + timedelta(days=2)
+END = NOW + timedelta(hours=24)
 M3U = Path("cafeaulait.m3u")
 OUT = Path("cafeaulait_epg.xml")
 REPORT = Path("cafeaulait_epg_report.txt")
@@ -261,7 +261,7 @@ def main():
                             "generator-info-url": "https://github.com/ajiousama/himitsu"})
     report = ["Cafe au lait EPG hybrid report", f"generated={NOW.isoformat()}",
               "Sources: FreeWiFi, JCOM, Sky PerfectTV, JapanTerebi (no direct Karenda)",
-              "Rolling guide: past 5 days and next 48 hours; historical programmes retained across builds",
+              "Rolling guide: past 5 days and next 24 hours; historical programmes retained across builds",
               ""]
     now_count = history_count = matched = 0
     # XMLTV requires the channel elements BEFORE any programme elements.
