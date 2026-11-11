@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import copy
 import gzip
+import json
 import re
 import unicodedata
 import urllib.request
@@ -27,6 +28,7 @@ OUT = Path("cafeaulait_epg.xml")
 REPORT = Path("cafeaulait_epg_report.txt")
 
 SOURCES = [
+    ("nhk_official", "https://api.nhk.jp/r8/pg/date/tv/130/{date}.json"),
     ("freewifi", None),
     ("jcom", "https://raw.githubusercontent.com/dbghelp/JCOM-TV-EPG/main/jcom.xml"),
     ("sky", "https://raw.githubusercontent.com/dbghelp/SKY-PerfecTV-EPG/main/perfectv.xml"),
@@ -36,6 +38,7 @@ SOURCES = [
 # Exact upstream XMLTV identifiers verified from provider channel listings.
 # Keep the independent Cafe au lait tvg-id stable; clone upstream programmes to it.
 PIN = {
+    "me-tele_next": {"sky": ["CS301", "Ch.618"]},
     "abc": {"jcom": ["jcom_2_2072_32723"]},
     "kbs": {"jcom": ["jcom_2_42032_32102"]},
     "kansai_tv": {"jcom": ["jcom_2_2080_32724"]},
@@ -103,6 +106,16 @@ ALIASES = {
     "weather_news": ["ウェザーニュース"],
 }
 
+# Verified NHK public schedule service IDs (2026-11-11):
+# s1 = NHK BS, s2 = NHK BS sub, s5 = NHK BSP4K.
+# Keep these distinct: the FreeWiFi guide currently assigns BSP4K to NHK BS.
+NHK_BS_SERVICES = {
+    "nhk_bs": ("s1", "NHK・BS_jp", "NHK BS"),
+    "nhk_bs_2": ("s2", "nhk_bs_2", "NHK BSサブ"),
+    "nhk_bs4k": ("s5", "NHK・BSP_jp", "NHK BSP4K"),
+}
+OFFICIAL_GUIDE_MARK = "Cafe au lait hybrid XMLTV (NHK BS official s1/s2/s5)"
+
 def norm(s: str) -> str:
     s = unicodedata.normalize("NFKC", s or "").lower()
     return re.sub(r"[^0-9a-zぁ-んァ-ン一-龯]+", "", s)
@@ -147,7 +160,69 @@ def source_priority(slug: str, name: str) -> int:
         order = [x[0] for x in SOURCES]
     return order.index(name)
 
+def nhk_bs_official_xmltv() -> ET.Element:
+    """Convert NHK's public s1/s2/s5 timetable into verified XMLTV records."""
+    root = ET.Element("tv")
+    for service, tid, label in NHK_BS_SERVICES.values():
+        channel = ET.SubElement(root, "channel", {"id": tid})
+        ET.SubElement(channel, "display-name").text = label
+
+    # NHK's dated timetable uses the 05:00 broadcast-day boundary.
+    day = CUTOFF.date() - timedelta(days=1)
+    end_day = END.date()
+    seen = set()
+    now_keys = set()
+    while day <= end_day:
+        url = f"https://api.nhk.jp/r8/pg/date/tv/130/{day.isoformat()}.json"
+        req = urllib.request.Request(url, headers={"User-Agent": "CafeAuLait-EPG/1.1"})
+        with urllib.request.urlopen(req, timeout=45) as response:
+            payload = json.load(response)
+        for service, tid, label in NHK_BS_SERVICES.values():
+            data = payload.get(service)
+            events = data.get("publication") if isinstance(data, dict) else None
+            if not isinstance(events, list) or not events:
+                raise ValueError(f"NHK official {service} has no schedule for {day}")
+            declared = " ".join(
+                str(x.get("broadcastDisplayName", ""))
+                for x in data.get("publishedOn", [])
+                if isinstance(x, dict)
+            )
+            expected = {"s1": "NHK BS", "s2": "NHK BSサブ", "s5": "NHK BSP4K"}[service]
+            if expected not in declared:
+                raise ValueError(f"NHK {service} identity changed: {declared!r}")
+            for item in events:
+                title = (item.get("name") or "").strip()
+                start_raw, stop_raw = item.get("startDate"), item.get("endDate")
+                if not title or not start_raw or not stop_raw:
+                    continue
+                st = datetime.fromisoformat(start_raw).astimezone(JST)
+                en = datetime.fromisoformat(stop_raw).astimezone(JST)
+                if en <= st or en <= CUTOFF or st >= END:
+                    continue
+                key = (tid, st, en, title)
+                if key in seen:
+                    continue
+                seen.add(key)
+                if st <= NOW < en:
+                    now_keys.add(tid)
+                p = ET.SubElement(root, "programme", {
+                    "channel": tid,
+                    "start": st.strftime("%Y%m%d%H%M%S %z"),
+                    "stop": en.strftime("%Y%m%d%H%M%S %z"),
+                })
+                ET.SubElement(p, "title", {"lang": "ja"}).text = title
+                desc = item.get("description") or item.get("detailedDescription")
+                if desc:
+                    ET.SubElement(p, "desc", {"lang": "ja"}).text = str(desc)
+        day += timedelta(days=1)
+    if len(now_keys) != len(NHK_BS_SERVICES):
+        raise RuntimeError("Missing current NHK BS, BS sub or BSP4K schedule")
+    return root
+
+
 def read_source(name: str, url: str | None):
+    if name == "nhk_official":
+        return nhk_bs_official_xmltv()
     if url is None:
         data = Path("guides.xml").read_bytes()
     else:
@@ -171,6 +246,12 @@ def programme_items(root: ET.Element, wanted: set[str]):
     return by_id
 
 def candidate_id(slug: str, tid: str, source: str, ids: set[str], names: dict[str, list[str]]) -> str | None:
+    # NHK BS must not fall back to FreeWiFi's mislabeled BSP4K schedule.
+    if slug in NHK_BS_SERVICES:
+        return tid if source == "nhk_official" and tid in ids else None
+    # Me-Tele NEXT is the renamed CS301 (not a similarly named channel).
+    if slug == "me-tele_next" and source != "sky":
+        return None
     # A provider-pinned ID takes precedence; never swap KBS for KBS World.
     for cid in PIN.get(slug, {}).get(source, []):
         if cid in ids:
@@ -216,9 +297,14 @@ def main():
         except ET.ParseError as exc:
             raise RuntimeError(f"Refusing to overwrite unreadable Coffee EPG history: {exc}") from exc
         expected_ids = {tid for _, tid, _ in rows}
+        old_nhk_verified = old_root.get("generator-info-name") == OFFICIAL_GUIDE_MARK
+        nhk_ids = {item[1] for item in NHK_BS_SERVICES.values()}
         for old in old_root.iter("programme"):
             tid = old.get("channel")
             if tid not in expected_ids or not (old.findtext("title") or "").strip():
+                continue
+            # Never retain stale BSP4K programmes masquerading as regular NHK BS.
+            if tid in nhk_ids and not old_nhk_verified:
                 continue
             st, en = parse_time(old.get("start")), parse_time(old.get("stop"))
             if st and en and st < END and en > CUTOFF:
@@ -257,10 +343,14 @@ def main():
             errors.append(f"{source}: {type(exc).__name__}: {exc}")
             print("SOURCE ERROR:", errors[-1], flush=True)
 
-    doc = ET.Element("tv", {"generator-info-name": "Cafe au lait hybrid XMLTV",
+    # Fail closed: never publish a stale/mislabeled NHK guide or a blank Me-Tele NEXT.
+    for required_slug in (*NHK_BS_SERVICES, "me-tele_next"):
+        if not options[required_slug]:
+            raise RuntimeError(f"Required verified EPG source missing: {required_slug}")
+    doc = ET.Element("tv", {"generator-info-name": OFFICIAL_GUIDE_MARK,
                             "generator-info-url": "https://github.com/ajiousama/himitsu"})
     report = ["Cafe au lait EPG hybrid report", f"generated={NOW.isoformat()}",
-              "Sources: FreeWiFi, JCOM, Sky PerfectTV, JapanTerebi (no direct Karenda)",
+              "Sources: NHK official s1/s2/s5, FreeWiFi, JCOM, Sky PerfectTV, JapanTerebi (no direct Karenda)",
               "Rolling guide: past 5 days and next 24 hours; historical programmes retained across builds",
               ""]
     now_count = history_count = matched = 0
