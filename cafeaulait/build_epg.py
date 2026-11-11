@@ -286,6 +286,90 @@ def score(slug: str, source: str, programmes: list) -> tuple[int, int, int, int,
     next_day = covered_seconds(programmes, NOW, NOW + timedelta(hours=24))
     return (int(current), near, next_day, -source_priority(slug, source), len(programmes))
 
+def recover_archival_history(history, rows):
+    """Backfill real programmes from dated public GitHub XMLTV snapshots."""
+    import os
+    from urllib.parse import urlencode
+
+    # Hourly builds keep old records from the already-published guide.
+    # Scan older provider revisions on pushes/manual runs and daily at 03 JST.
+    if os.environ.get("GITHUB_EVENT_NAME") == "schedule" and NOW.hour != 3:
+        return 0, ["Historical GitHub archive scan deferred to 03:33 JST"]
+
+    verified = set(NHK_BS_SERVICES)
+    archive_days = [NOW.date() - timedelta(days=delta) for delta in (5, 3, 1)]
+    archives = [
+        ("sky", "dbghelp/SKY-PerfecTV-EPG", "perfectv.xml"),
+        ("jcom", "dbghelp/JCOM-TV-EPG", "jcom.xml"),
+        ("freewifi", "ajiousama/himitsu", "guides.xml"),
+    ]
+    token = os.environ.get("GITHUB_TOKEN", "")
+    headers = {"User-Agent": "CafeAuLait-EPG-history/1.0",
+               "Accept": "application/vnd.github+json"}
+    if token:
+        headers["Authorization"] = "Bearer " + token
+    count = 0
+    notes = []
+    added_for = defaultdict(int)
+
+    for provider, repo, file_path in archives:
+        for day in archive_days:
+            until = day.strftime("%Y-%m-%d") + "T14:30:00Z"  # 23:30 JST
+            params = urlencode({"path": file_path, "until": until, "per_page": 1})
+            lookup = f"https://api.github.com/repos/{repo}/commits?{params}"
+            try:
+                req = urllib.request.Request(lookup, headers=headers)
+                with urllib.request.urlopen(req, timeout=40) as response:
+                    commits = json.load(response)
+                if not commits:
+                    notes.append(f"archive_missing={provider}:{day}")
+                    continue
+                sha = commits[0]["sha"]
+                raw = f"https://raw.githubusercontent.com/{repo}/{sha}/{file_path}"
+                req = urllib.request.Request(raw, headers={"User-Agent": headers["User-Agent"]})
+                with urllib.request.urlopen(req, timeout=75) as response:
+                    data = response.read()
+                if data[:2] == b"\x1f\x8b":
+                    data = gzip.decompress(data)
+                root = ET.fromstring(data)
+                ids = set()
+                names = defaultdict(list)
+                for ch in root.iter("channel"):
+                    cid = ch.get("id")
+                    if not cid:
+                        continue
+                    ids.add(cid)
+                    for display in [cid] + [x.text or "" for x in ch.findall("display-name")]:
+                        key = norm(display)
+                        if key and cid not in names[key]:
+                            names[key].append(cid)
+                chosen = {
+                    slug: (tid, candidate_id(slug, tid, provider, ids, names))
+                    for slug, tid, label in rows if slug not in verified
+                }
+                progs = programme_items(root, {cid for tid, cid in chosen.values() if cid})
+                for slug, (tid, upstream) in chosen.items():
+                    if upstream not in progs:
+                        continue
+                    existing = history[tid]
+                    for start, stop, p in progs[upstream]:
+                        if start >= NOW or stop <= CUTOFF:
+                            continue
+                        if any(start < end0 and start0 < stop for start0, end0, _ in existing):
+                            continue
+                        existing.append((start, stop, copy.deepcopy(p)))
+                        count += 1
+                        added_for[tid] += 1
+                notes.append(f"archive_ok={provider}:{day}:{sha[:8]}")
+                del root
+            except Exception as exc:
+                # A missing archived provider must not blank the live EPG.
+                notes.append(f"archive_error={provider}:{day}:{type(exc).__name__}:{exc}")
+                print("HISTORY ARCHIVE WARNING:", notes[-1], flush=True)
+    print("Recovered verified historical programmes:", count,
+          "for", len(added_for), "channels", flush=True)
+    return count, notes
+
 def main():
     rows = targets()
     # Existing XMLTV is the history archive. Without it, a fresh upstream
@@ -310,6 +394,7 @@ def main():
             if st and en and st < END and en > CUTOFF:
                 history[tid].append((st, en, old))
         print("Retained historical programmes:", sum(map(len, history.values())), flush=True)
+    archived_count, archive_audit = recover_archival_history(history, rows)
     options = defaultdict(list)
     errors = []
     for source, url in SOURCES:
@@ -352,6 +437,8 @@ def main():
     report = ["Cafe au lait EPG hybrid report", f"generated={NOW.isoformat()}",
               "Sources: NHK official s1/s2/s5, FreeWiFi, JCOM, Sky PerfectTV, JapanTerebi (no direct Karenda)",
               "Rolling guide: past 5 days and next 24 hours; historical programmes retained across builds",
+              f"Archival GitHub backfill added={archived_count}",
+              *archive_audit,
               ""]
     now_count = history_count = matched = 0
     # XMLTV requires the channel elements BEFORE any programme elements.
