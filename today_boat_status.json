@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-12",
-  "generated_at": "2026-11-12T14:50:50.034924+09:00",
+  "generated_at": "2026-11-12T14:52:50.083856+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261112.json",
   "schedule_checked_at": "2026-11-12T14:45:50.031370+09:00",
@@ -20,7 +20,7 @@
   "card_count": 13,
   "held_count": 13,
   "visible_count": 10,
-  "active_count": 8,
+  "active_count": 9,
   "ended_kept": [],
   "seed_required": false,
   "seed_required_venues": [],
@@ -45,7 +45,7 @@
     "night": {
       "held": 3,
       "acquired": 3,
-      "active": 1,
+      "active": 2,
       "ended": 0,
       "seed_required": 0,
       "cancelled": 0
@@ -102,13 +102,13 @@
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/db0d212fca974e1c937eff091d06af96/3d6110a78d494fa6923b1fe33a74eb6a/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NDYzNjAwMCwic3RhcnQiOjE3OTQ0NjAyMDAsImlvcyI6MTgsImNwIjoiMjE2NjU1ODAwXzIxNjY5ODM5OSIsInBwdyI6IjQwayJ9.gzoN6YtTKl22TW7NJ4V_YQi78h10N0Ot1OmaL66Hk1c",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-11-12T14:10:17.296692+09:00",
-      "checked_at": "2026-11-12T14:46:25.305507+09:00",
+      "checked_at": "2026-11-12T14:53:17.221122+09:00",
       "first_verified_at": "2026-11-12T14:10:17.296692+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
         "sequence": 8926706,
-        "last_segment": "/db0d212fca974e1c937eff091d06af96/3d6110a78d494fa6923b1fe33a74eb6a/manifest_4_8927069.ts",
+        "last_segment": "/db0d212fca974e1c937eff091d06af96/3d6110a78d494fa6923b1fe33a74eb6a/manifest_4_8927138.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -242,14 +242,14 @@
       "last_race": "15:55",
       "alert_from": "2026-11-12T10:15:00+09:00",
       "next_race": {
-        "race": 10,
-        "start": "14:52"
+        "race": 11,
+        "start": "15:23"
       },
       "stream_window": "live_or_prestart",
       "intermission": null,
       "guidance_switch_at": "2026-11-12T16:40:00+09:00",
       "seed_required": false,
-      "reverify_due": true,
+      "reverify_due": false,
       "playback_verified": true,
       "first_verified_at": "2026-11-12T10:10:05.866010+09:00",
       "ready_before_first_race": true,
@@ -965,7 +965,7 @@
       "held": true,
       "visible": true,
       "ended": false,
-      "active": false,
+      "active": true,
       "cancelled": false,
       "mode": "night",
       "mode_label": "ナイター",
@@ -976,7 +976,7 @@
         "race": 1,
         "start": "15:22"
       },
-      "stream_window": "scheduled",
+      "stream_window": "live_or_prestart",
       "intermission": null,
       "guidance_switch_at": "2026-11-12T21:23:00+09:00",
       "seed_required": false,
