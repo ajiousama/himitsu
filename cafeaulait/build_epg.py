@@ -478,11 +478,15 @@ def main():
         # eliminate overlaps already present in the selected primary feed.
         # Limit the fix to this channel to preserve the other 100 guides.
         green_overlap_removed = 0
+        green_invalid_removed = 0
         if slug == "green_channel":
             kept = []
             for _index, (st, en, p) in sorted(
                 enumerate(items), key=lambda entry: (entry[1][0], entry[0])
             ):
+                if en <= st:
+                    green_invalid_removed += 1
+                    continue
                 if any(st < existing_en and existing_st < en
                        for existing_st, existing_en, _ in kept):
                     green_overlap_removed += 1
@@ -509,7 +513,7 @@ def main():
                 historical += 1
         now_count += int(bool(current))
         history_count += historical
-        report.append(f"{slug}\t{tid}\t{src}\t{upstream}\tprogrammes={saved}\tnow={current}\tpast={historical}" + (f"\toverlaps_removed={green_overlap_removed}" if slug == "green_channel" else ""))
+        report.append(f"{slug}\t{tid}\t{src}\t{upstream}\tprogrammes={saved}\tnow={current}\tpast={historical}" + (f"\toverlaps_removed={green_overlap_removed}\tinvalid_ranges_removed={green_invalid_removed}" if slug == "green_channel" else ""))
 
     report += ["", f"real_sources={matched}/101", f"current_programmes={now_count}/101",
                f"past_programmes={history_count}", "", "[source errors]", *(errors or ["none"])]
@@ -525,6 +529,9 @@ def main():
          for p in verify.findall("programme")
          if p.get("channel") == "グリーンチャンネル_jp"),
         key=lambda span: span[0],
+    )
+    assert all(start < stop for start, stop in green_programmes), (
+        "Green Channel EPG contains reversed or zero-length programme times"
     )
     assert all(previous_end <= next_start
                for (_, previous_end), (next_start, _) in zip(green_programmes, green_programmes[1:])), (
