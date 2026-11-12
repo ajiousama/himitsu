@@ -1,0 +1,15 @@
+#EXTM3U
+# APTV live playback isolation test: NO EPG, NO logo downloads, no external authentication, no change to production playlists
+# 01 is an unrelated public Apple HLS demonstration; 02/03 use exactly the existing Coffee live URLs
+# 04 is the SAME Coffee KBS live URL with optional catchup metadata to isolate the effect of the tag
+#EXTINF:-1 tvg-id="aptv_hls_public_test" group-title="01 APTV診断" tvg-name="公開HLSサンプル",01 公開HLSテスト（Apple）
+https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_ts/master.m3u8
+
+#EXTINF:-1 tvg-id="aptv_coffee_kbs_plain" group-title="01 APTV診断" tvg-name="Coffee KBS Live Plain",02 Coffee KBS（ライブのみ）
+https://coffee.linxei.biz.id/stream/jp/kbs/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 tvg-id="aptv_coffee_fuji_plain" group-title="01 APTV診断" tvg-name="Coffee Fuji Live Plain",03 Coffee フジ（ライブのみ）
+https://coffee.linxei.biz.id/stream/jp/fuji_tv/stream-output.m3u8?mode=hls
+
+#EXTINF:-1 tvg-id="aptv_coffee_kbs_catchup" group-title="01 APTV診断" tvg-name="Coffee KBS Live With Catchup" catchup="default" catchup-days="5" catchup-source="https://coffee.linxei.biz.id/stream/jp/kbs/replay.m3u8?mode=hls&start=${(b)timestamp}",04 Coffee KBS（回看設定付き）
+https://coffee.linxei.biz.id/stream/jp/kbs/stream-output.m3u8?mode=hls
