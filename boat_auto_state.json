@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-12",
-  "generated_at": "2026-11-12T09:59:38.597441+09:00",
+  "generated_at": "2026-11-12T10:00:38.539037+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261112.json",
   "schedule_checked_at": "2026-11-12T09:48:38.598117+09:00",
@@ -19,7 +19,7 @@
   "alert_lead_minutes": 30,
   "card_count": 13,
   "held_count": 13,
-  "visible_count": 6,
+  "visible_count": 7,
   "active_count": 5,
   "ended_kept": [],
   "seed_required": false,
@@ -36,7 +36,7 @@
     },
     "day": {
       "held": 7,
-      "acquired": 3,
+      "acquired": 4,
       "active": 2,
       "ended": 0,
       "seed_required": 0,
@@ -53,14 +53,8 @@
   },
   "cloud_acquisition": {
     "requested": 10,
-    "fetched": 6,
-    "failures": [
-      {
-        "jcd": "04",
-        "name": "平和島",
-        "error": "HTTPError: playback check failed"
-      }
-    ],
+    "fetched": 7,
+    "failures": [],
     "deferred": [
       {
         "jcd": "02",
@@ -88,6 +82,22 @@
     "kind": "healthy"
   },
   "streams": {
+    "boat.heiwajima": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/ab6ec5ed0e624b8a80cba935d445c36c/ec6a5dc3398d4a089e6c65fcc2462fdf/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NDYyMTYwMCwic3RhcnQiOjE3OTQ0NDUyMDAsImlvcyI6MTgsImNwIjoiMjE2NjQwODAwXzIxNjY4Mzk5OSIsInBwdyI6IjQwayJ9.3cISeyS4qXH5UEGIiVowsH2T0U-gcLhLEW6-YRv-smE",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-11-12T10:01:06.046826+09:00",
+      "checked_at": "2026-11-12T10:01:06.046826+09:00",
+      "first_verified_at": "2026-11-12T10:01:06.046826+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 8923323,
+        "last_segment": "/ab6ec5ed0e624b8a80cba935d445c36c/ec6a5dc3398d4a089e6c65fcc2462fdf/manifest_1_8923334.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
+    },
     "boat.tsu": {
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/3a23377816b74d7c91ab6b4b5e0e097b/c25944c0826e4e1e8358d9470bad96a2/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NDYxODAwMCwic3RhcnQiOjE3OTQ0NDQ5MDAsImlvcyI6MTgsImNwIjoiMjE2NjQwNTAwXzIxNjY4MzY5OSIsInBwdyI6IjQwayJ9.ZSOuFRqS7u0a-R6cuM38nwVKArn66_1TXLo0M5FIxQY",
       "source": "automatic acquisition + audio/video decode",
@@ -281,7 +291,7 @@
       "jcd": "04",
       "name": "平和島",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
       "active": false,
       "cancelled": false,
@@ -299,9 +309,9 @@
       "guidance_switch_at": "2026-11-12T16:51:00+09:00",
       "seed_required": false,
       "reverify_due": false,
-      "playback_verified": false,
-      "first_verified_at": null,
-      "ready_before_first_race": false,
+      "playback_verified": true,
+      "first_verified_at": "2026-11-12T10:01:06.046826+09:00",
+      "ready_before_first_race": true,
       "acquire_from": "2026-11-12T08:21:00+09:00",
       "races": [
         {
@@ -365,7 +375,9 @@
           "name": "記者選抜"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/ab6ec5ed0e624b8a80cba935d445c36c/ec6a5dc3398d4a089e6c65fcc2462fdf/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NDYyMTYwMCwic3RhcnQiOjE3OTQ0NDUyMDAsImlvcyI6MTgsImNwIjoiMjE2NjQwODAwXzIxNjY4Mzk5OSIsInBwdyI6IjQwayJ9.3cISeyS4qXH5UEGIiVowsH2T0U-gcLhLEW6-YRv-smE",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     },
     "boat.gamagori": {
       "jcd": "07",
