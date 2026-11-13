@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import shutil
 import time
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
@@ -99,6 +100,8 @@ def main() -> int:
     ap.add_argument("--catalog", default="kick_replay.json")
     ap.add_argument("--output", default="gmcx_unresolved_review.json")
     args = ap.parse_args()
+    if shutil.which("ffmpeg") is None:
+        raise RuntimeError("ffmpeg is missing; refusing to interpret decoder errors as absent title cues")
     vods = json.loads(Path(args.catalog).read_text(encoding="utf-8")).get("vods", [])
     result = report(vods)
     Path(args.output).write_text(
