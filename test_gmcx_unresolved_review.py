@@ -1,5 +1,6 @@
 import unittest
 from gmcx_unresolved_review import judge, report
+from gmcx_unresolved_audio_review import assess_audio_match
 
 
 def cue(t):
@@ -34,6 +35,15 @@ class CandidateReviewTests(unittest.TestCase):
         weak["king_warm_before"] = 0.1915
         weak["king_warm_entry"] = 0.2231
         self.assertEqual(judge(3480, 130, [weak])["status"], "no_strong_visual_intro")
+
+    def test_audio_evidence_cannot_claim_episode_confirmation(self):
+        row = {"proposed_seconds": 59096.0, "source_vod_id": "source-1"}
+        ok = assess_audio_match(row, {"status": "matched", "raw_delay_seconds": 2.5})
+        self.assertEqual(ok["audio_estimated_start_seconds"], 59098.5)
+        self.assertFalse(ok["publish_as_confirmed_episode"])
+        bad = assess_audio_match(row, {"status": "matched", "raw_delay_seconds": 40.0})
+        self.assertEqual(bad["status"], "audio_not_corrobated")
+        self.assertIsNone(bad["audio_estimated_start_seconds"])
 
     def test_unavailable_sources_are_skipped(self):
         result = report(
