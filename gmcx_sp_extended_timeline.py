@@ -16,7 +16,7 @@ VOD_ID="df1386fd-4bd1-41ae-ac64-743ff49a838f"
 OPENING_SECONDS=59152
 # Intervals become wider once it is clear the nominal three-hour endpoint
 # is still the same live game challenge.
-OFFSETS_MINUTES=(180,195,210,225,240,255,270,300,330,360,420,480,540,600,720,840)
+OFFSETS_MINUTES=tuple(sorted(set((180,195,210,225,240,255,270,300,330,360,420,480,540,600)) | set(range(375,601,15))))
 WIDTH, HEIGHT = 256,144
 OUT=Path("gmcx_sp_extended_timeline")
 COLS=4
@@ -79,7 +79,7 @@ def main():
         "real_end_verified":False,"rows":all_rows
     },ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
     successful=sum(x.get("status")=="sampled" for x in all_rows)
-    if successful < 8:
+    if successful < 20:
         raise RuntimeError(f"GCCX extended timeline produced only {successful}/{len(all_rows)} valid samples")
     return 0
 
