@@ -21,10 +21,10 @@ from kick_gmcx_chapters import _lowest_hls_variant
 JST = timezone(timedelta(hours=9))
 # Source classification is based on independently reviewed contact sheets.
 SOURCES = {
-    "positive_2004_intro": "df1386fd",
-    "positive_2006_intro": "de35f5fe",
-    "negative_2006_mid_show": "5847ae05",
-    "negative_2026_mid_show": "f622346e",
+    "positive_nov09_evening": "df1386fd",
+    "positive_nov07_morning": "de35f5fe",
+    "negative_nov11_evening": "5847ae05",
+    "negative_nov09_morning": "f622346e",
 }
 AUDIO_SECONDS = 105
 
@@ -36,11 +36,11 @@ def judge(comparisons: dict, available: set[str]) -> dict:
             "missing": sorted(set(SOURCES) - available),
             "usable_for_publication": False,
         }
-    positive = comparisons.get("positive_2004_intro|positive_2006_intro", {}).get("summary", {})
+    positive = comparisons.get("positive_nov09_evening|positive_nov07_morning", {}).get("summary", {})
     negative_keys = [
         f"{positive_name}|{negative_name}"
-        for positive_name in ("positive_2004_intro", "positive_2006_intro")
-        for negative_name in ("negative_2006_mid_show", "negative_2026_mid_show")
+        for positive_name in ("positive_nov09_evening", "positive_nov07_morning")
+        for negative_name in ("negative_nov11_evening", "negative_nov09_morning")
     ]
     negative_summaries = [
         comparisons.get(key, {}).get("summary", {}) for key in negative_keys
@@ -102,11 +102,11 @@ def main() -> int:
         print("GCCX_INTRO_REFERENCE " + json.dumps(row, ensure_ascii=False), flush=True)
 
     pairs = [
-        ("positive_2004_intro", "positive_2006_intro"),
-        ("positive_2004_intro", "negative_2006_mid_show"),
-        ("positive_2004_intro", "negative_2026_mid_show"),
-        ("positive_2006_intro", "negative_2006_mid_show"),
-        ("positive_2006_intro", "negative_2026_mid_show"),
+        ("positive_nov09_evening", "positive_nov07_morning"),
+        ("positive_nov09_evening", "negative_nov11_evening"),
+        ("positive_nov09_evening", "negative_nov09_morning"),
+        ("positive_nov07_morning", "negative_nov11_evening"),
+        ("positive_nov07_morning", "negative_nov09_morning"),
     ]
     for left, right in pairs:
         key = f"{left}|{right}"
