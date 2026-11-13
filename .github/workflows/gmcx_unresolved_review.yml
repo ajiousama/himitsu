@@ -1,0 +1,40 @@
+name: GCCX Unknown Long Recording Opening Review
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "gmcx_unresolved_review.py"
+      - "test_gmcx_unresolved_review.py"
+      - ".github/workflows/gmcx_unresolved_review.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gmcx-unresolved-opening-review
+  cancel-in-progress: true
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Verify diagnostic safety (offline)
+        run: python -m unittest -v test_gmcx_unresolved_review.py
+      - name: Check local video probe dependency
+        run: ffmpeg -version | head -1
+      - name: Inspect a few unknown GCCX opening candidates (never edits playlists)
+        run: python -u gmcx_unresolved_review.py --output gmcx_unresolved_review.json
+      - name: Save read-only evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gmcx-unresolved-opening-review
+          path: gmcx_unresolved_review.json
+          if-no-files-found: warn
