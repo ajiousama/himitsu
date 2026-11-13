@@ -50,7 +50,7 @@ def judge(comparisons: dict, available: set[str]) -> dict:
         row.get("status") == "common_audio_detected" for row in negative_summaries
     )
     all_negative_checked = all(
-        row.get("status") not in (None, "source_unavailable") and bool(row.get("status"))
+        row.get("status") in ("common_audio_detected", "not_confirmed")
         for row in negative_summaries
     )
     if positive_agreement and all_negative_checked and not negative_agreement:
