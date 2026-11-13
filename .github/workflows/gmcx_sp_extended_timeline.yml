@@ -1,0 +1,40 @@
+name: GCCX SP Extended Video Timeline Review
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "gmcx_sp_extended_timeline.py"
+      - ".github/workflows/gmcx_sp_extended_timeline.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 16
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Install image and video helpers
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --quiet pillow
+          if ! command -v ffmpeg >/dev/null 2>&1; then
+            sudo apt-get update -qq
+            sudo apt-get install -y -qq ffmpeg
+          fi
+      - name: Examine show format well beyond nominal 3-hour runtime
+        run: python -u gmcx_sp_extended_timeline.py
+      - name: Save sampled frames for video review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gmcx-sp-extended-video-timeline
+          path: gmcx_sp_extended_timeline/*
+          if-no-files-found: warn
