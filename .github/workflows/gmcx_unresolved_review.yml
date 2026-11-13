@@ -7,6 +7,7 @@ on:
       - "gmcx_unresolved_review.py"
       - "test_gmcx_unresolved_review.py"
       - "gmcx_unresolved_audio_review.py"
+      - "gmcx_unresolved_frames.py"
       - ".github/workflows/gmcx_unresolved_review.yml"
   workflow_dispatch:
 
@@ -45,6 +46,16 @@ jobs:
       - name: Cross-check strong candidate timestamps against BGM
         continue-on-error: true
         run: python -u gmcx_unresolved_audio_review.py
+      - name: Capture tiny contact sheets around candidate transitions
+        continue-on-error: true
+        run: python -u gmcx_unresolved_frames.py
+      - name: Save private analysis frames as review artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gmcx-unresolved-contact-sheets
+          path: gmcx_unresolved_frames/*.jpg
+          if-no-files-found: warn
       - name: Save read-only evidence
         if: always()
         uses: actions/upload-artifact@v4
