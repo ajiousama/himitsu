@@ -6,7 +6,7 @@ import re
 from pathlib import Path
 from urllib.parse import quote
 
-from gmcx_long_nav import build_time_navigation_entries
+from gmcx_long_nav import build_time_navigation_entries, build_video_observed_opening_entries
 
 FREEWIFI = Path("freewifi")
 VOD5 = Path("vod5/playlist.m3u")
@@ -200,12 +200,15 @@ def build_vod5() -> str:
     # Preserve whole recordings and confirmed episode cuts. Unknown long
     # GCCX spans get extra seekable navigation entries, not fake episode IDs.
     navigation = build_time_navigation_entries(REPLAY_JSON, GMCX_JSON)
+    video_openings = build_video_observed_opening_entries(REPLAY_JSON, GMCX_JSON)
 
     lines = ["#EXTM3U"]
     for extinf, url in whole:
         lines.extend([extinf.replace('group-title="VOD"', 'group-title="KICK系VOD"'), url])
     for extinf, url in chapters:
         lines.extend([extinf.replace('group-title="GMCX Replay"', 'group-title="KICK系VOD"'), url])
+    for extinf, url in video_openings:
+        lines.extend([extinf, url])
     for extinf, url in navigation:
         lines.extend([extinf, url])
     return "\n".join(lines) + "\n"
