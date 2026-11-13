@@ -30,6 +30,7 @@ TARGETS = (
     ("df1386fd", 59173, 130, "unknown-tail-second-seed"),
     ("5847ae05", 3480, 130, "2026-11-11-first-slice"),
     ("f622346e", 3480, 130, "2026-11-09-428-first-slice"),
+    ("de35f5fe", 3480, 130, "2026-11-07-428-first-slice"),
 )
 
 
@@ -41,20 +42,40 @@ def judge(seed: int, radius: int, candidates: list[dict]) -> dict:
     )
     if not near:
         return {"status": "no_visual_opening_cue", "candidates": []}
-    if len(near) >= 2 and abs(
-        float(near[0]["king_entry_seconds"]) - float(near[1]["king_entry_seconds"])
-    ) >= 8:
-        return {"status": "ambiguous", "candidates": near}
-    best = near[0]
+    # The previous broad detector also catches eye-catches and arbitrary
+    # lower-caption changes. A true intro normally has a strong warm-sprite
+    # rise from a relatively empty region BEFORE the caption appears.
+    strong = []
+    for item in near:
+        before = float(item.get("king_warm_before") or 0)
+        entry = float(item.get("king_warm_entry") or 0)
+        delay = float(item.get("delay_seconds") or 0)
+        if (
+            before <= 0.15 and entry >= 0.16 and entry - before >= 0.08
+            and float(item.get("caption_dark_before") or 0) <= 0.26
+            and float(item.get("caption_dark_onset") or 0) >= 0.40
+            and float(item.get("caption_bright_onset") or 0) >= 0.018
+            and 0 <= delay <= 4.5
+        ):
+            strong.append(item)
+    if not strong:
+        return {
+            "status": "no_strong_visual_intro",
+            "candidate_count": len(near),
+            "candidates": near,
+        }
+    if len(strong) > 1:
+        return {"status": "multiple_strong_visual_intros", "candidates": strong}
+    best = strong[0]
     proposed = round(float(best["king_entry_seconds"]), 1)
-    # "candidate" cannot be published as exact until independent audio and
-    # direct playback validate that this is an episode start, not an eyecatch.
+    # Not publishable by video alone; independent BGM and playback checks.
     return {
-        "status": "visual_candidate_requires_audio_and_playback",
+        "status": "strong_visual_candidate_requires_audio_and_playback",
         "proposed_seconds": proposed,
         "shift_from_seed_seconds": round(proposed - seed, 1),
         "cue": best,
         "candidate_count": len(near),
+        "strong_candidate_count": len(strong),
     }
 
 
@@ -110,7 +131,7 @@ def main() -> int:
     print("GCCX_REVIEW_TOTAL " + json.dumps({
         "checked": len(result["results"]),
         "visual_candidates": sum(
-            r.get("status") == "visual_candidate_requires_audio_and_playback"
+            r.get("status") == "strong_visual_candidate_requires_audio_and_playback"
             for r in result["results"]
         ),
         "needs_review": sum(r.get("status") == "ambiguous" for r in result["results"]),
