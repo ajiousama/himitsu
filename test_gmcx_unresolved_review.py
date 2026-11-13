@@ -1,5 +1,5 @@
 import unittest
-from gmcx_unresolved_review import judge, report
+from gmcx_unresolved_review import judge, report, rejected_by_video_review
 from gmcx_unresolved_audio_review import assess_audio_match
 
 
@@ -42,8 +42,18 @@ class CandidateReviewTests(unittest.TestCase):
         self.assertEqual(ok["audio_estimated_start_seconds"], 59098.5)
         self.assertFalse(ok["publish_as_confirmed_episode"])
         bad = assess_audio_match(row, {"status": "matched", "raw_delay_seconds": 40.0})
-        self.assertEqual(bad["status"], "audio_not_corrobated")
+        self.assertEqual(bad["status"], "audio_not_corroborated")
         self.assertIsNone(bad["audio_estimated_start_seconds"])
+
+    def test_actual_video_review_vetoes_false_episode_boundaries(self):
+        result = rejected_by_video_review("df1386fd", 59096.0, [{
+            "vod_prefix": "df1386fd", "seconds": 59096.0,
+            "context": "In-program regional report", "reference": "contact_sheet",
+        }])
+        self.assertEqual(result["status"], "rejected_by_actual_video_review")
+        self.assertIsNone(rejected_by_video_review("other", 59096.0, [{
+            "vod_prefix": "df1386fd", "seconds": 59096.0,
+        }]))
 
     def test_unavailable_sources_are_skipped(self):
         result = report(
