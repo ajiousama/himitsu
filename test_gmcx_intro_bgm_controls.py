@@ -3,11 +3,11 @@ from gmcx_intro_bgm_controls import SOURCES, judge
 
 
 def pair_result(positive=True, negative_hit=False):
-    out = {"positive_2004_intro|positive_2006_intro": {
+    out = {"positive_nov09_evening|positive_nov07_morning": {
         "summary": {"status": "common_audio_detected" if positive else "not_confirmed"}
     }}
-    for left in ("positive_2004_intro", "positive_2006_intro"):
-        for right in ("negative_2006_mid_show", "negative_2026_mid_show"):
+    for left in ("positive_nov09_evening", "positive_nov07_morning"):
+        for right in ("negative_nov11_evening", "negative_nov09_morning"):
             out[f"{left}|{right}"] = {
                 "summary": {"status": "common_audio_detected" if negative_hit else "not_confirmed"}
             }
@@ -32,12 +32,12 @@ class IntroControlsTests(unittest.TestCase):
         self.assertFalse(result["usable_for_publication"])
 
     def test_missing_negative_control_is_fail_closed(self):
-        result = judge(pair_result(), {"positive_2004_intro", "positive_2006_intro"})
+        result = judge(pair_result(), {"positive_nov09_evening", "positive_nov07_morning"})
         self.assertEqual(result["status"], "insufficient_sources")
         self.assertFalse(result["usable_for_publication"])
 
     def test_missing_comparison_is_not_positive(self):
-        result = judge({"positive_2004_intro|positive_2006_intro": {
+        result = judge({"positive_nov09_evening|positive_nov07_morning": {
             "summary": {"status": "common_audio_detected"}
         }}, set(SOURCES))
         self.assertEqual(result["status"], "no_independently_verified_common_intro")
