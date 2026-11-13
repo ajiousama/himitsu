@@ -22,11 +22,11 @@ STATUS_VISUAL = "strong_visual_candidate_requires_audio_and_playback"
 
 def assess_audio_match(row: dict, match: dict) -> dict:
     status = str(match.get("status") or "")
-    offset = float(match.get("raw_delay_seconds") or 9999)
+    offset = float(match["raw_delay_seconds"]) if match.get("raw_delay_seconds") is not None else 9999.0
     supported = status == "matched" and abs(offset) <= 12
     return {
         "status": "audio_consistent_needs_manual_video_playback" if supported
-        else "audio_not_corrobated",
+        else "audio_not_corroborated",
         "source_vod_id": row.get("source_vod_id"),
         "visual_start_seconds": row["proposed_seconds"],
         "audio_offset_seconds": offset if status == "matched" else None,
@@ -45,7 +45,17 @@ def main() -> int:
          and r.get("status") == STATUS_VISUAL), None
     )
     if reference is None:
-        raise RuntimeError("No strong control visual reference; cannot compare BGM reliably")
+        report = {
+            "generated_at": datetime.now(JST).isoformat(),
+            "status": "skipped_no_video_verified_audio_anchor",
+            "reason": "The earlier #46 control visual cue was reviewed on actual frames and rejected as an episode-start reference.",
+            "results": [],
+        }
+        Path("gmcx_unresolved_audio_review.json").write_text(
+            json.dumps(report, ensure_ascii=False, indent=2)+"\\n", encoding="utf-8"
+        )
+        print("GCCX_AUDIO_REVIEW_SKIPPED " + json.dumps(report, ensure_ascii=False), flush=True)
+        return 0
     by_id = {str(x.get("vod_id")): x for x in vods}
     control_source = by_id.get(str(reference["source_vod_id"]))
     if not control_source or not control_source.get("playable"):
