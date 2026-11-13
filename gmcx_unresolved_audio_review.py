@@ -52,7 +52,7 @@ def main() -> int:
             "results": [],
         }
         Path("gmcx_unresolved_audio_review.json").write_text(
-            json.dumps(report, ensure_ascii=False, indent=2)+"\\n", encoding="utf-8"
+            json.dumps(report, ensure_ascii=False, indent=2)+"\n", encoding="utf-8"
         )
         print("GCCX_AUDIO_REVIEW_SKIPPED " + json.dumps(report, ensure_ascii=False), flush=True)
         return 0
