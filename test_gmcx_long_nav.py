@@ -34,9 +34,9 @@ class LongNavTests(unittest.TestCase):
     def test_short_and_tiny_tail(self):
         self.assertEqual(time_slices(0, 3500), [])
         self.assertEqual(time_slices(0, 2 * 3600)[-1][1], 7200)
-        parts = time_slices(0, 2 * 3480 + 120)
-        self.assertEqual(len(parts), 2)
-        self.assertEqual(parts[-1], (3480, 7080))
+        parts = time_slices(0, 3 * 3480 + 120)
+        self.assertEqual(len(parts), 3)
+        self.assertEqual(parts[-1], (6960, 10560))
 
     def test_unknown_is_navigation_only_and_source_safe(self):
         with tempfile.TemporaryDirectory() as d:
