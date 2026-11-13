@@ -1,0 +1,40 @@
+name: GCCX Nine Hour Special Exact Ending Review
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "gmcx_sp_9hour_end_frames.py"
+      - ".github/workflows/gmcx_sp_9hour_end_frames.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Install ffmpeg and Pillow
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --quiet pillow
+          if ! command -v ffmpeg >/dev/null 2>&1; then
+            sudo apt-get update -qq
+            sudo apt-get install -y -qq ffmpeg
+          fi
+      - name: Extract indexed one-second frames near nine-hour broadcast ending
+        run: python -u gmcx_sp_9hour_end_frames.py
+      - name: Retain time-indexed frames and metadata
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gmcx-sp-nine-hour-end-frames
+          path: gmcx_sp_9hour_end_frames/*
+          if-no-files-found: warn
