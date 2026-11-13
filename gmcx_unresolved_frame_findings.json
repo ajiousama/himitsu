@@ -1,0 +1,29 @@
+{
+  "reviewed_at": "2026-11-13",
+  "method": "actual 30-frame / 60-second contact-sheet inspection + failed independent BGM matching",
+  "findings": [
+    {
+      "vod_prefix": "df1386fd",
+      "seconds": 3480,
+      "context": "game promotional / announcement footage; not a confirmed episode opening",
+      "classification": "not_verified_episode_head",
+      "reference": "control_episode46_3480"
+    },
+    {
+      "vod_prefix": "df1386fd",
+      "seconds": 59096,
+      "context": "最北端ゲーム紀行の途中（番組内コーナー）",
+      "classification": "false_episode_boundary",
+      "reference": "tail_candidate_59096"
+    },
+    {
+      "vod_prefix": "5847ae05",
+      "seconds": 3546,
+      "context": "DS2発売イベントの途中（番組内イベント映像）",
+      "classification": "false_episode_boundary",
+      "reference": "nov11_candidate_3546"
+    }
+  ],
+  "publication_policy": "Do not promote a signal found only through king/warm-sprite and caption-onset. Require an independently verified full episode opener, matching audio, and verified episode identity before publishing an exact chapter.",
+  "result": "No accurate episode boundary was verified in the 2026-11-13 probe; existing VOD5 time-navigation slices remain provisional."
+}
