@@ -4486,6 +4486,12 @@ def main() -> int:
     all_chapters = []
     for vod in vods:
         source_title = str(vod.get("title") or "")
+        from gmcx_visual_cuts import visual_chapters
+        visual = visual_chapters(vod, clip_url)
+        if visual is not None:
+            results.append(visual)
+            all_chapters.extend(visual["chapters"])
+            continue
         parsed = parse_range(source_title)
         duration = int(vod.get("duration_seconds") or 0)
         if not parsed:
@@ -4843,3 +4849,4 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
