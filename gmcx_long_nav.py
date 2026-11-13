@@ -127,3 +127,70 @@ def build_time_navigation_entries(
             url = f"{RESOLVER}{quote(vod_id, safe='')}&start={begin}&duration={stop - begin}"
             entries.append((extinf, url))
     return entries
+
+
+def build_video_observed_opening_entries(
+    replay_path: Path, chapter_path: Path,
+    evidence_path: Path = Path("gmcx_video_verified_openings.json"),
+) -> list[tuple[str, str]]:
+    """Add navigable *short previews* for genuine video-observed SP intros.
+
+    This is not exact full-episode splitting: the end of the programme and its
+    episode number are still unknown. Fail closed on every source mismatch.
+    """
+    if not replay_path.exists() or not chapter_path.exists() or not evidence_path.exists():
+        return []
+    try:
+        replay = json.loads(replay_path.read_text(encoding="utf-8"))
+        chapter_results = json.loads(chapter_path.read_text(encoding="utf-8"))
+        evidence = json.loads(evidence_path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return []
+    vod_id = str(evidence.get("source_vod_id") or "")
+    if not re.fullmatch(r"[A-Za-z0-9_-]{8,120}", vod_id):
+        return []
+    matching_vods = [x for x in replay.get("vods", [])
+                     if isinstance(x, dict) and str(x.get("vod_id")) == vod_id]
+    matching_results = [x for x in chapter_results.get("results", [])
+                        if isinstance(x, dict) and str(x.get("vod_id")) == vod_id]
+    if len(matching_vods) != 1 or len(matching_results) != 1:
+        return []
+    vod, result = matching_vods[0], matching_results[0]
+    if (not str(vod.get("tvg_id") or "").startswith("kick.gccx")
+        or vod.get("playable") is not True
+        or vod.get("ready_for_publish") is not True):
+        return []
+    duration = int(vod.get("duration_seconds") or 0)
+    if abs(duration - int(evidence.get("source_duration_seconds") or 0)) > 10:
+        return []
+    unresolved = _range_for_vod(vod, result)
+    if not unresolved:
+        return []
+    tail_begin, tail_end, _ = unresolved
+    entries = []
+    seen = set()
+    for opening in evidence.get("openings", []):
+        if not isinstance(opening, dict):
+            continue
+        if (opening.get("confidence") != "video_intro_observed_episode_end_unverified"
+            or opening.get("episode_number") is not None
+            or opening.get("end_seconds") is not None):
+            continue
+        start = int(opening.get("start_seconds") or 0)
+        length = int(opening.get("clip_preview_seconds") or 0)
+        if (start in seen or start < tail_begin or start >= tail_end
+            or not 60 <= length <= 3600 or start + length > min(tail_end, duration)):
+            continue
+        title = str(opening.get("title") or "").replace("\n", " ").replace('"', "'").strip()
+        if not title or len(title) > 120:
+            continue
+        seen.add(start)
+        extinf = (
+            '#EXTINF:-1 group-title="KICK系VOD" '
+            f'tvg-id="kick.gmcx.video-intro.{vod_id[:12]}.{start}" '
+            f'tvg-logo="{LOGO}",'
+            f'🎬 {title}（映像で冒頭確認・約58分試聴・終点未確定）'
+        )
+        url = f"{RESOLVER}{quote(vod_id, safe='')}&start={start}&duration={length}"
+        entries.append((extinf, url))
+    return entries
