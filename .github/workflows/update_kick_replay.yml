@@ -15,6 +15,8 @@ on:
       - "kick_replay.py"
       - "kick_gmcx_chapters.py"
       - "kick_replay_freewifi.py"
+      - "gmcx_long_nav.py"
+      - "test_gmcx_long_nav.py"
       - "gmcx_episode_titles.json"
       - "test_gmcx_star_soldier_insert.py"
       - "test_gmcx_404_trial_cuts.py"
@@ -66,7 +68,7 @@ jobs:
         run: python -m pip install --quiet numpy
 
       - name: Verify GCCX 2024/2025 special programme layout
-        run: python -m unittest -v test_gmcx_star_soldier_insert.py test_gmcx_397_sp52.py test_gmcx_404_trial_cuts.py test_gmcx_417_review_cuts.py
+        run: python -m unittest -v test_gmcx_star_soldier_insert.py test_gmcx_397_sp52.py test_gmcx_404_trial_cuts.py test_gmcx_417_review_cuts.py test_gmcx_long_nav.py
 
       - name: Build KICK replay catalog
         run: python -u kick_replay.py
