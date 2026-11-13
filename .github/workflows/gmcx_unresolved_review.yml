@@ -47,6 +47,7 @@ jobs:
         continue-on-error: true
         run: python -u gmcx_unresolved_audio_review.py
       - name: Capture tiny contact sheets around candidate transitions
+        if: github.event_name == 'workflow_dispatch'
         continue-on-error: true
         run: python -u gmcx_unresolved_frames.py
       - name: Save private analysis frames as review artifact
