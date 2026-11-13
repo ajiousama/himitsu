@@ -20,6 +20,23 @@ from kick_gmcx_chapters import (
 )
 
 JST = timezone(timedelta(hours=9))
+FALSE_OPENINGS = Path("gmcx_unresolved_frame_findings.json")
+
+
+def rejected_by_video_review(prefix: str, candidate_seconds: float, findings: list[dict]) -> dict | None:
+    """Never republish episode cuts disproven by inspected video frames."""
+    for finding in findings:
+        if (
+            str(finding.get("vod_prefix") or "") == prefix
+            and abs(float(finding.get("seconds") or -99999) - candidate_seconds) <= 8
+        ):
+            return {
+                "status": "rejected_by_actual_video_review",
+                "reason": str(finding.get("context") or "not a proven episode head"),
+                "review_reference": str(finding.get("reference") or ""),
+                "candidate_seconds": candidate_seconds,
+            }
+    return None
 
 # Small first-pass batch. Probe an already-detected historical head as a
 # control and a few unclassified heads. Deliberately avoids scanning a full
@@ -81,6 +98,10 @@ def judge(seed: int, radius: int, candidates: list[dict]) -> dict:
 
 def report(vods: list[dict], targets=TARGETS, detector=None) -> dict:
     detector = detector or _scan_unclassified_king_title_sequence
+    try:
+        reviewed = json.loads(FALSE_OPENINGS.read_text(encoding="utf-8")).get("findings", [])
+    except (OSError, ValueError):
+        reviewed = []
     rows = []
     for prefix, seed, radius, label in targets:
         source = next(
@@ -100,6 +121,10 @@ def report(vods: list[dict], targets=TARGETS, detector=None) -> dict:
                 url = _lowest_hls_variant(str(source["source_url"]))
                 candidates = detector(url, max(0, seed - radius), seed + radius)
                 row.update(judge(seed, radius, candidates))
+                if row.get("status") == "strong_visual_candidate_requires_audio_and_playback":
+                    rejected = rejected_by_video_review(prefix, float(row["proposed_seconds"]), reviewed)
+                    if rejected:
+                        row.update(rejected)
                 row["source_vod_id"] = str(source["vod_id"])
             except Exception as exc:
                 row["status"] = "probe_error"
