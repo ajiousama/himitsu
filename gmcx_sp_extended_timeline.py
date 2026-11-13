@@ -28,7 +28,7 @@ def sample(url,center):
     cmd=["ffmpeg","-nostdin","-hide_banner","-loglevel","error",
          "-rw_timeout","15000000","-ss",str(start),"-i",url,
          "-t","24","-an",
-         f"-vf","fps=1/8,scale={WIDTH}:{HEIGHT}:flags=area,format=rgb24",
+         f"-vf",f"fps=1/8,scale={WIDTH}:{HEIGHT}:flags=area,format=rgb24",
          "-pix_fmt","rgb24","-f","rawvideo","pipe:1"]
     try:
         p=subprocess.run(cmd,stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=50,check=False)
@@ -78,6 +78,9 @@ def main():
         "opening_seconds":OPENING_SECONDS,"source_vod_id":VOD_ID,
         "real_end_verified":False,"rows":all_rows
     },ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
+    successful=sum(x.get("status")=="sampled" for x in all_rows)
+    if successful < 8:
+        raise RuntimeError(f"GCCX extended timeline produced only {successful}/{len(all_rows)} valid samples")
     return 0
 
 if __name__=="__main__":
