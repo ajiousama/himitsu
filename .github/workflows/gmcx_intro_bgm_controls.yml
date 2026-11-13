@@ -1,0 +1,50 @@
+name: GCCX Intro Audio Positive Negative Controls
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "gmcx_intro_bgm_controls.py"
+      - "test_gmcx_intro_bgm_controls.py"
+      - ".github/workflows/gmcx_intro_bgm_controls.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gmcx-intro-bgm-controls
+  cancel-in-progress: true
+
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Install numpy and ffmpeg
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --quiet numpy
+          if ! command -v ffmpeg >/dev/null 2>&1; then
+            sudo apt-get update -qq
+            sudo apt-get install -y -qq ffmpeg
+          fi
+          ffmpeg -version | head -1
+      - name: Verify evidence-gating tests
+        run: python -m unittest -v test_gmcx_intro_bgm_controls.py
+      - name: Compare genuine intro starts against negative controls
+        run: python -u gmcx_intro_bgm_controls.py
+      - name: Upload diagnostic results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gmcx-intro-bgm-controls
+          path: gmcx_intro_bgm_controls.json
+          if-no-files-found: warn
