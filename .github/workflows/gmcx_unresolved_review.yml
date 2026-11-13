@@ -8,6 +8,7 @@ on:
       - "test_gmcx_unresolved_review.py"
       - "gmcx_unresolved_audio_review.py"
       - "gmcx_unresolved_frames.py"
+      - "gmcx_intro_head_probe.py"
       - ".github/workflows/gmcx_unresolved_review.yml"
   workflow_dispatch:
 
@@ -57,6 +58,17 @@ jobs:
           name: gmcx-unresolved-contact-sheets
           path: gmcx_unresolved_frames/*.jpg
           if-no-files-found: warn
+      - name: Sample heads of current GCCX recordings for genuine title anchors
+        if: contains(github.event.head_commit.message, '[gmcx-head-probe]') || github.event_name == 'workflow_dispatch'
+        continue-on-error: true
+        run: python -u gmcx_intro_head_probe.py
+      - name: Save head-of-recording contact sheets
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gmcx-intro-head-contact-sheets
+          path: gmcx_intro_head_frames/*
+          if-no-files-found: ignore
       - name: Save read-only evidence
         if: always()
         uses: actions/upload-artifact@v4
