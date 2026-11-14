@@ -10,75 +10,15 @@ on:
     branches:
       - main
     paths:
-      - "patapata/**"
       - "ganble/playlist.m3u"
-      - "tv/playlist.m3u"
-      - "tv/sync_freewifi.py"
-      - "scripts/check_tv_source_partition.py"
-      - "rakuten/playlist.m3u"
-      - "rakuten/sync_freewifi.py"
-      - "rakuten/freewifi_extra.m3u"
-      - "tver/playlist.m3u"
-      - "tver/sync_freewifi.py"
-      - "tver/epg.py"
-      - "radio/sync_freewifi.py"
-      - "vod5/sync_freewifi.py"
-      - "radio/playlist.m3u"
-      - "radio/freewifi.m3u"
-      - "vod5/playlist.m3u"
-      - "vod5/freewifi_live.m3u"
-      - "vod5/freewifi_specials.m3u"
-      - "ehime_catv/playlist.m3u"
-      - "council/playlist.m3u"
-      - "council/sync_freewifi.py"
-      - "council/update.py"
-      - "ehime_catv/sync_freewifi.py"
-      - "normalize_ganble_local.py"
-      - "radiko_epg.py"
-      - "radio_tv_nationwide.py"
-      - "radio_tv_nationwide_freewifi.py"
-      - "kick_channels.json"
-      - "vod5/kick_channels.json"
+      - "vod5/**"
       - "kick_gccx2_sync.py"
-      - "logos/kick_gccx2.svg"
-      - "public_sports_epg_local.py"
-      - "sports_race_time.py"
-      - "youtube/config.json"
-      - "logos/tools/**"
-      - "logos/contrast_sources.json"
-      - "logos/ehime_catv/**"
-      - "logos/public_sports/**"
-      - "youtube/manager.py"
-      - "youtube/output/general.m3u"
-      - "youtube/output/kana.m3u"
-      - "youtube/output/mandarin.m3u"
-      - "youtube/test_manager.py"
-      - "public_sports_epg_local_fast.py"
-      - "epg/epg_build.py"
-      - "epg/epg_build_safe.py"
-      - "epg/align_freewifi_logos.py"
-      - "epg/radiko_epg_merge.py"
-      - "community_radio_epg_merge.py"
-      - "nhk_radio_epg.py"
-      - "epg/public_sports_epg_merge.py"
-      - "epg/keiba_epg_direct.py"
-      - "epg/keirin_epg_direct.py"
-      - "epg/autorace_epg_direct.py"
-      - "epg/jra_epg_merge.py"
-      - "epg/validate_gch_epg.py"
-      - "epg/finalize_public_sports_prestart_epg.py"
-      - "epg/kick_epg.py"
-      - "epg/epg_final_guard.py"
-      - "epg/final_epg_audit.py"
-      - "jra_freewifi_finalize.py"
       - "freewifi_today_public_sports.py"
-      - "freewifi_strip_public_boat.py"
       - "freewifi_today_jra.py"
-      - "check_gch_always.py"
+      - "public_sports_epg_local.py"
+      - "public_sports_epg_local_fast.py"
+      - "sports_race_time.py"
       - "finalize_today_public_sports.py"
-      - "build_today_event_counts.py"
-      - "verified_daily_status.json"
-      - "freewifi_council_live.py"
       - "group_freewifi_sources.py"
       - ".github/workflows/update_freewifi_epg.yml"
 
@@ -120,25 +60,8 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Prepare YouTube logos before canonical sync
-        run: python youtube/generate_missing_logos.py
-
-      - name: Sync canonical subsystem projections
-        run: |
-          python tv/sync_freewifi.py
-          python radio_tv_nationwide_freewifi.py
-          python radio/sync_freewifi.py
-          python ehime_catv/sync_freewifi.py
-          python council/sync_freewifi.py
-          python rakuten/sync_freewifi.py
-          python tver/sync_freewifi.py
-          python patapata/sync_freewifi.py
-          python vod5/sync_freewifi.py
-          python -m unittest -q test_vod_source_groups.py
-          python youtube/manager.py --sync-only
-
-      - name: Prepare YouTube logos before regression tests
-        run: python youtube/generate_missing_logos.py
+      - name: Update only VOD-managed FreeWiFi projection
+        run: python vod5/sync_freewifi.py
 
       - name: Sports and Kana reliability regression tests
         run: python -m unittest -v youtube.test_manager
@@ -165,11 +88,6 @@ jobs:
 
       - name: Finalize ended venues and time order
         run: python finalize_today_public_sports.py
-
-      - name: Update council live visibility
-        run: |
-          python council/update.py
-          python council/sync_freewifi.py
 
       - name: Build compact current event counts
         run: python build_today_event_counts.py
@@ -218,18 +136,10 @@ jobs:
             # this workflow or overwrite newer BOAT/public-sports state.
             python kick_gccx2_sync.py
 
-            # Keep terrestrial/BS/CS source groups stable after every full publish.
-            python group_freewifi_sources.py
-            python tv/sync_freewifi.py
-            python radio_tv_nationwide_freewifi.py
-            python radio/sync_freewifi.py
-            python ehime_catv/sync_freewifi.py
-            python rakuten/sync_freewifi.py
-            python tver/sync_freewifi.py
-            python patapata/sync_freewifi.py
+            # Fixed channels (TV/BS/CS/radio/Rch/CATV/YouTube) are immutable.
+            # Only VOD and today's race venue blocks may be rebuilt here.
             python vod5/sync_freewifi.py
             python -m unittest -q test_vod_source_groups.py
-            python youtube/manager.py --sync-only
 
             python boat_publish.py --epg-only
             python build_today_event_counts.py
@@ -314,7 +224,7 @@ jobs:
             python check_gch_always.py
             python scripts/check_tv_source_partition.py
 
-            git add yovi tv/playlist.m3u rakuten/playlist.m3u ganble/playlist.m3u ehime_catv/playlist.m3u freewifi radio/freewifi.m3u gccx2_live_state.json today_public_sports_status.json today_jra_status.json today_event_counts.json verified_daily_status.json public_sports_epg_local.xml
+            git add ganble/playlist.m3u freewifi gccx2_live_state.json today_public_sports_status.json today_jra_status.json today_event_counts.json verified_daily_status.json public_sports_epg_local.xml
 
             if git diff --cached --quiet; then
               echo "Local venue/CX2 state already current"
