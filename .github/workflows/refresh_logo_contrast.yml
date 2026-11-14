@@ -2,15 +2,6 @@ name: Refresh FreeWiFi contrast-safe logos
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
-    paths:
-      - "logos/tools/logo_contrast_apply.py"
-      - ".github/workflows/refresh_logo_contrast.yml"
-  schedule:
-    # Daily 07:17 JST (22:17 UTC previous day).
-    - cron: "17 22 * * *"
 
 permissions:
   contents: write
