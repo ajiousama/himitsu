@@ -27,6 +27,8 @@ SOURCES = [
     ("public_sports", "https://raw.githubusercontent.com/ajiousama/himitsu/main/public_sports_epg_local.xml"),
     ("epgshare_jp1", "https://epgshare01.online/epgshare01/epg_ripper_JP1.xml.gz"),
     ("epgshare_jp2", "https://epgshare01.online/epgshare01/epg_ripper_JP2.xml.gz"),
+    # Reuse existing Cafe au lait EPG within one FreeWiFi XMLTV source.
+    ("cafeaulait_local", "cafeaulait_epg.xml"),
 ]
 
 ECATV_CHANNELS = {
@@ -113,6 +115,8 @@ def fetch_bytes(url):
     with urllib.request.urlopen(req, timeout=90) as r: return r.read()
 
 def fetch_xml(url):
+    if url == "cafeaulait_epg.xml":
+        return ET.parse(Path(url)).getroot()
     data = fetch_bytes(url)
     if url.endswith(".gz"): data = gzip.decompress(data)
     return ET.fromstring(data)
