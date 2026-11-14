@@ -114,7 +114,7 @@ def strip(text):
  lines=text.splitlines(); out=[]; i=0
  while i<len(lines):
   line=lines[i]; m=re.search(r'tvg-id="([^"]+)"',line) if line.startswith('#EXTINF:') else None
-  if m and (m.group(1) in SOURCES or m.group(1) in QUALITY_IDS or m.group(1) in LEGACY_FREE_IDS or m.group(1)==GCH_SINORI_ID):
+  if m and '☕Green Channel（coffee）' not in line and (m.group(1) in SOURCES or m.group(1) in QUALITY_IDS or m.group(1) in LEGACY_FREE_IDS or m.group(1)==GCH_SINORI_ID):
    i+=1
    while i<len(lines) and not lines[i].startswith(('#EXTINF:','## ','# ===')): i+=1
    continue
