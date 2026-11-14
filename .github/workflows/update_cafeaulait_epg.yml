@@ -48,7 +48,7 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Generate independent 101-channel EPG
+      - name: Generate independent 100-channel EPG
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
@@ -67,21 +67,21 @@ jobs:
           assert m3u.startswith('#EXTM3U url-tvg="https://raw.githubusercontent.com/ajiousama/himitsu/main/cafeaulait_epg.xml"')
           assert 'karenda-jp' not in m3u.lower()
           extinfs = [line for line in m3u.splitlines() if line.startswith('#EXTINF:')]
-          assert len(extinfs) == 101, f'Unexpected Coffee playlist size: {len(extinfs)}'
+          assert len(extinfs) == 100, f'Unexpected Coffee playlist size: {len(extinfs)}'
           ids = [re.search(r'tvg-id="([^"]+)"', line).group(1) for line in extinfs]
-          assert len(set(ids)) == 101
+          assert len(set(ids)) == 100
           streams = [line for line in m3u.splitlines() if line.startswith('https://coffee.linxei.biz.id/stream/jp/')]
-          assert len(streams) == 101, f'Unexpected Coffee stream URL count: {len(streams)}'
+          assert len(streams) == 100, f'Unexpected Coffee stream URL count: {len(streams)}'
           assert all('/stream-output.m3u8?mode=hls' in line for line in streams)
 
           root = ET.parse('cafeaulait_epg.xml').getroot()
           channels = root.findall('channel')
           programs = root.findall('programme')
-          assert len(channels) == 101, f'Expected 101 channel entries, got {len(channels)}'
+          assert len(channels) == 100, f'Expected 100 channel entries, got {len(channels)}'
           program_counts = collections.Counter(p.get('channel') for p in programs)
           assert set(program_counts).issubset(set(ids))
           covered = sum(bool(program_counts.get(i)) for i in ids)
-          assert covered >= 80, f'EPG regression: only {covered}/101 Coffee channels'
+          assert covered >= 80, f'EPG regression: only {covered}/100 Coffee channels'
           for wanted in (
               'TBSチャンネル1_jp', 'TBSチャンネル2_jp',
               'NHK・BS_jp', 'nhk_bs_2', 'NHK・BSP_jp', 'メ～テレNEXT_jp',
@@ -99,7 +99,7 @@ jobs:
           assert 'nhk_bs\tNHK・BS_jp\tnhk_official\tNHK・BS_jp\t' in report
           assert 'nhk_bs4k\tNHK・BSP_jp\tnhk_official\tNHK・BSP_jp\t' in report
           assert 'me-tele_next\tメ～テレNEXT_jp\tsky\tCS301\t' in report
-          print('Cafe au lait verified:', covered, '/101;', len(programs),
+          print('Cafe au lait verified:', covered, '/100;', len(programs),
                 'programmes; NHK BS services separate; Me-Tele NEXT CS301')
           PY
 

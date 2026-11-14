@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Build an independent hybrid XMLTV guide for the 101 Cafe au lait channels.
+"""Build an independent hybrid XMLTV guide for the 100 Cafe au lait channels.
 
-Real schedules only: FreeWiFi -> J:COM -> Sky PerfecTV -> JapanTerebi (no direct Karenda dependency).
+Schedules: NHK official, FreeWiFi, J:COM, Sky, JapanTerebi, Weathernews official; limited Karenda MX2 fallback.
 Rolling EPG: preserve the past 5 days and next 24 hours for catch-up navigation.
 Sources are matched to Cafe au lait's existing, stable tvg-id values.
 Never invent programme schedules or rewrite live/catch-up URLs.
@@ -33,6 +33,9 @@ SOURCES = [
     ("jcom", "https://raw.githubusercontent.com/dbghelp/JCOM-TV-EPG/main/jcom.xml"),
     ("sky", "https://raw.githubusercontent.com/dbghelp/SKY-PerfecTV-EPG/main/perfectv.xml"),
     ("japanterebi", "https://animenosekai.github.io/japanterebi-xmltv/guide.xml"),
+    ("weathernews_official", "https://site.weathernews.jp/site/live/json/timetable.json"),
+    # Only TOKYO MX2: rescue the channel when JapanTerebi has stale programme times.
+    ("mx2_verified", "https://raw.githubusercontent.com/karenda-jp/etc/main/guides.xml"),
 ]
 
 # Exact upstream XMLTV identifiers verified from provider channel listings.
@@ -40,6 +43,8 @@ SOURCES = [
 PIN = {
     # Verified J:COM terrestrial service IDs (do not confuse TBS with CS channels).
     "ntv": {"jcom": ["jcom_2_1040_32738"]},
+    "ntv_news24": {"sky": ["CS349", "Ch.571"]},
+    "tokyo_mx2": {"mx2_verified": ["TOKYO・MX2_jp"]},
     "tbs": {"jcom": ["jcom_2_1048_32739"]},
     "fuji_tv": {"jcom": ["jcom_2_1056_32740"]},
     "tv_asahi": {"jcom": ["jcom_2_1064_32741"]},
@@ -151,8 +156,8 @@ def targets():
         if not cid or not slug:
             raise ValueError("Invalid Cafe au lait entry at line " + str(i + 1))
         rows.append((slug.group(1), cid.group(1), line.rsplit(",", 1)[-1]))
-    if len(rows) != 101 or len({x[1] for x in rows}) != 101:
-        raise ValueError("Expected 101 unique Cafe au lait channels")
+    if len(rows) != 100 or len({x[1] for x in rows}) != 100:
+        raise ValueError("Expected 100 unique Cafe au lait channels")
     return rows
 
 def source_priority(slug: str, name: str) -> int:
@@ -225,9 +230,64 @@ def nhk_bs_official_xmltv() -> ET.Element:
     return root
 
 
+
+def weathernews_official_xmltv() -> ET.Element:
+    """Convert the broadcaster's live rolling timetable, never fabricate an EPG."""
+    url = "https://site.weathernews.jp/site/live/json/timetable.json"
+    req = urllib.request.Request(url, headers={"User-Agent": "CafeAuLait-EPG/1.1"})
+    with urllib.request.urlopen(req, timeout=30) as response:
+        rows = json.load(response)
+    if not isinstance(rows, list) or len(rows) < 4:
+        raise ValueError("Weathernews official timetable is empty or malformed")
+    starts, titles = [], []
+    for row in rows:
+        if not isinstance(row, dict) or not isinstance(row.get("title"), str):
+            raise ValueError("Weathernews timetable row malformed")
+        title = row["title"].strip()
+        hour = datetime.strptime(row["hour"], "%H:%M").time()
+        if not title:
+            raise ValueError("Weathernews timetable title missing")
+        if not starts:
+            st = datetime.combine(NOW.date(), hour, JST)
+            if st > NOW:
+                st -= timedelta(days=1)
+            if NOW - st > timedelta(hours=6):
+                raise ValueError("Weathernews timetable not current")
+        else:
+            st = datetime.combine(starts[-1].date(), hour, JST)
+            if st <= starts[-1]:
+                st += timedelta(days=1)
+            if st - starts[-1] > timedelta(hours=8):
+                raise ValueError("Weathernews timetable has an implausible gap")
+        starts.append(st)
+        titles.append(title)
+    root = ET.Element("tv")
+    channel = ET.SubElement(root, "channel", {"id": "weather_news"})
+    ET.SubElement(channel, "display-name", {"lang": "ja"}).text = "ウェザーニュースLiVE"
+    count = 0
+    has_now = False
+    for st, en, title in zip(starts, starts[1:], titles):
+        if en <= st or en <= CUTOFF or st >= END:
+            continue
+        if st <= NOW < en:
+            has_now = True
+        p = ET.SubElement(root, "programme", {
+            "channel": "weather_news",
+            "start": st.strftime("%Y%m%d%H%M%S %z"),
+            "stop": en.strftime("%Y%m%d%H%M%S %z"),
+        })
+        ET.SubElement(p, "title", {"lang": "ja"}).text = title
+        count += 1
+    if count < 3 or not has_now:
+        raise ValueError("Weathernews timetable lacks current live programmes")
+    return root
+
+
 def read_source(name: str, url: str | None):
     if name == "nhk_official":
         return nhk_bs_official_xmltv()
+    if name == "weathernews_official":
+        return weathernews_official_xmltv()
     if url is None:
         data = Path("guides.xml").read_bytes()
     else:
@@ -251,6 +311,10 @@ def programme_items(root: ET.Element, wanted: set[str]):
     return by_id
 
 def candidate_id(slug: str, tid: str, source: str, ids: set[str], names: dict[str, list[str]]) -> str | None:
+    if source == "weathernews_official" and slug != "weather_news":
+        return None
+    if source == "mx2_verified" and slug != "tokyo_mx2":
+        return None
     # NHK BS must not fall back to FreeWiFi's mislabeled BSP4K schedule.
     if slug in NHK_BS_SERVICES:
         return tid if source == "nhk_official" and tid in ids else None
@@ -440,7 +504,7 @@ def main():
     doc = ET.Element("tv", {"generator-info-name": OFFICIAL_GUIDE_MARK,
                             "generator-info-url": "https://github.com/ajiousama/himitsu"})
     report = ["Cafe au lait EPG hybrid report", f"generated={NOW.isoformat()}",
-              "Sources: NHK official s1/s2/s5, FreeWiFi, JCOM, Sky PerfectTV, JapanTerebi (no direct Karenda)",
+              "Sources: NHK official s1/s2/s5, FreeWiFi, JCOM, Sky PerfectTV, JapanTerebi, Weathernews official, limited Karenda MX2 fallback",
               "Rolling guide: past 5 days and next 24 hours; historical programmes retained across builds",
               f"Archival GitHub backfill added={archived_count}",
               *archive_audit,
@@ -515,14 +579,14 @@ def main():
         history_count += historical
         report.append(f"{slug}\t{tid}\t{src}\t{upstream}\tprogrammes={saved}\tnow={current}\tpast={historical}" + (f"\toverlaps_removed={green_overlap_removed}\tinvalid_ranges_removed={green_invalid_removed}" if slug == "green_channel" else ""))
 
-    report += ["", f"real_sources={matched}/101", f"current_programmes={now_count}/101",
+    report += ["", f"real_sources={matched}/100", f"current_programmes={now_count}/100",
                f"past_programmes={history_count}", "", "[source errors]", *(errors or ["none"])]
     if matched < 80:
-        raise RuntimeError(f"Hybrid EPG build blocked: only {matched}/101 real channels. " + "; ".join(errors))
+        raise RuntimeError(f"Hybrid EPG build blocked: only {matched}/100 real channels. " + "; ".join(errors))
     ET.ElementTree(doc).write(OUT, encoding="utf-8", xml_declaration=True)
     REPORT.write_text("\n".join(report) + "\n", encoding="utf-8")
     verify = ET.parse(OUT).getroot()
-    assert len(verify.findall("channel")) == 101
+    assert len(verify.findall("channel")) == 100
     assert all(p.get("channel") in {r[1] for r in rows} for p in verify.findall("programme"))
     green_programmes = sorted(
         ((parse_time(p.get("start")), parse_time(p.get("stop")))
@@ -537,7 +601,7 @@ def main():
                for (_, previous_end), (next_start, _) in zip(green_programmes, green_programmes[1:])), (
         "Green Channel EPG still contains overlapping programmes"
     )
-    print(f"WRITTEN {OUT}: {OUT.stat().st_size:,} bytes; matched={matched}/101, currently={now_count}/101", flush=True)
+    print(f"WRITTEN {OUT}: {OUT.stat().st_size:,} bytes; matched={matched}/100, currently={now_count}/100", flush=True)
 
 if __name__ == "__main__":
     main()

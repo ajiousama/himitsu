@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Sync Cafe au lait's 101 M3U tvg-id attributes to EXISTING Karenda/ajiousama XMLTV IDs.
+"""Sync Cafe au lait's 100 M3U tvg-id attributes to EXISTING Karenda/ajiousama XMLTV IDs.
 
 Unlike the old hybrid EPG, we never republish or rename XMLTV programmes.
 The TV player loads Karenda directly, plus J:COM for KNTV only.
@@ -90,8 +90,8 @@ def main():
         if not slug_match or not id_match:
             raise ValueError(f"Invalid channel at line {pos+1}")
         rows.append((pos, slug_match.group(1), id_match.group(1)))
-    if len(rows) != 101 or len({slug for _, slug, _ in rows}) != 101:
-        raise ValueError("Expected 101 distinct Coffee channels")
+    if len(rows) != 100 or len({slug for _, slug, _ in rows}) != 100:
+        raise ValueError("Expected 100 distinct Coffee channels")
     live_urls = [lines[p+1] for p, _, _ in rows]
     if any('catchup=' in lines[p] or 'catchup-source=' in lines[p] for p, _, _ in rows):
         raise ValueError("Catch-up must stay disabled")
@@ -142,11 +142,11 @@ def main():
         records.append((slug, source, cid, count))
         lines[pos] = re.sub(r'tvg-id="[^"]+"', lambda _m: f'tvg-id="{cid}"', lines[pos], count=1)
 
-    if len(set(new_ids)) != 101:
+    if len(set(new_ids)) != 100:
         raise ValueError("Duplicate XMLTV IDs after aligning to upstream guides")
     supported = sum(source != "none" for _, source, _, _ in records)
     if supported < 80:
-        raise RuntimeError(f"Refusing to publish weak XMLTV mapping: {supported}/101")
+        raise RuntimeError(f"Refusing to publish weak XMLTV mapping: {supported}/100")
     lines[0] = HEADER
     for n, line in enumerate(lines):
         if line.startswith("# EPG IDs:"):
@@ -158,7 +158,7 @@ def main():
         "Café au lait DIRECT EPG mapping report",
         f"generated={NOW.isoformat()}",
         f"epg_urls={KARENDA},{JCOM}",
-        f"supported={supported}/101",
+        f"supported={supported}/100",
         "Source IDs copied unchanged: Karenda for most channels, J:COM only for KNTV.",
         "",
         "slug\tsource\ttvg_id\tprogrammes",
@@ -171,7 +171,7 @@ def main():
         else:
             report.append(f"{slug}\tNO_CANDIDATES")
     REPORT.write_text("\n".join(report) + "\n", encoding="utf-8")
-    print("DIRECT EPG MAPPING:", supported, "/101; unmapped:",
+    print("DIRECT EPG MAPPING:", supported, "/100; unmapped:",
           [slug for slug, src, _, _ in records if src == "none"], flush=True)
 
 
