@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-14",
-  "generated_at": "2026-11-14T09:38:03.043131+09:00",
+  "generated_at": "2026-11-14T09:39:10.822770+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261114.json",
   "schedule_checked_at": "2026-11-14T09:24:57.628039+09:00",
@@ -54,7 +54,13 @@
   "cloud_acquisition": {
     "requested": 11,
     "fetched": 2,
-    "failures": [],
+    "failures": [
+      {
+        "jcd": "16",
+        "name": "児島",
+        "error": "HTTPError: playback check failed"
+      }
+    ],
     "deferred": [
       {
         "jcd": "02",
@@ -90,11 +96,6 @@
         "jcd": "13",
         "name": "尼崎",
         "start": "2026-11-14T10:02:00+09:00"
-      },
-      {
-        "jcd": "16",
-        "name": "児島",
-        "start": "2026-11-14T09:40:00+09:00"
       },
       {
         "jcd": "22",
@@ -1053,8 +1054,7 @@
           "name": "記者選抜戦"
         }
       ],
-      "provider_stream_start": "2026-11-14T09:40:00+09:00",
-      "source": "公式BR配信開始待ち 09:40"
+      "source": "automatic cloud SEED pending"
     },
     "boat.wakamatsu": {
       "jcd": "20",
@@ -1251,14 +1251,14 @@
       "last_race": "14:24",
       "alert_from": "2026-11-14T08:17:00+09:00",
       "next_race": {
-        "race": 3,
-        "start": "09:39"
+        "race": 4,
+        "start": "10:05"
       },
       "stream_window": "live_or_prestart",
       "intermission": null,
       "guidance_switch_at": "2026-11-14T15:09:00+09:00",
       "seed_required": false,
-      "reverify_due": true,
+      "reverify_due": false,
       "playback_verified": true,
       "first_verified_at": "2026-11-14T08:12:35.651492+09:00",
       "ready_before_first_race": true,
