@@ -1,7 +1,7 @@
 #EXTM3U url-tvg="https://raw.githubusercontent.com/ajiousama/himitsu/main/guides.xml,https://raw.githubusercontent.com/ajiousama/himitsu/main/cafeaulait_epg.xml" tvg-shift=0 m3uautoload=1
-# FreeWiFi + Cafe au lait M3U IPTV catch-up test (derived; source files unchanged).
-# Coffee channels inserted immediately after existing corresponding channels; unmatched added at the end of matching broadcast section.
-# EPG from FreeWiFi and Cafe au lait via comma-separated XMLTV sources (verify in the player).
+# FreeWiFi + Cafe au lait catch-up M3U IPTV test (independent file; both original sources untouched).
+# 100 coffee catch-up channels inserted after existing channels; unmatched placed in the corresponding terrestrial/BS/CS/other section.
+# EPG combines FreeWiFi and Coffee XMLTV URL sources; final M3U IPTV device confirmation pending.
 
 
 ## 地上波
@@ -337,7 +337,7 @@ https://coffee.linxei.biz.id/stream/jp/fishing_vision/stream-output.m3u8?mode=hl
 
 #EXTINF:-1 tvg-id="ディズニー・チャンネル_jp" tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/contrast/jp_b93dc44a.png" group-title="BS 5002直",ディズニー・チャンネル (5002直)
 http://67.215.237.218:5002/bs24.m3u8?gid=bs24&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0
-#EXTINF:-1 group-title="BS 5002直" tvg-id="BS12トゥエルビ_jp" tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/contrast/BS12__jp_32be4909.png" catchup="default" catchup-days="5" catchup-source="https://coffee.linxei.biz.id/stream/jp/bs_12/replay.m3u8?mode=hls&start={utc}",☕BS 12（coffee）
+#EXTINF:-1 group-title="BS 5002直" tvg-id="BS12トゥエルビ_jp" tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/contrast/BS12__jp_ce178653.png" catchup="default" catchup-days="5" catchup-source="https://coffee.linxei.biz.id/stream/jp/bs_12/replay.m3u8?mode=hls&start={utc}",☕BS 12（coffee）
 https://coffee.linxei.biz.id/stream/jp/bs_12/stream-output.m3u8?mode=hls
 
 #EXTINF:-1 group-title="BS 5002直" tvg-id="BSよしもと_jp" tvg-logo="https://p.sankuria.sbs/icons/icon_35.png" catchup="default" catchup-days="5" catchup-source="https://coffee.linxei.biz.id/stream/jp/bs_yoshimoto/replay.m3u8?mode=hls&start={utc}",☕BS Yoshimoto（coffee）
@@ -346,13 +346,13 @@ https://coffee.linxei.biz.id/stream/jp/bs_yoshimoto/stream-output.m3u8?mode=hls
 #EXTINF:-1 group-title="BS 5002直" tvg-id="BS10_jp" tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/contrast/BS10_jp_94db3b3f.png" catchup="default" catchup-days="5" catchup-source="https://coffee.linxei.biz.id/stream/jp/bs10/replay.m3u8?mode=hls&start={utc}",☕BS10（coffee）
 https://coffee.linxei.biz.id/stream/jp/bs10/stream-output.m3u8?mode=hls
 
-#EXTINF:-1 group-title="BS 5002直" tvg-id="BS11-イレブン_jp" tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/contrast/BS11_jp_ad0e2345.png" catchup="default" catchup-days="5" catchup-source="https://coffee.linxei.biz.id/stream/jp/bs11/replay.m3u8?mode=hls&start={utc}",☕BS11（coffee）
+#EXTINF:-1 group-title="BS 5002直" tvg-id="BS11-イレブン_jp" tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/contrast/BS11-__jp_6f2059d6.png" catchup="default" catchup-days="5" catchup-source="https://coffee.linxei.biz.id/stream/jp/bs11/replay.m3u8?mode=hls&start={utc}",☕BS11（coffee）
 https://coffee.linxei.biz.id/stream/jp/bs11/stream-output.m3u8?mode=hls
 
 #EXTINF:-1 group-title="BS 5002直" tvg-id="nhk_bs_2" tvg-logo="https://p.sankuria.sbs/icons/icon_17.png" catchup="default" catchup-days="5" catchup-source="https://coffee.linxei.biz.id/stream/jp/nhk_bs_2/replay.m3u8?mode=hls&start={utc}",☕NHK BS 2（coffee）
 https://coffee.linxei.biz.id/stream/jp/nhk_bs_2/stream-output.m3u8?mode=hls
 
-#EXTINF:-1 group-title="BS 5002直" tvg-id="WOWOWプラス_jp" tvg-logo="https://p.sankuria.sbs/icons/icon_30.png" catchup="default" catchup-days="5" catchup-source="https://coffee.linxei.biz.id/stream/jp/wowow_plus/replay.m3u8?mode=hls&start={utc}",☕WOWOW Plus（coffee）
+#EXTINF:-1 group-title="BS 5002直" tvg-id="WOWOWプラス_jp" tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/contrast/WOWOW__jp_03208fd5.png" catchup="default" catchup-days="5" catchup-source="https://coffee.linxei.biz.id/stream/jp/wowow_plus/replay.m3u8?mode=hls&start={utc}",☕WOWOW Plus（coffee）
 https://coffee.linxei.biz.id/stream/jp/wowow_plus/stream-output.m3u8?mode=hls
 
 
@@ -585,22 +585,22 @@ https://coffee.linxei.biz.id/stream/jp/jidaigeki_senmon/stream-output.m3u8?mode=
 
 #EXTINF:-1 tvg-id="ミュージック・ジャパンTV_jp" tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/contrast/TV_jp_90f1810e.png" group-title="CS sinori",ミュージック・ジャパンTV（sinori）
 https://ri.shinori.my.id/pxx.php?shk_cid=cs06
-#EXTINF:-1 group-title="CS sinori" tvg-id="アニメシアター(AT-X)_jp" tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/contrast/AT-X_jp_c645bf70.png" catchup="default" catchup-days="5" catchup-source="https://coffee.linxei.biz.id/stream/jp/at-x/replay.m3u8?mode=hls&start={utc}",☕AT-X（coffee）
+#EXTINF:-1 group-title="CS sinori" tvg-id="アニメシアター(AT-X)_jp" tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/contrast/AT-X__jp_b86f77fa.png" catchup="default" catchup-days="5" catchup-source="https://coffee.linxei.biz.id/stream/jp/at-x/replay.m3u8?mode=hls&start={utc}",☕AT-X（coffee）
 https://coffee.linxei.biz.id/stream/jp/at-x/stream-output.m3u8?mode=hls
 
 #EXTINF:-1 group-title="CS sinori" tvg-id="アクションチャンネル_jp" tvg-logo="https://p.sankuria.sbs/icons/icon_56.png" catchup="default" catchup-days="5" catchup-source="https://coffee.linxei.biz.id/stream/jp/action_channel/replay.m3u8?mode=hls&start={utc}",☕Action Channel（coffee）
 https://coffee.linxei.biz.id/stream/jp/action_channel/stream-output.m3u8?mode=hls
 
-#EXTINF:-1 group-title="CS sinori" tvg-id="Dlife(ディーライフ)_jp" tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/contrast/Dlife_jp_56013224.png" catchup="default" catchup-days="5" catchup-source="https://coffee.linxei.biz.id/stream/jp/dlife/replay.m3u8?mode=hls&start={utc}",☕DLife（coffee）
+#EXTINF:-1 group-title="CS sinori" tvg-id="Dlife(ディーライフ)_jp" tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/contrast/Dlife__jp_6bbae6a4.png" catchup="default" catchup-days="5" catchup-source="https://coffee.linxei.biz.id/stream/jp/dlife/replay.m3u8?mode=hls&start={utc}",☕DLife（coffee）
 https://coffee.linxei.biz.id/stream/jp/dlife/stream-output.m3u8?mode=hls
 
-#EXTINF:-1 group-title="CS sinori" tvg-id="FIGHTING-TV-サムライ_jp" tvg-logo="https://p.sankuria.sbs/icons/icon_62.png" catchup="default" catchup-days="5" catchup-source="https://coffee.linxei.biz.id/stream/jp/fighting_tv_samurai/replay.m3u8?mode=hls&start={utc}",☕Fighting TV Samurai（coffee）
+#EXTINF:-1 group-title="CS sinori" tvg-id="FIGHTING-TV-サムライ_jp" tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/contrast/FIGHTING-TV-__jp_ec5353b6.png" catchup="default" catchup-days="5" catchup-source="https://coffee.linxei.biz.id/stream/jp/fighting_tv_samurai/replay.m3u8?mode=hls&start={utc}",☕Fighting TV Samurai（coffee）
 https://coffee.linxei.biz.id/stream/jp/fighting_tv_samurai/stream-output.m3u8?mode=hls
 
-#EXTINF:-1 group-title="CS sinori" tvg-id="フジテレビONE_jp" tvg-logo="https://p.sankuria.sbs/icons/icon_70.png" catchup="default" catchup-days="5" catchup-source="https://coffee.linxei.biz.id/stream/jp/fuji_tv_one/replay.m3u8?mode=hls&start={utc}",☕Fuji TV ONE（coffee）
+#EXTINF:-1 group-title="CS sinori" tvg-id="フジテレビONE_jp" tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/contrast/ONE_jp_0a9d2767.png" catchup="default" catchup-days="5" catchup-source="https://coffee.linxei.biz.id/stream/jp/fuji_tv_one/replay.m3u8?mode=hls&start={utc}",☕Fuji TV ONE（coffee）
 https://coffee.linxei.biz.id/stream/jp/fuji_tv_one/stream-output.m3u8?mode=hls
 
-#EXTINF:-1 group-title="CS sinori" tvg-id="フジテレビTWO_jp" tvg-logo="https://p.sankuria.sbs/icons/icon_71.png" catchup="default" catchup-days="5" catchup-source="https://coffee.linxei.biz.id/stream/jp/fuji_tv_two/replay.m3u8?mode=hls&start={utc}",☕Fuji TV TWO（coffee）
+#EXTINF:-1 group-title="CS sinori" tvg-id="フジテレビTWO_jp" tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/contrast/TWO_jp_d10ad50c.png" catchup="default" catchup-days="5" catchup-source="https://coffee.linxei.biz.id/stream/jp/fuji_tv_two/replay.m3u8?mode=hls&start={utc}",☕Fuji TV TWO（coffee）
 https://coffee.linxei.biz.id/stream/jp/fuji_tv_two/stream-output.m3u8?mode=hls
 
 #EXTINF:-1 group-title="CS sinori" tvg-id="KBS-WORLD_jp" tvg-logo="https://p.sankuria.sbs/icons/icon_kbs.png" catchup="default" catchup-days="5" catchup-source="https://coffee.linxei.biz.id/stream/jp/kbs_world/replay.m3u8?mode=hls&start={utc}",☕KBS World（coffee）
@@ -609,7 +609,7 @@ https://coffee.linxei.biz.id/stream/jp/kbs_world/stream-output.m3u8?mode=hls
 #EXTINF:-1 group-title="CS sinori" tvg-id="jcom_120_174_65406" tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/contrast/KNTV_jp_0ad100ed.png" catchup="default" catchup-days="5" catchup-source="https://coffee.linxei.biz.id/stream/jp/kntv/replay.m3u8?mode=hls&start={utc}",☕KNTV（coffee）
 https://coffee.linxei.biz.id/stream/jp/kntv/stream-output.m3u8?mode=hls
 
-#EXTINF:-1 group-title="CS sinori" tvg-id="メ～テレNEXT_jp" tvg-logo="https://p.sankuria.sbs/icons/icon_mtele.png" catchup="default" catchup-days="5" catchup-source="https://coffee.linxei.biz.id/stream/jp/me-tele_next/replay.m3u8?mode=hls&start={utc}",☕Me-Tele NEXT（coffee）
+#EXTINF:-1 group-title="CS sinori" tvg-id="メ～テレNEXT_jp" tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/contrast/NEXT_jp_f79ac090.png" catchup="default" catchup-days="5" catchup-source="https://coffee.linxei.biz.id/stream/jp/me-tele_next/replay.m3u8?mode=hls&start={utc}",☕Me-Tele NEXT（coffee）
 https://coffee.linxei.biz.id/stream/jp/me-tele_next/stream-output.m3u8?mode=hls
 
 #EXTINF:-1 group-title="CS sinori" tvg-id="Mnet_jp" tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/contrast/Mnet_jp_e61233ac.png" catchup="default" catchup-days="5" catchup-source="https://coffee.linxei.biz.id/stream/jp/mnet/replay.m3u8?mode=hls&start={utc}",☕Mnet（coffee）
@@ -618,16 +618,16 @@ https://coffee.linxei.biz.id/stream/jp/mnet/stream-output.m3u8?mode=hls
 #EXTINF:-1 group-title="CS sinori" tvg-id="ミュージック・ジャパンTV_jp" tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/contrast/TV_jp_90f1810e.png" catchup="default" catchup-days="5" catchup-source="https://coffee.linxei.biz.id/stream/jp/music_japan_tv/replay.m3u8?mode=hls&start={utc}",☕Music Japan TV（coffee）
 https://coffee.linxei.biz.id/stream/jp/music_japan_tv/stream-output.m3u8?mode=hls
 
-#EXTINF:-1 group-title="CS sinori" tvg-id="MUSIC-ON!-TV(エムオン!)_jp" tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/contrast/MUSIC-ON-TV_jp_8999f3ed.png" catchup="default" catchup-days="5" catchup-source="https://coffee.linxei.biz.id/stream/jp/music_on_tv/replay.m3u8?mode=hls&start={utc}",☕Music ON TV（coffee）
+#EXTINF:-1 group-title="CS sinori" tvg-id="MUSIC-ON!-TV(エムオン!)_jp" tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/contrast/MUSIC-ON_-TV__jp_8032ea03.png" catchup="default" catchup-days="5" catchup-source="https://coffee.linxei.biz.id/stream/jp/music_on_tv/replay.m3u8?mode=hls&start={utc}",☕Music ON TV（coffee）
 https://coffee.linxei.biz.id/stream/jp/music_on_tv/stream-output.m3u8?mode=hls
 
-#EXTINF:-1 group-title="CS sinori" tvg-id="ミステリーチャンネル_jp" tvg-logo="https://p.sankuria.sbs/icons/icon_57.png" catchup="default" catchup-days="5" catchup-source="https://coffee.linxei.biz.id/stream/jp/mystery_channel/replay.m3u8?mode=hls&start={utc}",☕Mystery Channel（coffee）
+#EXTINF:-1 group-title="CS sinori" tvg-id="ミステリーチャンネル_jp" tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/contrast/jp_910cb8e1.png" catchup="default" catchup-days="5" catchup-source="https://coffee.linxei.biz.id/stream/jp/mystery_channel/replay.m3u8?mode=hls&start={utc}",☕Mystery Channel（coffee）
 https://coffee.linxei.biz.id/stream/jp/mystery_channel/stream-output.m3u8?mode=hls
 
-#EXTINF:-1 group-title="CS sinori" tvg-id="映画・チャンネルNECO_jp" tvg-logo="https://p.sankuria.sbs/icons/icon_46.png" catchup="default" catchup-days="5" catchup-source="https://coffee.linxei.biz.id/stream/jp/neco_ch/replay.m3u8?mode=hls&start={utc}",☕NECO Ch（coffee）
+#EXTINF:-1 group-title="CS sinori" tvg-id="映画・チャンネルNECO_jp" tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/contrast/NECO_jp_215e6c90.png" catchup="default" catchup-days="5" catchup-source="https://coffee.linxei.biz.id/stream/jp/neco_ch/replay.m3u8?mode=hls&start={utc}",☕NECO Ch（coffee）
 https://coffee.linxei.biz.id/stream/jp/neco_ch/stream-output.m3u8?mode=hls
 
-#EXTINF:-1 group-title="CS sinori" tvg-id="日テレプラス_jp" tvg-logo="https://p.sankuria.sbs/icons/icon_68.png" catchup="default" catchup-days="5" catchup-source="https://coffee.linxei.biz.id/stream/jp/nittele_plus/replay.m3u8?mode=hls&start={utc}",☕Nittele Plus（coffee）
+#EXTINF:-1 group-title="CS sinori" tvg-id="日テレプラス_jp" tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/contrast/jp_df371977.png" catchup="default" catchup-days="5" catchup-source="https://coffee.linxei.biz.id/stream/jp/nittele_plus/replay.m3u8?mode=hls&start={utc}",☕Nittele Plus（coffee）
 https://coffee.linxei.biz.id/stream/jp/nittele_plus/stream-output.m3u8?mode=hls
 
 #EXTINF:-1 group-title="CS sinori" tvg-id="ヌーヴェルパラダイス_jp" tvg-logo="https://www.skyperfectv.co.jp/library/common/img/channel/icon/premium/m_535.gif" catchup="default" catchup-days="5" catchup-source="https://coffee.linxei.biz.id/stream/jp/nouvelle_paradise/replay.m3u8?mode=hls&start={utc}",☕Nouvelle Paradise（coffee）
@@ -636,29 +636,26 @@ https://coffee.linxei.biz.id/stream/jp/nouvelle_paradise/stream-output.m3u8?mode
 #EXTINF:-1 group-title="CS sinori" tvg-id="Pigoo_jp" tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/contrast/Pigoo_jp_daa9c17a.png" catchup="default" catchup-days="5" catchup-source="https://coffee.linxei.biz.id/stream/jp/pigoo_nsfw/replay.m3u8?mode=hls&start={utc}",☕Pigoo NSFW（coffee）
 https://coffee.linxei.biz.id/stream/jp/pigoo_nsfw/stream-output.m3u8?mode=hls
 
-#EXTINF:-1 group-title="CS sinori" tvg-id="スポーツライブ+_jp" tvg-logo="https://p.sankuria.sbs/icons/icon_63.png" catchup="default" catchup-days="5" catchup-source="https://coffee.linxei.biz.id/stream/jp/sport_live_plus/replay.m3u8?mode=hls&start={utc}",☕Sport Live Plus（coffee）
+#EXTINF:-1 group-title="CS sinori" tvg-id="スポーツライブ+_jp" tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/contrast/jp_cfb29f8a.png" catchup="default" catchup-days="5" catchup-source="https://coffee.linxei.biz.id/stream/jp/sport_live_plus/replay.m3u8?mode=hls&start={utc}",☕Sport Live Plus（coffee）
 https://coffee.linxei.biz.id/stream/jp/sport_live_plus/stream-output.m3u8?mode=hls
 
-#EXTINF:-1 group-title="CS sinori" tvg-id="TBSチャンネル1_jp" tvg-logo="https://p.sankuria.sbs/icons/icon_64.png" catchup="default" catchup-days="5" catchup-source="https://coffee.linxei.biz.id/stream/jp/tbs_channel_1/replay.m3u8?mode=hls&start={utc}",☕TBS Channel 1（coffee）
+#EXTINF:-1 group-title="CS sinori" tvg-id="TBSチャンネル1_jp" tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/contrast/TBS_1_jp_e74559ab.png" catchup="default" catchup-days="5" catchup-source="https://coffee.linxei.biz.id/stream/jp/tbs_channel_1/replay.m3u8?mode=hls&start={utc}",☕TBS Channel 1（coffee）
 https://coffee.linxei.biz.id/stream/jp/tbs_channel_1/stream-output.m3u8?mode=hls
 
-#EXTINF:-1 group-title="CS sinori" tvg-id="TBSチャンネル2_jp" tvg-logo="https://p.sankuria.sbs/icons/icon_65.png" catchup="default" catchup-days="5" catchup-source="https://coffee.linxei.biz.id/stream/jp/tbs_channel_2/replay.m3u8?mode=hls&start={utc}",☕TBS Channel 2（coffee）
+#EXTINF:-1 group-title="CS sinori" tvg-id="TBSチャンネル2_jp" tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/contrast/TBS_2_jp_7969e0f4.png" catchup="default" catchup-days="5" catchup-source="https://coffee.linxei.biz.id/stream/jp/tbs_channel_2/replay.m3u8?mode=hls&start={utc}",☕TBS Channel 2（coffee）
 https://coffee.linxei.biz.id/stream/jp/tbs_channel_2/stream-output.m3u8?mode=hls
 
-#EXTINF:-1 group-title="CS sinori" tvg-id="テレ朝チャンネル1_jp" tvg-logo="https://p.sankuria.sbs/icons/icon_66.png" catchup="default" catchup-days="5" catchup-source="https://coffee.linxei.biz.id/stream/jp/tv_asahi_channel_1/replay.m3u8?mode=hls&start={utc}",☕TV Asahi Channel 1（coffee）
+#EXTINF:-1 group-title="CS sinori" tvg-id="テレ朝チャンネル1_jp" tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/contrast/1_jp_06375d77.png" catchup="default" catchup-days="5" catchup-source="https://coffee.linxei.biz.id/stream/jp/tv_asahi_channel_1/replay.m3u8?mode=hls&start={utc}",☕TV Asahi Channel 1（coffee）
 https://coffee.linxei.biz.id/stream/jp/tv_asahi_channel_1/stream-output.m3u8?mode=hls
 
-#EXTINF:-1 group-title="CS sinori" tvg-id="テレ朝チャンネル2_jp" tvg-logo="https://p.sankuria.sbs/icons/icon_67.png" catchup="default" catchup-days="5" catchup-source="https://coffee.linxei.biz.id/stream/jp/tv_asahi_channel_2/replay.m3u8?mode=hls&start={utc}",☕TV Asahi Channel 2（coffee）
+#EXTINF:-1 group-title="CS sinori" tvg-id="テレ朝チャンネル2_jp" tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/contrast/2_jp_fcfc063b.png" catchup="default" catchup-days="5" catchup-source="https://coffee.linxei.biz.id/stream/jp/tv_asahi_channel_2/replay.m3u8?mode=hls&start={utc}",☕TV Asahi Channel 2（coffee）
 https://coffee.linxei.biz.id/stream/jp/tv_asahi_channel_2/stream-output.m3u8?mode=hls
 
-#EXTINF:-1 group-title="CS sinori" tvg-id="ザ・シネマ_jp" tvg-logo="https://p.sankuria.sbs/icons/icon_47.png" catchup="default" catchup-days="5" catchup-source="https://coffee.linxei.biz.id/stream/jp/the_cinema/replay.m3u8?mode=hls&start={utc}",☕The Cinema（coffee）
+#EXTINF:-1 group-title="CS sinori" tvg-id="ザ・シネマ_jp" tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/contrast/jp_bd18defc.png" catchup="default" catchup-days="5" catchup-source="https://coffee.linxei.biz.id/stream/jp/the_cinema/replay.m3u8?mode=hls&start={utc}",☕The Cinema（coffee）
 https://coffee.linxei.biz.id/stream/jp/the_cinema/stream-output.m3u8?mode=hls
 
 #EXTINF:-1 group-title="CS sinori" tvg-id="V-パラダイス_jp" tvg-logo="https://p.sankuria.sbs/icons/icon_vpara.png" catchup="default" catchup-days="5" catchup-source="https://coffee.linxei.biz.id/stream/jp/v_paradise_nsfw/replay.m3u8?mode=hls&start={utc}",☕V Paradise NSFW（coffee）
 https://coffee.linxei.biz.id/stream/jp/v_paradise_nsfw/stream-output.m3u8?mode=hls
-
-#EXTINF:-1 group-title="CS sinori" tvg-id="weather_news" tvg-logo="https://p.sankuria.sbs/icons/icon_101.png" catchup="default" catchup-days="5" catchup-source="https://coffee.linxei.biz.id/stream/jp/weather_news/replay.m3u8?mode=hls&start={utc}",☕Weather News（coffee）
-https://coffee.linxei.biz.id/stream/jp/weather_news/stream-output.m3u8?mode=hls
 
 
 # === MANUAL_TV_START ===
@@ -828,6 +825,9 @@ https://coffee.linxei.biz.id/stream/jp/ntv_news24/stream-output.m3u8?mode=hls
 https://kick-resolver-production.up.railway.app/kick?ch=gccx2
 #EXTINF:-1 group-title="その他" tvg-id="kick.nogizaka" tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/contrast/kick.nogizaka_0a20fd43.png",乃木坂(KICK)
 https://himitsu-six.vercel.app/api/kick?ch=nogizaka
+#EXTINF:-1 group-title="その他" tvg-id="weather_news" tvg-logo="https://p.sankuria.sbs/icons/icon_101.png" catchup="default" catchup-days="5" catchup-source="https://coffee.linxei.biz.id/stream/jp/weather_news/replay.m3u8?mode=hls&start={utc}",☕Weather News（coffee）
+https://coffee.linxei.biz.id/stream/jp/weather_news/stream-output.m3u8?mode=hls
+
 # === KICK_MANAGED_END ===
 
 
