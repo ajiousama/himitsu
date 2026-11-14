@@ -2,17 +2,6 @@ name: Update YouTube v3 Worker
 
 on:
   workflow_dispatch:
-  schedule:
-    # Recovery trigger only. The active worker refreshes special channels itself.
-    - cron: '17 21-23,0-14 * * *'  # JST 06:17-23:17 only
-  push:
-    branches: [main]
-    paths:
-      - 'youtube/config.json'
-      - 'youtube/manager.py'
-      - 'youtube/test_manager.py'
-      - 'youtube/generate_missing_logos.py'
-      - '.github/workflows/update_youtube.yml'
 
 permissions:
   contents: write
