@@ -2,10 +2,10 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-14",
-  "generated_at": "2026-11-14T12:45:22.868194+09:00",
+  "generated_at": "2026-11-14T12:46:22.867036+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261114.json",
-  "schedule_checked_at": "2026-11-14T12:31:22.815890+09:00",
+  "schedule_checked_at": "2026-11-14T12:46:22.867036+09:00",
   "schedule_warnings": [
     "official_cards: TimeoutError"
   ],
@@ -52,10 +52,16 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 11,
+    "requested": 12,
     "fetched": 11,
     "failures": [],
-    "deferred": []
+    "deferred": [
+      {
+        "jcd": "24",
+        "name": "大村",
+        "start": "2026-11-14T14:45:00+09:00"
+      }
+    ]
   },
   "epg_programmes_written": {
     "public_sports_epg_local.xml": 196,
@@ -385,7 +391,7 @@
         },
         {
           "race": 5,
-          "start": "12:44",
+          "start": "12:43",
           "name": "予選"
         },
         {
@@ -1524,7 +1530,8 @@
           "name": "一般特賞"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "provider_stream_start": "2026-11-14T14:45:00+09:00",
+      "source": "公式BR配信開始待ち 14:45"
     }
   }
 }
