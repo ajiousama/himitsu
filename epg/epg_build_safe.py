@@ -227,3 +227,59 @@ try:
     rakuten_epg_fix.main()
 except Exception as exc:
     print(f"::warning::Rakuten EPG authoritative repair skipped: {type(exc).__name__}: {exc}")
+
+
+# Merge Coffee-only EPG rows into the canonical FreeWiFi XMLTV.
+# IPTV clients using a single url-tvg must still see both the original TVer
+# schedules and Coffee-only channels. Never replace an existing programme grid.
+from copy import deepcopy
+
+coffee_path = Path("cafeaulait_epg.xml")
+if not coffee_path.is_file() or coffee_path.stat().st_size < 1000:
+    raise SystemExit("Coffee EPG absent; preserve the previously published guides.xml")
+
+lines = Path("freewifi").read_text(encoding="utf-8-sig").splitlines()
+coffee_ids = set()
+for i, line in enumerate(lines[:-1]):
+    if not line.startswith("#EXTINF:"):
+        continue
+    if not lines[i + 1].startswith("https://coffee.linxei.biz.id/stream/"):
+        continue
+    match = re.search(r'tvg-id="([^"]+)"', line)
+    if match:
+        coffee_ids.add(match.group(1))
+
+if len(coffee_ids) < 90:
+    raise SystemExit(f"Coffee EPG merge blocked: only {len(coffee_ids)} Coffee channels in FreeWiFi")
+
+tree = ET.parse(out)
+root = tree.getroot()
+cafe_root = ET.parse(coffee_path).getroot()
+guide_ids = {c.get("id") for c in root.findall("channel")}
+programmed_ids = {p.get("channel") for p in root.findall("programme")}
+cafe_channels = {c.get("id"): c for c in cafe_root.findall("channel")}
+cafe_programmes = {}
+for p in cafe_root.findall("programme"):
+    cid = p.get("channel")
+    if cid in coffee_ids and cid not in programmed_ids:
+        cafe_programmes.setdefault(cid, []).append(p)
+
+merged_channels = 0
+merged_programmes = 0
+for cid in sorted(coffee_ids):
+    programmes = cafe_programmes.get(cid, [])
+    if not programmes:
+        continue
+    if cid not in guide_ids:
+        source_ch = cafe_channels.get(cid)
+        if source_ch is None:
+            raise SystemExit(f"Coffee EPG missing channel metadata: {cid}")
+        root.append(deepcopy(source_ch))
+        guide_ids.add(cid)
+        merged_channels += 1
+    for p in programmes:
+        root.append(deepcopy(p))
+    merged_programmes += len(programmes)
+
+tree.write(out, encoding="utf-8", xml_declaration=True)
+print(f"Coffee EPG merged only missing guides: channels={merged_channels} programmes={merged_programmes}; existing TVer unchanged")
