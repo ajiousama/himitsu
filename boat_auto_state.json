@@ -2,10 +2,10 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-15",
-  "generated_at": "2026-11-15T08:13:01.737596+09:00",
+  "generated_at": "2026-11-15T08:15:01.687184+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261115.json",
-  "schedule_checked_at": "2026-11-15T07:59:16.731496+09:00",
+  "schedule_checked_at": "2026-11-15T08:15:01.687184+09:00",
   "schedule_warnings": [
     "official_cards: TimeoutError"
   ],
@@ -52,10 +52,15 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 7,
+    "requested": 8,
     "fetched": 2,
     "failures": [],
     "deferred": [
+      {
+        "jcd": "02",
+        "name": "戸田",
+        "start": "2026-11-15T10:09:00+09:00"
+      },
       {
         "jcd": "08",
         "name": "常滑",
@@ -214,7 +219,8 @@
           "name": "優勝戦"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "provider_stream_start": "2026-11-15T10:09:00+09:00",
+      "source": "公式BR配信開始待ち 10:09"
     },
     "boat.edogawa": {
       "jcd": "03",
