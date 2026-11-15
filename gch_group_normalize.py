@@ -27,6 +27,9 @@ def tvg_id(line: str) -> str:
 def is_gch_entry(line: str) -> bool:
     if not line.startswith('#EXTINF:'):
         return False
+    # Coffee's separate BS channel must not be moved into Today's Racing Venues.
+    if 'グリーンチャンネル（coffee）' in line or '☕Green Channel（coffee）' in line:
+        return False
     if tvg_id(line) in GCH_IDS:
         return True
     return any(marker.lower() in line.lower() for marker in GCH_NAME_MARKERS)
