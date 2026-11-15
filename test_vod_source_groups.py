@@ -71,7 +71,8 @@ class VodGroupTests(unittest.TestCase):
                     or "放送順・位置から仮推定" in line
                     or "映像OCR候補" in line
                     or "前後の映像から継続推定" in line
-                    or "映像あり・区間境界は仮" in line,
+                    or "映像あり・区間境界は仮" in line
+                    or "番組開始位置は映像確認済・終点未確定" in line,
                     "Existing GCCX navigation slice lost its title evidence"
                 )
 
@@ -105,7 +106,8 @@ class VodGroupTests(unittest.TestCase):
         self.assertEqual(expected_ids, actual_ids)
         for info in grouped:
             self.assertTrue("映像あり・区間境界は仮" in info
-                            or "前後の映像から継続推定" in info)
+                            or "前後の映像から継続推定" in info
+                            or "番組開始位置は映像確認済・終点未確定" in info)
 
     def test_kick_catalog_still_mirrored(self):
         self.assertEqual((ROOT/"VOD5").read_bytes(),(ROOT/"vod5/playlist.m3u").read_bytes())
