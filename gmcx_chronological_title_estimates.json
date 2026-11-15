@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "notes": "Always lower-confidence than video-frame or robust full-title OCR observations. The 58-minute cuts ARE NOT verified broadcast boundaries. These are best-effort episode-order labels, never confirmed independent episode splits.",
+  "notes": "Always lower-confidence than video-frame or robust full-title OCR observations. The 58-minute cuts ARE NOT verified broadcast boundaries. These are best-effort episode-order labels, never confirmed independent episode splits. IMPORTANT: When a long broadcast starts, chronological episode-number guessing is suspended. Only new video evidence may re-anchor it; do not simply advance an episode per 58min.",
   "rules": [
     {
       "source_vod_id": "e4f91158-8a0e-4c75-9fb4-eab36c247464",
@@ -11,7 +11,9 @@
       "last_episode": 139,
       "early_special_title": null,
       "confidence": "provisional_chronological_inference",
-      "notes": "Video frames at 0,3480,6960,13920,20880 and 45240 align with #90,#91,#92,#94,#96,#103; alternate live specials can occupy slices."
+      "notes": "Video frames at 0,3480,6960,13920,20880 and 45240 align with #90,#91,#92,#94,#96,#103; alternate live specials can occupy slices. Long live programme invalidates 58min=1 episode progression; after the start, only directly observed game titles may be treated as identifiable episodes.",
+      "disable_episode_sequence_at_or_after_seconds": 76560,
+      "post_special_label": "5時間生放送以降・通常回再開位置を確認中"
     },
     {
       "source_vod_id": "5847ae05-893e-4ae8-986e-bf0abf888ecf",
@@ -22,7 +24,9 @@
       "last_episode": 115,
       "early_special_title": null,
       "confidence": "provisional_chronological_inference",
-      "notes": "First slices include 2009 live/event footage then visible #79 レイラ and #80 カービィ."
+      "notes": "First slices include 2009 live/event footage then visible #79 レイラ and #80 カービィ. Long live programme invalidates 58min=1 episode progression; after the start, only directly observed game titles may be treated as identifiable episodes.",
+      "disable_episode_sequence_at_or_after_seconds": 52200,
+      "post_special_label": "レミングス（24時間）以降・通常回再開位置を確認中"
     },
     {
       "source_vod_id": "f622346e-33ac-454d-92a5-33b97f89f936",
@@ -47,10 +51,12 @@
       "last_episode": 83,
       "early_special_title": "ゲームセンターCX 2007年末特別編（ボンバーマン／カイの冒険）",
       "confidence": "provisional_chronological_inference",
-      "notes": "After 2007 special block, video title of #61 東海道五十三次 observed at VOD95152 (navigation index12); other offsets extrapolated. Actual #61 東海道五十三次 gameplay continues in slot 13, originally presumed #62; shift later episode estimates back one.",
+      "notes": "After 2007 special block, video title of #61 東海道五十三次 observed at VOD95152 (navigation index12); other offsets extrapolated. Actual #61 東海道五十三次 gameplay continues in slot 13, originally presumed #62; shift later episode estimates back one. Long live programme invalidates 58min=1 episode progression; after the start, only directly observed game titles may be treated as identifiable episodes.",
       "episode_repeat_slots": [
         13
-      ]
+      ],
+      "disable_episode_sequence_at_or_after_seconds": 59152,
+      "post_special_label": "カイの冒険・3時間生放送以降の通常回再開位置を確認中"
     }
   ]
 }
