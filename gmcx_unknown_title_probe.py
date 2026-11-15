@@ -35,18 +35,18 @@ def normalized(value: str) -> str:
 
 
 def title_keys(title: str) -> set[str]:
-    parts = [title]
-    parts += re.split(r"[（(「『～〜/:：]", title)[:2]
-    parts += [x for x in title.split() if len(normalized(x)) >= 4]
-    keys = {normalized(x) for x in parts}
-    return {x for x in keys if len(x) >= 4}
+    # Full game names only. Publisher/series substrings cause severe false
+    # positives (TAITO -> TAITO CHASE H.Q., CORE -> ARMORED CORE).
+    # Trim only episode suffixes like （前編）, not arbitrary game words.
+    base = re.sub(r"（(?:前編|後編|完結編|その\\d+|第\\d+回)）$", "", title)
+    keys = {normalized(title), normalized(base)}
+    return {key for key in keys if len(key) >= 5}
 
 
 def identify_title(text: str, titles: dict) -> dict | None:
     lines = [normalized(line) for line in text.splitlines()]
     lines = [line for line in lines if len(line) >= 4]
-    full = normalized(text)
-    if not lines or not full:
+    if not lines:
         return None
     scores = []
     for number, title in titles.items():
@@ -55,16 +55,16 @@ def identify_title(text: str, titles: dict) -> dict | None:
             continue
         best = 0.0
         for key in keys:
-            if key in full:
-                best = max(best, 1.0 if len(key) >= 6 else 0.92)
-            elif len(key) >= 6:
+            if any(key in line for line in lines):
+                best = max(best, 1.0)
+            elif len(key) >= 8:
                 similarity = max(
-                    (difflib.SequenceMatcher(None, key, line[:max(len(key) + 8, 24)]).ratio()
-                     for line in lines), default=0.0
+                    (difflib.SequenceMatcher(None, key, line).ratio()
+                     for line in lines if abs(len(line)-len(key)) <= 3), default=0.0
                 )
-                if similarity >= 0.90:
-                    best = max(best, similarity * 0.94)
-        if best >= 0.84:
+                if similarity >= 0.96:
+                    best = max(best, similarity * 0.93)
+        if best >= 0.89:
             scores.append((best, int(number), title))
     if not scores:
         return None
