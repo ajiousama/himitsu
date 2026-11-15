@@ -1,0 +1,134 @@
+{
+  "schema_version": 1,
+  "notes": "Video-anchored continuous programme groups over existing short VOD5 navigation slots. NEVER combine into multi-hour raw playlist entries. Preserve independently checked game labels and distinguish unseen intervening slots as tentative. Group bounds are navigation windows, not verified broadcast boundary timestamps.",
+  "groups": [
+    {
+      "group_id": "shiren-92-93",
+      "source_vod_id": "e4f91158-8a0e-4c75-9fb4-eab36c247464",
+      "source_url": "https://stream.kick.com/0f3cb0ebce7/ivs/v1/196233775518/59bB9isG3qqM/2026/11/13/1/43/iZuzuPekW3ea/media/hls/master.m3u8",
+      "start_seconds": 6960,
+      "end_seconds": 13920,
+      "title": "風来のシレン（前編・後編）",
+      "evidence_anchor_starts": [
+        6960,
+        10440
+      ],
+      "confidence": "video_anchored_continuity_estimate",
+      "notes": "Two adjacent video-confirmed challenge clips, programme #92 and #93 remain separate episodes but one game series."
+    },
+    {
+      "group_id": "ninja-gaiden2-96-97",
+      "source_vod_id": "e4f91158-8a0e-4c75-9fb4-eab36c247464",
+      "source_url": "https://stream.kick.com/0f3cb0ebce7/ivs/v1/196233775518/59bB9isG3qqM/2026/11/13/1/43/iZuzuPekW3ea/media/hls/master.m3u8",
+      "start_seconds": 20880,
+      "end_seconds": 27840,
+      "title": "忍者龍剣伝II 暗黒の邪神剣（前編・後編）",
+      "evidence_anchor_starts": [
+        20880,
+        24360
+      ],
+      "confidence": "video_anchored_continuity_estimate",
+      "notes": "Two adjacent video-confirmed clips of same Ninja Gaiden II game. Do not merge episode numbers."
+    },
+    {
+      "group_id": "ocarina-zelda",
+      "source_vod_id": "e4f91158-8a0e-4c75-9fb4-eab36c247464",
+      "source_url": "https://stream.kick.com/0f3cb0ebce7/ivs/v1/196233775518/59bB9isG3qqM/2026/11/13/1/43/iZuzuPekW3ea/media/hls/master.m3u8",
+      "start_seconds": 69600,
+      "end_seconds": 76560,
+      "title": "ゼルダの伝説 時のオカリナ",
+      "evidence_anchor_starts": [
+        69600,
+        73080
+      ],
+      "confidence": "video_anchored_continuity_estimate",
+      "notes": "Actual Zelda gameplay captured in both consecutive ~58m navigation windows; exact break and two-part boundaries remain provisional."
+    },
+    {
+      "group_id": "live-five-hour",
+      "source_vod_id": "e4f91158-8a0e-4c75-9fb4-eab36c247464",
+      "source_url": "https://stream.kick.com/0f3cb0ebce7/ivs/v1/196233775518/59bB9isG3qqM/2026/11/13/1/43/iZuzuPekW3ea/media/hls/master.m3u8",
+      "start_seconds": 76560,
+      "end_seconds": 93960,
+      "title": "ゲームセンターCX 5時間生放送",
+      "evidence_anchor_starts": [
+        76560,
+        80040,
+        87000
+      ],
+      "confidence": "video_anchored_continuity_estimate",
+      "notes": "On-screen 5時間生放送中 and LIVE at 76560/80040; an ongoing live broadcast at 87000. Other game segments within broadcast are intentionally grouped under the live programme."
+    },
+    {
+      "group_id": "lemmings-24h",
+      "source_vod_id": "5847ae05-893e-4ae8-986e-bf0abf888ecf",
+      "source_url": "https://stream.kick.com/0f3cb0ebce7/ivs/v1/196233775518/59bB9isG3qqM/2026/11/11/9/8/vR0FX9w903WX/media/hls/master.m3u8",
+      "start_seconds": 52200,
+      "end_seconds": 131723,
+      "title": "レミングス 24時間生放送",
+      "evidence_anchor_starts": [
+        52200,
+        76560,
+        104400
+      ],
+      "confidence": "video_anchored_continuity_estimate",
+      "notes": "Lemmings live broadcast visible at 52200, 76560 and 104400. Unseen gaps and after 104400 to recording end are continuity estimates; not visually confirmed every minute. Keep 58-min navigation as 23 parts."
+    },
+    {
+      "group_id": "bomberman-programme",
+      "source_vod_id": "df1386fd-4bd1-41ae-ac64-743ff49a838f",
+      "source_url": "https://stream.kick.com/0f3cb0ebce7/ivs/v1/196233775518/59bB9isG3qqM/2026/11/9/9/8/QCW5sqENK6TO/media/hls/master.m3u8",
+      "start_seconds": 52213,
+      "end_seconds": 59173,
+      "title": "ボンバーマン／最北端ゲーム紀行",
+      "evidence_anchor_starts": [
+        52213,
+        55693
+      ],
+      "confidence": "video_anchored_continuity_estimate",
+      "notes": "Bomberman footage at the first and second navigation window; the second window also contains 最北端ゲーム紀行."
+    },
+    {
+      "group_id": "kai-live-2007",
+      "source_vod_id": "df1386fd-4bd1-41ae-ac64-743ff49a838f",
+      "source_url": "https://stream.kick.com/0f3cb0ebce7/ivs/v1/196233775518/59bB9isG3qqM/2026/11/9/9/8/QCW5sqENK6TO/media/hls/master.m3u8",
+      "start_seconds": 59173,
+      "end_seconds": 90493,
+      "title": "カイの冒険・3時間生放送スペシャル",
+      "evidence_anchor_starts": [
+        59173,
+        62653
+      ],
+      "confidence": "video_anchored_continuity_estimate",
+      "notes": "Video-observed 3-hour-special intro at 59152 and live Kai challenge at 62653. Interim programme continuity is estimated; the named 3h does not establish an exact 3-hour end."
+    },
+    {
+      "group_id": "tokaido-61",
+      "source_vod_id": "df1386fd-4bd1-41ae-ac64-743ff49a838f",
+      "source_url": "https://stream.kick.com/0f3cb0ebce7/ivs/v1/196233775518/59bB9isG3qqM/2026/11/9/9/8/QCW5sqENK6TO/media/hls/master.m3u8",
+      "start_seconds": 93973,
+      "end_seconds": 100933,
+      "title": "東海道五十三次（#61候補）",
+      "evidence_anchor_starts": [
+        93973,
+        97453
+      ],
+      "confidence": "video_anchored_continuity_estimate",
+      "notes": "Actual gameplay identified in two consecutive 58-minute navigation windows; both remain the same game rather than #62 in second window."
+    },
+    {
+      "group_id": "mighty-public",
+      "source_vod_id": "f622346e-33ac-454d-92a5-33b97f89f936",
+      "source_url": "https://stream.kick.com/0f3cb0ebce7/ivs/v1/196233775518/59bB9isG3qqM/2026/11/9/0/25/YSBZKgHWxApD/media/hls/master.m3u8",
+      "start_seconds": 13920,
+      "end_seconds": 20880,
+      "title": "ツインビー → マイティボンジャック公開挑戦",
+      "evidence_anchor_starts": [
+        13920,
+        17400
+      ],
+      "confidence": "video_anchored_continuity_estimate",
+      "notes": "First window begins with Twinbee then Mighty Bomb Jack; latter remains in next window at public live challenge. Preserve both identities."
+    }
+  ]
+}
