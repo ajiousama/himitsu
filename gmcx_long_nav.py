@@ -146,10 +146,24 @@ def chronological_title_hints(replay: dict) -> dict[tuple[str, int], tuple[int |
         if (duration <= 0 or begin < 0 or first_slot < 0
             or first_episode <= 0 or last_episode < first_episode):
             continue
+        try:
+            stop_guessing_at = int(
+                rule.get("disable_episode_sequence_at_or_after_seconds") or 0
+            )
+        except (TypeError, ValueError):
+            stop_guessing_at = 0
+        suspended_label = str(rule.get("post_special_label") or "").strip()
         for index in range(MAX_CHUNKS_PER_VOD):
             start = begin + index * CHUNK_SECONDS
             if start >= duration:
                 break
+            # A long live special can cover many 58-minute clips. Without a
+            # newly observed post-special episode opening, advancing an
+            # episode each clip makes every later title drift.
+            if stop_guessing_at and start >= stop_guessing_at:
+                if suspended_label:
+                    results[(vod_id, start)] = (None, suspended_label)
+                continue
             if index < first_slot:
                 title = str(rule.get("early_special_title") or "").strip()
                 if title:
@@ -307,8 +321,13 @@ def build_time_navigation_entries(
             elif (hint := chronological.get((vod_id, begin))):
                 ep, title = hint
                 prefix = f"#{ep} " if ep is not None else ""
+                suspended = (
+                    ep is None and
+                    ("通常回再開位置を確認中" in title)
+                )
                 label = (
-                    f"📼 GCCX {prefix}{title}（放送順・位置から仮推定／"
+                    f"📼 GCCX {prefix}{title}（"
+                    f"{'特番をまたぐ話数推定を停止' if suspended else '放送順・位置から仮推定'}／"
                     f"{date_label} {hms(begin)}〜{hms(stop)}）"
                 )
             else:
