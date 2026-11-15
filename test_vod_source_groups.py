@@ -84,7 +84,7 @@ class VodGroupTests(unittest.TestCase):
         entries = [(lines[i],lines[i+1]) for i in range(1,len(lines)-1,2)
                    if lines[i].startswith("#EXTINF:")]
         durations = [int(match.group(1)) for _,url in entries
-                     if (match:=re.search(r"[?&]duration=(\\d+)",url))]
+                     if (match:=re.search(r"[?&]duration=(\d+)",url))]
         self.assertTrue(durations)
         self.assertLessEqual(max(durations), 3605)
         self.assertEqual(len(entries), 150)
