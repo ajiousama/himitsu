@@ -13,6 +13,7 @@ from pathlib import Path
 from urllib.parse import quote
 
 from gmcx_continuity import grouped_label, grouped_slices
+from gmcx_exact_nav import snap_verified_starts, validated_starts
 
 CHUNK_SECONDS = 58 * 60
 MIN_RANGE_SECONDS = 2 * 60 * 60
@@ -265,12 +266,25 @@ def build_time_navigation_entries(
         spans = time_slices(start, end)
         if not spans:
             continue
+        # An actual, frame-observed programme start may replace the nearest
+        # provisional 58-minute edge, without assuming an end boundary.
+        spans = snap_verified_starts(
+            spans, validated_starts(vod, start, end)
+        )
         continuity = grouped_slices(vod, spans, observed_games)
         created = str(vod.get("created_at") or "")
         date_label = created[5:10].replace("-", "/") if re.match(r"\d{4}-\d{2}-\d{2}", created) else "日時未詳"
         for index, (begin, stop) in enumerate(spans, 1):
             part_id = f"kick.gmcx.nav.{vod_id[:12]}.{begin}"
             gameplay = observed_games.get((vod_id, begin))
+            if gameplay is None:
+                # Snapped boundary can precede a verified game frame by a
+                # few seconds (e.g. SP intro at 59152; game frame at 59173).
+                gameplay = next(
+                    (observed_games[(vod_id, t)] for t in range(begin+1, min(stop, begin+45))
+                     if (vod_id, t) in observed_games),
+                    None,
+                )
             matched_title = ocr_candidates.get((vod_id, begin))
             if (group := continuity.get(begin)):
                 label = grouped_label(
