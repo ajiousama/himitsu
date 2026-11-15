@@ -12,6 +12,8 @@ import re
 from pathlib import Path
 from urllib.parse import quote
 
+from gmcx_continuity import grouped_label, grouped_slices
+
 CHUNK_SECONDS = 58 * 60
 MIN_RANGE_SECONDS = 2 * 60 * 60
 MIN_LAST_SECONDS = 5 * 60
@@ -263,13 +265,19 @@ def build_time_navigation_entries(
         spans = time_slices(start, end)
         if not spans:
             continue
+        continuity = grouped_slices(vod, spans, observed_games)
         created = str(vod.get("created_at") or "")
         date_label = created[5:10].replace("-", "/") if re.match(r"\d{4}-\d{2}-\d{2}", created) else "日時未詳"
         for index, (begin, stop) in enumerate(spans, 1):
             part_id = f"kick.gmcx.nav.{vod_id[:12]}.{begin}"
             gameplay = observed_games.get((vod_id, begin))
             matched_title = ocr_candidates.get((vod_id, begin))
-            if gameplay:
+            if (group := continuity.get(begin)):
+                label = grouped_label(
+                    group, gameplay[0] if gameplay else None,
+                    date_label, hms(begin), hms(stop),
+                )
+            elif gameplay:
                 game, possible_episode = gameplay
                 hint = f"（#{possible_episode}候補）" if possible_episode else ""
                 label = (
