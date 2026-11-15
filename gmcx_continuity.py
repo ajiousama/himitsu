@@ -81,7 +81,8 @@ def grouped_slices(
 
 
 def grouped_label(group: dict, observed_title: str | None, date: str,
-                  start_text: str, end_text: str) -> str:
+                  start_text: str, end_text: str,
+                  verified_start: bool = False) -> str:
     """Explicitly distinguish observed footage from inferred continuity."""
     sequence = f"{group['part']:02d}/{group['total']:02d}"
     if group.get("part_label_style") == "fullwidth_letter":
@@ -103,6 +104,8 @@ def grouped_label(group: dict, observed_title: str | None, date: str,
     else:
         inside = ""
         status = "前後の映像から継続推定"
+    if verified_start:
+        status = "番組開始位置は映像確認済・終点未確定"
     return (
         f"📼 GCCX {heading}｜連続{sequence}{inside}"
         f"（{status}／{date} {start_text}〜{end_text}）"
