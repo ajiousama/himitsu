@@ -48,8 +48,8 @@ def sheet(captures: list[tuple[Path,str]], destination: Path) -> None:
         draw.text((x+8,y+6),label,fill="white")
         if path.is_file():
             with Image.open(path) as frame:
-                frame.convert("RGB").thumbnail((620,350))
-                copied=frame.copy()
+                copied=frame.convert("RGB")
+                copied.thumbnail((620,350))
                 grid.paste(copied,(x+(width-copied.width)//2,y+32+(350-copied.height)//2))
     grid.save(destination,quality=84,subsampling=0)
 
