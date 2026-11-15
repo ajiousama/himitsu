@@ -52,7 +52,7 @@ class VodGroupTests(unittest.TestCase):
         spec=json.loads((ROOT/"gmcx_visual_cuts.json").read_text(encoding="utf-8"))
         cuts={item.get("episode"):item for item in spec.get("cuts",[])
               if item.get("episode") in (49,50)}
-        self.assertEqual(set(cuts),(49,50))
+        self.assertEqual(set(cuts),{49,50})
         self.assertEqual(cuts[49]["start_seconds"],13929)
         self.assertEqual(cuts[50]["start_seconds"],17409)
         self.assertEqual(cuts[50]["confidence"],"provisional")
