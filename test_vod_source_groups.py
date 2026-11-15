@@ -69,9 +69,30 @@ class VodGroupTests(unittest.TestCase):
                 self.assertTrue(
                     "実映像でゲーム名確認" in line
                     or "放送順・位置から仮推定" in line
-                    or "映像OCR候補" in line,
+                    or "映像OCR候補" in line
+                    or "前後の映像から継続推定" in line
+                    or "映像あり・区間境界は仮" in line,
                     "Existing GCCX navigation slice lost its title evidence"
                 )
+
+    def test_continuous_shows_preserve_58_minute_navigation(self):
+        import json
+        catalog = (ROOT/"vod5/playlist.m3u").read_text(encoding="utf-8")
+        groups = json.loads((ROOT/"gmcx_continuity_groups.json").read_text(encoding="utf-8"))
+        self.assertGreaterEqual(len(groups["groups"]), 9)
+        lines = catalog.splitlines()
+        entries = [(lines[i],lines[i+1]) for i in range(1,len(lines)-1,2)
+                   if lines[i].startswith("#EXTINF:")]
+        durations = [int(match.group(1)) for _,url in entries
+                     if (match:=re.search(r"[?&]duration=(\\d+)",url))]
+        self.assertTrue(durations)
+        self.assertLessEqual(max(durations), 3605)
+        self.assertEqual(len(entries), 150)
+        grouped = [info for info,_ in entries if "｜連続" in info]
+        self.assertGreaterEqual(len(grouped), 49)
+        for info in grouped:
+            self.assertTrue("映像あり・区間境界は仮" in info
+                            or "前後の映像から継続推定" in info)
 
     def test_kick_catalog_still_mirrored(self):
         self.assertEqual((ROOT/"VOD5").read_bytes(),(ROOT/"vod5/playlist.m3u").read_bytes())
