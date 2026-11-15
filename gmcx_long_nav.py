@@ -152,7 +152,14 @@ def chronological_title_hints(replay: dict) -> dict[tuple[str, int], tuple[int |
                 if title:
                     results[(vod_id, start)] = (None, title)
                 continue
-            ep = first_episode + (index - first_slot)
+            # Some 58-minute windows cross the same broadcast episode;
+            # verified repeated-episode slots shift every later estimate.
+            repeats = rule.get("episode_repeat_slots") or []
+            if not isinstance(repeats, list):
+                repeats = []
+            repeats = [int(value) for value in repeats if isinstance(value, int)
+                       and first_slot < value <= index]
+            ep = first_episode + (index - first_slot) - len(set(repeats))
             if ep > last_episode:
                 break
             title = title_map.get(str(ep))
