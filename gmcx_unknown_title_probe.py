@@ -126,11 +126,22 @@ def eligible_chunks() -> list[tuple[str, int, int, str]]:
         if start < 0 or length < 300:
             continue
         chunks.append((vod_id, start, length, str(vod["source_url"])))
-    # Prioritize the latest recording, then use its chapters in chronological order.
+    # Alternate across recordings so a long 48-hour VOD cannot starve
+    # every other unidentified archive inside the Actions time budget.
     order = {str(v.get("vod_id")): str(v.get("created_at") or "")
              for v in by_id.values()}
-    chunks.sort(key=lambda x: (order.get(x[0], ""), -x[1]), reverse=True)
-    return chunks
+    grouped: dict[str, list[tuple[str, int, int, str]]] = {}
+    for item in chunks:
+        grouped.setdefault(item[0], []).append(item)
+    vod_order = sorted(grouped, key=lambda key: order.get(key, ""), reverse=True)
+    for group in grouped.values():
+        group.sort(key=lambda item: item[1])
+    balanced = []
+    while any(grouped.values()):
+        for vod_id in vod_order:
+            if grouped[vod_id]:
+                balanced.append(grouped[vod_id].pop(0))
+    return balanced
 
 
 def run_probe(max_new: int, budget_seconds: int) -> dict:
@@ -167,10 +178,27 @@ def run_probe(max_new: int, budget_seconds: int) -> dict:
                     break
                 second = start + min(delta, length - 10)
                 found, state = capture_text(source, second, Path(folder), i)
+                if state in {"ffmpeg_failed", "timeout"}:
+                    # The source's absolute seek can fail while the short
+                    # resolver clip stays playable. Probe both paths.
+                    resolver_url = (
+                        "https://kick-resolver-production.up.railway.app/kick"
+                        f"?vod={vod_id}&start={second}&duration=8"
+                    )
+                    recovered, recovered_state = capture_text(
+                        resolver_url, 1, Path(folder), i + 10
+                    )
+                    if recovered_state == "ocr_completed":
+                        found, state = recovered, "ocr_completed_via_resolver"
+                    else:
+                        state = state + ";resolver_" + recovered_state
                 samples.append({"offset": second, "status": state,
                                 "ocr_excerpt": found[:400]})
                 if found.strip():
                     texts.append(found)
+                elif "resolver_" in state:
+                    # Skip futile extra attempts while this archive is blocked.
+                    break
         best = identify_title("\n".join(texts), titles) if texts else None
         row = {"start_seconds": start, "attempted_at": now,
                "source_url": source, "status": "ocr_match" if best else "no_title_match",
