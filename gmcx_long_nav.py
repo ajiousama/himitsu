@@ -166,7 +166,7 @@ def build_time_navigation_entries(
             matched_title = ocr_candidates.get((vod_id, begin))
             # Explicit episode number in the KICK recording title can provide
             # a tentative title for the first slot, even when OCR is blocked.
-            source_number = re.search(r"[＃#]\\s*(\\d{2,4})(?!\\d)", str(vod.get("title") or ""))
+            source_number = re.search(r"[＃#]\s*(\d{2,4})(?!\d)", str(vod.get("title") or ""))
             source_episode = source_number.group(1) if source_number and index == 1 and begin == 0 else ""
             source_game = known_titles.get(source_episode)
             if matched_title:
