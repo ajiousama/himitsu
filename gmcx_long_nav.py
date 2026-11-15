@@ -19,6 +19,48 @@ MAX_CHUNKS_PER_VOD = 72
 RESOLVER = "https://kick-resolver-production.up.railway.app/kick?vod="
 LOGO = "https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/contrast/kick.gccx.logo_4fa63dbb.png"
 
+OCR_REPORT = Path("gmcx_unknown_title_review.json")
+EPISODE_TITLES = Path("gmcx_episode_titles.json")
+
+
+def ocr_title_candidates(replay: dict) -> dict[tuple[str, int], tuple[int, str]]:
+    """Use OCR-confirmed title-text matches, but never invent a verified boundary."""
+    if not OCR_REPORT.is_file() or not EPISODE_TITLES.is_file():
+        return {}
+    try:
+        report = json.loads(OCR_REPORT.read_text(encoding="utf-8"))
+        titles = json.loads(EPISODE_TITLES.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+    sources = {
+        str(v.get("vod_id")): str(v.get("source_url") or "")
+        for v in replay.get("vods", [])
+        if isinstance(v, dict) and v.get("vod_id")
+    }
+    out: dict[tuple[str, int], tuple[int, str]] = {}
+    for vod_id, entry in (report.get("vods") or {}).items():
+        if not isinstance(entry, dict) or not sources.get(vod_id):
+            continue
+        if entry.get("source_url") != sources[vod_id]:
+            continue
+        for start_key, row in (entry.get("rows") or {}).items():
+            if not isinstance(row, dict) or row.get("status") != "ocr_match":
+                continue
+            candidate = row.get("candidate") or {}
+            try:
+                ep = int(candidate.get("episode"))
+                start = int(start_key)
+                score = float(candidate.get("score") or 0)
+            except (TypeError, ValueError):
+                continue
+            title = str(candidate.get("title") or "")
+            if score < 0.84 or title != titles.get(str(ep)):
+                continue
+            if row.get("source_url") != sources[vod_id]:
+                continue
+            out[(vod_id, start)] = (ep, title)
+    return out
+
 
 def time_slices(start: int, end: int) -> list[tuple[int, int]]:
     """Cover a known time range without gaps; merge a tiny final remainder."""
@@ -90,6 +132,7 @@ def build_time_navigation_entries(
         for item in chapters.get("results", [])
         if isinstance(item, dict) and item.get("vod_id")
     }
+    ocr_candidates = ocr_title_candidates(replay)
     entries = []
     for vod in replay.get("vods", []):
         if not isinstance(vod, dict):
@@ -116,10 +159,18 @@ def build_time_navigation_entries(
         date_label = created[5:10].replace("-", "/") if re.match(r"\d{4}-\d{2}-\d{2}", created) else "日時未詳"
         for index, (begin, stop) in enumerate(spans, 1):
             part_id = f"kick.gmcx.nav.{vod_id[:12]}.{begin}"
-            label = (
-                f"📼 GCCX {date_label} {kind}・仮チャプター "
-                f"{index}/{len(spans)}（{hms(begin)}〜{hms(stop)}／話数未確認）"
-            )
+            matched_title = ocr_candidates.get((vod_id, begin))
+            if matched_title:
+                ep, title = matched_title
+                label = (
+                    f"📼 GCCX #{ep} {title}（映像OCR候補・境界仮／"
+                    f"{date_label} {hms(begin)}〜{hms(stop)}）"
+                )
+            else:
+                label = (
+                    f"📼 GCCX {date_label} {kind}・仮チャプター "
+                    f"{index}/{len(spans)}（{hms(begin)}〜{hms(stop)}／話数未確認）"
+                )
             extinf = (
                 '#EXTINF:-1 group-title="KICK系VOD" '
                 f'tvg-id="{part_id}" tvg-logo="{LOGO}",{label}'
