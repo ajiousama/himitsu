@@ -181,13 +181,22 @@ def build_vod5() -> str:
     chapter_vods = reliable_chapter_vods()
     id_to_vod = replay_vod_ids()
 
+    # Time-navigation chunks already cover these long, unresolved GCCX VODs.
+    # Do not also publish their raw 8-48h recording as an unsplit menu item.
+    navigation = build_time_navigation_entries(REPLAY_JSON, GMCX_JSON)
+    nav_vods = {
+        match.group(1)
+        for _, url in navigation
+        if (match := re.search(r"[?&]vod=([A-Za-z0-9_-]+)", url))
+    }
+
     # Rebuild from the current live catalog only. Expired/dead VODs are
     # intentionally NOT preserved from the previous VOD5/FreeWiFi output.
     # This prevents stale split entries from surviving after KICK HLS expiry.
     whole: list[tuple[str, str]] = []
     for extinf, url in read_entries(REPLAY_M3U):
         vod_id = id_to_vod.get(tvg_id(extinf))
-        if vod_id and vod_id in chapter_vods:
+        if vod_id and (vod_id in chapter_vods or vod_id in nav_vods):
             continue
         whole.append((extinf, url))
 
@@ -195,11 +204,18 @@ def build_vod5() -> str:
         (extinf, url)
         for extinf, url in read_entries(GMCX_M3U)
         if any(f"vod={vod_id}" in url for vod_id in chapter_vods)
+        # A long, unidentified tail is published via navigable ~58m chunks.
+        # Retain short validated/provisional episodes and special previews.
+        and not (
+            (match := re.search(r"[?&]vod=([A-Za-z0-9_-]+)", url))
+            and match.group(1) in nav_vods
+            and (duration := re.search(r"[?&]duration=(\\d+)", url))
+            and int(duration.group(1)) >= 2 * 3600
+        )
     ]
 
-    # Preserve whole recordings and confirmed episode cuts. Unknown long
-    # GCCX spans get extra seekable navigation entries, not fake episode IDs.
-    navigation = build_time_navigation_entries(REPLAY_JSON, GMCX_JSON)
+    # Preserve detected cuts and publish short navigation items for unknown
+    # spans, without duplicating the original multi-hour source in the UI.
     video_openings = build_video_observed_opening_entries(REPLAY_JSON, GMCX_JSON)
 
     lines = ["#EXTM3U"]
