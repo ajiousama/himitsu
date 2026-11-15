@@ -21,6 +21,7 @@ LOGO = "https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/contrast/
 
 OCR_REPORT = Path("gmcx_unknown_title_review.json")
 EPISODE_TITLES = Path("gmcx_episode_titles.json")
+FRAME_REVIEW = Path("gmcx_frame_identified_titles.json")
 
 
 def ocr_title_candidates(replay: dict) -> dict[tuple[str, int], tuple[int, str]]:
@@ -60,6 +61,42 @@ def ocr_title_candidates(replay: dict) -> dict[tuple[str, int], tuple[int, str]]
                 continue
             out[(vod_id, start)] = (ep, title)
     return out
+
+
+def frame_title_candidates(replay: dict) -> dict[tuple[str, int], tuple[str, int | None]]:
+    """Apply manually inspected video-frame evidence to the exact source only."""
+    if not FRAME_REVIEW.is_file():
+        return {}
+    try:
+        data = json.loads(FRAME_REVIEW.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+    sources = {
+        str(v.get("vod_id")): str(v.get("source_url") or "")
+        for v in replay.get("vods", [])
+        if isinstance(v, dict) and v.get("vod_id")
+    }
+    accepted = {
+        "actual_gameplay_visible_episode_and_end_not_verified",
+        "actual_gameplay_visible_episode_candidate_not_verified",
+    }
+    result = {}
+    for row in data.get("entries", []):
+        if not isinstance(row, dict) or row.get("confidence") not in accepted:
+            continue
+        vod_id = str(row.get("source_vod_id") or "")
+        if not sources.get(vod_id) or row.get("source_url") != sources[vod_id]:
+            continue
+        title = str(row.get("title") or "").strip()
+        if not title or len(title) > 100:
+            continue
+        try:
+            at = int(row.get("start_seconds"))
+            ep = int(row["episode_candidate"]) if row.get("episode_candidate") else None
+        except (TypeError, ValueError):
+            continue
+        result[(vod_id, at)] = (title, ep)
+    return result
 
 
 def time_slices(start: int, end: int) -> list[tuple[int, int]]:
@@ -133,10 +170,7 @@ def build_time_navigation_entries(
         if isinstance(item, dict) and item.get("vod_id")
     }
     ocr_candidates = ocr_title_candidates(replay)
-    try:
-        known_titles = json.loads(EPISODE_TITLES.read_text(encoding="utf-8"))
-    except (OSError, ValueError):
-        known_titles = {}
+    observed_games = frame_title_candidates(replay)
     entries = []
     for vod in replay.get("vods", []):
         if not isinstance(vod, dict):
@@ -163,22 +197,20 @@ def build_time_navigation_entries(
         date_label = created[5:10].replace("-", "/") if re.match(r"\d{4}-\d{2}-\d{2}", created) else "日時未詳"
         for index, (begin, stop) in enumerate(spans, 1):
             part_id = f"kick.gmcx.nav.{vod_id[:12]}.{begin}"
+            gameplay = observed_games.get((vod_id, begin))
             matched_title = ocr_candidates.get((vod_id, begin))
-            # Explicit episode number in the KICK recording title can provide
-            # a tentative title for the first slot, even when OCR is blocked.
-            source_number = re.search(r"[＃#]\s*(\d{2,4})(?!\d)", str(vod.get("title") or ""))
-            source_episode = source_number.group(1) if source_number and index == 1 and begin == 0 else ""
-            source_game = known_titles.get(source_episode)
-            if matched_title:
+            if gameplay:
+                game, possible_episode = gameplay
+                hint = f"（#{possible_episode}候補）" if possible_episode else ""
+                label = (
+                    f"📼 GCCX {game}{hint}（実映像でゲーム名確認・境界仮／"
+                    f"{date_label} {hms(begin)}〜{hms(stop)}）"
+                )
+            elif matched_title:
                 ep, title = matched_title
                 label = (
                     f"📼 GCCX #{ep} {title}（映像OCR候補・境界仮／"
                     f"{date_label} {hms(begin)}〜{hms(stop)}）"
-                )
-            elif source_game:
-                label = (
-                    f"📼 GCCX #{source_episode} {source_game}"
-                    f"（録画タイトルから推定・境界仮／{date_label} {hms(begin)}〜{hms(stop)}）"
                 )
             else:
                 label = (
