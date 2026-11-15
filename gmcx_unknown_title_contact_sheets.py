@@ -60,11 +60,24 @@ def main() -> int:
     parser.add_argument("--budget-seconds",type=int,default=540)
     parser.add_argument("--focus-ocr",action="store_true",
                         help="review suspect OCR labels not already verified by actual frames")
+    parser.add_argument("--focus-priorities",action="store_true",
+                        help="review ordered slots in gmcx_frame_priority_targets.json")
     args=parser.parse_args()
     TARGET.mkdir(exist_ok=True)
     rows=[]
     finish=time.monotonic()+max(60,args.budget_seconds)
     chunks = eligible_chunks()
+    if args.focus_priorities:
+        info = json.loads(Path("gmcx_frame_priority_targets.json").read_text(encoding="utf-8"))
+        by_key = {(vod_id,start): item for item in chunks
+                  for vod_id,start,*_ in [item]}
+        requested = [(str(row.get("vod_id") or ""), int(row.get("start_seconds")))
+                     for row in info.get("targets",[]) if isinstance(row,dict)]
+        missing = [key for key in requested if key not in by_key]
+        if missing:
+            raise RuntimeError("Priority GCCX VOD frames unavailable: " + str(missing))
+        chunks = [by_key[key] for key in requested]
+        print("Priority actual-video evidence target slots:", len(chunks), flush=True)
     if args.focus_ocr:
         report_path = Path("gmcx_unknown_title_review.json")
         frames_path = Path("gmcx_frame_identified_titles.json")
