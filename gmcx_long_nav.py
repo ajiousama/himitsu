@@ -133,6 +133,10 @@ def build_time_navigation_entries(
         if isinstance(item, dict) and item.get("vod_id")
     }
     ocr_candidates = ocr_title_candidates(replay)
+    try:
+        known_titles = json.loads(EPISODE_TITLES.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        known_titles = {}
     entries = []
     for vod in replay.get("vods", []):
         if not isinstance(vod, dict):
@@ -160,11 +164,21 @@ def build_time_navigation_entries(
         for index, (begin, stop) in enumerate(spans, 1):
             part_id = f"kick.gmcx.nav.{vod_id[:12]}.{begin}"
             matched_title = ocr_candidates.get((vod_id, begin))
+            # Explicit episode number in the KICK recording title can provide
+            # a tentative title for the first slot, even when OCR is blocked.
+            source_number = re.search(r"[＃#]\\s*(\\d{2,4})(?!\\d)", str(vod.get("title") or ""))
+            source_episode = source_number.group(1) if source_number and index == 1 and begin == 0 else ""
+            source_game = known_titles.get(source_episode)
             if matched_title:
                 ep, title = matched_title
                 label = (
                     f"📼 GCCX #{ep} {title}（映像OCR候補・境界仮／"
                     f"{date_label} {hms(begin)}〜{hms(stop)}）"
+                )
+            elif source_game:
+                label = (
+                    f"📼 GCCX #{source_episode} {source_game}"
+                    f"（録画タイトルから推定・境界仮／{date_label} {hms(begin)}〜{hms(stop)}）"
                 )
             else:
                 label = (
