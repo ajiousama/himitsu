@@ -22,6 +22,7 @@ LOGO = "https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/contrast/
 OCR_REPORT = Path("gmcx_unknown_title_review.json")
 EPISODE_TITLES = Path("gmcx_episode_titles.json")
 FRAME_REVIEW = Path("gmcx_frame_identified_titles.json")
+SEQUENCE_ESTIMATES = Path("gmcx_chronological_title_estimates.json")
 
 
 def ocr_title_candidates(replay: dict) -> dict[tuple[str, int], tuple[int, str]]:
@@ -107,6 +108,59 @@ def frame_title_candidates(replay: dict) -> dict[tuple[str, int], tuple[str, int
     return result
 
 
+def chronological_title_hints(replay: dict) -> dict[tuple[str, int], tuple[int | None, str]]:
+    """Tentative names by episode order; NEVER treated as verified cuts."""
+    if not SEQUENCE_ESTIMATES.is_file() or not EPISODE_TITLES.is_file():
+        return {}
+    try:
+        data = json.loads(SEQUENCE_ESTIMATES.read_text(encoding="utf-8"))
+        title_map = json.loads(EPISODE_TITLES.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+    by_id = {
+        str(v.get("vod_id")): v
+        for v in replay.get("vods", [])
+        if isinstance(v, dict) and v.get("vod_id")
+    }
+    results: dict[tuple[str, int], tuple[int | None, str]] = {}
+    for rule in data.get("rules", []):
+        if not isinstance(rule, dict):
+            continue
+        vod_id = str(rule.get("source_vod_id") or "")
+        vod = by_id.get(vod_id)
+        if (not vod or not rule.get("source_url")
+            or rule.get("source_url") != vod.get("source_url")
+            or rule.get("confidence") != "provisional_chronological_inference"):
+            continue
+        try:
+            duration = int(vod.get("duration_seconds") or 0)
+            begin = int(rule.get("nav_start_seconds"))
+            first_slot = int(rule.get("first_slot_index"))
+            first_episode = int(rule.get("first_episode"))
+            last_episode = int(rule.get("last_episode"))
+        except (TypeError, ValueError):
+            continue
+        if (duration <= 0 or begin < 0 or first_slot < 0
+            or first_episode <= 0 or last_episode < first_episode):
+            continue
+        for index in range(MAX_CHUNKS_PER_VOD):
+            start = begin + index * CHUNK_SECONDS
+            if start >= duration:
+                break
+            if index < first_slot:
+                title = str(rule.get("early_special_title") or "").strip()
+                if title:
+                    results[(vod_id, start)] = (None, title)
+                continue
+            ep = first_episode + (index - first_slot)
+            if ep > last_episode:
+                break
+            title = title_map.get(str(ep))
+            if title:
+                results[(vod_id, start)] = (ep, title)
+    return results
+
+
 def time_slices(start: int, end: int) -> list[tuple[int, int]]:
     """Cover a known time range without gaps; merge a tiny final remainder."""
     if start < 0 or end <= start or end - start < MIN_RANGE_SECONDS:
@@ -179,6 +233,7 @@ def build_time_navigation_entries(
     }
     ocr_candidates = ocr_title_candidates(replay)
     observed_games = frame_title_candidates(replay)
+    chronological = chronological_title_hints(replay)
     entries = []
     for vod in replay.get("vods", []):
         if not isinstance(vod, dict):
@@ -218,6 +273,13 @@ def build_time_navigation_entries(
                 ep, title = matched_title
                 label = (
                     f"📼 GCCX #{ep} {title}（映像OCR候補・境界仮／"
+                    f"{date_label} {hms(begin)}〜{hms(stop)}）"
+                )
+            elif (hint := chronological.get((vod_id, begin))):
+                ep, title = hint
+                prefix = f"#{ep} " if ep is not None else ""
+                label = (
+                    f"📼 GCCX {prefix}{title}（放送順・位置から仮推定／"
                     f"{date_label} {hms(begin)}〜{hms(stop)}）"
                 )
             else:
