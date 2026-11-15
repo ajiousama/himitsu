@@ -29,7 +29,7 @@
       "duration_seconds": 172795,
       "partial": true,
       "verification_status": "provisional_not_fully_verified",
-      "notes": "映像の王座場面で検出した暫定分割。韓国特別編境界と長時間特別編以降は未分割。追加取得はHTTP429で中断。端点の秒単位の精査と全タイトルの照合は未完了。",
+      "notes": "映像の王座場面で検出した暫定分割。韓国特別編は58分仮境界で#49/#50に分割済み。長時間特別編以降はVOD5の短時間ナビゲーションを使用。追加取得はHTTP429で中断。端点の秒単位の精査と全タイトルの照合は未完了。",
       "chapters": [
         {
           "start_seconds": 0,
@@ -85,17 +85,29 @@
         },
         {
           "start_seconds": 13929,
-          "episode": null,
-          "title": "がんばれゴエモン／韓国特別編（境界確認待ち）",
-          "confidence": "unconfirmed",
+          "episode": 49,
+          "title": "がんばれゴエモン ゆき姫救出絵巻",
+          "confidence": "provisional",
           "boundary_status": "king-room-detected",
-          "kind": "special",
-          "stop_seconds": 20890,
-          "duration_seconds": 6961,
-          "replay_url": "https://kick-resolver-production.up.railway.app/kick?vod=df1386fd-4bd1-41ae-ac64-743ff49a838f&start=13929&duration=6961",
+          "kind": "episode",
+          "stop_seconds": 17409,
+          "duration_seconds": 3480,
+          "replay_url": "https://kick-resolver-production.up.railway.app/kick?vod=df1386fd-4bd1-41ae-ac64-743ff49a838f&start=13929&duration=3480",
           "method": "king-room-visual-provisional",
-          "range_start": 45,
-          "special_key": "visual-df1386fd-4"
+          "range_start": 45
+        },
+        {
+          "start_seconds": 17409,
+          "episode": 50,
+          "title": "50回記念スペシャル たまゲーin韓国",
+          "confidence": "provisional",
+          "boundary_status": "estimated-58min-cut-not-video-verified",
+          "kind": "episode",
+          "stop_seconds": 20890,
+          "duration_seconds": 3481,
+          "replay_url": "https://kick-resolver-production.up.railway.app/kick?vod=df1386fd-4bd1-41ae-ac64-743ff49a838f&start=17409&duration=3481",
+          "method": "king-room-visual-provisional",
+          "range_start": 45
         },
         {
           "start_seconds": 20890,
