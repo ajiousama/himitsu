@@ -72,7 +72,8 @@ class VodGroupTests(unittest.TestCase):
                     or "映像OCR候補" in line
                     or "前後の映像から継続推定" in line
                     or "映像あり・区間境界は仮" in line
-                    or "番組開始位置は映像確認済・終点未確定" in line,
+                    or "番組開始位置は映像確認済・終点未確定" in line
+                    or "特番をまたぐ話数推定を停止" in line,
                     "Existing GCCX navigation slice lost its title evidence"
                 )
 
