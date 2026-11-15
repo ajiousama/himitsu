@@ -1,0 +1,194 @@
+{
+  "schema_version": 1,
+  "generated_for": "2026-11-16 GCCX 3-workstream programme boundary check",
+  "source_action_run": 43767291966,
+  "source_action_job": 132975154556,
+  "method": "Audio fingerprint repeated in actual KICK programme recordings. No synthetic music. Candidate similarity may locate opening, but is not independent proof of episode title or that tune equals Beethoven Ninth.",
+  "music_hypothesis": "歓喜の歌 (第九) as suggested by user; melody identity not yet independently audio-confirmed",
+  "reference": {
+    "source_start_seconds": 3487,
+    "corroborated_other_openers": 5
+  },
+  "results": {
+    "tested": 24,
+    "candidate": 13,
+    "insufficient": 4,
+    "decode_failed": 7
+  },
+  "findings": [
+    {
+      "vod_prefix": "df1386fd",
+      "nominal_start_seconds": 3487,
+      "status": "candidate",
+      "candidate_start_seconds": 3487
+    },
+    {
+      "vod_prefix": "df1386fd",
+      "nominal_start_seconds": 6968,
+      "status": "candidate",
+      "candidate_start_seconds": 6967.5
+    },
+    {
+      "vod_prefix": "df1386fd",
+      "nominal_start_seconds": 10448,
+      "status": "candidate",
+      "candidate_start_seconds": 10447.8
+    },
+    {
+      "vod_prefix": "df1386fd",
+      "nominal_start_seconds": 13929,
+      "status": "candidate",
+      "candidate_start_seconds": 13928.4
+    },
+    {
+      "vod_prefix": "df1386fd",
+      "nominal_start_seconds": 17409,
+      "status": "insufficient",
+      "candidate_start_seconds": null
+    },
+    {
+      "vod_prefix": "df1386fd",
+      "nominal_start_seconds": 20890,
+      "status": "candidate",
+      "candidate_start_seconds": 20889.3
+    },
+    {
+      "vod_prefix": "df1386fd",
+      "nominal_start_seconds": 24370,
+      "status": "candidate",
+      "candidate_start_seconds": 24369.3
+    },
+    {
+      "vod_prefix": "df1386fd",
+      "nominal_start_seconds": 27850,
+      "status": "candidate",
+      "candidate_start_seconds": 27849.7
+    },
+    {
+      "vod_prefix": "df1386fd",
+      "nominal_start_seconds": 31331,
+      "status": "candidate",
+      "candidate_start_seconds": 31330.2
+    },
+    {
+      "vod_prefix": "df1386fd",
+      "nominal_start_seconds": 34821,
+      "status": "candidate",
+      "candidate_start_seconds": 34810.5
+    },
+    {
+      "vod_prefix": "df1386fd",
+      "nominal_start_seconds": 38291,
+      "status": "candidate",
+      "candidate_start_seconds": 38290.9
+    },
+    {
+      "vod_prefix": "df1386fd",
+      "nominal_start_seconds": 41772,
+      "status": "candidate",
+      "candidate_start_seconds": 41771.3
+    },
+    {
+      "vod_prefix": "df1386fd",
+      "nominal_start_seconds": 45375,
+      "status": "candidate",
+      "candidate_start_seconds": 45374.5
+    },
+    {
+      "vod_prefix": "df1386fd",
+      "nominal_start_seconds": 48734,
+      "status": "candidate",
+      "candidate_start_seconds": 48732.7
+    },
+    {
+      "vod_prefix": "df1386fd",
+      "nominal_start_seconds": 90493,
+      "status": "insufficient",
+      "candidate_start_seconds": null
+    },
+    {
+      "vod_prefix": "df1386fd",
+      "nominal_start_seconds": 93973,
+      "status": "insufficient",
+      "candidate_start_seconds": null
+    },
+    {
+      "vod_prefix": "df1386fd",
+      "nominal_start_seconds": 97453,
+      "status": "decode_failed",
+      "candidate_start_seconds": null
+    },
+    {
+      "vod_prefix": "df1386fd",
+      "nominal_start_seconds": 100933,
+      "status": "decode_failed",
+      "candidate_start_seconds": null
+    },
+    {
+      "vod_prefix": "df1386fd",
+      "nominal_start_seconds": 104413,
+      "status": "decode_failed",
+      "candidate_start_seconds": null
+    },
+    {
+      "vod_prefix": "df1386fd",
+      "nominal_start_seconds": 107893,
+      "status": "decode_failed",
+      "candidate_start_seconds": null
+    },
+    {
+      "vod_prefix": "df1386fd",
+      "nominal_start_seconds": 111373,
+      "status": "decode_failed",
+      "candidate_start_seconds": null
+    },
+    {
+      "vod_prefix": "df1386fd",
+      "nominal_start_seconds": 114853,
+      "status": "decode_failed",
+      "candidate_start_seconds": null
+    },
+    {
+      "vod_prefix": "df1386fd",
+      "nominal_start_seconds": 118333,
+      "status": "decode_failed",
+      "candidate_start_seconds": null
+    },
+    {
+      "vod_prefix": "5847ae05",
+      "nominal_start_seconds": 3480,
+      "status": "insufficient",
+      "candidate_start_seconds": null
+    }
+  ],
+  "known_issues": [
+    {
+      "type": "no_opener_match",
+      "position": 17409,
+      "episode_candidate": 50,
+      "consequence": "Do not assume 58-min provisional cut is an episode opening."
+    },
+    {
+      "type": "audio_start_differs_from_playlist",
+      "episode_candidate": 55,
+      "provisional_start_seconds": 34821,
+      "audio_candidate_start_seconds": 34810.5,
+      "delta_seconds": -10.5,
+      "consequence": "Use 1fps title-frame visual inspection before changing VOD5 cut."
+    },
+    {
+      "type": "prolonged_HLS_seek_failure",
+      "positions": [
+        97453,
+        100933,
+        104413,
+        107893,
+        111373,
+        114853,
+        118333
+      ],
+      "consequence": "No absence of the theme can be inferred from failed HLS fetch; use fallback resolver or nearby shorter clips."
+    }
+  ],
+  "production_changed": false
+}
