@@ -16,6 +16,9 @@ VOD={
     "kai_after_live":("df1386fd-4bd1-41ae-ac64-743ff49a838f",89000,101000,600),
     "fivehour_after_live":("e4f91158-8a0e-4c75-9fb4-eab36c247464",90000,104000,600),
     "lemmings_late":("5847ae05-893e-4ae8-986e-bf0abf888ecf",118000,131600,600),
+    "kai_after_live_fine":("df1386fd-4bd1-41ae-ac64-743ff49a838f",94200,95700,60),
+    "fivehour_after_live_fine":("e4f91158-8a0e-4c75-9fb4-eab36c247464",94140,94980,60),
+    "lemmings_late_fine":("5847ae05-893e-4ae8-986e-bf0abf888ecf",121600,124000,60),
 }
 W,H,COLS,ROWS=320,180,4,4
 OUT=Path("gmcx_special_tail_sweep")
