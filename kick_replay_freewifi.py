@@ -209,7 +209,7 @@ def build_vod5() -> str:
         and not (
             (match := re.search(r"[?&]vod=([A-Za-z0-9_-]+)", url))
             and match.group(1) in nav_vods
-            and (duration := re.search(r"[?&]duration=(\\d+)", url))
+            and (duration := re.search(r"[?&]duration=(\d+)", url))
             and int(duration.group(1)) >= 2 * 3600
         )
     ]
