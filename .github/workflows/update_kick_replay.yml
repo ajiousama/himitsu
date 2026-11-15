@@ -16,6 +16,8 @@ on:
       - "kick_gmcx_chapters.py"
       - "kick_replay_freewifi.py"
       - "gmcx_long_nav.py"
+      - "gmcx_unknown_title_probe.py"
+      - "gmcx_unknown_title_review.json"
       - "gmcx_video_verified_openings.json"
       - "test_gmcx_video_opening.py"
       - "test_gmcx_long_nav.py"
@@ -66,6 +68,13 @@ jobs:
           fi
           ffmpeg -version | head -1
 
+      - name: Install Japanese OCR dependencies for unknown GCCX titles
+        shell: bash
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq tesseract-ocr tesseract-ocr-jpn tesseract-ocr-eng
+          tesseract --list-langs
+
       - name: Prepare spectral GCCX title BGM matcher
         run: python -m pip install --quiet numpy
 
@@ -97,6 +106,13 @@ jobs:
             cp /tmp/kick_gmcx_chapters_before_bgm.m3u kick_gmcx_chapters.m3u
             echo "::warning::GCCX BGM publisher rejected edits; restored original catalogue"
           fi
+
+      - name: Detect unknown GCCX programme titles in actual video frames
+        shell: bash
+        run: |
+          # Keep checking new unknown chapters after each replay refresh.
+          # Partial matches and unavailable frames are recorded; never fabricate labels.
+          python -u gmcx_unknown_title_probe.py --all --max-new 100 --budget-seconds 720
 
       - name: Validate replay outputs
         shell: bash
@@ -195,6 +211,7 @@ jobs:
           cp kick_gmcx_chapters.json "$snapshot/kick_gmcx_chapters.json"
           cp kick_gmcx_chapters.m3u "$snapshot/kick_gmcx_chapters.m3u"
           cp gmcx_bgm_auto_starts.json "$snapshot/gmcx_bgm_auto_starts.json"
+          cp gmcx_unknown_title_review.json "$snapshot/gmcx_unknown_title_review.json"
 
           for attempt in 1 2 3 4 5; do
             echo "KICK replay/VOD5 publish attempt $attempt/5"
@@ -206,6 +223,7 @@ jobs:
             cp "$snapshot/kick_gmcx_chapters.json" kick_gmcx_chapters.json
             cp "$snapshot/kick_gmcx_chapters.m3u" kick_gmcx_chapters.m3u
             cp "$snapshot/gmcx_bgm_auto_starts.json" gmcx_bgm_auto_starts.json
+            cp "$snapshot/gmcx_unknown_title_review.json" gmcx_unknown_title_review.json
 
             # Rebuild vod5 from the newest replay metadata.
             # The helper also removes any legacy KICK replay block from FreeWiFi.
@@ -227,7 +245,7 @@ jobs:
           print('vod5 KICK VOD catalog validated:', count, 'entries')
           PY
 
-            git add vod5/playlist.m3u vod5/freewifi_specials.m3u VOD5 freewifi kick_replay.json kick_replay.m3u kick_gmcx_chapters.json kick_gmcx_chapters.m3u gmcx_bgm_auto_starts.json
+            git add vod5/playlist.m3u vod5/freewifi_specials.m3u VOD5 freewifi kick_replay.json kick_replay.m3u kick_gmcx_chapters.json kick_gmcx_chapters.m3u gmcx_bgm_auto_starts.json gmcx_unknown_title_review.json
             if git diff --cached --quiet; then
               echo "KICK/GMCX replay and VOD5 already current"
               exit 0
