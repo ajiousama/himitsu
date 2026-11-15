@@ -45,7 +45,9 @@ def ocr_title_candidates(replay: dict) -> dict[tuple[str, int], tuple[int, str]]
         if entry.get("source_url") != sources[vod_id]:
             continue
         for start_key, row in (entry.get("rows") or {}).items():
-            if not isinstance(row, dict) or row.get("status") != "ocr_match":
+            if not isinstance(row, dict) or row.get("status") not in {
+                "ocr_match", "ocr_match_from_workflow_log",
+            }:
                 continue
             candidate = row.get("candidate") or {}
             try:
@@ -55,7 +57,13 @@ def ocr_title_candidates(replay: dict) -> dict[tuple[str, int], tuple[int, str]]
             except (TypeError, ValueError):
                 continue
             title = str(candidate.get("title") or "")
-            if score < 0.84 or title != titles.get(str(ep)):
+            if title != titles.get(str(ep)):
+                continue
+            if row.get("status") == "ocr_match_from_workflow_log":
+                evidence = row.get("evidence") or {}
+                if not evidence.get("workflow_run_id") or not evidence.get("job_id"):
+                    continue
+            elif score < 0.84:
                 continue
             if row.get("source_url") != sources[vod_id]:
                 continue
