@@ -76,6 +76,24 @@ class LongNavTests(unittest.TestCase):
             self.assertIn("&start=52213&duration=3480", entries[0][1])
             self.assertTrue(all("後半未分類" in inf for inf, _ in entries))
 
+    def test_tiny_truncated_tail_reaches_full_recording_duration(self):
+        from gmcx_long_nav import _range_for_vod
+        recording = vod("df1386fd-4bd1-41ae-ac64-743ff49a838f", duration=172798)
+        result = {
+            "status": "ready", "partial": True, "chapters": [
+                {"kind": "special", "confidence": "unconfirmed",
+                 "title": "長時間特別編以降（未分割・確認待ち）",
+                 "start_seconds": 52213, "stop_seconds": 172795},
+            ]
+        }
+        self.assertEqual(_range_for_vod(recording, result),
+                         (52213, 172798, "後半未分類"))
+        self.assertEqual(time_slices(52213, 172798)[-1][1], 172798)
+        # A large gap between metadata and source must not be quietly filled.
+        recording["duration_seconds"] = 173000
+        self.assertEqual(_range_for_vod(recording, result),
+                         (52213, 172795, "後半未分類"))
+
     def test_confirmed_chapters_are_never_reprocessed(self):
         with tempfile.TemporaryDirectory() as d:
             replay, chapters = Path(d) / "r.json", Path(d) / "c.json"
