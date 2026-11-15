@@ -69,8 +69,7 @@ def main() -> int:
     chunks = eligible_chunks()
     if args.focus_priorities:
         info = json.loads(Path("gmcx_frame_priority_targets.json").read_text(encoding="utf-8"))
-        by_key = {(vod_id,start): item for item in chunks
-                  for vod_id,start,*_ in [item]}
+        by_key = {(item[0], item[1]): item for item in chunks}
         requested = [(str(row.get("vod_id") or ""), int(row.get("start_seconds")))
                      for row in info.get("targets",[]) if isinstance(row,dict)]
         missing = [key for key in requested if key not in by_key]
