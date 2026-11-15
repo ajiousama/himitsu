@@ -22,7 +22,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        task: [kai_after_live, fivehour_after_live, lemmings_late]
+        task: [kai_after_live_fine, fivehour_after_live_fine, lemmings_late_fine]
     steps:
       - name: Checkout
         uses: actions/checkout@v5
