@@ -158,6 +158,8 @@ def validate_source_groups(text: str) -> None:
             raise RuntimeError(f"newblog source group reverted: {name} => {group}")
         if "(5002直)" in name and group in {"地上波", "BS", "CS"}:
             raise RuntimeError(f"5002 source group reverted: {name} => {group}")
+        if name == "グリーンチャンネル（coffee）" and group == "BS coffee":
+            continue
         if name.startswith("グリーンチャンネル") and group != "今日の開催場":
             raise RuntimeError(f"Green Channel group reverted: {name} => {group}")
 
