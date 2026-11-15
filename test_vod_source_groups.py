@@ -35,15 +35,16 @@ class VodGroupTests(unittest.TestCase):
         nav_prefixes={
             match.group(1)
             for inf,_ in entries
-            if (match:=re.search(r'tvg-id="kick\\.gmcx\\.nav\\.([^".]+)\\.',inf))
+            if (match:=re.search(r'tvg-id="kick\.gmcx\.nav\.([^".]+)\.',inf))
         }
         for inf,url in entries:
-            raw=re.search(r'tvg-id="kick\\.gccx2\\.replay\\.([^"]+)"',inf)
+            raw=re.search(r'tvg-id="kick\.gccx2\.replay\.([^"]+)"',inf)
             if raw:
                 self.assertNotIn(raw.group(1),nav_prefixes,
                                  "GCCX raw multi-hour VOD duplicates available short cuts")
             if "未分割" in inf and "kick.gmcx.special" in inf:
-                self.assertFalse(re.search(r"[?&]duration=(?:[1-9]\\d{5,}|[7-9]\\d{3}|[1-9]\\d{4})",url),
+                length=re.search(r"[?&]duration=(\d+)",url)
+                self.assertFalse(length and int(length.group(1))>=7200,
                                  "Unsplit long GCCX tail was republished")
 
     def test_visual_episode_49_50_are_separate(self):
