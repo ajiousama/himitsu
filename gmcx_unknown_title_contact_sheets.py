@@ -58,11 +58,28 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--max-chunks",type=int,default=12)
     parser.add_argument("--budget-seconds",type=int,default=540)
+    parser.add_argument("--focus-ocr",action="store_true",
+                        help="review suspect OCR labels not already verified by actual frames")
     args=parser.parse_args()
     TARGET.mkdir(exist_ok=True)
     rows=[]
     finish=time.monotonic()+max(60,args.budget_seconds)
-    for vod_id, start, length, source in eligible_chunks():
+    chunks = eligible_chunks()
+    if args.focus_ocr:
+        report_path = Path("gmcx_unknown_title_review.json")
+        frames_path = Path("gmcx_frame_identified_titles.json")
+        report = json.loads(report_path.read_text(encoding="utf-8")) if report_path.exists() else {}
+        evidence = json.loads(frames_path.read_text(encoding="utf-8")) if frames_path.exists() else {}
+        reviewed = {(item.get("source_vod_id"), int(item.get("start_seconds") or 0))
+                    for item in evidence.get("entries", []) if isinstance(item, dict)}
+        wanted = {(vod_id, int(start))
+                  for vod_id, vod in (report.get("vods") or {}).items()
+                  for start, row in (vod.get("rows") or {}).items()
+                  if isinstance(row, dict) and row.get("candidate") and
+                  (vod_id, int(start)) not in reviewed}
+        chunks = [item for item in chunks if (item[0], item[1]) in wanted]
+        print("Suspect unmatched OCR slots to visually review:", len(chunks), flush=True)
+    for vod_id, start, length, source in chunks:
         if len(rows)>=max(1,args.max_chunks) or time.monotonic()>finish-50:
             break
         captures=[]
