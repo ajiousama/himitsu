@@ -34,7 +34,7 @@ CHECKS = {
   "e4f91158-8a0e-4c75-9fb4-eab36c247464":
       [0,3480,6960,10440,13920,17400,97440,100920,104400,107880,111360],
 }
-MAX_SEARCHES = 30
+MAX_SEARCHES = 24
 REFERENCE_DURATION = 75
 TARGET_BEFORE = 52
 TARGET_DURATION = 126
@@ -76,6 +76,14 @@ def main() -> int:
             print("REFERENCE_AUDIO_FAILED",sec,str(exc)[:160],flush=True)
             report["seed_comparisons"].append({
                 "second":sec,"status":"decode_failed","reason":str(exc)[:250]})
+    target_fp_by_seed = {}
+    for sec in fp_by_seed:
+        try:
+            target_fp_by_seed[sec] = fingerprint(
+                read_audio(source, max(0, sec-TARGET_BEFORE), TARGET_DURATION)
+            )
+        except Exception as exc:
+            print("REFERENCE_TARGET_FAILED", sec, str(exc)[:160], flush=True)
     best = None
     for ref_sec, fp in fp_by_seed.items():
         comparison = []
@@ -88,8 +96,9 @@ def main() -> int:
             # Reframe the second seed's 75-second audio as a 126-second
             # comparison with an on-schedule expected shift.
             try:
-                target = fingerprint(
-                    read_audio(source, max(0,other_sec-TARGET_BEFORE),TARGET_DURATION))
+                target = target_fp_by_seed.get(other_sec)
+                if target is None:
+                    raise ValueError("target reference audio unavailable")
                 hits=candidate_matches(fp,target)
                 decision=consensus(hits)
                 comparison.append({"other_start":other_sec,
