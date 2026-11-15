@@ -70,7 +70,7 @@ def grouped_slices(
                     "title": title,
                     "part": i,
                     "total": len(inside),
-                    "anchor": a in anchors,
+                    "anchor": any(a <= t < b for t in anchors),
                     "part_label_style": (
                         "fullwidth_letter"
                         if group.get("part_label_style") == "fullwidth_letter"
