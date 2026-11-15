@@ -57,6 +57,22 @@ class VodGroupTests(unittest.TestCase):
         self.assertEqual(cuts[50]["start_seconds"],17409)
         self.assertEqual(cuts[50]["confidence"],"provisional")
 
+    def test_existing_gccx_archives_have_provisional_titles(self):
+        content = (ROOT/"vod5/playlist.m3u").read_text(encoding="utf-8-sig")
+        known = ("e4f91158-8a0", "5847ae05-893",
+                 "f622346e-33a", "df1386fd-4bd")
+        for line in content.splitlines():
+            if not line.startswith("#EXTINF"):
+                continue
+            if any(f'kick.gmcx.nav.{vod}.' in line for vod in known):
+                self.assertNotIn("話数未確認", line)
+                self.assertTrue(
+                    "実映像でゲーム名確認" in line
+                    or "放送順・位置から仮推定" in line
+                    or "映像OCR候補" in line,
+                    "Existing GCCX navigation slice lost its title evidence"
+                )
+
     def test_kick_catalog_still_mirrored(self):
         self.assertEqual((ROOT/"VOD5").read_bytes(),(ROOT/"vod5/playlist.m3u").read_bytes())
 
