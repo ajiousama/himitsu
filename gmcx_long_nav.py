@@ -230,6 +230,11 @@ def _range_for_vod(vod: dict, result: dict) -> tuple[int, int, str] | None:
             start = int(tail.get("start_seconds") or 0)
             end = int(tail.get("stop_seconds") or 0)
             if 0 <= start < end <= duration + 10:
+                # The older provisional chapter detector can truncate the
+                # final HLS seconds (e.g. 172795 vs source 172798). Preserve
+                # a <=10s measured source tail instead of silently dropping it.
+                if 0 <= duration - end <= 10:
+                    end = duration
                 return start, min(end, duration), "後半未分類"
     return None
 
