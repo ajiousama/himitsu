@@ -223,13 +223,13 @@ def build_vod5() -> str:
         (vod.group(1), int(start.group(1)))
         for _, url in navigation
         if (vod := re.search(r"[?&]vod=([A-Za-z0-9_-]+)", url))
-        and (start := re.search(r"[?&]start=(\\d+)", url))
+        and (start := re.search(r"[?&]start=(\d+)", url))
     }
     video_openings = [
         (extinf, url) for extinf, url in video_openings
         if not (
             (vod := re.search(r"[?&]vod=([A-Za-z0-9_-]+)", url))
-            and (start := re.search(r"[?&]start=(\\d+)", url))
+            and (start := re.search(r"[?&]start=(\d+)", url))
             and (vod.group(1), int(start.group(1))) in nav_start_keys
         )
     ]
