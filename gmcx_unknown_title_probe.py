@@ -38,7 +38,7 @@ def title_keys(title: str) -> set[str]:
     # Full game names only. Publisher/series substrings cause severe false
     # positives (TAITO -> TAITO CHASE H.Q., CORE -> ARMORED CORE).
     # Trim only episode suffixes like （前編）, not arbitrary game words.
-    base = re.sub(r"（(?:前編|後編|完結編|その\\d+|第\\d+回)）$", "", title)
+    base = re.sub(r"（(?:前編|後編|完結編|その\d+|第\d+回)）$", "", title)
     keys = {normalized(title), normalized(base)}
     return {key for key in keys if len(key) >= 5}
 
