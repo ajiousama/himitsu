@@ -87,9 +87,22 @@ class VodGroupTests(unittest.TestCase):
                      if (match:=re.search(r"[?&]duration=(\d+)",url))]
         self.assertTrue(durations)
         self.assertLessEqual(max(durations), 3605)
-        self.assertEqual(len(entries), 150)
+        # Catalog size legitimately changes as KICK VODs appear/expire.
+        self.assertGreaterEqual(len(entries), 1)
         grouped = [info for info,_ in entries if "｜連続" in info]
-        self.assertGreaterEqual(len(grouped), 49)
+        from gmcx_long_nav import build_time_navigation_entries
+        generated = build_time_navigation_entries(
+            ROOT/"kick_replay.json", ROOT/"kick_gmcx_chapters.json"
+        )
+        expected_ids = {
+            re.search(r'tvg-id="([^"]+)"', info).group(1)
+            for info,_ in generated if "｜連続" in info
+        }
+        actual_ids = {
+            re.search(r'tvg-id="([^"]+)"', info).group(1)
+            for info in grouped
+        }
+        self.assertEqual(expected_ids, actual_ids)
         for info in grouped:
             self.assertTrue("映像あり・区間境界は仮" in info
                             or "前後の映像から継続推定" in info)
