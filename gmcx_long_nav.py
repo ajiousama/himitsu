@@ -268,9 +268,8 @@ def build_time_navigation_entries(
             continue
         # An actual, frame-observed programme start may replace the nearest
         # provisional 58-minute edge, without assuming an end boundary.
-        spans = snap_verified_starts(
-            spans, validated_starts(vod, start, end)
-        )
+        verified_starts = validated_starts(vod, start, end)
+        spans = snap_verified_starts(spans, verified_starts)
         continuity = grouped_slices(vod, spans, observed_games)
         created = str(vod.get("created_at") or "")
         date_label = created[5:10].replace("-", "/") if re.match(r"\d{4}-\d{2}-\d{2}", created) else "日時未詳"
@@ -290,6 +289,7 @@ def build_time_navigation_entries(
                 label = grouped_label(
                     group, gameplay[0] if gameplay else None,
                     date_label, hms(begin), hms(stop),
+                    verified_start=begin in verified_starts,
                 )
             elif gameplay:
                 game, possible_episode = gameplay
