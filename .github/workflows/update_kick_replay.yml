@@ -17,6 +17,9 @@ on:
       - "kick_replay_freewifi.py"
       - "gmcx_long_nav.py"
       - "gmcx_continuity.py"
+      - "gmcx_exact_nav.py"
+      - "gmcx_exact_boundaries.json"
+      - "test_gmcx_exact_nav.py"
       - "gmcx_continuity_groups.json"
       - "test_gmcx_continuity.py"
       - "gmcx_unknown_title_probe.py"
@@ -86,7 +89,7 @@ jobs:
         run: python -m pip install --quiet numpy
 
       - name: Verify GCCX 2024/2025 special programme layout
-        run: python -m unittest -v test_gmcx_star_soldier_insert.py test_gmcx_397_sp52.py test_gmcx_404_trial_cuts.py test_gmcx_417_review_cuts.py test_gmcx_long_nav.py test_gmcx_video_opening.py test_gmcx_unknown_title_probe.py test_gmcx_continuity.py
+        run: python -m unittest -v test_gmcx_star_soldier_insert.py test_gmcx_397_sp52.py test_gmcx_404_trial_cuts.py test_gmcx_417_review_cuts.py test_gmcx_long_nav.py test_gmcx_video_opening.py test_gmcx_unknown_title_probe.py test_gmcx_continuity.py test_gmcx_exact_nav.py
 
       - name: Build KICK replay catalog
         run: python -u kick_replay.py
