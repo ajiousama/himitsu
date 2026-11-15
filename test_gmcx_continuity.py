@@ -44,6 +44,26 @@ class ContinuityTests(unittest.TestCase):
         self.assertIn("［映像：Game A］",
                       grouped_label(grouped[0],"Game A","11/11","00:00:00","00:58:00"))
 
+    def test_lettered_long_programme_titles(self):
+        self.data["groups"][0]["title"] = "レミングス（24時間）"
+        self.data["groups"][0]["part_label_style"] = "fullwidth_letter"
+        self.save()
+        grouped = grouped_slices(self.vod, self.spans, self.observed, self.path)
+        self.assertIn("レミングス（24時間）Ａ",
+                      grouped_label(grouped[0], "レミングス", "11/11", "00:00", "00:58"))
+        self.assertIn("レミングス（24時間）Ｂ",
+                      grouped_label(grouped[3480], None, "11/11", "00:58", "01:56"))
+        self.assertIn("レミングス（24時間）Ｃ",
+                      grouped_label(grouped[6960], "レミングス", "11/11", "01:56", "02:54"))
+        self.assertNotIn("映像あり・区間境界は仮",
+                         grouped_label(grouped[3480], None, "11/11", "00:58", "01:56"))
+
+    def test_letter_sequence_beyond_z(self):
+        group = {"part": 27, "total": 28, "title": "長時間特番",
+                 "part_label_style": "fullwidth_letter"}
+        self.assertIn("長時間特番ＡＡ",
+                      grouped_label(group, None, "11/11", "00:58", "01:56"))
+
     def test_wrong_source_never_groups(self):
         self.save()
         fake=dict(self.vod,source_url="https://example.invalid/replaced.m3u8")
