@@ -35,7 +35,7 @@ jobs:
             sudo apt-get install -y -qq ffmpeg
           fi
       - name: Inspect actual frames across unknown GCCX recordings
-        run: python -u gmcx_unknown_title_contact_sheets.py --focus-ocr --max-chunks 10 --budget-seconds 620
+        run: python -u gmcx_unknown_title_contact_sheets.py --focus-priorities --max-chunks 12 --budget-seconds 620
       - name: Keep frames for actual visual title identification
         if: always()
         uses: actions/upload-artifact@v4
