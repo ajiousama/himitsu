@@ -71,6 +71,11 @@ def grouped_slices(
                     "part": i,
                     "total": len(inside),
                     "anchor": a in anchors,
+                    "part_label_style": (
+                        "fullwidth_letter"
+                        if group.get("part_label_style") == "fullwidth_letter"
+                        else "numeric"
+                    ),
                 }
     return result
 
@@ -79,6 +84,17 @@ def grouped_label(group: dict, observed_title: str | None, date: str,
                   start_text: str, end_text: str) -> str:
     """Explicitly distinguish observed footage from inferred continuity."""
     sequence = f"{group['part']:02d}/{group['total']:02d}"
+    if group.get("part_label_style") == "fullwidth_letter":
+        # User-facing A, B, C ... naming, independent of inferred broadcast cuts.
+        # Supports A-Z, then AA, AB, etc. without silently truncating at 26.
+        i = int(group["part"])
+        letters = ""
+        while i > 0:
+            i, remainder = divmod(i - 1, 26)
+            letters = chr(0xFF21 + remainder) + letters
+        heading = f"{group['title']}{letters}"
+    else:
+        heading = group["title"]
     if observed_title:
         # One 58-minute slice can show several games, so show what was
         # actually seen even if the wider programme was different.
@@ -88,6 +104,6 @@ def grouped_label(group: dict, observed_title: str | None, date: str,
         inside = ""
         status = "前後の映像から継続推定"
     return (
-        f"📼 GCCX {group['title']}｜連続{sequence}{inside}"
+        f"📼 GCCX {heading}｜連続{sequence}{inside}"
         f"（{status}／{date} {start_text}〜{end_text}）"
     )
