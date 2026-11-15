@@ -27,6 +27,7 @@ on:
       - "gmcx_unknown_title_review.json"
       - "gmcx_frame_identified_titles.json"
       - "gmcx_chronological_title_estimates.json"
+      - "test_gmcx_episode_drift_guard.py"
       - "test_vod_source_groups.py"
       - "gmcx_video_verified_openings.json"
       - "test_gmcx_video_opening.py"
@@ -89,7 +90,7 @@ jobs:
         run: python -m pip install --quiet numpy
 
       - name: Verify GCCX 2024/2025 special programme layout
-        run: python -m unittest -v test_gmcx_star_soldier_insert.py test_gmcx_397_sp52.py test_gmcx_404_trial_cuts.py test_gmcx_417_review_cuts.py test_gmcx_long_nav.py test_gmcx_video_opening.py test_gmcx_unknown_title_probe.py test_gmcx_continuity.py test_gmcx_exact_nav.py
+        run: python -m unittest -v test_gmcx_star_soldier_insert.py test_gmcx_397_sp52.py test_gmcx_404_trial_cuts.py test_gmcx_417_review_cuts.py test_gmcx_long_nav.py test_gmcx_video_opening.py test_gmcx_unknown_title_probe.py test_gmcx_continuity.py test_gmcx_exact_nav.py test_gmcx_episode_drift_guard.py
 
       - name: Build KICK replay catalog
         run: python -u kick_replay.py
