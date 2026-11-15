@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-15",
-  "generated_at": "2026-11-15T12:45:01.768000+09:00",
+  "generated_at": "2026-11-15T12:46:01.720352+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261115.json",
   "schedule_checked_at": "2026-11-15T12:45:01.768000+09:00",
@@ -52,10 +52,16 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 10,
+    "requested": 11,
     "fetched": 10,
     "failures": [],
-    "deferred": []
+    "deferred": [
+      {
+        "jcd": "24",
+        "name": "大村",
+        "start": "2026-11-15T14:45:00+09:00"
+      }
+    ]
   },
   "epg_programmes_written": {
     "public_sports_epg_local.xml": 182,
@@ -426,14 +432,14 @@
       "last_race": "15:58",
       "alert_from": "2026-11-15T09:48:00+09:00",
       "next_race": {
-        "race": 6,
-        "start": "12:46"
+        "race": 7,
+        "start": "13:18"
       },
       "stream_window": "live_or_prestart",
       "intermission": null,
       "guidance_switch_at": "2026-11-15T16:43:00+09:00",
       "seed_required": false,
-      "reverify_due": true,
+      "reverify_due": false,
       "playback_verified": true,
       "first_verified_at": "2026-11-15T09:45:29.023691+09:00",
       "ready_before_first_race": true,
@@ -1416,7 +1422,8 @@
           "name": "一般"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "provider_stream_start": "2026-11-15T14:45:00+09:00",
+      "source": "公式BR配信開始待ち 14:45"
     }
   }
 }
