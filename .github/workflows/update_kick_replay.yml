@@ -16,6 +16,9 @@ on:
       - "kick_gmcx_chapters.py"
       - "kick_replay_freewifi.py"
       - "gmcx_long_nav.py"
+      - "gmcx_auto_opening.py"
+      - "gmcx_auto_opening_scan.py"
+      - "test_gmcx_auto_opening.py"
       - "gmcx_continuity.py"
       - "gmcx_exact_nav.py"
       - "gmcx_exact_boundaries.json"
@@ -90,7 +93,7 @@ jobs:
         run: python -m pip install --quiet numpy
 
       - name: Verify GCCX 2024/2025 special programme layout
-        run: python -m unittest -v test_gmcx_star_soldier_insert.py test_gmcx_397_sp52.py test_gmcx_404_trial_cuts.py test_gmcx_417_review_cuts.py test_gmcx_long_nav.py test_gmcx_video_opening.py test_gmcx_unknown_title_probe.py test_gmcx_continuity.py test_gmcx_exact_nav.py test_gmcx_episode_drift_guard.py
+        run: python -m unittest -v test_gmcx_star_soldier_insert.py test_gmcx_397_sp52.py test_gmcx_404_trial_cuts.py test_gmcx_417_review_cuts.py test_gmcx_long_nav.py test_gmcx_video_opening.py test_gmcx_unknown_title_probe.py test_gmcx_continuity.py test_gmcx_exact_nav.py test_gmcx_episode_drift_guard.py test_gmcx_auto_opening.py
 
       - name: Build KICK replay catalog
         run: python -u kick_replay.py
@@ -116,6 +119,16 @@ jobs:
             cp /tmp/kick_gmcx_chapters_before_bgm.json kick_gmcx_chapters.json
             cp /tmp/kick_gmcx_chapters_before_bgm.m3u kick_gmcx_chapters.m3u
             echo "::warning::GCCX BGM publisher rejected edits; restored original catalogue"
+          fi
+
+      - name: Auto-locate GCCX openings in newly available recordings
+        shell: bash
+        run: |
+          # Each hourly build checks previously unseen positions, prioritizing
+          # newer archives before KICK expires them. Never change confirmed
+          # video cuts, or claim that audio means the episode title is known.
+          if ! python -u gmcx_auto_opening_scan.py --budget-seconds 340 --max-new 16; then
+            echo "::warning::GCCX automatic acoustic scan failed; retaining provisional 58-minute navigation"
           fi
 
       - name: Detect unknown GCCX programme titles in actual video frames
@@ -223,6 +236,12 @@ jobs:
           cp kick_gmcx_chapters.m3u "$snapshot/kick_gmcx_chapters.m3u"
           cp gmcx_bgm_auto_starts.json "$snapshot/gmcx_bgm_auto_starts.json"
           cp gmcx_unknown_title_review.json "$snapshot/gmcx_unknown_title_review.json"
+          if [ -f gmcx_auto_opening_review.json ]; then
+            cp gmcx_auto_opening_review.json "$snapshot/gmcx_auto_opening_review.json"
+          fi
+          if [ -f gmcx_opening_fingerprint.json ]; then
+            cp gmcx_opening_fingerprint.json "$snapshot/gmcx_opening_fingerprint.json"
+          fi
 
           for attempt in 1 2 3 4 5; do
             echo "KICK replay/VOD5 publish attempt $attempt/5"
@@ -235,6 +254,12 @@ jobs:
             cp "$snapshot/kick_gmcx_chapters.m3u" kick_gmcx_chapters.m3u
             cp "$snapshot/gmcx_bgm_auto_starts.json" gmcx_bgm_auto_starts.json
             cp "$snapshot/gmcx_unknown_title_review.json" gmcx_unknown_title_review.json
+            if [ -f "$snapshot/gmcx_auto_opening_review.json" ]; then
+              cp "$snapshot/gmcx_auto_opening_review.json" gmcx_auto_opening_review.json
+            fi
+            if [ -f "$snapshot/gmcx_opening_fingerprint.json" ]; then
+              cp "$snapshot/gmcx_opening_fingerprint.json" gmcx_opening_fingerprint.json
+            fi
 
             # Rebuild vod5 from the newest replay metadata.
             # The helper also removes any legacy KICK replay block from FreeWiFi.
@@ -257,6 +282,8 @@ jobs:
           PY
 
             git add vod5/playlist.m3u vod5/freewifi_specials.m3u VOD5 freewifi kick_replay.json kick_replay.m3u kick_gmcx_chapters.json kick_gmcx_chapters.m3u gmcx_bgm_auto_starts.json gmcx_unknown_title_review.json
+            if [ -f gmcx_auto_opening_review.json ]; then git add gmcx_auto_opening_review.json; fi
+            if [ -f gmcx_opening_fingerprint.json ]; then git add gmcx_opening_fingerprint.json; fi
             if git diff --cached --quiet; then
               echo "KICK/GMCX replay and VOD5 already current"
               exit 0
