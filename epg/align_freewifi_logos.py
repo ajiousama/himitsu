@@ -36,9 +36,12 @@ def read_logo_map() -> dict[str, str]:
             raise SystemExit(f"Invalid logo URL for {channel_id}: {logo[:100]}")
         previous = mapping.setdefault(channel_id, logo)
         if previous != logo:
-            raise SystemExit(
-                f"Conflicting FreeWiFi tvg-logos for {channel_id}; "
-                "refusing to choose silently"
+            # One tvg-id can legitimately appear in multiple source groups with
+            # different artwork. Preserve the first FreeWiFi logo consistently;
+            # a cosmetic disagreement must never block publishing all EPG data.
+            print(
+                f"::warning::Conflicting tvg-logos for {channel_id}; "
+                "keeping the first FreeWiFi logo"
             )
     if entries < 150 or len(mapping) < 100:
         raise SystemExit(
