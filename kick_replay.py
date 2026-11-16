@@ -264,12 +264,15 @@ def normalize_vod(vod_id, listed_obj, channel):
     )
     source_alive = hls_alive(source_url) if source_ok else False
     if (str(channel.get("tvg_id") or "").startswith("kick.gccx")
-        and source_alive and (duration_s is None or duration_s < 60)
-        and is_live is not True):
+        and source_alive and (duration_s is None or duration_s < 60)):
+        # KICK sometimes retains is_live=True and duration=0 for a recording
+        # that has already finished. HLS ENDLIST is stronger evidence than
+        # a stale API flag. Without ENDLIST, do not publish an ongoing live VOD.
         measured = hls_completed_vod_duration(source_url)
         if measured is not None:
             print("GCCX_DURATION_FROM_COMPLETED_HLS",str(vod_id)[:12],measured)
             duration_s = measured
+            is_live = False
     # A duration of zero, live item, or dead HLS source is not publishable.
     # Dead archives disappear cleanly instead of poisoning the whole VOD block.
     ready_for_publish = bool(
