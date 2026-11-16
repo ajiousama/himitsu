@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-15T22:28:19.853370+09:00",
+  "generated_at": "2026-11-16T11:14:20.171193+09:00",
   "reference_episode_seconds": 3501,
   "results": [
     {
@@ -29,7 +29,7 @@
       "duration_seconds": 172795,
       "partial": true,
       "verification_status": "provisional_not_fully_verified",
-      "notes": "映像の王座場面で検出した暫定分割。韓国特別編は58分仮境界（17409秒）で#49/#50に分割済み。長時間特別編以降はVOD5で短い時間ナビゲーションに分割。追加取得はHTTP429で中断。端点の秒単位の精査と全タイトルの照合は未完了。 表示タイトルから「仮分割」を除去。開始位置とconfidence=provisionalは変更せず、検出結果と最終検証を区別する。",
+      "notes": "映像の王座場面で検出した暫定分割。韓国特別編は58分仮境界（17409秒）で#49/#50に分割済み。長時間特別編以降はVOD5で短い時間ナビゲーションに分割。追加取得はHTTP429で中断。端点の秒単位の精査と全タイトルの照合は未完了。 表示タイトルから「仮分割」を除去。開始位置とconfidence=provisionalは変更せず、検出結果と最終検証を区別する。 2026-11-16: audio motif matched 13/24 sampled positions; #50 title was visually confirmed as Korea commemorative special at around 17458 but 17409 boundary remains provisional; #55 recurring audio starts around 34810.5 and programme logo appears ~34835, so 34821 cut remains provisional pending further verification.",
       "chapters": [
         {
           "start_seconds": 0,
@@ -102,6 +102,18 @@
           "title": "50回記念スペシャル たまゲーin韓国",
           "confidence": "provisional",
           "boundary_status": "estimated-58min-cut-not-video-verified",
+          "title_visual_evidence": {
+            "observation": "The Korea commemorative special is visible on actual 1fps sampled video near t=17458–17464. Prior frames t=17409–17455 show history montage and setup, not a regular Ode-to-Joy episode opening.",
+            "title_confirmed_in_footage": true,
+            "exact_start_confirmed": false,
+            "source_workflow_run_id": 43769996503,
+            "artifact": "gmcx-audio-cut-ep50_no_ode",
+            "source_frame_seconds": [
+              17409,
+              17458,
+              17464
+            ]
+          },
           "kind": "episode",
           "stop_seconds": 20890,
           "duration_seconds": 3481,
@@ -167,6 +179,19 @@
           "title": "カイの冒険（後編）",
           "confidence": "provisional",
           "boundary_status": "king-room-detected",
+          "audio_visual_review": {
+            "recurring_opener_audio_candidate_seconds": 34810.5,
+            "current_provisional_chapter_start_seconds": 34821,
+            "video_title_logo_visible_seconds": [
+              34835,
+              34841
+            ],
+            "note": "1fps frames show prior games, schedule promo, black at ~34810, gameplay montage at ~34811, then GameCenter CX logo sequence ~34835–34841. Audio match may precede screen logo; still not independently verified exact episode boundary or game episode identity.",
+            "exact_start_confirmed": false,
+            "source_audio_workflow_run_id": 43767291966,
+            "source_video_workflow_run_id": 43769996503,
+            "artifact": "gmcx-audio-cut-ep55_ten_second_shift"
+          },
           "kind": "episode",
           "stop_seconds": 38291,
           "duration_seconds": 3470,
@@ -241,12 +266,6 @@
           "special_key": "visual-df1386fd-15"
         }
       ]
-    },
-    {
-      "vod_id": "f622346e-33ac-454d-92a5-33b97f89f936",
-      "title": "ゲームセンターCX #428",
-      "status": "range_unknown",
-      "chapters": []
     }
   ]
 }
