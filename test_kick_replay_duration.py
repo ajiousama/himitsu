@@ -58,16 +58,29 @@ class HlsDurationTests(unittest.TestCase):
         self.assertTrue(result["ready_for_publish"])
         get.assert_called_once_with(self.MASTER)
 
-    def test_live_or_generic_channels_do_not_run_fallback(self):
+    def test_stale_api_live_flag_cleared_only_when_hls_has_endlist(self):
         detail={"title":"Game Center CX","duration":0,
                 "created_at":"2026-11-15T10:40:00+09:00",
                 "source":self.MASTER,"is_live":True}
         with patch("kick_replay.get_json",return_value=detail), \
              patch("kick_replay.hls_alive",return_value=True), \
-             patch("kick_replay.hls_completed_vod_duration") as get:
+             patch("kick_replay.hls_completed_vod_duration",return_value=172798) as get:
+            result=normalize_vod("abcd1234-00",detail,{"tvg_id":"kick.gccx2"})
+            self.assertTrue(result["ready_for_publish"])
+            self.assertFalse(result["is_live"])
+            get.assert_called_once_with(self.MASTER)
+
+    def test_live_or_generic_channels_are_not_misidentified_as_archived(self):
+        detail={"title":"Game Center CX","duration":0,
+                "created_at":"2026-11-15T10:40:00+09:00",
+                "source":self.MASTER,"is_live":True}
+        with patch("kick_replay.get_json",return_value=detail), \
+             patch("kick_replay.hls_alive",return_value=True), \
+             patch("kick_replay.hls_completed_vod_duration",return_value=None) as get:
             result=normalize_vod("abcd1234-00",detail,{"tvg_id":"kick.gccx2"})
             self.assertFalse(result["ready_for_publish"])
-            get.assert_not_called()
+            self.assertTrue(result["is_live"])
+            get.assert_called_once_with(self.MASTER)
         detail["is_live"]=False
         with patch("kick_replay.get_json",return_value=detail), \
              patch("kick_replay.hls_alive",return_value=True), \
