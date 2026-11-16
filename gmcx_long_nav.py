@@ -362,7 +362,7 @@ def build_time_navigation_entries(
                     "映像OCR候補・境界仮", "映像OCR候補・音声境界仮"
                 )
                 if "音声境界仮" not in label:
-                    label = label.replace("（", "（音声による開始位置推定・要映像確認／", 1)
+                    label += "［音声による開始位置推定・要映像確認］"
             extinf = (
                 '#EXTINF:-1 group-title="KICK系VOD" '
                 f'tvg-id="{part_id}" tvg-logo="{LOGO}",{label}'
