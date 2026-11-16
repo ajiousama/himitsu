@@ -1,0 +1,25 @@
+name: FreeWiFi EPG read-only diagnostics
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '13 * * * *'
+permissions:
+  contents: read
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Snapshot FreeWiFi and guides.xml without changing either
+        run: python epg/diagnose_readonly.py
+      - name: Preserve diagnostic evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: epg-diagnostics-${{ github.run_id }}
+          path: epg_diagnostics/
+          retention-days: 30
+          if-no-files-found: warn
