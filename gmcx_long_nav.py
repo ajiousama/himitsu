@@ -14,6 +14,7 @@ from urllib.parse import quote
 
 from gmcx_continuity import grouped_label, grouped_slices
 from gmcx_exact_nav import snap_verified_starts, validated_starts
+from gmcx_auto_opening import snap_audio_starts
 
 CHUNK_SECONDS = 58 * 60
 MIN_RANGE_SECONDS = 2 * 60 * 60
@@ -285,16 +286,25 @@ def build_time_navigation_entries(
         spans = time_slices(start, end)
         if not spans:
             continue
-        # An actual, frame-observed programme start may replace the nearest
-        # provisional 58-minute edge, without assuming an end boundary.
+        nominal_spans = spans[:]
+        # Observed image boundaries always override audio estimates.
         verified_starts = validated_starts(vod, start, end)
         spans = snap_verified_starts(spans, verified_starts)
+        # Automated recurring intro-sound matches can shift only safe,
+        # provisional edges. Confirmed starts and series/marathons are locked.
+        spans, audio_starts = snap_audio_starts(
+            spans, vod, start, end, verified_starts
+        )
         continuity = grouped_slices(vod, spans, observed_games)
         created = str(vod.get("created_at") or "")
         date_label = created[5:10].replace("-", "/") if re.match(r"\d{4}-\d{2}-\d{2}", created) else "日時未詳"
         for index, (begin, stop) in enumerate(spans, 1):
+            # Title evidence was gathered at the original provisional clip
+            # start; audio alignment may move it by a few seconds.
+            nominal = nominal_spans[index - 1][0]
             part_id = f"kick.gmcx.nav.{vod_id[:12]}.{begin}"
-            gameplay = observed_games.get((vod_id, begin))
+            gameplay = (observed_games.get((vod_id, begin))
+                        or observed_games.get((vod_id, nominal)))
             if gameplay is None:
                 # Snapped boundary can precede a verified game frame by a
                 # few seconds (e.g. SP intro at 59152; game frame at 59173).
@@ -303,7 +313,8 @@ def build_time_navigation_entries(
                      if (vod_id, t) in observed_games),
                     None,
                 )
-            matched_title = ocr_candidates.get((vod_id, begin))
+            matched_title = (ocr_candidates.get((vod_id, begin))
+                             or ocr_candidates.get((vod_id, nominal)))
             if (group := continuity.get(begin)):
                 label = grouped_label(
                     group, gameplay[0] if gameplay else None,
@@ -323,7 +334,8 @@ def build_time_navigation_entries(
                     f"📼 GCCX #{ep} {title}（映像OCR候補・境界仮／"
                     f"{date_label} {hms(begin)}〜{hms(stop)}）"
                 )
-            elif (hint := chronological.get((vod_id, begin))):
+            elif (hint := (chronological.get((vod_id, begin))
+                            or chronological.get((vod_id, nominal)))):
                 ep, title = hint
                 prefix = f"#{ep} " if ep is not None else ""
                 suspended = (
@@ -340,6 +352,17 @@ def build_time_navigation_entries(
                     f"📼 GCCX {date_label} {kind}・仮チャプター "
                     f"{index}/{len(spans)}（{hms(begin)}〜{hms(stop)}／話数未確認）"
                 )
+            if begin in audio_starts:
+                # A song fingerprint is not proof of programme/episode ID.
+                # Never call such an aligned edge "exact" or "confirmed".
+                label = label.replace(
+                    "実映像でゲーム名確認・境界仮",
+                    "実映像でゲーム名確認・音声境界仮"
+                ).replace(
+                    "映像OCR候補・境界仮", "映像OCR候補・音声境界仮"
+                )
+                if "音声境界仮" not in label:
+                    label = label.replace("（", "（音声による開始位置推定・要映像確認／", 1)
             extinf = (
                 '#EXTINF:-1 group-title="KICK系VOD" '
                 f'tvg-id="{part_id}" tvg-logo="{LOGO}",{label}'
