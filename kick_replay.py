@@ -104,6 +104,73 @@ def hls_alive(url: str | None) -> bool:
     return False
 
 
+def hls_completed_vod_duration(url: str | None) -> int | None:
+    """Recover an archived VOD's duration when KICK API reports 0 seconds.
+
+    Read actual EXTINF segment durations from a complete ENDLIST media
+    playlist, NOT a guessed 58-minute schedule or live playlist duration.
+    Bounded at 8 MiB so malformed streams cannot exhaust a GitHub runner.
+    Returns None for live/incomplete/unreachable HLS or implausible lengths.
+    """
+    if not url or not url.startswith("https://") or ".m3u8" not in url:
+        return None
+    headers = {
+        "User-Agent": UA,
+        "Accept": "application/vnd.apple.mpegurl, application/x-mpegURL, text/plain, */*",
+        "Referer": "https://kick.com/",
+    }
+    def download(target: str, cap: int) -> str | None:
+        req = urllib.request.Request(target, headers=headers)
+        with urllib.request.urlopen(req, timeout=18) as response:
+            body = response.read(cap + 1)
+        if len(body) > cap:
+            return None
+        return body.decode("utf-8", "replace")
+    try:
+        master = download(url, 512 * 1024)
+        if not master or not master.lstrip().startswith("#EXTM3U"):
+            return None
+        media_url = url
+        if "#EXT-X-STREAM-INF" in master:
+            variants = []
+            lines = [line.strip() for line in master.splitlines()]
+            for i, line in enumerate(lines):
+                if not line.startswith("#EXT-X-STREAM-INF:"):
+                    continue
+                match = re.search(r"(?:AVERAGE-)?BANDWIDTH=(\d+)", line)
+                bandwidth = int(match.group(1)) if match else 10**12
+                j = i + 1
+                while j < len(lines) and (not lines[j] or lines[j].startswith("#")):
+                    j += 1
+                if j < len(lines):
+                    variants.append((bandwidth,urllib.parse.urljoin(url,lines[j])))
+            if not variants:
+                return None
+            media_url = min(variants,key=lambda x:x[0])[1]
+        media = download(media_url, 8 * 1024 * 1024)
+        if not media or not media.lstrip().startswith("#EXTM3U"):
+            return None
+        if not any(line.strip()=="#EXT-X-ENDLIST" for line in media.splitlines()):
+            return None
+        lengths = []
+        for line in media.splitlines():
+            if line.startswith("#EXTINF:"):
+                token = line.split(":",1)[1].split(",",1)[0].strip()
+                length = float(token)
+                if not 0 < length <= 120:
+                    return None
+                lengths.append(length)
+        if not lengths or len(lengths) > 200000:
+            return None
+        duration = int(round(sum(lengths)))
+        if not 60 <= duration <= 7 * 24 * 3600:
+            return None
+        return duration
+    except (OSError, ValueError, OverflowError) as exc:
+        print("GCCX completed HLS duration not available:",str(exc)[:140])
+        return None
+
+
 def walk(value):
     if isinstance(value, dict):
         yield value
@@ -196,6 +263,13 @@ def normalize_vod(vod_id, listed_obj, channel):
         and ".m3u8" in source_url
     )
     source_alive = hls_alive(source_url) if source_ok else False
+    if (str(channel.get("tvg_id") or "").startswith("kick.gccx")
+        and source_alive and (duration_s is None or duration_s < 60)
+        and is_live is not True):
+        measured = hls_completed_vod_duration(source_url)
+        if measured is not None:
+            print("GCCX_DURATION_FROM_COMPLETED_HLS",str(vod_id)[:12],measured)
+            duration_s = measured
     # A duration of zero, live item, or dead HLS source is not publishable.
     # Dead archives disappear cleanly instead of poisoning the whole VOD block.
     ready_for_publish = bool(
