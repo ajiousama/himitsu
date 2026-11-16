@@ -13,6 +13,7 @@ on:
     paths:
       - "vod5/kick_channels.json"
       - "kick_replay.py"
+      - "test_kick_replay_duration.py"
       - "kick_gmcx_chapters.py"
       - "kick_replay_freewifi.py"
       - "gmcx_long_nav.py"
@@ -93,7 +94,7 @@ jobs:
         run: python -m pip install --quiet numpy
 
       - name: Verify GCCX 2024/2025 special programme layout
-        run: python -m unittest -v test_gmcx_star_soldier_insert.py test_gmcx_397_sp52.py test_gmcx_404_trial_cuts.py test_gmcx_417_review_cuts.py test_gmcx_long_nav.py test_gmcx_video_opening.py test_gmcx_unknown_title_probe.py test_gmcx_continuity.py test_gmcx_exact_nav.py test_gmcx_episode_drift_guard.py test_gmcx_auto_opening.py
+        run: python -m unittest -v test_gmcx_star_soldier_insert.py test_gmcx_397_sp52.py test_gmcx_404_trial_cuts.py test_gmcx_417_review_cuts.py test_gmcx_long_nav.py test_gmcx_video_opening.py test_gmcx_unknown_title_probe.py test_gmcx_continuity.py test_gmcx_exact_nav.py test_gmcx_episode_drift_guard.py test_gmcx_auto_opening.py test_kick_replay_duration.py
 
       - name: Build KICK replay catalog
         run: python -u kick_replay.py
