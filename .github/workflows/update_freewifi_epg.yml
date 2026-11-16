@@ -386,6 +386,32 @@ jobs:
           ET.parse(p)
           if len(gr.findall('channel')) < 50 or len(gr.findall('programme')) < 100:
               raise SystemExit('publish blocked: guides.xml is too sparse')
+          # Keep terrestrial tvg-id bindings stable across every automatic EPG publish.
+          import re
+          from collections import Counter
+          playlist = Path('freewifi').read_text(encoding='utf-8-sig')
+          terrestrial = set()
+          for line in playlist.splitlines():
+              if not line.startswith('#EXTINF:'):
+                  continue
+              group = re.search(r'group-title="([^"]*)"', line)
+              if not group or not group.group(1).startswith('地上波'):
+                  continue
+              match = re.search(r'tvg-id="([^"]+)"', line)
+              if not match:
+                  raise SystemExit(f'publish blocked: terrestrial entry has no tvg-id: {line[:180]}')
+              terrestrial.add(match.group(1))
+          channel_counts = Counter(ch.get('id') for ch in gr.findall('channel'))
+          programme_counts = Counter(p.get('channel') for p in gr.findall('programme'))
+          missing_channels = sorted(cid for cid in terrestrial if channel_counts[cid] != 1)
+          missing_programmes = sorted(cid for cid in terrestrial if programme_counts[cid] < 1)
+          if missing_channels or missing_programmes:
+              raise SystemExit(
+                  'publish blocked: terrestrial EPG mapping invalid '
+                  f'channel-id missing/duplicate={missing_channels}; '
+                  f'no programmes={missing_programmes}'
+              )
+          print(f'TERRESTRIAL EPG BINDINGS OK: {len(terrestrial)} ids')
           print('PUBLISH XML OK')
           PY
             git add guides.xml epg_coverage.txt public_sports_epg_local.xml verified_daily_status.json
