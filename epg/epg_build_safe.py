@@ -340,8 +340,6 @@ for p in _existing:
     cid = p.get("channel")
     start = parse_xmltv_time(p.get("start"))
     stop = parse_xmltv_time(p.get("stop"))
-    if cid and start and stop:
-        _history_rows[cid].append((start, stop, (p.findtext("title") or "").strip()))
     _history_root.remove(p)
 for p in _existing:
     _history_add(p, p.get("channel"), "current")
