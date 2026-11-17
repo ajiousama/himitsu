@@ -259,10 +259,14 @@ guide_ids = {c.get("id") for c in root.findall("channel")}
 programmed_ids = {p.get("channel") for p in root.findall("programme")}
 cafe_channels = {c.get("id"): c for c in cafe_root.findall("channel")}
 cafe_programmes = {}
+COFFEE_SOURCE_ALIAS = {"coffee.igo_shogi": "囲碁・将棋チャンネル_jp"}
 for p in cafe_root.findall("programme"):
     cid = p.get("channel")
-    if cid in coffee_ids and cid not in programmed_ids:
-        cafe_programmes.setdefault(cid, []).append(p)
+    target_id = next((target for target, source in COFFEE_SOURCE_ALIAS.items() if source == cid), cid)
+    if target_id in coffee_ids and target_id not in programmed_ids:
+        copied = deepcopy(p)
+        copied.set("channel", target_id)
+        cafe_programmes.setdefault(target_id, []).append(copied)
 
 merged_channels = 0
 merged_programmes = 0
@@ -271,10 +275,12 @@ for cid in sorted(coffee_ids):
     if not programmes:
         continue
     if cid not in guide_ids:
-        source_ch = cafe_channels.get(cid)
+        source_ch = cafe_channels.get(cid) or cafe_channels.get(COFFEE_SOURCE_ALIAS.get(cid, ""))
         if source_ch is None:
             raise SystemExit(f"Coffee EPG missing channel metadata: {cid}")
-        root.append(deepcopy(source_ch))
+        copied_ch = deepcopy(source_ch)
+        copied_ch.set("id", cid)
+        root.append(copied_ch)
         guide_ids.add(cid)
         merged_channels += 1
     for p in programmes:
