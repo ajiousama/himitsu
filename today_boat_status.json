@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-17",
-  "generated_at": "2026-11-17T10:01:27.236968+09:00",
+  "generated_at": "2026-11-17T10:02:27.180482+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261117.json",
   "schedule_checked_at": "2026-11-17T09:53:27.238828+09:00",
@@ -19,7 +19,7 @@
   "alert_lead_minutes": 30,
   "card_count": 11,
   "held_count": 11,
-  "visible_count": 6,
+  "visible_count": 7,
   "active_count": 5,
   "ended_kept": [],
   "seed_required": false,
@@ -36,7 +36,7 @@
     },
     "day": {
       "held": 6,
-      "acquired": 4,
+      "acquired": 5,
       "active": 3,
       "ended": 0,
       "seed_required": 0,
@@ -53,18 +53,13 @@
   },
   "cloud_acquisition": {
     "requested": 8,
-    "fetched": 6,
+    "fetched": 7,
     "failures": [],
     "deferred": [
       {
         "jcd": "03",
         "name": "江戸川",
         "start": "2026-11-17T10:25:00+09:00"
-      },
-      {
-        "jcd": "13",
-        "name": "尼崎",
-        "start": "2026-11-17T10:02:00+09:00"
       }
     ]
   },
@@ -120,6 +115,22 @@
         "ok": true,
         "sequence": 9007484,
         "last_segment": "/23806fdb48ff4c159036eb42b6b8fc1d/0e8cb4a941434a6696a4f6467814d34c/manifest_4_9007552.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
+    },
+    "boat.amagasaki": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/519afa8a19504524a5277107ea9290b2/ac1be4cf69544a5e8b2c913ed2a722fe/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NTA1MzYwMCwic3RhcnQiOjE3OTQ4NzczMjAsImlvcyI6MTgsImNwIjoiMjE3MDcyOTIwXzIxNzExNjExOSIsInBwdyI6IjQwayJ9.UnkyLcqKmKXXz66fJzsrGtpflPUOp4jdfaokDcHr-H4",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-11-17T10:02:54.393332+09:00",
+      "checked_at": "2026-11-17T10:02:54.393332+09:00",
+      "first_verified_at": "2026-11-17T10:02:54.393332+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 9018325,
+        "last_segment": "/519afa8a19504524a5277107ea9290b2/ac1be4cf69544a5e8b2c913ed2a722fe/manifest_4_9018333.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -469,7 +480,7 @@
       "intermission": null,
       "guidance_switch_at": "2026-11-17T16:42:00+09:00",
       "seed_required": false,
-      "reverify_due": false,
+      "reverify_due": true,
       "playback_verified": true,
       "first_verified_at": "2026-11-17T09:45:54.632992+09:00",
       "ready_before_first_race": true,
@@ -636,7 +647,7 @@
       "jcd": "13",
       "name": "尼崎",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
       "active": false,
       "cancelled": false,
@@ -654,9 +665,9 @@
       "guidance_switch_at": "2026-11-17T16:52:00+09:00",
       "seed_required": false,
       "reverify_due": false,
-      "playback_verified": false,
-      "first_verified_at": null,
-      "ready_before_first_race": false,
+      "playback_verified": true,
+      "first_verified_at": "2026-11-17T10:02:54.393332+09:00",
+      "ready_before_first_race": true,
       "acquire_from": "2026-11-17T08:14:00+09:00",
       "races": [
         {
@@ -720,8 +731,9 @@
           "name": "優勝戦"
         }
       ],
-      "provider_stream_start": "2026-11-17T10:02:00+09:00",
-      "source": "公式BR配信開始待ち 10:02"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/519afa8a19504524a5277107ea9290b2/ac1be4cf69544a5e8b2c913ed2a722fe/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NTA1MzYwMCwic3RhcnQiOjE3OTQ4NzczMjAsImlvcyI6MTgsImNwIjoiMjE3MDcyOTIwXzIxNzExNjExOSIsInBwdyI6IjQwayJ9.UnkyLcqKmKXXz66fJzsrGtpflPUOp4jdfaokDcHr-H4",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     },
     "boat.marugame": {
       "jcd": "15",
