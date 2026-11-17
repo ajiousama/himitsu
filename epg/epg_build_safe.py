@@ -40,6 +40,9 @@ epg_build.SOURCE_PIN.update({
     for channel_id in RAKUTEN_CHANNELS
 })
 
+# Preserve the last published EPG before the base builder overwrites it.
+_PREVIOUS_GUIDES = Path("guides.xml").read_bytes() if Path("guides.xml").is_file() else None
+
 epg_build.main()
 
 out = Path("guides.xml")
@@ -289,3 +292,97 @@ for cid in sorted(coffee_ids):
 
 tree.write(out, encoding="utf-8", xml_declaration=True)
 print(f"Coffee EPG merged only missing guides: channels={merged_channels} programmes={merged_programmes}; existing TVer unchanged")
+
+# Historical recovery: preserve already collected real programme entries and
+# supplement gaps from other registered sources. Limit publication to -120h/+24h.
+# The previous XML is kept in memory before the base builder replaces it.
+from collections import defaultdict
+from copy import deepcopy as _history_copy
+
+_history_now = datetime.now(JST)
+_history_begin = _history_now - timedelta(hours=120)
+_history_end = _history_now + timedelta(hours=24)
+_history_tree = ET.parse(out)
+_history_root = _history_tree.getroot()
+_history_channels = {c.get("id") for c in _history_root.findall("channel")}
+_history_wanted = epg_build.parse_playlists()
+_history_rows = defaultdict(list)
+_history_added = defaultdict(int)
+
+def _history_add(p, target, origin):
+    start = parse_xmltv_time(p.get("start"))
+    stop = parse_xmltv_time(p.get("stop"))
+    if start is None or stop is None or stop <= start:
+        return
+    if stop <= _history_begin or start >= _history_end:
+        return
+    # Do not fabricate titles or silently replace conflicting real schedules.
+    title = (p.findtext("title") or "").strip()
+    if not title:
+        return
+    key = (start, stop, title)
+    if key in _history_rows[target]:
+        return
+    _history_rows[target].append(key)
+    q = _history_copy(p)
+    q.set("channel", target)
+    if start < _history_begin:
+        q.set("start", _history_begin.strftime("%Y%m%d%H%M%S %z"))
+    if stop > _history_end:
+        q.set("stop", _history_end.strftime("%Y%m%d%H%M%S %z"))
+    _history_root.append(q)
+    _history_added[origin] += 1
+
+# Existing output is authoritative. Only use source history where it does not
+# overlap an existing programme; this also protects channel-specific guards.
+_existing = list(_history_root.findall("programme"))
+for p in _existing:
+    cid = p.get("channel")
+    start = parse_xmltv_time(p.get("start"))
+    stop = parse_xmltv_time(p.get("stop"))
+    if cid and start and stop:
+        _history_rows[cid].append((start, stop, (p.findtext("title") or "").strip()))
+    _history_root.remove(p)
+for p in _existing:
+    _history_add(p, p.get("channel"), "current")
+
+def _history_nonoverlap(p, target):
+    a = parse_xmltv_time(p.get("start"))
+    b = parse_xmltv_time(p.get("stop"))
+    if not a or not b:
+        return False
+    return all(b <= x or a >= y for x, y, _ in _history_rows[target])
+
+if _PREVIOUS_GUIDES:
+    try:
+        _old_root = ET.fromstring(_PREVIOUS_GUIDES)
+        for p in _old_root.findall("programme"):
+            cid = p.get("channel")
+            if cid in _history_channels and _history_nonoverlap(p, cid):
+                _history_add(p, cid, "previous")
+    except Exception as exc:
+        print(f"::warning::Historical previous EPG unreadable: {exc}")
+
+# Source fallback is restricted to exact channel IDs and explicit source pins.
+# Avoid fuzzy channel-name matches that can mix unrelated TV schedules.
+for _source_name, _source_url in epg_build.SOURCES:
+    try:
+        _source_root = epg_build.fetch_xml(_source_url)
+        _source_rows = defaultdict(list)
+        for p in _source_root.findall("programme"):
+            _source_rows[p.get("channel")].append(p)
+        for cid in _history_channels:
+            source_id = cid
+            pin = epg_build.SOURCE_PIN.get(cid)
+            if pin and pin[0] == _source_name:
+                source_id = pin[1]
+            elif pin:
+                continue
+            for p in _source_rows.get(source_id, []):
+                if _history_nonoverlap(p, cid):
+                    _history_add(p, cid, _source_name)
+    except Exception as exc:
+        print(f"::warning::Historical source {_source_name} failed: {type(exc).__name__}: {exc}")
+
+_history_tree.write(out, encoding="utf-8", xml_declaration=True)
+print(f"HISTORY WINDOW -120h/+24h; additions={dict(_history_added)}; channels={len(_history_channels)}")
