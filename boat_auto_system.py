@@ -344,8 +344,13 @@ def detect_cancelled_venues(day: date, cards: dict[str, list[dict]]) -> set[str]
                     time_module.sleep(1 + attempt)
         if source is None:
             return jcd, False, type(last_error).__name__ if last_error else 'unknown'
-        text = re.sub(r'\\s+', ' ', html.unescape(re.sub(r'<[^>]+>', ' ', source)))
-        matched = bool(re.search(re.escape(day_label) + r'[^。]{0,48}?(?:開催\\s*)?(?:中止|順延|延期)', text))
+        text = re.sub(r'\s+', ' ', html.unescape(re.sub(r'<[^>]+>', ' ', source)))
+        # Official notices may say "中止・打ち切り" without repeating today's date.
+        # Only match an explicit cancellation notice, not a bare race-result label.
+        notice = r'(?:開催(?:は|を|が)?|レース(?:は|を|が)?|第[０-９0-9]+[ＲR](?:以降)?(?:は|を|が)?)[^。\n]{0,80}?(?:中止|打ち切り|打切り|順延|延期)'
+        dated = re.search(re.escape(day_label) + r'[^。\n]{0,160}?' + notice, text)
+        undated = re.search(notice, text)
+        matched = bool(dated or undated)
         return jcd, matched, ''
 
     cancelled = set()
@@ -1016,7 +1021,7 @@ def main() -> int:
         if jcd not in previous_cancelled
         and races
         and now >= races[0]["start"] - timedelta(minutes=CANCELLATION_LEAD_MINUTES)
-        and not (streams.get(VENUES[jcd][1]) or {}).get("playback_verified")
+        # Continue checking after playback succeeds: races can be cancelled mid-card.
     }
     try:
         cancelled_jcd = previous_cancelled | detect_cancelled_venues(day, cancellation_candidates)
