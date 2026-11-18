@@ -104,7 +104,7 @@ def direct_source(jcd, day, slug):
         setting = json.loads(read_url(
             f'https://front.player.boatrace-cdn.jp/setting/live/{code}/setting.json'))
         live_ref = str((setting.get('br_live') or {}).get('ref_id') or '').strip()
-        if live_ref and code in live_ref and day.strftime('%Y%m%d') in live_ref:
+        if live_ref and code in live_ref:
             ref = live_ref
     except Exception:
         pass
