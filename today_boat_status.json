@@ -2,12 +2,13 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-18",
-  "generated_at": "2026-11-18T12:16:23.240541+09:00",
-  "last_update_ok": true,
+  "generated_at": "2026-11-18T12:18:23.237759+09:00",
+  "last_update_ok": false,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261118.json",
-  "schedule_checked_at": "2026-11-18T12:02:23.434386+09:00",
+  "schedule_checked_at": "2026-11-18T12:18:23.237759+09:00",
   "schedule_warnings": [
-    "official_cards: TimeoutError"
+    "official_cards: TimeoutError",
+    "開催表から場が消失したため当日確認済みの開催表を保持"
   ],
   "cancelled_jcd": [],
   "cancelled_venues": [],
@@ -24,7 +25,10 @@
   "ended_kept": [],
   "seed_required": false,
   "seed_required_venues": [],
-  "system_errors": [],
+  "system_errors": [
+    "official_cards: TimeoutError",
+    "開催表から場が消失したため当日確認済みの開催表を保持"
+  ],
   "phase_counts": {
     "morning": {
       "held": 2,
@@ -62,8 +66,8 @@
     "guides.xml": 154
   },
   "alert": {
-    "active": false,
-    "kind": "healthy"
+    "active": true,
+    "kind": "system_error"
   },
   "streams": {
     "boat.toda": {
@@ -307,7 +311,7 @@
       "intermission": null,
       "guidance_switch_at": "2026-11-18T16:40:00+09:00",
       "seed_required": false,
-      "reverify_due": false,
+      "reverify_due": true,
       "playback_verified": true,
       "first_verified_at": "2026-11-18T10:09:15.335343+09:00",
       "ready_before_first_race": true,
