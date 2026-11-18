@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-18",
-  "generated_at": "2026-11-18T16:21:46.091087+09:00",
+  "generated_at": "2026-11-18T16:23:46.090376+09:00",
   "last_update_ok": false,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261118.json",
   "schedule_checked_at": "2026-11-18T16:01:23.156735+09:00",
@@ -23,11 +23,14 @@
   "visible_count": 3,
   "active_count": 3,
   "ended_kept": [],
-  "seed_required": false,
-  "seed_required_venues": [],
+  "seed_required": true,
+  "seed_required_venues": [
+    "若松"
+  ],
   "system_errors": [
     "official_cards: TimeoutError",
-    "fetch_cards: ValueError"
+    "fetch_cards: ValueError",
+    "開始時刻が近い開催場の当日中継を取得・再生確認できません"
   ],
   "phase_counts": {
     "morning": {
@@ -51,14 +54,20 @@
       "acquired": 3,
       "active": 3,
       "ended": 0,
-      "seed_required": 0,
+      "seed_required": 1,
       "cancelled": 0
     }
   },
   "cloud_acquisition": {
     "requested": 3,
-    "fetched": 3,
-    "failures": [],
+    "fetched": 2,
+    "failures": [
+      {
+        "jcd": "20",
+        "name": "若松",
+        "error": "ValueError: ended VOD playlist is not a live stream"
+      }
+    ],
     "deferred": []
   },
   "epg_programmes_written": {
@@ -106,9 +115,9 @@
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/17f80b47ee954d1b9e613c1ed2ca3951/9bb8c14503bc4a0884e088aa97abb43f/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NTE1NDQwMCwic3RhcnQiOjE3OTQ5ODA3MDAsImlvcyI6MTgsImNwIjoiMjE3MTc2MzAwXzIxNzIxNjc5OSIsInBwdyI6IjQwayJ9.IDCcknySQwt8rrW_0NWQ-LTvrCgPCBBnFYGk4mNS19k",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-11-18T14:45:50.607106+09:00",
-      "checked_at": "2026-11-18T16:22:21.506120+09:00",
+      "checked_at": "2026-11-18T16:24:21.474694+09:00",
       "first_verified_at": "2026-11-18T14:45:50.607106+09:00",
-      "playback_verified": true,
+      "playback_verified": false,
       "probe": {
         "ok": true,
         "sequence": 9016173,
@@ -116,7 +125,7 @@
         "video_decoded": true,
         "audio_decoded": true
       },
-      "consecutive_failures": 1
+      "consecutive_failures": 2
     }
   },
   "venues": {
@@ -748,14 +757,14 @@
       "last_race": "20:45",
       "alert_from": "2026-11-18T14:49:00+09:00",
       "next_race": {
-        "race": 3,
-        "start": "16:23"
+        "race": 4,
+        "start": "16:52"
       },
       "stream_window": "live_or_prestart",
       "intermission": null,
       "guidance_switch_at": "2026-11-18T21:30:00+09:00",
       "seed_required": false,
-      "reverify_due": true,
+      "reverify_due": false,
       "playback_verified": true,
       "first_verified_at": "2026-11-18T13:40:58.706608+09:00",
       "ready_before_first_race": true,
@@ -1020,9 +1029,9 @@
       "stream_window": "live_or_prestart",
       "intermission": null,
       "guidance_switch_at": "2026-11-18T21:15:00+09:00",
-      "seed_required": false,
+      "seed_required": true,
       "reverify_due": true,
-      "playback_verified": true,
+      "playback_verified": false,
       "first_verified_at": "2026-11-18T14:45:50.607106+09:00",
       "ready_before_first_race": true,
       "acquire_from": "2026-11-18T13:03:00+09:00",
