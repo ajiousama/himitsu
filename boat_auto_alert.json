@@ -1,7 +1,7 @@
 {
   "system": "boat-auto-v3",
   "date": "2026-11-18",
-  "checked_at": "2026-11-18T14:41:23.203047+09:00",
+  "checked_at": "2026-11-18T14:44:23.254353+09:00",
   "active": true,
   "kind": "system_error",
   "title": "BOAT自動更新エラー",
@@ -11,6 +11,17 @@
     "official_cards: TimeoutError",
     "開催表から場が消失したため当日確認済みの開催表を保持"
   ],
-  "cloud_failures": [],
+  "cloud_failures": [
+    {
+      "jcd": "01",
+      "name": "桐生",
+      "error": "HTTPError: playback check failed"
+    },
+    {
+      "jcd": "20",
+      "name": "若松",
+      "error": "HTTPError: playback check failed"
+    }
+  ],
   "recovery": "automatic retry; no manual SEED dependency"
 }
