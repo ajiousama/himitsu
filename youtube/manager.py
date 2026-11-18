@@ -687,7 +687,13 @@ def update_kana(config):
         state["check_error"] = True
         state["checked_at"] = datetime.now(JST).isoformat(timespec="seconds")
         write_json(KANA_STATE, state)
-        print("KANA check inconclusive; previous output preserved")
+        old_play = (previous.get("play_url") or "").strip()
+        if old_play and "manifest.googlevideo.com/" in old_play:
+            match = re.search(r"/expire/(\\d+)", old_play)
+            if match and int(match.group(1)) <= int(time.time()):
+                write_playlist(KANA_OUT, [])
+                print("KANA expired HLS removed after inconclusive check")
+        print("KANA check inconclusive; previous state retained")
         return
 
     write_playlist(KANA_OUT, [])
