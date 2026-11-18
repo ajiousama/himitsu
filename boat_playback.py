@@ -97,8 +97,18 @@ def probe(url, previous=None):
 
 def direct_source(jcd, day, slug):
     """Independent official Playback API fallback; no previous-date/media guessing."""
-    ref = f'lm-br-{jcd}{slug}-tokyo-{day:%Y%m%d}'
-    url = f'https://playback.api.streaks.jp/v1/projects/cp-boatrace-prod/medias/ref:{ref}?audio_only=false'
+    code = f'{jcd}{slug}'
+    ref = f'lm-br-{code}-tokyo-{day:%Y%m%d}'
+    # The official player may switch its live media reference independently.
+    try:
+        setting = json.loads(read_url(
+            f'https://front.player.boatrace-cdn.jp/setting/live/{code}/setting.json'))
+        live_ref = str((setting.get('br_live') or {}).get('ref_id') or '').strip()
+        if live_ref and code in live_ref and day.strftime('%Y%m%d') in live_ref:
+            ref = live_ref
+    except Exception:
+        pass
+    url = f'https://playback.api.streaks.jp/v1/projects/cp-boatrace-prod/medias/ref:{urllib.parse.quote(ref, safe="")}?audio_only=false'
     data = json.loads(read_url(url))
     return next((item.get('src', '') for item in data.get('sources', [])
                  if str(item.get('src', '')).startswith('https://manifest.streaks.jp/')
