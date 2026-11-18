@@ -618,7 +618,8 @@ def update_kana(config):
         else 1 if (x.get("live_status") or "").lower() == "is_upcoming"
         else 2,
     )
-    candidates += [x["id"] for x in ordered[:12]]
+    official_stream_ids = {x["id"] for x in rows if x.get("id")}
+    candidates += [x["id"] for x in ordered[:6]]
 
     chosen = []
     seen = set()
@@ -631,8 +632,27 @@ def update_kana(config):
         else:
             info, code = inspect_watch(vid)
         if not info:
+            # The metadata JSON endpoint may fail while the direct live HLS
+            # endpoint still works. Only try IDs supplied by the official
+            # channel streams listing (or the previously verified ID).
+            if vid == previous_id or vid in official_stream_ids:
+                live_url, live_code = direct_hls("https://www.youtube.com/watch?v=" + vid)
+                if live_url and ("manifest.googlevideo.com/" in live_url or ".m3u8" in live_url):
+                    write_playlist(KANA_OUT, [entry(item, live_url, item["name"] + "【LIVE】")])
+                    write_json(KANA_STATE, {
+                        "state": "is_live", "channel": item.get("handle"),
+                        "channel_id": item["channel_id"], "video_id": vid,
+                        "watch_url": "https://www.youtube.com/watch?v=" + vid,
+                        "play_url": live_url, "direct_hls": True,
+                        "title": item["name"], "check_error": False,
+                        "checked_at": datetime.now(JST).isoformat(timespec="seconds"),
+                    })
+                    print(f"KANA direct HLS fallback succeeded: {vid}")
+                    return
+                print(f"KANA direct HLS fallback failed: {vid} reason={live_code}")
             if code in TRANSIENT:
                 trouble = True
+            print(f"KANA metadata inspection failed: {vid} reason={code}")
             continue
         if not official_youtube(info, item["channel_id"], item.get("handle")):
             continue
