@@ -1,15 +1,18 @@
 {
   "system": "boat-auto-v3",
   "date": "2026-11-18",
-  "checked_at": "2026-11-18T16:45:01.494896+09:00",
+  "checked_at": "2026-11-18T16:46:16.050067+09:00",
   "active": true,
   "kind": "system_error",
   "title": "BOAT自動更新エラー",
-  "message": "official_cards: TimeoutError / fetch_cards: ValueError",
-  "seed_required_venues": [],
+  "message": "official_cards: TimeoutError / fetch_cards: ValueError / 開始時刻が近い開催場の当日中継を取得・再生確認できません",
+  "seed_required_venues": [
+    "若松"
+  ],
   "system_errors": [
     "official_cards: TimeoutError",
-    "fetch_cards: ValueError"
+    "fetch_cards: ValueError",
+    "開始時刻が近い開催場の当日中継を取得・再生確認できません"
   ],
   "cloud_failures": [
     {
