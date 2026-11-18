@@ -2,6 +2,9 @@ name: Update YouTube v3 Worker
 
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/update_youtube.yml'
   schedule:
     # Recovery trigger if the long-running worker stops; JST daytime.
     - cron: '7 0-14 * * *'
