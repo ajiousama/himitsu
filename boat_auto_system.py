@@ -465,6 +465,9 @@ def maintain_stream(jcd, stream, day, now):
         stream['playback_verified'] = False
     _code, candidate, error = fetch_seed(jcd, day)
     if not candidate:
+        # Do not carry a previously rejected signed URL into a future cycle.
+        if not stream.get('playback_verified'):
+            stream.pop('url', None)
         return stream, error
     if url and int(jwt_payload(candidate).get('exp') or 0) < int(jwt_payload(url).get('exp') or 0):
         return stream, 'candidate token rollback rejected'
