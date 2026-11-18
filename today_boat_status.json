@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-18",
-  "generated_at": "2026-11-18T14:13:23.200453+09:00",
+  "generated_at": "2026-11-18T14:15:23.202641+09:00",
   "last_update_ok": false,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261118.json",
   "schedule_checked_at": "2026-11-18T14:13:23.200453+09:00",
@@ -20,8 +20,8 @@
   "alert_lead_minutes": 30,
   "card_count": 11,
   "held_count": 11,
-  "visible_count": 9,
-  "active_count": 8,
+  "visible_count": 8,
+  "active_count": 7,
   "ended_kept": [],
   "seed_required": false,
   "seed_required_venues": [],
@@ -32,9 +32,9 @@
   "phase_counts": {
     "morning": {
       "held": 2,
-      "acquired": 2,
-      "active": 2,
-      "ended": 0,
+      "acquired": 1,
+      "active": 1,
+      "ended": 1,
       "seed_required": 0,
       "cancelled": 0
     },
@@ -56,8 +56,8 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 11,
-    "fetched": 9,
+    "requested": 10,
+    "fetched": 8,
     "failures": [],
     "deferred": [
       {
@@ -156,22 +156,6 @@
         "ok": true,
         "sequence": 9021884,
         "last_segment": "/f0ed1bf233d34a3fa57dc26837f4c7ca/dae845cc83a34640bda10964818813d4/manifest_4_9024451.ts",
-        "video_decoded": true,
-        "audio_decoded": true
-      },
-      "consecutive_failures": 0
-    },
-    "boat.naruto": {
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/5a4b8a1601514aad80eac8595e7184d8/09f30291298b4d4a900919335f2b5a85/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NTEzMjgwMCwic3RhcnQiOjE3OTQ5NTY0MDAsImlvcyI6MTgsImNwIjoiMjE3MTUyMDAwXzIxNzE5NTE5OSIsInBwdyI6IjQwayJ9.cCdIH3bs5_hvHi1IRqepMapVBY059XW4jbBt5nyOe3I",
-      "source": "automatic acquisition + audio/video decode",
-      "acquired_at": "2026-11-18T08:00:15.361093+09:00",
-      "checked_at": "2026-11-18T14:11:50.639960+09:00",
-      "first_verified_at": "2026-11-18T08:00:15.361093+09:00",
-      "playback_verified": true,
-      "probe": {
-        "ok": true,
-        "sequence": 9033114,
-        "last_segment": "/5a4b8a1601514aad80eac8595e7184d8/09f30291298b4d4a900919335f2b5a85/manifest_1_9036831.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -431,7 +415,7 @@
       "intermission": null,
       "guidance_switch_at": "2026-11-18T16:45:00+09:00",
       "seed_required": false,
-      "reverify_due": false,
+      "reverify_due": true,
       "playback_verified": true,
       "first_verified_at": "2026-11-18T10:25:15.359220+09:00",
       "ready_before_first_race": true,
@@ -782,9 +766,9 @@
       "jcd": "14",
       "name": "鳴門",
       "held": true,
-      "visible": true,
-      "ended": false,
-      "active": true,
+      "visible": false,
+      "ended": true,
+      "active": false,
       "cancelled": false,
       "mode": "morning",
       "mode_label": "モーニング",
@@ -792,11 +776,11 @@
       "last_race": "14:12",
       "alert_from": "2026-11-18T08:05:00+09:00",
       "next_race": null,
-      "stream_window": "live_or_prestart",
+      "stream_window": "ended_hidden",
       "intermission": null,
       "guidance_switch_at": "2026-11-18T14:57:00+09:00",
       "seed_required": false,
-      "reverify_due": true,
+      "reverify_due": false,
       "playback_verified": true,
       "first_verified_at": "2026-11-18T08:00:15.361093+09:00",
       "ready_before_first_race": true,
@@ -863,9 +847,7 @@
           "name": "ドリーム戦"
         }
       ],
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/5a4b8a1601514aad80eac8595e7184d8/09f30291298b4d4a900919335f2b5a85/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NTEzMjgwMCwic3RhcnQiOjE3OTQ5NTY0MDAsImlvcyI6MTgsImNwIjoiMjE3MTUyMDAwXzIxNzE5NTE5OSIsInBwdyI6IjQwayJ9.cCdIH3bs5_hvHi1IRqepMapVBY059XW4jbBt5nyOe3I",
-      "source": "automatic acquisition + audio/video decode",
-      "token_expired": false
+      "source": "automatic cloud SEED pending"
     },
     "boat.marugame": {
       "jcd": "15",
