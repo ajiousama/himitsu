@@ -618,10 +618,7 @@ def update_kana(config):
         else 1 if (x.get("live_status") or "").lower() == "is_upcoming"
         else 2,
     )
-    # Prioritize the current live slot and the next scheduled slot.
-    # Inspecting twelve videos at up to 40 seconds each exceeded the
-    # four-minute special-update job timeout after a stream ended.
-    candidates += [x["id"] for x in ordered[:6]]
+    candidates += [x["id"] for x in ordered[:12]]
 
     chosen = []
     seen = set()
@@ -690,13 +687,7 @@ def update_kana(config):
         state["check_error"] = True
         state["checked_at"] = datetime.now(JST).isoformat(timespec="seconds")
         write_json(KANA_STATE, state)
-        old_play = (previous.get("play_url") or "").strip()
-        if old_play and "manifest.googlevideo.com/" in old_play:
-            match = re.search(r"/expire/(\d+)", old_play)
-            if match and int(match.group(1)) <= int(time.time()):
-                write_playlist(KANA_OUT, [])
-                print("KANA expired HLS removed after inconclusive check")
-        print("KANA check inconclusive; previous state retained")
+        print("KANA check inconclusive; previous output preserved")
         return
 
     write_playlist(KANA_OUT, [])
