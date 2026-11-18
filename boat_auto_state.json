@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-18",
-  "generated_at": "2026-11-18T17:35:00.469522+09:00",
+  "generated_at": "2026-11-18T17:36:16.717392+09:00",
   "last_update_ok": false,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261118.json",
   "schedule_checked_at": "2026-11-18T16:01:23.156735+09:00",
@@ -23,11 +23,14 @@
   "visible_count": 2,
   "active_count": 3,
   "ended_kept": [],
-  "seed_required": false,
-  "seed_required_venues": [],
+  "seed_required": true,
+  "seed_required_venues": [
+    "若松"
+  ],
   "system_errors": [
     "official_cards: TimeoutError",
-    "fetch_cards: ValueError"
+    "fetch_cards: ValueError",
+    "開始時刻が近い開催場の当日中継を取得・再生確認できません"
   ],
   "phase_counts": {
     "morning": {
@@ -51,7 +54,7 @@
       "acquired": 2,
       "active": 3,
       "ended": 0,
-      "seed_required": 0,
+      "seed_required": 1,
       "cancelled": 0
     }
   },
@@ -1010,11 +1013,11 @@
       "stream_window": "live_or_prestart",
       "intermission": null,
       "guidance_switch_at": "2026-11-18T21:15:00+09:00",
-      "seed_required": false,
-      "reverify_due": false,
+      "seed_required": true,
+      "reverify_due": true,
       "playback_verified": false,
-      "first_verified_at": "2026-11-18T14:45:50.607106+09:00",
-      "ready_before_first_race": true,
+      "first_verified_at": null,
+      "ready_before_first_race": false,
       "acquire_from": "2026-11-18T13:03:00+09:00",
       "races": [
         {
