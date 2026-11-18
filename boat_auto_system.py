@@ -483,6 +483,11 @@ def maintain_stream(jcd, stream, day, now):
         except Exception:
             pass
         if not result['ok']:
+            # Clear a repeatedly failing cached source so it cannot be
+            # resurrected by a playlist writer on the next worker cycle.
+            stream.pop('url', None)
+            stream['playback_verified'] = False
+            stream['last_acquisition_error'] = result['error']
             return stream, result['error']
     stream.update(url=candidate, source='automatic acquisition + audio/video decode',
                   acquired_at=now.isoformat(), checked_at=now.isoformat(),
