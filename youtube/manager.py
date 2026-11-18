@@ -618,7 +618,10 @@ def update_kana(config):
         else 1 if (x.get("live_status") or "").lower() == "is_upcoming"
         else 2,
     )
-    candidates += [x["id"] for x in ordered[:12]]
+    # Prioritize the current live slot and the next scheduled slot.
+    # Inspecting twelve videos at up to 40 seconds each exceeded the
+    # four-minute special-update job timeout after a stream ended.
+    candidates += [x["id"] for x in ordered[:6]]
 
     chosen = []
     seen = set()
