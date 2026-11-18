@@ -689,7 +689,7 @@ def update_kana(config):
         write_json(KANA_STATE, state)
         old_play = (previous.get("play_url") or "").strip()
         if old_play and "manifest.googlevideo.com/" in old_play:
-            match = re.search(r"/expire/(\\d+)", old_play)
+            match = re.search(r"/expire/(\d+)", old_play)
             if match and int(match.group(1)) <= int(time.time()):
                 write_playlist(KANA_OUT, [])
                 print("KANA expired HLS removed after inconclusive check")
