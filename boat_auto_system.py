@@ -350,7 +350,8 @@ def detect_cancelled_venues(day: date, cards: dict[str, list[dict]]) -> set[str]
         notice = r'(?:開催(?:は|を|が)?|レース(?:は|を|が)?|第[０-９0-9]+[ＲR](?:以降)?(?:は|を|が)?)[^。\n]{0,80}?(?:中止|打ち切り|打切り|順延|延期)'
         dated = re.search(re.escape(day_label) + r'[^。\n]{0,160}?' + notice, text)
         undated = re.search(notice, text)
-        matched = bool(dated or undated)
+        dated_postponement = re.search(re.escape(day_label) + r'\s*(?:は|の開催は|開催は)?\s*(?:順延|延期|中止|打ち切り|打切り)', text)
+        matched = bool(dated or undated or dated_postponement)
         return jcd, matched, ''
 
     cancelled = set()
