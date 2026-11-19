@@ -219,13 +219,13 @@ def run_probe(max_new: int, budget_seconds: int) -> dict:
             if len(unique) == 1:
                 best = frame_matches[0]
         row = {"start_seconds": start, "attempted_at": now,
-               "source_url": source, "status": "ocr_match" if best else "no_title_match",
+               "source_url": source,
+               "status": "ocr_candidate_needs_video_review" if best else "no_title_match",
                "samples": samples}
         if best:
             # OCR proves only that text was visible, not that this episode
             # was playing. Preserve candidates for review, not publication.
             row["candidate"] = best
-            row["status"] = "ocr_candidate_needs_video_review"
             matches += 1
         rows[str(start)] = row
         processed += 1
