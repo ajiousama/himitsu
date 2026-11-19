@@ -1,0 +1,33 @@
+name: Update race VOD EPG catalog
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '*/30 * * * *'
+permissions:
+  contents: write
+concurrency:
+  group: race-vod-epg-catalog
+  cancel-in-progress: false
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Test isolated catalog builder
+        run: python -m unittest -v ganble.race_vod.test_build
+      - name: Generate EPG catalog
+        run: python ganble/race_vod/build.py
+      - name: Commit only isolated VOD outputs
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add ganble/race_vod/catalog.json ganble/race_vod/playlist.m3u
+          if ! git diff --cached --quiet; then
+            git commit -m 'Update EPG based keirin and NAR VOD catalog'
+            git pull --rebase origin "$GITHUB_REF_NAME"
+            git push origin "HEAD:$GITHUB_REF_NAME"
+          fi
