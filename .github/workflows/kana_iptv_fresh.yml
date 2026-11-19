@@ -19,12 +19,12 @@ jobs:
     timeout-minutes: 6
     env:
       KANA_VIDEO_ID: DVL04eDdDIE
-      GH_TOKEN_LOCAL: ${{ github.token }}
+      GH_TOKEN_LOCAL: ${{ github.token }}\n      YOUTUBE_COOKIES: ${{ secrets.YOUTUBE_COOKIES }}
     steps:
       - name: Install independent extractors
         run: |
           python3 -m pip install --user --upgrade "yt-dlp[default] @ https://github.com/yt-dlp/yt-dlp/archive/master.tar.gz" streamlink
-          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"\n          node --version
 
       - name: Resolve verify and publish HLS
         shell: bash
@@ -35,7 +35,7 @@ jobs:
           vid = os.environ["KANA_VIDEO_ID"]
           watch = "https://www.youtube.com/watch?v=" + vid
           token = os.environ["GH_TOKEN_LOCAL"]
-          repo = os.environ["GITHUB_REPOSITORY"]
+          repo = os.environ["GITHUB_REPOSITORY"]\n          cookie_file = "/tmp/youtube_cookies.txt"\n          cookie_text = os.environ.get("YOUTUBE_COOKIES", "")\n          if cookie_text:\n              open(cookie_file, "w", encoding="utf-8").write(cookie_text)\n          cookie_args = ["--cookies", cookie_file] if cookie_text else []
           api = "https://api.github.com/repos/" + repo + "/contents/"
           ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/140 Safari/537.36"
           candidates = []
@@ -162,7 +162,7 @@ jobs:
                   return r.status
 
           state={
-              "version":"fresh-1",
+              "version":"fresh-2-cookie",\n              "cookie_present":bool(cookie_text),
               "video_id":vid,
               "watch_url":watch,
               "checked_epoch":int(time.time()),
