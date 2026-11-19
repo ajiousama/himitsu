@@ -560,7 +560,7 @@ def update_kana(config):
         vid = selected["id"]
         watch = "https://www.youtube.com/watch?v=" + vid
         start = info_start(selected, previous)
-        play = info_hls(selected)
+        play = selected.get("_resolved_hls") or info_hls(selected)
         if status == "is_live" and (not play or "/hls_variant/" in play):
             # Some yt-dlp JSON responses expose only an adaptive master.
             # Ask the single-format resolver for a muxed media playlist before
@@ -711,7 +711,7 @@ def update_kana(config):
                     print(f"KANA HLS unavailable: {info['id']} reason={reason}")
             if play:
                 info = dict(info)
-                info["manifest_url"] = play
+                info["_resolved_hls"] = play
                 resolved.append(info)
         if resolved:
             publish_selected(resolved[0])
