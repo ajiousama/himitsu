@@ -54,6 +54,13 @@ def ocr_title_candidates(replay: dict) -> dict[tuple[str, int], tuple[int, str]]
                 "ocr_match", "ocr_match_from_workflow_log",
             }:
                 continue
+            # Historical OCR results may predate the episode-guide guard.
+            # Do not publish a title read from a multi-episode listing.
+            samples = row.get("samples") or []
+            excerpts = "\\n".join(str(x.get("ocr_excerpt") or "")
+                                 for x in samples if isinstance(x, dict))
+            if len(set(re.findall(r"#\\s*\\d{2,4}", excerpts))) >= 2:
+                continue
             candidate = row.get("candidate") or {}
             try:
                 ep = int(candidate.get("episode"))
