@@ -833,6 +833,50 @@ def mandarin_game(item):
     return start, stop, venue[:80] or "愛媛県内球場", opponent
 
 
+def update_kana_epg(config):
+    """Publish verified Kana metadata independently of HLS availability."""
+    state = read_json(KANA_STATE, {})
+    item = config["special"]["kana"]
+    title = (state.get("title") or "").strip()
+    status = (state.get("state") or "").lower()
+    stamp = state.get("start_timestamp")
+    if status not in ("is_live", "is_upcoming") or not title or not stamp:
+        return
+    try:
+        start = datetime.fromtimestamp(int(stamp), JST)
+    except (ValueError, TypeError, OverflowError):
+        return
+    if start.date() != datetime.now(JST).date():
+        return
+    if not EPG_PATH.exists() or not EPG_PATH.stat().st_size:
+        return
+    tree = ET.parse(EPG_PATH)
+    root = tree.getroot()
+    cid = item["id"]
+    if not any(ch.get("id") == cid for ch in root.findall("channel")):
+        ch = ET.Element("channel", {"id": cid})
+        ET.SubElement(ch, "display-name").text = item["name"]
+        first = next((i for i, el in enumerate(root) if el.tag == "programme"), len(root))
+        root.insert(first, ch)
+    # Do not touch any other channel. The stop is an EPG display window,
+    # not a claim that YouTube has published an actual end time.
+    for p in list(root.findall("programme")):
+        if p.get("channel") == cid:
+            root.remove(p)
+    stop = start + timedelta(hours=8)
+    fmt = lambda d: d.strftime("%Y%m%d%H%M%S %z")
+    p = ET.SubElement(root, "programme", {
+        "channel": cid, "start": fmt(start), "stop": fmt(stop)
+    })
+    ET.SubElement(p, "title", {"lang": "ja"}).text = title
+    ET.SubElement(p, "desc", {"lang": "ja"}).text = (
+        "華奈tube公式 / " + ("ライブ配信中" if status == "is_live" else "配信予定")
+        + " / 終了時刻未発表（EPG表示枠は暫定）"
+    )
+    ET.indent(tree, space="  ")
+    tree.write(EPG_PATH, encoding="utf-8", xml_declaration=True)
+
+
 def update_mandarin_epg(config):
     item = config["special"]["mandarin"]
     live = item["id"] in parse_m3u(MANDARIN_OUT)
@@ -945,6 +989,7 @@ def main():
     config = load_config()
 
     if args.epg_only:
+        update_kana_epg(config)
         update_mandarin_epg(config)
         return
     if args.sync_only:
@@ -957,6 +1002,7 @@ def main():
         update_general(config, only_ids=only_ids)
     if args.scope in ("special", "all"):
         update_kana(config)
+        update_kana_epg(config)
         update_mandarin(config)
         update_mandarin_epg(config)
     sync_freewifi(config)
