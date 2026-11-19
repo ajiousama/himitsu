@@ -19,6 +19,14 @@ class GCCXOCRTitles(unittest.TestCase):
         self.assertIsNotNone(match)
         self.assertEqual(match["episode"], 211)
 
+    def test_sequel_number_must_not_match_base_game(self):
+        titles = {"46": "ロックマン"}
+        self.assertIsNone(identify_title("ロックマン2に挑戦", titles))
+
+    def test_base_game_still_matches(self):
+        titles = {"46": "ロックマン"}
+        self.assertEqual(identify_title("ロックマン", titles)["episode"], 46)
+
     def test_ambiguous_shared_title_requires_more_evidence(self):
         titles = {"92": "風来のシレン（前編）", "93": "風来のシレン（後編）"}
         self.assertIsNone(identify_title("風来のシレン", titles))
