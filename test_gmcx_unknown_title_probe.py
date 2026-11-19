@@ -27,6 +27,11 @@ class GCCXOCRTitles(unittest.TestCase):
         titles = {"46": "ロックマン"}
         self.assertEqual(identify_title("ロックマン", titles)["episode"], 46)
 
+    def test_episode_guide_is_not_current_game(self):
+        titles = {"2": "チャレンジャー"}
+        guide = '#91 ゲームA\n#92 ゲームB\nチャレンジャー'
+        self.assertIsNone(identify_title(guide, titles))
+
     def test_ambiguous_shared_title_requires_more_evidence(self):
         titles = {"92": "風来のシレン（前編）", "93": "風来のシレン（後編）"}
         self.assertIsNone(identify_title("風来のシレン", titles))
