@@ -209,7 +209,15 @@ def run_probe(max_new: int, budget_seconds: int) -> dict:
                 elif "resolver_" in state:
                     # Skip futile extra attempts while this archive is blocked.
                     break
-        best = identify_title("\n".join(texts), titles) if texts else None
+        # Require a title to be supported by one coherent frame. Combining
+        # unrelated OCR frames can manufacture a title/episode association.
+        frame_matches = [identify_title(frame, titles) for frame in texts]
+        frame_matches = [match for match in frame_matches if match]
+        best = None
+        if frame_matches:
+            unique = {(m["episode"], m["title"]) for m in frame_matches}
+            if len(unique) == 1:
+                best = frame_matches[0]
         row = {"start_seconds": start, "attempted_at": now,
                "source_url": source, "status": "ocr_match" if best else "no_title_match",
                "samples": samples}
