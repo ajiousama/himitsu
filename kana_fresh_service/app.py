@@ -11,6 +11,8 @@ from flask import Flask, Response, jsonify
 app = Flask(__name__)
 VIDEO_ID = os.environ.get("KANA_VIDEO_ID", "DVL04eDdDIE").strip()
 WATCH = "https://www.youtube.com/watch?v=" + VIDEO_ID
+EMBED = "https://www.youtube.com/embed/" + VIDEO_ID + "?autoplay=1"
+EMBED_NOCOOKIE = "https://www.youtube-nocookie.com/embed/" + VIDEO_ID + "?autoplay=1"
 UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/140 Safari/537.36"
 CACHE_SECONDS = int(os.environ.get("CACHE_SECONDS", "90"))
 _lock = threading.Lock()
@@ -58,6 +60,19 @@ def _resolve():
     except Exception as e:
         notes.append("page_error:" + type(e).__name__)
 
+    # A2: embedded player pages can succeed even when the normal watch page is challenged.
+    for page_url, page_label in ((EMBED, "embed"), (EMBED_NOCOOKIE, "embed-nocookie")):
+        try:
+            status, _, html = _fetch(page_url, 2_000_000)
+            notes.append(f"{page_label}:{status}:{len(html)}")
+            for m in re.finditer(r'"hlsManifestUrl":"([^"]+)"', html):
+                try:
+                    _add(candidates, json.loads('"' + m.group(1) + '"'), page_label + ":hlsManifestUrl")
+                except Exception:
+                    pass
+        except Exception as e:
+            notes.append(page_label + "_error:" + type(e).__name__)
+
     # B: Streamlink, separate extractor implementation.
     rc, out, err = _run(["streamlink", "--stream-url", WATCH, "best"], 35)
     notes.append(f"streamlink:{rc}:{err[-180:]}")
@@ -65,7 +80,7 @@ def _resolve():
         _add(candidates, line, "streamlink")
 
     # C: fresh yt-dlp, no old manager.py and no is_live gate.
-    clients = [None, "android_vr", "web_safari", "mweb"]
+    clients = [None, "web_embedded", "tv", "android_vr", "web_safari", "mweb"]
     for client in clients:
         label = client or "default"
         extra = [] if not client else ["--extractor-args", "youtube:player_client=" + client]
