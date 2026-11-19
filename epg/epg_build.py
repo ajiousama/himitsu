@@ -75,6 +75,11 @@ ECATV_FALLBACK = {
 ECATV_JSON_BASE = "https://www.e-catv.ne.jp/epg/json"
 
 EXPLICIT = {
+    # Yamagata terrestrial channels (protected FreeWiFi manual entries).
+    "NHK山形・総合_jp": ["NHKGeneralTV.jp@JOJGDTV", "JOJGDTV.jp"],
+    "SakuranboTV.jp@JOCYDTV": ["SakuranboTV.jp@JOCYDTV", "JOCYDTV.jp"],
+    "TVUYamagata.jp@JOWIDTV": ["TVUYamagata.jp@JOWIDTV", "JOWIDTV.jp"],
+    "YTSYamagataTV.jp@JOYIDTV": ["YTSYamagataTV.jp@JOYIDTV", "JOYIDTV.jp"],
     "tver_ntv": ["ntv"], "tver_ex": ["ex"], "tver_tbs": ["tbs"], "tver_tx": ["tx"], "tver_cx": ["cx"],
     "日本テレビ_jp": ["JOAXDTV.jp", "jcom_2_1040_32738"], "TBS_jp": ["JORXDTV.jp", "jcom_2_1048_32739"],
     "フジテレビ_jp": ["JOCXDTV.jp", "jcom_2_1056_32740"], "テレビ朝日_jp": ["JOEXDTV.jp", "jcom_2_1064_32741"],
