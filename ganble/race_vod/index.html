@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>競輪・地方競馬 VOD</title>
+<style>
+:root{font-family:system-ui,-apple-system,"Yu Gothic",sans-serif;color-scheme:dark;background:#101826;color:#f4f7fb}
+body{max-width:1000px;margin:auto;padding:18px}h1{font-size:1.5rem}header p,.note{color:#b9c6d3}
+a{color:#9ad4ff}.controls{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:18px 0}
+label{display:block;font-size:.83rem;color:#cbd7e2;margin-bottom:5px}
+select{width:100%;padding:10px;border:1px solid #52677d;border-radius:8px;background:#1e3044;color:white}
+#items{display:grid;gap:12px}.race{background:#1c2a3b;border:1px solid #334760;border-radius:14px;padding:14px}
+.meta{font-size:.84rem;color:#b4c6d8}.name{font-size:1.07rem;font-weight:700;margin:7px 0}
+.state{display:inline-block;border:1px solid #66778c;border-radius:18px;padding:4px 9px;font-size:.8rem}
+.view{display:inline-block;padding:10px 12px;border-radius:8px;background:#294b65;color:white;text-decoration:none;margin-top:12px}
+video{width:100%;max-height:430px;background:black;margin-top:10px;border-radius:8px}
+@media(max-width:680px){.controls{grid-template-columns:repeat(2,minmax(0,1fr))}}
+</style></head><body>
+<header><h1>🏁 公営競技VOD</h1><p>FreeWiFiのEPGから競輪・地方競馬のレースを日付・開催場・Rで検索します。再生確認できない映像は、公式検索ページから探せます。</p></header>
+<section class="controls">
+<div><label for="sport">競技</label><select id="sport"><option value="">両方</option><option value="keirin">🚴 競輪</option><option value="nar">🏇 地方競馬</option></select></div>
+<div><label for="day">開催日</label><select id="day"></select></div>
+<div><label for="venue">開催場</label><select id="venue"></select></div>
+<div><label for="number">レース</label><select id="number"></select></div>
+</section><p id="count" role="status">カタログを読み込み中…</p><main id="items"></main>
+<p class="note">※発走済みでもVTR公開は保証されません。TIPSTARのアーカイブはアプリ内限定との公式案内があります。</p>
+<script>
+'use strict';
+const ids=['sport','day','venue','number'];
+const sels=Object.fromEntries(ids.map(id=>[id,document.getElementById(id)]));
+const target=document.getElementById('items');const count=document.getElementById('count');
+let races=[];
+function elt(tag,value,cls){const x=document.createElement(tag);x.textContent=value;if(cls)x.className=cls;return x}
+function option(value,label){const x=document.createElement('option');x.value=value;x.textContent=label;return x}
+function fill(name,choices,placeholder){const s=sels[name],old=s.value;s.replaceChildren(option('',placeholder),...choices.map(x=>option(x[0],x[1])));if([...s.options].some(x=>x.value===old))s.value=old}
+function matches(x,exclude){
+ return (exclude==='sport'||!sels.sport.value||x.sport===sels.sport.value)&&
+ (exclude==='day'||!sels.day.value||x.date===sels.day.value)&&
+ (exclude==='venue'||!sels.venue.value||x.channel_id===sels.venue.value)&&
+ (exclude==='number'||!sels.number.value||String(x.race)===sels.number.value)
+}
+function refresh(changed){
+ if(changed==='sport'||changed==='init'){
+  const days=[...new Set(races.filter(x=>matches(x,'day')).map(x=>x.date))].sort().reverse();
+  fill('day',days.map(x=>[x,x]),'全日付');
+ }
+ if(['sport','day','init'].includes(changed)){
+  const venues=new Map(races.filter(x=>matches(x,'venue')).map(x=>[x.channel_id,x.venue]));
+  fill('venue',[...venues].sort((a,b)=>a[1].localeCompare(b[1],'ja')),'全開催場');
+ }
+ if(['sport','day','venue','init'].includes(changed)){
+  const numbers=[...new Set(races.filter(x=>matches(x,'number')).map(x=>x.race))].sort((a,b)=>a-b);
+  fill('number',numbers.map(x=>[String(x),String(x)+'R']),'全レース');
+ }
+ render();
+}
+function render(){
+ const shown=races.filter(x=>matches(x,'')).sort((a,b)=>b.scheduled_at.localeCompare(a.scheduled_at));
+ count.textContent=shown.length+'レース ／ 直再生確認済み '+shown.filter(x=>x.video_status==='verified').length+'レース';
+ target.replaceChildren();
+ for(const r of shown.slice(0,300)){
+  const card=document.createElement('article');card.className='race';
+  card.append(elt('div',r.sport_name+' · '+r.date+' · '+r.venue+' · '+r.race+'R','meta'));
+  card.append(elt('div',r.title,'name'));
+  card.append(elt('div',r.video_status==='verified'?'映像URL確認済み':'直リンク未確認','state'));
+  if(r.video_status==='verified'&&r.video_url){
+   const v=document.createElement('video');v.controls=true;v.playsInline=true;v.preload='none';v.src=r.video_url;card.append(v);
+  }
+  const link=document.createElement('a');link.className='view';link.href=r.archive_search_url;
+  link.target='_blank';link.rel='noopener noreferrer';link.textContent=r.provider+'で過去映像を探す';
+  card.append(link);target.append(card);
+ }
+ if(shown.length>300)target.append(elt('p','最新300件まで表示。日付・開催場で絞り込んでください。'));
+}
+for(const id of ids)sels[id].addEventListener('change',()=>refresh(id));
+fetch('./catalog.json',{cache:'no-store'}).then(r=>{if(!r.ok)throw Error(r.status);return r.json()})
+.then(v=>{races=Array.isArray(v.races)?v.races:[];refresh('init')})
+.catch(e=>{count.textContent='カタログの読込失敗。Webサーバー経由で開いてください。';console.error(e)});
+</script></body></html>
