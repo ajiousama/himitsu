@@ -186,6 +186,11 @@ def inspect_watch(video_id):
     except Exception:
         info = None
     if info:
+        if video_id == "fZmyTwX05wY" or video_id == "KYieCkdLG60":
+            formats = info.get("formats") or []
+            hls = [f for f in formats if "m3u8" in str(f.get("protocol") or "")]
+            muxed = [f for f in hls if f.get("vcodec") != "none" and f.get("acodec") != "none"]
+            print(f"KANA format diagnostic video={video_id} formats={len(formats)} hls={len(hls)} muxed={len(muxed)} live_status={info.get('live_status')}")
         return info, "OK"
     return None, classify(p.stderr)
 
