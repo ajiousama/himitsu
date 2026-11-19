@@ -79,6 +79,10 @@ def ocr_title_candidates(replay: dict) -> dict[tuple[str, int], tuple[int, str]]
                 continue
             if row.get("source_url") != sources[vod_id]:
                 continue
+            # OCR text alone cannot establish the current programme.
+            # Historical unreviewed matches must also remain unpublished.
+            if row.get("status") == "ocr_match":
+                continue
             # Reject legacy OCR candidates where the only apparent game
             # name is a numbered sequel of a shorter title.
             # Check only unnumbered titles; numbered titles match exactly.
