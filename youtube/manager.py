@@ -124,7 +124,17 @@ def direct_hls(page):
     urls = [x.strip() for x in p.stdout.splitlines() if x.strip().startswith(("http://", "https://"))]
     if p.returncode == 0 and len(urls) == 1 and (".m3u8" in urls[0] or "manifest.googlevideo.com/" in urls[0]):
         return urls[0], "OK"
-    return None, classify(p.stderr)
+    reason = classify(p.stderr)
+    # Never print signed stream URLs or cookie contents to Actions logs.
+    safe_lines = [line.strip() for line in (p.stderr or "").splitlines()
+                  if any(term in line.lower() for term in
+                         ("sign in", "bot", "403", "429", "po token", "nsig", "signature",
+                          "format", "unavailable", "javascript", "challenge", "error:"))]
+    for line in safe_lines[-4:]:
+        line = re.sub(r"https?://\\S+", "[URL_REDACTED]", line)
+        print(f"KANA yt-dlp diagnostic: {line[:260]}")
+    print(f"KANA yt-dlp exit={p.returncode} urls={len(urls)} reason={reason}")
+    return None, reason
 
 
 def flat_listing(url, limit=40):
