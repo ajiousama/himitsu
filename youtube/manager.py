@@ -548,6 +548,12 @@ def update_kana(config):
     channel = item["channel"].rstrip("/")
     trouble = False
     confirmed = False
+    live_candidates = []
+    def live_rank(info):
+        title = (info.get("title") or "").lower()
+        vertical = "縦型" in title or "縦配信" in title or "vertical" in title or "shorts" in title
+        return (int(vertical), -int(info.get("concurrent_view_count") or 0))
+
 
     def publish_selected(selected):
         status = (selected.get("live_status") or "").lower()
@@ -595,9 +601,7 @@ def update_kana(config):
         if info and official_youtube(info, item["channel_id"], item.get("handle")):
             status = (info.get("live_status") or "").lower()
             if status == "is_live":
-                publish_selected(info)
-                print("KANA fast-path: previous reservation is now live")
-                return
+                previous_info = info
             if status == "is_upcoming":
                 previous_info = info
         elif code in TRANSIENT:
@@ -658,8 +662,7 @@ def update_kana(config):
             continue
         status = (info.get("live_status") or "").lower()
         if status == "is_live":
-            publish_selected(info)
-            return
+            live_candidates.append(info)
         if status == "is_upcoming":
             chosen.append(info)
 
@@ -691,10 +694,30 @@ def update_kana(config):
                 continue
             status = (info.get("live_status") or "").lower()
             if status == "is_live":
-                publish_selected(info)
-                return
+                live_candidates.append(info)
             if status == "is_upcoming":
                 chosen.append(info)
+
+    if live_candidates:
+        # Prefer the normal broadcast, but never publish a watch URL as a
+        # playable IPTV stream when another official live has valid HLS.
+        live_candidates.sort(key=live_rank)
+        resolved = []
+        for info in live_candidates:
+            play = info_hls(info)
+            if not play:
+                play, reason = direct_hls("https://www.youtube.com/watch?v=" + info["id"])
+                if not play:
+                    print(f"KANA HLS unavailable: {info['id']} reason={reason}")
+            if play:
+                info = dict(info)
+                info["manifest_url"] = play
+                resolved.append(info)
+        if resolved:
+            publish_selected(resolved[0])
+        else:
+            publish_selected(live_candidates[0])
+        return
 
     if chosen:
         now = int(datetime.now(timezone.utc).timestamp())
