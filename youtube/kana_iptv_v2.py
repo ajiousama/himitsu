@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# trigger: v2-first-live
 import json, os, re, subprocess, sys, time, urllib.request
 from pathlib import Path
 
