@@ -470,33 +470,12 @@ def maintain_stream(jcd, stream, day, now):
         stream['playback_verified'] = False
     _code, candidate, error = fetch_seed(jcd, day)
     if not candidate:
-        # Do not carry a previously rejected signed URL into a future cycle.
-        if not stream.get('playback_verified'):
-            stream.pop('url', None)
         return stream, error
     if url and int(jwt_payload(candidate).get('exp') or 0) < int(jwt_payload(url).get('exp') or 0):
         return stream, 'candidate token rollback rejected'
     result = boat_playback.probe(candidate, stream.get('probe') if candidate == url else None)
     if not result['ok']:
-        # A signed cloud URL may resolve to a completed VOD even on the correct
-        # date. Retry the independent official Playback API before giving up.
-        try:
-            slug = VENUES[jcd][1].split('.')[1]
-            fallback = boat_playback.direct_source(jcd, day, slug)
-            if fallback and current_day_stream(fallback, day) and not token_expired(fallback):
-                if fallback != candidate:
-                    fallback_probe = boat_playback.probe(fallback)
-                    if fallback_probe['ok']:
-                        candidate, result = fallback, fallback_probe
-        except Exception:
-            pass
-        if not result['ok']:
-            # Clear a repeatedly failing cached source so it cannot be
-            # resurrected by a playlist writer on the next worker cycle.
-            stream.pop('url', None)
-            stream['playback_verified'] = False
-            stream['last_acquisition_error'] = result['error']
-            return stream, result['error']
+        return stream, result['error']
     stream.update(url=candidate, source='automatic acquisition + audio/video decode',
                   acquired_at=now.isoformat(), checked_at=now.isoformat(),
                   first_verified_at=stream.get('first_verified_at') or now.isoformat(),
@@ -656,7 +635,7 @@ def build_venue_state(
         source_ready = bool(current_url and not expired and stream.get('playback_verified'))
         # Never publish a URL that has failed verification, even if its JWT
         # date and expiry still look valid.
-        visible = bool(current_url and not expired and not ended)
+        visible = bool(current_url and not ended)
         upcoming = next((race for race in races if race["start"] >= now), None)
         ever_verified = bool(stream.get('first_verified_at'))
         if ever_verified and upcoming is not None:
