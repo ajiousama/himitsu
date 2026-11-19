@@ -20,6 +20,7 @@ ROOT = Path(__file__).resolve().parent
 CONFIG = ROOT / "config.json"
 GENERAL_OUT = ROOT / "output" / "general.m3u"
 KANA_OUT = ROOT / "output" / "kana.m3u"
+KANA_IPTV_OUT = ROOT / "output" / "kana_iptv.m3u"
 MANDARIN_OUT = ROOT / "output" / "mandarin.m3u"
 KANA_STATE = ROOT / "state" / "kana.json"
 MANDARIN_STATE = ROOT / "state" / "mandarin.json"
@@ -31,6 +32,7 @@ GENERAL_START = "# === GENERAL_YOUTUBE_MANAGED_START ==="
 GENERAL_END = "# === GENERAL_YOUTUBE_MANAGED_END ==="
 KANA_START = "# === KANA_TUBE_MANAGED_START ==="
 KANA_END = "# === KANA_TUBE_MANAGED_END ==="
+KANA_IPTV_ID = "youtube.kana_tube_iptv"
 TODAY_START = "# === TODAY_PUBLIC_SPORTS_START ==="
 TODAY_END = "# === TODAY_PUBLIC_SPORTS_END ==="
 TODAY_HEADING = "## 今日の開催場"
@@ -589,7 +591,10 @@ def update_kana(config):
         else:
             when = datetime.fromtimestamp(start, JST).strftime("%m/%d %H:%M") if start else ""
             label = item["name"] + (f"【配信予定 {when}】" if when else "【配信予定】")
-        write_playlist(KANA_OUT, [entry(item, url, label)] if url else [])
+        write_playlist(KANA_OUT, [entry(item, watch, label)])
+        iptv_item = dict(item, id=KANA_IPTV_ID, name=item["name"] + " IPTV")
+        iptv_url = play if status == "is_live" and play and (".m3u8" in play or "manifest.googlevideo.com/" in play) else None
+        write_playlist(KANA_IPTV_OUT, [entry(iptv_item, iptv_url, iptv_item["name"] + "【LIVE】")] if iptv_url else [])
         write_json(KANA_STATE, {
             "state": status,
             "channel": item.get("handle"),
@@ -658,7 +663,9 @@ def update_kana(config):
             if vid == previous_id or vid in official_stream_ids:
                 live_url, live_code = direct_hls("https://www.youtube.com/watch?v=" + vid)
                 if live_url and ("manifest.googlevideo.com/" in live_url or ".m3u8" in live_url):
-                    write_playlist(KANA_OUT, [entry(item, live_url, item["name"] + "【LIVE】")])
+                    write_playlist(KANA_OUT, [entry(item, "https://www.youtube.com/watch?v=" + vid, item["name"] + "【LIVE】")])
+                    iptv_item = dict(item, id=KANA_IPTV_ID, name=item["name"] + " IPTV")
+                    write_playlist(KANA_IPTV_OUT, [entry(iptv_item, live_url, iptv_item["name"] + "【LIVE】")])
                     write_json(KANA_STATE, {
                         "state": "is_live", "channel": item.get("handle"),
                         "channel_id": item["channel_id"], "video_id": vid,
@@ -750,6 +757,7 @@ def update_kana(config):
         return
 
     write_playlist(KANA_OUT, [])
+    write_playlist(KANA_IPTV_OUT, [])
     write_json(KANA_STATE, {
         "state": "offline",
         "channel": item.get("handle"),
@@ -819,7 +827,11 @@ def sync_freewifi(config):
     kana_id = config["special"]["kana"]["id"]
     text = re.sub(re.escape(KANA_START) + r".*?" + re.escape(KANA_END) + r"\n?", "", text, flags=re.S)
     text = strip_entry(text, kana_id)
+    text = strip_entry(text, KANA_IPTV_ID)
     kana_body = playlist_body(KANA_OUT)
+    iptv_body = playlist_body(KANA_IPTV_OUT)
+    if iptv_body:
+        kana_body = (kana_body + "\n\n" + iptv_body).strip()
     if kana_body:
         kana_block = KANA_START + "\n" + kana_body + "\n" + KANA_END + "\n"
         start = text.find(TODAY_START)
@@ -976,7 +988,7 @@ def validate(config):
         raise SystemExit("general YouTube managed block count invalid")
     kana_id = config["special"]["kana"]["id"]
     kana_count = text.count(f'tvg-id="{kana_id}"')
-    if kana_count > 1:
+    if kana_count > 1 or text.count(f'tvg-id="{KANA_IPTV_ID}"') > 1:
         raise SystemExit("duplicate Kana entry in freewifi")
 
     # FreeWiFi policy: KanaTube is the only YouTube entry allowed.
@@ -985,6 +997,7 @@ def validate(config):
         if line.startswith("#EXTINF:")
         and 'tvg-id="youtube.' in line
         and f'tvg-id="{kana_id}"' not in line
+        and f'tvg-id="{KANA_IPTV_ID}"' not in line
     ]
     if stray_youtube:
         raise SystemExit("non-Kana YouTube entry remains in freewifi: " + stray_youtube[0])
@@ -998,11 +1011,7 @@ def validate(config):
     if kana_mode in ("is_upcoming", "is_live"):
         if not kana_entry:
             raise SystemExit(f"Kana {kana_mode} detected but missing from freewifi")
-        expected = (
-            kana_state.get("play_url")
-            if kana_mode == "is_live" and kana_state.get("play_url")
-            else kana_state.get("watch_url")
-        )
+        expected = kana_state.get("watch_url")
         if expected and kana_entry.get("url") != expected:
             raise SystemExit(
                 f"Kana {kana_mode} URL mismatch: freewifi={kana_entry.get('url')} state={expected}"
@@ -1014,6 +1023,9 @@ def validate(config):
             raise SystemExit("Kana live detected but freewifi is not labelled LIVE")
     elif kana_mode == "offline" and kana_entry:
         raise SystemExit("Kana is offline but stale entry remains in freewifi")
+    iptv_entry = parse_m3u(FREEWIFI).get(KANA_IPTV_ID)
+    if iptv_entry and iptv_entry.get("url") != kana_state.get("play_url"):
+        raise SystemExit("Kana IPTV URL mismatch")
 
     print("YouTube v2 validation OK")
 
