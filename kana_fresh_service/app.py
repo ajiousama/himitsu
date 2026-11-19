@@ -1,3 +1,4 @@
+import datetime as dt
 import json
 import os
 import re
@@ -9,14 +10,21 @@ import urllib.request
 from flask import Flask, Response, jsonify
 
 app = Flask(__name__)
-VIDEO_ID = os.environ.get("KANA_VIDEO_ID", "DVL04eDdDIE").strip()
-WATCH = "https://www.youtube.com/watch?v=" + VIDEO_ID
-EMBED = "https://www.youtube.com/embed/" + VIDEO_ID + "?autoplay=1"
-EMBED_NOCOOKIE = "https://www.youtube-nocookie.com/embed/" + VIDEO_ID + "?autoplay=1"
+
+CHANNEL_LIVE = os.environ.get("KANA_CHANNEL_LIVE", "https://www.youtube.com/@kana_tube/live")
+DEFAULT_VIDEO_ID = os.environ.get("KANA_VIDEO_ID", "DVL04eDdDIE").strip()
 UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/140 Safari/537.36"
 CACHE_SECONDS = int(os.environ.get("CACHE_SECONDS", "90"))
+
 _lock = threading.Lock()
-_cache = {"checked": 0, "ok": False, "mode": None, "error": "not_checked"}
+_cache = {
+    "checked": 0,
+    "ok": False,
+    "mode": None,
+    "video_id": DEFAULT_VIDEO_ID,
+    "error": "not_checked",
+}
+
 
 def _run(cmd, timeout=35):
     try:
@@ -25,18 +33,72 @@ def _run(cmd, timeout=35):
     except Exception as e:
         return 999, "", repr(e)
 
-def _fetch(url, limit=262144):
-    req = urllib.request.Request(url, headers={
+
+def _fetch(url, limit=262144, method="GET", data=None, headers=None):
+    hdr = {
         "User-Agent": UA,
         "Accept": "application/vnd.apple.mpegurl,application/x-mpegURL,text/plain,*/*",
-    })
-    with urllib.request.urlopen(req, timeout=15) as r:
+        "Accept-Language": "en-US,en;q=0.9",
+    }
+    if headers:
+        hdr.update(headers)
+    req = urllib.request.Request(url, headers=hdr, data=data, method=method)
+    with urllib.request.urlopen(req, timeout=20) as r:
         return r.status, r.geturl(), r.read(limit).decode("utf-8", "replace")
+
+
+def _video_id_from_text(text):
+    patterns = [
+        r"[?&]v=([A-Za-z0-9_-]{11})",
+        r"/live/([A-Za-z0-9_-]{11})",
+        r"/embed/([A-Za-z0-9_-]{11})",
+        r'"videoId":"([A-Za-z0-9_-]{11})"',
+    ]
+    for pat in patterns:
+        m = re.search(pat, text or "")
+        if m:
+            return m.group(1)
+    return None
+
+
+def _discover_video_id(notes):
+    try:
+        status, final_url, html = _fetch(CHANNEL_LIVE, 2_000_000)
+        notes.append(f"discover:{status}:{final_url[:100]}")
+        vid = _video_id_from_text(final_url)
+        if vid:
+            return vid, "channel-live-redirect"
+
+        # Prefer a canonical watch URL from the live page.
+        m = re.search(
+            r'<link[^>]+rel="canonical"[^>]+href="https://www\.youtube\.com/watch\?v=([A-Za-z0-9_-]{11})"',
+            html,
+            re.I,
+        )
+        if m:
+            return m.group(1), "channel-live-canonical"
+
+        vid = _video_id_from_text(html)
+        if vid:
+            return vid, "channel-live-html"
+    except Exception as e:
+        notes.append("discover_error:" + type(e).__name__ + ":" + str(e)[:120])
+
+    return DEFAULT_VIDEO_ID, "fallback-default"
+
+
+def _watch_urls(video_id):
+    watch = "https://www.youtube.com/watch?v=" + video_id
+    embed = "https://www.youtube.com/embed/" + video_id + "?autoplay=1"
+    nocookie = "https://www.youtube-nocookie.com/embed/" + video_id + "?autoplay=1"
+    return watch, embed, nocookie
+
 
 def _is_hls_url(url):
     return isinstance(url, str) and url.startswith("http") and (
         "manifest.googlevideo.com/" in url or ".m3u8" in url
     )
+
 
 def _probe_hls(url):
     try:
@@ -45,8 +107,125 @@ def _probe_hls(url):
     except Exception:
         return False, ""
 
+
+def _master_has_video(body):
+    if "#EXTM3U" not in body:
+        return False
+    # A YouTube master/variant containing video advertises stream variants and
+    # normally a resolution/codecs attribute. Do not accept an audio media list.
+    return "#EXT-X-STREAM-INF" in body and (
+        "RESOLUTION=" in body or "avc1" in body.lower() or "vp09" in body.lower() or "av01" in body.lower()
+    )
+
+
+def _master_has_audio(body):
+    # Audio can be a separate rendition or muxed inside each variant.
+    if '#EXT-X-MEDIA:TYPE=AUDIO' in body:
+        return True
+    lowered = body.lower()
+    return "mp4a" in lowered or "opus" in lowered or "audio=" in lowered
+
+
+def _decode_json_string(raw):
+    try:
+        return json.loads('"' + raw + '"')
+    except Exception:
+        return raw.replace("\/", "/")
+
+
+def _extract_hls_urls_from_html(html, source):
+    out = []
+    for m in re.finditer(r'"hlsManifestUrl"\s*:\s*"([^"]+)"', html or ""):
+        url = _decode_json_string(m.group(1))
+        if _is_hls_url(url) and all(x["url"] != url for x in out):
+            out.append({"url": url, "source": source + ":hlsManifestUrl"})
+    return out
+
+
+def _ytcfg_string(html, key):
+    for pat in (
+        rf'"{re.escape(key)}"\s*:\s*"([^"]+)"',
+        rf'{re.escape(key)}\s*[:=]\s*"([^"]+)"',
+    ):
+        m = re.search(pat, html or "")
+        if m:
+            return _decode_json_string(m.group(1))
+    return None
+
+
+def _ytcfg_number(html, key):
+    m = re.search(rf'"{re.escape(key)}"\s*:\s*(\d+)', html or "")
+    return int(m.group(1)) if m else None
+
+
+def _innertube_player(video_id, embed_url, embed_html, notes):
+    api_key = _ytcfg_string(embed_html, "INNERTUBE_API_KEY")
+    client_version = _ytcfg_string(embed_html, "INNERTUBE_CLIENT_VERSION")
+    client_name_num = _ytcfg_number(embed_html, "INNERTUBE_CONTEXT_CLIENT_NAME")
+    visitor = _ytcfg_string(embed_html, "VISITOR_DATA")
+
+    if not api_key or not client_version:
+        notes.append("innertube:missing_config")
+        return None
+
+    payload = {
+        "context": {
+            "client": {
+                "clientName": "WEB_EMBEDDED_PLAYER",
+                "clientVersion": client_version,
+                "hl": "en",
+                "gl": "US",
+                "clientScreen": "EMBED",
+            },
+            "thirdParty": {"embedUrl": "https://www.youtube.com/"},
+        },
+        "videoId": video_id,
+        "playbackContext": {
+            "contentPlaybackContext": {
+                "html5Preference": "HTML5_PREF_WANTS",
+            }
+        },
+        "contentCheckOk": True,
+        "racyCheckOk": True,
+    }
+    headers = {
+        "Content-Type": "application/json",
+        "Origin": "https://www.youtube.com",
+        "Referer": embed_url,
+        "X-Youtube-Client-Version": client_version,
+    }
+    if client_name_num:
+        headers["X-Youtube-Client-Name"] = str(client_name_num)
+    if visitor:
+        headers["X-Goog-Visitor-Id"] = visitor
+
+    try:
+        status, _, text = _fetch(
+            "https://www.youtube.com/youtubei/v1/player?prettyPrint=false&key=" + urllib.parse.quote(api_key),
+            2_000_000,
+            method="POST",
+            data=json.dumps(payload).encode("utf-8"),
+            headers=headers,
+        )
+        data = json.loads(text)
+        ps = data.get("playabilityStatus") or {}
+        notes.append(
+            "innertube:"
+            + str(status)
+            + ":"
+            + str(ps.get("status"))
+            + ":"
+            + str(ps.get("reason") or "")[:100]
+        )
+        return data
+    except Exception as e:
+        notes.append("innertube_error:" + type(e).__name__ + ":" + str(e)[:120])
+        return None
+
+
 def _codec_ok(value):
     return bool(value) and str(value).lower() not in ("none", "unknown", "null")
+
 
 def _fmt_summary(fmt):
     return {
@@ -59,7 +238,9 @@ def _fmt_summary(fmt):
         "tbr": fmt.get("tbr"),
         "abr": fmt.get("abr"),
         "protocol": fmt.get("protocol"),
+        "source": fmt.get("_source"),
     }
+
 
 def _hls_formats_from_data(data, source):
     out = []
@@ -75,19 +256,21 @@ def _hls_formats_from_data(data, source):
         out.append(item)
     return out
 
+
 def _score_video(fmt):
     vcodec = str(fmt.get("vcodec") or "")
-    # Prefer broadly compatible H.264/AVC, then resolution/fps/bitrate.
-    codec_pref = 2 if vcodec.startswith(("avc", "h264")) else 1
+    codec_pref = 3 if vcodec.startswith(("avc", "h264")) else 2 if vcodec.startswith("vp09") else 1
     height = int(fmt.get("height") or 0)
-    # Avoid choosing extreme resolutions for IPTV stability; prefer <=1080p.
-    capped = height if height <= 1080 else 0
+    # Fire TV/VLC stability: prefer 1080p or below.
+    capped = height if 1 <= height <= 1080 else 0
     return (codec_pref, capped, int(fmt.get("fps") or 0), float(fmt.get("tbr") or 0))
+
 
 def _score_audio(fmt):
     acodec = str(fmt.get("acodec") or "")
-    codec_pref = 2 if acodec.startswith(("mp4a", "aac")) else 1
+    codec_pref = 3 if acodec.startswith(("mp4a", "aac")) else 2 if acodec.startswith("opus") else 1
     return (codec_pref, float(fmt.get("abr") or fmt.get("tbr") or 0))
+
 
 def _build_master(video, audio):
     vurl = video["url"]
@@ -111,21 +294,66 @@ def _build_master(video, audio):
         f"{vurl}\n"
     )
 
+
 def _resolve():
     notes = []
     formats = []
+    master_candidates = []
 
-    # Check pages only as diagnostics. Actual output below is built from fresh format JSON.
-    for page_url, page_label in ((WATCH, "page"), (EMBED, "embed"), (EMBED_NOCOOKIE, "embed-nocookie")):
+    video_id, discovery_source = _discover_video_id(notes)
+    watch, embed, nocookie = _watch_urls(video_id)
+    notes.append("video_id:" + video_id + ":" + discovery_source)
+
+    embed_html = None
+    for page_url, page_label in ((watch, "page"), (embed, "embed"), (nocookie, "embed-nocookie")):
         try:
             status, _, html = _fetch(page_url, 2_000_000)
             notes.append(f"{page_label}:{status}:{len(html)}")
+            master_candidates.extend(_extract_hls_urls_from_html(html, page_label))
+            if page_label == "embed":
+                embed_html = html
         except Exception as e:
-            notes.append(page_label + "_error:" + type(e).__name__)
+            notes.append(page_label + "_error:" + type(e).__name__ + ":" + str(e)[:80])
 
-    rc, out, err = _run(["streamlink", "--stream-url", WATCH, "best"], 35)
+    # Direct Innertube player route: independent of yt-dlp's live-status parsing.
+    if embed_html:
+        data = _innertube_player(video_id, embed, embed_html, notes)
+        if isinstance(data, dict):
+            sd = data.get("streamingData") or {}
+            hls = sd.get("hlsManifestUrl")
+            if _is_hls_url(hls):
+                master_candidates.append({"url": hls, "source": "innertube:hlsManifestUrl"})
+
+    # Prefer an official master HLS. This is the bugfix for the former itag=233
+    # mistake: never descend to the first audio-only media playlist and call it success.
+    seen_master = set()
+    for cand in master_candidates:
+        url = cand["url"]
+        if url in seen_master:
+            continue
+        seen_master.add(url)
+        ok, body = _probe_hls(url)
+        if ok and _master_has_video(body):
+            # Official YouTube master may use muxed variants or separate audio renditions.
+            return {
+                "checked": int(time.time()),
+                "ok": True,
+                "mode": "official-master",
+                "video_id": video_id,
+                "watch_url": watch,
+                "play_url": url,
+                "master_text": None,
+                "source": cand["source"],
+                "has_audio_rendition": _master_has_audio(body),
+                "candidate_count": len(master_candidates),
+                "notes": notes[-28:],
+            }
+
+    # Separate extractor implementation, kept as fallback only.
+    rc, out, err = _run(["streamlink", "--stream-url", watch, "best"], 35)
     notes.append(f"streamlink:{rc}:{err[-180:]}")
 
+    # Fresh yt-dlp fallback. No old manager.py and no is_live gate.
     clients = [None, "android_vr", "web_embedded", "tv", "web_safari", "mweb"]
     seen_urls = set()
     for client in clients:
@@ -133,7 +361,7 @@ def _resolve():
         extra = [] if not client else ["--extractor-args", "youtube:player_client=" + client]
         rc, out, err = _run([
             "yt-dlp", "--no-playlist", "--ignore-no-formats-error",
-            "--js-runtimes", "node", *extra, "--dump-single-json", WATCH
+            "--js-runtimes", "node", *extra, "--dump-single-json", watch
         ], 45)
         notes.append(f"ytdlp-json:{label}:{rc}:{err[-260:]}")
         if not out.strip():
@@ -143,46 +371,55 @@ def _resolve():
         except Exception as e:
             notes.append("json_error:" + label + ":" + type(e).__name__)
             continue
+
+        # yt-dlp's top-level hls_manifest_url is a master candidate. Prefer it.
+        for key in ("hls_manifest_url", "hlsManifestUrl"):
+            hls = data.get(key)
+            if _is_hls_url(hls) and hls not in seen_master:
+                seen_master.add(hls)
+                ok, body = _probe_hls(hls)
+                if ok and _master_has_video(body):
+                    return {
+                        "checked": int(time.time()),
+                        "ok": True,
+                        "mode": "official-master-ytdlp",
+                        "video_id": video_id,
+                        "watch_url": watch,
+                        "play_url": hls,
+                        "master_text": None,
+                        "source": "yt-dlp:" + label + ":" + key,
+                        "has_audio_rendition": _master_has_audio(body),
+                        "candidate_count": len(master_candidates),
+                        "notes": notes[-28:],
+                    }
+
         for fmt in _hls_formats_from_data(data, label):
             if fmt["url"] in seen_urls:
                 continue
             seen_urls.add(fmt["url"])
             formats.append(fmt)
 
-    muxed = [
-        f for f in formats
-        if _codec_ok(f.get("vcodec")) and _codec_ok(f.get("acodec"))
-    ]
-    videos = [
-        f for f in formats
-        if _codec_ok(f.get("vcodec")) and not _codec_ok(f.get("acodec"))
-    ]
-    audios = [
-        f for f in formats
-        if not _codec_ok(f.get("vcodec")) and _codec_ok(f.get("acodec"))
-    ]
+    muxed = [f for f in formats if _codec_ok(f.get("vcodec")) and _codec_ok(f.get("acodec"))]
+    videos = [f for f in formats if _codec_ok(f.get("vcodec")) and not _codec_ok(f.get("acodec"))]
+    audios = [f for f in formats if not _codec_ok(f.get("vcodec")) and _codec_ok(f.get("acodec"))]
 
-    now = int(time.time())
-
-    # First choice: a true muxed HLS stream, if YouTube exposes one.
+    # Accept a true muxed HLS only after its manifest is verified.
     for fmt in sorted(muxed, key=_score_video, reverse=True):
-        ok, _ = _probe_hls(fmt["url"])
+        ok, body = _probe_hls(fmt["url"])
         if ok:
-            m = re.search(r"/expire/(\d+)", fmt["url"])
             return {
-                "checked": now,
+                "checked": int(time.time()),
                 "ok": True,
                 "mode": "muxed",
+                "video_id": video_id,
+                "watch_url": watch,
                 "play_url": fmt["url"],
                 "master_text": None,
                 "source": fmt.get("_source"),
                 "format": _fmt_summary(fmt),
-                "expire_epoch": int(m.group(1)) if m else None,
-                "format_count": len(formats),
-                "notes": notes[-24:],
+                "notes": notes[-28:],
             }
 
-    # Current YouTube Live often exposes demuxed HLS: video-only + audio-only.
     valid_video = None
     valid_audio = None
 
@@ -201,22 +438,26 @@ def _resolve():
     if valid_video and valid_audio:
         master = _build_master(valid_video, valid_audio)
         return {
-            "checked": now,
+            "checked": int(time.time()),
             "ok": True,
             "mode": "synthetic-av-master",
+            "video_id": video_id,
+            "watch_url": watch,
             "play_url": "/master.m3u8",
             "master_text": master,
             "source": f'{valid_video.get("_source")}+{valid_audio.get("_source")}',
             "video_format": _fmt_summary(valid_video),
             "audio_format": _fmt_summary(valid_audio),
             "format_count": len(formats),
-            "notes": notes[-24:],
+            "notes": notes[-28:],
         }
 
     return {
-        "checked": now,
+        "checked": int(time.time()),
         "ok": False,
         "mode": None,
+        "video_id": video_id,
+        "watch_url": watch,
         "play_url": None,
         "master_text": None,
         "source": None,
@@ -224,8 +465,9 @@ def _resolve():
         "format_count": len(formats),
         "video_candidates": [_fmt_summary(x) for x in sorted(videos, key=_score_video, reverse=True)[:6]],
         "audio_candidates": [_fmt_summary(x) for x in sorted(audios, key=_score_audio, reverse=True)[:6]],
-        "notes": notes[-24:],
+        "notes": notes[-28:],
     }
+
 
 def current(force=False):
     global _cache
@@ -236,9 +478,11 @@ def current(force=False):
         _cache = _resolve()
         return _cache
 
+
 @app.get("/health")
 def health():
     return jsonify({"ok": True, "service": "kana-iptv-fresh"})
+
 
 @app.get("/status")
 def status():
@@ -246,32 +490,39 @@ def status():
     public = {k: v for k, v in s.items() if k != "master_text"}
     return jsonify(public)
 
+
 @app.get("/master.m3u8")
 def master():
     s = current(force=False)
     if not s.get("ok"):
         return Response("#EXTM3U\n", status=503, mimetype="application/vnd.apple.mpegurl")
-    if s.get("mode") == "muxed":
-        # Redirect-free proxy manifest: return the upstream manifest body itself.
+
+    if s.get("mode") == "synthetic-av-master":
+        return Response(s["master_text"], mimetype="application/vnd.apple.mpegurl")
+
+    ok, body = _probe_hls(s["play_url"])
+    if not ok:
+        s = current(force=True)
+        if not s.get("ok"):
+            return Response("#EXTM3U\n", status=503, mimetype="application/vnd.apple.mpegurl")
+        if s.get("mode") == "synthetic-av-master":
+            return Response(s["master_text"], mimetype="application/vnd.apple.mpegurl")
         ok, body = _probe_hls(s["play_url"])
         if not ok:
-            s = current(force=True)
-            if not s.get("ok"):
-                return Response("#EXTM3U\n", status=503, mimetype="application/vnd.apple.mpegurl")
-            if s.get("mode") != "muxed":
-                return Response(s["master_text"], mimetype="application/vnd.apple.mpegurl")
-            ok, body = _probe_hls(s["play_url"])
-        return Response(body, mimetype="application/vnd.apple.mpegurl")
-    return Response(s["master_text"], mimetype="application/vnd.apple.mpegurl")
+            return Response("#EXTM3U\n", status=503, mimetype="application/vnd.apple.mpegurl")
+
+    return Response(body, mimetype="application/vnd.apple.mpegurl")
+
 
 @app.get("/raw")
 def raw():
     s = current(force=True)
     if not s.get("ok"):
         return Response("NO_VERIFIED_AV_HLS\n", status=503, mimetype="text/plain")
-    if s.get("mode") == "muxed":
-        return Response(s["play_url"] + "\n", mimetype="text/plain")
-    return Response("/master.m3u8\n", mimetype="text/plain")
+    if s.get("mode") == "synthetic-av-master":
+        return Response("/master.m3u8\n", mimetype="text/plain")
+    return Response(s["play_url"] + "\n", mimetype="text/plain")
+
 
 @app.get("/kana.m3u")
 def kana_m3u():
@@ -286,6 +537,7 @@ def kana_m3u():
     )
     return Response(body, mimetype="audio/x-mpegurl")
 
+
 def _warm_resolver():
     try:
         result = current(force=True)
@@ -294,7 +546,41 @@ def _warm_resolver():
     except Exception as e:
         print("KANA_FRESH_WARM_ERROR " + repr(e), flush=True)
 
+
+def _seconds_until_jst(hour, minute):
+    tz = dt.timezone(dt.timedelta(hours=9))
+    now = dt.datetime.now(tz)
+    target = now.replace(hour=hour, minute=minute, second=0, microsecond=0)
+    if target <= now:
+        target += dt.timedelta(days=1)
+    return max(1, int((target - now).total_seconds()))
+
+
+def _twice_daily_refresh_loop():
+    # User requirement: obtain a fresh HLS at least twice per day.
+    # Two fixed acquisition windows in JST, plus on-demand stale refreshes above.
+    schedule = [(9, 0), (20, 30)]
+    while True:
+        waits = [(_seconds_until_jst(h, m), h, m) for h, m in schedule]
+        wait_s, hour, minute = min(waits, key=lambda x: x[0])
+        time.sleep(wait_s)
+        try:
+            result = current(force=True)
+            safe = {k: v for k, v in result.items() if k != "master_text"}
+            print(
+                "KANA_FRESH_TWICE_DAILY "
+                + f"{hour:02d}:{minute:02d} JST "
+                + json.dumps(safe, ensure_ascii=False),
+                flush=True,
+            )
+        except Exception as e:
+            print("KANA_FRESH_TWICE_DAILY_ERROR " + repr(e), flush=True)
+        time.sleep(65)
+
+
 threading.Thread(target=_warm_resolver, daemon=True).start()
+threading.Thread(target=_twice_daily_refresh_loop, daemon=True).start()
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", "8080")))
