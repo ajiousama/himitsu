@@ -5,7 +5,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from gmcx_long_nav import build_time_navigation_entries, time_slices
+from gmcx_long_nav import build_time_navigation_entries, time_slices, ocr_title_candidates
 
 
 def vod(vod_id, title="ゲームセンターCX", duration=131723, **kwargs):
@@ -22,6 +22,26 @@ def vod(vod_id, title="ゲームセンターCX", duration=131723, **kwargs):
 
 
 class LongNavTests(unittest.TestCase):
+    def test_unreviewed_ocr_is_not_published(self):
+        from unittest.mock import patch
+        import gmcx_long_nav
+        ident = "e4f91158-8a0e-4c75-9fb4-eab36c247464"
+        source = "https://example.invalid/source.m3u8"
+        report = {"vods": {ident: {"source_url": source, "rows": {
+            "3480": {"status": "ocr_match", "source_url": source,
+                     "candidate": {"episode": 2, "title": "チャレンジャー",
+                                   "score": 1.0}}
+        }}}}
+        with tempfile.TemporaryDirectory() as d:
+            report_file = Path(d) / "ocr.json"
+            title_file = Path(d) / "titles.json"
+            report_file.write_text(json.dumps(report), encoding="utf-8")
+            title_file.write_text(json.dumps({"2": "チャレンジャー"}), encoding="utf-8")
+            with (patch.object(gmcx_long_nav, "OCR_REPORT", report_file),
+                  patch.object(gmcx_long_nav, "EPISODE_TITLES", title_file)):
+                self.assertEqual(ocr_title_candidates(
+                    {"vods": [{"vod_id": ident, "source_url": source}]}), {})
+
     def test_slices_cover_source_without_gaps(self):
         for begin, stop in [(0, 131723), (0, 29908), (0, 172799), (52213, 172795)]:
             parts = time_slices(begin, stop)
