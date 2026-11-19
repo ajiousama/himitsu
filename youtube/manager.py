@@ -116,28 +116,45 @@ def classify(stderr):
 
 
 def direct_hls(page):
-    try:
-        p = run_ytdlp([
-            "--no-playlist", "--match-filter", "is_live",
-            "-f", "best[protocol^=m3u8]/best[protocol*=m3u8]/best", "-g", page,
-        ], 35)
-    except subprocess.TimeoutExpired:
-        return None, "TIMEOUT"
-    urls = [x.strip() for x in p.stdout.splitlines() if x.strip().startswith(("http://", "https://"))]
-    if p.returncode == 0 and len(urls) == 1:
-        # Historical fallback may be a direct media URL rather than HLS.
-        return urls[0], "OK"
-    reason = classify(p.stderr)
-    # Never print signed stream URLs or cookie contents to Actions logs.
-    safe_lines = [line.strip() for line in (p.stderr or "").splitlines()
-                  if any(term in line.lower() for term in
-                         ("sign in", "bot", "403", "429", "po token", "nsig", "signature",
-                          "format", "unavailable", "javascript", "challenge", "error:"))]
-    for line in safe_lines[-4:]:
-        line = re.sub(r"https?://\\S+", "[URL_REDACTED]", line)
-        print(f"KANA yt-dlp diagnostic: {line[:260]}")
-    print(f"KANA yt-dlp exit={p.returncode} urls={len(urls)} reason={reason}")
-    return None, reason
+    """Try the original muxed live format first, then alternate YouTube clients.
+
+    Never return a YouTube watch page or progressive video as IPTV HLS.
+    """
+    attempts = [
+        [],
+        ["--extractor-args", "youtube:player_client=android,web"],
+        ["--extractor-args", "youtube:player_client=web_safari,web"],
+    ]
+    reasons = []
+    for extra in attempts:
+        try:
+            p = run_ytdlp([
+                "--no-playlist", "--match-filter", "is_live",
+                *extra, "-f",
+                "best[protocol^=m3u8]/best[protocol*=m3u8]",
+                "-g", page,
+            ], 40)
+        except subprocess.TimeoutExpired:
+            reasons.append("TIMEOUT")
+            continue
+        urls = [x.strip() for x in p.stdout.splitlines()
+                if x.strip().startswith(("http://", "https://"))]
+        hls = [u for u in urls if ".m3u8" in u or "manifest.googlevideo.com/" in u]
+        if p.returncode == 0 and len(urls) == 1 and len(hls) == 1:
+            return hls[0], "OK"
+        reason = classify(p.stderr)
+        reasons.append(reason)
+        safe_lines = [line.strip() for line in (p.stderr or "").splitlines()
+                      if any(term in line.lower() for term in
+                             ("sign in", "bot", "403", "429", "po token", "nsig",
+                              "signature", "format", "unavailable", "javascript",
+                              "challenge", "error:"))]
+        for line in safe_lines[-3:]:
+            line = re.sub(r"https?://\\S+", "[URL_REDACTED]", line)
+            print(f"KANA yt-dlp diagnostic: {line[:260]}")
+        print(f"KANA HLS attempt client={extra[-1] if extra else 'default'} "
+              f"exit={p.returncode} urls={len(urls)} reason={reason}")
+    return None, (reasons[-1] if reasons else "OTHER")
 
 
 def flat_listing(url, limit=40):
