@@ -1,0 +1,91 @@
+name: Kana IPTV Fresh Publish
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/kana_iptv_fresh_publish.yml'
+  schedule:
+    # 09:00 JST
+    - cron: '0 0 * * *'
+    # 20:30 JST
+    - cron: '30 11 * * *'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: kana-iptv-fresh-publish
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Ask independent Railway resolver for current AV HLS
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          STATUS_URL='https://kana-iptv-fresh-production.up.railway.app/status'
+          RAW_URL='https://kana-iptv-fresh-production.up.railway.app/raw'
+
+          status="$(curl -fsSL --retry 3 --retry-delay 4 --max-time 120 "$STATUS_URL")"
+          echo "$status" > /tmp/kana_status.json
+
+          python3 - <<'PY'
+          import json
+          data=json.load(open('/tmp/kana_status.json'))
+          if not data.get('ok'):
+              raise SystemExit('Railway resolver has no verified AV HLS')
+          mode=data.get('mode')
+          if mode not in ('official-master','official-master-ytdlp','muxed','synthetic-av-master'):
+              raise SystemExit('Unexpected mode: '+str(mode))
+          if mode == 'muxed':
+              fmt=data.get('format') or {}
+              if not fmt.get('vcodec') or not fmt.get('acodec'):
+                  raise SystemExit('Muxed result does not contain both video and audio codecs')
+          print('VERIFIED_MODE', mode)
+          print('VIDEO_ID', data.get('video_id'))
+          print('SOURCE', data.get('source'))
+          PY
+
+          hls="$(curl -fsSL --retry 3 --retry-delay 4 --max-time 120 "$RAW_URL" | tr -d '\r\n')"
+
+          case "$hls" in
+            https://manifest.googlevideo.com/*|https://kana-iptv-fresh-production.up.railway.app/master.m3u8)
+              ;;
+            *)
+              echo "Unexpected HLS URL: $hls" >&2
+              exit 2
+              ;;
+          esac
+
+          cat > youtube/output/kana_iptv.m3u <<EOF
+          #EXTM3U
+
+          #EXTINF:-1 tvg-id="youtube.kana_tube_iptv" tvg-name="かなチューブ IPTV" tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/youtube/logos/special/kana.png?v=ytv3-20260922b" group-title="今日の開催場",かなチューブ IPTV【LIVE】
+          $hls
+          EOF
+
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('youtube/output/kana_iptv.m3u')
+          p.write_text('\n'.join(line.lstrip() for line in p.read_text().splitlines())+'\n')
+          PY
+
+      - name: Commit only a verified AV playlist
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add youtube/output/kana_iptv.m3u
+          if ! git diff --cached --quiet; then
+            git commit -m "Refresh Kana IPTV verified AV HLS [skip ci]"
+            git push
+          fi
