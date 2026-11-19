@@ -173,3 +173,22 @@ def kana_m3u():
 if __name__ == "__main__":
     current(force=True)
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", "8080")))
+
+
+def _warm_resolver():
+    try:
+        result = current(force=True)
+        safe = {
+            "ok": result.get("ok"),
+            "source": result.get("source"),
+            "candidate_count": result.get("candidate_count"),
+            "expire_epoch": result.get("expire_epoch"),
+            "error": result.get("error"),
+            "notes": result.get("notes"),
+            "play_url": result.get("play_url"),
+        }
+        print("KANA_FRESH_WARM " + json.dumps(safe, ensure_ascii=False), flush=True)
+    except Exception as e:
+        print("KANA_FRESH_WARM_ERROR " + repr(e), flush=True)
+
+threading.Thread(target=_warm_resolver, daemon=True).start()
