@@ -1,0 +1,70 @@
+name: Kana IPTV v2
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'youtube/kana_iptv_v2.py'
+      - '.github/workflows/kana_iptv_v2.yml'
+  schedule:
+    - cron: '*/5 * * * *'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: kana-iptv-v2
+  cancel-in-progress: true
+
+jobs:
+  resolve:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      KANA_VIDEO_ID: DVL04eDdDIE
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Install fresh resolver dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install --upgrade "yt-dlp[default] @ https://github.com/yt-dlp/yt-dlp/archive/master.tar.gz"
+          yt-dlp --version
+
+      - name: Resolve and verify current Kana HLS
+        id: resolve
+        shell: bash
+        run: |
+          set +e
+          python youtube/kana_iptv_v2.py
+          rc=$?
+          echo "rc=$rc" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Publish v2 state and verified playlist only
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git fetch origin main
+          git rebase origin/main || true
+          git add youtube/state/kana_iptv_v2.json
+          if [ -f youtube/output/kana_iptv.m3u ]; then
+            git add youtube/output/kana_iptv.m3u
+          fi
+          if ! git diff --cached --quiet; then
+            git commit -m "Update Kana IPTV v2 state [skip ci]"
+            git push origin HEAD:main
+          fi
+
+      - name: Mark unsuccessful resolution
+        if: steps.resolve.outputs.rc != '0'
+        run: |
+          echo "::error::Kana IPTV v2 did not obtain and verify a fresh HLS manifest"
+          exit 1
