@@ -117,12 +117,13 @@ def direct_hls(page):
     try:
         p = run_ytdlp([
             "--no-playlist", "--match-filter", "is_live",
-            "-f", "best[protocol^=m3u8]/best[protocol*=m3u8]", "-g", page,
+            "-f", "best[protocol^=m3u8]/best[protocol*=m3u8]/best", "-g", page,
         ], 35)
     except subprocess.TimeoutExpired:
         return None, "TIMEOUT"
     urls = [x.strip() for x in p.stdout.splitlines() if x.strip().startswith(("http://", "https://"))]
-    if p.returncode == 0 and len(urls) == 1 and (".m3u8" in urls[0] or "manifest.googlevideo.com/" in urls[0]):
+    if p.returncode == 0 and len(urls) == 1:
+        # Historical fallback may be a direct media URL rather than HLS.
         return urls[0], "OK"
     reason = classify(p.stderr)
     # Never print signed stream URLs or cookie contents to Actions logs.
