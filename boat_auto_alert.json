@@ -1,23 +1,21 @@
 {
   "system": "boat-auto-v3",
-  "date": "2026-11-18",
-  "checked_at": "2026-11-18T17:37:27.874465+09:00",
+  "date": "2026-11-19",
+  "checked_at": "2026-11-19T12:10:54.363862+09:00",
   "active": true,
   "kind": "system_error",
   "title": "BOAT自動更新エラー",
-  "message": "official_cards: TimeoutError / fetch_cards: ValueError / 開始時刻が近い開催場の当日中継を取得・再生確認できません",
+  "message": "開始時刻が近い開催場の当日中継を取得・再生確認できません",
   "seed_required_venues": [
-    "若松"
+    "津"
   ],
   "system_errors": [
-    "official_cards: TimeoutError",
-    "fetch_cards: ValueError",
     "開始時刻が近い開催場の当日中継を取得・再生確認できません"
   ],
   "cloud_failures": [
     {
-      "jcd": "20",
-      "name": "若松",
+      "jcd": "09",
+      "name": "津",
       "error": "ValueError: ended VOD playlist is not a live stream"
     }
   ],
