@@ -122,7 +122,7 @@ def direct_hls(page):
     except subprocess.TimeoutExpired:
         return None, "TIMEOUT"
     urls = [x.strip() for x in p.stdout.splitlines() if x.strip().startswith(("http://", "https://"))]
-    if p.returncode == 0 and len(urls) == 1:
+    if p.returncode == 0 and len(urls) == 1 and (".m3u8" in urls[0] or "manifest.googlevideo.com/" in urls[0]):
         return urls[0], "OK"
     return None, classify(p.stderr)
 
@@ -568,13 +568,15 @@ def update_kana(config):
             alternate, _ = direct_hls(watch)
             if alternate and (not play or "/hls_playlist/" in alternate):
                 play = alternate
-        url = play if status == "is_live" and play else watch
+        if status == "is_live" and not play:
+            print(f"KANA HLS unavailable: {vid}; do not publish YouTube watch URL as IPTV")
+        url = play if status == "is_live" else watch
         if status == "is_live":
             label = item["name"] + "【LIVE】"
         else:
             when = datetime.fromtimestamp(start, JST).strftime("%m/%d %H:%M") if start else ""
             label = item["name"] + (f"【配信予定 {when}】" if when else "【配信予定】")
-        write_playlist(KANA_OUT, [entry(item, url, label)])
+        write_playlist(KANA_OUT, [entry(item, url, label)] if url else [])
         write_json(KANA_STATE, {
             "state": status,
             "channel": item.get("handle"),
@@ -586,7 +588,8 @@ def update_kana(config):
             "title": selected.get("title") or item["name"],
             "start_timestamp": start,
             "start_jst": datetime.fromtimestamp(start, JST).isoformat(timespec="seconds") if start else None,
-            "check_error": False,
+            "check_error": status == "is_live" and not bool(play),
+            "hls_status": "OK" if play else ("UNAVAILABLE" if status == "is_live" else "NOT_STARTED"),
             "checked_at": datetime.now(JST).isoformat(timespec="seconds"),
         })
         print(f"KANA {status}: {vid}")
