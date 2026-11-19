@@ -580,7 +580,9 @@ def update_kana(config):
                 play = alternate
         if status == "is_live" and not play:
             print(f"KANA HLS unavailable: {vid}; do not publish YouTube watch URL as IPTV")
-        url = play if status == "is_live" else watch
+        # Keep the channel visible for browser-capable players even when HLS fails.
+        # State still clearly reports HLS unavailable; never label watch as HLS.
+        url = play if status == "is_live" and play else watch
         if status == "is_live":
             label = item["name"] + "【LIVE】"
         else:
@@ -992,7 +994,7 @@ def validate(config):
     kana_state = read_json(KANA_STATE, {})
     kana_entry = parse_m3u(FREEWIFI).get(kana_id)
     kana_mode = (kana_state.get("state") or "").lower()
-    if kana_mode in ("is_upcoming", "is_live") and (kana_mode != "is_live" or kana_state.get("play_url")):
+    if kana_mode in ("is_upcoming", "is_live"):
         if not kana_entry:
             raise SystemExit(f"Kana {kana_mode} detected but missing from freewifi")
         expected = (
@@ -1009,8 +1011,6 @@ def validate(config):
             raise SystemExit("Kana reservation detected but freewifi is not labelled 配信予定")
         if kana_mode == "is_live" and "【LIVE】" not in ext:
             raise SystemExit("Kana live detected but freewifi is not labelled LIVE")
-    elif kana_mode == "is_live" and not kana_state.get("play_url") and kana_entry:
-        raise SystemExit("Kana HLS unavailable but stale/non-HLS entry remains in freewifi")
     elif kana_mode == "offline" and kana_entry:
         raise SystemExit("Kana is offline but stale entry remains in freewifi")
 
