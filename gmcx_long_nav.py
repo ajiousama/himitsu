@@ -79,6 +79,26 @@ def ocr_title_candidates(replay: dict) -> dict[tuple[str, int], tuple[int, str]]
                 continue
             if row.get("source_url") != sources[vod_id]:
                 continue
+            # Reject legacy OCR candidates where the only apparent game
+            # name is a numbered sequel of a shorter title.
+            # Check only unnumbered titles; numbered titles match exactly.
+            import unicodedata
+            base = re.sub(r"[^a-z0-9ぁ-んァ-ヶ一-龯]", "",
+                          unicodedata.normalize("NFKC", title).lower())
+            if base and not base[-1].isdigit():
+                def normalize_excerpt(value: str) -> str:
+                    return re.sub(r"[^a-z0-9ぁ-んァ-ヶ一-龯]", "",
+                                  unicodedata.normalize("NFKC", value).lower())
+                excerpts_normal = [
+                    normalize_excerpt(x.get("ocr_excerpt") or "")
+                    for x in samples if isinstance(x, dict)
+                ]
+                if (any(re.search(re.escape(base) + r"[0-9]", x)
+                        for x in excerpts_normal)
+                    and not any(base in x and not re.search(
+                        re.escape(base) + r"[0-9]", x)
+                        for x in excerpts_normal)):
+                    continue
             out[(vod_id, start)] = (ep, title)
     return out
 
