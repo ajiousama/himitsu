@@ -767,7 +767,21 @@ def update_kana(config):
     if chosen:
         now = int(datetime.now(timezone.utc).timestamp())
         chosen.sort(key=lambda x: info_start(x, previous) or now + 10**9)
-        publish_selected(chosen[0])
+        # yt-dlp metadata can lag behind the actual YouTube broadcast start.
+        # Probe the HLS endpoint after the scheduled start, but never publish
+        # a watch URL or claim a live IPTV stream without a real HLS manifest.
+        upcoming = chosen[0]
+        scheduled = info_start(upcoming, previous)
+        if scheduled and now >= scheduled:
+            vid = upcoming["id"]
+            live_url, reason = direct_hls("https://www.youtube.com/watch?v=" + vid)
+            if live_url and (".m3u8" in live_url or "manifest.googlevideo.com/" in live_url):
+                live = dict(upcoming, live_status="is_live", _resolved_hls=live_url)
+                print(f"KANA HLS resolved after scheduled start despite stale upcoming metadata: {vid}")
+                publish_selected(live)
+                return
+            print(f"KANA started-time HLS probe unsuccessful video={vid} reason={reason}")
+        publish_selected(upcoming)
         return
 
     if trouble or not confirmed:
