@@ -55,7 +55,13 @@ def identify_title(text: str, titles: dict) -> dict | None:
             continue
         best = 0.0
         for key in keys:
-            if any(key in line for line in lines):
+            if any(
+                not line[match.end():match.end() + 1].isdigit()
+                for line in lines
+                for match in re.finditer(re.escape(key), line)
+            ):
+                # A title followed immediately by a number is a different
+                # game (e.g. ロックマン2 must not identify ロックマン).
                 best = max(best, 1.0)
             elif len(key) >= 8:
                 similarity = max(
