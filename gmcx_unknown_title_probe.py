@@ -48,6 +48,10 @@ def identify_title(text: str, titles: dict) -> dict | None:
     lines = [line for line in lines if len(line) >= 4]
     if not lines:
         return None
+    # Episode guide/menu screens are not evidence of the currently playing game.
+    # Reject OCR frames listing several broadcast episode numbers.
+    if len(set(re.findall(r"#\s*\d{2,4}", text))) >= 2:
+        return None
     scores = []
     for number, title in titles.items():
         keys = title_keys(title)
