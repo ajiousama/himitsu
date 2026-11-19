@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-19",
-  "generated_at": "2026-11-19T20:46:42.033571+09:00",
+  "generated_at": "2026-11-19T20:48:58.142812+09:00",
   "last_update_ok": false,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261119.json",
   "schedule_checked_at": "2026-11-19T20:46:42.033571+09:00",
@@ -20,8 +20,8 @@
   "alert_lead_minutes": 30,
   "card_count": 11,
   "held_count": 11,
-  "visible_count": 1,
-  "active_count": 1,
+  "visible_count": 0,
+  "active_count": 0,
   "ended_kept": [],
   "seed_required": false,
   "seed_required_venues": [],
@@ -48,18 +48,20 @@
     },
     "night": {
       "held": 3,
-      "acquired": 1,
-      "active": 1,
-      "ended": 2,
+      "acquired": 0,
+      "active": 0,
+      "ended": 3,
       "seed_required": 0,
       "cancelled": 0
     }
   },
   "cloud_acquisition": {
-    "requested": 1,
-    "fetched": 1,
+    "requested": 0,
+    "fetched": 0,
     "failures": [],
-    "deferred": []
+    "deferred": [],
+    "deferred_count": 11,
+    "reason": "stream acquisition waits until each venue 1R prefetch window"
   },
   "epg_programmes_written": {
     "public_sports_epg_local.xml": 154,
@@ -69,24 +71,7 @@
     "active": true,
     "kind": "system_error"
   },
-  "streams": {
-    "boat.marugame": {
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/e4c0634023ba4ed3af1bfc346c83f1bf/378d799c446c456e95f9c9873341c3ae/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NTIzNzIwMCwic3RhcnQiOjE3OTUwNjMyMDAsImlvcyI6MTgsImNwIjoiMjE3MjU4ODAwXzIxNzMwMTk5OSIsInBwdyI6IjQwayJ9.zevQro9HSxzfZlVynn0LtyNEOuHpOFaad9KqiAdmPLY",
-      "source": "automatic acquisition + audio/video decode",
-      "acquired_at": "2026-11-19T13:40:40.987997+09:00",
-      "checked_at": "2026-11-19T20:47:44.661899+09:00",
-      "first_verified_at": "2026-11-19T13:40:40.987997+09:00",
-      "playback_verified": true,
-      "probe": {
-        "ok": true,
-        "sequence": 9050953,
-        "last_segment": "/e4c0634023ba4ed3af1bfc346c83f1bf/378d799c446c456e95f9c9873341c3ae/manifest_4_9055230.ts",
-        "video_decoded": true,
-        "audio_decoded": true
-      },
-      "consecutive_failures": 0
-    }
-  },
+  "streams": {},
   "venues": {
     "boat.kiryu": {
       "jcd": "01",
@@ -614,9 +599,9 @@
       "jcd": "15",
       "name": "丸亀",
       "held": true,
-      "visible": true,
-      "ended": false,
-      "active": true,
+      "visible": false,
+      "ended": true,
+      "active": false,
       "cancelled": false,
       "mode": "night",
       "mode_label": "ナイター",
@@ -624,11 +609,11 @@
       "last_race": "20:45",
       "alert_from": "2026-11-19T14:49:00+09:00",
       "next_race": null,
-      "stream_window": "live_or_prestart",
+      "stream_window": "ended_hidden",
       "intermission": null,
       "guidance_switch_at": "2026-11-19T21:30:00+09:00",
       "seed_required": false,
-      "reverify_due": true,
+      "reverify_due": false,
       "playback_verified": true,
       "first_verified_at": "2026-11-19T13:40:40.987997+09:00",
       "ready_before_first_race": true,
@@ -695,9 +680,7 @@
           "name": "一般"
         }
       ],
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/e4c0634023ba4ed3af1bfc346c83f1bf/378d799c446c456e95f9c9873341c3ae/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NTIzNzIwMCwic3RhcnQiOjE3OTUwNjMyMDAsImlvcyI6MTgsImNwIjoiMjE3MjU4ODAwXzIxNzMwMTk5OSIsInBwdyI6IjQwayJ9.zevQro9HSxzfZlVynn0LtyNEOuHpOFaad9KqiAdmPLY",
-      "source": "automatic acquisition + audio/video decode",
-      "token_expired": false
+      "source": "automatic cloud SEED pending"
     },
     "boat.miyajima": {
       "jcd": "17",
