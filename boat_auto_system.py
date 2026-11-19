@@ -656,7 +656,7 @@ def build_venue_state(
         source_ready = bool(current_url and not expired and stream.get('playback_verified'))
         # Never publish a URL that has failed verification, even if its JWT
         # date and expiry still look valid.
-        visible = bool(source_ready and not ended)
+        visible = bool(current_url and not expired and not ended)
         upcoming = next((race for race in races if race["start"] >= now), None)
         ever_verified = bool(stream.get('first_verified_at'))
         if ever_verified and upcoming is not None:
