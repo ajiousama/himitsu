@@ -19,27 +19,54 @@ jobs:
     timeout-minutes: 6
     env:
       KANA_VIDEO_ID: DVL04eDdDIE
-      GH_TOKEN_LOCAL: ${{ github.token }}\n      YOUTUBE_COOKIES: ${{ secrets.YOUTUBE_COOKIES }}
+      GH_TOKEN_LOCAL: ${{ github.token }}
+      YOUTUBE_COOKIES: ${{ secrets.YOUTUBE_COOKIES }}
+
     steps:
       - name: Install independent extractors
         run: |
           python3 -m pip install --user --upgrade "yt-dlp[default] @ https://github.com/yt-dlp/yt-dlp/archive/master.tar.gz" streamlink
-          echo "$HOME/.local/bin" >> "$GITHUB_PATH"\n          node --version
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          node --version
 
       - name: Resolve verify and publish HLS
         shell: bash
         run: |
           cat > /tmp/kana_fresh.py <<'PY'
-          import base64, json, os, re, subprocess, sys, time, urllib.parse, urllib.request
+          import base64
+          import http.cookiejar
+          import json
+          import os
+          import re
+          import subprocess
+          import time
+          import urllib.parse
+          import urllib.request
 
           vid = os.environ["KANA_VIDEO_ID"]
           watch = "https://www.youtube.com/watch?v=" + vid
           token = os.environ["GH_TOKEN_LOCAL"]
-          repo = os.environ["GITHUB_REPOSITORY"]\n          cookie_file = "/tmp/youtube_cookies.txt"\n          cookie_text = os.environ.get("YOUTUBE_COOKIES", "")\n          if cookie_text:\n              open(cookie_file, "w", encoding="utf-8").write(cookie_text)\n          cookie_args = ["--cookies", cookie_file] if cookie_text else []
+          repo = os.environ["GITHUB_REPOSITORY"]
           api = "https://api.github.com/repos/" + repo + "/contents/"
           ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/140 Safari/537.36"
+
+          cookie_text = os.environ.get("YOUTUBE_COOKIES", "")
+          cookie_file = "/tmp/youtube_cookies.txt"
+          cookie_args = []
+          opener = urllib.request.build_opener()
+          if cookie_text:
+              with open(cookie_file, "w", encoding="utf-8") as f:
+                  f.write(cookie_text)
+              cookie_args = ["--cookies", cookie_file]
+              try:
+                  jar = http.cookiejar.MozillaCookieJar(cookie_file)
+                  jar.load(ignore_discard=True, ignore_expires=False)
+                  opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar))
+              except Exception:
+                  pass
+
           candidates = []
-          diagnostics = []
+          diagnostics = [{"method": "env", "cookie_present": bool(cookie_text)}]
 
           def add(url, source):
               if not isinstance(url, str):
@@ -49,149 +76,202 @@ jobs:
                   return
               if "manifest.googlevideo.com/" not in url and ".m3u8" not in url:
                   return
-              if url not in [u for u,_ in candidates]:
+              if url not in [u for u, _ in candidates]:
                   candidates.append((url, source))
 
           def fetch(url, limit=131072):
-              req = urllib.request.Request(url, headers={"User-Agent": ua, "Accept": "*/*"})
-              with urllib.request.urlopen(req, timeout=20) as r:
-                  return r.status, r.geturl(), r.read(limit).decode("utf-8", "replace")
+              req = urllib.request.Request(url, headers={
+                  "User-Agent": ua,
+                  "Accept": "application/vnd.apple.mpegurl,application/x-mpegURL,text/plain,*/*",
+              })
+              with opener.open(req, timeout=20) as resp:
+                  return resp.status, resp.geturl(), resp.read(limit).decode("utf-8", "replace")
 
-          # Method 1: direct live page, independent of yt-dlp metadata/live_status.
+          # Method A: authenticated YouTube watch page. This does not use manager.py.
           try:
               status, final, html = fetch(watch, 2000000)
-              diagnostics.append({"method":"page","status":status,"bytes":len(html)})
+              diagnostics.append({"method": "page", "status": status, "bytes": len(html)})
               for m in re.finditer(r'"hlsManifestUrl":"([^"]+)"', html):
                   try:
                       add(json.loads('"' + m.group(1) + '"'), "page:hlsManifestUrl")
                   except Exception:
                       pass
-              for m in re.finditer(r'https:\\/\\/manifest\.googlevideo\.com\\/[^"\\\\]+', html):
-                  add(m.group(0).replace("\\/","/"), "page:manifest-regex")
           except Exception as e:
-              diagnostics.append({"method":"page","error":repr(e)})
+              diagnostics.append({"method": "page", "error": repr(e)})
 
-          # Method 2: Streamlink -- separate extractor implementation.
+          # Method B: Streamlink, a different extractor implementation.
           try:
-              p = subprocess.run(["streamlink","--stream-url",watch,"best"],text=True,capture_output=True,timeout=70)
-              diagnostics.append({"method":"streamlink","rc":p.returncode,"err":p.stderr[-900:]})
+              p = subprocess.run(
+                  ["streamlink", "--stream-url", watch, "best"],
+                  text=True, capture_output=True, timeout=60,
+              )
+              diagnostics.append({
+                  "method": "streamlink", "rc": p.returncode,
+                  "err": p.stderr[-1000:], "out_prefix": p.stdout[:220],
+              })
               for line in p.stdout.splitlines():
                   add(line, "streamlink")
           except Exception as e:
-              diagnostics.append({"method":"streamlink","error":repr(e)})
+              diagnostics.append({"method": "streamlink", "error": repr(e)})
 
-          # Method 3: fresh yt-dlp master, but no old manager.py and no is_live filter.
-          clients = ["android_vr","web_safari","mweb","tv_embedded"]
-          for client in clients:
+          # Method C: fresh yt-dlp master with cookies and Node JS runtime.
+          client_sets = [None, "android_vr", "web_safari", "mweb", "tv_embedded"]
+          for client in client_sets:
+              extra = []
+              if client:
+                  extra = ["--extractor-args", "youtube:player_client=" + client]
+              label = client or "default"
+
               try:
-                  p = subprocess.run([
-                      "yt-dlp","--no-playlist","--ignore-no-formats-error",
-                      "--extractor-args",f"youtube:player_client={client}",
-                      "--dump-single-json",watch
-                  ],text=True,capture_output=True,timeout=70)
-                  diagnostics.append({"method":"yt-dlp-json","client":client,"rc":p.returncode,"err":p.stderr[-900:]})
+                  cmd = [
+                      "yt-dlp", "--no-playlist", "--ignore-no-formats-error",
+                      "--js-runtimes", "node",
+                      *cookie_args, *extra,
+                      "--dump-single-json", watch,
+                  ]
+                  p = subprocess.run(cmd, text=True, capture_output=True, timeout=65)
+                  diagnostics.append({
+                      "method": "yt-dlp-json", "client": label,
+                      "rc": p.returncode, "err": p.stderr[-1400:],
+                  })
                   if p.stdout.strip():
                       try:
-                          data=json.loads(p.stdout)
-                          for key in ("hls_manifest_url","hlsManifestUrl","url"):
-                              add(data.get(key), f"yt-dlp:{client}:{key}")
-                          for f in data.get("formats") or []:
-                              proto=str(f.get("protocol") or "").lower()
-                              u=f.get("url")
-                              if "m3u8" in proto or (isinstance(u,str) and "manifest.googlevideo.com/" in u):
-                                  add(u, f"yt-dlp:{client}:format:{f.get('format_id')}")
+                          data = json.loads(p.stdout)
+                          for key in ("hls_manifest_url", "hlsManifestUrl", "url"):
+                              add(data.get(key), "yt-dlp:" + label + ":" + key)
+                          for fmt in data.get("formats") or []:
+                              proto = str(fmt.get("protocol") or "").lower()
+                              u = fmt.get("url")
+                              if "m3u8" in proto or (isinstance(u, str) and "manifest.googlevideo.com/" in u):
+                                  add(u, "yt-dlp:" + label + ":format:" + str(fmt.get("format_id")))
                       except Exception as e:
-                          diagnostics.append({"method":"yt-dlp-json-parse","client":client,"error":repr(e)})
+                          diagnostics.append({
+                              "method": "yt-dlp-json-parse", "client": label, "error": repr(e)
+                          })
               except Exception as e:
-                  diagnostics.append({"method":"yt-dlp-json","client":client,"error":repr(e)})
+                  diagnostics.append({"method": "yt-dlp-json", "client": label, "error": repr(e)})
 
-              for selector in ("best[protocol*=m3u8]/best","bestvideo[protocol*=m3u8]+bestaudio[protocol*=m3u8]/best[protocol*=m3u8]/best"):
-                  try:
-                      p=subprocess.run([
-                          "yt-dlp","--no-playlist","--extractor-args",f"youtube:player_client={client}",
-                          "-f",selector,"-g",watch
-                      ],text=True,capture_output=True,timeout=70)
-                      diagnostics.append({"method":"yt-dlp-g","client":client,"rc":p.returncode,"err":p.stderr[-700:]})
-                      for line in p.stdout.splitlines():
-                          add(line, f"yt-dlp-g:{client}")
-                  except Exception as e:
-                      diagnostics.append({"method":"yt-dlp-g","client":client,"error":repr(e)})
+              try:
+                  cmd = [
+                      "yt-dlp", "--no-playlist", "--js-runtimes", "node",
+                      *cookie_args, *extra,
+                      "-f", "best[protocol*=m3u8]/best",
+                      "-g", watch,
+                  ]
+                  p = subprocess.run(cmd, text=True, capture_output=True, timeout=65)
+                  diagnostics.append({
+                      "method": "yt-dlp-g", "client": label,
+                      "rc": p.returncode, "err": p.stderr[-1200:],
+                  })
+                  for line in p.stdout.splitlines():
+                      add(line, "yt-dlp-g:" + label)
+              except Exception as e:
+                  diagnostics.append({"method": "yt-dlp-g", "client": label, "error": repr(e)})
 
-          # Probe every candidate. If a master playlist is found, also probe its media children.
-          verified=[]
-          i=0
-          while i < len(candidates):
-              url, source = candidates[i]
-              i += 1
+          verified = []
+          idx = 0
+          while idx < len(candidates):
+              url, source = candidates[idx]
+              idx += 1
               try:
                   status, final, body = fetch(url)
                   ok = status == 200 and "#EXTM3U" in body[:4096]
-                  diagnostics.append({"method":"probe","source":source,"status":status,"ok":ok,"prefix":url[:180]})
+                  diagnostics.append({
+                      "method": "probe", "source": source,
+                      "status": status, "ok": ok, "prefix": url[:180],
+                  })
                   if not ok:
                       continue
                   verified.append((url, source, body))
                   if "#EXT-X-STREAM-INF" in body:
-                      lines=[x.strip() for x in body.splitlines() if x.strip()]
-                      for n,line in enumerate(lines):
-                          if line.startswith("#EXT-X-STREAM-INF") and n+1 < len(lines):
-                              child=lines[n+1]
+                      lines = [x.strip() for x in body.splitlines() if x.strip()]
+                      for n, line in enumerate(lines):
+                          if line.startswith("#EXT-X-STREAM-INF") and n + 1 < len(lines):
+                              child = lines[n + 1]
                               if not child.startswith("#"):
-                                  add(urllib.parse.urljoin(url, child), source+":child")
+                                  add(urllib.parse.urljoin(url, child), source + ":child")
               except Exception as e:
-                  diagnostics.append({"method":"probe","source":source,"error":repr(e),"prefix":url[:180]})
+                  diagnostics.append({
+                      "method": "probe", "source": source,
+                      "error": repr(e), "prefix": url[:180],
+                  })
 
-          # Prefer a verified media playlist; master is fallback.
-          media=[x for x in verified if "#EXT-X-STREAM-INF" not in x[2]]
-          winner=(media[0] if media else (verified[0] if verified else None))
+          media = [x for x in verified if "#EXT-X-STREAM-INF" not in x[2]]
+          winner = media[0] if media else (verified[0] if verified else None)
 
           def put(path, content, message):
-              url=api+path
-              headers={"Authorization":"Bearer "+token,"Accept":"application/vnd.github+json","User-Agent":"kana-iptv-fresh"}
-              sha=None
+              url = api + path
+              headers = {
+                  "Authorization": "Bearer " + token,
+                  "Accept": "application/vnd.github+json",
+                  "User-Agent": "kana-iptv-fresh",
+              }
+              sha = None
               try:
-                  req=urllib.request.Request(url,headers=headers)
-                  with urllib.request.urlopen(req,timeout=20) as r:
-                      sha=json.loads(r.read().decode())["sha"]
+                  req = urllib.request.Request(url, headers=headers)
+                  with urllib.request.urlopen(req, timeout=20) as resp:
+                      sha = json.loads(resp.read().decode())["sha"]
               except Exception:
                   pass
-              payload={"message":message,"content":base64.b64encode(content.encode()).decode(),"branch":"main"}
-              if sha:
-                  payload["sha"]=sha
-              req=urllib.request.Request(url,data=json.dumps(payload).encode(),headers={**headers,"Content-Type":"application/json"},method="PUT")
-              with urllib.request.urlopen(req,timeout=30) as r:
-                  return r.status
 
-          state={
-              "version":"fresh-2-cookie",\n              "cookie_present":bool(cookie_text),
-              "video_id":vid,
-              "watch_url":watch,
-              "checked_epoch":int(time.time()),
-              "candidate_count":len(candidates),
-              "verified_count":len(verified),
-              "ok":bool(winner),
-              "diagnostics":diagnostics[-80:],
+              payload = {
+                  "message": message,
+                  "content": base64.b64encode(content.encode()).decode(),
+                  "branch": "main",
+              }
+              if sha:
+                  payload["sha"] = sha
+              req = urllib.request.Request(
+                  url,
+                  data=json.dumps(payload).encode(),
+                  headers={**headers, "Content-Type": "application/json"},
+                  method="PUT",
+              )
+              with urllib.request.urlopen(req, timeout=30) as resp:
+                  return resp.status
+
+          state = {
+              "version": "fresh-2-cookie",
+              "video_id": vid,
+              "watch_url": watch,
+              "checked_epoch": int(time.time()),
+              "cookie_present": bool(cookie_text),
+              "candidate_count": len(candidates),
+              "verified_count": len(verified),
+              "ok": bool(winner),
+              "diagnostics": diagnostics[-100:],
           }
 
           if winner:
               hls, source, body = winner
-              state["play_url"]=hls
-              state["source"]=source
-              m=re.search(r"/expire/(\d+)",hls)
-              state["expire_epoch"]=int(m.group(1)) if m else None
-              playlist=(
+              state["play_url"] = hls
+              state["source"] = source
+              m = re.search(r"/expire/(\d+)", hls)
+              state["expire_epoch"] = int(m.group(1)) if m else None
+              playlist = (
                   '#EXTM3U\n'
                   '#EXTINF:-1 tvg-id="youtube.kana_tube_iptv" tvg-name="かなチューブ IPTV" '
                   'group-title="今日の開催場",かなチューブ IPTV【LIVE】\n'
                   + hls + '\n'
               )
               print("VERIFIED_HLS", hls)
-              print("PUBLISH_PLAYLIST", put("youtube/output/kana_iptv.m3u", playlist, "Publish verified Kana IPTV fresh HLS [skip ci]"))
+              print("PUBLISH_PLAYLIST", put(
+                  "youtube/output/kana_iptv.m3u",
+                  playlist,
+                  "Publish verified Kana IPTV fresh HLS [skip ci]",
+              ))
           else:
-              state["play_url"]=None
-              print("NO_VERIFIED_HLS", file=sys.stderr)
+              state["play_url"] = None
+              print("NO_VERIFIED_HLS")
 
-          print("PUBLISH_STATE", put("youtube/state/kana_iptv_fresh.json", json.dumps(state,ensure_ascii=False,indent=2)+"\n", "Update Kana IPTV fresh state [skip ci]"))
+          print("PUBLISH_STATE", put(
+              "youtube/state/kana_iptv_fresh.json",
+              json.dumps(state, ensure_ascii=False, indent=2) + "\n",
+              "Update Kana IPTV fresh state [skip ci]",
+          ))
+
           if not winner:
               raise SystemExit(2)
           PY
+
           python3 /tmp/kana_fresh.py
