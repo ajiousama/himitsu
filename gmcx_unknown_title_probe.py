@@ -232,7 +232,7 @@ def main() -> None:
     args = ap.parse_args()
     if not args.all:
         ap.error("--all is required; video probe is deliberately bounded")
-    run_probe(max(1, min(args.max_new, 40)), max(30, min(args.budget_seconds, 1200)))
+    run_probe(max(1, min(args.max_new, 100)), max(30, min(args.budget_seconds, 1200)))
 
 
 if __name__ == "__main__":
