@@ -1,15 +1,17 @@
 {
   "system": "boat-auto-v3",
   "date": "2026-11-19",
-  "checked_at": "2026-11-19T12:54:31.525667+09:00",
+  "checked_at": "2026-11-19T12:58:51.735869+09:00",
   "active": true,
   "kind": "system_error",
   "title": "BOAT自動更新エラー",
-  "message": "開始時刻が近い開催場の当日中継を取得・再生確認できません",
+  "message": "official_cards: TimeoutError / 開催表から場が消失したため当日確認済みの開催表を保持 / 開始時刻が近い開催場の当日中継を取得・再生確認できません",
   "seed_required_venues": [
     "津"
   ],
   "system_errors": [
+    "official_cards: TimeoutError",
+    "開催表から場が消失したため当日確認済みの開催表を保持",
     "開始時刻が近い開催場の当日中継を取得・再生確認できません"
   ],
   "cloud_failures": [
