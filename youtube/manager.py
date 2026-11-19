@@ -117,7 +117,7 @@ def direct_hls(page):
     try:
         p = run_ytdlp([
             "--no-playlist", "--match-filter", "is_live",
-            "-f", "best[protocol^=m3u8]/best[protocol*=m3u8]/best", "-g", page,
+            "-f", "best[protocol^=m3u8]/best[protocol*=m3u8]", "-g", page,
         ], 35)
     except subprocess.TimeoutExpired:
         return None, "TIMEOUT"
@@ -982,7 +982,7 @@ def validate(config):
     kana_state = read_json(KANA_STATE, {})
     kana_entry = parse_m3u(FREEWIFI).get(kana_id)
     kana_mode = (kana_state.get("state") or "").lower()
-    if kana_mode in ("is_upcoming", "is_live"):
+    if kana_mode in ("is_upcoming", "is_live") and (kana_mode != "is_live" or kana_state.get("play_url")):
         if not kana_entry:
             raise SystemExit(f"Kana {kana_mode} detected but missing from freewifi")
         expected = (
@@ -999,6 +999,8 @@ def validate(config):
             raise SystemExit("Kana reservation detected but freewifi is not labelled 配信予定")
         if kana_mode == "is_live" and "【LIVE】" not in ext:
             raise SystemExit("Kana live detected but freewifi is not labelled LIVE")
+    elif kana_mode == "is_live" and not kana_state.get("play_url") and kana_entry:
+        raise SystemExit("Kana HLS unavailable but stale/non-HLS entry remains in freewifi")
     elif kana_mode == "offline" and kana_entry:
         raise SystemExit("Kana is offline but stale entry remains in freewifi")
 
