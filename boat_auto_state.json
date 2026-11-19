@@ -2,10 +2,10 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-20",
-  "generated_at": "2026-11-20T07:59:23.818351+09:00",
+  "generated_at": "2026-11-20T08:02:38.394449+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261120.json",
-  "schedule_checked_at": "2026-11-20T07:46:23.817482+09:00",
+  "schedule_checked_at": "2026-11-20T08:02:38.394449+09:00",
   "schedule_warnings": [
     "official_cards: TimeoutError"
   ],
@@ -52,10 +52,15 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 4,
+    "requested": 5,
     "fetched": 1,
     "failures": [],
     "deferred": [
+      {
+        "jcd": "09",
+        "name": "津",
+        "start": "2026-11-20T09:55:00+09:00"
+      },
       {
         "jcd": "17",
         "name": "宮島",
@@ -458,7 +463,8 @@
           "name": "ツッキー選抜戦"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "provider_stream_start": "2026-11-20T09:55:00+09:00",
+      "source": "公式BR配信開始待ち 09:55"
     },
     "boat.amagasaki": {
       "jcd": "13",
