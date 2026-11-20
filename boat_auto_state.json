@@ -2,10 +2,10 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-20",
-  "generated_at": "2026-11-20T09:59:13.373564+09:00",
+  "generated_at": "2026-11-20T10:01:29.198977+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261120.json",
-  "schedule_checked_at": "2026-11-20T09:44:16.370640+09:00",
+  "schedule_checked_at": "2026-11-20T10:01:29.198977+09:00",
   "schedule_warnings": [
     "official_cards: TimeoutError"
   ],
@@ -19,7 +19,7 @@
   "alert_lead_minutes": 30,
   "card_count": 12,
   "held_count": 12,
-  "visible_count": 5,
+  "visible_count": 6,
   "active_count": 4,
   "ended_kept": [],
   "seed_required": false,
@@ -36,7 +36,7 @@
     },
     "day": {
       "held": 6,
-      "acquired": 2,
+      "acquired": 3,
       "active": 1,
       "ended": 0,
       "seed_required": 0,
@@ -53,7 +53,7 @@
   },
   "cloud_acquisition": {
     "requested": 9,
-    "fetched": 5,
+    "fetched": 6,
     "failures": [
       {
         "jcd": "09",
@@ -66,11 +66,6 @@
         "jcd": "02",
         "name": "戸田",
         "start": "2026-11-20T10:09:00+09:00"
-      },
-      {
-        "jcd": "13",
-        "name": "尼崎",
-        "start": "2026-11-20T10:02:00+09:00"
       },
       {
         "jcd": "22",
@@ -99,6 +94,22 @@
         "ok": true,
         "sequence": 9038523,
         "last_segment": "/e0343549e9a24d599fafd802164cc7dc/834b81fd953a4c7c9df97ae505db1bae/manifest_1_9038524.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
+    },
+    "boat.amagasaki": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/300869ef6fc1477385ff8fabae3fb688/b97f53003c554871b04bd72bedbbf1af/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NTMxMjgwMCwic3RhcnQiOjE3OTUxMzY1MjAsImlvcyI6MTgsImNwIjoiMjE3MzMyMTIwXzIxNzM3NTMxOSIsInBwdyI6IjQwayJ9.yETkxPqdRvGwL3pR4sKGZILGR-wnf1FSUfFI-EOvEd8",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-11-20T10:02:31.577549+09:00",
+      "checked_at": "2026-11-20T10:02:31.577549+09:00",
+      "first_verified_at": "2026-11-20T10:02:31.577549+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 9061525,
+        "last_segment": "/300869ef6fc1477385ff8fabae3fb688/b97f53003c554871b04bd72bedbbf1af/manifest_4_9061529.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -537,7 +548,7 @@
       "jcd": "13",
       "name": "尼崎",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
       "active": false,
       "cancelled": false,
@@ -555,9 +566,9 @@
       "guidance_switch_at": "2026-11-20T16:49:00+09:00",
       "seed_required": false,
       "reverify_due": false,
-      "playback_verified": false,
-      "first_verified_at": null,
-      "ready_before_first_race": false,
+      "playback_verified": true,
+      "first_verified_at": "2026-11-20T10:02:31.577549+09:00",
+      "ready_before_first_race": true,
       "acquire_from": "2026-11-20T08:04:00+09:00",
       "races": [
         {
@@ -621,8 +632,9 @@
           "name": "青胴車ドリーム"
         }
       ],
-      "provider_stream_start": "2026-11-20T10:02:00+09:00",
-      "source": "公式BR配信開始待ち 10:02"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/300869ef6fc1477385ff8fabae3fb688/b97f53003c554871b04bd72bedbbf1af/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NTMxMjgwMCwic3RhcnQiOjE3OTUxMzY1MjAsImlvcyI6MTgsImNwIjoiMjE3MzMyMTIwXzIxNzM3NTMxOSIsInBwdyI6IjQwayJ9.yETkxPqdRvGwL3pR4sKGZILGR-wnf1FSUfFI-EOvEd8",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     },
     "boat.naruto": {
       "jcd": "14",
@@ -827,7 +839,7 @@
       "intermission": null,
       "guidance_switch_at": "2026-11-20T16:17:00+09:00",
       "seed_required": false,
-      "reverify_due": false,
+      "reverify_due": true,
       "playback_verified": true,
       "first_verified_at": "2026-11-20T09:40:42.806827+09:00",
       "ready_before_first_race": true,
@@ -912,14 +924,14 @@
       "last_race": "14:23",
       "alert_from": "2026-11-20T08:13:00+09:00",
       "next_race": {
-        "race": 4,
-        "start": "10:01"
+        "race": 5,
+        "start": "10:28"
       },
       "stream_window": "live_or_prestart",
       "intermission": null,
       "guidance_switch_at": "2026-11-20T15:08:00+09:00",
       "seed_required": false,
-      "reverify_due": true,
+      "reverify_due": false,
       "playback_verified": true,
       "first_verified_at": "2026-11-20T08:08:45.904487+09:00",
       "ready_before_first_race": true,
