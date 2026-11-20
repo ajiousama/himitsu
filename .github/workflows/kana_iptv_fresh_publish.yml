@@ -84,8 +84,25 @@ jobs:
           set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add youtube/output/kana_iptv.m3u
-          if ! git diff --cached --quiet; then
+          # Retry non-fast-forward conflicts without overwriting other workflows.
+          # Preserve the freshly verified playlist across each rebase.
+          cp youtube/output/kana_iptv.m3u /tmp/kana_iptv_verified.m3u
+          for attempt in 1 2 3 4 5; do
+            git fetch origin main
+            git reset --hard origin/main
+            cp /tmp/kana_iptv_verified.m3u youtube/output/kana_iptv.m3u
+            git add youtube/output/kana_iptv.m3u
+            if git diff --cached --quiet; then
+              echo "Playlist already published"
+              exit 0
+            fi
             git commit -m "Refresh Kana IPTV verified AV HLS [skip ci]"
-            git push
-          fi
+            if git push origin HEAD:main; then
+              echo "Verified playlist published"
+              exit 0
+            fi
+            echo "Push conflict on attempt $attempt; retrying" >&2
+            sleep $((attempt * 2))
+          done
+          echo "Unable to publish verified playlist after retries" >&2
+          exit 1
