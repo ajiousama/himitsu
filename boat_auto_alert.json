@@ -1,17 +1,26 @@
 {
   "system": "boat-auto-v3",
   "date": "2026-11-20",
-  "checked_at": "2026-11-20T13:29:45.356056+09:00",
-  "active": false,
-  "kind": "healthy",
-  "title": "BOAT自動更新 正常",
-  "message": "朝・デイ・ナイターを自動取得中です。",
-  "seed_required_venues": [],
-  "system_errors": [],
+  "checked_at": "2026-11-20T13:30:53.586263+09:00",
+  "active": true,
+  "kind": "system_error",
+  "title": "BOAT自動更新エラー",
+  "message": "開始時刻が近い開催場の当日中継を取得・再生確認できません",
+  "seed_required_venues": [
+    "津"
+  ],
+  "system_errors": [
+    "開始時刻が近い開催場の当日中継を取得・再生確認できません"
+  ],
   "cloud_failures": [
     {
       "jcd": "02",
       "name": "戸田",
+      "error": "ValueError: ended VOD playlist is not a live stream"
+    },
+    {
+      "jcd": "09",
+      "name": "津",
       "error": "ValueError: ended VOD playlist is not a live stream"
     }
   ],
