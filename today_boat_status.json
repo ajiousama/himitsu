@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-21",
-  "generated_at": "2026-11-21T08:13:48.067163+09:00",
+  "generated_at": "2026-11-21T08:15:58.554427+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261121.json",
   "schedule_checked_at": "2026-11-21T08:04:53.249063+09:00",
@@ -19,7 +19,7 @@
   "alert_lead_minutes": 30,
   "card_count": 14,
   "held_count": 14,
-  "visible_count": 2,
+  "visible_count": 3,
   "active_count": 2,
   "ended_kept": [],
   "seed_required": false,
@@ -28,7 +28,7 @@
   "phase_counts": {
     "morning": {
       "held": 3,
-      "acquired": 2,
+      "acquired": 3,
       "active": 2,
       "ended": 0,
       "seed_required": 0,
@@ -52,10 +52,15 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 7,
-    "fetched": 2,
+    "requested": 8,
+    "fetched": 3,
     "failures": [],
     "deferred": [
+      {
+        "jcd": "02",
+        "name": "戸田",
+        "start": "2026-11-21T10:09:00+09:00"
+      },
       {
         "jcd": "05",
         "name": "多摩川",
@@ -65,11 +70,6 @@
         "jcd": "09",
         "name": "津",
         "start": "2026-11-21T09:55:00+09:00"
-      },
-      {
-        "jcd": "10",
-        "name": "三国",
-        "start": "2026-11-21T08:16:00+09:00"
       },
       {
         "jcd": "13",
@@ -92,6 +92,22 @@
     "kind": "healthy"
   },
   "streams": {
+    "boat.mikuni": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/dcf23211f3254138b5b506f2db677dc9/d4e281b0d2344f44bd4a27760cf5c51b/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjAxZjc5MTcwZWM1YTQwYzdhNThlNjg3OWY1ZmIyOWM3IiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NTM5MjAwMCwic3RhcnQiOjE3OTUyMTY1NjAsImlvcyI6MTgsImNwIjoiMjE3NDEyMTYwXzIxNzQ1NTM1OSIsInBwdyI6IjN1NyJ9.RdjyMPHgN4z1gZaSBSUFY1slVB9NNr03XEP1xJ4aKwk",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-11-21T08:16:53.241075+09:00",
+      "checked_at": "2026-11-21T08:16:53.241075+09:00",
+      "first_verified_at": "2026-11-21T08:16:53.241075+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 9048885,
+        "last_segment": "/dcf23211f3254138b5b506f2db677dc9/d4e281b0d2344f44bd4a27760cf5c51b/manifest_4_9048893.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
+    },
     "boat.naruto": {
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/ebde890d6013459ba592f542326dc461/2425c898adf94bd4af5fbbc88c2af923/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjAxZjc5MTcwZWM1YTQwYzdhNThlNjg3OWY1ZmIyOWM3IiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NTM5MjAwMCwic3RhcnQiOjE3OTUyMTU2MDAsImlvcyI6MTgsImNwIjoiMjE3NDExMjAwXzIxNzQ1NDM5OSIsInBwdyI6IjN1NyJ9.NHV0PnMjXZklPb7u9WJyi8jnf6QSByEa24fsQqDthew",
       "source": "automatic acquisition + audio/video decode",
@@ -304,7 +320,8 @@
           "name": "記者選抜戦"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "provider_stream_start": "2026-11-21T10:09:00+09:00",
+      "source": "公式BR配信開始待ち 10:09"
     },
     "boat.heiwajima": {
       "jcd": "04",
@@ -672,7 +689,7 @@
       "jcd": "10",
       "name": "三国",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
       "active": false,
       "cancelled": false,
@@ -690,9 +707,9 @@
       "guidance_switch_at": "2026-11-21T15:13:00+09:00",
       "seed_required": false,
       "reverify_due": false,
-      "playback_verified": false,
-      "first_verified_at": null,
-      "ready_before_first_race": false,
+      "playback_verified": true,
+      "first_verified_at": "2026-11-21T08:16:53.241075+09:00",
+      "ready_before_first_race": true,
       "acquire_from": "2026-11-21T06:21:00+09:00",
       "races": [
         {
@@ -756,8 +773,9 @@
           "name": "ドリーム戦"
         }
       ],
-      "provider_stream_start": "2026-11-21T08:16:00+09:00",
-      "source": "公式BR配信開始待ち 08:16"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/dcf23211f3254138b5b506f2db677dc9/d4e281b0d2344f44bd4a27760cf5c51b/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjAxZjc5MTcwZWM1YTQwYzdhNThlNjg3OWY1ZmIyOWM3IiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NTM5MjAwMCwic3RhcnQiOjE3OTUyMTY1NjAsImlvcyI6MTgsImNwIjoiMjE3NDEyMTYwXzIxNzQ1NTM1OSIsInBwdyI6IjN1NyJ9.RdjyMPHgN4z1gZaSBSUFY1slVB9NNr03XEP1xJ4aKwk",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     },
     "boat.suminoe": {
       "jcd": "12",
