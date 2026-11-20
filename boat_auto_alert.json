@@ -1,20 +1,28 @@
 {
   "system": "boat-auto-v3",
   "date": "2026-11-20",
-  "checked_at": "2026-11-20T15:06:58.634610+09:00",
+  "checked_at": "2026-11-20T15:08:06.556680+09:00",
   "active": true,
   "kind": "system_error",
   "title": "BOAT自動更新エラー",
-  "message": "official_cards: TimeoutError / 開催表から場が消失したため当日確認済みの開催表を保持",
-  "seed_required_venues": [],
+  "message": "official_cards: TimeoutError / 開催表から場が消失したため当日確認済みの開催表を保持 / 開始時刻が近い開催場の当日中継を取得・再生確認できません",
+  "seed_required_venues": [
+    "津"
+  ],
   "system_errors": [
     "official_cards: TimeoutError",
-    "開催表から場が消失したため当日確認済みの開催表を保持"
+    "開催表から場が消失したため当日確認済みの開催表を保持",
+    "開始時刻が近い開催場の当日中継を取得・再生確認できません"
   ],
   "cloud_failures": [
     {
       "jcd": "02",
       "name": "戸田",
+      "error": "ValueError: ended VOD playlist is not a live stream"
+    },
+    {
+      "jcd": "09",
+      "name": "津",
       "error": "ValueError: ended VOD playlist is not a live stream"
     }
   ],
