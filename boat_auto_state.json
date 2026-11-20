@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-20",
-  "generated_at": "2026-11-20T09:38:48.634262+09:00",
+  "generated_at": "2026-11-20T09:39:48.577396+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261120.json",
   "schedule_checked_at": "2026-11-20T09:28:15.786801+09:00",
@@ -19,7 +19,7 @@
   "alert_lead_minutes": 30,
   "card_count": 12,
   "held_count": 12,
-  "visible_count": 3,
+  "visible_count": 4,
   "active_count": 3,
   "ended_kept": [],
   "seed_required": false,
@@ -36,7 +36,7 @@
     },
     "day": {
       "held": 6,
-      "acquired": 0,
+      "acquired": 1,
       "active": 0,
       "ended": 0,
       "seed_required": 0,
@@ -53,7 +53,7 @@
   },
   "cloud_acquisition": {
     "requested": 9,
-    "fetched": 3,
+    "fetched": 4,
     "failures": [],
     "deferred": [
       {
@@ -75,11 +75,6 @@
         "jcd": "13",
         "name": "尼崎",
         "start": "2026-11-20T10:02:00+09:00"
-      },
-      {
-        "jcd": "17",
-        "name": "宮島",
-        "start": "2026-11-20T09:40:00+09:00"
       },
       {
         "jcd": "22",
@@ -108,6 +103,22 @@
         "ok": true,
         "sequence": 9061914,
         "last_segment": "/cd9ee9228e0e4c6c99575fe542a62aa5/5300c949e9f54028a6b30addeff9f363/manifest_1_9062879.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
+    },
+    "boat.miyajima": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/02a2671c566549f4ac9cbf725d395327/cf02bdfec3a94c4ebfe73bd3ae2d10b9/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NTMwOTIwMCwic3RhcnQiOjE3OTUxMzUyMDAsImlvcyI6MTgsImNwIjoiMjE3MzMwODAwXzIxNzM3Mzk5OSIsInBwdyI6IjQwayJ9.H2-LiYib2Gla5E-gdC5qG4f7Khj2ZKalPYoEpfqNKvg",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-11-20T09:40:42.806827+09:00",
+      "checked_at": "2026-11-20T09:40:42.806827+09:00",
+      "first_verified_at": "2026-11-20T09:40:42.806827+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 9026833,
+        "last_segment": "/02a2671c566549f4ac9cbf725d395327/cf02bdfec3a94c4ebfe73bd3ae2d10b9/manifest_1_9026839.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -787,7 +798,7 @@
       "jcd": "17",
       "name": "宮島",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
       "active": false,
       "cancelled": false,
@@ -805,9 +816,9 @@
       "guidance_switch_at": "2026-11-20T16:17:00+09:00",
       "seed_required": false,
       "reverify_due": false,
-      "playback_verified": false,
-      "first_verified_at": null,
-      "ready_before_first_race": false,
+      "playback_verified": true,
+      "first_verified_at": "2026-11-20T09:40:42.806827+09:00",
+      "ready_before_first_race": true,
       "acquire_from": "2026-11-20T07:46:00+09:00",
       "races": [
         {
@@ -871,8 +882,9 @@
           "name": "東洋観光特選"
         }
       ],
-      "provider_stream_start": "2026-11-20T09:40:00+09:00",
-      "source": "公式BR配信開始待ち 09:40"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/02a2671c566549f4ac9cbf725d395327/cf02bdfec3a94c4ebfe73bd3ae2d10b9/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NTMwOTIwMCwic3RhcnQiOjE3OTUxMzUyMDAsImlvcyI6MTgsImNwIjoiMjE3MzMwODAwXzIxNzM3Mzk5OSIsInBwdyI6IjQwayJ9.H2-LiYib2Gla5E-gdC5qG4f7Khj2ZKalPYoEpfqNKvg",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     },
     "boat.tokuyama": {
       "jcd": "18",
