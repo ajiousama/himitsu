@@ -2,12 +2,13 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-20",
-  "generated_at": "2026-11-20T19:59:00.186894+09:00",
-  "last_update_ok": true,
+  "generated_at": "2026-11-20T20:03:33.660473+09:00",
+  "last_update_ok": false,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261120.json",
-  "schedule_checked_at": "2026-11-20T19:44:02.538020+09:00",
+  "schedule_checked_at": "2026-11-20T20:03:33.660473+09:00",
   "schedule_warnings": [
-    "official_cards: TimeoutError"
+    "official_cards: TimeoutError",
+    "開催表から場が消失したため当日確認済みの開催表を保持"
   ],
   "cancelled_jcd": [],
   "cancelled_venues": [],
@@ -24,7 +25,10 @@
   "ended_kept": [],
   "seed_required": false,
   "seed_required_venues": [],
-  "system_errors": [],
+  "system_errors": [
+    "official_cards: TimeoutError",
+    "開催表から場が消失したため当日確認済みの開催表を保持"
+  ],
   "phase_counts": {
     "morning": {
       "held": 4,
@@ -62,8 +66,8 @@
     "guides.xml": 168
   },
   "alert": {
-    "active": false,
-    "kind": "healthy"
+    "active": true,
+    "kind": "system_error"
   },
   "streams": {
     "boat.kiryu": {
