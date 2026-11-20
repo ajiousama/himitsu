@@ -1,4 +1,4 @@
-#EXTM3U url-tvg="https://github.com/karenda-jp/etc/raw/refs/heads/main/guides.xml,https://github.com/mathlabroom/SKyperfectv-EPG-/releases/download/latest/epg_ultimate.xml,https://coffee.linxei.biz.id/epg/kai-epg.xml" tvg-shift=0 m3uautoload=1
+#EXTM3U url-tvg="https://raw.githubusercontent.com/dbghelp/JCOM-TV-EPG/refs/heads/main/jcom.xml,https://github.com/karenda-jp/etc/raw/refs/heads/main/guides.xml,https://github.com/mathlabroom/SKyperfectv-EPG-/releases/download/latest/epg_ultimate.xml,https://coffee.linxei.biz.id/epg/kai-epg.xml" tvg-shift=0 m3uautoload=1
 
 # === Tokyo Terrestrial ===
 
@@ -2139,13 +2139,15 @@ https://linear-abematv.akamaized.net/preview/channel/keirin-auto/playlist.m3u8
 # === YOVI_KARENDA_ABEMA_END ===
 
 # === YAMAGATA_BACKUP_START ===
-# 山形4局・予備保存（民放3局HEVC直結／NHK再生未確認。自動更新では保持する）
-#EXTINF:-1 tvg-id="NHK山形・総合_jp" group-title="地上波 山形",NHK総合 山形（HEVC・再生未確認）
+# 山形4局・HEVCのみ。NHKの再生確認済み旧経路を保持し、直結版は未検証の予備として追加。
+#EXTINF:-1 group-title="地上波 山形" tvg-id="jcom_2_19456_32448" tvg-logo="https://tvguide.myjcom.jp/monomedia/ch_logo/otd/logo-7EC0-011-400x400.png",NHK山形・総合（HEVC・再生確認済）
 https://tv-stream-test.daydreamer-json.cc/fe8bf835820fb530467f75a9cb761504/hevc/playlist.m3u8
-#EXTINF:-1 tvg-id="SakuranboTV.jp@JOCYDTV" group-title="地上波 山形",さくらんぼテレビ（HEVC直結・再生確認済）
-https://tv-stream-test.daydreamer-json.cc/stream/bd2dd29080c36c9b01338d329156febe/hevc_1080_high/stream.m3u8
-#EXTINF:-1 tvg-id="TVUYamagata.jp@JOWIDTV" group-title="地上波 山形",テレビユー山形（HEVC直結・再生確認済）
-https://tv-stream-test.daydreamer-json.cc/stream/1668b5a43560598b385ccf33fd2d5f43/hevc_1080_high/stream.m3u8
-#EXTINF:-1 tvg-id="YTSYamagataTV.jp@JOYIDTV" group-title="地上波 山形",山形テレビ（HEVC直結）
+#EXTINF:-1 group-title="地上波 山形" tvg-id="jcom_2_19456_32448" tvg-logo="https://tvguide.myjcom.jp/monomedia/ch_logo/otd/logo-7EC0-011-400x400.png",NHK山形・総合（HEVC直結・未検証）
+https://tv-stream-test.daydreamer-json.cc/stream/a7dc7c1d8fb53cc99f9f92e528282578/hevc_1080_high/stream.m3u8
+#EXTINF:-1 group-title="地上波 山形" tvg-id="jcom_2_19480_32451" tvg-logo="https://tvguide.myjcom.jp/monomedia/ch_logo/otd/logo-7EC3-051-400x400.png",山形テレビ（HEVC直結）
 https://tv-stream-test.daydreamer-json.cc/stream/407fd00ebd2a059c9cd1ea3fa7156097/hevc_1080_high/stream.m3u8
+#EXTINF:-1 group-title="地上波 山形" tvg-id="jcom_2_19488_32452" tvg-logo="https://tvguide.myjcom.jp/monomedia/ch_logo/otd/logo-7EC4-061-400x400.png",テレビユー山形（HEVC直結・再生確認済）
+https://tv-stream-test.daydreamer-json.cc/stream/1668b5a43560598b385ccf33fd2d5f43/hevc_1080_high/stream.m3u8
+#EXTINF:-1 group-title="地上波 山形" tvg-id="jcom_2_19496_32453" tvg-logo="https://tvguide.myjcom.jp/monomedia/ch_logo/otd/logo-7EC5-081-400x400.png",さくらんぼテレビ（HEVC直結・再生確認済）
+https://tv-stream-test.daydreamer-json.cc/stream/bd2dd29080c36c9b01338d329156febe/hevc_1080_high/stream.m3u8
 # === YAMAGATA_BACKUP_END ===
