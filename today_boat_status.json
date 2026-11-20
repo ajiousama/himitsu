@@ -2,8 +2,8 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-20",
-  "generated_at": "2026-11-20T11:24:43.626948+09:00",
-  "last_update_ok": true,
+  "generated_at": "2026-11-20T11:26:44.906939+09:00",
+  "last_update_ok": false,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261120.json",
   "schedule_checked_at": "2026-11-20T11:21:23.700805+09:00",
   "schedule_warnings": [
@@ -20,18 +20,22 @@
   "card_count": 12,
   "held_count": 12,
   "visible_count": 8,
-  "active_count": 8,
+  "active_count": 9,
   "ended_kept": [],
-  "seed_required": false,
-  "seed_required_venues": [],
-  "system_errors": [],
+  "seed_required": true,
+  "seed_required_venues": [
+    "津"
+  ],
+  "system_errors": [
+    "開始時刻が近い開催場の当日中継を取得・再生確認できません"
+  ],
   "phase_counts": {
     "morning": {
       "held": 4,
       "acquired": 3,
-      "active": 3,
+      "active": 4,
       "ended": 0,
-      "seed_required": 0,
+      "seed_required": 1,
       "cancelled": 0
     },
     "day": {
@@ -52,9 +56,15 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 8,
+    "requested": 9,
     "fetched": 8,
-    "failures": [],
+    "failures": [
+      {
+        "jcd": "09",
+        "name": "津",
+        "error": "ValueError: ended VOD playlist is not a live stream"
+      }
+    ],
     "deferred": []
   },
   "epg_programmes_written": {
@@ -62,8 +72,8 @@
     "guides.xml": 168
   },
   "alert": {
-    "active": false,
-    "kind": "healthy"
+    "active": true,
+    "kind": "system_error"
   },
   "streams": {
     "boat.toda": {
@@ -476,7 +486,7 @@
       "held": true,
       "visible": false,
       "ended": false,
-      "active": false,
+      "active": true,
       "cancelled": false,
       "mode": "morning",
       "mode_label": "モーニング",
@@ -487,16 +497,11 @@
         "race": 4,
         "start": "11:56"
       },
-      "stream_window": "intermission",
-      "intermission": {
-        "after_race": 3,
-        "next_race": 4,
-        "from": "2026-11-20T10:14:00+09:00",
-        "until": "2026-11-20T11:26:00+09:00"
-      },
+      "stream_window": "live_or_prestart",
+      "intermission": null,
       "guidance_switch_at": "2026-11-20T16:55:00+09:00",
-      "seed_required": false,
-      "reverify_due": false,
+      "seed_required": true,
+      "reverify_due": true,
       "playback_verified": false,
       "first_verified_at": null,
       "ready_before_first_race": false,
@@ -579,14 +584,14 @@
       "last_race": "16:04",
       "alert_from": "2026-11-20T10:04:00+09:00",
       "next_race": {
-        "race": 3,
-        "start": "11:26"
+        "race": 4,
+        "start": "11:52"
       },
       "stream_window": "live_or_prestart",
       "intermission": null,
       "guidance_switch_at": "2026-11-20T16:49:00+09:00",
       "seed_required": false,
-      "reverify_due": true,
+      "reverify_due": false,
       "playback_verified": true,
       "first_verified_at": "2026-11-20T10:02:31.577549+09:00",
       "ready_before_first_race": true,
