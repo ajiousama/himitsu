@@ -2,10 +2,10 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-20",
-  "generated_at": "2026-11-20T12:38:09.096021+09:00",
+  "generated_at": "2026-11-20T12:39:11.833419+09:00",
   "last_update_ok": false,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261120.json",
-  "schedule_checked_at": "2026-11-20T12:24:10.081181+09:00",
+  "schedule_checked_at": "2026-11-20T12:39:11.833419+09:00",
   "schedule_warnings": [
     "official_cards: TimeoutError"
   ],
@@ -20,12 +20,11 @@
   "card_count": 12,
   "held_count": 12,
   "visible_count": 8,
-  "active_count": 9,
+  "active_count": 8,
   "ended_kept": [],
   "seed_required": true,
   "seed_required_venues": [
-    "戸田",
-    "津"
+    "戸田"
   ],
   "system_errors": [
     "開始時刻が近い開催場の当日中継を取得・再生確認できません"
@@ -34,9 +33,9 @@
     "morning": {
       "held": 4,
       "acquired": 3,
-      "active": 4,
+      "active": 3,
       "ended": 0,
-      "seed_required": 1,
+      "seed_required": 0,
       "cancelled": 0
     },
     "day": {
@@ -57,17 +56,12 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 9,
+    "requested": 8,
     "fetched": 7,
     "failures": [
       {
         "jcd": "02",
         "name": "戸田",
-        "error": "ValueError: ended VOD playlist is not a live stream"
-      },
-      {
-        "jcd": "09",
-        "name": "津",
         "error": "ValueError: ended VOD playlist is not a live stream"
       }
     ],
@@ -86,7 +80,7 @@
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/53ba8b51745e4ab99fc582b80e0031e3/641dcbdb42d7415fa65eba496af140d7/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NTMxMjgwMCwic3RhcnQiOjE3OTUxMzY5NDAsImlvcyI6MTgsImNwIjoiMjE3MzMyNTQwXzIxNzM3NTczOSIsInBwdyI6IjQwayJ9.A5M9-6KuUlGsdGHoRTBxKdwVQAqvZsEelLsNyYXxbTM",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-11-20T10:09:56.395604+09:00",
-      "checked_at": "2026-11-20T12:39:03.542333+09:00",
+      "checked_at": "2026-11-20T12:40:14.513880+09:00",
       "first_verified_at": "2026-11-20T10:09:56.395604+09:00",
       "playback_verified": false,
       "probe": {
@@ -96,7 +90,7 @@
         "video_decoded": true,
         "audio_decoded": true
       },
-      "consecutive_failures": 8
+      "consecutive_failures": 9
     },
     "boat.heiwajima": {
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/e0343549e9a24d599fafd802164cc7dc/834b81fd953a4c7c9df97ae505db1bae/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjUwOWM4Y2ExZDEwMjRlZGViOGMyNTE0ZDFmZWJmYmQzIiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NTMxMjgwMCwic3RhcnQiOjE3OTUxMzY0MDAsImlvcyI6MTgsImNwIjoiMjE3MzMyMDAwXzIxNzM3NTE5OSIsInBwdyI6IjQwayJ9.1_9ga3tufITxL4zqFqak3fokcLBsFJC45rX0gDrB9Nw",
@@ -356,7 +350,7 @@
         },
         {
           "race": 6,
-          "start": "13:00",
+          "start": "13:20",
           "name": "予選"
         },
         {
@@ -492,7 +486,7 @@
       "held": true,
       "visible": false,
       "ended": false,
-      "active": true,
+      "active": false,
       "cancelled": false,
       "mode": "morning",
       "mode_label": "モーニング",
@@ -500,14 +494,19 @@
       "last_race": "16:10",
       "alert_from": "2026-11-20T09:29:00+09:00",
       "next_race": {
-        "race": 6,
-        "start": "12:57"
+        "race": 7,
+        "start": "13:25"
       },
-      "stream_window": "live_or_prestart",
-      "intermission": null,
+      "stream_window": "intermission",
+      "intermission": {
+        "after_race": 6,
+        "next_race": 7,
+        "from": "2026-11-20T10:32:00+09:00",
+        "until": "2026-11-20T12:55:00+09:00"
+      },
       "guidance_switch_at": "2026-11-20T16:55:00+09:00",
-      "seed_required": true,
-      "reverify_due": true,
+      "seed_required": false,
+      "reverify_due": false,
       "playback_verified": false,
       "first_verified_at": null,
       "ready_before_first_race": false,
@@ -540,7 +539,7 @@
         },
         {
           "race": 6,
-          "start": "12:57",
+          "start": "10:29",
           "name": "予選"
         },
         {
