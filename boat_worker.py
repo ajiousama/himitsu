@@ -41,8 +41,22 @@ def head_bytes(name):
     return result.stdout if result.returncode == 0 else None
 
 
+def semantic_xml_bytes(data):
+    """Ignore programme order and whitespace-only changes in shared XMLTV."""
+    import xml.etree.ElementTree as ET
+    try:
+        root = ET.fromstring(data)
+        def normalized(element):
+            attrs = tuple(sorted(element.attrib.items()))
+            children = tuple(sorted((normalized(child) for child in element), key=repr))
+            return (element.tag, attrs, (element.text or '').strip(), children)
+        return repr(normalized(root)).encode('utf-8')
+    except (ET.ParseError, UnicodeDecodeError):
+        return data
+
+
 def meaningful_output_changed():
-    """True only when BOAT content/state changed, not just timestamps/cycle heartbeat."""
+    """True only for actual BOAT, playlist or EPG changes."""
     for name in OUTPUTS:
         if name == 'boat_worker_status.json':
             continue
@@ -54,9 +68,12 @@ def meaningful_output_changed():
         if before is None:
             return True
         if name.endswith('.json'):
-            if semantic_json_bytes(before) != semantic_json_bytes(after):
-                return True
-        elif before != after:
+            changed = semantic_json_bytes(before) != semantic_json_bytes(after)
+        elif name.endswith('.xml'):
+            changed = semantic_xml_bytes(before) != semantic_xml_bytes(after)
+        else:
+            changed = before != after
+        if changed:
             return True
     return False
 
