@@ -826,6 +826,7 @@ def _warm_9x_proxy():
         text = body.decode("utf-8", "replace")
         rewritten = _rewrite_hls(text, final) if status == 200 and "#EXTM3U" in text[:8192] else ""
 
+        raw_child_urls = []
         raw_children = []
         for raw_line in text.splitlines():
             line = raw_line.strip()
@@ -834,64 +835,88 @@ def _warm_9x_proxy():
             if line.startswith("#"):
                 for m in re.finditer(r'URI=["\']([^"\']+)["\']', line):
                     absu = urllib.parse.urljoin(final, m.group(1))
+                    raw_child_urls.append(absu)
                     raw_children.append({
                         "host": urllib.parse.urlparse(absu).hostname,
                         "url": absu[:220],
                     })
             else:
                 absu = urllib.parse.urljoin(final, line)
+                raw_child_urls.append(absu)
                 raw_children.append({
                     "host": urllib.parse.urlparse(absu).hostname,
                     "url": absu[:220],
                 })
 
         child_result = None
-        prefix = PUBLIC_BASE + "/hls-proxy?url="
-        pos = rewritten.find(prefix)
-        if pos >= 0:
-            rest = rewritten[pos + len(prefix):]
-            encoded = re.split(r'[\\s"\']', rest, maxsplit=1)[0]
-            child_target = urllib.parse.unquote(encoded)
+        segment_result = None
+
+        if raw_child_urls:
+            child_target = raw_child_urls[0]
             child_host = urllib.parse.urlparse(child_target).hostname
             child_allowed = _proxy_allowed(child_target)
-            child_status = None
-            child_hls = False
             if child_allowed:
                 try:
                     routed_child = _route_upstream(child_target)
                     cs, cf, ch, cb = _proxy_fetch(routed_child, limit=2_000_000)
-                    child_status = cs
                     ctext = cb.decode("utf-8", "replace")
                     child_hls = "#EXTM3U" in ctext[:8192]
                     child_result = {
                         "host": child_host,
-                        "allowed": child_allowed,
+                        "allowed": True,
                         "routed_host": urllib.parse.urlparse(routed_child).hostname,
-                        "status": child_status,
+                        "status": cs,
                         "hls": child_hls,
+                        "bytes": len(cb),
                     }
+
+                    if child_hls:
+                        segment_url = None
+                        for cline_raw in ctext.splitlines():
+                            cline = cline_raw.strip()
+                            if cline and not cline.startswith("#"):
+                                segment_url = urllib.parse.urljoin(cf, cline)
+                                break
+                        if segment_url:
+                            routed_segment = _route_upstream(segment_url)
+                            try:
+                                ss, sf, sh, sb = _proxy_fetch(routed_segment, limit=4_000_000)
+                                segment_result = {
+                                    "host": urllib.parse.urlparse(segment_url).hostname,
+                                    "routed_host": urllib.parse.urlparse(routed_segment).hostname,
+                                    "status": ss,
+                                    "bytes": len(sb),
+                                    "content_type": sh.get("Content-Type"),
+                                }
+                            except Exception as se:
+                                segment_result = {
+                                    "host": urllib.parse.urlparse(segment_url).hostname,
+                                    "routed_host": urllib.parse.urlparse(routed_segment).hostname,
+                                    "error": repr(se)[:220],
+                                }
                 except Exception as ce:
                     child_result = {
                         "host": child_host,
-                        "allowed": child_allowed,
+                        "allowed": True,
                         "error": repr(ce)[:220],
                     }
-            if child_result is None:
+            else:
                 child_result = {
                     "host": child_host,
-                    "allowed": child_allowed,
-                    "status": child_status,
-                    "hls": child_hls,
+                    "allowed": False,
                 }
 
         ok = bool(
             rewritten
             and "/hls-proxy?url=" in rewritten
             and child_result
-            and child_result.get("allowed")
             and child_result.get("status") == 200
             and child_result.get("hls")
+            and segment_result
+            and segment_result.get("status") in (200, 206)
+            and segment_result.get("bytes", 0) > 0
         )
+
         print(
             "KANA_9X_WARM "
             + json.dumps({
@@ -901,6 +926,7 @@ def _warm_9x_proxy():
                 "bytes": len(rewritten),
                 "raw_children": raw_children[:8],
                 "child": child_result,
+                "segment": segment_result,
             }, ensure_ascii=False),
             flush=True,
         )
