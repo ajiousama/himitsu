@@ -1,0 +1,378 @@
+name: Kana IPTV Alt API Rescue
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/kana_iptv_altapi.yml'
+  schedule:
+    # 13:05 JST
+    - cron: '5 4 * * *'
+    # 20:40 JST
+    - cron: '40 11 * * *'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: kana-iptv-altapi
+  cancel-in-progress: true
+
+jobs:
+  rescue:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    env:
+      GH_TOKEN_LOCAL: ${{ github.token }}
+      KANA_CHANNEL_ID: UCmHdGDdZGf4cMWRBmEw4Xww
+      KANA_FALLBACK_VIDEO_ID: DAmfaJ-bGeg
+
+    steps:
+      - name: Resolve through independent Piped and Invidious APIs
+        shell: bash
+        run: |
+          cat > /tmp/kana_altapi.py <<'PY'
+          import base64
+          import datetime as dt
+          import json
+          import os
+          import re
+          import sys
+          import urllib.parse
+          import urllib.request
+
+          UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/140 Safari/537.36"
+          CHANNEL_ID = os.environ["KANA_CHANNEL_ID"]
+          FALLBACK = os.environ["KANA_FALLBACK_VIDEO_ID"]
+          TOKEN = os.environ["GH_TOKEN_LOCAL"]
+          REPO = os.environ["GITHUB_REPOSITORY"]
+
+          PIPED = [
+              "https://pipedapi.kavin.rocks",
+              "https://pipedapi.leptons.xyz",
+              "https://pipedapi.nosebs.ru",
+              "https://pipedapi-libre.kavin.rocks",
+              "https://piped-api.privacy.com.de",
+              "https://pipedapi.adminforge.de",
+              "https://api.piped.yt",
+              "https://pipedapi.drgns.space",
+              "https://pipedapi.owo.si",
+              "https://pipedapi.ducks.party",
+              "https://piped-api.codespace.cz",
+              "https://pipedapi.reallyaweso.me",
+              "https://api.piped.private.coffee",
+              "https://pipedapi.darkness.services",
+              "https://pipedapi.orangenet.cc",
+          ]
+          INVIDIOUS = [
+              "https://inv.nadeko.net",
+              "https://invidious.nerdvpn.de",
+              "https://yt.chocolatemoo53.com",
+              "https://invidious.tiekoetter.com",
+          ]
+
+          log = []
+          def note(*parts):
+              msg = " ".join(str(x) for x in parts)
+              print(msg, flush=True)
+              log.append(msg[-900:])
+
+          def get(url, limit=2_000_000, timeout=18):
+              req = urllib.request.Request(url, headers={
+                  "User-Agent": UA,
+                  "Accept": "application/json,text/plain,application/vnd.apple.mpegurl,*/*",
+                  "Accept-Language": "en-US,en;q=0.9",
+              })
+              with urllib.request.urlopen(req, timeout=timeout) as r:
+                  return r.status, r.geturl(), r.read(limit).decode("utf-8", "replace")
+
+          def get_json(url):
+              status, final, text = get(url)
+              return status, final, json.loads(text)
+
+          def vid_from_url(value):
+              if not isinstance(value, str):
+                  return None
+              m = re.search(r"(?:[?&]v=|/watch/|/live/)([A-Za-z0-9_-]{11})", value)
+              return m.group(1) if m else None
+
+          def discover_from_invidious():
+              for base in INVIDIOUS:
+                  try:
+                      status, _, data = get_json(base + "/api/v1/channels/" + CHANNEL_ID)
+                      candidates = []
+                      for key in ("latestVideos", "videos"):
+                          vals = data.get(key) or []
+                          if isinstance(vals, list):
+                              candidates.extend(vals)
+                      for item in candidates:
+                          if not isinstance(item, dict):
+                              continue
+                          vid = item.get("videoId") or vid_from_url(item.get("url"))
+                          if not vid:
+                              continue
+                          if item.get("liveNow") is True or item.get("isLive") is True:
+                              note("DISCOVER_INVIDIOUS_LIVE", base, vid, item.get("title", "")[:80])
+                              return vid, base + ":channel-live"
+                      # Upcoming is a secondary hint only; current fallback remains safer.
+                      upcoming = [
+                          x for x in candidates if isinstance(x, dict) and x.get("isUpcoming") is True and x.get("videoId")
+                      ]
+                      if upcoming:
+                          note("DISCOVER_INVIDIOUS_UPCOMING", base, upcoming[0].get("videoId"))
+                  except Exception as e:
+                      note("DISCOVER_INVIDIOUS_FAIL", base, type(e).__name__, str(e)[:120])
+              return None, None
+
+          def discover_from_piped():
+              for base in PIPED:
+                  try:
+                      status, _, data = get_json(base + "/channel/" + CHANNEL_ID)
+                      arrays = []
+                      for key in ("relatedStreams", "streams", "videos"):
+                          vals = data.get(key) or []
+                          if isinstance(vals, list):
+                              arrays.extend(vals)
+                      for item in arrays:
+                          if not isinstance(item, dict):
+                              continue
+                          vid = vid_from_url(item.get("url")) or item.get("videoId")
+                          if not vid:
+                              continue
+                          typ = str(item.get("type") or "").lower()
+                          duration = item.get("duration")
+                          if item.get("liveNow") is True or item.get("livestream") is True or typ == "livestream" or duration == -1:
+                              note("DISCOVER_PIPED_LIVE", base, vid, item.get("title", "")[:80])
+                              return vid, base + ":channel-live"
+                  except Exception as e:
+                      note("DISCOVER_PIPED_FAIL", base, type(e).__name__, str(e)[:120])
+              return None, None
+
+          def master_has_video(body, url):
+              low = body.lower()
+              if "/itag/96/" in url or "/itag/95/" in url or "/itag/94/" in url or "/itag/93/" in url:
+                  return True
+              if "#ext-x-stream-inf" in low and (
+                  "resolution=" in low or "avc1" in low or "vp09" in low or "av01" in low or "h264" in low
+              ):
+                  return True
+              return False
+
+          def master_has_audio(body, url):
+              low = body.lower()
+              if "/itag/96/" in url or "/itag/95/" in url or "/itag/94/" in url or "/itag/93/" in url:
+                  return True
+              if "#ext-x-media:type=audio" in low:
+                  return True
+              if "mp4a" in low or "opus" in low or 'audio="' in low:
+                  return True
+              # Some YouTube muxed master variants advertise both codecs in CODECS.
+              if "#ext-x-stream-inf" in low and "codecs=" in low and ("avc1" in low or "vp09" in low or "av01" in low):
+                  return True
+              return False
+
+          def probe_hls(url):
+              try:
+                  status, final, body = get(url, limit=512_000, timeout=20)
+                  ok = status == 200 and "#EXTM3U" in body[:8192]
+                  return ok, final, body
+              except Exception as e:
+                  note("HLS_PROBE_FAIL", url[:90], type(e).__name__, str(e)[:120])
+                  return False, url, ""
+
+          def direct_muxed_child(master_url, body):
+              # Prefer a known YouTube muxed live variant when the master exposes absolute URLs.
+              urls = []
+              for line in body.splitlines():
+                  line = line.strip()
+                  if not line or line.startswith("#"):
+                      continue
+                  child = urllib.parse.urljoin(master_url, line)
+                  if child.startswith("http"):
+                      urls.append(child)
+              for itag in ("96", "95", "94", "93"):
+                  for u in urls:
+                      if f"/itag/{itag}/" in u:
+                          ok, final, child_body = probe_hls(u)
+                          if ok:
+                              return final, f"master-child-itag-{itag}"
+              return None, None
+
+          def try_piped(video_id):
+              for base in PIPED:
+                  try:
+                      status, _, data = get_json(base + "/streams/" + video_id)
+                      if data.get("livestream") is False:
+                          note("PIPED_NOT_LIVE", base)
+                          continue
+                      hls = data.get("hls")
+                      if not isinstance(hls, str) or not hls.startswith("http"):
+                          note("PIPED_NO_HLS", base)
+                          continue
+                      ok, final, body = probe_hls(hls)
+                      if not ok:
+                          continue
+                      if not master_has_video(body, final):
+                          note("PIPED_HLS_NO_VIDEO", base, final[:100])
+                          continue
+                      if not master_has_audio(body, final):
+                          note("PIPED_HLS_NO_AUDIO", base, final[:100])
+                          continue
+                      direct, kind = direct_muxed_child(final, body)
+                      if direct:
+                          note("PIPED_VERIFIED_DIRECT", base, kind, direct[:150])
+                          return direct, base, "piped-direct-" + kind
+                      note("PIPED_VERIFIED_MASTER", base, final[:150])
+                      return final, base, "piped-master"
+                  except Exception as e:
+                      note("PIPED_FAIL", base, type(e).__name__, str(e)[:120])
+              return None, None, None
+
+          def try_invidious(video_id):
+              for base in INVIDIOUS:
+                  try:
+                      status, _, data = get_json(base + "/api/v1/videos/" + video_id)
+                      hls = data.get("hlsUrl") or data.get("hls")
+                      if not isinstance(hls, str) or not hls.startswith("http"):
+                          note("INVIDIOUS_NO_HLS", base)
+                          continue
+                      ok, final, body = probe_hls(hls)
+                      if not ok:
+                          continue
+                      if not master_has_video(body, final):
+                          note("INVIDIOUS_HLS_NO_VIDEO", base, final[:100])
+                          continue
+                      if not master_has_audio(body, final):
+                          note("INVIDIOUS_HLS_NO_AUDIO", base, final[:100])
+                          continue
+                      direct, kind = direct_muxed_child(final, body)
+                      if direct:
+                          note("INVIDIOUS_VERIFIED_DIRECT", base, kind, direct[:150])
+                          return direct, base, "invidious-direct-" + kind
+                      note("INVIDIOUS_VERIFIED_MASTER", base, final[:150])
+                      return final, base, "invidious-master"
+                  except Exception as e:
+                      note("INVIDIOUS_FAIL", base, type(e).__name__, str(e)[:120])
+              return None, None, None
+
+          vid, discover_source = discover_from_invidious()
+          if not vid:
+              vid, discover_source = discover_from_piped()
+          if not vid:
+              vid, discover_source = FALLBACK, "fallback"
+          note("TARGET_VIDEO", vid, discover_source)
+
+          url, instance, mode = try_piped(vid)
+          if not url:
+              url, instance, mode = try_invidious(vid)
+
+          if not url:
+              state = {
+                  "ok": False,
+                  "video_id": vid,
+                  "discover_source": discover_source,
+                  "checked_at": dt.datetime.now(dt.timezone.utc).isoformat(),
+                  "log": log[-80:],
+              }
+              # Publish diagnostic state only; never blank the playlist.
+              def gh_put(path, content, message):
+                  api = "https://api.github.com/repos/" + REPO + "/contents/" + path
+                  headers = {
+                      "Authorization": "Bearer " + TOKEN,
+                      "Accept": "application/vnd.github+json",
+                      "User-Agent": "kana-altapi",
+                  }
+                  sha = None
+                  try:
+                      req = urllib.request.Request(api, headers=headers)
+                      with urllib.request.urlopen(req, timeout=20) as r:
+                          sha = json.loads(r.read().decode())["sha"]
+                  except Exception:
+                      pass
+                  payload = {
+                      "message": message,
+                      "content": base64.b64encode(content.encode()).decode(),
+                      "branch": "main",
+                  }
+                  if sha:
+                      payload["sha"] = sha
+                  req = urllib.request.Request(
+                      api,
+                      data=json.dumps(payload).encode(),
+                      headers={**headers, "Content-Type": "application/json"},
+                      method="PUT",
+                  )
+                  with urllib.request.urlopen(req, timeout=25) as r:
+                      return r.status
+              try:
+                  gh_put(
+                      "youtube/state/kana_iptv_altapi.json",
+                      json.dumps(state, ensure_ascii=False, indent=2) + "\n",
+                      "Update Kana IPTV Alt API diagnostics [skip ci]",
+                  )
+              except Exception as e:
+                  note("STATE_PUBLISH_FAIL", repr(e))
+              raise SystemExit("No verified AV HLS from Piped/Invidious")
+
+          playlist = (
+              '#EXTM3U\n\n'
+              '#EXTINF:-1 tvg-id="youtube.kana_tube_iptv" tvg-name="かなチューブ IPTV" '
+              'tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/youtube/logos/special/kana.png?v=ytv3-20260922b" '
+              'group-title="今日の開催場",かなチューブ IPTV【LIVE】\n'
+              + url + '\n'
+          )
+          state = {
+              "ok": True,
+              "video_id": vid,
+              "discover_source": discover_source,
+              "instance": instance,
+              "mode": mode,
+              "play_url": url,
+              "checked_at": dt.datetime.now(dt.timezone.utc).isoformat(),
+              "log": log[-80:],
+          }
+
+          def gh_put(path, content, message):
+              api = "https://api.github.com/repos/" + REPO + "/contents/" + path
+              headers = {
+                  "Authorization": "Bearer " + TOKEN,
+                  "Accept": "application/vnd.github+json",
+                  "User-Agent": "kana-altapi",
+              }
+              sha = None
+              try:
+                  req = urllib.request.Request(api, headers=headers)
+                  with urllib.request.urlopen(req, timeout=20) as r:
+                      sha = json.loads(r.read().decode())["sha"]
+              except Exception:
+                  pass
+              payload = {
+                  "message": message,
+                  "content": base64.b64encode(content.encode()).decode(),
+                  "branch": "main",
+              }
+              if sha:
+                  payload["sha"] = sha
+              req = urllib.request.Request(
+                  api,
+                  data=json.dumps(payload).encode(),
+                  headers={**headers, "Content-Type": "application/json"},
+                  method="PUT",
+              )
+              with urllib.request.urlopen(req, timeout=25) as r:
+                  return r.status
+
+          note("PUBLISH_PLAYLIST", gh_put(
+              "youtube/output/kana_iptv.m3u",
+              playlist,
+              "Refresh Kana IPTV via independent Alt API [skip ci]",
+          ))
+          note("PUBLISH_STATE", gh_put(
+              "youtube/state/kana_iptv_altapi.json",
+              json.dumps(state, ensure_ascii=False, indent=2) + "\n",
+              "Update Kana IPTV Alt API state [skip ci]",
+          ))
+          print("ALTAPI_SUCCESS", vid, mode, url, flush=True)
+          PY
+
+          python3 /tmp/kana_altapi.py
