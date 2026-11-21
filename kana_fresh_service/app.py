@@ -136,7 +136,7 @@ def _route_upstream(url):
     p = urllib.parse.urlparse(url)
     host = (p.hostname or "").lower()
 
-    if (host == "youtube.com" or host.endswith(".youtube.com")) and p.path.startswith("/api/manifest/hls_playlist/"):
+    if host == "youtube.com" or host.endswith(".youtube.com"):
         origin = _invidious_origin()
         return origin + p.path + (("?" + p.query) if p.query else "")
 
