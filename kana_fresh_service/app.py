@@ -888,12 +888,24 @@ def _warm_9x_proxy():
                             routed_segment = _route_upstream(segment_url)
                             try:
                                 ss, sf, sh, sb = _proxy_fetch(routed_segment, limit=4_000_000)
+                                ctype = sh.get("Content-Type") or ""
+                                preview = ""
+                                if "text/" in ctype.lower() or len(sb) < 1024:
+                                    preview = sb[:500].decode("utf-8", "replace")
+                                media_ok = (
+                                    ss in (200, 206)
+                                    and len(sb) > 1024
+                                    and "text/plain" not in ctype.lower()
+                                    and "text/html" not in ctype.lower()
+                                )
                                 segment_result = {
                                     "host": urllib.parse.urlparse(segment_url).hostname,
                                     "routed_host": urllib.parse.urlparse(routed_segment).hostname,
                                     "status": ss,
                                     "bytes": len(sb),
-                                    "content_type": sh.get("Content-Type"),
+                                    "content_type": ctype,
+                                    "media_ok": media_ok,
+                                    "preview": preview,
                                 }
                             except Exception as se:
                                 segment_result = {
@@ -920,8 +932,7 @@ def _warm_9x_proxy():
             and child_result.get("status") == 200
             and child_result.get("hls")
             and segment_result
-            and segment_result.get("status") in (200, 206)
-            and segment_result.get("bytes", 0) > 0
+            and segment_result.get("media_ok") is True
         )
 
         print(
