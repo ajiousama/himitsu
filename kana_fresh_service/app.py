@@ -19,7 +19,7 @@ CACHE_SECONDS = int(os.environ.get("CACHE_SECONDS", "90"))
 KANA_IPTV_RAW = "https://raw.githubusercontent.com/ajiousama/himitsu/main/youtube/output/kana_iptv.m3u"
 PUBLIC_BASE = "https://kana-iptv-fresh-production.up.railway.app"
 PROXY_ALLOWED_SUFFIXES = (
-    "yt.chocolatemoo53.com",
+    "chocolatemoo53.com",
     "youtube.com",
     "youtube-nocookie.com",
     "googlevideo.com",
@@ -172,7 +172,8 @@ def _rewrite_hls(text, base_url):
 
 
 def _current_iptv_source():
-    status, _, _, body = _proxy_fetch(KANA_IPTV_RAW, limit=1_000_000)
+    raw_url = KANA_IPTV_RAW + "?t=" + str(int(time.time()))
+    status, _, _, body = _proxy_fetch(raw_url, limit=1_000_000)
     if status != 200:
         raise RuntimeError("kana_iptv.m3u unavailable")
     text = body.decode("utf-8", "replace")
