@@ -20,6 +20,8 @@ KANA_IPTV_RAW = "https://raw.githubusercontent.com/ajiousama/himitsu/main/youtub
 PUBLIC_BASE = "https://kana-iptv-fresh-production.up.railway.app"
 PROXY_ALLOWED_SUFFIXES = (
     "yt.chocolatemoo53.com",
+    "youtube.com",
+    "youtube-nocookie.com",
     "googlevideo.com",
     "googleusercontent.com",
     "raw.githubusercontent.com",
@@ -117,6 +119,28 @@ def _proxy_fetch(url, range_header=None, limit=32_000_000):
                 continue
             raise
     raise ValueError("too many redirects")
+
+
+def _invidious_origin():
+    src = _current_iptv_source()
+    p = urllib.parse.urlparse(src)
+    if not p.scheme or not p.netloc:
+        raise RuntimeError("invalid Kana IPTV source origin")
+    return p.scheme + "://" + p.netloc
+
+
+def _route_upstream(url):
+    """Route YouTube HLS playlist URLs back through the Invidious instance
+    that minted them, so IP-bound signatures stay on the same egress.
+    """
+    p = urllib.parse.urlparse(url)
+    host = (p.hostname or "").lower()
+
+    if (host == "youtube.com" or host.endswith(".youtube.com")) and p.path.startswith("/api/manifest/hls_playlist/"):
+        origin = _invidious_origin()
+        return origin + p.path + (("?" + p.query) if p.query else "")
+
+    return url
 
 
 def _proxy_url(url):
@@ -663,8 +687,9 @@ def hls_proxy():
         return Response("bad upstream\n", status=400, mimetype="text/plain")
 
     try:
+        routed = _route_upstream(target)
         status, final, headers, body = _proxy_fetch(
-            target,
+            routed,
             range_header=request.headers.get("Range"),
             limit=32_000_000,
         )
@@ -833,10 +858,18 @@ def _warm_9x_proxy():
             child_hls = False
             if child_allowed:
                 try:
-                    cs, cf, ch, cb = _proxy_fetch(child_target, limit=2_000_000)
+                    routed_child = _route_upstream(child_target)
+                    cs, cf, ch, cb = _proxy_fetch(routed_child, limit=2_000_000)
                     child_status = cs
                     ctext = cb.decode("utf-8", "replace")
                     child_hls = "#EXTM3U" in ctext[:8192]
+                    child_result = {
+                        "host": child_host,
+                        "allowed": child_allowed,
+                        "routed_host": urllib.parse.urlparse(routed_child).hostname,
+                        "status": child_status,
+                        "hls": child_hls,
+                    }
                 except Exception as ce:
                     child_result = {
                         "host": child_host,
