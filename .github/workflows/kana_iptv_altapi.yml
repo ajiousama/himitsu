@@ -225,7 +225,7 @@ jobs:
 
           # First: newest official YouTube RSS entries. We do not trust metadata;
           # each ID must actually expose a verified AV HLS via an alt API.
-          for cand in rss_candidates():
+          for cand in rss_candidates()[:4]:
               r=try_video(cand)
               if r:
                   target=cand
