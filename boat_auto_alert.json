@@ -1,7 +1,7 @@
 {
   "system": "boat-auto-v3",
   "date": "2026-11-21",
-  "checked_at": "2026-11-21T09:54:35.854008+09:00",
+  "checked_at": "2026-11-21T09:58:05.473491+09:00",
   "active": true,
   "kind": "system_error",
   "title": "BOAT自動更新エラー",
@@ -11,6 +11,12 @@
     "official_cards: TimeoutError",
     "開催表から場が消失したため当日確認済みの開催表を保持"
   ],
-  "cloud_failures": [],
+  "cloud_failures": [
+    {
+      "jcd": "05",
+      "name": "多摩川",
+      "error": "HTTPError: playback check failed"
+    }
+  ],
   "recovery": "automatic retry; no manual SEED dependency"
 }
