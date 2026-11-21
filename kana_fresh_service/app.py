@@ -801,10 +801,31 @@ def _warm_9x_proxy():
         text = body.decode("utf-8", "replace")
         rewritten = _rewrite_hls(text, final) if status == 200 and "#EXTM3U" in text[:8192] else ""
 
+        raw_children = []
+        for raw_line in text.splitlines():
+            line = raw_line.strip()
+            if not line:
+                continue
+            if line.startswith("#"):
+                for m in re.finditer(r'URI=["\']([^"\']+)["\']', line):
+                    absu = urllib.parse.urljoin(final, m.group(1))
+                    raw_children.append({
+                        "host": urllib.parse.urlparse(absu).hostname,
+                        "url": absu[:220],
+                    })
+            else:
+                absu = urllib.parse.urljoin(final, line)
+                raw_children.append({
+                    "host": urllib.parse.urlparse(absu).hostname,
+                    "url": absu[:220],
+                })
+
         child_result = None
-        child_match = re.search(r'https://kana-iptv-fresh-production\\.up\\.railway\\.app/hls-proxy\\?url=([^\\s"\']+)', rewritten)
-        if child_match:
-            encoded = child_match.group(1)
+        prefix = PUBLIC_BASE + "/hls-proxy?url="
+        pos = rewritten.find(prefix)
+        if pos >= 0:
+            rest = rewritten[pos + len(prefix):]
+            encoded = re.split(r'[\\s"\']', rest, maxsplit=1)[0]
             child_target = urllib.parse.unquote(encoded)
             child_host = urllib.parse.urlparse(child_target).hostname
             child_allowed = _proxy_allowed(child_target)
@@ -845,6 +866,7 @@ def _warm_9x_proxy():
                 "status": status,
                 "source_host": urllib.parse.urlparse(src).hostname,
                 "bytes": len(rewritten),
+                "raw_children": raw_children[:8],
                 "child": child_result,
             }, ensure_ascii=False),
             flush=True,
