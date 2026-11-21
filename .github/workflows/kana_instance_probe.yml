@@ -1,0 +1,131 @@
+name: Kana HLS Instance Probe
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/kana_instance_probe.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Probe full HLS chain
+        shell: bash
+        run: |
+          cat > /tmp/probe.py <<'PY'
+          import concurrent.futures as cf, json, re, urllib.parse, urllib.request, urllib.error
+          VIDEO_ID="4WBD_opNgKk"
+          UA="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/140 Safari/537.36"
+          INV=[
+            "https://inv.nadeko.net",
+            "https://invidious.nerdvpn.de",
+            "https://yt.chocolatemoo53.com",
+            "https://invidious.tiekoetter.com",
+          ]
+          PIPED=[
+            "https://pipedapi.kavin.rocks",
+            "https://pipedapi.leptons.xyz",
+            "https://pipedapi.nosebs.ru",
+            "https://pipedapi.adminforge.de",
+            "https://api.piped.yt",
+            "https://pipedapi.drgns.space",
+            "https://api.piped.private.coffee",
+          ]
+
+          def req(url, limit=2_000_000, timeout=10):
+              r=urllib.request.Request(url,headers={"User-Agent":UA,"Accept":"*/*","Cache-Control":"no-cache"})
+              with urllib.request.urlopen(r,timeout=timeout) as x:
+                  b=x.read(limit)
+                  return x.status,x.geturl(),dict(x.headers.items()),b
+
+          def first_url(text, base):
+              for line0 in text.splitlines():
+                  line=line0.strip()
+                  if not line: continue
+                  if line.startswith("#"):
+                      m=re.search(r'URI=["\']([^"\']+)["\']',line)
+                      if m: return urllib.parse.urljoin(base,m.group(1))
+                  else:
+                      return urllib.parse.urljoin(base,line)
+              return None
+
+          def mapped(url, base):
+              p=urllib.parse.urlparse(url)
+              h=(p.hostname or "").lower()
+              if h=="youtube.com" or h.endswith(".youtube.com"):
+                  bp=urllib.parse.urlparse(base)
+                  return bp.scheme+"://"+bp.netloc+p.path+(("?"+p.query) if p.query else "")
+              return url
+
+          def check_chain(kind,base,hls):
+              out={"kind":kind,"base":base,"hls_host":urllib.parse.urlparse(hls).hostname}
+              try:
+                  ms,mf,mh,mb=req(hls)
+                  mt=mb.decode("utf-8","replace")
+                  out["master"]=[ms,len(mb),mh.get("Content-Type")]
+                  child=first_url(mt,mf)
+                  if not child:
+                      out["error"]="no child"; return out
+                  out["child_original_host"]=urllib.parse.urlparse(child).hostname
+                  ctry=mapped(child,base)
+                  out["child_fetch_host"]=urllib.parse.urlparse(ctry).hostname
+                  cs,cf,ch,cb=req(ctry)
+                  ct=cb.decode("utf-8","replace")
+                  out["child"]=[cs,len(cb),ch.get("Content-Type"),urllib.parse.urlparse(cf).hostname]
+                  if "#EXTM3U" not in ct[:8192]:
+                      out["error"]="child not hls"; out["preview"]=ct[:160]; return out
+                  seg=first_url(ct,cf)
+                  if not seg:
+                      out["error"]="no segment"; return out
+                  out["segment_original_host"]=urllib.parse.urlparse(seg).hostname
+                  stry=mapped(seg,base)
+                  out["segment_fetch_host"]=urllib.parse.urlparse(stry).hostname
+                  ss,sf,sh,sb=req(stry,limit=4_000_000)
+                  ctype=sh.get("Content-Type") or ""
+                  preview=""
+                  if "text/" in ctype.lower() or len(sb)<1024:
+                      preview=sb[:250].decode("utf-8","replace")
+                  media_ok=ss in (200,206) and len(sb)>1024 and "text/" not in ctype.lower() and "html" not in ctype.lower()
+                  out["segment"]=[ss,len(sb),ctype,urllib.parse.urlparse(sf).hostname]
+                  out["media_ok"]=media_ok
+                  if preview: out["preview"]=preview
+                  return out
+              except Exception as e:
+                  out["error"]=type(e).__name__+": "+str(e)[:220]
+                  return out
+
+          def inv(base):
+              try:
+                  s,f,h,b=req(base+"/api/v1/videos/"+VIDEO_ID)
+                  d=json.loads(b.decode())
+                  hls=d.get("hlsUrl") or d.get("hls")
+                  if not isinstance(hls,str) or not hls.startswith("http"):
+                      return {"kind":"invidious","base":base,"error":"no hlsUrl"}
+                  return check_chain("invidious",base,hls)
+              except Exception as e:
+                  return {"kind":"invidious","base":base,"error":type(e).__name__+": "+str(e)[:220]}
+
+          def piped(base):
+              try:
+                  s,f,h,b=req(base+"/streams/"+VIDEO_ID)
+                  d=json.loads(b.decode())
+                  hls=d.get("hls")
+                  if not isinstance(hls,str) or not hls.startswith("http"):
+                      return {"kind":"piped","base":base,"error":"no hls"}
+                  return check_chain("piped",base,hls)
+              except Exception as e:
+                  return {"kind":"piped","base":base,"error":type(e).__name__+": "+str(e)[:220]}
+
+          jobs=[]
+          with cf.ThreadPoolExecutor(max_workers=11) as ex:
+              for b in INV: jobs.append(ex.submit(inv,b))
+              for b in PIPED: jobs.append(ex.submit(piped,b))
+              for fut in cf.as_completed(jobs):
+                  print("RESULT "+json.dumps(fut.result(),ensure_ascii=False),flush=True)
+          PY
+          python3 /tmp/probe.py
