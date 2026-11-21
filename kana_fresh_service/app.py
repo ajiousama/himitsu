@@ -135,16 +135,48 @@ def _invidious_origin():
     return p.scheme + "://" + p.netloc
 
 
+def _path_videoplayback_to_query(p):
+    """Convert YouTube's HLS path-form /videoplayback/key/value/... URL
+    into the query-form expected by Invidious/ytproxy-go.
+    """
+    pairs = []
+    prefix = "/videoplayback/"
+    if p.path.startswith(prefix):
+        parts = p.path[len(prefix):].split("/")
+        # HLS live segment URLs encode parameters as alternating key/value path parts.
+        for i in range(0, len(parts) - 1, 2):
+            key = urllib.parse.unquote(parts[i])
+            val = urllib.parse.unquote(parts[i + 1])
+            if key:
+                pairs.append((key, val))
+
+    # Preserve any real query parameters already present.
+    pairs.extend(urllib.parse.parse_qsl(p.query, keep_blank_values=True))
+    return pairs
+
+
 def _route_upstream(url):
-    """Route YouTube HLS playlist URLs back through the Invidious instance
-    that minted them, so IP-bound signatures stay on the same egress.
+    """Route YouTube HLS through the Invidious instance that minted it.
+
+    Invidious HLS children can contain path-form YouTube /videoplayback URLs.
+    ytproxy-go only exposes GET /videoplayback?..., so normalize those path
+    parameters back into a query string and attach the original YouTube host.
     """
     p = urllib.parse.urlparse(url)
     host = (p.hostname or "").lower()
 
     if host == "youtube.com" or host.endswith(".youtube.com"):
         origin = _invidious_origin()
-        return origin + p.path + (("?" + p.query) if p.query else "")
+
+        if p.path.startswith("/api/manifest/hls_playlist/"):
+            return origin + p.path + (("?" + p.query) if p.query else "")
+
+        if p.path == "/videoplayback" or p.path.startswith("/videoplayback/"):
+            pairs = _path_videoplayback_to_query(p)
+            if not any(k == "host" for k, _ in pairs):
+                pairs.append(("host", host))
+            query = urllib.parse.urlencode(pairs, doseq=True)
+            return origin + "/videoplayback?" + query
 
     return url
 
