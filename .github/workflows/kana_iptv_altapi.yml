@@ -192,6 +192,20 @@ jobs:
                           return r
               return None
 
+          def rss_candidates():
+              url="https://www.youtube.com/feeds/videos.xml?channel_id="+CHANNEL_ID
+              try:
+                  _,_,xml=get(url,limit=1_000_000,timeout=10)
+                  vids=re.findall(r"<yt:videoId>([A-Za-z0-9_-]{11})</yt:videoId>",xml)
+                  out=[]
+                  for v in vids:
+                      if v not in out: out.append(v)
+                  note("RSS_CANDIDATES",",".join(out[:12]))
+                  return out[:12]
+              except Exception as e:
+                  note("RSS_FAIL",type(e).__name__,str(e)[:120])
+                  return []
+
           def gh_put(path,content,message):
               api="https://api.github.com/repos/"+REPO+"/contents/"+path
               headers={"Authorization":"Bearer "+TOKEN,"Accept":"application/vnd.github+json","User-Agent":"kana-altapi"}
@@ -205,18 +219,30 @@ jobs:
               req=urllib.request.Request(api,data=json.dumps(payload).encode(),headers={**headers,"Content-Type":"application/json"},method="PUT")
               with urllib.request.urlopen(req,timeout=15) as r: return r.status
 
-          d=discover()
-          if d:
-              target,discover_source=d
-          else:
+          result=None
+          target=None
+          discover_source=None
+
+          # First: newest official YouTube RSS entries. We do not trust metadata;
+          # each ID must actually expose a verified AV HLS via an alt API.
+          for cand in rss_candidates():
+              r=try_video(cand)
+              if r:
+                  target=cand
+                  discover_source="youtube-rss"
+                  result=r
+                  break
+
+          # Second: API live markers.
+          if not result:
+              d=discover()
+              if d:
+                  target,discover_source=d
+                  result=try_video(target)
+
+          # Last resort: remembered current-day ID.
+          if not result:
               target,discover_source=FALLBACK,"fallback"
-
-          result=try_video(target)
-
-          # If a discovered live candidate is bad, fall back only as a last resort.
-          if not result and target!=FALLBACK:
-              note("DISCOVERED_LIVE_FAILED_FALLBACK",target,FALLBACK)
-              target,discover_source=FALLBACK,"fallback-after-live-fail"
               result=try_video(target)
 
           state={
