@@ -1,48 +1,13 @@
-name: Kana IPTV independent HLS resolver
+name: Kana IPTV independent HLS resolver RETIRED
+
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - 'youtube/kana_iptv_resolver.py'
-      - '.github/workflows/kana_iptv_hls.yml'
-  schedule:
-    - cron: '*/5 11-14 * * *'
+
 permissions:
-  contents: write
-concurrency:
-  group: kana-iptv-hls
-  cancel-in-progress: true
+  contents: read
+
 jobs:
-  resolve:
+  retired:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - name: Install yt-dlp
-        run: python -m pip install -U --pre 'yt-dlp[default]' curl_cffi
-      - name: Extract and validate Kana IPTV HLS
-        run: python youtube/kana_iptv_resolver.py
-      - name: Publish verified IPTV output and FreeWiFi
-        shell: bash
-        run: |
-          set -eu
-          cp youtube/output/kana_iptv.m3u /tmp/kana_iptv.m3u
-          cp youtube/state/kana_iptv_probe.json /tmp/kana_iptv_probe.json
-          for n in 1 2 3 4 5; do
-            git fetch origin main
-            git reset --hard origin/main
-            cp /tmp/kana_iptv.m3u youtube/output/kana_iptv.m3u
-            cp /tmp/kana_iptv_probe.json youtube/state/kana_iptv_probe.json
-            python youtube/manager.py --sync-only
-            git config user.name 'github-actions[bot]'
-            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-            git add youtube/output/kana_iptv.m3u youtube/state/kana_iptv_probe.json freewifi
-            if git diff --cached --quiet; then exit 0; fi
-            git commit -m 'Refresh independent Kana IPTV HLS [skip ci]'
-            if git push origin HEAD:main; then exit 0; fi
-            sleep "$n"
-          done
-          exit 1
+      - run: echo "Retired. Kana IPTV is owned by Fresh/Rescue/Alt API workflows."
