@@ -1,0 +1,209 @@
+name: Kana IPTV Rescue Fresh
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/kana_iptv_rescue.yml'
+  schedule:
+    # 13:05 JST
+    - cron: '5 4 * * *'
+    # 20:40 JST
+    - cron: '40 11 * * *'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: kana-iptv-rescue-fresh
+  cancel-in-progress: true
+
+jobs:
+  rescue:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      KANA_CHANNEL_LIVE: https://www.youtube.com/@kana_tube/live
+      KANA_FALLBACK_VIDEO_ID: DAmfaJ-bGeg
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Install fresh extractor
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install --upgrade "yt-dlp[default] @ https://github.com/yt-dlp/yt-dlp/archive/master.tar.gz"
+          node --version
+          yt-dlp --version
+
+      - name: Resolve current live and publish only verified AV HLS
+        shell: bash
+        run: |
+          cat > /tmp/kana_rescue.py <<'PY'
+          import json, os, re, subprocess, sys, urllib.request
+          from pathlib import Path
+
+          UA="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/140 Safari/537.36"
+          channel=os.environ["KANA_CHANNEL_LIVE"]
+          fallback=os.environ["KANA_FALLBACK_VIDEO_ID"]
+          out=Path("youtube/output/kana_iptv.m3u")
+
+          def fetch(url, limit=2_000_000):
+              req=urllib.request.Request(url,headers={"User-Agent":UA,"Accept-Language":"en-US,en;q=0.9"})
+              with urllib.request.urlopen(req,timeout=20) as r:
+                  return r.status,r.geturl(),r.read(limit).decode("utf-8","replace")
+
+          def discover():
+              try:
+                  status,final,html=fetch(channel)
+                  m=re.search(r'[?&]v=([A-Za-z0-9_-]{11})',final)
+                  if m:
+                      return m.group(1),"redirect"
+                  m=re.search(r'<link[^>]+rel="canonical"[^>]+href="https://www\.youtube\.com/watch\?v=([A-Za-z0-9_-]{11})"',html,re.I)
+                  if m:
+                      return m.group(1),"canonical"
+                  for pat in (
+                      r'"videoId":"([A-Za-z0-9_-]{11})".{0,5000}"isLiveNow":true',
+                      r'"isLiveNow":true.{0,5000}"videoId":"([A-Za-z0-9_-]{11})"',
+                      r'"videoId":"([A-Za-z0-9_-]{11})".{0,5000}"style":"BADGE_STYLE_TYPE_LIVE_NOW"',
+                  ):
+                      m=re.search(pat,html,re.S)
+                      if m:
+                          return m.group(1),"live-now"
+              except Exception as e:
+                  print("DISCOVER_ERROR",repr(e))
+              return fallback,"fallback"
+
+          def run(client,watch):
+              args=["yt-dlp","--no-playlist","--ignore-no-formats-error","--js-runtimes","node"]
+              if client:
+                  args += ["--extractor-args",f"youtube:player_client={client}"]
+              args += ["--dump-single-json",watch]
+              p=subprocess.run(args,text=True,capture_output=True,timeout=70)
+              print("CLIENT",client or "default","RC",p.returncode,"ERR",p.stderr[-1200:].replace("\n"," | "))
+              return p
+
+          def valid_hls(url):
+              try:
+                  req=urllib.request.Request(url,headers={"User-Agent":UA,"Accept":"application/vnd.apple.mpegurl,*/*"})
+                  with urllib.request.urlopen(req,timeout=20) as r:
+                      body=r.read(65536).decode("utf-8","replace")
+                      return r.status==200 and "#EXTM3U" in body[:4096]
+              except Exception as e:
+                  print("PROBE_ERROR",type(e).__name__,str(e)[:160])
+                  return False
+
+          vid,source=discover()
+          watch="https://www.youtube.com/watch?v="+vid
+          print("VIDEO_ID",vid,"SOURCE",source)
+
+          formats=[]
+          seen=set()
+          clients=("android_vr",None,"web_safari","mweb","web_embedded")
+          for client in clients:
+              try:
+                  p=run(client,watch)
+              except Exception as e:
+                  print("CLIENT_EXCEPTION",client,repr(e))
+                  continue
+              if not p.stdout.strip():
+                  continue
+              try:
+                  data=json.loads(p.stdout)
+              except Exception as e:
+                  print("JSON_ERROR",client,repr(e))
+                  continue
+              for f in data.get("formats") or []:
+                  u=f.get("url")
+                  proto=str(f.get("protocol") or "").lower()
+                  vc=str(f.get("vcodec") or "").lower()
+                  ac=str(f.get("acodec") or "").lower()
+                  if not isinstance(u,str) or not u.startswith("http"):
+                      continue
+                  if "m3u8" not in proto and "manifest.googlevideo.com/" not in u:
+                      continue
+                  if vc in ("","none","unknown","null") or ac in ("","none","unknown","null"):
+                      continue
+                  if u in seen:
+                      continue
+                  seen.add(u)
+                  formats.append((f,client or "default"))
+
+          def score(item):
+              f,client=item
+              vc=str(f.get("vcodec") or "")
+              ac=str(f.get("acodec") or "")
+              codec=(4 if vc.startswith(("avc","h264")) else 2)+(2 if ac.startswith(("mp4a","aac")) else 1)
+              h=int(f.get("height") or 0)
+              hp=h if 1<=h<=1080 else 0
+              return (1 if str(f.get("format_id"))=="96" else 0,codec,hp,float(f.get("tbr") or 0))
+
+          chosen=None
+          for f,client in sorted(formats,key=score,reverse=True):
+              print("CANDIDATE",client,f.get("format_id"),f.get("width"),f.get("height"),f.get("vcodec"),f.get("acodec"),f.get("protocol"))
+              if valid_hls(f["url"]):
+                  chosen=(f,client)
+                  break
+
+          if not chosen:
+              print("NO_VERIFIED_AV_HLS")
+              raise SystemExit(2)
+
+          f,client=chosen
+          url=f["url"]
+          print("VERIFIED_AV_HLS",client,f.get("format_id"),f.get("width"),f.get("height"),f.get("vcodec"),f.get("acodec"))
+
+          text=(
+              '#EXTM3U\n\n'
+              '#EXTINF:-1 tvg-id="youtube.kana_tube_iptv" tvg-name="かなチューブ IPTV" '
+              'tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/youtube/logos/special/kana.png?v=ytv3-20260922b" '
+              'group-title="今日の開催場",かなチューブ IPTV【LIVE】\n'
+              + url + '\n'
+          )
+          out.write_text(text,encoding="utf-8")
+
+          state={
+              "video_id":vid,
+              "source":source,
+              "client":client,
+              "format_id":f.get("format_id"),
+              "width":f.get("width"),
+              "height":f.get("height"),
+              "fps":f.get("fps"),
+              "vcodec":f.get("vcodec"),
+              "acodec":f.get("acodec"),
+              "protocol":f.get("protocol"),
+              "ok":True,
+          }
+          Path("youtube/state/kana_iptv_rescue.json").write_text(json.dumps(state,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
+          PY
+
+          python /tmp/kana_rescue.py
+
+      - name: Publish verified result
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          cp youtube/output/kana_iptv.m3u /tmp/kana_iptv_verified.m3u
+          cp youtube/state/kana_iptv_rescue.json /tmp/kana_iptv_rescue.json
+          for attempt in 1 2 3 4 5; do
+            git fetch origin main
+            git reset --hard origin/main
+            cp /tmp/kana_iptv_verified.m3u youtube/output/kana_iptv.m3u
+            cp /tmp/kana_iptv_rescue.json youtube/state/kana_iptv_rescue.json
+            git add youtube/output/kana_iptv.m3u youtube/state/kana_iptv_rescue.json
+            git commit -m "Refresh Kana IPTV rescue verified AV HLS [skip ci]" || exit 0
+            if git push origin HEAD:main; then
+              exit 0
+            fi
+            sleep $((attempt*2))
+          done
+          exit 1
