@@ -12,7 +12,7 @@ from flask import Flask, Response, jsonify
 app = Flask(__name__)
 
 CHANNEL_LIVE = os.environ.get("KANA_CHANNEL_LIVE", "https://www.youtube.com/@kana_tube/live")
-DEFAULT_VIDEO_ID = os.environ.get("KANA_VIDEO_ID", "DVL04eDdDIE").strip()
+DEFAULT_VIDEO_ID = os.environ.get("KANA_VIDEO_ID", "DAmfaJ-bGeg").strip()
 UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/140 Safari/537.36"
 CACHE_SECONDS = int(os.environ.get("CACHE_SECONDS", "90"))
 
@@ -47,15 +47,30 @@ def _fetch(url, limit=262144, method="GET", data=None, headers=None):
         return r.status, r.geturl(), r.read(limit).decode("utf-8", "replace")
 
 
-def _video_id_from_text(text):
+def _video_id_from_url(text):
     patterns = [
         r"[?&]v=([A-Za-z0-9_-]{11})",
         r"/live/([A-Za-z0-9_-]{11})",
         r"/embed/([A-Za-z0-9_-]{11})",
-        r'"videoId":"([A-Za-z0-9_-]{11})"',
     ]
     for pat in patterns:
         m = re.search(pat, text or "")
+        if m:
+            return m.group(1)
+    return None
+
+
+def _live_video_id_from_html(html):
+    """Return a video ID only when the channel page marks it as live now."""
+    text = html or ""
+    patterns = [
+        r'"videoId":"([A-Za-z0-9_-]{11})".{0,5000}"isLiveNow":true',
+        r'"isLiveNow":true.{0,5000}"videoId":"([A-Za-z0-9_-]{11})"',
+        r'"videoId":"([A-Za-z0-9_-]{11})".{0,5000}"style":"BADGE_STYLE_TYPE_LIVE_NOW"',
+        r'"style":"BADGE_STYLE_TYPE_LIVE_NOW".{0,5000}"videoId":"([A-Za-z0-9_-]{11})"',
+    ]
+    for pat in patterns:
+        m = re.search(pat, text, re.S)
         if m:
             return m.group(1)
     return None
@@ -65,7 +80,7 @@ def _discover_video_id(notes):
     try:
         status, final_url, html = _fetch(CHANNEL_LIVE, 2_000_000)
         notes.append(f"discover:{status}:{final_url[:100]}")
-        vid = _video_id_from_text(final_url)
+        vid = _video_id_from_url(final_url)
         if vid:
             return vid, "channel-live-redirect"
 
@@ -78,9 +93,9 @@ def _discover_video_id(notes):
         if m:
             return m.group(1), "channel-live-canonical"
 
-        vid = _video_id_from_text(html)
+        vid = _live_video_id_from_html(html)
         if vid:
-            return vid, "channel-live-html"
+            return vid, "channel-live-now"
     except Exception as e:
         notes.append("discover_error:" + type(e).__name__ + ":" + str(e)[:120])
 
