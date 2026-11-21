@@ -52,9 +52,20 @@ jobs:
           print('VERIFIED_MODE', mode)
           print('VIDEO_ID', data.get('video_id'))
           print('SOURCE', data.get('source'))
+          if data.get('video_id') != 'DAmfaJ-bGeg':
+              raise SystemExit('Resolver returned a different video ID')
           PY
 
-          hls="$(curl -fsSL --retry 3 --retry-delay 4 --max-time 120 "$RAW_URL" | tr -d '\r\n')"
+          # /status can succeed before /raw is ready; retry resolver handoff.
+          hls=""
+          for attempt in 1 2 3 4 5 6 7 8; do
+            hls="$(curl -fsSL --max-time 25 "$RAW_URL" 2>/dev/null | tr -d '\\r\\n')" || true
+            if [[ "$hls" == https://manifest.googlevideo.com/* || "$hls" == https://kana-iptv-fresh-production.up.railway.app/master.m3u8 ]]; then
+              break
+            fi
+            echo "Railway raw not ready (attempt $attempt)"
+            sleep 10
+          done
 
           case "$hls" in
             https://manifest.googlevideo.com/*|https://kana-iptv-fresh-production.up.railway.app/master.m3u8)
@@ -72,6 +83,8 @@ jobs:
           $hls
           EOF
 
+          # Publish only after both video/audio codec check and successful raw handoff.
+          cp youtube/output/kana_iptv.m3u /tmp/kana_iptv_verified.m3u
           python3 - <<'PY'
           from pathlib import Path
           p=Path('youtube/output/kana_iptv.m3u')
@@ -86,7 +99,6 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           # Retry non-fast-forward conflicts without overwriting other workflows.
           # Preserve the freshly verified playlist across each rebase.
-          cp youtube/output/kana_iptv.m3u /tmp/kana_iptv_verified.m3u
           for attempt in 1 2 3 4 5; do
             git fetch origin main
             git reset --hard origin/main
