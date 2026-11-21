@@ -206,6 +206,14 @@ jobs:
                   note("RSS_FAIL",type(e).__name__,str(e)[:120])
                   return []
 
+          def gh_get(path):
+              api="https://api.github.com/repos/"+REPO+"/contents/"+path
+              headers={"Authorization":"Bearer "+TOKEN,"Accept":"application/vnd.github+json","User-Agent":"kana-altapi"}
+              req=urllib.request.Request(api,headers=headers)
+              with urllib.request.urlopen(req,timeout=15) as r:
+                  data=json.loads(r.read().decode())
+              return base64.b64decode(data["content"]).decode("utf-8","replace"),data["sha"]
+
           def gh_put(path,content,message):
               api="https://api.github.com/repos/"+REPO+"/contents/"+path
               headers={"Authorization":"Bearer "+TOKEN,"Accept":"application/vnd.github+json","User-Agent":"kana-altapi"}
@@ -266,5 +274,40 @@ jobs:
           )
           note("PUBLISH_PLAYLIST",gh_put("youtube/output/kana_iptv.m3u",playlist,"Refresh Kana IPTV via Alt API [skip ci]"))
           note("PUBLISH_STATE",gh_put("youtube/state/kana_iptv_altapi.json",json.dumps(state,ensure_ascii=False,indent=2)+"\n","Update Kana IPTV Alt API state [skip ci]"))
+
+          # Keep the aggregate FreeWiFi Kana block in lockstep with the verified HLS.
+          try:
+              kana_text,_=gh_get("youtube/output/kana.m3u")
+              freewifi_text,_=gh_get("freewifi")
+
+              def playlist_body(text):
+                  return "\n".join(
+                      line for line in text.splitlines()
+                      if line.strip() and not line.startswith("#EXTM3U")
+                  ).strip()
+
+              kana_body=playlist_body(kana_text)
+              iptv_body=playlist_body(playlist)
+              managed=(
+                  "# === KANA_TUBE_MANAGED_START ===\n"
+                  +kana_body+"\n\n"+iptv_body+"\n"
+                  +"# === KANA_TUBE_MANAGED_END ==="
+              )
+              pat=re.compile(
+                  re.escape("# === KANA_TUBE_MANAGED_START ===")
+                  +r".*?"
+                  +re.escape("# === KANA_TUBE_MANAGED_END ==="),
+                  re.S,
+              )
+              if not pat.search(freewifi_text):
+                  raise RuntimeError("Kana managed block missing from freewifi")
+              freewifi_text=pat.sub(managed,freewifi_text,count=1)
+              note("PUBLISH_FREEWIFI",gh_put(
+                  "freewifi",
+                  freewifi_text,
+                  "Sync Kana IPTV HLS into FreeWiFi [skip ci]",
+              ))
+          except Exception as e:
+              note("FREEWIFI_SYNC_FAIL",type(e).__name__,str(e)[:180])
           PY
           python3 /tmp/kana_altapi.py
