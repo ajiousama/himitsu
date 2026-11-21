@@ -33,6 +33,7 @@ GENERAL_END = "# === GENERAL_YOUTUBE_MANAGED_END ==="
 KANA_START = "# === KANA_TUBE_MANAGED_START ==="
 KANA_END = "# === KANA_TUBE_MANAGED_END ==="
 KANA_IPTV_ID = "youtube.kana_tube_iptv"
+KANA_9X_PROXY = "https://kana-iptv-fresh-production.up.railway.app/kana-9x.m3u8"
 TODAY_START = "# === TODAY_PUBLIC_SPORTS_START ==="
 TODAY_END = "# === TODAY_PUBLIC_SPORTS_END ==="
 TODAY_HEADING = "## 今日の開催場"
@@ -869,8 +870,14 @@ def sync_freewifi(config):
     text = strip_entry(text, kana_id)
     text = strip_entry(text, KANA_IPTV_ID)
     kana_body = playlist_body(KANA_OUT)
-    iptv_body = playlist_body(KANA_IPTV_OUT)
-    if iptv_body:
+    iptv_body = ""
+    if kana_body:
+        iptv_body = (
+            '#EXTINF:-1 tvg-id="youtube.kana_tube_iptv" tvg-name="かなチューブ IPTV" '
+            'tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/youtube/logos/special/kana.png?v=ytv3-20260922b" '
+            'group-title="今日の開催場",かなチューブ IPTV【LIVE】\n'
+            + KANA_9X_PROXY
+        )
         kana_body = (kana_body + "\n\n" + iptv_body).strip()
     if kana_body:
         kana_block = KANA_START + "\n" + kana_body + "\n" + KANA_END + "\n"
