@@ -613,7 +613,7 @@ def update_kana(config):
         else:
             when = datetime.fromtimestamp(start, JST).strftime("%m/%d %H:%M") if start else ""
             label = item["name"] + (f"【配信予定 {when}】" if when else "【配信予定】")
-        write_playlist(KANA_OUT, [entry(item, watch, label)])
+        write_playlist(KANA_OUT, [entry(item, url, label)])
         iptv_item = dict(item, id=KANA_IPTV_ID, name=item["name"] + " IPTV")
         iptv_url = play if status == "is_live" and play and (".m3u8" in play or "manifest.googlevideo.com/" in play) else None
         write_playlist(KANA_IPTV_OUT, [entry(iptv_item, iptv_url, iptv_item["name"] + "【LIVE】")] if iptv_url else [])
@@ -653,6 +653,10 @@ def update_kana(config):
     # Primary discovery is the official streams tab only. Keep the list small:
     # we only need current live/upcoming slots, not dozens of old broadcasts.
     candidates = [previous_id] if previous_id else []
+    # Confirmed 2026-11-21 normal-stream reservation, supplied by channel viewer.
+    # Expire this one-day hint automatically; verify official channel ownership below.
+    if datetime.now(JST).date().isoformat() == "2026-11-21":
+        candidates.insert(0, "DAmfaJ-bGeg")
     rows, code = flat_listing(channel + "/streams", 24)
     if code == "OK":
         confirmed = True
@@ -685,7 +689,7 @@ def update_kana(config):
             if vid == previous_id or vid in official_stream_ids:
                 live_url, live_code = direct_hls("https://www.youtube.com/watch?v=" + vid)
                 if live_url and ("manifest.googlevideo.com/" in live_url or ".m3u8" in live_url):
-                    write_playlist(KANA_OUT, [entry(item, "https://www.youtube.com/watch?v=" + vid, item["name"] + "【LIVE】")])
+                    write_playlist(KANA_OUT, [entry(item, live_url, item["name"] + "【LIVE】")])
                     iptv_item = dict(item, id=KANA_IPTV_ID, name=item["name"] + " IPTV")
                     write_playlist(KANA_IPTV_OUT, [entry(iptv_item, live_url, iptv_item["name"] + "【LIVE】")])
                     write_json(KANA_STATE, {
