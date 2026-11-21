@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-22",
-  "generated_at": "2026-11-22T08:13:02.293128+09:00",
+  "generated_at": "2026-11-22T08:15:12.006476+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261122.json",
   "schedule_checked_at": "2026-11-22T08:05:19.246357+09:00",
@@ -52,10 +52,21 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 7,
+    "requested": 8,
     "fetched": 2,
-    "failures": [],
+    "failures": [
+      {
+        "jcd": "10",
+        "name": "三国",
+        "error": "HTTPError: playback check failed"
+      }
+    ],
     "deferred": [
+      {
+        "jcd": "02",
+        "name": "戸田",
+        "start": "2026-11-22T10:09:00+09:00"
+      },
       {
         "jcd": "05",
         "name": "多摩川",
@@ -65,11 +76,6 @@
         "jcd": "09",
         "name": "津",
         "start": "2026-11-22T09:55:00+09:00"
-      },
-      {
-        "jcd": "10",
-        "name": "三国",
-        "start": "2026-11-22T08:16:00+09:00"
       },
       {
         "jcd": "13",
@@ -304,7 +310,8 @@
           "name": "記者選抜戦"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "provider_stream_start": "2026-11-22T10:09:00+09:00",
+      "source": "公式BR配信開始待ち 10:09"
     },
     "boat.heiwajima": {
       "jcd": "04",
@@ -756,8 +763,7 @@
           "name": "カニ坊選抜"
         }
       ],
-      "provider_stream_start": "2026-11-22T08:16:00+09:00",
-      "source": "公式BR配信開始待ち 08:16"
+      "source": "automatic cloud SEED pending"
     },
     "boat.suminoe": {
       "jcd": "12",
