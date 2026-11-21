@@ -2,10 +2,10 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-21",
-  "generated_at": "2026-11-21T12:49:55.391053+09:00",
+  "generated_at": "2026-11-21T12:51:10.233430+09:00",
   "last_update_ok": false,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261121.json",
-  "schedule_checked_at": "2026-11-21T12:35:31.937712+09:00",
+  "schedule_checked_at": "2026-11-21T12:51:10.233430+09:00",
   "schedule_warnings": [
     "official_cards: TimeoutError",
     "開催表から場が消失したため当日確認済みの開催表を保持"
@@ -56,10 +56,15 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 12,
+    "requested": 13,
     "fetched": 10,
     "failures": [],
     "deferred": [
+      {
+        "jcd": "01",
+        "name": "桐生",
+        "start": "2026-11-21T14:45:00+09:00"
+      },
       {
         "jcd": "07",
         "name": "蒲郡",
@@ -331,7 +336,8 @@
           "name": "一般特賞"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "provider_stream_start": "2026-11-21T14:45:00+09:00",
+      "source": "公式BR配信開始待ち 14:45"
     },
     "boat.toda": {
       "jcd": "02",
@@ -1172,14 +1178,14 @@
       "last_race": "15:32",
       "alert_from": "2026-11-21T09:49:00+09:00",
       "next_race": {
-        "race": 7,
-        "start": "12:50"
+        "race": 8,
+        "start": "13:24"
       },
       "stream_window": "live_or_prestart",
       "intermission": null,
       "guidance_switch_at": "2026-11-21T16:17:00+09:00",
       "seed_required": false,
-      "reverify_due": true,
+      "reverify_due": false,
       "playback_verified": true,
       "first_verified_at": "2026-11-21T09:40:45.261044+09:00",
       "ready_before_first_race": true,
