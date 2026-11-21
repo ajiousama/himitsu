@@ -3,9 +3,6 @@ name: Kana IPTV Alt API Rescue
 
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - '.github/workflows/kana_iptv_altapi.yml'
   schedule:
     # 13:05 JST
     - cron: '5 4 * * *'
@@ -231,22 +228,48 @@ jobs:
           target=None
           discover_source=None
 
-          # First: newest official YouTube RSS entries. We do not trust metadata;
-          # each ID must actually expose a verified AV HLS via an alt API.
-          for cand in rss_candidates()[:4]:
-              r=try_video(cand)
-              if r:
-                  target=cand
-                  discover_source="youtube-rss"
-                  result=r
-                  break
+          # First: the currently published Kana watch ID. This avoids selecting
+          # the next scheduled reservation just because it is newest in RSS.
+          try:
+              api="https://api.github.com/repos/"+REPO+"/contents/youtube/output/kana.m3u"
+              req=urllib.request.Request(api,headers={
+                  "Authorization":"Bearer "+TOKEN,
+                  "Accept":"application/vnd.github+json",
+                  "User-Agent":"kana-altapi",
+              })
+              with urllib.request.urlopen(req,timeout=12) as resp:
+                  kd=json.loads(resp.read().decode())
+              ktext=base64.b64decode(kd["content"]).decode("utf-8","replace")
+              km=re.search(r'(?:watch\\?v=|/live/)([A-Za-z0-9_-]{11})',ktext)
+              if km:
+                  current_id=km.group(1)
+                  note("CURRENT_KANA_ID",current_id)
+                  result=try_video(current_id)
+                  if result:
+                      target=current_id
+                      discover_source="kana-current-watch"
+          except Exception as e:
+              note("CURRENT_KANA_ID_FAIL",type(e).__name__,str(e)[:120])
 
-          # Second: API live markers.
+          # Second: explicit live markers from alternate APIs.
           if not result:
               d=discover()
               if d:
                   target,discover_source=d
                   result=try_video(target)
+
+          # Third: newest RSS entries, but only if the current published ID
+          # could not produce a verified HLS.
+          if not result:
+              for cand in rss_candidates()[:4]:
+                  if cand==target:
+                      continue
+                  r=try_video(cand)
+                  if r:
+                      target=cand
+                      discover_source="youtube-rss-fallback"
+                      result=r
+                      break
 
           # Last resort: remembered current-day ID.
           if not result:
