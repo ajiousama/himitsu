@@ -114,7 +114,13 @@ def _proxy_fetch(url, range_header=None, limit=32_000_000):
                     raise
                 nxt = urllib.parse.urljoin(current, loc)
                 if not _proxy_allowed(nxt):
-                    raise ValueError("redirect target not allowed")
+                    np = urllib.parse.urlparse(nxt)
+                    raise ValueError(
+                        "redirect target not allowed host="
+                        + str(np.hostname)
+                        + " url="
+                        + nxt[:500]
+                    )
                 current = nxt
                 continue
             raise
