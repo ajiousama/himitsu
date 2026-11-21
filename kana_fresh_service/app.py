@@ -648,6 +648,18 @@ def hls_proxy():
 
     target = (request.args.get("url") or "").strip()
     if not _proxy_allowed(target):
+        try:
+            print(
+                "HLS_PROXY_REJECT "
+                + json.dumps({
+                    "target": target[:500],
+                    "host": urllib.parse.urlparse(target).hostname if target else None,
+                    "raw_query": request.query_string.decode("utf-8", "replace")[:700],
+                }, ensure_ascii=False),
+                flush=True,
+            )
+        except Exception:
+            pass
         return Response("bad upstream\n", status=400, mimetype="text/plain")
 
     try:
@@ -788,13 +800,52 @@ def _warm_9x_proxy():
         status, final, headers, body = _proxy_fetch(src, limit=2_000_000)
         text = body.decode("utf-8", "replace")
         rewritten = _rewrite_hls(text, final) if status == 200 and "#EXTM3U" in text[:8192] else ""
+
+        child_result = None
+        child_match = re.search(r'https://kana-iptv-fresh-production\\.up\\.railway\\.app/hls-proxy\\?url=([^\\s"\']+)', rewritten)
+        if child_match:
+            encoded = child_match.group(1)
+            child_target = urllib.parse.unquote(encoded)
+            child_host = urllib.parse.urlparse(child_target).hostname
+            child_allowed = _proxy_allowed(child_target)
+            child_status = None
+            child_hls = False
+            if child_allowed:
+                try:
+                    cs, cf, ch, cb = _proxy_fetch(child_target, limit=2_000_000)
+                    child_status = cs
+                    ctext = cb.decode("utf-8", "replace")
+                    child_hls = "#EXTM3U" in ctext[:8192]
+                except Exception as ce:
+                    child_result = {
+                        "host": child_host,
+                        "allowed": child_allowed,
+                        "error": repr(ce)[:220],
+                    }
+            if child_result is None:
+                child_result = {
+                    "host": child_host,
+                    "allowed": child_allowed,
+                    "status": child_status,
+                    "hls": child_hls,
+                }
+
+        ok = bool(
+            rewritten
+            and "/hls-proxy?url=" in rewritten
+            and child_result
+            and child_result.get("allowed")
+            and child_result.get("status") == 200
+            and child_result.get("hls")
+        )
         print(
             "KANA_9X_WARM "
             + json.dumps({
-                "ok": bool(rewritten and "/hls-proxy?url=" in rewritten),
+                "ok": ok,
                 "status": status,
                 "source_host": urllib.parse.urlparse(src).hostname,
                 "bytes": len(rewritten),
+                "child": child_result,
             }, ensure_ascii=False),
             flush=True,
         )
