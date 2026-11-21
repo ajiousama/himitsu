@@ -574,7 +574,7 @@ def _seconds_until_jst(hour, minute):
 def _twice_daily_refresh_loop():
     # User requirement: obtain a fresh HLS at least twice per day.
     # Two fixed acquisition windows in JST, plus on-demand stale refreshes above.
-    schedule = [(9, 0), (20, 30)]
+    schedule = [(13, 5), (20, 40)]
     while True:
         waits = [(_seconds_until_jst(h, m), h, m) for h, m in schedule]
         wait_s, hour, minute = min(waits, key=lambda x: x[0])
