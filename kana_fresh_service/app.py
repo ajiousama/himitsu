@@ -7,7 +7,7 @@ import threading
 import time
 import urllib.parse
 import urllib.request
-from flask import Flask, Response, jsonify
+from flask import Flask, Response, jsonify, request
 
 app = Flask(__name__)
 
@@ -15,6 +15,14 @@ CHANNEL_LIVE = os.environ.get("KANA_CHANNEL_LIVE", "https://www.youtube.com/@kan
 DEFAULT_VIDEO_ID = os.environ.get("KANA_VIDEO_ID", "DAmfaJ-bGeg").strip()
 UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/140 Safari/537.36"
 CACHE_SECONDS = int(os.environ.get("CACHE_SECONDS", "90"))
+KANA_IPTV_RAW = "https://raw.githubusercontent.com/ajiousama/himitsu/main/youtube/output/kana_iptv.m3u"
+PUBLIC_BASE = "https://kana-iptv-fresh-production.up.railway.app"
+PROXY_ALLOWED_SUFFIXES = (
+    "yt.chocolatemoo53.com",
+    "googlevideo.com",
+    "googleusercontent.com",
+    "raw.githubusercontent.com",
+)
 
 _lock = threading.Lock()
 _cache = {
@@ -45,6 +53,109 @@ def _fetch(url, limit=262144, method="GET", data=None, headers=None):
     req = urllib.request.Request(url, headers=hdr, data=data, method=method)
     with urllib.request.urlopen(req, timeout=20) as r:
         return r.status, r.geturl(), r.read(limit).decode("utf-8", "replace")
+
+
+def _proxy_allowed(url):
+    try:
+        p = urllib.parse.urlparse(url)
+    except Exception:
+        return False
+    if p.scheme not in ("http", "https") or p.username or p.password:
+        return False
+    host = (p.hostname or "").lower().rstrip(".")
+    if not host:
+        return False
+    return any(host == suffix or host.endswith("." + suffix) for suffix in PROXY_ALLOWED_SUFFIXES)
+
+
+class _NoRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        return None
+
+
+def _proxy_fetch(url, range_header=None, limit=32_000_000):
+    if not _proxy_allowed(url):
+        raise ValueError("upstream host not allowed")
+
+    opener = urllib.request.build_opener(_NoRedirect)
+    current = url
+    for _ in range(6):
+        headers = {
+            "User-Agent": UA,
+            "Accept": "*/*",
+            "Accept-Language": "en-US,en;q=0.9",
+            "Cache-Control": "no-cache",
+            "Pragma": "no-cache",
+        }
+        if range_header:
+            headers["Range"] = range_header
+        req = urllib.request.Request(current, headers=headers)
+        try:
+            resp = opener.open(req, timeout=20)
+            final = resp.geturl()
+            if not _proxy_allowed(final):
+                resp.close()
+                raise ValueError("redirect target not allowed")
+            body = resp.read(limit + 1)
+            if len(body) > limit:
+                resp.close()
+                raise ValueError("upstream body too large")
+            hdrs = dict(resp.headers.items())
+            status = getattr(resp, "status", 200)
+            resp.close()
+            return status, final, hdrs, body
+        except urllib.error.HTTPError as e:
+            if e.code in (301, 302, 303, 307, 308):
+                loc = e.headers.get("Location")
+                if not loc:
+                    raise
+                nxt = urllib.parse.urljoin(current, loc)
+                if not _proxy_allowed(nxt):
+                    raise ValueError("redirect target not allowed")
+                current = nxt
+                continue
+            raise
+    raise ValueError("too many redirects")
+
+
+def _proxy_url(url):
+    return PUBLIC_BASE + "/hls-proxy?url=" + urllib.parse.quote(url, safe="")
+
+
+def _rewrite_hls(text, base_url):
+    out = []
+    for raw in text.splitlines():
+        line = raw.strip()
+        if not line:
+            out.append(raw)
+            continue
+        if line.startswith("#"):
+            def repl(m):
+                absolute = urllib.parse.urljoin(base_url, m.group(1))
+                return 'URI="' + _proxy_url(absolute) + '"'
+            out.append(re.sub(r'URI="([^"]+)"', repl, raw))
+            continue
+        absolute = urllib.parse.urljoin(base_url, line)
+        out.append(_proxy_url(absolute))
+    return "\n".join(out) + "\n"
+
+
+def _current_iptv_source():
+    status, _, _, body = _proxy_fetch(KANA_IPTV_RAW, limit=1_000_000)
+    if status != 200:
+        raise RuntimeError("kana_iptv.m3u unavailable")
+    text = body.decode("utf-8", "replace")
+    urls = [
+        line.strip()
+        for line in text.splitlines()
+        if line.strip().startswith(("http://", "https://"))
+    ]
+    if not urls:
+        raise RuntimeError("kana_iptv.m3u has no playable URL")
+    src = urls[-1]
+    if not _proxy_allowed(src):
+        raise RuntimeError("kana_iptv upstream not allowed")
+    return src
 
 
 def _video_id_from_url(text):
@@ -494,9 +605,86 @@ def current(force=False):
         return _cache
 
 
+@app.after_request
+def add_cors_headers(resp):
+    resp.headers["Access-Control-Allow-Origin"] = "*"
+    resp.headers["Access-Control-Allow-Methods"] = "GET,HEAD,OPTIONS"
+    resp.headers["Access-Control-Allow-Headers"] = "Range,Content-Type,Accept"
+    resp.headers["Access-Control-Expose-Headers"] = "Content-Length,Content-Range,Accept-Ranges,Content-Type"
+    resp.headers["Cross-Origin-Resource-Policy"] = "cross-origin"
+    return resp
+
+
 @app.get("/health")
 def health():
-    return jsonify({"ok": True, "service": "kana-iptv-fresh"})
+    return jsonify({"ok": True, "service": "kana-iptv-fresh", "player9x_proxy": True})
+
+
+@app.get("/kana-9x.m3u8")
+def kana_9x():
+    try:
+        src = _current_iptv_source()
+        status, final, headers, body = _proxy_fetch(src, limit=2_000_000)
+        text = body.decode("utf-8", "replace")
+        if status != 200 or "#EXTM3U" not in text[:8192]:
+            return Response("#EXTM3U\n", status=502, mimetype="application/vnd.apple.mpegurl")
+        rewritten = _rewrite_hls(text, final)
+        return Response(
+            rewritten,
+            status=200,
+            mimetype="application/vnd.apple.mpegurl",
+            headers={"Cache-Control": "no-store"},
+        )
+    except Exception as e:
+        print("KANA_9X_ERROR " + repr(e), flush=True)
+        return Response("#EXTM3U\n", status=502, mimetype="application/vnd.apple.mpegurl")
+
+
+@app.route("/hls-proxy", methods=["GET", "HEAD", "OPTIONS"])
+def hls_proxy():
+    if request.method == "OPTIONS":
+        return Response("", status=204)
+
+    target = (request.args.get("url") or "").strip()
+    if not _proxy_allowed(target):
+        return Response("bad upstream\n", status=400, mimetype="text/plain")
+
+    try:
+        status, final, headers, body = _proxy_fetch(
+            target,
+            range_header=request.headers.get("Range"),
+            limit=32_000_000,
+        )
+    except urllib.error.HTTPError as e:
+        return Response("upstream " + str(e.code) + "\n", status=e.code, mimetype="text/plain")
+    except Exception as e:
+        print("HLS_PROXY_ERROR " + repr(e), flush=True)
+        return Response("proxy error\n", status=502, mimetype="text/plain")
+
+    ctype = (headers.get("Content-Type") or "").lower()
+    path = urllib.parse.urlparse(final).path.lower()
+    if "mpegurl" in ctype or path.endswith(".m3u8"):
+        text = body.decode("utf-8", "replace")
+        if "#EXTM3U" not in text[:8192]:
+            return Response("invalid hls\n", status=502, mimetype="text/plain")
+        return Response(
+            _rewrite_hls(text, final),
+            status=status,
+            mimetype="application/vnd.apple.mpegurl",
+            headers={"Cache-Control": "no-store"},
+        )
+
+    resp = Response(body if request.method != "HEAD" else b"", status=status)
+    if headers.get("Content-Type"):
+        resp.headers["Content-Type"] = headers["Content-Type"]
+    if headers.get("Content-Range"):
+        resp.headers["Content-Range"] = headers["Content-Range"]
+    if headers.get("Accept-Ranges"):
+        resp.headers["Accept-Ranges"] = headers["Accept-Ranges"]
+    if headers.get("Content-Length") and request.method == "HEAD":
+        resp.headers["Content-Length"] = headers["Content-Length"]
+    resp.headers["Cache-Control"] = headers.get("Cache-Control") or "public,max-age=3"
+    return resp
 
 
 @app.get("/status")
@@ -593,7 +781,28 @@ def _twice_daily_refresh_loop():
         time.sleep(65)
 
 
+def _warm_9x_proxy():
+    try:
+        src = _current_iptv_source()
+        status, final, headers, body = _proxy_fetch(src, limit=2_000_000)
+        text = body.decode("utf-8", "replace")
+        rewritten = _rewrite_hls(text, final) if status == 200 and "#EXTM3U" in text[:8192] else ""
+        print(
+            "KANA_9X_WARM "
+            + json.dumps({
+                "ok": bool(rewritten and "/hls-proxy?url=" in rewritten),
+                "status": status,
+                "source_host": urllib.parse.urlparse(src).hostname,
+                "bytes": len(rewritten),
+            }, ensure_ascii=False),
+            flush=True,
+        )
+    except Exception as e:
+        print("KANA_9X_WARM_ERROR " + repr(e), flush=True)
+
+
 threading.Thread(target=_warm_resolver, daemon=True).start()
+threading.Thread(target=_warm_9x_proxy, daemon=True).start()
 threading.Thread(target=_twice_daily_refresh_loop, daemon=True).start()
 
 
