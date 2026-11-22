@@ -3,6 +3,9 @@ name: Kana IPTV Alt API Rescue
 
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/kana_iptv_altapi.yml'
   schedule:
     # 13:05 JST
     - cron: '5 4 * * *'
@@ -23,7 +26,7 @@ jobs:
     env:
       GH_TOKEN_LOCAL: ${{ github.token }}
       KANA_CHANNEL_ID: UCmHdGDdZGf4cMWRBmEw4Xww
-      KANA_FALLBACK_VIDEO_ID: DAmfaJ-bGeg
+      KANA_FALLBACK_VIDEO_ID: A-EUEALJsjI
 
     steps:
       - name: Resolve through independent Piped and Invidious APIs
