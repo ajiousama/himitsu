@@ -102,6 +102,10 @@ EXPLICIT = {
 # Rakuten source here; if it disappears, fall back instead of borrowing the
 # SkyPerfecTV schedule.
 SOURCE_PIN = {
+    # Keep NHK BS and NHK BSP4K on distinct programme grids.
+    # Never borrow the other channel when a source is unavailable.
+    "NHK・BS_jp": ("japanterebi", "NHKBS.jp"),
+    "NHK・BSP_jp": ("japanterebi", "NHKBSP4K.jp"),
     # Same XMLTV IDs as the two Arva terrestrial trial channels.
     "テレ玉_jp": ("karenda", "テレ玉_jp"),
     "テレビ神奈川_jp": ("karenda", "テレビ神奈川_jp"),
