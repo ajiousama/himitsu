@@ -2,10 +2,10 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-23",
-  "generated_at": "2026-11-23T08:07:25.830084+09:00",
+  "generated_at": "2026-11-23T08:13:05.040234+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261123.json",
-  "schedule_checked_at": "2026-11-23T07:56:42.625937+09:00",
+  "schedule_checked_at": "2026-11-23T08:13:05.040234+09:00",
   "schedule_warnings": [
     "official_cards: TimeoutError"
   ],
@@ -20,7 +20,7 @@
   "card_count": 13,
   "held_count": 13,
   "visible_count": 2,
-  "active_count": 1,
+  "active_count": 2,
   "ended_kept": [],
   "seed_required": false,
   "seed_required_venues": [],
@@ -29,7 +29,7 @@
     "morning": {
       "held": 3,
       "acquired": 2,
-      "active": 1,
+      "active": 2,
       "ended": 0,
       "seed_required": 0,
       "cancelled": 0
@@ -52,7 +52,7 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 6,
+    "requested": 7,
     "fetched": 2,
     "failures": [],
     "deferred": [
@@ -75,6 +75,11 @@
         "jcd": "11",
         "name": "びわこ",
         "start": "2026-11-23T09:50:00+09:00"
+      },
+      {
+        "jcd": "13",
+        "name": "尼崎",
+        "start": "2026-11-23T10:02:00+09:00"
       }
     ]
   },
@@ -91,13 +96,13 @@
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/6d717c8a02dc4489b72e551d8030a51b/1f51404897e54942bde37a230824c28c/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjAxZjc5MTcwZWM1YTQwYzdhNThlNjg3OWY1ZmIyOWM3IiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NTU2NDgwMCwic3RhcnQiOjE3OTUzODg0MDAsImlvcyI6MTgsImNwIjoiMjE3NTg0MDAwXzIxNzYyNzE5OSIsInBwdyI6IjN1NyJ9.4rIwv7g6I6WWySQ-sugNUlu7rGXDf0R1ccHDwPvpqBM",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-11-23T08:00:52.922310+09:00",
-      "checked_at": "2026-11-23T08:06:11.074349+09:00",
+      "checked_at": "2026-11-23T08:14:07.598156+09:00",
       "first_verified_at": "2026-11-23T08:00:52.922310+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
         "sequence": 9105114,
-        "last_segment": "/6d717c8a02dc4489b72e551d8030a51b/1f51404897e54942bde37a230824c28c/manifest_1_9105175.ts",
+        "last_segment": "/6d717c8a02dc4489b72e551d8030a51b/1f51404897e54942bde37a230824c28c/manifest_1_9105254.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -107,13 +112,13 @@
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/31a442ade1574976a99de9f6d988d900/28e26daff04547bdadff650453acc88b/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjAxZjc5MTcwZWM1YTQwYzdhNThlNjg3OWY1ZmIyOWM3IiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NTU2NDgwMCwic3RhcnQiOjE3OTUzODg4ODAsImlvcyI6MTgsImNwIjoiMjE3NTg0NDgwXzIxNzYyNzY3OSIsInBwdyI6IjN1NyJ9.YPmBzcQdhwp1m-j0r4RHDtz74h_ud9sYrelKgjOsVaU",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-11-23T08:08:20.373273+09:00",
-      "checked_at": "2026-11-23T08:08:20.373273+09:00",
+      "checked_at": "2026-11-23T08:14:07.598532+09:00",
       "first_verified_at": "2026-11-23T08:08:20.373273+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
         "sequence": 9097882,
-        "last_segment": "/31a442ade1574976a99de9f6d988d900/28e26daff04547bdadff650453acc88b/manifest_1_9097885.ts",
+        "last_segment": "/31a442ade1574976a99de9f6d988d900/28e26daff04547bdadff650453acc88b/manifest_1_9097942.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -843,7 +848,8 @@
           "name": "予選特選"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "provider_stream_start": "2026-11-23T10:02:00+09:00",
+      "source": "公式BR配信開始待ち 10:02"
     },
     "boat.naruto": {
       "jcd": "14",
@@ -1033,7 +1039,7 @@
       "held": true,
       "visible": true,
       "ended": false,
-      "active": false,
+      "active": true,
       "cancelled": false,
       "mode": "morning",
       "mode_label": "モーニング",
@@ -1044,7 +1050,7 @@
         "race": 1,
         "start": "08:43"
       },
-      "stream_window": "scheduled",
+      "stream_window": "live_or_prestart",
       "intermission": null,
       "guidance_switch_at": "2026-11-23T15:06:00+09:00",
       "seed_required": false,
