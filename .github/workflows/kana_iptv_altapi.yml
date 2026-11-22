@@ -9,8 +9,9 @@ on:
   schedule:
     # 13:05 JST
     - cron: '5 4 * * *'
-    # 20:40 JST
-    - cron: '40 11 * * *'
+    # Evening: refresh near the scheduled livestream start and through the show.
+    - cron: '15,30,45 11 * * *'
+    - cron: '0,15,30,45 12-14 * * *'
 
 permissions:
   contents: write
@@ -38,6 +39,7 @@ jobs:
           UA="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/140 Safari/537.36"
           CHANNEL_ID=os.environ["KANA_CHANNEL_ID"]
           FALLBACK=os.environ["KANA_FALLBACK_VIDEO_ID"]
+          TODAY=dt.datetime.now(dt.timezone(dt.timedelta(hours=9))).date()
           TOKEN=os.environ["GH_TOKEN_LOCAL"]
           REPO=os.environ["GITHUB_REPOSITORY"]
 
@@ -274,9 +276,10 @@ jobs:
                       result=r
                       break
 
-          # Last resort: remembered current-day ID.
-          if not result:
-              target,discover_source=FALLBACK,"fallback"
+          # Last resort: remembered ID only for its original date; do not
+          # reuse a daytime reservation as an evening livestream.
+          if not result and TODAY.isoformat()=="2026-11-22":
+              target,discover_source=FALLBACK,"fallback-daytime"
               result=try_video(target)
 
           state={
