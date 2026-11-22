@@ -301,6 +301,9 @@ jobs:
               'group-title="今日の開催場",かなチューブ IPTV【LIVE】\n'
               +result["url"]+'\n'
           )
+          # Update the standard Kana playlist too, never leave yesterday's watch URL.
+          standard_playlist=playlist.replace('youtube.kana_tube_iptv','youtube.kana_tube').replace('かなチューブ IPTV','かなチューブ')
+          note("PUBLISH_KANA",gh_put("youtube/output/kana.m3u",standard_playlist,"Refresh Kana direct HLS [skip ci]"))
           note("PUBLISH_PLAYLIST",gh_put("youtube/output/kana_iptv.m3u",playlist,"Refresh Kana IPTV via Alt API [skip ci]"))
           note("PUBLISH_STATE",gh_put("youtube/state/kana_iptv_altapi.json",json.dumps(state,ensure_ascii=False,indent=2)+"\n","Update Kana IPTV Alt API state [skip ci]"))
 
