@@ -2,10 +2,10 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-22",
-  "generated_at": "2026-11-22T14:42:48.857919+09:00",
+  "generated_at": "2026-11-22T14:44:03.536648+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261122.json",
-  "schedule_checked_at": "2026-11-22T14:28:18.626993+09:00",
+  "schedule_checked_at": "2026-11-22T14:44:03.536648+09:00",
   "schedule_warnings": [
     "official_cards: TimeoutError"
   ],
@@ -54,19 +54,19 @@
   "cloud_acquisition": {
     "requested": 11,
     "fetched": 9,
-    "failures": [],
-    "deferred": [
+    "failures": [
       {
         "jcd": "01",
         "name": "桐生",
-        "start": "2026-11-22T14:45:00+09:00"
+        "error": "HTTPError: playback check failed"
       },
       {
         "jcd": "24",
         "name": "大村",
-        "start": "2026-11-22T14:45:00+09:00"
+        "error": "HTTPError: playback check failed"
       }
-    ]
+    ],
+    "deferred": []
   },
   "epg_programmes_written": {
     "public_sports_epg_local.xml": 196,
@@ -311,8 +311,7 @@
           "name": "優勝戦"
         }
       ],
-      "provider_stream_start": "2026-11-22T14:45:00+09:00",
-      "source": "公式BR配信開始待ち 14:45"
+      "source": "automatic cloud SEED pending"
     },
     "boat.toda": {
       "jcd": "02",
@@ -1491,8 +1490,7 @@
           "name": "一般特賞"
         }
       ],
-      "provider_stream_start": "2026-11-22T14:45:00+09:00",
-      "source": "公式BR配信開始待ち 14:45"
+      "source": "automatic cloud SEED pending"
     }
   }
 }
