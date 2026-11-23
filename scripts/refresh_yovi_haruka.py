@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""HARUKA yovi-only trial: API host chasing with HLS+TS validation.
+"""HARUKA yovi-only trial: API host chasing with advancing-HLS + TS validation.
 
 Never edits FreeWiFi, TV, Rakuten, or any non-managed yovi channel.
 A missing HARUKA_AU may bootstrap the previously tested IP once; subsequent
 automatic host chasing needs the HARUKA_AU GitHub Actions secret.
-An HTTP 200 only shows data availability, NOT live broadcast freshness.
+HTTP 200 + TS alone can be a frozen 28-second clip. Check HLS progression.\nProgression still does not prove the programme matches today's broadcast.
 """
 from __future__ import annotations
 import argparse
@@ -12,6 +12,7 @@ import concurrent.futures
 import json
 import os
 import re
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -76,23 +77,47 @@ def stream_url(base: str, channel_id: int) -> str:
     return base + "/stream/" + str(channel_id) + ".m3u8"
 
 
-def probe(channel_id: int, base: str) -> bool:
+def manifest_snapshot(channel_id: int, base: str) -> tuple[int, str] | None:
+    """Fetch a snapshot; static 28-second HLS clips must NOT count as live."""
     url = stream_url(base, channel_id)
     try:
-        with OPENER.open(urllib.request.Request(url, headers=HEADERS), timeout=6) as response:
+        headers = {**HEADERS, "Cache-Control": "no-cache", "Pragma": "no-cache"}
+        with OPENER.open(urllib.request.Request(url, headers=headers), timeout=6) as response:
             if response.status != 200:
-                return False
+                return None
             body = response.read(16000).decode("utf-8", errors="replace")
-        if not body.startswith("#EXTM3U"):
-            return False
-        first = next((s.strip() for s in body.splitlines() if s.strip() and not s.startswith("#")), None)
-        if not first:
-            return False
-        segment = urllib.parse.urljoin(url, first)
-        parsed = urllib.parse.urlsplit(segment)
-        if parsed.scheme != "http" or parsed.netloc != urllib.parse.urlsplit(url).netloc:
-            return False
-        request = urllib.request.Request(segment, headers={**HEADERS, "Range": "bytes=0-4095"})
+        if not body.startswith("#EXTM3U") or "#EXT-X-ENDLIST" in body:
+            return None
+        sequence = re.search(r"(?m)^#EXT-X-MEDIA-SEQUENCE:(\d+)\s*$", body)
+        if not sequence or "#EXT-X-TARGETDURATION:" not in body:
+            return None
+        segments = [line.strip() for line in body.splitlines()
+                    if line.strip() and not line.strip().startswith("#")]
+        if not segments:
+            return None
+        last = urllib.parse.urljoin(url, segments[-1])
+        parts = urllib.parse.urlsplit(last)
+        if parts.scheme != "http" or parts.netloc != urllib.parse.urlsplit(url).netloc:
+            return None
+        return int(sequence.group(1)), last
+    except (ValueError, OSError, urllib.error.URLError):
+        return None
+
+
+def has_advanced(previous: tuple[int, str] | None,
+                 current: tuple[int, str] | None) -> bool:
+    """Require increasing HLS media sequence AND a new segment URI."""
+    return bool(previous and current and current[0] > previous[0]
+                and current[1] != previous[1])
+
+
+def probe_latest_segment(snapshot: tuple[int, str] | None) -> bool:
+    if snapshot is None:
+        return False
+    try:
+        request = urllib.request.Request(
+            snapshot[1], headers={**HEADERS, "Range": "bytes=0-4095"}
+        )
         with OPENER.open(request, timeout=7) as response:
             if response.status not in (200, 206):
                 return False
@@ -100,7 +125,6 @@ def probe(channel_id: int, base: str) -> bool:
         return len(data) >= 377 and data[0] == 0x47 and data[188] == 0x47
     except (ValueError, OSError, urllib.error.URLError):
         return False
-
 
 def existing_entries(text: str) -> dict[int, str]:
     if BEGIN not in text and END not in text:
@@ -193,13 +217,22 @@ def main() -> None:
             return
         base = BOOTSTRAP_BASE
         source = "previously tested bootstrap IP; API chase requires HARUKA_AU secret"
+    # A frozen stream can return HTTP 200 and valid 28-second MPEG-TS forever.
+    # Compare two manifest snapshots before publishing new host URLs.
     with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool:
-        checks = list(pool.map(lambda c: (c[0], probe(c[0], base)), CHANNELS))
-    good = {n for n, ok in checks if ok}
+        first = list(pool.map(lambda c: manifest_snapshot(c[0], base), CHANNELS))
+    time.sleep(20)
+    with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool:
+        second = list(pool.map(lambda c: manifest_snapshot(c[0], base), CHANNELS))
+        advancing = [(ch[0], snap) for ch, old, snap in
+                     zip(CHANNELS, first, second) if has_advanced(old, snap)]
+        checks = list(pool.map(lambda item: probe_latest_segment(item[1]), advancing))
+    good = {channel_id for (channel_id, _), ok in zip(advancing, checks) if ok}
     print("HARUKA source: " + source + "; host=" + base
-          + "; TS-passing=" + str(len(good)) + "/" + str(len(CHANNELS)))
+          + "; HLS-advancing=" + str(len(advancing)) + "/" + str(len(CHANNELS))
+          + "; fresh-TS-passing=" + str(len(good)))
     if not good:
-        print("No TS-passing channels; keeping all existing content")
+        print("All sources frozen/unavailable: preserve existing yovi URLs (not LIVE)")
         return
     updated, kept = update_yovi(original, base, good)
     print("HARUKA entries kept on previous URL=" + str(kept))
