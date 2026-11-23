@@ -315,11 +315,23 @@ def kana_managed_body(config=None):
 
     Never reconstruct this block from the YouTube-only playlist alone.
     """
-    youtube_body = playlist_body(KANA_OUT)
-    if not youtube_body:
-        return ""
     cfg = config if config is not None else load_config()
     item = cfg["special"]["kana"]
+    youtube_body = playlist_body(KANA_OUT)
+    if not youtube_body:
+        # No new confirmed stream is not permission to delete either FreeWiFi
+        # channel. Reuse the last watch target as an explicitly unverified
+        # placeholder; never advertise an old watch ID as a current LIVE.
+        old_url = parse_m3u(FREEWIFI).get(item["id"], {}).get("url") if FREEWIFI.exists() else None
+        state_url = read_json(KANA_STATE, {}).get("watch_url")
+        watch = next((
+            url for url in (old_url, state_url)
+            if isinstance(url, str)
+            and re.fullmatch(r"https://www\\.youtube\\.com/watch\\?v=[A-Za-z0-9_-]{11}", url)
+        ), None)
+        if not watch:
+            watch = item["channel"].rstrip("/") + "/live"
+        youtube_body = entry(item, watch, item["name"] + "【配信確認中】")
     iptv_item = dict(item, id=KANA_IPTV_ID, name=item["name"] + " IPTV")
     iptv_body = entry(iptv_item, KANA_9X_PROXY, iptv_item["name"] + "【LIVE】")
     return (youtube_body + "\n\n" + iptv_body).strip()
