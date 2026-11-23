@@ -1,15 +1,9 @@
 name: Kana IPTV Rescue Fresh
 
+# Legacy automatic scheduling disabled: fixed 2026-11-21 video IDs could
+# overwrite newer DAY/MID HLS. Manual-only diagnostics; Alt API is the auto resolver.
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - '.github/workflows/kana_iptv_rescue.yml'
-  schedule:
-    # 13:05 JST
-    - cron: '5 4 * * *'
-    # 20:40 JST
-    - cron: '40 11 * * *'
 
 permissions:
   contents: write
