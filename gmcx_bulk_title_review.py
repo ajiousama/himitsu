@@ -19,7 +19,7 @@ from urllib.parse import parse_qs, urlsplit
 from PIL import Image, ImageDraw
 
 RESOLVER = "https://kick-resolver-production.up.railway.app/kick?vod="
-SAMPLE_OFFSETS = (35, 155, 600, 1800)
+SAMPLE_OFFSETS = (360, 950, 1450, 2650)  # second pass for unresolved clips
 
 
 def unresolved_from_vod5():
@@ -57,6 +57,13 @@ def unresolved_from_vod5():
             "source_url": valid[vod]["source_url"],
             "old_label": label.split(",", 1)[-1]
         })
+    # Do not waste the second-pass job on titles identified by actual video
+    # in the first round but not yet published into VOD5.
+    evidence = json.loads(Path("gmcx_frame_identified_titles.json").read_text(encoding="utf-8"))
+    named = {(str(x.get("source_vod_id")), int(x.get("start_seconds") or 0))
+             for x in evidence.get("entries", []) if isinstance(x, dict)}
+    found = [row for row in found
+             if (row["vod_id"], row["start_seconds"]) not in named]
     # Prefer oldest, potentially expiring recordings. Shard deterministically.
     dates = {str(v.get("vod_id")): str(v.get("created_at") or "") for v in vods}
     found.sort(key=lambda row: (dates.get(row["vod_id"], ""), row["start_seconds"]))
