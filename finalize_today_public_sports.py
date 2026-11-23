@@ -82,7 +82,7 @@ def parse_managed_entries(text):
                 block.append(lines[j])
             j += 1
         mid = re.search(r'tvg-id="([^"]+)"', line)
-        if mid and mid.group(1) != KANA_TVG_ID:
+        if mid and mid.group(1) not in (KANA_TVG_ID, 'youtube.kana_tube_iptv'):
             name_m = re.search(r'tvg-name="([^"]+)"', line)
             name = name_m.group(1) if name_m else line.rsplit(',', 1)[-1].strip()
             entries.append({'id': mid.group(1), 'name': name, 'block': block})
@@ -100,13 +100,9 @@ def restore_kana_owned_entry(text):
         if line.strip() not in (KANA_START, KANA_END)
     ).rstrip() + '\n'
 
-    if not KANA_M3U.exists():
-        return text
-
-    payload = '\n'.join(
-        line for line in KANA_M3U.read_text(encoding='utf-8-sig', errors='replace').splitlines()
-        if not line.startswith('#EXTM3U')
-    ).strip()
+    # Use the same two-slot source as the 5-minute YouTube worker.
+    from youtube.manager import kana_managed_body
+    payload = kana_managed_body()
     if not payload:
         return text
 
