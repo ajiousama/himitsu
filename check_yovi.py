@@ -144,6 +144,11 @@ def main():
         if "," not in line:
             continue
         prefix, title = line.split(",", 1)
+        # HARUKA HLS/TS response does not prove a current live broadcast.
+        # Leave this yovi trial group uncolored for human LIVE/replay verification.
+        if 'group-title="HARUKA試験 ' in prefix:
+            lines[i] = prefix + "," + re.sub(r"^[🟢🟥]\\s*", "", title)
+            continue
         was_red = bool(re.match(r"^🟥", title))
         title = re.sub(r"^[🟢🟥]\s*", "", title)
         url = e["url"]
