@@ -257,7 +257,7 @@ def _published_watch_video_id(notes):
     try:
         url = KANA_WATCH_RAW + "?t=" + str(int(time.time()))
         status, _, body = _fetch(url, 40000)
-        match = re.search(r"watch\\?v=([A-Za-z0-9_-]{11})", body)
+        match = re.search(r"watch\?v=([A-Za-z0-9_-]{11})", body)
         if status == 200 and match:
             notes.append("latest_watch_id:" + match.group(1))
             return match.group(1)
