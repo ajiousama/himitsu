@@ -61,7 +61,7 @@ class YouTubeV2StructureTests(unittest.TestCase):
                          if 'tvg-id="youtube.kana_tube"' in line)
         iptv_i = next(i for i, line in enumerate(lines)
                       if 'tvg-id="youtube.kana_tube_iptv"' in line)
-        self.assertRegex(lines[youtube_i + 1], r"^https://www\\.youtube\\.com/watch\\?v=[A-Za-z0-9_-]{11}$")
+        self.assertRegex(lines[youtube_i + 1], r"^https://www\.youtube\.com/watch\?v=[A-Za-z0-9_-]{11}$")
         self.assertEqual(lines[iptv_i + 1], manager.KANA_9X_PROXY)
         self.assertLess(youtube_i, iptv_i)
 
@@ -70,7 +70,7 @@ class YouTubeV2StructureTests(unittest.TestCase):
         lines = manager.KANA_OUT.read_text(encoding="utf-8").splitlines()
         urls = [line.strip() for line in lines if line.startswith(("https://", "http://"))]
         self.assertEqual(len(urls), 1)
-        self.assertRegex(urls[0], r"^https://www\\.youtube\\.com/watch\\?v=[A-Za-z0-9_-]{11}$")
+        self.assertRegex(urls[0], r"^https://www\.youtube\.com/watch\?v=[A-Za-z0-9_-]{11}$")
 
     def test_search_based_general_channels_have_guards(self):
         cfg = json.loads(manager.CONFIG.read_text(encoding="utf-8"))
