@@ -147,7 +147,17 @@ jobs:
             sudo apt-get update -qq
             sudo apt-get install -y -qq ffmpeg
           fi
-          timeout 35 ffprobe -hide_banner -v warning -rw_timeout 12000000 -analyzeduration 3000000 -probesize 1800000 -show_entries stream=index,codec_name,codec_type,width,height -of json 'https://kana-iptv-fresh-production.up.railway.app/kana-9x.m3u8' || true
+          timeout 55 ffprobe -hide_banner -v error -rw_timeout 12000000 -analyzeduration 6000000 -probesize 2500000 -show_entries stream=index,codec_name,codec_type,width,height -of json 'https://kana-iptv-fresh-production.up.railway.app/kana-9x.m3u8' > /tmp/kana_av.json || true
+          cat /tmp/kana_av.json
+          python3 - <<'PY'
+          import json
+          d=json.load(open('/tmp/kana_av.json'))
+          types={s.get('codec_type') for s in d.get('streams',[])}
+          print("RAILWAY_AV_TYPES",sorted(t for t in types if t),flush=True)
+          if not {'audio','video'}<=types:
+              raise SystemExit("RAILWAY_AV_NOT_VERIFIED")
+          print("RAILWAY_AV_VERIFIED",flush=True)
+          PY
           echo "Railway manifest preview:"
           head -c 800 /tmp/kana_railway_probe.txt 2>/dev/null || true
           echo
