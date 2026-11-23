@@ -652,7 +652,21 @@ def update_kana(config):
     # Fast path: the most common transition is the already-known reservation
     # changing from upcoming -> live. Check that exact video first instead of
     # crawling the whole channel before looking at it.
+    # Published watch ID may have been advanced by the independent DAY/MID
+    # resolver while kana.json lagged. Never roll that newer slot back to
+    # the older state file's remembered stream.
+    published_watch = parse_m3u(KANA_OUT).get(item["id"], {}).get("url") or ""
+    published_match = re.search(r"^https://(?:www\\.)?youtube\\.com/watch\\?v=([A-Za-z0-9_-]{11})(?:[&#]|$)", published_watch)
+    published_id = published_match.group(1) if published_match else None
     previous_id = previous.get("video_id")
+    previous_start = int(previous.get("start_timestamp") or 0)
+    now_utc = int(datetime.now(timezone.utc).timestamp())
+    if previous_id and previous_start and now_utc - previous_start > 24 * 3600:
+        print(f"KANA old state ignored: {previous_id} (more than 24h old)")
+        previous_id = None
+    if published_id and published_id != previous_id:
+        print(f"KANA current published watch takes precedence: {published_id} over {previous_id}")
+        previous_id = None
     previous_info = None
     if previous_id:
         info, code = inspect_watch(previous_id)
@@ -667,7 +681,9 @@ def update_kana(config):
 
     # Primary discovery is the official streams tab only. Keep the list small:
     # we only need current live/upcoming slots, not dozens of old broadcasts.
-    candidates = [previous_id] if previous_id else []
+    candidates = [published_id] if published_id else []
+    if previous_id and previous_id not in candidates:
+        candidates.append(previous_id)
     # Confirmed 2026-11-21 normal-stream reservation, supplied by channel viewer.
     # Expire this one-day hint automatically; verify official channel ownership below.
     if datetime.now(JST).date().isoformat() == "2026-11-21":
