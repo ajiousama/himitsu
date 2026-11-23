@@ -190,18 +190,24 @@ jobs:
                           return r
               return None
 
+          def vertical_title(title):
+              title=(title or "").lower()
+              return any(t in title for t in ("縦型","縦配信","vertical","shorts"))
+
           def discover_inv(base):
+              out=[]
               try:
                   _,_,d=get_json(base+"/api/v1/channels/"+CHANNEL_ID)
                   for key in ("latestVideos","videos"):
                       for x in d.get(key) or []:
                           if isinstance(x,dict) and (x.get("liveNow") is True or x.get("isLive") is True):
                               vid=x.get("videoId") or vid_from_url(x.get("url"))
-                              if vid: return vid,base+":live"
+                              if vid: out.append((vid,base+":live",x.get("title") or ""))
               except Exception: pass
-              return None
+              return out
 
           def discover_piped(base):
+              out=[]
               try:
                   _,_,d=get_json(base+"/channel/"+CHANNEL_ID)
                   for key in ("relatedStreams","streams","videos"):
@@ -210,21 +216,23 @@ jobs:
                           typ=str(x.get("type") or "").lower()
                           if x.get("liveNow") is True or x.get("livestream") is True or typ=="livestream" or x.get("duration")==-1:
                               vid=x.get("videoId") or vid_from_url(x.get("url"))
-                              if vid: return vid,base+":live"
+                              if vid: out.append((vid,base+":live",x.get("title") or ""))
               except Exception: pass
-              return None
+              return out
 
           def discover():
+              ranked={}
               with cf.ThreadPoolExecutor(max_workers=19) as ex:
                   fs=[ex.submit(discover_inv,b) for b in INVIDIOUS]+[ex.submit(discover_piped,b) for b in PIPED]
                   for fut in cf.as_completed(fs):
-                      try: r=fut.result()
-                      except Exception: r=None
-                      if r:
-                          note("DISCOVERED_LIVE",r[0],r[1])
-                          for other in fs: other.cancel()
-                          return r
-              return None
+                      try: rows=fut.result() or []
+                      except Exception: rows=[]
+                      for vid,source,title in rows:
+                          if vid not in ranked or (vertical_title(ranked[vid][2]) and not vertical_title(title)):
+                              ranked[vid]=(vid,source,title)
+              choices=sorted(ranked.values(),key=lambda x:(vertical_title(x[2]),x[0]))
+              note("LIVE_CANDIDATES_NORMAL_FIRST",",".join(x[0] for x in choices[:10]))
+              return choices
 
           def rss_candidates():
               url="https://www.youtube.com/feeds/videos.xml?channel_id="+CHANNEL_ID
@@ -265,35 +273,28 @@ jobs:
           target=None
           discover_source=None
 
-          # First: the currently published Kana watch ID. This avoids selecting
-          # the next scheduled reservation just because it is newest in RSS.
-          try:
-              api="https://api.github.com/repos/"+REPO+"/contents/youtube/output/kana.m3u"
-              req=urllib.request.Request(api,headers={
-                  "Authorization":"Bearer "+TOKEN,
-                  "Accept":"application/vnd.github+json",
-                  "User-Agent":"kana-altapi",
-              })
-              with urllib.request.urlopen(req,timeout=12) as resp:
-                  kd=json.loads(resp.read().decode())
-              ktext=base64.b64decode(kd["content"]).decode("utf-8","replace")
-              km=re.search(r'(?:watch\\?v=|/live/)([A-Za-z0-9_-]{11})',ktext)
-              if km:
-                  current_id=km.group(1)
-                  note("CURRENT_KANA_ID",current_id)
-                  result=try_video(current_id)
-                  if result:
-                      target=current_id
-                      discover_source="kana-current-watch"
-          except Exception as e:
-              note("CURRENT_KANA_ID_FAIL",type(e).__name__,str(e)[:120])
+          # Primary: channel-confirmed LIVE IDs. Rank normal broadcasts ahead
+          # of vertical feeds, independent of which provider answers first.
+          for vid,source,title in discover()[:8]:
+              r=try_video(vid)
+              if r:
+                  target,discover_source,result=vid,source,r
+                  break
 
-          # Second: explicit live markers from alternate APIs.
+          # Secondary: previously published watch ID, but only if its video
+          # metadata says this is a CURRENT live (not archived).
           if not result:
-              d=discover()
-              if d:
-                  target,discover_source=d
-                  result=try_video(target)
+              try:
+                  ktext,_=gh_get("youtube/output/kana.m3u")
+                  km=re.search(r'(?:watch\\?v=|/live/)([A-Za-z0-9_-]{11})',ktext)
+                  if km:
+                      current_id=km.group(1)
+                      note("CURRENT_KANA_ID",current_id)
+                      r=try_video(current_id)
+                      if r:
+                          target,discover_source,result=current_id,"kana-current-watch",r
+              except Exception as e:
+                  note("CURRENT_KANA_ID_FAIL",type(e).__name__,str(e)[:120])
 
           # Third: newest RSS entries, but only if the current published ID
           # could not produce a verified HLS.
