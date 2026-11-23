@@ -1,0 +1,71 @@
+name: Refresh Verified KICK VOD5 Titles Fast
+# Title-only writer. Preserve exact cuts and the existing replay/EPG sources.
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "gmcx_frame_identified_titles.json"
+      - ".github/workflows/refresh_kick_vod5_titles_fast.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: himitsu-freewifi-state-writer
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 9
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Regenerate titles with current source and validate before write
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          for attempt in 1 2 3 4 5; do
+            git fetch origin main
+            git checkout -B main origin/main
+
+            python -u kick_replay_freewifi.py
+            python -m unittest -q test_vod_source_groups.py
+
+            python - <<'PY'
+          from pathlib import Path
+          import json
+          vod = Path("VOD5").read_text(encoding="utf-8")
+          mirror = Path("vod5/playlist.m3u").read_text(encoding="utf-8")
+          assert vod == mirror
+          assert vod.startswith("#EXTM3U")
+          assert "Mirumo" not in vod and 'group-title="blog系VOD"' not in vod
+          titles = [x for x in vod.splitlines() if x.startswith("#EXTINF") and 'group-title="KICK系VOD"' in x]
+          named = sum("GCCX" in x and "仮チャプター" not in x for x in titles)
+          print(f"Verified KICK VOD5 entries={len(titles)}, named_GCCX={named}")
+          assert titles, "KICK VOD5 unexpectedly empty"
+          PY
+
+            git add VOD5 vod5/playlist.m3u vod5/freewifi_specials.m3u freewifi
+            if git diff --cached --quiet; then
+              echo "Verified GCCX title catalog already current"
+              exit 0
+            fi
+            git commit -m "Publish verified GCCX VOD5 titles [skip ci] [skip render]"
+            if git push origin HEAD:main; then
+              echo "Verified GCCX titles published in VOD5 and FreeWiFi"
+              exit 0
+            fi
+            echo "::warning::main moved, retrying against latest source"
+          done
+          echo "::error::Could not publish verified titles after concurrent writes"
+          exit 1
