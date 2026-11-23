@@ -606,15 +606,14 @@ def update_kana(config):
                 play = alternate
         if status == "is_live" and not play:
             print(f"KANA HLS unavailable: {vid}; do not publish YouTube watch URL as IPTV")
-        # Keep the channel visible for browser-capable players even when HLS fails.
-        # State still clearly reports HLS unavailable; never label watch as HLS.
-        url = play if status == "is_live" and play else watch
+        # Stable two-slot contract: Kana YouTube is ALWAYS a watch URL.
+        # HLS (if any) belongs exclusively to Kana IPTV, never overwrite the watch slot.
         if status == "is_live":
             label = item["name"] + "【LIVE】"
         else:
             when = datetime.fromtimestamp(start, JST).strftime("%m/%d %H:%M") if start else ""
             label = item["name"] + (f"【配信予定 {when}】" if when else "【配信予定】")
-        write_playlist(KANA_OUT, [entry(item, url, label)])
+        write_playlist(KANA_OUT, [entry(item, watch, label)])
         iptv_item = dict(item, id=KANA_IPTV_ID, name=item["name"] + " IPTV")
         iptv_url = play if status == "is_live" and play and (".m3u8" in play or "manifest.googlevideo.com/" in play) else None
         write_playlist(KANA_IPTV_OUT, [entry(iptv_item, iptv_url, iptv_item["name"] + "【LIVE】")] if iptv_url else [])
@@ -690,7 +689,7 @@ def update_kana(config):
             if vid == previous_id or vid in official_stream_ids:
                 live_url, live_code = direct_hls("https://www.youtube.com/watch?v=" + vid)
                 if live_url and ("manifest.googlevideo.com/" in live_url or ".m3u8" in live_url):
-                    write_playlist(KANA_OUT, [entry(item, live_url, item["name"] + "【LIVE】")])
+                    write_playlist(KANA_OUT, [entry(item, "https://www.youtube.com/watch?v=" + vid, item["name"] + "【YouTube】")])
                     iptv_item = dict(item, id=KANA_IPTV_ID, name=item["name"] + " IPTV")
                     write_playlist(KANA_IPTV_OUT, [entry(iptv_item, live_url, iptv_item["name"] + "【LIVE】")])
                     write_json(KANA_STATE, {
@@ -856,7 +855,7 @@ def sync_freewifi(config):
         raise SystemExit("freewifi missing")
     text = FREEWIFI.read_text(encoding="utf-8-sig", errors="replace")
 
-    # FreeWiFi intentionally publishes only KanaTube from the YouTube system.
+    # FreeWiFi contains exactly two managed Kana slots: YouTube watch and stable IPTV relay.
     # General live cameras and Mandarin Pirates remain available in youtube/output/
     # but must never be projected into the aggregate FreeWiFi playlist.
     block = GENERAL_START + "\n" + GENERAL_END
