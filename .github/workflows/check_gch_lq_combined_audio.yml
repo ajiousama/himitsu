@@ -1,0 +1,27 @@
+name: GCH LQ sound audit (read-only)
+
+on:
+  push:
+    paths:
+      - .github/workflows/check_gch_lq_combined_audio.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  inspect-lq-audio:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install ffprobe and ffmpeg
+        run: |
+          if ! command -v ffprobe >/dev/null 2>&1; then
+            sudo apt-get update -qq
+            sudo apt-get install -y -qq ffmpeg
+          fi
+          ffprobe -version | head -n 1
+      - name: Inspect all three LQ masters without publishing changes
+        run: python3 tools/check_gch_lq_combined_audio.py
