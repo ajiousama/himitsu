@@ -1,13 +1,19 @@
 {
   "system": "boat-auto-v3",
   "date": "2026-11-24",
-  "checked_at": "2026-11-24T07:54:01.165337+09:00",
+  "checked_at": "2026-11-24T07:57:20.942663+09:00",
   "active": false,
   "kind": "healthy",
   "title": "BOAT自動更新 正常",
   "message": "朝・デイ・ナイターを自動取得中です。",
   "seed_required_venues": [],
   "system_errors": [],
-  "cloud_failures": [],
+  "cloud_failures": [
+    {
+      "jcd": "08",
+      "name": "常滑",
+      "error": "cloud and official acquisition unavailable: HTTPError"
+    }
+  ],
   "recovery": "automatic retry; no manual SEED dependency"
 }
