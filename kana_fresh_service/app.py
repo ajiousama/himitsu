@@ -741,7 +741,27 @@ def current(force=False):
     with _lock:
         if not force and _cache.get("checked") and now - _cache["checked"] < CACHE_SECONDS:
             return _cache
-        _cache = _resolve()
+        previous = _cache
+        latest = _resolve()
+        if latest.get("ok"):
+            _cache = latest
+        elif (
+            previous.get("ok")
+            and previous.get("mode") == "muxed"
+            and previous.get("video_id") == latest.get("video_id")
+            and _valid_current_source(previous.get("play_url"), latest.get("video_id"))
+        ):
+            # A transient YouTube 429/BOT_CHECK must not destroy a still-live
+            # muxed stream obtained earlier from this same Railway instance.
+            valid, _ = _probe_hls(previous["play_url"])
+            if valid:
+                _cache = dict(previous, checked=int(now),
+                              revalidated_at=int(now),
+                              transient_resolver_error=latest.get("error"))
+            else:
+                _cache = latest
+        else:
+            _cache = latest
         return _cache
 
 
