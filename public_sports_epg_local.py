@@ -84,15 +84,17 @@ AUTO = {
 
 JRA_STREAMS = {'JRA EAST': 'jra.east', 'JRA WEST': 'jra.west', 'JRA LOCAL': 'jra.hokkaido'}
 JRA_VENUE_STREAM = {
-    '東京': 'JRA EAST', '中山': 'JRA EAST', '新潟': 'JRA EAST', '福島': 'JRA EAST',
-    '京都': 'JRA WEST', '阪神': 'JRA WEST', '中京': 'JRA WEST', '小倉': 'JRA WEST',
-    '札幌': 'JRA LOCAL', '函館': 'JRA LOCAL',
+    '東京': 'JRA EAST', '中山': 'JRA EAST',
+    '京都': 'JRA WEST', '阪神': 'JRA WEST',
+    # Green Channel Web 5ch carries the third venue, including Fukushima.
+    '新潟': 'JRA LOCAL', '福島': 'JRA LOCAL', '中京': 'JRA LOCAL',
+    '小倉': 'JRA LOCAL', '札幌': 'JRA LOCAL', '函館': 'JRA LOCAL',
 }
 
 # WEB5 is the third JRA meeting, not a permanently Hokkaido-only channel.
 # The canonical tvg-id remains jra.hokkaido for downstream compatibility.
-JRA_EAST_PRIORITY = ('東京', '中山', '福島', '新潟')
-JRA_WEST_PRIORITY = ('京都', '阪神', '中京', '小倉')
+JRA_EAST_PRIORITY = ('東京', '中山')
+JRA_WEST_PRIORITY = ('京都', '阪神')
 
 
 def assign_jra_meeting_streams(meetings):
