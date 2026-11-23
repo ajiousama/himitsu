@@ -22,7 +22,7 @@ jobs:
           import concurrent.futures as cf, json, re, urllib.parse, urllib.request, urllib.error
           from pathlib import Path
           text=Path("youtube/output/kana.m3u").read_text(encoding="utf-8")
-          match=re.search(r'watch\\?v=([A-Za-z0-9_-]{11})',text)
+          match=re.search(r'watch\?v=([A-Za-z0-9_-]{11})',text)
           if not match: raise SystemExit("Current Kana watch ID missing")
           VIDEO_ID=match.group(1)
           print("CURRENT_DAY_OR_MID_VIDEO",VIDEO_ID,flush=True)
