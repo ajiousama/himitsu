@@ -17,6 +17,7 @@ DEFAULT_VIDEO_ID = os.environ.get("KANA_VIDEO_ID", "DAmfaJ-bGeg").strip()
 UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/140 Safari/537.36"
 CACHE_SECONDS = int(os.environ.get("CACHE_SECONDS", "90"))
 KANA_IPTV_RAW = "https://raw.githubusercontent.com/ajiousama/himitsu/main/youtube/output/kana_iptv.m3u"
+KANA_WATCH_RAW = "https://raw.githubusercontent.com/ajiousama/himitsu/main/youtube/output/kana.m3u"
 PUBLIC_BASE = "https://kana-iptv-fresh-production.up.railway.app"
 PROXY_ALLOWED_SUFFIXES = (
     "chocolatemoo53.com",
@@ -251,6 +252,20 @@ def _live_video_id_from_html(html):
     return None
 
 
+def _published_watch_video_id(notes):
+    """Use the currently published DAY/MID watch ID instead of a dated fallback."""
+    try:
+        url = KANA_WATCH_RAW + "?t=" + str(int(time.time()))
+        status, _, body = _fetch(url, 40000)
+        match = re.search(r"watch\\?v=([A-Za-z0-9_-]{11})", body)
+        if status == 200 and match:
+            notes.append("latest_watch_id:" + match.group(1))
+            return match.group(1)
+    except Exception as exc:
+        notes.append("latest_watch_error:" + type(exc).__name__)
+    return None
+
+
 def _discover_video_id(notes):
     try:
         status, final_url, html = _fetch(CHANNEL_LIVE, 2_000_000)
@@ -274,6 +289,9 @@ def _discover_video_id(notes):
     except Exception as e:
         notes.append("discover_error:" + type(e).__name__ + ":" + str(e)[:120])
 
+    published = _published_watch_video_id(notes)
+    if published:
+        return published, "published-current-watch"
     return DEFAULT_VIDEO_ID, "fallback-default"
 
 
