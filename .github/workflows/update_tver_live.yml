@@ -73,6 +73,9 @@ jobs:
             python patapata/sync_freewifi.py
             python tver/epg.py --merge-only
 
+            # Reject publication that drops either Kana YouTube or IPTV slot.
+            python -m unittest -q youtube.test_manager
+
             git add tver/playlist.m3u tver/live_status.json tver/tver_epg.xml freewifi guides.xml
             if git diff --cached --quiet; then
               echo "TVer live state already current"
