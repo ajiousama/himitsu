@@ -88,6 +88,9 @@ jobs:
             grep -F 'tvg-id="radiko.FMT"' freewifi >/dev/null
             ! grep -F 'tvg-logo="tvg-logo=' freewifi
 
+            # Do not publish any FreeWiFi refresh that removes a Kana slot.
+            python -m unittest -q youtube.test_manager
+
             git add freewifi tv/playlist.m3u logos/contrast_sources.json logos/contrast
             if git diff --cached --quiet; then
               echo "Contrast-safe logos already current"
