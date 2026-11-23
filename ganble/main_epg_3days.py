@@ -2570,25 +2570,15 @@ def build_jra_stream_epg(tv, target_date, JST, today_display):
             )
 
         for i, (dt, venue, race) in enumerate(flat):
-            block_start = max(
-                pre,
-                dt - datetime.timedelta(minutes=10),
+            # The next race appears 3 minutes after the previous scheduled
+            # start, identical to FreeWiFi's canonical JRA per-race EPG.
+            # Do not retain 11R until 10 minutes before the final 12R.
+            block_start = (
+                pre if i == 0
+                else flat[i - 1][0] + datetime.timedelta(minutes=3)
             )
-
-            next_dt = flat[i + 1][0] if i + 1 < len(flat) else None
-            long_break = bool(next_dt and (next_dt - dt) >= datetime.timedelta(minutes=40))
-
-            if next_dt:
-                block_stop = (
-                    dt + datetime.timedelta(minutes=20)
-                    if long_break
-                    else next_dt - datetime.timedelta(minutes=10)
-                )
-            else:
-                block_stop = dt + datetime.timedelta(minutes=30)
-
-            if block_stop <= block_start:
-                block_stop = dt + datetime.timedelta(minutes=15)
+            block_stop = dt + datetime.timedelta(minutes=3)
+            long_break = False  # The next race block already spans a long gap.
 
             base_title = (
                 f"🏇 {venue} {race['race']}R "
@@ -2636,7 +2626,7 @@ def build_jra_stream_epg(tv, target_date, JST, today_display):
                         ),
                     )
 
-        finish = flat[-1][0] + datetime.timedelta(minutes=30)
+        finish = flat[-1][0] + datetime.timedelta(minutes=3)
 
         if finish < day_end:
             venues_text = "・".join(dict.fromkeys(v for _, v, _ in flat))
