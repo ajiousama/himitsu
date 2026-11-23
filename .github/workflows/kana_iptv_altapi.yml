@@ -108,7 +108,7 @@ jobs:
               decoded=urllib.parse.unquote(url).lower()
               if "/force_finished/1" in decoded or "/playlist_type/clean" in decoded:
                   return False
-              expires=re.search(r"/expire/(\\d+)",decoded)
+              expires=re.search(r"/expire/(\d+)",decoded)
               if expires and int(expires.group(1)) < time.time()+1800:
                   return False
               return True
@@ -286,7 +286,7 @@ jobs:
           if not result:
               try:
                   ktext,_=gh_get("youtube/output/kana.m3u")
-                  km=re.search(r'(?:watch\\?v=|/live/)([A-Za-z0-9_-]{11})',ktext)
+                  km=re.search(r'(?:watch\?v=|/live/)([A-Za-z0-9_-]{11})',ktext)
                   if km:
                       current_id=km.group(1)
                       note("CURRENT_KANA_ID",current_id)
