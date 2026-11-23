@@ -224,6 +224,9 @@ jobs:
             python check_gch_always.py
             python scripts/check_tv_source_partition.py
 
+            # Reject publication that drops either Kana YouTube or IPTV slot.
+            python -m unittest -q youtube.test_manager
+
             git add ganble/playlist.m3u freewifi gccx2_live_state.json today_public_sports_status.json today_jra_status.json today_event_counts.json verified_daily_status.json public_sports_epg_local.xml
 
             if git diff --cached --quiet; then
