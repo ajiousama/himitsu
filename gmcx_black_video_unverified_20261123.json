@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "verified_at": "2026-11-23",
+  "purpose": "Unresolved KICK/GCCX time-navigation ranges. All tested frames decode but render black. DO NOT invent game titles, episode numbers or new programme boundaries.",
+  "evidence_runs": [
+    45112575219,
+    45114358357,
+    45115538862
+  ],
+  "sample_offsets_by_run_seconds": [
+    [
+      35,
+      155,
+      600,
+      1800
+    ],
+    [
+      360,
+      950,
+      1450,
+      2650
+    ],
+    [
+      750,
+      1250,
+      2100,
+      2975
+    ]
+  ],
+  "review_status": "unidentified_due_to_all_black_decoded_frames",
+  "entries": [
+    {
+      "source_vod_id": "09a837cb-4604-437c-ae57-a75c9a1f536f",
+      "start_seconds": 66120,
+      "notes": "Current final ~11-minute provisional tail. All 12 sampled source frames across the three review runs are black; 3rd pass ffmpeg status source for four samples."
+    },
+    {
+      "source_vod_id": "97bb649f-ef37-4e7a-b9c2-d986435f699d",
+      "start_seconds": 41760,
+      "notes": "Long source near tail: all 12 decoded samples across three passes black. Do not infer that a programme is absent; no title is verifiable."
+    },
+    {
+      "source_vod_id": "97bb649f-ef37-4e7a-b9c2-d986435f699d",
+      "start_seconds": 45240,
+      "notes": "Last partial time-navigation slot: all 12 decoded samples across three passes black. Cannot identify the title from currently sampled frames."
+    }
+  ],
+  "requires_manual_recheck_when_valid_video_exists": true,
+  "never_promote_to_actual_gameplay_verified": true
+}
