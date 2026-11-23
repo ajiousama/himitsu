@@ -67,9 +67,11 @@ def main() -> None:
         active = set(json.loads(status_path.read_text(encoding="utf-8-sig")).get("active_ids") or [])
         for name, (cid, family, filename) in REGIONAL.items():
             actual = found.get(name)
-            if family in active and actual != (cid, f"{LOCAL_RAW}/{filename}", GROUP):
+            # WEST is fixed in FreeWiFi even if no western meeting is active.
+            required = family in active or family == 'jra.west'
+            if required and actual != (cid, f"{LOCAL_RAW}/{filename}", GROUP):
                 raise SystemExit(f"Weekend JRA guard: {name} missing or changed: {actual!r}")
-            if family not in active and actual is not None:
+            if not required and actual is not None:
                 raise SystemExit(f"Weekend JRA guard: inactive source unexpectedly present: {name}")
             if not Path(filename).is_file():
                 raise SystemExit(f"Weekend JRA guard: local source missing: {filename}")
