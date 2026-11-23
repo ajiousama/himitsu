@@ -123,6 +123,9 @@ jobs:
             # Always republish JRA's GCH MAIN/5002 routes, even on
             # days without scheduled races; this job runs every ten minutes.
             python freewifi_today_jra.py
+            # Refresh the regional JRA HQ/LQ EPG with the same venue mapping
+            # in the 10-minute loop, not just in the hourly full rebuild.
+            python -m epg.jra_epg_merge
             python finalize_today_public_sports.py
             python build_today_event_counts.py
 
