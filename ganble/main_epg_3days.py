@@ -40,6 +40,40 @@ JRA_VENUE_TO_STREAM = {
     "札幌": "JRA HOKKAIDO", "函館": "JRA HOKKAIDO",
 }
 
+def allocate_jra_web_streams(meetings):
+    """Assign individual meetings to GCH Web3/EAST, Web4/WEST, Web5/LOCAL.
+
+    In a two-meeting eastern day, such as Tokyo and Fukushima, the
+    secondary meeting is on Web5; never merge both cards into Web3.
+    """
+    venues = [venue for venue, races in meetings.items()
+              if venue in JRA_VENUE_TO_STREAM and races]
+    allocated = {}
+    east = next((v for v in ("東京", "中山", "福島", "新潟") if v in venues), None)
+    west = next((v for v in ("京都", "阪神", "中京", "小倉") if v in venues), None)
+    if east:
+        allocated[east] = "JRA EAST"
+    if west:
+        allocated[west] = "JRA WEST"
+
+    for venue in venues:
+        if venue in allocated:
+            continue
+        preferred = JRA_VENUE_TO_STREAM[venue]
+        if preferred not in allocated.values():
+            allocated[venue] = preferred
+        elif "JRA HOKKAIDO" not in allocated.values():
+            allocated[venue] = "JRA HOKKAIDO"
+        else:
+            available = next(
+                (name for name in JRA_STREAM_MAP if name not in allocated.values()),
+                None,
+            )
+            if available:
+                allocated[venue] = available
+    return allocated
+
+
 AUTO_MAP = {"川口": "auto.kawaguchi", "伊勢崎": "auto.isesaki", "浜松": "auto.hamamatsu", "飯塚": "auto.iizuka", "山陽": "auto.sanyo"}
 
 
@@ -2458,8 +2492,9 @@ def build_jra_stream_epg(tv, target_date, JST, today_display):
             )
         return
 
+    assigned = allocate_jra_web_streams(by_venue)
     for venue, races in by_venue.items():
-        stream = JRA_VENUE_TO_STREAM.get(venue)
+        stream = assigned.get(venue)
         if stream:
             by_stream[stream].append((venue, races))
 
@@ -2467,14 +2502,27 @@ def build_jra_stream_epg(tv, target_date, JST, today_display):
         meetings = by_stream.get(stream_name, [])
 
         if not meetings:
-            add_programme(
-                tv,
-                tvg_id,
-                day_start,
-                day_end,
-                f"🌼🐴 本日は開催していません 💤🍀 {stream_name}",
-                f"JRA公式で{today_display}の対象開催を確認できませんでした。",
-            )
+            if by_venue:
+                # All three feeds retain an honest 09:00-17:00 guide slot.
+                # No race assignment must be confused with confirmed off-air.
+                broadcast_start = datetime.datetime.combine(
+                    target_date, datetime.time(9, 0), tzinfo=JST
+                )
+                broadcast_end = datetime.datetime.combine(
+                    target_date, datetime.time(17, 0), tzinfo=JST
+                )
+                add_programme(
+                    tv, tvg_id, broadcast_start, broadcast_end,
+                    f"{stream_name}｜番組情報未取得",
+                    "このチャンネルの映像内容は未確認です。"
+                    "開催がないことは放送休止を意味しません。",
+                )
+            else:
+                add_programme(
+                    tv, tvg_id, day_start, day_end,
+                    f"🌼🐴 本日は開催していません 💤🍀 {stream_name}",
+                    f"JRA公式で{today_display}の対象開催を確認できませんでした。",
+                )
             continue
 
         flat = []
