@@ -1,0 +1,31 @@
+name: GCH LOCAL WEB5 media diagnostic (read-only)
+
+on:
+  push:
+    paths:
+      - .github/workflows/check_gch_local.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  inspect-local:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+      - name: Ensure ffprobe is installed
+        run: |
+          if ! command -v ffprobe >/dev/null 2>&1; then
+            sudo apt-get update -qq
+            sudo apt-get install -y -qq ffmpeg
+          fi
+          ffprobe -version | head -n 1
+      - name: Inspect declared and actual audio/video streams
+        env:
+          GCH_LOCAL_PROBE_ALTERNATES: '1'
+          GCH_LOCAL_AUDIO_LEVEL: '1'
+          GCH_LOCAL_AUDIO_ALTERNATES: '1'
+        run: python3 tools/check_gch_local_hls.py
