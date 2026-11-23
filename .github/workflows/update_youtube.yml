@@ -5,6 +5,8 @@ on:
   push:
     paths:
       - '.github/workflows/update_youtube.yml'
+      - 'youtube/manager.py'
+      - 'youtube/test_manager.py'
   schedule:
     # Recovery trigger if the long-running worker stops; JST daytime.
     - cron: '7 0-14 * * *'
