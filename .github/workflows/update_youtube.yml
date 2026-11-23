@@ -79,6 +79,14 @@ jobs:
         if: steps.hours.outputs.active == 'true'
         run: python youtube/generate_missing_logos.py
 
+      - name: Rebuild canonical Kana slots before structure tests
+        if: steps.hours.outputs.active == 'true'
+        run: |
+          python - <<'PY'
+          from youtube.manager import load_config, sync_freewifi
+          sync_freewifi(load_config())
+          PY
+
       - name: Run structure tests
         if: steps.hours.outputs.active == 'true'
         run: python -m unittest -v youtube.test_manager
