@@ -142,6 +142,42 @@ def build_gch_schedule(programmes, start, end):
     return result
 
 
+def regional_placeholder(start, stop, name):
+    """Unknown programme info must not be reported as confirmed suspension."""
+    p = ET.Element("programme", {
+        "start": xmltv_time(start),
+        "stop": xmltv_time(stop),
+    })
+    ET.SubElement(p, "title", {"lang": "ja"}).text = f"{name}｜番組情報未取得"
+    ET.SubElement(p, "desc", {"lang": "ja"}).text = (
+        "この時間帯の番組内容は確認できていません。"
+        "休止中または放送中という判定ではありません。"
+    )
+    return p
+
+
+def regional_schedule_with_unknowns(programmes, race_days, name):
+    """Reserve 09:00-17:00 JST on race days without inventing any races."""
+    out = list(programmes)
+    for day in sorted(race_days):
+        start = datetime.combine(day, datetime.min.time(), tzinfo=JST) + timedelta(hours=9)
+        stop = start + timedelta(hours=8)
+        intervals = []
+        for p in programmes:
+            a, b = parse_time(p.get("start")), parse_time(p.get("stop"))
+            if a and b and a < stop and b > start:
+                intervals.append((max(a, start), min(b, stop)))
+        intervals.sort()
+        cursor = start
+        for a, b in intervals:
+            if a > cursor:
+                out.append(regional_placeholder(cursor, a, name))
+            cursor = max(cursor, b)
+        if cursor < stop:
+            out.append(regional_placeholder(cursor, stop, name))
+    return out
+
+
 def main():
     if not GUIDES.exists() or not LOCAL.exists():
         raise SystemExit("guides/local JRA EPG missing")
@@ -157,18 +193,39 @@ def main():
     end = start + timedelta(days=3)
     source_id, source_schedule = actual_gch_schedule(root, start, end)
 
+    # A race day keeps all WEB3/WEB4/WEB5 EPG channels, even if only
+    # EAST and LOCAL have official race cards that day.
+    race_days = {
+        dt.date()
+        for programmes in regional.values() for p in programmes
+        if (dt := parse_time(p.get("start"))) and start <= dt < end
+    }
+    # Protect today's slot when a partial official JRA fetch failed.
+    for source_file in ("today_jra_status.json", "verified_daily_status.json"):
+        try:
+            import json
+            state = json.loads(Path(source_file).read_text(encoding="utf-8-sig"))
+            state_date = (state.get("generated_at") or state.get("date") or "")[:10]
+            valid = (state.get("jra_race_day") is True or
+                     any(cid in REGIONAL for cid in state.get("jra_active_ids", [])))
+            if state_date == now.date().isoformat() and valid:
+                race_days.add(now.date())
+        except (OSError, ValueError):
+            pass
+
     for el in list(root):
         cid = el.get("id") if el.tag == "channel" else el.get("channel") if el.tag == "programme" else ""
         if cid in TARGET:
             root.remove(el)
 
     for source, (base, display) in QUALITY.items():
-        if not regional[source]:
+        if not regional[source] and not race_days:
             continue
+        schedule = regional_schedule_with_unknowns(regional[source], race_days, display)
         for quality, label in (("hq", "HQ"), ("lq", "LQ")):
             cid = f"{base}.{quality}"
             add_channel(root, cid, f"{display} {label}")
-            for p in regional[source]:
+            for p in schedule:
                 root.append(clone(p, cid))
 
     # Always create both XMLTV channel IDs, even if no race is scheduled.
