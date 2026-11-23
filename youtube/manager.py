@@ -604,7 +604,7 @@ def kana_hls_still_usable(url, video_id):
     embedded_id = re.search(r"/id/([A-Za-z0-9_-]{11})(?:[./]|$)", path)
     if not embedded_id or embedded_id.group(1) != video_id:
         return False
-    expiry = re.search(r"/expire/(\\d+)", path)
+    expiry = re.search(r"/expire/(\d+)", path)
     return bool(expiry and int(expiry.group(1)) > time.time() + 900)
 
 
