@@ -152,6 +152,8 @@ jobs:
             # No race-day exception: all three protected GCH routes must survive.
             python check_gch_always.py
             python scripts/check_tv_source_partition.py
+            # Do not publish public-sports changes that silently erase Kana IPTV.
+            python -m unittest -v youtube.test_manager
 
             git add public_sports_epg_local.xml verified_daily_status.json freewifi today_public_sports_status.json today_jra_status.json today_event_counts.json ganble/epg.xml guides.xml
             if git diff --cached --quiet; then
