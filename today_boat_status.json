@@ -2,10 +2,10 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-23",
-  "generated_at": "2026-11-23T12:47:56.731160+09:00",
+  "generated_at": "2026-11-23T12:50:09.832305+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261123.json",
-  "schedule_checked_at": "2026-11-23T12:33:29.446115+09:00",
+  "schedule_checked_at": "2026-11-23T12:50:09.832305+09:00",
   "schedule_warnings": [
     "official_cards: TimeoutError"
   ],
@@ -52,10 +52,15 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 10,
+    "requested": 11,
     "fetched": 9,
     "failures": [],
     "deferred": [
+      {
+        "jcd": "07",
+        "name": "蒲郡",
+        "start": "2026-11-23T14:10:00+09:00"
+      },
       {
         "jcd": "24",
         "name": "大村",
@@ -490,7 +495,8 @@
           "name": "一般戦"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "provider_stream_start": "2026-11-23T14:10:00+09:00",
+      "source": "公式BR配信開始待ち 14:10"
     },
     "boat.tsu": {
       "jcd": "09",
@@ -1238,14 +1244,14 @@
       "last_race": "16:30",
       "alert_from": "2026-11-23T10:26:00+09:00",
       "next_race": {
-        "race": 5,
-        "start": "12:50"
+        "race": 6,
+        "start": "13:22"
       },
       "stream_window": "live_or_prestart",
       "intermission": null,
       "guidance_switch_at": "2026-11-23T17:15:00+09:00",
       "seed_required": false,
-      "reverify_due": true,
+      "reverify_due": false,
       "playback_verified": true,
       "first_verified_at": "2026-11-23T10:10:20.609362+09:00",
       "ready_before_first_race": true,
