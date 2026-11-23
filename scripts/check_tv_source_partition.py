@@ -44,8 +44,27 @@ def check():
         if retired:
             raise SystemExit(f"{label}: retired blog returned: {len(retired)}")
     yovi_text = (ROOT / "yovi").read_text(encoding="utf-8-sig")
-    if ":9394/stream/" in yovi_text:
-        raise SystemExit("yovi: obsolete HARUKA URLs reappeared")
+    trial_begin = "# === YOVI_HARUKA_TRIAL_BEGIN ==="
+    trial_end = "# === YOVI_HARUKA_TRIAL_END ==="
+    if yovi_text.count(trial_begin) != yovi_text.count(trial_end) or yovi_text.count(trial_begin) > 1:
+        raise SystemExit("yovi: invalid HARUKA trial markers")
+    if trial_begin in yovi_text:
+        before, remainder = yovi_text.split(trial_begin, 1)
+        trial, after = remainder.split(trial_end, 1)
+        if ":9394/stream/" in before or ":9394/stream/" in after:
+            raise SystemExit("yovi: HARUKA stream outside dedicated trial block")
+        allowed = {4, 5, 7, 8, 12, 17, 18, 20, 21, 22, 28, 116, 35, 36, 37, 38, 39}
+        for line in trial.splitlines():
+            if line.startswith("#EXTINF:") and 'group-title="HARUKA試験 ' not in line:
+                raise SystemExit("yovi: non-trial channel inside HARUKA block")
+            if ":9394/stream/" in line:
+                match = re.fullmatch(r"http://[A-Za-z0-9.:-]+:9394/stream/(\d+)\.m3u8", line)
+                if not match or int(match.group(1)) not in allowed:
+                    raise SystemExit("yovi: unapproved HARUKA URL in trial block")
+        if 'group-title="HARUKA試験 ' in before or 'group-title="HARUKA試験 ' in after:
+            raise SystemExit("yovi: HARUKA trial group outside managed block")
+    elif ":9394/stream/" in yovi_text:
+        raise SystemExit("yovi: obsolete HARUKA URLs outside trial")
     if any("haru.charandom.blog" in x for x in yovi_text.splitlines() if x.startswith("#EXTM3U")):
         raise SystemExit("yovi: stale HARU EPG playlist header returned")
     if "# === NEWBLOG_VOD_START ===" in yovi_text or "# === NEWBLOG_VOD_END ===" in yovi_text:
