@@ -27,6 +27,7 @@ GCH_PROVIDER_BACKUPS=(
 )
 LEGACY_FREE_IDS={'jra.official','jra.gch.free'}
 JRA_RACE_IDS={'jra.east','jra.west','jra.hokkaido'}
+FIXED_VISIBLE_SOURCES={'jra.west'}
 GCH_SITEMAP_URL='https://www.greenchannel.jp/sitemap.html'
 GCH_LOCAL_URL='https://www.greenchannel.jp/program/racing-chihoukeiba-chukei.html'
 
@@ -127,13 +128,15 @@ def main():
   cfg=json.loads(VERIFIED.read_text(encoding='utf-8-sig'))
   if cfg.get('date')==now.date().isoformat(): reported=[x for x in cfg.get('jra_active_ids',[]) if x in SOURCES]
  except Exception: pass
- active=[x for x in dict.fromkeys(reported) if x != 'jra.gch']
- jra_race_day=any(x in JRA_RACE_IDS for x in active)
+ race_active=[x for x in dict.fromkeys(reported) if x != 'jra.gch']
+ jra_race_day=any(x in JRA_RACE_IDS for x in race_active)
+ # WEST HQ/LQ remain in FreeWiFi even without a western JRA meeting.
+ # Preserve race_active separately so fixed visibility does not imply a race.
+ active=['jra.gch']+[x for x in SOURCES if x!='jra.gch' and (x in race_active or x in FIXED_VISIBLE_SOURCES)]
  # MAIN HQ/LQ and 5002-direct backup are always visible, including days
  # without JRA, overseas racing or local graded races.
  # No remote GCH schedule probe may determine whether they are published.
  official_fallback=[]
- active.insert(0,'jra.gch')
  base=strip(FREEWIFI.read_text(encoding='utf-8-sig',errors='replace')); rows=[]; exposed=[]
  for source in active:
   for filename in SOURCES[source][1:3]:
@@ -157,6 +160,6 @@ def main():
  anchor='# === GENERAL_YOUTUBE_MANAGED_START ==='
  text=base.replace(anchor,managed+'\n\n'+anchor,1) if anchor in base else base.rstrip()+'\n\n'+managed+'\n'
  FREEWIFI.write_text(text.rstrip()+'\n',encoding='utf-8')
- STATUS.write_text(json.dumps({'generated_at':now.isoformat(),'active_count':len(active),'active_ids':active,'active_labels':[SOURCES[x][0] for x in active],'exposed_quality_ids':exposed,'gch_special_broadcasts':gch_special,'gch_official_broadcasts':official_fallback,'jra_race_day':jra_race_day,'gch_reason':('JRA race day / always visible' if jra_race_day else 'Always visible: MAIN HQ/LQ, 5002 direct'),'channels':{x:{'active':x in active,'source':'ajiousama HQ/LQ canonical'} for x in SOURCES}},ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+ STATUS.write_text(json.dumps({'generated_at':now.isoformat(),'active_count':len(active),'active_ids':active,'fixed_visible_ids':sorted(FIXED_VISIBLE_SOURCES),'race_active_ids':race_active,'active_labels':[SOURCES[x][0] for x in active],'exposed_quality_ids':exposed,'gch_special_broadcasts':gch_special,'gch_official_broadcasts':official_fallback,'jra_race_day':jra_race_day,'gch_reason':('JRA race day / always visible' if jra_race_day else 'Always visible: MAIN HQ/LQ, 5002 direct'),'channels':{x:{'active':x in active,'source':'ajiousama HQ/LQ canonical'} for x in SOURCES}},ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
  print('JRA ajiousama HQ/LQ active:',exposed)
 if __name__=='__main__': main()
