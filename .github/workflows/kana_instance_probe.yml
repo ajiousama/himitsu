@@ -145,6 +145,7 @@ jobs:
           echo "Railway LIVE media track segment probe:"
           python3 - <<'PY'
           import urllib.request,urllib.parse,re,json
+          from pathlib import Path
           ROOT='https://kana-iptv-fresh-production.up.railway.app/kana-9x.m3u8'
           def fetch(url,limit=2_500_000):
               req=urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0','Cache-Control':'no-cache'})
@@ -170,26 +171,32 @@ jobs:
                   print('CHILD',kind,st,ct,'bytes',len(body),'segments',len(segments),'tags',[t[:150] for t in tags[:6]],flush=True)
                   if segments:
                       seg=urllib.parse.urljoin(child_final,segments[-1])
-                      st2,ct2,content,_=fetch(seg,limit=300000)
+                      st2,ct2,content,_=fetch(seg,limit=3000000)
+                      if st2==200 and len(content)>4000:
+                          Path('/tmp/kana_track_'+kind+'.ts').write_bytes(content)
                       print('SEGMENT_LAST',kind,st2,ct2,'bytes',len(content),'head',content[:20].hex(),flush=True)
               except Exception as e:
                   print('TRACK_ERROR',kind,type(e).__name__,str(e)[:180],flush=True)
           PY
-          echo "Railway audio/video ffprobe:"
+          echo "Railway track audio/video codec probe:"
           if ! command -v ffprobe >/dev/null 2>&1; then
             sudo apt-get update -qq
             sudo apt-get install -y -qq ffmpeg
           fi
-          timeout 55 ffprobe -hide_banner -v error -rw_timeout 12000000 -analyzeduration 6000000 -probesize 2500000 -show_entries stream=index,codec_name,codec_type,width,height -of json 'https://kana-iptv-fresh-production.up.railway.app/kana-9x.m3u8' > /tmp/kana_av.json || true
-          cat /tmp/kana_av.json
+          ffprobe -hide_banner -v error -analyzeduration 3000000 -probesize 1000000 -show_entries stream=codec_type,codec_name,width,height -of json /tmp/kana_track_audio.ts > /tmp/kana_audio.json
+          ffprobe -hide_banner -v error -analyzeduration 3000000 -probesize 1000000 -show_entries stream=codec_type,codec_name,width,height -of json /tmp/kana_track_video.ts > /tmp/kana_video.json
+          cat /tmp/kana_audio.json
+          cat /tmp/kana_video.json
           python3 - <<'PY'
           import json
-          d=json.load(open('/tmp/kana_av.json'))
-          types={s.get('codec_type') for s in d.get('streams',[])}
-          print("RAILWAY_AV_TYPES",sorted(t for t in types if t),flush=True)
-          if not {'audio','video'}<=types:
-              raise SystemExit("RAILWAY_AV_NOT_VERIFIED")
-          print("RAILWAY_AV_VERIFIED",flush=True)
+          a=json.load(open('/tmp/kana_audio.json'))
+          v=json.load(open('/tmp/kana_video.json'))
+          audio={s.get('codec_type') for s in a.get('streams',[])}
+          video={s.get('codec_type') for s in v.get('streams',[])}
+          print('RAILWAY_AV_TYPES',sorted(audio),sorted(video),flush=True)
+          if 'audio' not in audio or 'video' not in video:
+              raise SystemExit('RAILWAY_AV_NOT_VERIFIED')
+          print('RAILWAY_AV_VERIFIED',flush=True)
           PY
           echo "Railway manifest preview:"
           head -c 800 /tmp/kana_railway_probe.txt 2>/dev/null || true
