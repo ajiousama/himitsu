@@ -83,7 +83,8 @@ jobs:
 
           target = Path("public_sports_epg_local.xml")
           fresh = Path("/tmp/public-sports-fast/generated.xml")
-          # JRA must be refreshed too: otherwise yesterday\u0027s mixed EAST EPG persists.\n          prefixes = ("keirin.", "auto.", "chihou.", "jra.")
+          # Copy today's JRA EPG, so mixed EAST/LOCAL data cannot persist.
+          prefixes = ("keirin.", "auto.", "chihou.", "jra.")
 
           if target.exists() and target.stat().st_size:
               tree = ET.parse(target)
