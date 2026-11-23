@@ -128,6 +128,23 @@ def main():
     if os.environ.get("GCH_EAST_AUDIO_LEVEL") == "1":
         result = check_audio_level(data["EAST HQ"]["audio"])
         report("EAST HQ sampled audio: " + json.dumps(result, ensure_ascii=False))
+    if os.environ.get("GCH_EAST_AUDIO_ALTERNATES") == "1":
+        report("Read-only audio candidate check; no playlist switching.")
+        seed = data["EAST HQ"]["audio"]
+        for variant in ("7", "8", "7_0", "8_0", "6_0", "9"):
+            if not re.search(r"/manifest_\d+(?:_\d+)?\.m3u8\?", seed):
+                report("Audio candidate check skipped: source format unknown.")
+                break
+            candidate = re.sub(
+                r"/manifest_\d+(?:_\d+)?\.m3u8(?=\?)",
+                "/manifest_%s.m3u8" % variant,
+                seed, count=1
+            )
+            desc = probe(candidate, "audio")
+            if desc.get("status") == "detected":
+                desc["volume"] = check_audio_level(candidate, duration=8)
+            report("EAST candidate manifest_%s AUDIO: %s" % (
+                variant, json.dumps(desc, ensure_ascii=False)))
     if os.environ.get("GCH_EAST_PROBE_ALTERNATES") == "1":
         report("Read-only check of known STREAKS variant slots (3-8); NO automatic switching.")
         seed = data["EAST HQ"]["video"]
