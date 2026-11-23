@@ -19,7 +19,7 @@ from urllib.parse import parse_qs, urlsplit
 from PIL import Image, ImageDraw
 
 RESOLVER = "https://kick-resolver-production.up.railway.app/kick?vod="
-SAMPLE_OFFSETS = (360, 950, 1450, 2650)  # second pass for unresolved clips
+SAMPLE_OFFSETS = (750, 1250, 2100, 2975)  # third pass: only still-untitled clips
 
 
 def unresolved_from_vod5():
