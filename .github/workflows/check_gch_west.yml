@@ -1,0 +1,31 @@
+name: GCH WEST WEB4 media diagnostic (read-only)
+
+on:
+  push:
+    paths:
+      - .github/workflows/check_gch_west.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  inspect-west:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+      - name: Ensure ffprobe is installed
+        run: |
+          if ! command -v ffprobe >/dev/null 2>&1; then
+            sudo apt-get update -qq
+            sudo apt-get install -y -qq ffmpeg
+          fi
+          ffprobe -version | head -n 1
+      - name: Inspect declared and actual audio/video streams
+        env:
+          GCH_WEST_PROBE_ALTERNATES: '1'
+          GCH_WEST_AUDIO_LEVEL: '1'
+          GCH_WEST_AUDIO_ALTERNATES: '1'
+        run: python3 tools/check_gch_west_hls.py
