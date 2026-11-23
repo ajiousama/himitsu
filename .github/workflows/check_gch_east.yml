@@ -24,4 +24,6 @@ jobs:
           fi
           ffprobe -version | head -n 1
       - name: Inspect declared and actual audio/video streams
+        env:
+          GCH_EAST_PROBE_ALTERNATES: '1'
         run: python3 tools/check_gch_east_hls.py
