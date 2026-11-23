@@ -162,6 +162,9 @@ jobs:
           set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          # Do not publish any FreeWiFi refresh that removes a Kana slot.
+          python -m unittest -q youtube.test_manager
+
           git add radio/playlist.m3u freewifi
           if git diff --cached --quiet; then
             echo 'Radio playlists already use stable TS visuals'
