@@ -656,7 +656,7 @@ def update_kana(config):
     # resolver while kana.json lagged. Never roll that newer slot back to
     # the older state file's remembered stream.
     published_watch = parse_m3u(KANA_OUT).get(item["id"], {}).get("url") or ""
-    published_match = re.search(r"^https://(?:www\\.)?youtube\\.com/watch\\?v=([A-Za-z0-9_-]{11})(?:[&#]|$)", published_watch)
+    published_match = re.search(r"^https://(?:www\.)?youtube\.com/watch\?v=([A-Za-z0-9_-]{11})(?:[&#]|$)", published_watch)
     published_id = published_match.group(1) if published_match else None
     previous_id = previous.get("video_id")
     previous_start = int(previous.get("start_timestamp") or 0)
