@@ -79,6 +79,35 @@ def probe(url, expected_type):
     return desc
 
 
+def check_audio_level(url, duration=12):
+    """Sample actual audio; presence alone does not prove audible sound."""
+    args = [
+        "ffmpeg", "-hide_banner", "-nostdin", "-v", "info",
+        "-rw_timeout", "12000000", "-i", url,
+        "-map", "0:a:0", "-vn", "-t", str(duration),
+        "-af", "volumedetect", "-f", "null", "-",
+    ]
+    try:
+        res = subprocess.run(args, capture_output=True, text=True, timeout=35)
+    except (OSError, subprocess.TimeoutExpired):
+        return {"status": "unverified (ffmpeg failed or timed out)"}
+    if res.returncode != 0:
+        return {"status": "unverified (audio payload decode failed)"}
+    mean = re.search(r"mean_volume:\s*([-\w.]+)\s*dB", res.stderr)
+    maximum = re.search(r"max_volume:\s*([-\w.]+)\s*dB", res.stderr)
+    if not mean or not maximum:
+        return {"status": "unverified (no volume stats)"}
+    maximum_value = maximum.group(1)
+    if maximum_value == "-inf":
+        status = "decoded DIGITAL SILENCE during sample"
+    elif float(maximum_value) > -60:
+        status = "decoded NON-SILENT audio during sample"
+    else:
+        status = "very quiet audio; audibility uncertain"
+    return {"status": status, "mean_dB": mean.group(1),
+            "max_dB": maximum_value, "sample_seconds": duration}
+
+
 def main():
     report("GCH EAST WEB3 / read-only HLS audit")
     data = {}
@@ -96,6 +125,9 @@ def main():
             if key not in unique:
                 unique[key] = probe(spec[kind], kind)
             report("%s %s: %s" % (name, kind, json.dumps(unique[key], ensure_ascii=False)))
+    if os.environ.get("GCH_EAST_AUDIO_LEVEL") == "1":
+        result = check_audio_level(data["EAST HQ"]["audio"])
+        report("EAST HQ sampled audio: " + json.dumps(result, ensure_ascii=False))
     if os.environ.get("GCH_EAST_PROBE_ALTERNATES") == "1":
         report("Read-only check of known STREAKS variant slots (3-8); NO automatic switching.")
         seed = data["EAST HQ"]["video"]
