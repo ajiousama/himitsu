@@ -14,12 +14,18 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 6
     steps:
+      - uses: actions/checkout@v5
       - name: Probe full HLS chain
         shell: bash
         run: |
           cat > /tmp/probe.py <<'PY'
           import concurrent.futures as cf, json, re, urllib.parse, urllib.request, urllib.error
-          VIDEO_ID="4WBD_opNgKk"
+          from pathlib import Path
+          text=Path("youtube/output/kana.m3u").read_text(encoding="utf-8")
+          match=re.search(r'watch\\?v=([A-Za-z0-9_-]{11})',text)
+          if not match: raise SystemExit("Current Kana watch ID missing")
+          VIDEO_ID=match.group(1)
+          print("CURRENT_DAY_OR_MID_VIDEO",VIDEO_ID,flush=True)
           UA="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/140 Safari/537.36"
           INV=[
             "https://inv.nadeko.net",
@@ -129,3 +135,7 @@ jobs:
                   print("RESULT "+json.dumps(fut.result(),ensure_ascii=False),flush=True)
           PY
           python3 /tmp/probe.py
+          echo "Railway dynamic relay response:"
+          curl -L -sS --max-time 20 -o /tmp/kana_railway_probe.txt -w 'HTTP %{http_code} content-type=%{content_type} size=%{size_download}\\n' 'https://kana-iptv-fresh-production.up.railway.app/kana-9x.m3u8' || true
+          head -c 120 /tmp/kana_railway_probe.txt 2>/dev/null || true
+          echo
