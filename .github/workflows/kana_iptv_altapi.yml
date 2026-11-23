@@ -7,11 +7,9 @@ on:
     paths:
       - '.github/workflows/kana_iptv_altapi.yml'
   schedule:
-    # 13:05 JST
-    - cron: '5 4 * * *'
-    # Evening: refresh near the scheduled livestream start and through the show.
-    - cron: '15,30,45 11 * * *'
-    - cron: '0,15,30,45 12-14 * * *'
+    # Every 15 minutes JST 09:00-23:45: covers DAY and MIDNIGHT.
+    # A verified live stream can change video ID between broadcasts.
+    - cron: '*/15 0-14 * * *'
 
 permissions:
   contents: write
@@ -27,7 +25,6 @@ jobs:
     env:
       GH_TOKEN_LOCAL: ${{ github.token }}
       KANA_CHANNEL_ID: UCmHdGDdZGf4cMWRBmEw4Xww
-      KANA_FALLBACK_VIDEO_ID: A-EUEALJsjI
 
     steps:
       - name: Resolve through independent Piped and Invidious APIs
@@ -38,8 +35,6 @@ jobs:
 
           UA="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/140 Safari/537.36"
           CHANNEL_ID=os.environ["KANA_CHANNEL_ID"]
-          FALLBACK=os.environ["KANA_FALLBACK_VIDEO_ID"]
-          TODAY=dt.datetime.now(dt.timezone(dt.timedelta(hours=9))).date()
           TOKEN=os.environ["GH_TOKEN_LOCAL"]
           REPO=os.environ["GITHUB_REPOSITORY"]
 
@@ -276,12 +271,6 @@ jobs:
                       result=r
                       break
 
-          # Last resort: remembered ID only for its original date; do not
-          # reuse a daytime reservation as an evening livestream.
-          if not result and TODAY.isoformat()=="2026-11-22":
-              target,discover_source=FALLBACK,"fallback-daytime"
-              result=try_video(target)
-
           state={
               "ok":bool(result),"video_id":target,"discover_source":discover_source,
               "checked_at":dt.datetime.now(dt.timezone.utc).isoformat(),"log":logs[-60:]
@@ -304,51 +293,20 @@ jobs:
           note("PUBLISH_PLAYLIST",gh_put("youtube/output/kana_iptv.m3u",playlist,"Refresh Kana IPTV via Alt API [skip ci]"))
           note("PUBLISH_STATE",gh_put("youtube/state/kana_iptv_altapi.json",json.dumps(state,ensure_ascii=False,indent=2)+"\n","Update Kana IPTV Alt API state [skip ci]"))
 
-          # Keep the aggregate FreeWiFi Kana block in lockstep with the verified HLS.
-          try:
-              kana_text,_=gh_get("youtube/output/kana.m3u")
-              freewifi_text,_=gh_get("freewifi")
-
-              def playlist_body(text):
-                  return "\n".join(
-                      line for line in text.splitlines()
-                      if line.strip() and not line.startswith("#EXTM3U")
-                  ).strip()
-
-              # The normal slot is a YouTube watch URL, never an HLS duplicate.
-              normal_watch="https://www.youtube.com/watch?v="+target
-              kana_body=(
-                  '#EXTINF:-1 tvg-id="youtube.kana_tube" tvg-name="かなチューブ" '
-                  'tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/youtube/logos/special/kana.png?v=ytv3-20260922b" '
-                  'group-title="今日の開催場",かなチューブ【YouTube】\n'+normal_watch
-              )
-              note("PUBLISH_KANA",gh_put("youtube/output/kana.m3u","#EXTM3U\n\n"+kana_body+"\n","Keep Kana YouTube slot separate [skip ci]"))
-              iptv_body=(
-                  '#EXTINF:-1 tvg-id="youtube.kana_tube_iptv" tvg-name="かなチューブ IPTV" '
-                  'tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/youtube/logos/special/kana.png?v=ytv3-20260922b" '
-                  'group-title="今日の開催場",かなチューブ IPTV【LIVE】\n'
-                  +result["url"]
-              )
-              managed=(
-                  "# === KANA_TUBE_MANAGED_START ===\n"
-                  +kana_body+"\n\n"+iptv_body+"\n"
-                  +"# === KANA_TUBE_MANAGED_END ==="
-              )
-              pat=re.compile(
-                  re.escape("# === KANA_TUBE_MANAGED_START ===")
-                  +r".*?"
-                  +re.escape("# === KANA_TUBE_MANAGED_END ==="),
-                  re.S,
-              )
-              if not pat.search(freewifi_text):
-                  raise RuntimeError("Kana managed block missing from freewifi")
-              freewifi_text=pat.sub(managed,freewifi_text,count=1)
-              note("PUBLISH_FREEWIFI",gh_put(
-                  "freewifi",
-                  freewifi_text,
-                  "Sync Kana IPTV HLS into FreeWiFi [skip ci]",
-              ))
-          except Exception as e:
-              note("FREEWIFI_SYNC_FAIL",type(e).__name__,str(e)[:180])
+          # FreeWiFi has ONE owner: youtube/manager.py sync_freewifi().
+          # Direct edits from here used to overwrite the stable two-slot block.
+          # Only update the dedicated playlists; the 5-minute YouTube worker
+          # syncs both entries into FreeWiFi without rolling back layout.
+          kana_body=(
+              '#EXTINF:-1 tvg-id="youtube.kana_tube" tvg-name="かなチューブ" '
+              'tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/youtube/logos/special/kana.png?v=ytv3-20260922b" '
+              'group-title="今日の開催場",かなチューブ【YouTube】\\n'
+              +'https://www.youtube.com/watch?v='+target
+          )
+          note("PUBLISH_KANA",gh_put(
+              "youtube/output/kana.m3u",
+              "#EXTM3U\\n\\n"+kana_body+"\\n",
+              "Update verified-current Kana YouTube watch ID [skip ci]",
+          ))
           PY
           python3 /tmp/kana_altapi.py
