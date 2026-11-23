@@ -211,8 +211,9 @@ _source_cache = {"checked": 0, "url": None, "video_id": None}
 def _valid_current_source(url, video_id):
     if not _proxy_allowed(url):
         return False
-    path = urllib.parse.unquote(urllib.parse.urlparse(url).path).lower()
-    if "/force_finished/1" in path or "/playlist_type/clean" in path:
+    path = urllib.parse.unquote(urllib.parse.urlparse(url).path)
+    low = path.lower()
+    if "/force_finished/1" in low or "/playlist_type/clean" in low:
         return False
     expires = re.search(r"/expire/(\d+)", path)
     if expires and int(expires.group(1)) < time.time() + 900:
