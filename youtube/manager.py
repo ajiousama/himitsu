@@ -593,6 +593,21 @@ def info_hls(info):
     return None
 
 
+def kana_hls_still_usable(url, video_id):
+    """Preserve verified-current HLS through temporary yt-dlp failures only."""
+    if not isinstance(url, str) or ".m3u8" not in url or not url.startswith("https://"):
+        return False
+    parsed = urlsplit(url)
+    path = parsed.path
+    if "/force_finished/1" in path.lower() or "/playlist_type/clean" in path.lower():
+        return False
+    embedded_id = re.search(r"/id/([A-Za-z0-9_-]{11})(?:[./]|$)", path)
+    if not embedded_id or embedded_id.group(1) != video_id:
+        return False
+    expiry = re.search(r"/expire/(\\d+)", path)
+    return bool(expiry and int(expiry.group(1)) > time.time() + 900)
+
+
 def update_kana(config):
     item = config["special"]["kana"]
     previous = read_json(KANA_STATE, {})
@@ -631,6 +646,11 @@ def update_kana(config):
         write_playlist(KANA_OUT, [entry(item, watch, label)])
         iptv_item = dict(item, id=KANA_IPTV_ID, name=item["name"] + " IPTV")
         iptv_url = play if status == "is_live" and play and (".m3u8" in play or "manifest.googlevideo.com/" in play) else None
+        if not iptv_url and status == "is_live":
+            old_iptv = parse_m3u(KANA_IPTV_OUT).get(KANA_IPTV_ID, {}).get("url")
+            if kana_hls_still_usable(old_iptv, vid):
+                iptv_url = old_iptv
+                print(f"KANA preserve same-video unexpired HLS: {vid}")
         write_playlist(KANA_IPTV_OUT, [entry(iptv_item, iptv_url, iptv_item["name"] + "【LIVE】")] if iptv_url else [])
         write_json(KANA_STATE, {
             "state": status,
