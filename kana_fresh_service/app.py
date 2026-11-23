@@ -204,23 +204,80 @@ def _rewrite_hls(text, base_url):
     return "\n".join(out) + "\n"
 
 
+_source_guard = threading.Lock()
+_source_cache = {"checked": 0, "url": None, "video_id": None}
+
+
+def _valid_current_source(url, video_id):
+    if not _proxy_allowed(url):
+        return False
+    path = urllib.parse.unquote(urllib.parse.urlparse(url).path).lower()
+    if "/force_finished/1" in path or "/playlist_type/clean" in path:
+        return False
+    expires = re.search(r"/expire/(\\d+)", path)
+    if expires and int(expires.group(1)) < time.time() + 900:
+        return False
+    source_id = re.search(r"/id/([a-z0-9_-]{11})(?:[./]|$)", path, re.I)
+    if video_id and source_id and source_id.group(1) != video_id:
+        return False
+    return bool(source_id or ".m3u8" in path)
+
+
+def _fresh_invidious_hls(video_id):
+    if not video_id:
+        return None
+    for base in ("https://yt.chocolatemoo53.com", "https://eu.yt.chocolatemoo53.com"):
+        try:
+            status, _, content = _fetch(base + "/api/v1/videos/" + video_id, 350000)
+            if status != 200:
+                continue
+            data = json.loads(content)
+            if data.get("liveNow") is False or data.get("isLive") is False:
+                # A finished replay must never be mistaken for a DAY/MID live.
+                if not (data.get("liveNow") is True or data.get("isLive") is True):
+                    continue
+            url = data.get("hlsUrl") or data.get("hls")
+            if not isinstance(url, str) or not _valid_current_source(url, video_id):
+                continue
+            ok, manifest = _probe_hls(url)
+            if ok and _master_has_video(manifest) and _master_has_audio(manifest):
+                print("KANA_9X_REFRESHED_LIVE " + video_id + " via " + base, flush=True)
+                return url
+        except Exception as ex:
+            print("KANA_9X_REFRESH_ERROR " + base + " " + type(ex).__name__, flush=True)
+    return None
+
+
 def _current_iptv_source():
-    raw_url = KANA_IPTV_RAW + "?t=" + str(int(time.time()))
-    status, _, _, body = _proxy_fetch(raw_url, limit=1_000_000)
-    if status != 200:
-        raise RuntimeError("kana_iptv.m3u unavailable")
-    text = body.decode("utf-8", "replace")
-    urls = [
-        line.strip()
-        for line in text.splitlines()
-        if line.strip().startswith(("http://", "https://"))
-    ]
-    if not urls:
-        raise RuntimeError("kana_iptv.m3u has no playable URL")
-    src = urls[-1]
-    if not _proxy_allowed(src):
-        raise RuntimeError("kana_iptv upstream not allowed")
-    return src
+    """Choose today's active DAY/MID HLS; avoid stale IP-bound playlist URLs.
+
+    Cache briefly so each media segment does not refetch GitHub/channel metadata.
+    """
+    now = time.time()
+    with _source_guard:
+        if _source_cache["url"] and now - _source_cache["checked"] < 60:
+            return _source_cache["url"]
+
+        notes = []
+        latest_video_id, discovery = _discover_video_id(notes)
+        source = None
+        try:
+            raw_url = KANA_IPTV_RAW + "?t=" + str(int(now))
+            status, _, _, body = _proxy_fetch(raw_url, limit=1000000)
+            if status == 200:
+                urls = [line.strip() for line in body.decode("utf-8", "replace").splitlines()
+                        if line.strip().startswith(("http://", "https://"))]
+                if urls and _valid_current_source(urls[-1], latest_video_id):
+                    source = urls[-1]
+        except Exception as ex:
+            print("KANA_9X_PLAYLIST_ERROR " + type(ex).__name__, flush=True)
+
+        if not source:
+            source = _fresh_invidious_hls(latest_video_id)
+        if not source:
+            raise RuntimeError("no current DAY/MID live HLS (source expired, mismatched, or unreachable)")
+        _source_cache.update({"checked": now, "url": source, "video_id": latest_video_id})
+        return source
 
 
 def _video_id_from_url(text):
