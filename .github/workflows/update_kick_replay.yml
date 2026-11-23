@@ -282,6 +282,9 @@ jobs:
           print('vod5 KICK VOD catalog validated:', count, 'entries')
           PY
 
+            # Reject publication that drops either Kana YouTube or IPTV slot.
+            python -m unittest -q youtube.test_manager
+
             git add vod5/playlist.m3u vod5/freewifi_specials.m3u VOD5 freewifi kick_replay.json kick_replay.m3u kick_gmcx_chapters.json kick_gmcx_chapters.m3u gmcx_bgm_auto_starts.json gmcx_unknown_title_review.json
             if [ -f gmcx_auto_opening_review.json ]; then git add gmcx_auto_opening_review.json; fi
             if [ -f gmcx_opening_fingerprint.json ]; then git add gmcx_opening_fingerprint.json; fi
