@@ -716,8 +716,9 @@ def update_kana(config):
             chosen.append(info)
 
     # Search/live-page fallback is only needed when the official streams tab did
-    # not produce a usable live/upcoming slot.
-    if not chosen:
+    # not produce ANY usable live/upcoming slot. Do not spend the whole worker
+    # timeout crawling searches when we already found a running normal stream.
+    if not chosen and not live_candidates:
         fallback_ids = []
         for url, limit in ((channel + "/live", 8), (channel + "/videos", 12)):
             rows, code = flat_listing(url, limit)
