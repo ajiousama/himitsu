@@ -48,6 +48,30 @@ class YouTubeV2StructureTests(unittest.TestCase):
         video["formats"] = video["formats"][:1]
         self.assertEqual(manager.info_hls(video), video["manifest_url"])
 
+    def test_kana_freewifi_keeps_separate_youtube_and_iptv_slots(self):
+        import re
+        text = Path("freewifi").read_text(encoding="utf-8-sig", errors="replace")
+        start = text.index(manager.KANA_START)
+        end = text.index(manager.KANA_END, start)
+        block = text[start:end]
+        self.assertEqual(block.count('tvg-id="youtube.kana_tube"'), 1)
+        self.assertEqual(block.count('tvg-id="youtube.kana_tube_iptv"'), 1)
+        lines = block.splitlines()
+        youtube_i = next(i for i, line in enumerate(lines)
+                         if 'tvg-id="youtube.kana_tube"' in line)
+        iptv_i = next(i for i, line in enumerate(lines)
+                      if 'tvg-id="youtube.kana_tube_iptv"' in line)
+        self.assertRegex(lines[youtube_i + 1], r"^https://www\\.youtube\\.com/watch\\?v=[A-Za-z0-9_-]{11}$")
+        self.assertEqual(lines[iptv_i + 1], manager.KANA_9X_PROXY)
+        self.assertLess(youtube_i, iptv_i)
+
+    def test_kana_main_playlist_is_only_youtube_watch(self):
+        import re
+        lines = manager.KANA_OUT.read_text(encoding="utf-8").splitlines()
+        urls = [line.strip() for line in lines if line.startswith(("https://", "http://"))]
+        self.assertEqual(len(urls), 1)
+        self.assertRegex(urls[0], r"^https://www\\.youtube\\.com/watch\\?v=[A-Za-z0-9_-]{11}$")
+
     def test_search_based_general_channels_have_guards(self):
         cfg = json.loads(manager.CONFIG.read_text(encoding="utf-8"))
         unguarded = [
