@@ -41,8 +41,18 @@ def main():
             seen_channels.add(cid)
             out_root.append(ch)
 
-    for root in roots:
+    # guides.xml is the canonical source for all JRA Web3/4/5 programmes.
+    # Legacy sports EPG uses independent race assignment and can publish
+    # overlapping, contradictory titles for the same channel and time.
+    canonical_jra_ids = {
+        p.get("channel")
+        for p in roots[0].findall("programme")
+        if (p.get("channel") or "").startswith("jra.")
+    }
+    for source_index, root in enumerate(roots):
         for p in root.findall("programme"):
+            if source_index > 0 and p.get("channel") in canonical_jra_ids:
+                continue
             k = key_programme(p)
             if k in seen_programmes:
                 continue
