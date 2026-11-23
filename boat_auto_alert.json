@@ -1,13 +1,15 @@
 {
   "system": "boat-auto-v3",
-  "date": "2026-11-23",
-  "checked_at": "2026-11-23T20:49:09.539806+09:00",
-  "active": false,
-  "kind": "healthy",
-  "title": "BOAT自動更新 正常",
-  "message": "朝・デイ・ナイターを自動取得中です。",
+  "date": "2026-11-24",
+  "checked_at": "2026-11-24T00:00:07.880373+09:00",
+  "active": true,
+  "kind": "system_error",
+  "title": "BOAT自動更新エラー",
+  "message": "BOAT EPG/開催表取得失敗: RuntimeError: official_cards: TimeoutError / fetch_cards: RuntimeError",
   "seed_required_venues": [],
-  "system_errors": [],
+  "system_errors": [
+    "BOAT EPG/開催表取得失敗: RuntimeError: official_cards: TimeoutError / fetch_cards: RuntimeError"
+  ],
   "cloud_failures": [],
   "recovery": "automatic retry; no manual SEED dependency"
 }
