@@ -54,6 +54,9 @@ jobs:
             fi
 
             python rakuten/sync_freewifi.py
+            # Do not publish any FreeWiFi refresh that removes a Kana slot.
+            python -m unittest -q youtube.test_manager
+
             git add rakuten/playlist.m3u rakuten/live_refresh_status.json freewifi
 
             if git diff --cached --quiet; then
