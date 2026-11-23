@@ -56,6 +56,9 @@ jobs:
           assert titles, "KICK VOD5 unexpectedly empty"
           PY
 
+            # Reject publication that drops either Kana YouTube or IPTV slot.
+            python -m unittest -q youtube.test_manager
+
             git add VOD5 vod5/playlist.m3u vod5/freewifi_specials.m3u freewifi
             if git diff --cached --quiet; then
               echo "Verified GCCX title catalog already current"
