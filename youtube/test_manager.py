@@ -71,11 +71,11 @@ class YouTubeV2StructureTests(unittest.TestCase):
 
         with TemporaryDirectory() as tmp:
             empty_output = Path(tmp) / "kana.m3u"
-            empty_output.write_text("#EXTM3U\\n", encoding="utf-8")
+            empty_output.write_text("#EXTM3U\n", encoding="utf-8")
             previous = Path(tmp) / "freewifi"
             previous.write_text(
-                '#EXTM3U\\n#EXTINF:-1 tvg-id="youtube.kana_tube",かなチューブ【YouTube】\\n'
-                'https://www.youtube.com/watch?v=dD3INnBLoVQ\\n',
+                '#EXTM3U\n#EXTINF:-1 tvg-id="youtube.kana_tube",かなチューブ【YouTube】\n'
+                'https://www.youtube.com/watch?v=dD3INnBLoVQ\n',
                 encoding="utf-8",
             )
             with patch.object(manager, "KANA_OUT", empty_output), patch.object(manager, "FREEWIFI", previous):
