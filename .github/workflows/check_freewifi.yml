@@ -34,6 +34,9 @@ jobs:
 
           for attempt in 1 2 3; do
             echo "FreeWiFi check publish attempt $attempt/3"
+            # Do not publish any FreeWiFi refresh that removes a Kana slot.
+            python -m unittest -q youtube.test_manager
+
             git add freewifi freewifi_check_result.json
             if git diff --cached --quiet; then
               echo "No changes"
