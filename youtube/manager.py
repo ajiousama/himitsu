@@ -327,7 +327,7 @@ def kana_managed_body(config=None):
         watch = next((
             url for url in (old_url, state_url)
             if isinstance(url, str)
-            and re.fullmatch(r"https://www\\.youtube\\.com/watch\\?v=[A-Za-z0-9_-]{11}", url)
+            and re.fullmatch(r"https://www\.youtube\.com/watch\?v=[A-Za-z0-9_-]{11}", url)
         ), None)
         if not watch:
             watch = item["channel"].rstrip("/") + "/live"
