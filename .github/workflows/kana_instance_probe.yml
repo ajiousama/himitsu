@@ -142,6 +142,39 @@ jobs:
           curl -L -sS --max-time 20 -o /tmp/kana_railway_probe.txt -w 'HTTP %{http_code} content-type=%{content_type} size=%{size_download}\\n' 'https://kana-iptv-fresh-production.up.railway.app/kana-9x.m3u8' || true
           head -c 120 /tmp/kana_railway_probe.txt 2>/dev/null || true
           echo
+          echo "Railway LIVE media track segment probe:"
+          python3 - <<'PY'
+          import urllib.request,urllib.parse,re,json
+          ROOT='https://kana-iptv-fresh-production.up.railway.app/kana-9x.m3u8'
+          def fetch(url,limit=2_500_000):
+              req=urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0','Cache-Control':'no-cache'})
+              with urllib.request.urlopen(req,timeout=18) as x:
+                  return x.status,x.headers.get('Content-Type',''),x.read(limit),x.geturl()
+          status,ctype,data,final=fetch(ROOT)
+          master=data.decode('utf-8','replace')
+          print('MASTER',status,ctype,len(data),flush=True)
+          links=[]
+          for line in master.splitlines():
+              if line.startswith('#EXT-X-MEDIA:') and 'TYPE=AUDIO' in line:
+                  m=re.search(r'URI="([^"]+)"',line)
+                  if m: links.append(('audio',urllib.parse.urljoin(final,m.group(1))))
+              if line and not line.startswith('#'):
+                  links.append(('video',urllib.parse.urljoin(final,line)))
+          print('TRACKS',[(kind,urllib.parse.urlparse(url).path) for kind,url in links],flush=True)
+          for kind,url in links[:4]:
+              try:
+                  st,ct,body,child_final=fetch(url)
+                  txt=body.decode('utf-8','replace')
+                  segments=[line for line in txt.splitlines() if line and not line.startswith('#')]
+                  tags=[line for line in txt.splitlines() if line.startswith(('#EXT-X-TARGETDURATION','#EXT-X-MEDIA-SEQUENCE','#EXT-X-MAP','#EXT-X-PLAYLIST-TYPE','#EXT-X-ENDLIST'))]
+                  print('CHILD',kind,st,ct,'bytes',len(body),'segments',len(segments),'tags',[t[:150] for t in tags[:6]],flush=True)
+                  if segments:
+                      seg=urllib.parse.urljoin(child_final,segments[-1])
+                      st2,ct2,content,_=fetch(seg,limit=300000)
+                      print('SEGMENT_LAST',kind,st2,ct2,'bytes',len(content),'head',content[:20].hex(),flush=True)
+              except Exception as e:
+                  print('TRACK_ERROR',kind,type(e).__name__,str(e)[:180],flush=True)
+          PY
           echo "Railway audio/video ffprobe:"
           if ! command -v ffprobe >/dev/null 2>&1; then
             sudo apt-get update -qq
