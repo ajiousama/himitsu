@@ -33,6 +33,9 @@ jobs:
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # Reject publication that drops either Kana YouTube or IPTV slot.
+          python -m unittest -q youtube.test_manager
+
           git add council/playlist.m3u freewifi
           if git diff --cached --quiet; then
             echo "Council visibility already current"
