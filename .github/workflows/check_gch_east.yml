@@ -1,0 +1,20 @@
+name: GCH EAST WEB3 media diagnostic (read-only)
+
+on:
+  push:
+    paths:
+      - .github/workflows/check_gch_east.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  inspect-east:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+      - name: Inspect declared and actual audio/video streams
+        run: python3 tools/check_gch_east_hls.py
