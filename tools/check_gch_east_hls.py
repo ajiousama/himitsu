@@ -96,6 +96,21 @@ def main():
             if key not in unique:
                 unique[key] = probe(spec[kind], kind)
             report("%s %s: %s" % (name, kind, json.dumps(unique[key], ensure_ascii=False)))
+    if os.environ.get("GCH_EAST_PROBE_ALTERNATES") == "1":
+        report("Read-only check of known STREAKS variant slots (3-8); NO automatic switching.")
+        seed = data["EAST HQ"]["video"]
+        if not re.search(r"/manifest_\d+\.m3u8\?", seed):
+            report("Variant check skipped: video path format is not recognised.")
+        else:
+            for number in range(3, 9):
+                candidate = re.sub(
+                    r"/manifest_\d+\.m3u8(?=\?)",
+                    "/manifest_%s.m3u8" % number,
+                    seed, count=1
+                )
+                result = probe(candidate, "video")
+                report("EAST candidate manifest_%s VIDEO: %s" % (
+                    number, json.dumps(result, ensure_ascii=False)))
     report("No URLs, credentials or media content are printed. No playlist changes made.")
     summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
     if summary_path:
