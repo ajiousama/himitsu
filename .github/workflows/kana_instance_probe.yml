@@ -154,6 +154,19 @@ jobs:
           status,ctype,data,final=fetch(ROOT)
           master=data.decode('utf-8','replace')
           print('MASTER',status,ctype,len(data),flush=True)
+          # Muxed itag-96 returns a media playlist directly; the latest
+          # segment should contain BOTH H264 video and AAC audio.
+          if '#EXTINF:' in master and '#EXT-X-STREAM-INF' not in master:
+              media=[s for s in master.splitlines() if s.strip() and not s.startswith('#')]
+              if media:
+                  url=urllib.parse.urljoin(final,media[-1])
+                  try:
+                      status2,ctype2,content,_=fetch(url,limit=4500000)
+                      if status2==200 and len(content)>4000:
+                          Path('/tmp/kana_track_muxed.ts').write_bytes(content)
+                      print('MUXED_SEGMENT',status2,ctype2,len(content),content[:20].hex(),flush=True)
+                  except Exception as e:
+                      print('MUXED_SEGMENT_ERROR',type(e).__name__,str(e)[:180],flush=True)
           links=[]
           for line in master.splitlines():
               if line.startswith('#EXT-X-MEDIA:') and 'TYPE=AUDIO' in line:
@@ -183,11 +196,25 @@ jobs:
             sudo apt-get update -qq
             sudo apt-get install -y -qq ffmpeg
           fi
-          ffprobe -hide_banner -v error -analyzeduration 3000000 -probesize 1000000 -show_entries stream=codec_type,codec_name,width,height -of json /tmp/kana_track_audio.ts > /tmp/kana_audio.json
-          ffprobe -hide_banner -v error -analyzeduration 3000000 -probesize 1000000 -show_entries stream=codec_type,codec_name,width,height -of json /tmp/kana_track_video.ts > /tmp/kana_video.json
-          cat /tmp/kana_audio.json
-          cat /tmp/kana_video.json
-          python3 - <<'PY'
+          if [ -s /tmp/kana_track_muxed.ts ]; then
+            ffprobe -hide_banner -v error -analyzeduration 4000000 -probesize 2000000 -show_entries stream=codec_type,codec_name,width,height -of json /tmp/kana_track_muxed.ts > /tmp/kana_muxed.json
+            cat /tmp/kana_muxed.json
+            python3 - <<'PY'
+          import json
+          d=json.load(open('/tmp/kana_muxed.json'))
+          streams=d.get('streams',[])
+          types={s.get('codec_type') for s in streams}
+          print('RAILWAY_AV_TYPES',sorted(t for t in types if t),flush=True)
+          if not {'audio','video'}<=types:
+              raise SystemExit('RAILWAY_AV_NOT_VERIFIED')
+          print('RAILWAY_AV_VERIFIED_MUXED',streams,flush=True)
+          PY
+          else
+            ffprobe -hide_banner -v error -analyzeduration 3000000 -probesize 1000000 -show_entries stream=codec_type,codec_name,width,height -of json /tmp/kana_track_audio.ts > /tmp/kana_audio.json
+            ffprobe -hide_banner -v error -analyzeduration 3000000 -probesize 1000000 -show_entries stream=codec_type,codec_name,width,height -of json /tmp/kana_track_video.ts > /tmp/kana_video.json
+            cat /tmp/kana_audio.json
+            cat /tmp/kana_video.json
+            python3 - <<'PY'
           import json
           a=json.load(open('/tmp/kana_audio.json'))
           v=json.load(open('/tmp/kana_video.json'))
@@ -196,8 +223,9 @@ jobs:
           print('RAILWAY_AV_TYPES',sorted(audio),sorted(video),flush=True)
           if 'audio' not in audio or 'video' not in video:
               raise SystemExit('RAILWAY_AV_NOT_VERIFIED')
-          print('RAILWAY_AV_VERIFIED',flush=True)
+          print('RAILWAY_AV_VERIFIED_SPLIT',flush=True)
           PY
+          fi
           echo "Railway manifest preview:"
           head -c 800 /tmp/kana_railway_probe.txt 2>/dev/null || true
           echo
