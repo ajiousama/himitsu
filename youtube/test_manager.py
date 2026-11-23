@@ -65,6 +65,45 @@ class YouTubeV2StructureTests(unittest.TestCase):
         self.assertEqual(lines[iptv_i + 1], manager.KANA_9X_PROXY)
         self.assertLess(youtube_i, iptv_i)
 
+    def test_kana_empty_output_keeps_both_freewifi_slots(self):
+        from tempfile import TemporaryDirectory
+        from unittest.mock import patch
+
+        with TemporaryDirectory() as tmp:
+            empty_output = Path(tmp) / "kana.m3u"
+            empty_output.write_text("#EXTM3U\\n", encoding="utf-8")
+            previous = Path(tmp) / "freewifi"
+            previous.write_text(
+                '#EXTM3U\\n#EXTINF:-1 tvg-id="youtube.kana_tube",かなチューブ【YouTube】\\n'
+                'https://www.youtube.com/watch?v=dD3INnBLoVQ\\n',
+                encoding="utf-8",
+            )
+            with patch.object(manager, "KANA_OUT", empty_output), patch.object(manager, "FREEWIFI", previous):
+                body = manager.kana_managed_body()
+
+        self.assertEqual(body.count('tvg-id="youtube.kana_tube"'), 1)
+        self.assertEqual(body.count('tvg-id="youtube.kana_tube_iptv"'), 1)
+        self.assertIn("https://www.youtube.com/watch?v=dD3INnBLoVQ", body)
+        self.assertIn(manager.KANA_9X_PROXY, body)
+        self.assertIn("配信確認中", body)
+
+    def test_kana_has_one_canonical_publication_owner(self):
+        removed = (
+            ".github/workflows/kana_iptv_v2.yml",
+            ".github/workflows/kana_iptv_hls.yml",
+            ".github/workflows/kana_iptv_fresh.yml",
+            ".github/workflows/kana_iptv_rescue.yml",
+            ".github/workflows/kana_iptv_fresh_publish.yml",
+            "youtube/kana_iptv_resolver.py",
+            "youtube/kana_iptv_v2.py",
+        )
+        self.assertFalse([path for path in removed if Path(path).exists()])
+        diagnostic = Path(".github/workflows/kana_iptv_altapi.yml").read_text(encoding="utf-8")
+        self.assertNotIn('gh_put("youtube/output/kana.m3u"', diagnostic)
+        self.assertNotIn('gh_put("youtube/output/kana_iptv.m3u"', diagnostic)
+        manager_workflow = Path(".github/workflows/update_youtube.yml").read_text(encoding="utf-8")
+        self.assertIn("python youtube/manager.py --scope special", manager_workflow)
+
     def test_kana_main_playlist_is_only_youtube_watch(self):
         import re
         lines = manager.KANA_OUT.read_text(encoding="utf-8").splitlines()
