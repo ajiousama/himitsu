@@ -404,12 +404,9 @@ def replace_block(text, payload):
 
 def restore_kana_owned_entry(text):
     """Reapply Kana's dedicated managed entry after a public-sports rebuild."""
-    payload = ''
-    if KANA_M3U.exists():
-        payload = '\n'.join(
-            line for line in KANA_M3U.read_text(encoding='utf-8-sig', errors='replace').splitlines()
-            if not line.startswith('#EXTM3U')
-        ).strip()
+    # Shared owner: keep both Kana slots, never rebuild YouTube-only.
+    from youtube.manager import kana_managed_body
+    payload = kana_managed_body()
 
     text = re.sub(
         re.escape(KANA_START) + r'.*?' + re.escape(KANA_END) + r'\n?',
@@ -418,7 +415,9 @@ def restore_kana_owned_entry(text):
     lines = text.splitlines(); out = []; i = 0
     while i < len(lines):
         line = lines[i]
-        if line.startswith('#EXTINF:') and f'tvg-id="{KANA_TVG_ID}"' in line:
+        if line.startswith('#EXTINF:') and (
+            f'tvg-id="{KANA_TVG_ID}"' in line or 'tvg-id="youtube.kana_tube_iptv"' in line
+        ):
             i += 1
             while i < len(lines) and not lines[i].startswith(('#EXTINF:', '## ', '# ===')):
                 i += 1
