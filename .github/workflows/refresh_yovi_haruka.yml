@@ -1,0 +1,64 @@
+name: Refresh HARUKA host for yovi trial only
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Twice hourly, offset from ABEMA sync and other yovi writers.
+    - cron: "11,41 * * * *"
+  push:
+    branches: [main]
+    paths:
+      - "scripts/refresh_yovi_haruka.py"
+      - "scripts/check_tv_source_partition.py"
+      - ".github/workflows/refresh_yovi_haruka.yml"
+
+permissions:
+  contents: write
+
+# Share a concurrency group with the existing yovi ABEMA synchronizer.
+concurrency:
+  group: yovi-karenda-abema-writer
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Refresh HARUKA trial and publish only yovi
+        shell: bash
+        env:
+          HARUKA_AU: ${{ secrets.HARUKA_AU }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          for attempt in 1 2 3 4 5; do
+            echo "HARUKA yovi-only refresh attempt ${attempt}/5"
+            git fetch origin main
+            git reset --hard origin/main
+            python scripts/refresh_yovi_haruka.py
+            python scripts/check_tv_source_partition.py
+            if git diff --quiet -- yovi; then
+              echo "No yovi HARUKA trial changes"
+              exit 0
+            fi
+            git add -- yovi
+            git diff --cached --check
+            git commit -m "chore(yovi): refresh HARUKA trial host"
+            if git push origin HEAD:main; then
+              echo "Published yovi HARUKA trial update"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "HARUKA yovi-only refresh failed after retries" >&2
+          exit 1
