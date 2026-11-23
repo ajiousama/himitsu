@@ -214,7 +214,7 @@ def _valid_current_source(url, video_id):
     path = urllib.parse.unquote(urllib.parse.urlparse(url).path).lower()
     if "/force_finished/1" in path or "/playlist_type/clean" in path:
         return False
-    expires = re.search(r"/expire/(\\d+)", path)
+    expires = re.search(r"/expire/(\d+)", path)
     if expires and int(expires.group(1)) < time.time() + 900:
         return False
     source_id = re.search(r"/id/([a-z0-9_-]{11})(?:[./]|$)", path, re.I)
