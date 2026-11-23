@@ -310,6 +310,21 @@ def playlist_body(path):
     return "\n".join(lines).strip()
 
 
+def kana_managed_body(config=None):
+    """One canonical two-slot Kana block for all FreeWiFi writers.
+
+    Never reconstruct this block from the YouTube-only playlist alone.
+    """
+    youtube_body = playlist_body(KANA_OUT)
+    if not youtube_body:
+        return ""
+    cfg = config if config is not None else load_config()
+    item = cfg["special"]["kana"]
+    iptv_item = dict(item, id=KANA_IPTV_ID, name=item["name"] + " IPTV")
+    iptv_body = entry(iptv_item, KANA_9X_PROXY, iptv_item["name"] + "【LIVE】")
+    return (youtube_body + "\n\n" + iptv_body).strip()
+
+
 def probe_direct_url(url, mode):
     """Verify volatile non-YouTube direct streams before publishing them."""
     if not mode:
@@ -869,16 +884,7 @@ def sync_freewifi(config):
     text = re.sub(re.escape(KANA_START) + r".*?" + re.escape(KANA_END) + r"\n?", "", text, flags=re.S)
     text = strip_entry(text, kana_id)
     text = strip_entry(text, KANA_IPTV_ID)
-    kana_body = playlist_body(KANA_OUT)
-    iptv_body = ""
-    if kana_body:
-        iptv_body = (
-            '#EXTINF:-1 tvg-id="youtube.kana_tube_iptv" tvg-name="かなチューブ IPTV" '
-            'tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/youtube/logos/special/kana.png?v=ytv3-20260922b" '
-            'group-title="今日の開催場",かなチューブ IPTV【LIVE】\n'
-            + KANA_9X_PROXY
-        )
-        kana_body = (kana_body + "\n\n" + iptv_body).strip()
+    kana_body = kana_managed_body(config)
     if kana_body:
         kana_block = KANA_START + "\n" + kana_body + "\n" + KANA_END + "\n"
         start = text.find(TODAY_START)
