@@ -327,31 +327,11 @@ jobs:
               raise SystemExit("No verified AV HLS from public alternative APIs")
 
           state.update(result)
-          playlist=(
-              '#EXTM3U\n\n'
-              '#EXTINF:-1 tvg-id="youtube.kana_tube_iptv" tvg-name="かなチューブ IPTV" '
-              'tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/youtube/logos/special/kana.png?v=ytv3-20260922b" '
-              'group-title="今日の開催場",かなチューブ IPTV【LIVE】\n'
-              +result["url"]+'\n'
-          )
-          note("PUBLISH_PLAYLIST",gh_put("youtube/output/kana_iptv.m3u",playlist,"Refresh Kana IPTV via Alt API [skip ci]"))
-          note("PUBLISH_STATE",gh_put("youtube/state/kana_iptv_altapi.json",json.dumps(state,ensure_ascii=False,indent=2)+"\n","Update Kana IPTV Alt API state [skip ci]"))
-
-          # FreeWiFi has ONE owner: youtube/manager.py sync_freewifi().
-          # Direct edits from here used to overwrite the stable two-slot block.
-          # Only update the dedicated playlists; the 5-minute YouTube worker
-          # syncs both entries into FreeWiFi without rolling back layout.
-          kana_body=(
-              '#EXTINF:-1 tvg-id="youtube.kana_tube" tvg-name="かなチューブ" '
-              'tvg-logo="https://raw.githubusercontent.com/ajiousama/himitsu/main/youtube/logos/special/kana.png?v=ytv3-20260922b" '
-              'group-title="今日の開催場",かなチューブ【YouTube】\n'
-              +'https://www.youtube.com/watch?v='+target
-          )
-          note("PUBLISH_KANA",gh_put(
-              "youtube/output/kana.m3u",
-              "#EXTM3U\n\n"+kana_body+"\n",
-              "Update verified-current Kana YouTube watch ID [skip ci]",
-          ))
+          # Diagnostic-only: youtube/manager.py is the sole publisher of
+          # kana.m3u, kana_iptv.m3u, kana.json and the FreeWiFi Kana block.
+          # Never overwrite canonical slots from this independent resolver.
+          note("VERIFIED_CANDIDATE_DIAGNOSTIC_ONLY",target,discover_source)
+          note("PUBLISH_STATE",gh_put("youtube/state/kana_iptv_altapi.json",json.dumps(state,ensure_ascii=False,indent=2)+"\\n","Update Kana IPTV Alt API state [skip ci]"))
           PY
           python3 -m py_compile /tmp/kana_altapi.py
           python3 /tmp/kana_altapi.py
