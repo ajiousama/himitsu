@@ -31,7 +31,7 @@ jobs:
         shell: bash
         run: |
           cat > /tmp/kana_altapi.py <<'PY'
-          import base64, concurrent.futures as cf, datetime as dt, json, os, re, urllib.parse, urllib.request
+          import base64, concurrent.futures as cf, datetime as dt, json, os, re, urllib.parse, urllib.request, subprocess, time, threading
 
           UA="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/140 Safari/537.36"
           CHANNEL_ID=os.environ["KANA_CHANNEL_ID"]
@@ -54,6 +54,7 @@ jobs:
           ]
 
           logs=[]
+          AV_SEM=threading.BoundedSemaphore(2)
           def note(*parts):
               msg=" ".join(str(x) for x in parts)
               print(msg,flush=True); logs.append(msg[-800:])
@@ -99,6 +100,36 @@ jobs:
                     ("avc1" in low or "vp09" in low or "av01" in low))
               )
 
+          def is_live_metadata(data):
+              return (data.get("liveNow") is True or data.get("isLive") is True
+                      or data.get("livestream") is True or data.get("duration")==-1)
+
+          def fresh_live_hls(url):
+              decoded=urllib.parse.unquote(url).lower()
+              if "/force_finished/1" in decoded or "/playlist_type/clean" in decoded:
+                  return False
+              expires=re.search(r"/expire/(\\d+)",decoded)
+              if expires and int(expires.group(1)) < time.time()+1800:
+                  return False
+              return True
+
+          def actual_audio_video(url):
+              # Manifest metadata is not enough: attempt to decode probe samples.
+              try:
+                  with AV_SEM:
+                      p=subprocess.run([
+                          "ffprobe","-v","error","-rw_timeout","12000000",
+                          "-analyzeduration","2000000","-probesize","1200000",
+                          "-show_entries","stream=codec_type","-of","json",url,
+                      ],capture_output=True,text=True,timeout=22)
+                  types={s.get("codec_type") for s in json.loads(p.stdout or "{}").get("streams",[])}
+                  if p.returncode==0 and {"video","audio"}<=types:
+                      return True
+                  note("AV_PROBE_REJECT",p.returncode,",".join(sorted(t for t in types if t)),(p.stderr or "")[-130:])
+              except Exception as e:
+                  note("AV_PROBE_ERROR",type(e).__name__)
+              return False
+
           def direct_muxed(master,body):
               children=[]
               for line in body.splitlines():
@@ -116,12 +147,15 @@ jobs:
               base,vid=args
               try:
                   _,_,d=get_json(base+"/streams/"+vid)
+                  if not is_live_metadata(d): return None
                   h=d.get("hls")
                   if not isinstance(h,str) or not h.startswith("http"): return None
                   ok,final,body=probe(h)
                   if not ok or not has_video(body,final) or not has_audio(body,final): return None
                   direct,kind=direct_muxed(final,body)
-                  return {"url":direct or final,"instance":base,"mode":"piped-direct-"+kind if direct else "piped-master"}
+                  resolved=direct or final
+                  if not fresh_live_hls(resolved) or not actual_audio_video(resolved): return None
+                  return {"url":resolved,"instance":base,"mode":"piped-direct-"+kind if direct else "piped-master"}
               except Exception as e:
                   return None
 
@@ -129,12 +163,15 @@ jobs:
               base,vid=args
               try:
                   _,_,d=get_json(base+"/api/v1/videos/"+vid)
+                  if not is_live_metadata(d): return None
                   h=d.get("hlsUrl") or d.get("hls")
                   if not isinstance(h,str) or not h.startswith("http"): return None
                   ok,final,body=probe(h)
                   if not ok or not has_video(body,final) or not has_audio(body,final): return None
                   direct,kind=direct_muxed(final,body)
-                  return {"url":direct or final,"instance":base,"mode":"invidious-direct-"+kind if direct else "invidious-master"}
+                  resolved=direct or final
+                  if not fresh_live_hls(resolved) or not actual_audio_video(resolved): return None
+                  return {"url":resolved,"instance":base,"mode":"invidious-direct-"+kind if direct else "invidious-master"}
               except Exception:
                   return None
 
@@ -148,7 +185,7 @@ jobs:
                       try: r=fut.result()
                       except Exception: r=None
                       if r:
-                          note("VERIFIED_ALT_HLS",vid,r["mode"],r["instance"],r["url"][:150])
+                          note("VERIFIED_LIVE_AV_HLS",vid,r["mode"],r["instance"],r["url"][:150])
                           for other in tasks: other.cancel()
                           return r
               return None
