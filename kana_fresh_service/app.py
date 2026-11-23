@@ -762,6 +762,27 @@ def health():
 
 @app.get("/kana-9x.m3u8")
 def kana_9x():
+    # Use the original LIVE muxed H.264/AAC itag-96 format when Railway can
+    # resolve it from its own egress IP. This avoids fragile split renditions
+    # and makes both audio and video available to IPTV players in one playlist.
+    try:
+        resolved = current(force=False)
+        muxed = resolved.get("play_url") if resolved.get("ok") and resolved.get("mode") == "muxed" else None
+        if muxed and _proxy_allowed(muxed):
+            status, final, headers, body = _proxy_fetch(muxed, limit=2_000_000)
+            manifest = body.decode("utf-8", "replace")
+            if status == 200 and "#EXTM3U" in manifest[:8192]:
+                print("KANA_9X_MUXED " + str(resolved.get("video_id")) + " " + str(resolved.get("format",{}).get("format_id")), flush=True)
+                return Response(
+                    _rewrite_hls(manifest, final),
+                    status=200,
+                    mimetype="application/vnd.apple.mpegurl",
+                    headers={"Cache-Control": "no-store"},
+                )
+    except Exception as exc:
+        print("KANA_9X_MUXED_ERROR " + type(exc).__name__ + " " + str(exc)[:150], flush=True)
+
+    # Only then fall back to an independently renewed Invidious A/V master.
     try:
         src = _current_iptv_source()
         status, final, headers, body = _proxy_fetch(src, limit=2_000_000)
