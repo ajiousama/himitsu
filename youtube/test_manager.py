@@ -72,6 +72,22 @@ class YouTubeV2StructureTests(unittest.TestCase):
         self.assertEqual(len(urls), 1)
         self.assertRegex(urls[0], r"^https://www\.youtube\.com/watch\?v=[A-Za-z0-9_-]{11}$")
 
+    def test_kana_preserves_only_matching_live_unexpired_hls(self):
+        import time
+        vid = "dD3INnBLoVQ"
+        fresh = int(time.time()) + 3600
+        stale = int(time.time()) - 120
+        origin = "https://manifest.googlevideo.com/api/manifest/hls_playlist"
+        url = f"{origin}/expire/{fresh}/id/{vid}.1/itag/96/file/index.m3u8"
+        self.assertTrue(manager.kana_hls_still_usable(url, vid))
+        self.assertFalse(manager.kana_hls_still_usable(url, "DAmfaJ-bGeg"))
+        self.assertFalse(manager.kana_hls_still_usable(
+            f"{origin}/expire/{stale}/id/{vid}.1/itag/96/file/index.m3u8", vid))
+        self.assertFalse(manager.kana_hls_still_usable(
+            f"{origin}/expire/{fresh}/id/{vid}.1/force_finished/1/file/index.m3u8", vid))
+        self.assertFalse(manager.kana_hls_still_usable(
+            "https://www.youtube.com/watch?v=" + vid, vid))
+
     def test_search_based_general_channels_have_guards(self):
         cfg = json.loads(manager.CONFIG.read_text(encoding="utf-8"))
         unguarded = [
