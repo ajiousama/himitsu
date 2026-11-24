@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-25",
-  "generated_at": "2026-11-25T08:13:05.335360+09:00",
+  "generated_at": "2026-11-25T08:16:05.336721+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261125.json",
   "schedule_checked_at": "2026-11-25T08:05:05.392644+09:00",
@@ -19,7 +19,7 @@
   "alert_lead_minutes": 30,
   "card_count": 13,
   "held_count": 13,
-  "visible_count": 2,
+  "visible_count": 3,
   "active_count": 2,
   "ended_kept": [],
   "seed_required": false,
@@ -28,7 +28,7 @@
   "phase_counts": {
     "morning": {
       "held": 3,
-      "acquired": 2,
+      "acquired": 3,
       "active": 2,
       "ended": 0,
       "seed_required": 0,
@@ -53,7 +53,7 @@
   },
   "cloud_acquisition": {
     "requested": 8,
-    "fetched": 2,
+    "fetched": 3,
     "failures": [
       {
         "jcd": "08",
@@ -66,11 +66,6 @@
         "jcd": "05",
         "name": "多摩川",
         "start": "2026-11-25T09:59:00+09:00"
-      },
-      {
-        "jcd": "10",
-        "name": "三国",
-        "start": "2026-11-25T08:16:00+09:00"
       },
       {
         "jcd": "11",
@@ -98,6 +93,22 @@
     "kind": "healthy"
   },
   "streams": {
+    "boat.mikuni": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/46ad95ee511345fc9d9f93ebde6b1b4b/e7fd3ea9b23c4f0a8525cd48d2a042d2/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjAxZjc5MTcwZWM1YTQwYzdhNThlNjg3OWY1ZmIyOWM3IiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NTczNzYwMCwic3RhcnQiOjE3OTU1NjIxNjAsImlvcyI6MTgsImNwIjoiMjE3NzU3NzYwXzIxNzgwMDk1OSIsInBwdyI6IjN1NyJ9.I8VpKQnCAcLVCIHJVQBha479mlzMNkygCVk14idaa3c",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-11-25T08:16:32.843400+09:00",
+      "checked_at": "2026-11-25T08:16:32.843400+09:00",
+      "first_verified_at": "2026-11-25T08:16:32.843400+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 9106485,
+        "last_segment": "/46ad95ee511345fc9d9f93ebde6b1b4b/e7fd3ea9b23c4f0a8525cd48d2a042d2/manifest_4_9106490.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
+    },
     "boat.tokuyama": {
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/08c0813f6f2c477cb0e1e0314e4a3247/08c27aa3393d4c59a6a3ffbb9da354d2/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjAxZjc5MTcwZWM1YTQwYzdhNThlNjg3OWY1ZmIyOWM3IiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NTczNzYwMCwic3RhcnQiOjE3OTU1NjEyMDAsImlvcyI6MTgsImNwIjoiMjE3NzU2ODAwXzIxNzc5OTk5OSIsInBwdyI6IjN1NyJ9.cZ4fnZw6uVOAmmMH3gBGC0ITMAehZ6UBzb7jzK8hafo",
       "source": "automatic acquisition + audio/video decode",
@@ -317,7 +328,7 @@
       "jcd": "10",
       "name": "三国",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
       "active": false,
       "cancelled": false,
@@ -335,9 +346,9 @@
       "guidance_switch_at": "2026-11-25T15:13:00+09:00",
       "seed_required": false,
       "reverify_due": false,
-      "playback_verified": false,
-      "first_verified_at": null,
-      "ready_before_first_race": false,
+      "playback_verified": true,
+      "first_verified_at": "2026-11-25T08:16:32.843400+09:00",
+      "ready_before_first_race": true,
       "acquire_from": "2026-11-25T06:21:00+09:00",
       "races": [
         {
@@ -401,8 +412,9 @@
           "name": "準優勝戦"
         }
       ],
-      "provider_stream_start": "2026-11-25T08:16:00+09:00",
-      "source": "公式BR配信開始待ち 08:16"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/46ad95ee511345fc9d9f93ebde6b1b4b/e7fd3ea9b23c4f0a8525cd48d2a042d2/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjAxZjc5MTcwZWM1YTQwYzdhNThlNjg3OWY1ZmIyOWM3IiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NTczNzYwMCwic3RhcnQiOjE3OTU1NjIxNjAsImlvcyI6MTgsImNwIjoiMjE3NzU3NzYwXzIxNzgwMDk1OSIsInBwdyI6IjN1NyJ9.I8VpKQnCAcLVCIHJVQBha479mlzMNkygCVk14idaa3c",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     },
     "boat.biwako": {
       "jcd": "11",
