@@ -1103,30 +1103,34 @@ def validate(config):
     if stray_youtube:
         raise SystemExit("non-Kana YouTube entry remains in freewifi: " + stray_youtube[0])
 
-    # Reservation/LIVE publication is an invariant, not best-effort. Once the
-    # official channel has been resolved, FreeWiFi must contain the exact same
-    # Kana slot immediately.
-    kana_state = read_json(KANA_STATE, {})
-    kana_entry = parse_m3u(FREEWIFI).get(kana_id)
-    kana_mode = (kana_state.get("state") or "").lower()
-    if kana_mode in ("is_upcoming", "is_live"):
-        if not kana_entry:
-            raise SystemExit(f"Kana {kana_mode} detected but missing from freewifi")
-        expected = kana_state.get("watch_url")
-        if expected and kana_entry.get("url") != expected:
-            raise SystemExit(
-                f"Kana {kana_mode} URL mismatch: freewifi={kana_entry.get('url')} state={expected}"
-            )
-        ext = kana_entry.get("ext") or ""
-        if kana_mode == "is_upcoming" and "配信予定" not in ext:
-            raise SystemExit("Kana reservation detected but freewifi is not labelled 配信予定")
-        if kana_mode == "is_live" and "【LIVE】" not in ext:
-            raise SystemExit("Kana live detected but freewifi is not labelled LIVE")
-    elif kana_mode == "offline" and kana_entry:
-        raise SystemExit("Kana is offline but stale entry remains in freewifi")
-    iptv_entry = parse_m3u(FREEWIFI).get(KANA_IPTV_ID)
-    if iptv_entry and iptv_entry.get("url") != kana_state.get("play_url"):
-        raise SystemExit("Kana IPTV URL mismatch")
+    # Validate the one authoritative two-slot FreeWiFi projection. The IPTV
+    # slot is ALWAYS the stable Railway relay; kana.json.play_url is an
+    # upstream, expiring HLS and must never be compared to the relay URL.
+    kana_entries = parse_m3u(FREEWIFI)
+    kana_entry = kana_entries.get(kana_id)
+    iptv_entry = kana_entries.get(KANA_IPTV_ID)
+    if not kana_entry or not iptv_entry:
+        raise SystemExit("both Kana YouTube and IPTV slots must remain in freewifi")
+    if iptv_entry.get("url") != KANA_9X_PROXY:
+        raise SystemExit("Kana IPTV must use the stable Railway relay")
+
+    # The published YouTube playlist is the actual source of the YouTube
+    # slot. kana.json is observational metadata and may lag when 429/403
+    # blocks a refresh; an old state must not make unrelated FreeWiFi jobs fail.
+    source_entry = parse_m3u(KANA_OUT).get(kana_id)
+    if source_entry:
+        if kana_entry.get("url") != source_entry.get("url"):
+            raise SystemExit("Kana YouTube URL differs from canonical playlist")
+        if kana_entry.get("ext") != source_entry.get("ext"):
+            raise SystemExit("Kana YouTube label differs from canonical playlist")
+        state_watch = read_json(KANA_STATE, {}).get("watch_url")
+        if state_watch and state_watch != source_entry.get("url"):
+            print("KANA warning: state watch URL is stale; source playlist takes precedence")
+    else:
+        # With no verified current broadcast, preserve both slots but
+        # explicitly mark the YouTube watch target as unverified.
+        if "【配信確認中】" not in (kana_entry.get("ext") or ""):
+            raise SystemExit("Kana missing watch source must be labelled 配信確認中")
 
     print("YouTube v2 validation OK")
 
