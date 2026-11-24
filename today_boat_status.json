@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-24",
-  "generated_at": "2026-11-24T13:52:55.621373+09:00",
+  "generated_at": "2026-11-24T13:54:08.578185+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261124.json",
   "schedule_checked_at": "2026-11-24T13:52:55.621373+09:00",
@@ -54,7 +54,13 @@
   "cloud_acquisition": {
     "requested": 15,
     "fetched": 10,
-    "failures": [],
+    "failures": [
+      {
+        "jcd": "15",
+        "name": "丸亀",
+        "error": "HTTPError: playback check failed"
+      }
+    ],
     "deferred": [
       {
         "jcd": "07",
@@ -65,11 +71,6 @@
         "jcd": "12",
         "name": "住之江",
         "start": "2026-11-24T14:25:00+09:00"
-      },
-      {
-        "jcd": "15",
-        "name": "丸亀",
-        "start": "2026-11-24T13:55:00+09:00"
       },
       {
         "jcd": "19",
@@ -826,7 +827,7 @@
       "intermission": null,
       "guidance_switch_at": "2026-11-24T16:38:00+09:00",
       "seed_required": false,
-      "reverify_due": false,
+      "reverify_due": true,
       "playback_verified": true,
       "first_verified_at": "2026-11-24T09:50:32.179390+09:00",
       "ready_before_first_race": true,
@@ -1168,8 +1169,7 @@
           "name": "ドリーム"
         }
       ],
-      "provider_stream_start": "2026-11-24T13:55:00+09:00",
-      "source": "公式BR配信開始待ち 13:55"
+      "source": "automatic cloud SEED pending"
     },
     "boat.tokuyama": {
       "jcd": "18",
