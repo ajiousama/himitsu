@@ -144,6 +144,45 @@ class YouTubeV2StructureTests(unittest.TestCase):
                 )
                 self.assertIn("配信確認中", projection["youtube.kana_tube"]["ext"])
 
+    def test_kana_reservations_keep_day_mid_and_drop_expired(self):
+        now = 1795600000
+        day = {
+            "id": "DAYabc12345",
+            "title": "かなチューブ デイ配信【横型】",
+            "release_timestamp": now + 3600,
+        }
+        mid = {
+            "id": "MIDabc12345",
+            "title": "かなチューブ ミッドナイト",
+            "release_timestamp": now + 8 * 3600,
+        }
+        reservations = manager.kana_reservations([day, mid], now=now)
+        self.assertEqual([x["slot"] for x in reservations], ["DAY", "MID"])
+        self.assertEqual(
+            [x["video_id"] for x in manager.kana_reservations(
+                [], reservations, now=now + 7200, active_id="DAYabc12345"
+            )],
+            ["MIDabc12345"],
+        )
+        self.assertEqual(
+            manager.kana_reservations([], reservations, now=now + 72 * 3600),
+            [],
+        )
+
+    def test_kana_reservations_survive_temporarily_missing_schedule(self):
+        now = 1795600000
+        upcoming = [{"id": "MIDabc12345", "title": "ミッドナイト競輪LIVE",
+                     "release_timestamp": now + 7200}]
+        saved = manager.kana_reservations(upcoming, now=now)
+        self.assertEqual(
+            manager.kana_reservations([], saved, now=now + 1200)[0]["video_id"],
+            "MIDabc12345",
+        )
+        self.assertEqual(
+            manager.kana_reservations([], saved, now=now + 1200)[0]["slot"],
+            "MID",
+        )
+
     def test_kana_main_playlist_is_only_youtube_watch(self):
         import re
         lines = manager.KANA_OUT.read_text(encoding="utf-8").splitlines()
