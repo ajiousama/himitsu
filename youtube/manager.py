@@ -623,7 +623,7 @@ def kana_hls_still_usable(url, video_id):
 def kana_reservations(upcoming, previous_reservations=None, now=None, active_id=None):
     """Cache confirmed official reservation IDs for the next DAY/MID switches.
 
-    'upcoming' must already have passed official_youtube() verification.
+    'upcoming' must come from verified watch metadata or the official channel's streams listing.
     A reservation is discovery metadata, never proof of live HLS playback.
     """
     if now is None:
@@ -642,10 +642,12 @@ def kana_reservations(upcoming, previous_reservations=None, now=None, active_id=
         })
     # Keep already-confirmed reservation IDs through transient YouTube errors.
     # The single state file is the cache; no independent publisher is created.
-    rows = fresh + list(previous_reservations or [])
+    rows = fresh + (previous_reservations if isinstance(previous_reservations, list) else [])
     seen = set()
     result = []
     for row in rows:
+        if not isinstance(row, dict):
+            continue
         vid = row.get("video_id")
         if not isinstance(vid, str) or not re.fullmatch(r"[A-Za-z0-9_-]{11}", vid):
             continue
@@ -725,7 +727,7 @@ def update_kana(config):
                 print(f"KANA preserve same-video unexpired HLS: {vid}")
         write_playlist(KANA_IPTV_OUT, [entry(iptv_item, iptv_url, iptv_item["name"] + "【LIVE】")] if iptv_url else [])
         write_json(KANA_STATE, {
-            "reservations": kana_reservations(chosen, previous.get("reservations"), active_id=vid if status == "is_live" else None),
+            "reservations": kana_reservations(chosen + listing_reservations, previous.get("reservations"), active_id=vid if status == "is_live" else None),
             "state": status,
             "channel": item.get("handle"),
             "channel_id": item["channel_id"],
@@ -799,6 +801,11 @@ def update_kana(config):
     )
     official_stream_ids = {x["id"] for x in rows if x.get("id")}
     candidates += [x["id"] for x in ordered[:10]]
+    # Store an upcoming ID found on the official streams page even if
+    # per-video metadata is temporarily blocked. It is NOT published as live
+    # or promoted to HLS until the same ID is independently verified.
+    listing_reservations = [x for x in rows if x.get("id")
+                            and (x.get("live_status") or "").lower() == "is_upcoming"]
 
     chosen = []
     seen = set()
@@ -814,7 +821,7 @@ def update_kana(config):
             # The metadata JSON endpoint may fail while the direct live HLS
             # endpoint still works. Only try IDs supplied by the official
             # channel streams listing (or the previously verified ID).
-            if vid == previous_id or vid in official_stream_ids:
+            if vid == previous_id or vid in official_stream_ids or vid in {r["video_id"] for r in reserved}:
                 live_url, live_code = direct_hls("https://www.youtube.com/watch?v=" + vid)
                 if live_url and ("manifest.googlevideo.com/" in live_url or ".m3u8" in live_url):
                     write_playlist(KANA_OUT, [entry(item, "https://www.youtube.com/watch?v=" + vid, item["name"] + "【YouTube】")])
@@ -919,6 +926,7 @@ def update_kana(config):
 
     if trouble or not confirmed:
         state = dict(previous)
+        state["reservations"] = kana_reservations(listing_reservations, previous.get("reservations"), now_utc)
         state["check_error"] = True
         state["checked_at"] = datetime.now(JST).isoformat(timespec="seconds")
         write_json(KANA_STATE, state)
