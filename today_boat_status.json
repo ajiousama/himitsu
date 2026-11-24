@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-24",
-  "generated_at": "2026-11-24T12:48:37.523348+09:00",
+  "generated_at": "2026-11-24T12:49:48.087573+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261124.json",
   "schedule_checked_at": "2026-11-24T12:48:37.523348+09:00",
@@ -52,10 +52,15 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 11,
+    "requested": 12,
     "fetched": 10,
     "failures": [],
     "deferred": [
+      {
+        "jcd": "07",
+        "name": "蒲郡",
+        "start": "2026-11-24T14:10:00+09:00"
+      },
       {
         "jcd": "24",
         "name": "大村",
@@ -506,7 +511,8 @@
           "name": "優勝戦"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "provider_stream_start": "2026-11-24T14:10:00+09:00",
+      "source": "公式BR配信開始待ち 14:10"
     },
     "boat.tokoname": {
       "jcd": "08",
@@ -1443,7 +1449,7 @@
       "intermission": null,
       "guidance_switch_at": "2026-11-24T17:15:00+09:00",
       "seed_required": false,
-      "reverify_due": false,
+      "reverify_due": true,
       "playback_verified": true,
       "first_verified_at": "2026-11-24T10:11:09.662633+09:00",
       "ready_before_first_race": true,
