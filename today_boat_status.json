@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-24",
-  "generated_at": "2026-11-24T09:57:44.770873+09:00",
+  "generated_at": "2026-11-24T09:58:52.323071+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261124.json",
   "schedule_checked_at": "2026-11-24T09:53:08.182715+09:00",
@@ -19,7 +19,7 @@
   "alert_lead_minutes": 30,
   "card_count": 15,
   "held_count": 15,
-  "visible_count": 6,
+  "visible_count": 7,
   "active_count": 5,
   "ended_kept": [],
   "seed_required": false,
@@ -36,7 +36,7 @@
     },
     "day": {
       "held": 7,
-      "acquired": 3,
+      "acquired": 4,
       "active": 2,
       "ended": 0,
       "seed_required": 0,
@@ -53,18 +53,13 @@
   },
   "cloud_acquisition": {
     "requested": 10,
-    "fetched": 6,
+    "fetched": 7,
     "failures": [],
     "deferred": [
       {
         "jcd": "02",
         "name": "戸田",
         "start": "2026-11-24T10:09:00+09:00"
-      },
-      {
-        "jcd": "05",
-        "name": "多摩川",
-        "start": "2026-11-24T09:59:00+09:00"
       },
       {
         "jcd": "13",
@@ -87,6 +82,22 @@
     "kind": "healthy"
   },
   "streams": {
+    "boat.tamagawa": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/a5c8eacaf00341f4bb9e18f1e3ce2731/85150a99813f48cfadaefb5e3638a892/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjAxZjc5MTcwZWM1YTQwYzdhNThlNjg3OWY1ZmIyOWM3IiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NTY1NDgwMCwic3RhcnQiOjE3OTU0ODE5NDAsImlvcyI6MTgsImNwIjoiMjE3Njc3NTQwXzIxNzcyMDczOSIsInBwdyI6IjN1NyJ9.jd_bR0TZ5xwhIt_Z-R9M-0_mWyrCH6G6aGlWNdIPnhc",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-11-24T09:59:46.773845+09:00",
+      "checked_at": "2026-11-24T09:59:46.773845+09:00",
+      "first_verified_at": "2026-11-24T09:59:46.773845+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 9121190,
+        "last_segment": "/a5c8eacaf00341f4bb9e18f1e3ce2731/85150a99813f48cfadaefb5e3638a892/manifest_1_9121197.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
+    },
     "boat.tokoname": {
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/90a6f1baa9bf46ea93fb761af981f52e/dd7ad7f3612646e1a582ea6bb967ef9a/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjAxZjc5MTcwZWM1YTQwYzdhNThlNjg3OWY1ZmIyOWM3IiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NTY1NDgwMCwic3RhcnQiOjE3OTU0ODE0MDAsImlvcyI6MTgsImNwIjoiMjE3Njc3MDAwXzIxNzcyMDE5OSIsInBwdyI6IjN1NyJ9.AJ7ztpiWvT1Yq8DaT52HElDOg9y5pCM0_wCSLoIgj-s",
       "source": "automatic acquisition + audio/video decode",
@@ -280,7 +291,7 @@
       "jcd": "05",
       "name": "多摩川",
       "held": true,
-      "visible": false,
+      "visible": true,
       "ended": false,
       "active": false,
       "cancelled": false,
@@ -298,9 +309,9 @@
       "guidance_switch_at": "2026-11-24T16:32:00+09:00",
       "seed_required": false,
       "reverify_due": false,
-      "playback_verified": false,
-      "first_verified_at": null,
-      "ready_before_first_race": false,
+      "playback_verified": true,
+      "first_verified_at": "2026-11-24T09:59:46.773845+09:00",
+      "ready_before_first_race": true,
       "acquire_from": "2026-11-24T08:03:00+09:00",
       "races": [
         {
@@ -364,8 +375,9 @@
           "name": "記者選抜戦"
         }
       ],
-      "provider_stream_start": "2026-11-24T09:59:00+09:00",
-      "source": "公式BR配信開始待ち 09:59"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/a5c8eacaf00341f4bb9e18f1e3ce2731/85150a99813f48cfadaefb5e3638a892/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjAxZjc5MTcwZWM1YTQwYzdhNThlNjg3OWY1ZmIyOWM3IiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NTY1NDgwMCwic3RhcnQiOjE3OTU0ODE5NDAsImlvcyI6MTgsImNwIjoiMjE3Njc3NTQwXzIxNzcyMDczOSIsInBwdyI6IjN1NyJ9.jd_bR0TZ5xwhIt_Z-R9M-0_mWyrCH6G6aGlWNdIPnhc",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     },
     "boat.gamagori": {
       "jcd": "07",
