@@ -18,6 +18,7 @@ UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/140 Sa
 CACHE_SECONDS = int(os.environ.get("CACHE_SECONDS", "90"))
 KANA_IPTV_RAW = "https://raw.githubusercontent.com/ajiousama/himitsu/main/youtube/output/kana_iptv.m3u"
 KANA_WATCH_RAW = "https://raw.githubusercontent.com/ajiousama/himitsu/main/youtube/output/kana.m3u"
+KANA_STATE_RAW = "https://raw.githubusercontent.com/ajiousama/himitsu/main/youtube/state/kana.json"
 PUBLIC_BASE = "https://kana-iptv-fresh-production.up.railway.app"
 PROXY_ALLOWED_SUFFIXES = (
     "chocolatemoo53.com",
@@ -324,6 +325,41 @@ def _published_watch_video_id(notes):
     return None
 
 
+def _started_reservation_video_id(notes, now=None):
+    """Read the canonical manager's scheduled IDs; do not guess live status.
+
+    Only an already-started reservation may beat a stale published watch.
+    The HLS resolver still has to establish usable playback independently.
+    """
+    if now is None:
+        now = int(time.time())
+    try:
+        status, _, body = _fetch(KANA_STATE_RAW + "?t=" + str(now), 100000)
+        if status != 200:
+            return None
+        data = json.loads(body)
+        candidates = []
+        for row in data.get("reservations") or []:
+            if not isinstance(row, dict):
+                continue
+            vid = row.get("video_id")
+            if not isinstance(vid, str) or not re.fullmatch(r"[A-Za-z0-9_-]{11}", vid):
+                continue
+            try:
+                start = int(row.get("start_timestamp") or 0)
+            except (TypeError, ValueError):
+                continue
+            if start and now - 6 * 3600 <= start <= now:
+                candidates.append((start, vid))
+        if candidates:
+            start, vid = max(candidates)
+            notes.append("started_reservation:" + vid)
+            return vid
+    except Exception as exc:
+        notes.append("reservation_error:" + type(exc).__name__)
+    return None
+
+
 def _discover_video_id(notes):
     try:
         status, final_url, html = _fetch(CHANNEL_LIVE, 2_000_000)
@@ -346,6 +382,10 @@ def _discover_video_id(notes):
             return vid, "channel-live-now"
     except Exception as e:
         notes.append("discover_error:" + type(e).__name__ + ":" + str(e)[:120])
+
+    reserved = _started_reservation_video_id(notes)
+    if reserved:
+        return reserved, "scheduled-reservation"
 
     published = _published_watch_video_id(notes)
     if published:
