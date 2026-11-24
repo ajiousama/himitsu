@@ -2,8 +2,8 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-24",
-  "generated_at": "2026-11-24T17:41:38.923269+09:00",
-  "last_update_ok": false,
+  "generated_at": "2026-11-24T17:42:42.323605+09:00",
+  "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261124.json",
   "schedule_checked_at": "2026-11-24T17:32:50.868352+09:00",
   "schedule_warnings": [
@@ -22,13 +22,9 @@
   "visible_count": 5,
   "active_count": 5,
   "ended_kept": [],
-  "seed_required": true,
-  "seed_required_venues": [
-    "丸亀"
-  ],
-  "system_errors": [
-    "開始時刻が近い開催場の当日中継を取得・再生確認できません"
-  ],
+  "seed_required": false,
+  "seed_required_venues": [],
+  "system_errors": [],
   "phase_counts": {
     "morning": {
       "held": 3,
@@ -51,7 +47,7 @@
       "acquired": 5,
       "active": 5,
       "ended": 0,
-      "seed_required": 1,
+      "seed_required": 0,
       "cancelled": 0
     }
   },
@@ -72,8 +68,8 @@
     "guides.xml": 210
   },
   "alert": {
-    "active": true,
-    "kind": "system_error"
+    "active": false,
+    "kind": "healthy"
   },
   "streams": {
     "boat.gamagori": {
@@ -112,7 +108,7 @@
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/d67db45d8bee4235a1b5699e3fecc351/ce58eb632b154ead831f4300ccdc72ab/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjAxZjc5MTcwZWM1YTQwYzdhNThlNjg3OWY1ZmIyOWM3IiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NTY2OTIwMCwic3RhcnQiOjE3OTU0OTYxMDAsImlvcyI6MTgsImNwIjoiMjE3NjkxNzAwXzIxNzczNDg5OSIsInBwdyI6IjN1NyJ9.VipN1cK3l8IsNYv4lGu2OY2ROVdMdebP36Hk7RukIQA",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-11-24T13:56:07.683320+09:00",
-      "checked_at": "2026-11-24T17:42:33.414900+09:00",
+      "checked_at": "2026-11-24T17:43:36.837814+09:00",
       "first_verified_at": "2026-11-24T13:56:07.683320+09:00",
       "playback_verified": false,
       "probe": {
@@ -122,7 +118,7 @@
         "video_decoded": true,
         "audio_decoded": true
       },
-      "consecutive_failures": 37
+      "consecutive_failures": 38
     },
     "boat.shimonoseki": {
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/b732ec6c3d294262b36b293ed1cf8759/09b52b7da9de4596af6f38a25011fd78/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjAxZjc5MTcwZWM1YTQwYzdhNThlNjg3OWY1ZmIyOWM3IiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NTY3MjgwMCwic3RhcnQiOjE3OTU0OTkxMDAsImlvcyI6MTgsImNwIjoiMjE3Njk0NzAwXzIxNzczNTE5OSIsInBwdyI6IjN1NyJ9.pcq-oAidERUMeg2JwasBxaJ9jGvJo-mKAnZOLrp1SSo",
@@ -965,14 +961,14 @@
       "last_race": "20:42",
       "alert_from": "2026-11-24T14:53:00+09:00",
       "next_race": {
-        "race": 6,
-        "start": "17:42"
+        "race": 7,
+        "start": "18:10"
       },
       "stream_window": "live_or_prestart",
       "intermission": null,
       "guidance_switch_at": "2026-11-24T21:27:00+09:00",
-      "seed_required": true,
-      "reverify_due": true,
+      "seed_required": false,
+      "reverify_due": false,
       "playback_verified": false,
       "first_verified_at": "2026-11-24T13:56:07.683320+09:00",
       "ready_before_first_race": true,
