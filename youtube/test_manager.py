@@ -104,6 +104,46 @@ class YouTubeV2StructureTests(unittest.TestCase):
         manager_workflow = Path(".github/workflows/update_youtube.yml").read_text(encoding="utf-8")
         self.assertIn("python youtube/manager.py --scope special", manager_workflow)
 
+    def test_kana_validation_accepts_stale_state_and_stable_relay(self):
+        from tempfile import TemporaryDirectory
+        from unittest.mock import patch
+
+        with TemporaryDirectory() as tmp:
+            stale_state = Path(tmp) / "kana.json"
+            stale_state.write_text(json.dumps({
+                "state": "is_live",
+                "watch_url": "https://www.youtube.com/watch?v=4WBD_opNgKk",
+                "play_url": None,
+            }), encoding="utf-8")
+            with patch.object(manager, "KANA_STATE", stale_state):
+                manager.validate(manager.load_config())
+
+    def test_kana_offline_sync_keeps_both_entries_and_passes_validation(self):
+        from tempfile import TemporaryDirectory
+        from unittest.mock import patch
+
+        with TemporaryDirectory() as tmp:
+            tmp_root = Path(tmp)
+            freewifi = tmp_root / "freewifi"
+            freewifi.write_text(Path("freewifi").read_text(encoding="utf-8"), encoding="utf-8")
+            kana_output = tmp_root / "kana.m3u"
+            kana_output.write_text("#EXTM3U\n", encoding="utf-8")
+            offline_state = tmp_root / "kana.json"
+            offline_state.write_text(json.dumps({"state": "offline"}), encoding="utf-8")
+            with (patch.object(manager, "FREEWIFI", freewifi),
+                  patch.object(manager, "KANA_OUT", kana_output),
+                  patch.object(manager, "KANA_STATE", offline_state)):
+                cfg = manager.load_config()
+                manager.sync_freewifi(cfg)
+                manager.validate(cfg)
+                projection = manager.parse_m3u(freewifi)
+                self.assertIn("youtube.kana_tube", projection)
+                self.assertEqual(
+                    projection["youtube.kana_tube_iptv"]["url"],
+                    manager.KANA_9X_PROXY,
+                )
+                self.assertIn("配信確認中", projection["youtube.kana_tube"]["ext"])
+
     def test_kana_main_playlist_is_only_youtube_watch(self):
         import re
         lines = manager.KANA_OUT.read_text(encoding="utf-8").splitlines()
