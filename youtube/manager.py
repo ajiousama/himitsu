@@ -620,6 +620,66 @@ def kana_hls_still_usable(url, video_id):
     return bool(expiry and int(expiry.group(1)) > time.time() + 900)
 
 
+def kana_reservations(upcoming, previous_reservations=None, now=None, active_id=None):
+    """Cache confirmed official reservation IDs for the next DAY/MID switches.
+
+    'upcoming' must already have passed official_youtube() verification.
+    A reservation is discovery metadata, never proof of live HLS playback.
+    """
+    if now is None:
+        now = int(time.time())
+    fresh = []
+    for info in upcoming:
+        vid = info.get("id")
+        if not isinstance(vid, str) or not re.fullmatch(r"[A-Za-z0-9_-]{11}", vid):
+            continue
+        start = info_start(info)
+        fresh.append({
+            "video_id": vid,
+            "title": info.get("title") or "",
+            "start_timestamp": start,
+            "captured_at": now,
+        })
+    # Keep already-confirmed reservation IDs through transient YouTube errors.
+    # The single state file is the cache; no independent publisher is created.
+    rows = fresh + list(previous_reservations or [])
+    seen = set()
+    result = []
+    for row in rows:
+        vid = row.get("video_id")
+        if not isinstance(vid, str) or not re.fullmatch(r"[A-Za-z0-9_-]{11}", vid):
+            continue
+        if vid == active_id or vid in seen:
+            continue
+        try:
+            start = int(row.get("start_timestamp") or 0)
+            captured = int(row.get("captured_at") or 0)
+        except (TypeError, ValueError):
+            continue
+        if start:
+            if not now - 6 * 3600 <= start <= now + 48 * 3600:
+                continue
+        elif not captured or now - captured > 8 * 3600:
+            continue
+        title = str(row.get("title") or "")[:180]
+        low = title.lower()
+        kind = ("MID" if "ミッドナイト" in title or "midnight" in low
+                else "DAY" if "デイ" in title or "day" in low
+                else "UNKNOWN")
+        seen.add(vid)
+        result.append({
+            "video_id": vid, "title": title, "start_timestamp": start or None,
+            "start_jst": datetime.fromtimestamp(start, JST).isoformat(timespec="seconds") if start else None,
+            "slot": kind, "captured_at": captured or now,
+        })
+    # Store normal scheduled programs ahead of vertical duplicates when possible.
+    result.sort(key=lambda x: (
+        x["start_timestamp"] if x["start_timestamp"] else now + 72 * 3600,
+        int(any(w in x["title"].lower() for w in ("縦型", "縦配信", "vertical", "shorts"))),
+    ))
+    return result[:4]
+
+
 def update_kana(config):
     item = config["special"]["kana"]
     previous = read_json(KANA_STATE, {})
@@ -665,6 +725,7 @@ def update_kana(config):
                 print(f"KANA preserve same-video unexpired HLS: {vid}")
         write_playlist(KANA_IPTV_OUT, [entry(iptv_item, iptv_url, iptv_item["name"] + "【LIVE】")] if iptv_url else [])
         write_json(KANA_STATE, {
+            "reservations": kana_reservations(chosen, previous.get("reservations"), active_id=vid if status == "is_live" else None),
             "state": status,
             "channel": item.get("handle"),
             "channel_id": item["channel_id"],
@@ -714,6 +775,10 @@ def update_kana(config):
     # Primary discovery is the official streams tab only. Keep the list small:
     # we only need current live/upcoming slots, not dozens of old broadcasts.
     candidates = [published_id] if published_id else []
+    # Check already-confirmed DAY/MID reservation IDs even if the channel's
+    # streams tab now fails or places the second upcoming show beyond page one.
+    reserved = kana_reservations([], previous.get("reservations"), now_utc)
+    candidates += [x["video_id"] for x in reserved]
     if previous_id and previous_id not in candidates:
         candidates.append(previous_id)
     # Confirmed 2026-11-21 normal-stream reservation, supplied by channel viewer.
@@ -733,7 +798,7 @@ def update_kana(config):
         else 2,
     )
     official_stream_ids = {x["id"] for x in rows if x.get("id")}
-    candidates += [x["id"] for x in ordered[:6]]
+    candidates += [x["id"] for x in ordered[:10]]
 
     chosen = []
     seen = set()
@@ -863,6 +928,7 @@ def update_kana(config):
     write_playlist(KANA_OUT, [])
     write_playlist(KANA_IPTV_OUT, [])
     write_json(KANA_STATE, {
+        "reservations": kana_reservations([], previous.get("reservations"), now_utc),
         "state": "offline",
         "channel": item.get("handle"),
         "channel_id": item["channel_id"],
