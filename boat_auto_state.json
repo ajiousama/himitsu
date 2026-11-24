@@ -2,10 +2,10 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-24",
-  "generated_at": "2026-11-24T20:55:51.283491+09:00",
-  "last_update_ok": false,
+  "generated_at": "2026-11-24T20:56:55.780080+09:00",
+  "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261124.json",
-  "schedule_checked_at": "2026-11-24T20:41:45.910975+09:00",
+  "schedule_checked_at": "2026-11-24T20:56:55.780080+09:00",
   "schedule_warnings": [
     "official_cards: TimeoutError"
   ],
@@ -19,16 +19,12 @@
   "alert_lead_minutes": 30,
   "card_count": 15,
   "held_count": 15,
-  "visible_count": 1,
-  "active_count": 1,
+  "visible_count": 0,
+  "active_count": 0,
   "ended_kept": [],
-  "seed_required": true,
-  "seed_required_venues": [
-    "大村"
-  ],
-  "system_errors": [
-    "開始時刻が近い開催場の当日中継を取得・再生確認できません"
-  ],
+  "seed_required": false,
+  "seed_required_venues": [],
+  "system_errors": [],
   "phase_counts": {
     "morning": {
       "held": 3,
@@ -48,51 +44,30 @@
     },
     "night": {
       "held": 5,
-      "acquired": 1,
-      "active": 1,
-      "ended": 4,
-      "seed_required": 1,
+      "acquired": 0,
+      "active": 0,
+      "ended": 5,
+      "seed_required": 0,
       "cancelled": 0
     }
   },
   "cloud_acquisition": {
-    "requested": 1,
+    "requested": 0,
     "fetched": 0,
-    "failures": [
-      {
-        "jcd": "24",
-        "name": "大村",
-        "error": "ValueError: ended VOD playlist is not a live stream"
-      }
-    ],
-    "deferred": []
+    "failures": [],
+    "deferred": [],
+    "deferred_count": 15,
+    "reason": "stream acquisition waits until each venue 1R prefetch window"
   },
   "epg_programmes_written": {
     "public_sports_epg_local.xml": 210,
     "guides.xml": 210
   },
   "alert": {
-    "active": true,
-    "kind": "system_error"
+    "active": false,
+    "kind": "healthy"
   },
-  "streams": {
-    "boat.omura": {
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/acce9aa2bd564af8b57bb4293bfe3ce1/3925d04dc06f4221b2e7ada7b667f192/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjAxZjc5MTcwZWM1YTQwYzdhNThlNjg3OWY1ZmIyOWM3IiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NTY3MjgwMCwic3RhcnQiOjE3OTU0OTkxMDAsImlvcyI6MTgsImNwIjoiMjE3Njk0NzAwXzIxNzczNTE5OSIsInBwdyI6IjN1NyJ9.pcq-oAidERUMeg2JwasBxaJ9jGvJo-mKAnZOLrp1SSo",
-      "source": "automatic acquisition + audio/video decode",
-      "acquired_at": "2026-11-24T14:45:56.344157+09:00",
-      "checked_at": "2026-11-24T20:56:45.938297+09:00",
-      "first_verified_at": "2026-11-24T14:45:56.344157+09:00",
-      "playback_verified": false,
-      "probe": {
-        "ok": true,
-        "sequence": 9102328,
-        "last_segment": "/acce9aa2bd564af8b57bb4293bfe3ce1/3925d04dc06f4221b2e7ada7b667f192/manifest_1_9105881.ts",
-        "video_decoded": true,
-        "audio_decoded": true
-      },
-      "consecutive_failures": 11
-    }
-  },
+  "streams": {},
   "venues": {
     "boat.toda": {
       "jcd": "02",
@@ -714,12 +689,12 @@
       "mode": "night",
       "mode_label": "ナイター",
       "first_race": "15:25",
-      "last_race": "20:38",
+      "last_race": "20:45",
       "alert_from": "2026-11-24T14:55:00+09:00",
       "next_race": null,
       "stream_window": "ended_hidden",
       "intermission": null,
-      "guidance_switch_at": "2026-11-24T21:23:00+09:00",
+      "guidance_switch_at": "2026-11-24T21:30:00+09:00",
       "seed_required": false,
       "reverify_due": false,
       "playback_verified": false,
@@ -784,7 +759,7 @@
         },
         {
           "race": 12,
-          "start": "20:38",
+          "start": "20:45",
           "name": "一般特別戦"
         }
       ],
@@ -1316,24 +1291,21 @@
       "jcd": "24",
       "name": "大村",
       "held": true,
-      "visible": true,
-      "ended": false,
-      "active": true,
+      "visible": false,
+      "ended": true,
+      "active": false,
       "cancelled": false,
       "mode": "night",
       "mode_label": "ナイター",
       "first_race": "15:16",
-      "last_race": "21:05",
+      "last_race": "20:44",
       "alert_from": "2026-11-24T14:46:00+09:00",
-      "next_race": {
-        "race": 12,
-        "start": "21:05"
-      },
-      "stream_window": "live_or_prestart",
+      "next_race": null,
+      "stream_window": "ended_hidden",
       "intermission": null,
-      "guidance_switch_at": "2026-11-24T21:50:00+09:00",
-      "seed_required": true,
-      "reverify_due": true,
+      "guidance_switch_at": "2026-11-24T21:29:00+09:00",
+      "seed_required": false,
+      "reverify_due": false,
       "playback_verified": false,
       "first_verified_at": "2026-11-24T14:45:56.344157+09:00",
       "ready_before_first_race": true,
@@ -1391,18 +1363,16 @@
         },
         {
           "race": 11,
-          "start": "20:37",
+          "start": "20:38",
           "name": "準優勝戦"
         },
         {
           "race": 12,
-          "start": "21:05",
+          "start": "20:44",
           "name": "一般"
         }
       ],
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/acce9aa2bd564af8b57bb4293bfe3ce1/3925d04dc06f4221b2e7ada7b667f192/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjAxZjc5MTcwZWM1YTQwYzdhNThlNjg3OWY1ZmIyOWM3IiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NTY3MjgwMCwic3RhcnQiOjE3OTU0OTkxMDAsImlvcyI6MTgsImNwIjoiMjE3Njk0NzAwXzIxNzczNTE5OSIsInBwdyI6IjN1NyJ9.pcq-oAidERUMeg2JwasBxaJ9jGvJo-mKAnZOLrp1SSo",
-      "source": "automatic acquisition + audio/video decode",
-      "token_expired": false
+      "source": "automatic cloud SEED pending"
     }
   }
 }
