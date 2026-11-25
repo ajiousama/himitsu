@@ -27,6 +27,18 @@ GCH_COFFEE_NAME='グリーンチャンネル（coffee）'
 GCH_COFFEE_ID='jra.gch.hq'
 GCH_COFFEE_SOURCE=Path('cafeaulait.m3u')
 
+def coffee_archive_attrs(inf):
+ return ' '.join(m.group(0) for m in re.finditer(r'\b(?:catchup|catchup-days|catchup-source)="[^"]+"',inf))
+
+def coffee_entry(name):
+ lines=GCH_COFFEE_SOURCE.read_text(encoding='utf-8-sig').splitlines()
+ matches=[(line,lines[i+1].strip()) for i,line in enumerate(lines[:-1]) if line.startswith('#EXTINF:') and line.rsplit(',',1)[-1].strip()==name]
+ if len(matches)!=1 or not coffee_archive_attrs(matches[0][0]):
+  raise SystemExit('Coffee archive metadata missing: '+name)
+ return matches[0]
+
+COFFEE_EXTRA_NAMES=["☕Fuji TV ONE（coffee）","☕Fuji TV TWO（coffee）","☕Nouvelle Paradise（coffee）","☕Pigoo NSFW（coffee）"]
+
 def gch_coffee_url():
  lines=GCH_COFFEE_SOURCE.read_text(encoding='utf-8-sig').splitlines()
  matches=[lines[i+1].strip() for i,line in enumerate(lines[:-1])
@@ -162,7 +174,7 @@ def main():
    rows += [f'#EXTINF:-1 tvg-id="{GCH_SINORI_ID}" tvg-name="{GCH_SINORI_NAME}" tvg-logo="{GCH_SINORI_LOGO}" group-title="{GROUP}",{GCH_SINORI_NAME}',GCH_SINORI_URL,'']
    for backup_label, backup_url in GCH_PROVIDER_BACKUPS:
     rows += [f'#EXTINF:-1 tvg-id="jra.gch.hq" tvg-name="{backup_label}" tvg-logo="{GCH_DIRECT_LOGO}" group-title="{GROUP}",{backup_label}',backup_url,'']
-   rows += [f'#EXTINF:-1 tvg-id="{GCH_COFFEE_ID}" tvg-name="{GCH_COFFEE_NAME}" tvg-logo="{GCH_COFFEE_LOGO}" group-title="{GROUP}",{GCH_COFFEE_NAME}',gch_coffee_url(),'']
+   rows += [f'#EXTINF:-1 tvg-id="{GCH_COFFEE_ID}" tvg-name="{GCH_COFFEE_NAME}" tvg-logo="{GCH_COFFEE_LOGO}" group-title="{GROUP}" {coffee_archive_attrs(coffee_entry("☕Green Channel（coffee）")[0])},{GCH_COFFEE_NAME}',gch_coffee_url(),'']
   name,hq,lq,hqlogo,lqlogo=SOURCES[source]
   outbase='jra.local' if source=='jra.hokkaido' else source
   for q,stream,logo in (('hq',hq,hqlogo),('lq',lq,lqlogo)):
@@ -171,6 +183,9 @@ def main():
    rows += [f'#EXTINF:-1 tvg-id="{cid}" tvg-name="{label}" tvg-logo="{logo_url}" group-title="{GROUP}",{label}',f'{RAW}/{stream}','']
    exposed.append(cid)
 
+ for coffee_name in COFFEE_EXTRA_NAMES:
+  inf,url=coffee_entry(coffee_name)
+  rows += [re.sub(r'group-title="[^"]*"', 'group-title="Coffee"', inf, count=1),url,'']
  managed=START+'\n## 本日の開催場（JRA / ajiousama HQ・LQ）\n'+'\n'.join(rows).rstrip()+('\n' if rows else '')+END
  anchor='# === GENERAL_YOUTUBE_MANAGED_START ==='
  text=base.replace(anchor,managed+'\n\n'+anchor,1) if anchor in base else base.rstrip()+'\n\n'+managed+'\n'
