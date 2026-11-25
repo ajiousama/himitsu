@@ -55,8 +55,11 @@ def xmltv_time(dt):
 def add_channel(root, cid, name):
     ch = ET.SubElement(root, "channel", {"id": cid})
     ET.SubElement(ch, "display-name").text = name
-    if cid.startswith(("jra.gch.", "jra.east.", "jra.west.", "jra.local.")):
-        ET.SubElement(ch, "icon", {"src": GCH_LOGO})
+    quality_logos = {"jra.gch.lq":"https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/public_sports/jra_quality/gch_lq_restored.webp","jra.east.hq":"https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/public_sports/jra_quality/east_hq_restored.webp","jra.east.lq":"https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/public_sports/jra_quality/east_lq_restored.webp","jra.west.hq":"https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/public_sports/jra_quality/west_hq_restored.webp","jra.west.lq":"https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/public_sports/jra_quality/west_lq_restored.webp","jra.local.hq":"https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/public_sports/jra_quality/local_hq_restored.webp","jra.local.lq":"https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/public_sports/jra_quality/local_lq_restored.webp"}
+    # MAIN HQ and common-logo variants share a guide ID. Leave this XMLTV
+    # icon absent so each M3U row retains its own logo.
+    if cid in quality_logos:
+        ET.SubElement(ch, "icon", {"src": quality_logos[cid]})
 
 
 def clone(programme, channel):
@@ -272,7 +275,7 @@ def main():
         for p in schedule:
             root.append(clone(p, cid))
 
-    # Keep the original Sinori guide's icon identical to all MAIN routes.
+    # Keep the original common Green Channel guide icon.
     for ch in root.findall("channel"):
         if ch.get("id") == "グリーンチャンネル_jp":
             for icon in ch.findall("icon"):

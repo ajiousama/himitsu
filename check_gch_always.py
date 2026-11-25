@@ -54,7 +54,9 @@ def main() -> None:
             coffee_entries.append(name)
         if name not in names:
             continue
-        if f'tvg-logo="{GCH_SINORI_LOGO}"' not in line:
+        dedicated = {"グリーンチャンネル MAIN HQ":"https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/public_sports/jra_quality/gch_hq_restored.webp","グリーンチャンネル MAIN LQ":"https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/public_sports/jra_quality/gch_lq_restored.webp","JRA EAST WEB3 HQ":"https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/public_sports/jra_quality/east_hq_restored.webp","JRA EAST WEB3 LQ":"https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/public_sports/jra_quality/east_lq_restored.webp","JRA WEST WEB4 HQ":"https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/public_sports/jra_quality/west_hq_restored.webp","JRA WEST WEB4 LQ":"https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/public_sports/jra_quality/west_lq_restored.webp","JRA LOCAL WEB5 HQ":"https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/public_sports/jra_quality/local_hq_restored.webp","JRA LOCAL WEB5 LQ":"https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/public_sports/jra_quality/local_lq_restored.webp"}
+        expected_logo = dedicated.get(name, GCH_SINORI_LOGO)
+        if f'tvg-logo="{expected_logo}"' not in line:
             raise SystemExit(f"GCH logo guard: noncanonical logo: {name}")
         if name in found:
             raise SystemExit(f"GCH always-on guard: duplicate entry: {name}")

@@ -10,10 +10,10 @@ RAW='https://raw.githubusercontent.com/ajiousama/himitsu/main'
 LOGO=RAW+'/logos/public_sports/jra_quality'
 GCH_LOCAL_LOGO='https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/public_sports/jra_quality'
 SOURCES={
- 'jra.gch':('グリーンチャンネル MAIN','gchmain_master.m3u8','gchmain_LQ.m3u8','gch_hq.png','gch_lq.png'),
- 'jra.east':('JRA EAST WEB3','gch_east_master.m3u8','gch_east_LQ.m3u8','gch_hq.png','gch_lq.png'),
- 'jra.west':('JRA WEST WEB4','gch_west_master.m3u8','gch_west_LQ.m3u8','gch_hq.png','gch_lq.png'),
- 'jra.hokkaido':('JRA LOCAL WEB5','gch_hokkaido_master.m3u8','gch_hokkaido_LQ.m3u8','gch_hq.png','gch_lq.png'),
+ 'jra.gch':('グリーンチャンネル MAIN','gchmain_master.m3u8','gchmain_LQ.m3u8','gch_hq_restored.webp','gch_lq_restored.webp'),
+ 'jra.east':('JRA EAST WEB3','gch_east_master.m3u8','gch_east_LQ.m3u8','east_hq_restored.webp','east_lq_restored.webp'),
+ 'jra.west':('JRA WEST WEB4','gch_west_master.m3u8','gch_west_LQ.m3u8','west_hq_restored.webp','west_lq_restored.webp'),
+ 'jra.hokkaido':('JRA LOCAL WEB5','gch_hokkaido_master.m3u8','gch_hokkaido_LQ.m3u8','local_hq_restored.webp','local_lq_restored.webp'),
 }
 QUALITY_IDS={f'{base}.{q}' if base!='jra.hokkaido' else f'jra.local.{q}' for base in SOURCES for q in ('hq','lq')}
 # Keep sinori with the JRA-managed GCH rows, not a separate persistent section.
@@ -165,7 +165,7 @@ def main():
   outbase='jra.local' if source=='jra.hokkaido' else source
   for q,stream,logo in (('hq',hq,hqlogo),('lq',lq,lqlogo)):
    cid=f'{outbase}.{q}'; label=f'{name} {q.upper()}'
-   logo_url=GCH_SINORI_LOGO
+   logo_url=LOGO+'/'+logo
    rows += [f'#EXTINF:-1 tvg-id="{cid}" tvg-name="{label}" tvg-logo="{logo_url}" group-title="{GROUP}",{label}',f'{RAW}/{stream}','']
    exposed.append(cid)
 

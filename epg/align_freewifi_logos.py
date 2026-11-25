@@ -70,6 +70,13 @@ def main() -> None:
             continue
         matched += 1
         icons = channel.findall("icon")
+        # This guide ID is shared by MAIN HQ and common-logo routes.
+        # A single XMLTV icon would override their distinct M3U artwork.
+        if channel_id == "jra.gch.hq":
+            for icon in icons:
+                channel.remove(icon)
+                changed += 1
+            continue
         if not icons:
             ET.SubElement(channel, "icon", {"src": logo})
             changed += 1
