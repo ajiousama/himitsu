@@ -142,26 +142,56 @@ def build_gch_schedule(programmes, start, end):
     return result
 
 
-def regional_placeholder(start, stop, name):
-    """Unknown programme info must not be reported as confirmed suspension."""
+JRA_VENUE_RE = re.compile(r"^JRA (東京|中山|新潟|福島|京都|阪神|中京|小倉|札幌|函館)(?:\\s|$)")
+
+
+def meeting_names_by_day(regional):
+    """Derive meeting names only from dated, actual JRA race-card descriptions."""
+    result = {}
+    for cid in REGIONAL:
+        for p in regional.get(cid, []):
+            dt = parse_time(p.get("start"))
+            match = JRA_VENUE_RE.match((p.findtext("desc") or "").strip())
+            if dt and match:
+                names = result.setdefault(dt.date(), [])
+                if match.group(1) not in names:
+                    names.append(match.group(1))
+    return result
+
+
+def regional_placeholder(start, stop, name, venues=()):
+    """Describe confirmed meetings, not an unverified broadcast on this feed."""
     p = ET.Element("programme", {
         "start": xmltv_time(start),
         "stop": xmltv_time(stop),
     })
-    ET.SubElement(p, "title", {"lang": "ja"}).text = f"{name}｜番組情報未取得"
-    ET.SubElement(p, "desc", {"lang": "ja"}).text = (
-        "この時間帯の番組内容は確認できていません。"
-        "休止中または放送中という判定ではありません。"
-    )
+    if venues:
+        title = "本日は" + "と".join(v + "競馬" for v in venues) + "を開催しています"
+        desc = "確認済みの中央競馬開催場のご案内です。この枠の個別の放送内容・レース情報は未確認です。"
+    else:
+        title = "本日は中央競馬開催日｜開催場情報取得待ち"
+        desc = "中央競馬の開催日は確認済みですが、開催場名を取得できていません。"
+    ET.SubElement(p, "title", {"lang": "ja"}).text = title
+    ET.SubElement(p, "desc", {"lang": "ja"}).text = desc
     return p
 
 
-def regional_schedule_with_unknowns(programmes, race_days, name):
-    """Reserve 09:00-17:00 JST on race days without inventing any races."""
+def regional_schedule_with_unknowns(programmes, race_days, name, venues_by_day=None):
+    """Fill unassigned feed days and gaps with the confirmed meeting announcement."""
     out = list(programmes)
+    venues_by_day = venues_by_day or {}
     for day in sorted(race_days):
-        start = datetime.combine(day, datetime.min.time(), tzinfo=JST) + timedelta(hours=9)
-        stop = start + timedelta(hours=8)
+        midnight = datetime.combine(day, datetime.min.time(), tzinfo=JST)
+        next_day = midnight + timedelta(days=1)
+        has_race = any(
+            (dt := parse_time(p.get("start"))) and dt.date() == day
+            and JRA_VENUE_RE.match((p.findtext("desc") or "").strip())
+            for p in programmes
+        )
+        # A feed without race cards gets a full-day meeting announcement.
+        # Keep assigned feeds' actual race cards and existing post-race notices.
+        start = midnight + timedelta(hours=9) if has_race else midnight
+        stop = midnight + timedelta(hours=17) if has_race else next_day
         intervals = []
         for p in programmes:
             a, b = parse_time(p.get("start")), parse_time(p.get("stop"))
@@ -171,10 +201,10 @@ def regional_schedule_with_unknowns(programmes, race_days, name):
         cursor = start
         for a, b in intervals:
             if a > cursor:
-                out.append(regional_placeholder(cursor, a, name))
+                out.append(regional_placeholder(cursor, a, name, venues_by_day.get(day, ())))
             cursor = max(cursor, b)
         if cursor < stop:
-            out.append(regional_placeholder(cursor, stop, name))
+            out.append(regional_placeholder(cursor, stop, name, venues_by_day.get(day, ())))
     return out
 
 
@@ -192,6 +222,8 @@ def main():
     start = now.replace(hour=0, minute=0, second=0, microsecond=0)
     end = start + timedelta(days=3)
     source_id, source_schedule = actual_gch_schedule(root, start, end)
+
+    venues_by_day = meeting_names_by_day(regional)
 
     # A race day keeps all WEB3/WEB4/WEB5 EPG channels, even if only
     # EAST and LOCAL have official race cards that day.
@@ -221,7 +253,7 @@ def main():
     for source, (base, display) in QUALITY.items():
         if not regional[source] and not race_days:
             continue
-        schedule = regional_schedule_with_unknowns(regional[source], race_days, display)
+        schedule = regional_schedule_with_unknowns(regional[source], race_days, display, venues_by_day)
         for quality, label in (("hq", "HQ"), ("lq", "LQ")):
             cid = f"{base}.{quality}"
             add_channel(root, cid, f"{display} {label}")
