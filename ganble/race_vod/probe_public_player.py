@@ -9,7 +9,7 @@ from html.parser import HTMLParser
 from urllib.parse import urljoin, urlsplit
 from urllib.request import Request, urlopen
 
-PAGE = "https://keiba-lv-st.jp/movie/player?date=20261125&race=12&track=sonoda"
+PAGE = "https://keiba-lv-st.jp/movie/player?date=20261125&race=1&track=sonoda"
 
 class Media(HTMLParser):
     def __init__(self):
@@ -35,7 +35,7 @@ def public_media(page, html):
     return found
 
 def main():
-    result = {"race_id": "nar:20261125:chihou.sonoda:12",
+    result = {"race_id": "nar:20261125:chihou.sonoda:01",
               "page": PAGE, "publication": "none", "candidates": []}
     try:
         with urlopen(Request(PAGE), timeout=20) as f:
