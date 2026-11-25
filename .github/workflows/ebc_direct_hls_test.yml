@@ -1,4 +1,4 @@
-name: EBC November 14 historical resolver test
+name: Kana MID 720p isolated read-only playback test
 on:
   push:
     branches: ['test/ebc-direct-hls-20261125']
@@ -8,80 +8,67 @@ permissions:
 jobs:
   probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 6
     steps:
       - uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
       - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
-      - name: Install historical resolver candidate and recover exact source
-        run: |
-          git show be7add994c837868d90947738cadbd6ee201ea8a:youtube/manager.py > "$RUNNER_TEMP/manager_nov14.py"
-          python -m pip install --upgrade pip
-          python - <<'PY'
-          import json, urllib.request, datetime, subprocess, pathlib, os
-          from pip._vendor.packaging.version import Version
-          cutoff=datetime.datetime.fromisoformat("2026-11-14T14:58:36+00:00")
-          data=json.load(urllib.request.urlopen("https://pypi.org/pypi/yt-dlp/json",timeout=25))
-          eligible=[v for v,files in data["releases"].items() if files and any(not f.get("yanked") and datetime.datetime.fromisoformat(f["upload_time_iso_8601"].replace("Z","+00:00"))<=cutoff for f in files)]
-          version=max(eligible,key=Version)
-          subprocess.check_call(["python","-m","pip","install","yt-dlp[default]=="+version,"curl_cffi"])
-          pathlib.Path(os.environ["RUNNER_TEMP"],"historical_version.txt").write_text(version)
-          PY
-      - name: Restore configured authentication
+      - name: Install resolver
+        run: python -m pip install --upgrade --pre 'yt-dlp[default]' curl_cffi
+      - name: Verify official current MID and test format 95
         env:
           YOUTUBE_COOKIES: ${{ secrets.YOUTUBE_COOKIES }}
         run: |
-          if [ -n "$YOUTUBE_COOKIES" ]; then
-            umask 077
-            printf '%s' "$YOUTUBE_COOKIES" > "$RUNNER_TEMP/ebc_youtube_cookies.txt"
-          fi
-      - name: Test exact November 14 direct_hls function
-        run: |
           mkdir -p diagnostics
           python - <<'PY'
-          import importlib.util, pathlib, os, json, subprocess, datetime
-          temp=pathlib.Path(os.environ["RUNNER_TEMP"])
-          spec=importlib.util.spec_from_file_location("historical_manager", temp/"manager_nov14.py")
-          m=importlib.util.module_from_spec(spec)
-          spec.loader.exec_module(m)
-          m.COOKIES=temp/"ebc_youtube_cookies.txt"
-          target="https://www.youtube.com/watch?v=L9OqeSJgzKA"
-          result={"source_commit":"be7add994c837868d90947738cadbd6ee201ea8a","checked_at":datetime.datetime.now(datetime.timezone.utc).isoformat(),"video_id":"L9OqeSJgzKA","version_basis":"latest PyPI release uploaded by November 14 snapshot; actual historical runner version unknown","yt_dlp_version":subprocess.check_output(["yt-dlp","--version"],text=True).strip(),"node_version":subprocess.check_output(["node","--version"],text=True).strip(),"cookie_configured":m.COOKIES.exists() and m.COOKIES.stat().st_size>20,"direct_hls":None,"streams":[]}
-          original=m.run_ytdlp
-          def diagnostic(args,timeout=40):
-              p=original(args,timeout)
-              result["exit"]=p.returncode
-              result["reason"]=m.classify(p.stderr)
-              return p
-          m.run_ytdlp=diagnostic
-          try:
-              url,reason=m.direct_hls(target)
-              result["reason"]=reason
-              result["url_returned"]=bool(url)
-              if url and (".m3u8" in url or "manifest.googlevideo.com/" in url):
-                  result["direct_hls"]=url
-                  p=subprocess.run(["ffprobe","-v","error","-rw_timeout","10000000","-show_entries","stream=codec_name,codec_type,width,height","-of","json",url],capture_output=True,text=True,timeout=35)
-                  result["ffprobe_exit"]=p.returncode
-                  if p.returncode==0: result["streams"]=json.loads(p.stdout).get("streams",[])
-          except Exception as e:
-              result["exception"]=type(e).__name__
-          result["verified_video"]=any(s.get("codec_type")=="video" for s in result["streams"])
-          with open("diagnostics/ebc_direct_hls_nov14_result.json","w") as f: json.dump(result,f,indent=2)
-          print(json.dumps({k:v for k,v in result.items() if k!="direct_hls"}))
+          import os, json, subprocess, datetime, tempfile, pathlib
+          result={"checked_at":datetime.datetime.now(datetime.timezone.utc).isoformat(),"format":"95","video_id":None,"verified_av":False,"attempts":[]}
+          with tempfile.TemporaryDirectory() as tmp:
+              args=["yt-dlp","--js-runtimes","node","--no-cache-dir","--socket-timeout","10","--retries","1","--no-playlist"]
+              if os.environ.get("YOUTUBE_COOKIES"):
+                  p=pathlib.Path(tmp)/"cookies.txt"
+                  p.write_text(os.environ["YOUTUBE_COOKIES"])
+                  p.chmod(0o600)
+                  args+=["--cookies",str(p)]
+              try:
+                  p=subprocess.run(args+["--dump-single-json","--ignore-no-formats-error","https://www.youtube.com/@kana_tube/live"],capture_output=True,text=True,timeout=45)
+                  result["discovery_exit"]=p.returncode
+                  result["discovery_error"]=p.stderr[-1200:]
+                  info=json.loads(p.stdout) if p.stdout.strip() else {}
+                  title=info.get("title") or ""
+                  result.update(video_id=info.get("id"),title=title,live_status=info.get("live_status"),channel_id=info.get("channel_id"))
+                  if info.get("channel_id")=="UCmHdGDdZGf4cMWRBmEw4Xww" and info.get("live_status")=="is_live" and ("11/25" in title or "11月25日" in title) and ("ミッドナイト" in title or "MID" in title.upper()) and "縦型" not in title:
+                      result["official_mid_verified"]=True
+                      q=subprocess.run(args+["--match-filter","is_live","-f","95","-g","https://www.youtube.com/watch?v="+info["id"]],capture_output=True,text=True,timeout=45)
+                      result["extract_exit"]=q.returncode
+                      result["extract_error"]=q.stderr[-1200:]
+                      urls=[s.strip() for s in q.stdout.splitlines() if s.startswith("https://")]
+                      if q.returncode==0 and len(urls)==1 and ("m3u8" in urls[0] or "manifest.googlevideo.com/" in urls[0]):
+                          result["hls_obtained"]=True
+                          f=subprocess.run(["ffprobe","-v","error","-rw_timeout","10000000","-read_intervals","%+6","-show_streams","-show_packets","-show_entries","stream=index,codec_type,codec_name,width,height:packet=stream_index","-of","json",urls[0]],capture_output=True,text=True,timeout=45)
+                          result["ffprobe_exit"]=f.returncode
+                          if f.returncode==0:
+                              d=json.loads(f.stdout)
+                              streams=d.get("streams",[])
+                              packet_ids={v.get("stream_index") for v in d.get("packets",[])}
+                              result["streams"]=streams
+                              result["verified_av"]=all(any(s.get("codec_type")==t and s.get("index") in packet_ids for s in streams) for t in ("audio","video"))
+                              if result["verified_av"]:
+                                  result["direct_hls"]=urls[0]
+                  else:
+                      result["official_mid_verified"]=False
+              except Exception as e:
+                  result["exception"]=type(e).__name__
+          pathlib.Path("diagnostics/kana_mid_720p_result.json").write_text(json.dumps(result,ensure_ascii=False,indent=2))
           PY
-      - name: Cleanup authentication
-        if: always()
-        run: rm -f "$RUNNER_TEMP/ebc_youtube_cookies.txt"
-      - name: Save isolated result
+      - name: Save diagnostic only
         if: always()
         run: |
-          if test -f diagnostics/ebc_direct_hls_nov14_result.json; then
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add diagnostics/ebc_direct_hls_nov14_result.json
-            git commit -m "Record November 14 EBC historical resolver probe"
+          if test -f diagnostics/kana_mid_720p_result.json; then
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git add diagnostics/kana_mid_720p_result.json
+            git commit -m 'Record isolated Kana MID format 95 test'
             git push origin HEAD:refs/heads/test/ebc-direct-hls-20261125
           fi
