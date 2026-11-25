@@ -1,3 +1,17 @@
-# GCH logo ownership
+# Approved GCH logo set — 2026-11-26
 
-Approved 2026-11-26: sinori.webp (cyan), direct.webp (red), coffee.webp (brown), main_hq.webp (gold), main_lq.webp (silver). These are the only approved artwork files for the five always-on FreeWiFi GCH entries. No old MAIN images may be restored by automatic refresh. The EAST/WEST/LOCAL replacement designs have not yet been approved; retain their current files until replaced. Shared original logo for unrelated channel entries is not a retired dedicated logo. Playback, EPG IDs, ordering and visibility rules are unchanged.
+Only these eleven dedicated images are approved:
+
+- `sinori.webp`
+- `direct.webp`
+- `coffee.webp`
+- `main_hq.webp`
+- `main_lq.webp`
+- `east_hq.webp`
+- `east_lq.webp`
+- `west_hq.webp`
+- `west_lq.webp`
+- `local_hq.webp`
+- `local_lq.webp`
+
+Use the approved white GREEN CHANNEL artwork, green horse-head mark, racetrack landscape and silver frame. sinori cyan, direct red, coffee brown, MAIN green, EAST blue, WEST orange, LOCAL green; HQ gold and LQ silver. Do not restore retired designs. Preserve channel order, playback and EPG settings. Shared television logos outside this directory are unaffected. Git history is retained.
