@@ -32,13 +32,13 @@ jobs:
                   p.chmod(0o600)
                   args+=["--cookies",str(p)]
               try:
-                  p=subprocess.run(args+["--dump-single-json","--ignore-no-formats-error","https://www.youtube.com/@kana_tube/live"],capture_output=True,text=True,timeout=45)
+                  p=subprocess.run(args+["--dump-single-json","--ignore-no-formats-error","https://www.youtube.com/watch?v=HJxiUpqL8Ic"],capture_output=True,text=True,timeout=45)
                   result["discovery_exit"]=p.returncode
                   result["discovery_error"]=p.stderr[-1200:]
                   info=json.loads(p.stdout) if p.stdout.strip() else {}
                   title=info.get("title") or ""
                   result.update(video_id=info.get("id"),title=title,live_status=info.get("live_status"),channel_id=info.get("channel_id"))
-                  if info.get("channel_id")=="UCmHdGDdZGf4cMWRBmEw4Xww" and info.get("live_status")=="is_live" and ("11/25" in title or "11月25日" in title) and ("ミッドナイト" in title or "MID" in title.upper()) and "縦型" not in title:
+                  if info.get("id")=="HJxiUpqL8Ic" and info.get("channel_id")=="UCmHdGDdZGf4cMWRBmEw4Xww" and info.get("live_status")=="is_live" and ("11/25" in title or "11月25日" in title) and ("ミッドナイト" in title or "MID" in title.upper()) and "縦型" not in title:
                       result["official_mid_verified"]=True
                       q=subprocess.run(args+["--match-filter","is_live","-f","95","-g","https://www.youtube.com/watch?v="+info["id"]],capture_output=True,text=True,timeout=45)
                       result["extract_exit"]=q.returncode
@@ -60,15 +60,15 @@ jobs:
                       result["official_mid_verified"]=False
               except Exception as e:
                   result["exception"]=type(e).__name__
-          pathlib.Path("diagnostics/kana_mid_720p_result.json").write_text(json.dumps(result,ensure_ascii=False,indent=2))
+          pathlib.Path("diagnostics/kana_mid_720p_live_result.json").write_text(json.dumps(result,ensure_ascii=False,indent=2))
           PY
       - name: Save diagnostic only
         if: always()
         run: |
-          if test -f diagnostics/kana_mid_720p_result.json; then
+          if test -f diagnostics/kana_mid_720p_live_result.json; then
             git config user.name 'github-actions[bot]'
             git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-            git add diagnostics/kana_mid_720p_result.json
+            git add diagnostics/kana_mid_720p_live_result.json
             git commit -m 'Record isolated Kana MID format 95 test'
             git push origin HEAD:refs/heads/test/ebc-direct-hls-20261125
           fi
