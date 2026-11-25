@@ -64,23 +64,28 @@ def main() -> None:
             raise SystemExit(f"GCH always-on guard: {name} missing or changed: {actual!r}")
     status_path = Path("today_jra_status.json")
     if status_path.is_file():
-        active = set(json.loads(status_path.read_text(encoding="utf-8-sig")).get("active_ids") or [])
+        status = json.loads(status_path.read_text(encoding="utf-8-sig"))
+        active = set(status.get("active_ids") or [])
+        race_active = set(status.get("race_active_ids") or [])
+        race_day = bool(race_active & {"jra.east", "jra.west", "jra.hokkaido"})
+        if ("jra.west" in active) != race_day:
+            raise SystemExit("JRA guard: WEST visibility must match any JRA race date")
         for name, (cid, family, filename) in REGIONAL.items():
             actual = found.get(name)
-            # WEST is fixed in FreeWiFi even if no western meeting is active.
-            required = family in active or family == 'jra.west'
+            # WEST is present on any JRA race date; other regional routes are meeting-specific.
+            required = race_day if family == 'jra.west' else family in active
             if required and actual != (cid, f"{LOCAL_RAW}/{filename}", GROUP):
-                raise SystemExit(f"Weekend JRA guard: {name} missing or changed: {actual!r}")
+                raise SystemExit(f"JRA race-date guard: {name} missing or changed: {actual!r}")
             if not required and actual is not None:
-                raise SystemExit(f"Weekend JRA guard: inactive source unexpectedly present: {name}")
+                raise SystemExit(f"JRA race-date guard: inactive source unexpectedly present: {name}")
             if not Path(filename).is_file():
-                raise SystemExit(f"Weekend JRA guard: local source missing: {filename}")
+                raise SystemExit(f"JRA race-date guard: local source missing: {filename}")
     for filename in ("gchmain_master.m3u8", "gchmain_LQ.m3u8"):
         if not Path(filename).is_file():
             raise SystemExit(f"GCH guard: local source missing: {filename}")
     if "haruka" in text.lower():
         raise SystemExit("GCH guard: retired HARUKA route returned")
-    print("GCH/JRA local-source guard OK: MAIN HQ/LQ, 5002 and weekend regional routes")
+    print("GCH/JRA local-source guard OK: MAIN HQ/LQ, 5002 and race-date regional routes")
 
 
 if __name__ == "__main__":
