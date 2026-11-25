@@ -76,10 +76,20 @@ def validate(state=None, cards=None):
         if f'tvg-logo="{expected_logo}"' not in line:
             raise RuntimeError(f'non-canonical BOAT logo: {tvg_id}')
     urls = boat.managed_playlist_urls()
-    if len(set(urls.values())) != len(urls):
-        raise RuntimeError('same stream assigned to multiple venues')
-    if any(not boat.current_day_stream(url, day) for url in urls.values()):
-        raise RuntimeError('previous-day or non-BOAT stream rejected')
+    if set(urls) != set(ids):
+        raise RuntimeError('missing BOAT playlist URL')
+    live = {}
+    for cid, url in urls.items():
+        jcd = next(code for code, (_, venue_id, _) in boat.VENUES.items() if venue_id == cid)
+        if url == boat.waiting_url(jcd):
+            continue
+        if not boat.current_day_stream(url, day):
+            raise RuntimeError('previous-day or non-BOAT stream rejected')
+        live[cid] = url
+    if len(set(live.values())) != len(live):
+        raise RuntimeError('same live stream assigned to multiple venues')
+    if 'stream_ready_count' in state and len(live) != state['stream_ready_count']:
+        raise RuntimeError('BOAT live/status count mismatch')
     for path in (boat.LOCAL_EPG, boat.GUIDES):
         root = ET.parse(path).getroot()
         cancelled = {str(jcd).zfill(2) for jcd in (state.get('cancelled_jcd') or [])}

@@ -53,6 +53,13 @@ STREAM_SETTING_API = "https://front.player.boatrace-cdn.jp/setting/live/{code}/s
 UA = "Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) AppleWebKit/605.1.15 Version/18.0 Mobile/15E148 Safari/604.1"
 RAW_BASE = "https://raw.githubusercontent.com/ajiousama/himitsu/main"
 LOGO_PROXY = "https://images.weserv.nl/?url=raw.githubusercontent.com/ajiousama/himitsu/main"
+WAITING_URL = RAW_BASE + "/boat/waiting.m3u8"
+
+def waiting_url(jcd):
+    return f"{WAITING_URL}?venue={jcd}"
+
+def is_waiting_url(url):
+    return any(url == waiting_url(jcd) for jcd in VENUES)
 FULLWIDTH = str.maketrans("0123456789", "０１２３４５６７８９")
 
 
@@ -562,9 +569,10 @@ def logo_url(filename: str) -> str:
     return f"{LOGO_PROXY}/logos/public_sports/venues/{filename}&output=png"
 
 
-def make_entry(name: str, tvg_id: str, logo: str, url: str) -> list[str]:
+def make_entry(name: str, tvg_id: str, logo: str, url: str, label: str = "") -> list[str]:
+    display = f"BOATRACE{name}" + (f"【{label}】" if label else "")
     return [
-        f'#EXTINF:-1 tvg-id="{tvg_id}" tvg-name="BOATRACE{name}" tvg-logo="{logo}" group-title="{GROUP}",BOATRACE{name}',
+        f'#EXTINF:-1 tvg-id="{tvg_id}" tvg-name="{display}" tvg-logo="{logo}" group-title="{GROUP}",{display}',
         url,
     ]
 
@@ -634,9 +642,12 @@ def build_venue_state(
         current_url = current_day_stream(url, now.date())
         expired = token_expired(url) if current_url else False
         source_ready = bool(current_url and not expired and stream.get('playback_verified'))
-        # Never publish a URL that has failed verification, even if its JWT
-        # date and expiry still look valid.
-        visible = bool(current_url and not ended)
+        # Schedule visibility is independent of stream readiness. Never reuse
+        # yesterday's stream or advertise an unverified source as live.
+        # Preserve the established rule: ended venues are removed, and
+        # cancelled venues without an existing same-day stream stay hidden.
+        visible = bool(not ended and (not is_cancelled or current_url))
+        playable = bool(visible and source_ready)
         upcoming = next((race for race in races if race["start"] >= now), None)
         ever_verified = bool(stream.get('first_verified_at'))
         if ever_verified and upcoming is not None:
@@ -672,6 +683,8 @@ def build_venue_state(
             "seed_required": seed_required,
             "reverify_due": reverify_due if active else False,
             "playback_verified": source_ready,
+            "stream_ready": playable,
+            "waiting": visible and not playable,
             "first_verified_at": stream.get('first_verified_at'),
             "ready_before_first_race": bool(stream.get('first_verified_at') and datetime.fromisoformat(stream['first_verified_at']) <= first),
             "acquire_from": (first - timedelta(minutes=ACQUIRE_LEAD_MINUTES)).isoformat(),
@@ -680,14 +693,8 @@ def build_venue_state(
         wait_until = provider_deferred.get(jcd)
         if wait_until:
             item["provider_stream_start"] = wait_until
-        if visible:
+        if playable:
             item.update({"url": url, "source": stream.get("source") or "current-day cache", "token_expired": expired})
-            rows.append({
-                "name": name,
-                "mode": mode,
-                "first": first,
-                "block": make_entry(name, tvg_id, logo_url(logo), url),
-            })
         else:
             if is_cancelled:
                 item["source"] = "official schedule change"
@@ -699,9 +706,19 @@ def build_venue_state(
                 item["source"] = f"公式BR配信開始待ち {label}"
             else:
                 item["source"] = "automatic cloud SEED pending"
+        if visible:
+            label = "" if playable else ("開催予定変更" if is_cancelled else
+                      "配信復旧待ち" if active else "配信開始待ち")
+            rows.append({
+                "name": name,
+                "mode": mode,
+                "first": first,
+                "block": make_entry(name, tvg_id, logo_url(logo),
+                                    url if playable else waiting_url(jcd), label),
+            })
         venues[tvg_id] = item
         phase_counts[mode]["held"] += 1
-        phase_counts[mode]["acquired"] += int(visible)
+        phase_counts[mode]["acquired"] += int(playable)
         phase_counts[mode]["active"] += int(active)
         phase_counts[mode]["ended"] += int(ended)
         phase_counts[mode]["seed_required"] += int(seed_required)
@@ -943,7 +960,7 @@ def write_schedule_pending(now: datetime) -> int:
         "generated_at": now.isoformat(),
         "last_update_ok": True,
         "schedule_pending": True,
-        "retention_policy": "開催場はJST日付変更まで保持。終了しても削除しない。",
+        "retention_policy": "当日の開催確定場は配信取得前から表示。最終R終了後は非表示。前日URLは使用しない。",
         "epg_finished_title": "本日の開催は終了しました",
         "card_count": 0,
         "held_count": 0,
@@ -1072,13 +1089,15 @@ def main() -> int:
         "cancelled_venues": [VENUES[jcd][0] for jcd in sorted(cancelled_jcd)],
         "stream_source": "cloud + official Playback API; audio/video decoded before acceptance",
         "stream_acquisition_policy": "1R150分前から監視。公式BR配信開始前は待機扱い、開始後は毎分取得。再生確認済みURLは保持し5分ごとに異常のみ確認。失敗場だけ自動復旧。",
-        "retention_policy": "開催場はJST日付変更まで保持。終了しても削除しない。",
+        "retention_policy": "当日の開催確定場は配信取得前から表示。最終R終了後は非表示。前日URLは使用しない。",
         "epg_finished_title": "本日の開催は終了しました",
         "acquire_lead_minutes": ACQUIRE_LEAD_MINUTES,
         "alert_lead_minutes": ALERT_LEAD_MINUTES,
         "card_count": len(cards),
         "held_count": len(cards),
         "visible_count": len(rows),
+        "stream_ready_count": sum(1 for item in venues.values() if item.get("stream_ready")),
+        "waiting_count": sum(1 for item in venues.values() if item.get("waiting")),
         "active_count": sum(1 for item in venues.values() if item.get("active")),
         "ended_kept": ended_kept,
         "seed_required": bool(seed_required),

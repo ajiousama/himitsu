@@ -31,6 +31,42 @@ class BoatAutoSystemTests(unittest.TestCase):
         self.assertTrue(boat.schedule_not_published_error(RuntimeError("HTTPError: HTTP Error 404: Not Found")))
         self.assertFalse(boat.schedule_not_published_error(RuntimeError("HTTP Error 500: Server Error")))
 
+    def test_confirmed_venue_visible_before_stream_acquisition(self):
+        day = date(2026, 9, 8)
+        now = datetime(2026, 9, 8, 0, 5, tzinfo=boat.JST)
+        venues, rows, phases = boat.build_venue_state({"10": card(day, 8)}, {}, now)
+        item = venues["boat.mikuni"]
+        self.assertTrue(item["visible"])
+        self.assertTrue(item["waiting"])
+        self.assertFalse(item["stream_ready"])
+        self.assertEqual(phases["morning"]["acquired"], 0)
+        self.assertIn("配信開始待ち", rows[0]["block"][0])
+        self.assertEqual(rows[0]["block"][1], boat.waiting_url("10"))
+
+    def test_verified_stream_replaces_waiting_without_changing_id(self):
+        from unittest.mock import patch
+        day = date(2026, 9, 8)
+        now = datetime(2026, 9, 8, 7, 50, tzinfo=boat.JST)
+        url = fake_stream(day)
+        with patch.object(boat, "token_expired", return_value=False):
+            venues, rows, phases = boat.build_venue_state(
+                {"10": card(day, 8)}, {"boat.mikuni": {"url":url,"playback_verified":True}},now)
+        self.assertTrue(venues["boat.mikuni"]["stream_ready"])
+        self.assertFalse(venues["boat.mikuni"]["waiting"])
+        self.assertIn('tvg-id="boat.mikuni"', rows[0]["block"][0])
+        self.assertNotIn("待ち", rows[0]["block"][0])
+        self.assertEqual(rows[0]["block"][1],url)
+        self.assertEqual(phases["morning"]["acquired"],1)
+
+    def test_yesterday_url_never_used_for_waiting_venue(self):
+        day = date(2026, 9, 8)
+        now = datetime(2026, 9, 8, 0, 5, tzinfo=boat.JST)
+        url = fake_stream(day - timedelta(days=1))
+        venues, rows, _ = boat.build_venue_state({"10":card(day,8)},
+            {"boat.mikuni":{"url":url,"playback_verified":True}},now)
+        self.assertTrue(venues["boat.mikuni"]["waiting"])
+        self.assertEqual(rows[0]["block"][1],boat.waiting_url("10"))
+
     def test_finished_venue_is_hidden_from_freewifi(self):
         day = date(2026, 9, 8)
         races = card(day, 8, 30)
