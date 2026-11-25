@@ -20,6 +20,7 @@ on:
       - "public_sports_epg_local_fast.py"
       - "sports_race_time.py"
       - "normalize_race_epg_switch.py"
+      - "publish_public_sports.py"
       - "test_normalize_race_epg_switch.py"
       - "epg/finalize_public_sports_prestart_epg.py"
       - "finalize_today_public_sports.py"
@@ -121,8 +122,7 @@ jobs:
             cp "$snapshot/today_public_sports_status.json" today_public_sports_status.json
             cp "$snapshot/today_jra_status.json" today_jra_status.json
             cp "$snapshot/today_event_counts.json" today_event_counts.json
-            cp "$snapshot/verified_daily_status.json" verified_daily_status.json
-            cp "$snapshot/public_sports_epg_local.xml" public_sports_epg_local.xml
+            python publish_public_sports.py --merge-fresh "$snapshot/public_sports_epg_local.xml" "$snapshot/verified_daily_status.json"
 
             # ganble is a shared canonical source. Always normalize the latest
             # main version instead of restoring a stale snapshot over newer updates.
@@ -146,6 +146,8 @@ jobs:
             python -m unittest -q test_vod_source_groups.py
 
             python boat_publish.py --epg-only
+            python -m epg.jra_epg_merge
+            python publish_public_sports.py
             python build_today_event_counts.py
 
             python - <<'PY'
@@ -231,7 +233,7 @@ jobs:
             # Reject publication that drops either Kana YouTube or IPTV slot.
             python -m unittest -q youtube.test_manager
 
-            git add ganble/playlist.m3u freewifi gccx2_live_state.json today_public_sports_status.json today_jra_status.json today_event_counts.json verified_daily_status.json public_sports_epg_local.xml
+            git add ganble/playlist.m3u freewifi gccx2_live_state.json today_public_sports_status.json today_jra_status.json today_event_counts.json verified_daily_status.json public_sports_epg_local.xml guides.xml
 
             if git diff --cached --quiet; then
               echo "Local venue/CX2 state already current"
@@ -378,12 +380,12 @@ jobs:
             git reset --hard origin/main
             cp "$snapshot/guides.xml" guides.xml
             cp "$snapshot/epg_coverage.txt" epg_coverage.txt
-            cp "$snapshot/public_sports_epg_local.xml" public_sports_epg_local.xml
-            cp "$snapshot/verified_daily_status.json" verified_daily_status.json
+            # Keep the newest canonical public-sports snapshot from main.
+            # A long TV EPG build must never restore its earlier race state.
             python boat_publish.py --epg-only
-            python -m unittest -v test_normalize_race_epg_switch
-            python normalize_race_epg_switch.py guides.xml public_sports_epg_local.xml
-            python normalize_race_epg_switch.py --check guides.xml public_sports_epg_local.xml
+            python -m epg.jra_epg_merge
+            python -m unittest -v test_normalize_race_epg_switch test_publish_public_sports
+            python publish_public_sports.py
 
             python - <<'PY'
           import xml.etree.ElementTree as ET

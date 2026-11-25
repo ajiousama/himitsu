@@ -50,6 +50,11 @@ def overlay_state(epg_only=False):
         if path.exists():
             boat.overlay_epg_file(path, cards, now.date(), cancelled)
     validate(state, cards)
+    # The BOAT worker commits its own current-day stream state and calls
+    # the very same canonical publication gate as every other race worker.
+    if not epg_only:
+        from publish_public_sports import publish
+        publish()
 
 
 def validate(state=None, cards=None):

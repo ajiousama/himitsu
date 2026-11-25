@@ -12,6 +12,7 @@ on:
       - "public_sports_epg_local.py"
       - "sports_race_time.py"
       - "normalize_race_epg_switch.py"
+      - "publish_public_sports.py"
       - "test_normalize_race_epg_switch.py"
       - "youtube/test_manager.py"
       - "public_sports_epg_local_fast.py"
@@ -77,50 +78,7 @@ jobs:
             git fetch origin main
             git reset --hard origin/main
 
-            cp /tmp/public-sports-fast/verified.json verified_daily_status.json
-
-            python - <<'PY'
-          import xml.etree.ElementTree as ET
-          from pathlib import Path
-
-          target = Path("public_sports_epg_local.xml")
-          fresh = Path("/tmp/public-sports-fast/generated.xml")
-          # Copy today's JRA EPG, so mixed EAST/LOCAL data cannot persist.
-          prefixes = ("keirin.", "auto.", "chihou.", "jra.")
-
-          if target.exists() and target.stat().st_size:
-              tree = ET.parse(target)
-              root = tree.getroot()
-          else:
-              root = ET.Element("tv", {"generator-info-name": "ajiousama/himitsu local public sports EPG"})
-              tree = ET.ElementTree(root)
-
-          fresh_root = ET.parse(fresh).getroot()
-
-          for node in list(root):
-              cid = node.get("id") if node.tag == "channel" else node.get("channel") if node.tag == "programme" else ""
-              if cid and cid.startswith(prefixes):
-                  root.remove(node)
-
-          existing_channels = {x.get("id") for x in root.findall("channel")}
-          for node in fresh_root:
-              cid = node.get("id") if node.tag == "channel" else node.get("channel") if node.tag == "programme" else ""
-              if not cid or not cid.startswith(prefixes):
-                  continue
-              if node.tag == "channel" and cid in existing_channels:
-                  continue
-              root.append(node)
-              if node.tag == "channel":
-                  existing_channels.add(cid)
-
-          channels = [x for x in list(root) if x.tag == "channel"]
-          others = [x for x in list(root) if x.tag not in {"channel", "programme"}]
-          programmes = [x for x in list(root) if x.tag == "programme"]
-          programmes.sort(key=lambda p: (p.get("start", ""), p.get("channel", "")))
-          root[:] = channels + others + programmes
-          ET.indent(tree, space="  ")
-          tree.write(target, encoding="utf-8", xml_declaration=True)
-          PY
+            python publish_public_sports.py --merge-fresh /tmp/public-sports-fast/generated.xml /tmp/public-sports-fast/verified.json
 
             python freewifi_today_public_sports.py
             # Always republish JRA's GCH MAIN/5002 routes, even on
@@ -137,9 +95,10 @@ jobs:
             python ganble/fast_publish_keirin_epg.py
 
             # Final shared race boundaries: no fast refresh may restore the 6-minute 1R.
-            python -m unittest -v test_normalize_race_epg_switch
-            python normalize_race_epg_switch.py guides.xml public_sports_epg_local.xml ganble/epg.xml
-            python normalize_race_epg_switch.py --check guides.xml public_sports_epg_local.xml ganble/epg.xml
+            python -m unittest -v test_normalize_race_epg_switch test_publish_public_sports
+            python publish_public_sports.py
+            python normalize_race_epg_switch.py ganble/epg.xml
+            python normalize_race_epg_switch.py --check ganble/epg.xml
 
             python - <<'PY'
           import json

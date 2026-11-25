@@ -337,7 +337,10 @@ def epg_state():
             if (race['day'] != today if race else start.date() != today):
                 continue
             compact = ''.join(title.split())
-            if not compact or any(x in compact for x in NON_EVENT_WORDS):
+            confirmed_pending = ("開催予定" in title and
+                                 any(x in desc for x in ("公式開催表", "公式出走表"))) or (
+                                 title.startswith("本日") and "発走時刻取得待ち" in title)
+            if not compact or (not confirmed_pending and any(x in compact for x in NON_EVENT_WORDS)):
                 continue
             real.add(cid)
             joined = title + ' ' + desc

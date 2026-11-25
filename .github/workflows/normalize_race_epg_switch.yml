@@ -1,77 +1,15 @@
-name: Normalize Race EPG +3
-
+name: Normalize Race EPG +3 (read-only audit)
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
-    paths:
-      - "normalize_race_epg_switch.py"
-      - "sports_race_time.py"
-      - "test_normalize_race_epg_switch.py"
-      - "epg/finalize_public_sports_prestart_epg.py"
-      - ".github/workflows/normalize_race_epg_switch.yml"
-  workflow_run:
-    workflows:
-      - "Update FreeWiFi ALL（ajiousama単独 / 自動EPG）"
-    types:
-      - completed
-
 permissions:
-  contents: write
-
-concurrency:
-  group: himitsu-freewifi-state-writer
-  cancel-in-progress: false
-
+  contents: read
 jobs:
-  normalize:
-    if: github.event_name != 'workflow_run' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main')
+  audit:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
-
     steps:
-      - name: Checkout latest main
-        uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-
-      - name: Set up Python
-        uses: actions/setup-python@v6
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
-
-      - name: Normalize and publish +3 race boundaries
-        shell: bash
-        run: |
-          set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-          for attempt in 1 2 3 4 5; do
-            echo "Race +3 normalization attempt $attempt/5"
-            git fetch origin main
-            git reset --hard origin/main
-
-            python -m unittest -v test_normalize_race_epg_switch
-            python normalize_race_epg_switch.py guides.xml public_sports_epg_local.xml
-            python normalize_race_epg_switch.py --check guides.xml public_sports_epg_local.xml
-
-            git add guides.xml public_sports_epg_local.xml
-            if git diff --cached --quiet; then
-              echo "Race EPG already follows +3 minute switching"
-              exit 0
-            fi
-
-            git commit -m "Normalize race EPG to +3 minute switching [skip ci] [skip render]"
-            if git push origin HEAD:main; then
-              echo "Race EPG +3 minute switching published"
-              exit 0
-            fi
-
-            echo "::warning::main moved during +3 normalization; rebuilding on newest main"
-            sleep 1
-          done
-
-          echo "::error::Race EPG +3 normalization failed after 5 attempts"
-          exit 1
+      - run: python -m unittest -v test_normalize_race_epg_switch test_publish_public_sports
+      - run: python normalize_race_epg_switch.py --check guides.xml public_sports_epg_local.xml
