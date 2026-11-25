@@ -75,6 +75,9 @@ def main() -> None:
         actual = found.get(name)
         if actual != expected:
             raise SystemExit(f"GCH always-on guard: {name} missing or changed: {actual!r}")
+    expected_order = ["グリーンチャンネル（sinori）","グリーンチャンネル (5002直)","グリーンチャンネル（coffee）","グリーンチャンネル MAIN HQ","グリーンチャンネル MAIN LQ","JRA EAST WEB3 HQ","JRA EAST WEB3 LQ","JRA WEST WEB4 HQ","JRA WEST WEB4 LQ","JRA LOCAL WEB5 HQ","JRA LOCAL WEB5 LQ"]
+    if list(found) != [name for name in expected_order if name in found]:
+        raise SystemExit("GCH/JRA guard: incorrect channel order")
     status_path = Path("today_jra_status.json")
     if status_path.is_file():
         status = json.loads(status_path.read_text(encoding="utf-8-sig"))
