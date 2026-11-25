@@ -29,12 +29,42 @@ def load(path):
     except (OSError, ET.ParseError):
         return None
 
+def recover_pigoo_history(now=None):
+    """Recover real Pigoo programme metadata from verified November EPG snapshots."""
+    import subprocess
+    now = now or datetime.now(JST)
+    archive = ET.Element("tv")
+    if now >= datetime(2026, 11, 30, tzinfo=JST):
+        return archive
+    for ref in (
+        "f34cd772585f274ceb727e3d318fc1543791f3e0",
+        "90b37d3f52682483a896b6a6dd30d528de6c1823",
+    ):
+        try:
+            raw = subprocess.check_output(["git", "show", ref + ":guides.xml"], stderr=subprocess.DEVNULL)
+            source = ET.fromstring(raw)
+        except (OSError, subprocess.CalledProcessError, ET.ParseError):
+            print("Pigoo historical snapshot unavailable:", ref[:7])
+            continue
+        count = 0
+        for p in source.findall("programme"):
+            if p.get("channel") != "Pigoo_jp" or not real(p):
+                continue
+            a, b = time_of(p.get("start")), time_of(p.get("stop"))
+            if a and b and a < b and b > now - timedelta(days=6) and b <= now.replace(hour=0, minute=0, second=0, microsecond=0):
+                archive.append(copy.deepcopy(p))
+                count += 1
+        print("Pigoo historical snapshot:", ref[:7], "eligible programmes:", count)
+    return archive
+
 def merge_history(root, previous=None, now=None):
     now = now or datetime.now(JST)
     cutoff = now - timedelta(days=6)
     midnight = now.replace(hour=0, minute=0, second=0, microsecond=0)
     ids = {ch.get("id") for ch in root.findall("channel")}
     sources = [root] + ([previous] if previous is not None else [])
+    if "Pigoo_jp" in ids and now.date() >= datetime(2026, 11, 26, tzinfo=JST).date():
+        sources.append(recover_pigoo_history(now))
     gathered = {cid: [] for cid in IDS}
     for source in sources:
         for p in source.findall("programme"):
