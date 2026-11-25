@@ -1,13 +1,19 @@
 {
   "system": "boat-auto-v3",
   "date": "2026-11-26",
-  "checked_at": "2026-11-26T05:38:44.110496+09:00",
+  "checked_at": "2026-11-26T06:05:43.806079+09:00",
   "active": false,
   "kind": "healthy",
   "title": "BOAT自動更新 正常",
   "message": "朝・デイ・ナイターを自動取得中です。",
   "seed_required_venues": [],
   "system_errors": [],
-  "cloud_failures": [],
+  "cloud_failures": [
+    {
+      "jcd": "23",
+      "name": "唐津",
+      "error": "cloud and official acquisition unavailable: HTTPError"
+    }
+  ],
   "recovery": "automatic retry; no manual SEED dependency"
 }
