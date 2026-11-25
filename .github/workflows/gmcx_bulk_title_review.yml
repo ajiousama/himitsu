@@ -2,6 +2,9 @@ name: GCCX Bulk Unlabeled Video Review
 
 on:
   workflow_dispatch:
+  # Save a video still record twice daily (07:19 / 19:19 JST) before old VOD sources expire.
+  schedule:
+    - cron: '19 22,10 * * *'
   push:
     branches: [main]
     paths:
@@ -46,3 +49,4 @@ jobs:
           name: gccx-bulk-frames-shard-${{ matrix.shard }}
           path: gmcx_bulk_title_frames/*
           if-no-files-found: warn
+          retention-days: 5
