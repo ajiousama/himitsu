@@ -1,0 +1,19 @@
+name: Probe official race VOD player
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/probe_race_vod.yml'
+      - 'ganble/race_vod/probe_public_player.py'
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install ffmpeg
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
+      - name: Check public player without changing playlists
+        run: python3 ganble/race_vod/probe_public_player.py
