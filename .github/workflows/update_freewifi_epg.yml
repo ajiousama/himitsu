@@ -10,27 +10,20 @@ on:
     branches:
       - main
     paths:
-      - "ganble/playlist.m3u"
       - "vod5/**"
       - "kick_gccx2_sync.py"
-      - "freewifi_today_public_sports.py"
-      - "freewifi_today_jra.py"
       - "epg/jra_epg_merge.py"
-      - "public_sports_epg_local.py"
-      - "public_sports_epg_local_fast.py"
       - "sports_race_time.py"
       - "normalize_race_epg_switch.py"
       - "publish_public_sports.py"
       - "test_normalize_race_epg_switch.py"
-      - "epg/finalize_public_sports_prestart_epg.py"
-      - "finalize_today_public_sports.py"
       - "group_freewifi_sources.py"
       - ".github/workflows/update_freewifi_epg.yml"
 
 permissions:
   contents: write
 
-# One repository-wide writer mutex for freewifi/guides.xml state.
+# Serializes ordinary FreeWiFi maintenance; race workers merge on latest main.
 concurrency:
   group: himitsu-freewifi-state-writer
   cancel-in-progress: false
@@ -65,75 +58,21 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Update only VOD-managed FreeWiFi projection
-        run: python vod5/sync_freewifi.py
-
-      - name: Sports and Kana reliability regression tests
-        run: python -m unittest -v youtube.test_manager
-      - name: Normalize public sports master to ajiousama-only references
-        run: python normalize_ganble_local.py
-
-      - name: Generate public sports EPG and verified status locally
-        run: python -u public_sports_epg_local_fast.py
-
-      - name: Validate local-only public sports source
-        shell: bash
-        run: |
-          python -c "import xml.etree.ElementTree as ET; ET.parse('public_sports_epg_local.xml'); print('LOCAL PUBLIC SPORTS XML OK')"
-          test -s verified_daily_status.json
-          ! grep -E 'public-sports-iptv' ganble/playlist.m3u public_sports_epg_local.py public_sports_epg_local_fast.py epg/public_sports_epg_merge.py epg/jra_epg_merge.py verified_daily_override.py
-
-      - name: Sync today's non-BOAT public sports venues into FreeWiFi
-        run: |
-          python freewifi_today_public_sports.py
-          python freewifi_strip_public_boat.py
-
-      - name: Sync today's JRA channels into FreeWiFi
-        run: python freewifi_today_jra.py
-
-      - name: Finalize ended venues and time order
-        run: python finalize_today_public_sports.py
-
-      - name: Build compact current event counts
-        run: python build_today_event_counts.py
-
-      - name: Commit local venue state before EPG work
+      - name: Publish non-race VOD and CX2 state
         shell: bash
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          # Snapshot only files owned by this workflow. freewifi is rebuilt again
-          # after syncing main so a concurrent BOAT one-click update can never be
-          # overwritten by this job's older checkout.
-          snapshot="$(mktemp -d)"
-          cp today_public_sports_status.json "$snapshot/today_public_sports_status.json"
-          cp today_jra_status.json "$snapshot/today_jra_status.json"
-          cp today_event_counts.json "$snapshot/today_event_counts.json"
-          cp verified_daily_status.json "$snapshot/verified_daily_status.json"
-          cp public_sports_epg_local.xml "$snapshot/public_sports_epg_local.xml"
-
           for attempt in 1 2 3 4 5; do
             echo "FreeWiFi state publish attempt $attempt/5"
             git fetch origin main
             git reset --hard origin/main
 
-            cp "$snapshot/today_public_sports_status.json" today_public_sports_status.json
-            cp "$snapshot/today_jra_status.json" today_jra_status.json
-            cp "$snapshot/today_event_counts.json" today_event_counts.json
-            python publish_public_sports.py --merge-fresh "$snapshot/public_sports_epg_local.xml" "$snapshot/verified_daily_status.json"
-
             # ganble is a shared canonical source. Always normalize the latest
             # main version instead of restoring a stale snapshot over newer updates.
             python normalize_ganble_local.py
-
-            # Rebuild only the non-BOAT blocks. BOAT Auto v3 owns the separate
-            # TODAY_BOAT block and keeps ended venues until the JST date changes.
-            python freewifi_today_public_sports.py
-            python freewifi_strip_public_boat.py
-            python freewifi_today_jra.py
-            python finalize_today_public_sports.py
 
             # GCCX2 used to have a separate FreeWiFi writer. Refresh it here on
             # the latest main so its short-lived direct KICK HLS can never race
@@ -141,14 +80,9 @@ jobs:
             python kick_gccx2_sync.py
 
             # Fixed channels (TV/BS/CS/radio/Rch/CATV/YouTube) are immutable.
-            # Only VOD and today's race venue blocks may be rebuilt here.
+            # Only VOD and CX2 are rebuilt here; the sports workers own race blocks.
             python vod5/sync_freewifi.py
             python -m unittest -q test_vod_source_groups.py
-
-            python boat_publish.py --epg-only
-            python -m epg.jra_epg_merge
-            python publish_public_sports.py
-            python build_today_event_counts.py
 
             python - <<'PY'
           import json, re
@@ -233,13 +167,13 @@ jobs:
             # Reject publication that drops either Kana YouTube or IPTV slot.
             python -m unittest -q youtube.test_manager
 
-            git add ganble/playlist.m3u freewifi gccx2_live_state.json today_public_sports_status.json today_jra_status.json today_event_counts.json verified_daily_status.json public_sports_epg_local.xml guides.xml
+            git add ganble/playlist.m3u freewifi gccx2_live_state.json
 
             if git diff --cached --quiet; then
-              echo "Local venue/CX2 state already current"
+              echo "VOD/CX2 state already current"
               exit 0
             fi
-            git commit -m "Update ajiousama public sports and CX2 state [skip ci] [skip render]"
+            git commit -m "Update VOD and CX2 state without race writes [skip ci] [skip render]"
             if git push origin HEAD:main; then
               echo "FreeWiFi state published without overwriting BOAT"
               exit 0
@@ -272,23 +206,10 @@ jobs:
       - name: Merge NHK radio EPG
         run: python nhk_radio_epg.py
 
-      - name: Merge local public sports EPG for today's venues
-        run: python -m epg.public_sports_epg_merge
-
-      - name: Repair today's local horse racing EPG directly from NAR
-        run: python -m epg.keiba_epg_direct
-
-      - name: Repair today's KEIRIN EPG from current race cards
-        run: python -m epg.keirin_epg_direct
-
-      - name: Repair today's AutoRace EPG from official race cards
-        run: python -m epg.autorace_epg_direct
-
-      - name: Merge local JRA race EPG
-        run: python -m epg.jra_epg_merge
-
-      - name: Standardize pre-start EPG for every FreeWiFi public sport
-        run: python -m epg.finalize_public_sports_prestart_epg
+      - name: Project canonical public sports and JRA guides
+        run: |
+          python -m epg.jra_epg_merge
+          python publish_public_sports.py
 
       - name: Validate today's BOAT EPG survived final merge
         run: |
@@ -371,8 +292,6 @@ jobs:
           snapshot="$(mktemp -d)"
           cp guides.xml "$snapshot/guides.xml"
           cp epg_coverage.txt "$snapshot/epg_coverage.txt"
-          cp public_sports_epg_local.xml "$snapshot/public_sports_epg_local.xml"
-          cp verified_daily_status.json "$snapshot/verified_daily_status.json"
 
           for attempt in 1 2 3 4 5; do
             echo "EPG overlay publish attempt $attempt/5"
@@ -382,7 +301,6 @@ jobs:
             cp "$snapshot/epg_coverage.txt" epg_coverage.txt
             # Keep the newest canonical public-sports snapshot from main.
             # A long TV EPG build must never restore its earlier race state.
-            python boat_publish.py --epg-only
             python -m epg.jra_epg_merge
             python -m unittest -v test_normalize_race_epg_switch test_publish_public_sports
             python publish_public_sports.py
@@ -426,7 +344,7 @@ jobs:
           print(f'TERRESTRIAL EPG BINDINGS OK: {len(terrestrial)} ids')
           print('PUBLISH XML OK')
           PY
-            git add guides.xml epg_coverage.txt public_sports_epg_local.xml verified_daily_status.json
+            git add guides.xml epg_coverage.txt
             if git diff --cached --quiet; then
               echo "EPG already current on latest main"
               exit 0

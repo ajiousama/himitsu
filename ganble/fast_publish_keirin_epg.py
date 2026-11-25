@@ -3,7 +3,7 @@
 
 Replace only today's KEIRIN rows for venues with a complete source race grid.
 Never erase a last-known-good race grid when an upstream site is unavailable.
-Both the dedicated ganble XMLTV and FreeWiFi's guides.xml are updated.
+Only the separate ganble XMLTV is updated. FreeWiFi guides are owned by publish_public_sports.py.
 """
 from __future__ import annotations
 
@@ -19,7 +19,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "public_sports_epg_local.xml"
 STATUS = ROOT / "today_public_sports_status.json"
 VERIFIED = ROOT / "verified_daily_status.json"
-DESTINATIONS = (ROOT / "ganble" / "epg.xml", ROOT / "guides.xml")
+DESTINATIONS = (ROOT / "ganble" / "epg.xml",)
 JST = timezone(timedelta(hours=9))
 RACE = re.compile(r"^【[０-９0-9]{1,2}[ＲR]】")
 FIRST_RACE = re.compile(r"^【[１1][ＲR]】")
@@ -88,8 +88,7 @@ def publish_one(dest: Path, today: str, channels: dict, complete: dict) -> int:
         print(f"KEIRIN FAST current: {dest.name}, complete={len(complete)}")
         return 0
 
-    # Only the small ganble EPG needs sorting. Do not reformat the large
-    # FreeWiFi guide, which contains unrelated television and radio schedules.
+    # Sort the dedicated ganble EPG; the shared FreeWiFi guide is not a target.
     if dest == DESTINATIONS[0]:
         entries = list(root.findall("programme"))
         for p in entries:

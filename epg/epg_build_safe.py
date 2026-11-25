@@ -8,7 +8,7 @@ from pathlib import Path
 from epg import epg_build
 
 # Public-sports EPG is generated locally in this repository and merged later by
-# public_sports_epg_merge.py. Never fetch the retired external public-sports repo
+# publish_public_sports.py. Never fetch the retired external public-sports repo
 # from the base EPG builder.
 epg_build.SOURCES = [(name, url) for name, url in epg_build.SOURCES if name != "public_sports"]
 epg_build.SOURCE_PRIORITY = {name: i for i, (name, _) in enumerate(epg_build.SOURCES)}

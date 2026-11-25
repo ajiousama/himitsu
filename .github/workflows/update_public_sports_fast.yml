@@ -18,6 +18,8 @@ on:
       - "public_sports_epg_local_fast.py"
       - "freewifi_today_public_sports.py"
       - "freewifi_today_jra.py"
+      - "epg/jra_epg_merge.py"
+      - "test_publish_public_sports.py"
       - "check_gch_always.py"
       - "ganble/playlist.m3u"
       - "ganble/epg.xml"
@@ -90,13 +92,12 @@ jobs:
             python finalize_today_public_sports.py
             python build_today_event_counts.py
 
-            # Publish complete verified KEIRIN race grids every fast cycle.
-            # Partial fetch failures preserve the previous successful EPG.
-            python ganble/fast_publish_keirin_epg.py
-
             # Final shared race boundaries: no fast refresh may restore the 6-minute 1R.
             python -m unittest -v test_normalize_race_epg_switch test_publish_public_sports
             python publish_public_sports.py
+            # ganble is a separate legacy consumer; project only its KEIRIN rows
+            # from the already-normalized canonical source.
+            python ganble/fast_publish_keirin_epg.py
             python normalize_race_epg_switch.py ganble/epg.xml
             python normalize_race_epg_switch.py --check ganble/epg.xml
 
