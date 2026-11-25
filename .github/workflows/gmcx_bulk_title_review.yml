@@ -9,6 +9,8 @@ on:
     branches: [main]
     paths:
       - "gmcx_bulk_title_review.py"
+      - "gmcx_auto_title.py"
+      - "gmcx_long_nav.py"
       - ".github/workflows/gmcx_bulk_title_review.yml"
 
 permissions:
@@ -49,4 +51,75 @@ jobs:
           name: gccx-bulk-frames-shard-${{ matrix.shard }}
           path: gmcx_bulk_title_frames/*
           if-no-files-found: warn
+          retention-days: 5
+
+  identify_and_publish:
+    needs: capture
+    if: ${{ always() && !cancelled() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: gccx-bulk-frames-shard-*
+          path: captured
+          merge-multiple: false
+      - name: Test and count usable evidence
+        id: scan
+        run: |
+          python -m pip install --quiet pillow
+          python -m py_compile gmcx_auto_title.py gmcx_long_nav.py gmcx_bulk_title_review.py
+          python gmcx_auto_title.py selftest
+          echo "count=$(python gmcx_auto_title.py count)" >> "$GITHUB_OUTPUT"
+      - name: Start local vision model
+        if: ${{ steps.scan.outputs.count != '0' || github.event_name == 'push' }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/gccx-model"
+          model_url=https://huggingface.co/ggml-org/Qwen2.5-VL-3B-Instruct-GGUF/resolve/5037fcf
+          curl -fL --retry 3 "$model_url/Qwen2.5-VL-3B-Instruct-Q4_K_M.gguf" -o "$RUNNER_TEMP/gccx-model/model.gguf"
+          curl -fL --retry 3 "$model_url/mmproj-Qwen2.5-VL-3B-Instruct-Q8_0.gguf" -o "$RUNNER_TEMP/gccx-model/mmproj.gguf"
+          docker run -d --name gccx-vision -p 127.0.0.1:8080:8080 \
+            -v "$RUNNER_TEMP/gccx-model:/models:ro" ghcr.io/ggml-org/llama.cpp:server \
+            -m /models/model.gguf --mmproj /models/mmproj.gguf --host 0.0.0.0 --port 8080 -c 8192 -np 1 -t 4
+          for i in $(seq 1 120); do
+            if curl -fsS http://127.0.0.1:8080/health; then exit 0; fi
+            sleep 5
+          done
+          docker logs gccx-vision
+          exit 1
+      - name: Live image inference smoke test
+        if: github.event_name == 'push'
+        run: python gmcx_auto_title.py smoke
+      - name: Recognize and cross-check visible content
+        if: steps.scan.outputs.count != '0'
+        run: python -u gmcx_auto_title.py identify --limit 24
+      - name: Publish only accepted candidates to latest main
+        if: steps.scan.outputs.count != '0'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          for attempt in 1 2 3 4 5; do
+            git fetch origin main
+            git reset --hard origin/main
+            python gmcx_auto_title.py publish
+            git add gmcx_frame_identified_titles.json VOD5 vod5/playlist.m3u freewifi
+            if git diff --cached --quiet; then exit 0; fi
+            git commit -m "GCCX: automatic visual title evidence [skip ci] [skip render]"
+            if git push origin HEAD:main; then exit 0; fi
+            sleep $((attempt * 2))
+          done
+          exit 1
+      - name: Save AI decision evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gccx-auto-title-evidence
+          path: /tmp/gccx-ai-candidates.json
+          if-no-files-found: ignore
           retention-days: 5

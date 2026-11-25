@@ -37,6 +37,7 @@ def unresolved_from_vod5():
     for i in range(len(lines) - 1):
         label = lines[i]
         if not (label.startswith("#EXTINF") and "仮チャプター" in label
+                and 'tvg-id="kick.gmcx.nav.' in label
                 and 'group-title="KICK系VOD"' in label):
             continue
         qs = parse_qs(urlsplit(lines[i + 1].strip()).query)
@@ -60,10 +61,10 @@ def unresolved_from_vod5():
     # Do not waste the second-pass job on titles identified by actual video
     # in the first round but not yet published into VOD5.
     evidence = json.loads(Path("gmcx_frame_identified_titles.json").read_text(encoding="utf-8"))
-    named = {(str(x.get("source_vod_id")), int(x.get("start_seconds") or 0))
-             for x in evidence.get("entries", []) if isinstance(x, dict)}
+    named = {(str(x.get("source_vod_id")), int(x.get("start_seconds") or 0), x.get("source_url"))
+             for x in evidence.get("entries", []) if isinstance(x, dict) and x.get("title")}
     found = [row for row in found
-             if (row["vod_id"], row["start_seconds"]) not in named]
+             if (row["vod_id"], row["start_seconds"], row["source_url"]) not in named]
     # Prefer oldest, potentially expiring recordings. Shard deterministically.
     dates = {str(v.get("vod_id")): str(v.get("created_at") or "") for v in vods}
     found.sort(key=lambda row: (dates.get(row["vod_id"], ""), row["start_seconds"]))

@@ -126,6 +126,7 @@ def frame_title_candidates(replay: dict) -> dict[tuple[str, int], tuple[str, int
         # Human-reviewed subject/mixed-corner frames: preserve the named content,
         # never promote it into a verified whole episode or exact boundary.
         "actual_video_shows_subject_but_exact_episode_unverified",
+        "ai_visual_consensus_boundary_unverified",
     }
     result = {}
     for row in data.get("entries", []):
@@ -142,7 +143,12 @@ def frame_title_candidates(replay: dict) -> dict[tuple[str, int], tuple[str, int
             ep = int(row["episode_candidate"]) if row.get("episode_candidate") else None
         except (TypeError, ValueError):
             continue
-        result[(vod_id, at)] = (title, ep, row.get("confidence") == "actual_video_shows_subject_but_exact_episode_unverified")
+        kind = row.get("confidence")
+        if kind == "ai_visual_consensus_boundary_unverified":
+            if (vod_id, at) in result:
+                continue
+            ep = None
+        result[(vod_id, at)] = (title, ep, "ai" if kind == "ai_visual_consensus_boundary_unverified" else kind == "actual_video_shows_subject_but_exact_episode_unverified")
     return result
 
 
@@ -329,7 +335,7 @@ def build_time_navigation_entries(
         spans, audio_starts = snap_audio_starts(
             spans, vod, start, end, verified_starts
         )
-        continuity = grouped_slices(vod, spans, observed_games)
+        continuity = grouped_slices(vod, spans, {k: v for k, v in observed_games.items() if v[2] != "ai"})
         created = str(vod.get("created_at") or "")
         date_label = created[5:10].replace("-", "/") if re.match(r"\d{4}-\d{2}-\d{2}", created) else "日時未詳"
         for index, (begin, stop) in enumerate(spans, 1):
@@ -358,7 +364,7 @@ def build_time_navigation_entries(
             elif gameplay:
                 game, possible_episode, is_content_only = gameplay
                 hint = f"（#{possible_episode}候補）" if possible_episode else ""
-                evidence_label = "実映像で内容確認" if is_content_only else "実映像でゲーム名確認"
+                evidence_label = "AI映像判定" if is_content_only == "ai" else ("実映像で内容確認" if is_content_only else "実映像でゲーム名確認")
                 label = (
                     f"📼 GCCX {game}{hint}（{evidence_label}・境界仮／"
                     f"{date_label} {hms(begin)}〜{hms(stop)}）"
