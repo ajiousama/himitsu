@@ -1,4 +1,4 @@
-name: EBC direct HLS isolated test
+name: EBC November 14 historical resolver test
 on:
   push:
     branches: ['test/ebc-direct-hls-20261125']
@@ -8,22 +8,29 @@ permissions:
 jobs:
   probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 8
     steps:
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v6
         with:
-          python-version: "3.12"
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-      - name: Install tools
+          python-version: '3.12'
+      - name: Install historical resolver candidate and recover exact source
         run: |
+          git show be7add994c837868d90947738cadbd6ee201ea8a:youtube/manager.py > "$RUNNER_TEMP/manager_nov14.py"
           python -m pip install --upgrade pip
-          python -m pip install --upgrade --pre "yt-dlp[default]" curl_cffi
-          command -v ffprobe || (sudo apt-get update -qq && sudo apt-get install -y ffmpeg)
-      - name: Restore configured YouTube authentication
-        shell: bash
+          python - <<'PY'
+          import json, urllib.request, datetime, subprocess, pathlib, os
+          from pip._vendor.packaging.version import Version
+          cutoff=datetime.datetime.fromisoformat("2026-11-14T14:58:36+00:00")
+          data=json.load(urllib.request.urlopen("https://pypi.org/pypi/yt-dlp/json",timeout=25))
+          eligible=[v for v,files in data["releases"].items() if files and any(not f.get("yanked") and datetime.datetime.fromisoformat(f["upload_time_iso_8601"].replace("Z","+00:00"))<=cutoff for f in files)]
+          version=max(eligible,key=Version)
+          subprocess.check_call(["python","-m","pip","install","yt-dlp[default]=="+version,"curl_cffi"])
+          pathlib.Path(os.environ["RUNNER_TEMP"],"historical_version.txt").write_text(version)
+          PY
+      - name: Restore configured authentication
         env:
           YOUTUBE_COOKIES: ${{ secrets.YOUTUBE_COOKIES }}
         run: |
@@ -31,44 +38,50 @@ jobs:
             umask 077
             printf '%s' "$YOUTUBE_COOKIES" > "$RUNNER_TEMP/ebc_youtube_cookies.txt"
           fi
-      - name: Probe direct playback
-        shell: bash
+      - name: Test exact November 14 direct_hls function
         run: |
           mkdir -p diagnostics
           python - <<'PY'
-          import json, subprocess, datetime, os, pathlib
-          cookie_file = pathlib.Path(os.environ["RUNNER_TEMP"]) / "ebc_youtube_cookies.txt"
-          cookie_args = ["--cookies",str(cookie_file)] if cookie_file.exists() and cookie_file.stat().st_size > 20 else []
-          target = "https://www.youtube.com/watch?v=L9OqeSJgzKA"
-          result = {"video_id":"L9OqeSJgzKA","checked_at":datetime.datetime.now(datetime.timezone.utc).isoformat(),"test":"august_environment","cookie_configured":bool(cookie_args),"yt_dlp_version":subprocess.check_output(["yt-dlp","--version"],text=True).strip(),"attempts":[],"direct_hls":None,"streams":[]}
-          for fmt in ("best[protocol^=m3u8]","best"):
-              cmd=["yt-dlp","--js-runtimes","node","--no-warnings","--no-cache-dir","--socket-timeout","10","--retries","1","--fragment-retries","1","--extractor-args","youtube:player_client=default,web_safari,web","--no-playlist","--match-filter","is_live","-f",fmt,"-g",target]
-              try:
-                  p=subprocess.run(cmd[:1]+cookie_args+cmd[1:],capture_output=True,text=True,timeout=40)
-                  urls=[x.strip() for x in p.stdout.splitlines() if x.startswith("https://")]
-                  result["attempts"].append({"format":fmt,"exit":p.returncode,"stderr":p.stderr[-2500:],"url_count":len(urls)})
-                  if p.returncode or len(urls)!=1 or "m3u8" not in urls[0]: continue
-                  result["direct_hls"]=urls[0]
-                  q=subprocess.run(["ffprobe","-v","error","-rw_timeout","10000000","-show_entries","stream=codec_name,codec_type,width,height","-of","json",urls[0]],capture_output=True,text=True,timeout=35)
-                  result["ffprobe_exit"]=q.returncode
-                  result["ffprobe_error"]=q.stderr[-2500:]
-                  if q.returncode==0: result["streams"]=json.loads(q.stdout).get("streams",[])
-                  if result["streams"]: break
-              except Exception as e: result["attempts"].append({"format":fmt,"error":str(e)})
+          import importlib.util, pathlib, os, json, subprocess, datetime
+          temp=pathlib.Path(os.environ["RUNNER_TEMP"])
+          spec=importlib.util.spec_from_file_location("historical_manager", temp/"manager_nov14.py")
+          m=importlib.util.module_from_spec(spec)
+          spec.loader.exec_module(m)
+          m.COOKIES=temp/"ebc_youtube_cookies.txt"
+          target="https://www.youtube.com/watch?v=L9OqeSJgzKA"
+          result={"source_commit":"be7add994c837868d90947738cadbd6ee201ea8a","checked_at":datetime.datetime.now(datetime.timezone.utc).isoformat(),"video_id":"L9OqeSJgzKA","version_basis":"latest PyPI release uploaded by November 14 snapshot; actual historical runner version unknown","yt_dlp_version":subprocess.check_output(["yt-dlp","--version"],text=True).strip(),"node_version":subprocess.check_output(["node","--version"],text=True).strip(),"cookie_configured":m.COOKIES.exists() and m.COOKIES.stat().st_size>20,"direct_hls":None,"streams":[]}
+          original=m.run_ytdlp
+          def diagnostic(args,timeout=40):
+              p=original(args,timeout)
+              result["exit"]=p.returncode
+              result["reason"]=m.classify(p.stderr)
+              return p
+          m.run_ytdlp=diagnostic
+          try:
+              url,reason=m.direct_hls(target)
+              result["reason"]=reason
+              result["url_returned"]=bool(url)
+              if url and (".m3u8" in url or "manifest.googlevideo.com/" in url):
+                  result["direct_hls"]=url
+                  p=subprocess.run(["ffprobe","-v","error","-rw_timeout","10000000","-show_entries","stream=codec_name,codec_type,width,height","-of","json",url],capture_output=True,text=True,timeout=35)
+                  result["ffprobe_exit"]=p.returncode
+                  if p.returncode==0: result["streams"]=json.loads(p.stdout).get("streams",[])
+          except Exception as e:
+              result["exception"]=type(e).__name__
           result["verified_video"]=any(s.get("codec_type")=="video" for s in result["streams"])
-          with open("diagnostics/ebc_direct_hls_august_result.json","w") as f: json.dump(result,f,indent=2,ensure_ascii=False)
-          print(json.dumps({k:v for k,v in result.items() if k!="direct_hls"},ensure_ascii=False))
+          with open("diagnostics/ebc_direct_hls_nov14_result.json","w") as f: json.dump(result,f,indent=2)
+          print(json.dumps({k:v for k,v in result.items() if k!="direct_hls"}))
           PY
-      - name: Cleanup configured authentication
+      - name: Cleanup authentication
         if: always()
         run: rm -f "$RUNNER_TEMP/ebc_youtube_cookies.txt"
-      - name: Save isolated test result
+      - name: Save isolated result
         if: always()
         run: |
-          if test -f diagnostics/ebc_direct_hls_august_result.json; then
+          if test -f diagnostics/ebc_direct_hls_nov14_result.json; then
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add diagnostics/ebc_direct_hls_august_result.json
-            git commit -m "Record isolated EBC direct HLS probe"
+            git add diagnostics/ebc_direct_hls_nov14_result.json
+            git commit -m "Record November 14 EBC historical resolver probe"
             git push origin HEAD:refs/heads/test/ebc-direct-hls-20261125
           fi
