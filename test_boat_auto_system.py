@@ -67,6 +67,27 @@ class BoatAutoSystemTests(unittest.TestCase):
         self.assertTrue(venues["boat.mikuni"]["waiting"])
         self.assertEqual(rows[0]["block"][1],boat.waiting_url("10"))
 
+    def test_finished_guidance_exact_45_minutes_and_no_live_url(self):
+        day = date(2026, 9, 8)
+        races = card(day, 8, 30)
+        finish = races[-1]["start"] + timedelta(minutes=3)
+        streams = {"boat.mikuni": {"url":fake_stream(day),"playback_verified":True}}
+        for offset in (0, 44, 45):
+            now = finish + timedelta(minutes=offset)
+            venues, rows, _ = boat.build_venue_state({"10":races},streams,now)
+            item = venues["boat.mikuni"]
+            self.assertTrue(item["ended"])
+            self.assertFalse(item["stream_ready"])
+            self.assertFalse(item["waiting"])
+            self.assertEqual(item["visible"],offset < 45)
+            self.assertEqual(item["remove_at"],(finish+timedelta(minutes=45)).isoformat())
+            if offset < 45:
+                self.assertEqual(item["stream_window"],"ended_guidance")
+                self.assertIn("本日終了",rows[0]["block"][0])
+                self.assertEqual(rows[0]["block"][1],boat.waiting_url("10"))
+            else:
+                self.assertFalse(rows)
+
     def test_finished_venue_is_hidden_from_freewifi(self):
         day = date(2026, 9, 8)
         races = card(day, 8, 30)

@@ -4,9 +4,8 @@ from __future__ import annotations
 """BOAT Auto v4 (v3 status schema retained for existing consumers).
 
 One self-contained updater owns today's BOAT schedule, current-day stream cache,
-FreeWiFi playlist block, BOAT EPG overlay and alert state.  A venue is removed
-from FreeWiFi after its final race has finished, while its same-day stream/cache
-and EPG state are retained internally.
+FreeWiFi playlist block, BOAT EPG overlay and alert state.  A venue remains visible for 45 minutes after the final race +3 transition.
+Its live stream is no longer offered during the finished guidance period.
 """
 
 import argparse
@@ -23,6 +22,7 @@ import urllib.parse
 import urllib.request
 import xml.etree.ElementTree as ET
 import boat_playback
+from sports_race_time import END_GRACE_MINUTES
 
 
 FREEWIFI = Path("freewifi")
@@ -43,7 +43,6 @@ ACQUIRE_LEAD_MINUTES = 150
 ALERT_LEAD_MINUTES = 30
 CANCELLATION_LEAD_MINUTES = 180
 RACE_SWITCH_MINUTES = 3
-END_GUIDANCE_MINUTES = 45
 INTERMISSION_MIN_GAP_MINUTES = 60
 REVERIFY_ALERT_LEAD_MINUTES = 15
 SCHEDULE_API = "https://boatraceopenapi.github.io/api/v1/{year}/{ymd}.json"
@@ -628,15 +627,13 @@ def build_venue_state(
         mode = mode_for(races)
         alert_from = first - timedelta(minutes=ALERT_LEAD_MINUTES)
         finish = last + timedelta(minutes=RACE_SWITCH_MINUTES)
-        guidance_switch = last + timedelta(minutes=END_GUIDANCE_MINUTES)
+        guidance_switch = finish + timedelta(minutes=END_GRACE_MINUTES)
         is_cancelled = jcd in cancelled
         intermission = intermission_window(races, now) if not is_cancelled else None
         ended = now >= finish and not is_cancelled
         active = alert_from <= now < finish and not is_cancelled and not intermission
-        # Keep the verified same-day stream cached, but stop publishing the
-        # channel after the final race transition.  BOAT feeds can go blank
-        # after racing ends, so leaving a stale channel in FreeWiFi is worse
-        # than temporarily hiding it until the next meeting/day.
+        # Keep the venue visible for the common post-finish guidance window.
+        # Stop offering the live URL immediately at the final race +3 transition.
         stream = streams.get(tvg_id) or {}
         url = str(stream.get("url") or "")
         current_url = current_day_stream(url, now.date())
@@ -644,10 +641,9 @@ def build_venue_state(
         source_ready = bool(current_url and not expired and stream.get('playback_verified'))
         # Schedule visibility is independent of stream readiness. Never reuse
         # yesterday's stream or advertise an unverified source as live.
-        # Preserve the established rule: ended venues are removed, and
-        # cancelled venues without an existing same-day stream stay hidden.
-        visible = bool(not ended and (not is_cancelled or current_url))
-        playable = bool(visible and source_ready)
+        # Cancelled venues without an existing same-day stream stay hidden.
+        visible = bool(now < guidance_switch and (not is_cancelled or current_url))
+        playable = bool(visible and not ended and source_ready)
         upcoming = next((race for race in races if race["start"] >= now), None)
         ever_verified = bool(stream.get('first_verified_at'))
         if ever_verified and upcoming is not None:
@@ -677,14 +673,15 @@ def build_venue_state(
             "last_race": last.strftime("%H:%M"),
             "alert_from": alert_from.isoformat(),
             "next_race": next_race(races, now),
-            "stream_window": "ended_hidden" if ended else ("intermission" if intermission else ("live_or_prestart" if active else "scheduled")),
+            "stream_window": ("ended_guidance" if visible else "ended_hidden") if ended else ("intermission" if intermission else ("live_or_prestart" if active else "scheduled")),
             "intermission": intermission,
             "guidance_switch_at": guidance_switch.isoformat(),
             "seed_required": seed_required,
             "reverify_due": reverify_due if active else False,
             "playback_verified": source_ready,
             "stream_ready": playable,
-            "waiting": visible and not playable,
+            "waiting": visible and not playable and not ended,
+            "remove_at": guidance_switch.isoformat(),
             "first_verified_at": stream.get('first_verified_at'),
             "ready_before_first_race": bool(stream.get('first_verified_at') and datetime.fromisoformat(stream['first_verified_at']) <= first),
             "acquire_from": (first - timedelta(minutes=ACQUIRE_LEAD_MINUTES)).isoformat(),
@@ -696,7 +693,9 @@ def build_venue_state(
         if playable:
             item.update({"url": url, "source": stream.get("source") or "current-day cache", "token_expired": expired})
         else:
-            if is_cancelled:
+            if ended:
+                item["source"] = "本日の開催は終了しました"
+            elif is_cancelled:
                 item["source"] = "official schedule change"
             elif wait_until:
                 try:
@@ -707,7 +706,8 @@ def build_venue_state(
             else:
                 item["source"] = "automatic cloud SEED pending"
         if visible:
-            label = "" if playable else ("開催予定変更" if is_cancelled else
+            label = "" if playable else ("本日終了" if ended else
+                      "開催予定変更" if is_cancelled else
                       "配信復旧待ち" if active else "配信開始待ち")
             rows.append({
                 "name": name,
@@ -743,7 +743,7 @@ def update_playlist(rows: list[dict]) -> None:
     payload = "\n".join(body).rstrip()
     managed = (
         START
-        + "\n## 今日の開催場 / BOAT AUTO v4（終了場は自動非表示）\n"
+        + "\n## 今日の開催場 / BOAT AUTO v4（終了案内45分後に非表示）\n"
         + payload
         + ("\n" if payload else "")
         + END
@@ -839,7 +839,7 @@ def overlay_epg_file(path: Path, cards: dict[str, list[dict]], day: date, cancel
             add_programme(root, cid, start, stop, title, description)
             count += 1
         ended_at = races[-1]["start"] + timedelta(minutes=RACE_SWITCH_MINUTES)
-        guidance_at = races[-1]["start"] + timedelta(minutes=END_GUIDANCE_MINUTES)
+        guidance_at = ended_at + timedelta(minutes=END_GRACE_MINUTES)
         future_days = []
         for programme in root.findall("programme"):
             if programme.get("channel") != cid:
@@ -960,7 +960,7 @@ def write_schedule_pending(now: datetime) -> int:
         "generated_at": now.isoformat(),
         "last_update_ok": True,
         "schedule_pending": True,
-        "retention_policy": "当日の開催確定場は配信取得前から表示。最終R終了後は非表示。前日URLは使用しない。",
+        "retention_policy": "当日の開催確定場は配信取得前から表示。最終R発走3分後から終了案内45分、発走48分後に非表示。前日URLは使用しない。",
         "epg_finished_title": "本日の開催は終了しました",
         "card_count": 0,
         "held_count": 0,
@@ -1089,7 +1089,7 @@ def main() -> int:
         "cancelled_venues": [VENUES[jcd][0] for jcd in sorted(cancelled_jcd)],
         "stream_source": "cloud + official Playback API; audio/video decoded before acceptance",
         "stream_acquisition_policy": "1R150分前から監視。公式BR配信開始前は待機扱い、開始後は毎分取得。再生確認済みURLは保持し5分ごとに異常のみ確認。失敗場だけ自動復旧。",
-        "retention_policy": "当日の開催確定場は配信取得前から表示。最終R終了後は非表示。前日URLは使用しない。",
+        "retention_policy": "当日の開催確定場は配信取得前から表示。最終R発走3分後から終了案内45分、発走48分後に非表示。前日URLは使用しない。",
         "epg_finished_title": "本日の開催は終了しました",
         "acquire_lead_minutes": ACQUIRE_LEAD_MINUTES,
         "alert_lead_minutes": ALERT_LEAD_MINUTES,
@@ -1098,6 +1098,8 @@ def main() -> int:
         "visible_count": len(rows),
         "stream_ready_count": sum(1 for item in venues.values() if item.get("stream_ready")),
         "waiting_count": sum(1 for item in venues.values() if item.get("waiting")),
+        "finished_guidance_count": len(ended_kept),
+        "end_grace_minutes": END_GRACE_MINUTES,
         "active_count": sum(1 for item in venues.values() if item.get("active")),
         "ended_kept": ended_kept,
         "seed_required": bool(seed_required),

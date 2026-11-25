@@ -3,7 +3,7 @@ from datetime import datetime, timezone, timedelta
 import json
 import re
 import xml.etree.ElementTree as ET
-from sports_race_time import race_time
+from sports_race_time import race_time, END_GRACE_MINUTES
 
 FREEWIFI = Path('freewifi')
 KANA_M3U = Path('youtube/output/kana.m3u')
@@ -15,7 +15,6 @@ KANA_TVG_ID = 'youtube.kana_tube'
 KANA_START = '# === KANA_TUBE_MANAGED_START ==='
 KANA_END = '# === KANA_TUBE_MANAGED_END ==='
 JST = timezone(timedelta(hours=9))
-END_GRACE_MINUTES = 45
 NON_EVENT_WORDS = (
     '本日非開催', '非開催', '開催していません', '開催予定はありません',
     '本日開催なし', '開催なし', '次回開催', 'データ取得準備中',
