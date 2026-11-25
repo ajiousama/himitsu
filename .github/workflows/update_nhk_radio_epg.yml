@@ -59,16 +59,48 @@ jobs:
       - name: Commit NHK radio EPG
         shell: bash
         run: |
+          set -euo pipefail
           cp guides.xml /tmp/guides.xml.nhk-radio
-          git fetch origin main
-          git reset --hard origin/main
-          cp /tmp/guides.xml.nhk-radio guides.xml
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add guides.xml
-          if git diff --cached --quiet; then
-            echo "No NHK radio EPG changes"
-            exit 0
-          fi
-          git commit -m "Update NHK radio EPG [skip render]"
-          git push origin HEAD:main
+          for attempt in 1 2 3 4 5; do
+            git fetch origin main
+            git reset --hard origin/main
+            # Overlay only NHK radio rows onto latest shared EPG. Never restore
+            # the complete pre-acquisition guides.xml over newer race state.
+            python - <<'PY'
+          import xml.etree.ElementTree as ET
+          from copy import deepcopy
+          source = ET.parse('/tmp/guides.xml.nhk-radio').getroot()
+          tree = ET.parse('guides.xml')
+          root = tree.getroot()
+          def cid(el):
+              return el.get('id','') if el.tag == 'channel' else el.get('channel','') if el.tag == 'programme' else ''
+          ids = {cid(el) for el in source if cid(el).startswith(('nhk_r1_', 'nhk_fm_'))}
+          if not ids:
+              raise RuntimeError('NHK radio snapshot has no target IDs')
+          for el in list(root):
+              if cid(el) in ids:
+                  root.remove(el)
+          for el in source:
+              if cid(el) in ids:
+                  if el.tag == 'channel':
+                      root.insert(0, deepcopy(el))
+                  else:
+                      root.append(deepcopy(el))
+          ET.indent(tree, space='  ')
+          tree.write('guides.xml', encoding='utf-8', xml_declaration=True)
+          PY
+            git add guides.xml
+            if git diff --cached --quiet; then
+              echo "No NHK radio EPG changes"
+              exit 0
+            fi
+            git commit -m "Update NHK radio EPG without overwriting other guides [skip render]"
+            if git push origin HEAD:main; then
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "::error::NHK radio publication failed after retries"
+          exit 1
