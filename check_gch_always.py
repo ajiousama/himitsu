@@ -67,13 +67,14 @@ def main() -> None:
         status = json.loads(status_path.read_text(encoding="utf-8-sig"))
         active = set(status.get("active_ids") or [])
         race_active = set(status.get("race_active_ids") or [])
-        race_day = bool(race_active & {"jra.east", "jra.west", "jra.hokkaido"})
-        if ("jra.west" in active) != race_day:
-            raise SystemExit("JRA guard: WEST visibility must match any JRA race date")
+        regional = {"jra.east", "jra.west", "jra.hokkaido"}
+        race_day = bool(race_active & regional)
+        if (active & regional) != (regional if race_day else set()):
+            raise SystemExit("JRA guard: all regional visibility must match any JRA race date")
         for name, (cid, family, filename) in REGIONAL.items():
             actual = found.get(name)
-            # WEST is present on any JRA race date; other regional routes are meeting-specific.
-            required = race_day if family == 'jra.west' else family in active
+            # All regional routes are present on any JRA race date.
+            required = race_day
             if required and actual != (cid, f"{LOCAL_RAW}/{filename}", GROUP):
                 raise SystemExit(f"JRA race-date guard: {name} missing or changed: {actual!r}")
             if not required and actual is not None:

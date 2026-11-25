@@ -130,9 +130,9 @@ def main():
  except Exception: pass
  race_active=[x for x in dict.fromkeys(reported) if x != 'jra.gch']
  jra_race_day=any(x in JRA_RACE_IDS for x in race_active)
- # WEST HQ/LQ are visible on any verified JRA race date, regardless of weekday or venue.
- # EAST and LOCAL retain their meeting-specific selection.
- active=['jra.gch']+[x for x in SOURCES if x!='jra.gch' and (x in race_active or (x=='jra.west' and jra_race_day))]
+ # All regional HQ/LQ routes are visible on any verified JRA race date, regardless of weekday or venue.
+ # Keep the actual meeting IDs separately for programme/venue metadata.
+ active=['jra.gch']+[x for x in SOURCES if x in JRA_RACE_IDS and jra_race_day]
  # MAIN HQ/LQ and 5002-direct backup are always visible, including days
  # without JRA, overseas racing or local graded races.
  # No remote GCH schedule probe may determine whether they are published.
