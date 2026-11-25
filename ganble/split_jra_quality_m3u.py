@@ -9,30 +9,30 @@ GCH_LOCAL_LOGO_BASE = 'https://raw.githubusercontent.com/ajiousama/himitsu/main/
 SERVICES = {
     'jra.gch': {
         'name': 'グリーンチャンネル',
-        'hq_logo': 'gch_hq.png',
-        'lq_logo': 'gch_lq.png',
+        'hq_logo': 'main_hq.webp',
+        'lq_logo': 'main_lq.webp',
     },
     'jra.east': {
         'name': 'JRA EAST',
-        'hq_logo': 'gch_hq.png',
-        'lq_logo': 'gch_lq.png',
+        'hq_logo': 'east_hq_restored.webp',
+        'lq_logo': 'east_lq_restored.webp',
     },
     'jra.west': {
         'name': 'JRA WEST',
-        'hq_logo': 'gch_hq.png',
-        'lq_logo': 'gch_lq.png',
+        'hq_logo': 'west_hq_restored.webp',
+        'lq_logo': 'west_lq_restored.webp',
     },
     'jra.hokkaido': {
         'name': 'JRA LOCAL',
         'output_base': 'jra.local',
-        'hq_logo': 'gch_hq.png',
-        'lq_logo': 'gch_lq.png',
+        'hq_logo': 'local_hq_restored.webp',
+        'lq_logo': 'local_lq_restored.webp',
     },
     'jra.local': {
         'name': 'JRA LOCAL',
         'output_base': 'jra.local',
-        'hq_logo': 'gch_hq.png',
-        'lq_logo': 'gch_lq.png',
+        'hq_logo': 'local_hq_restored.webp',
+        'lq_logo': 'local_lq_restored.webp',
     },
 }
 

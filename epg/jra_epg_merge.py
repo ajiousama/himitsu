@@ -28,7 +28,7 @@ for base, _ in QUALITY.values():
 
 JST = timezone(timedelta(hours=9))
 GCH_QUALITIES = ("jra.gch.hq", "jra.gch.lq")
-GCH_LOGO = "https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/contrast/jp_d11ee186.png"
+GCH_LOGO = "https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/public_sports/jra_quality/sinori.webp"
 MISSING_MARKERS = (
     "番組詳細EPG未取得", "実EPG未対応", "番組表取得待ち",
     "実レースEPG取得失敗", "データ取得準備中",
@@ -55,7 +55,7 @@ def xmltv_time(dt):
 def add_channel(root, cid, name):
     ch = ET.SubElement(root, "channel", {"id": cid})
     ET.SubElement(ch, "display-name").text = name
-    quality_logos = {"jra.gch.lq":"https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/public_sports/jra_quality/gch_lq_restored.webp","jra.east.hq":"https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/public_sports/jra_quality/east_hq_restored.webp","jra.east.lq":"https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/public_sports/jra_quality/east_lq_restored.webp","jra.west.hq":"https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/public_sports/jra_quality/west_hq_restored.webp","jra.west.lq":"https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/public_sports/jra_quality/west_lq_restored.webp","jra.local.hq":"https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/public_sports/jra_quality/local_hq_restored.webp","jra.local.lq":"https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/public_sports/jra_quality/local_lq_restored.webp"}
+    quality_logos = {"jra.gch.lq":"https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/public_sports/jra_quality/main_lq.webp","jra.east.hq":"https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/public_sports/jra_quality/east_hq_restored.webp","jra.east.lq":"https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/public_sports/jra_quality/east_lq_restored.webp","jra.west.hq":"https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/public_sports/jra_quality/west_hq_restored.webp","jra.west.lq":"https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/public_sports/jra_quality/west_lq_restored.webp","jra.local.hq":"https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/public_sports/jra_quality/local_hq_restored.webp","jra.local.lq":"https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/public_sports/jra_quality/local_lq_restored.webp"}
     # MAIN HQ and common-logo variants share a guide ID. Leave this XMLTV
     # icon absent so each M3U row retains its own logo.
     if cid in quality_logos:

@@ -10,7 +10,7 @@ RAW='https://raw.githubusercontent.com/ajiousama/himitsu/main'
 LOGO=RAW+'/logos/public_sports/jra_quality'
 GCH_LOCAL_LOGO='https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/public_sports/jra_quality'
 SOURCES={
- 'jra.gch':('グリーンチャンネル MAIN','gchmain_master.m3u8','gchmain_LQ.m3u8','gch_hq_restored.webp','gch_lq_restored.webp'),
+ 'jra.gch':('グリーンチャンネル MAIN','gchmain_master.m3u8','gchmain_LQ.m3u8','main_hq.webp','main_lq.webp'),
  'jra.east':('JRA EAST WEB3','gch_east_master.m3u8','gch_east_LQ.m3u8','east_hq_restored.webp','east_lq_restored.webp'),
  'jra.west':('JRA WEST WEB4','gch_west_master.m3u8','gch_west_LQ.m3u8','west_hq_restored.webp','west_lq_restored.webp'),
  'jra.hokkaido':('JRA LOCAL WEB5','gch_hokkaido_master.m3u8','gch_hokkaido_LQ.m3u8','local_hq_restored.webp','local_lq_restored.webp'),
@@ -20,7 +20,9 @@ QUALITY_IDS={f'{base}.{q}' if base!='jra.hokkaido' else f'jra.local.{q}' for bas
 GCH_SINORI_ID='グリーンチャンネル_jp'
 GCH_SINORI_NAME='グリーンチャンネル（sinori）'
 GCH_SINORI_URL='https://ri.shinori.my.id/pxx.php?shk_cid=bs14'
-GCH_SINORI_LOGO=RAW+'/logos/contrast/jp_d11ee186.png'
+GCH_SINORI_LOGO=LOGO+'/sinori.webp'
+GCH_DIRECT_LOGO=LOGO+'/direct.webp'
+GCH_COFFEE_LOGO=LOGO+'/coffee.webp'
 GCH_COFFEE_NAME='グリーンチャンネル（coffee）'
 GCH_COFFEE_ID='jra.gch.hq'
 GCH_COFFEE_SOURCE=Path('cafeaulait.m3u')
@@ -159,8 +161,8 @@ def main():
    # Source-owned: regenerate this entry each time and keep it beside HQ/LQ/5002.
    rows += [f'#EXTINF:-1 tvg-id="{GCH_SINORI_ID}" tvg-name="{GCH_SINORI_NAME}" tvg-logo="{GCH_SINORI_LOGO}" group-title="{GROUP}",{GCH_SINORI_NAME}',GCH_SINORI_URL,'']
    for backup_label, backup_url in GCH_PROVIDER_BACKUPS:
-    rows += [f'#EXTINF:-1 tvg-id="jra.gch.hq" tvg-name="{backup_label}" tvg-logo="{GCH_SINORI_LOGO}" group-title="{GROUP}",{backup_label}',backup_url,'']
-   rows += [f'#EXTINF:-1 tvg-id="{GCH_COFFEE_ID}" tvg-name="{GCH_COFFEE_NAME}" tvg-logo="{GCH_SINORI_LOGO}" group-title="{GROUP}",{GCH_COFFEE_NAME}',gch_coffee_url(),'']
+    rows += [f'#EXTINF:-1 tvg-id="jra.gch.hq" tvg-name="{backup_label}" tvg-logo="{GCH_DIRECT_LOGO}" group-title="{GROUP}",{backup_label}',backup_url,'']
+   rows += [f'#EXTINF:-1 tvg-id="{GCH_COFFEE_ID}" tvg-name="{GCH_COFFEE_NAME}" tvg-logo="{GCH_COFFEE_LOGO}" group-title="{GROUP}",{GCH_COFFEE_NAME}',gch_coffee_url(),'']
   name,hq,lq,hqlogo,lqlogo=SOURCES[source]
   outbase='jra.local' if source=='jra.hokkaido' else source
   for q,stream,logo in (('hq',hq,hqlogo),('lq',lq,lqlogo)):
