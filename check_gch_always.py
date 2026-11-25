@@ -68,8 +68,28 @@ def main() -> None:
         if not (start < text.find(line) < end):
             raise SystemExit(f"GCH always-on guard: source escaped TODAY_JRA block: {name}")
 
-    if coffee_entries != [GCH_COFFEE_NAME]:
-        raise SystemExit("GCH guard: only the Coffee Green Channel may appear in FreeWiFi")
+    approved_coffee = [
+        GCH_COFFEE_NAME,
+        "☕Fuji TV ONE（coffee）",
+        "☕Fuji TV TWO（coffee）",
+        "☕Nouvelle Paradise（coffee）",
+        "☕Pigoo NSFW（coffee）",
+    ]
+    if sorted(coffee_entries) != sorted(approved_coffee):
+        raise SystemExit("Coffee guard: expected exactly the five approved channels")
+    for line in lines:
+        if not line.startswith("#EXTINF:"):
+            continue
+        name = line.rsplit(",", 1)[-1].strip()
+        if name not in approved_coffee:
+            continue
+        expected_group = GROUP if name == GCH_COFFEE_NAME else "Coffee"
+        if f'group-title="{expected_group}"' not in line:
+            raise SystemExit(f"Coffee guard: wrong group: {name}")
+        if not all(re.search(pattern, line) for pattern in (
+            r'\bcatchup="[^"]+"', r'\bcatchup-days="6"', r'\bcatchup-source="[^"]+"'
+        )):
+            raise SystemExit(f"Coffee guard: missing archive metadata: {name}")
     required = dict(REQUIRED)
     required[GCH_COFFEE_NAME] = (GCH_COFFEE_ID, gch_coffee_url())
     required["グリーンチャンネル（sinori）"] = ("グリーンチャンネル_jp", "https://ri.shinori.my.id/pxx.php?shk_cid=bs14")
