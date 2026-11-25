@@ -3,6 +3,7 @@
 from pathlib import Path
 import re
 import json
+from freewifi_today_jra import GCH_SINORI_LOGO, GCH_COFFEE_NAME, GCH_COFFEE_ID, gch_coffee_url
 
 PLAYLIST = Path("freewifi")
 GROUP = "今日の開催場"
@@ -42,12 +43,19 @@ def main() -> None:
         raise SystemExit('GCH/JRA guard: retired external source returned')
     lines = text.splitlines()
     found = {}
+    names = set(REQUIRED) | set(REGIONAL) | {GCH_COFFEE_NAME, "グリーンチャンネル（sinori）"}
+    coffee_entries = []
     for index, line in enumerate(lines):
         if not line.startswith("#EXTINF:"):
             continue
         name = line.rsplit(",", 1)[-1].strip()
-        if name not in REQUIRED and name not in REGIONAL:
+        candidate_url = lines[index + 1].strip() if index + 1 < len(lines) else ""
+        if "coffee.linxei.biz.id/" in candidate_url:
+            coffee_entries.append(name)
+        if name not in names:
             continue
+        if f'tvg-logo="{GCH_SINORI_LOGO}"' not in line:
+            raise SystemExit(f"GCH logo guard: noncanonical logo: {name}")
         if name in found:
             raise SystemExit(f"GCH always-on guard: duplicate entry: {name}")
         tvg_id = re.search(r'tvg-id="([^"]+)"', line)
@@ -57,7 +65,12 @@ def main() -> None:
         if not (start < text.find(line) < end):
             raise SystemExit(f"GCH always-on guard: source escaped TODAY_JRA block: {name}")
 
-    for name, (expected_id, expected_url) in REQUIRED.items():
+    if coffee_entries != [GCH_COFFEE_NAME]:
+        raise SystemExit("GCH guard: only the Coffee Green Channel may appear in FreeWiFi")
+    required = dict(REQUIRED)
+    required[GCH_COFFEE_NAME] = (GCH_COFFEE_ID, gch_coffee_url())
+    required["グリーンチャンネル（sinori）"] = ("グリーンチャンネル_jp", "https://ri.shinori.my.id/pxx.php?shk_cid=bs14")
+    for name, (expected_id, expected_url) in required.items():
         expected = (expected_id, expected_url, GROUP)
         actual = found.get(name)
         if actual != expected:

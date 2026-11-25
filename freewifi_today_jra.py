@@ -21,6 +21,18 @@ GCH_SINORI_ID='グリーンチャンネル_jp'
 GCH_SINORI_NAME='グリーンチャンネル（sinori）'
 GCH_SINORI_URL='https://ri.shinori.my.id/pxx.php?shk_cid=bs14'
 GCH_SINORI_LOGO=RAW+'/logos/contrast/jp_d11ee186.png'
+GCH_COFFEE_NAME='グリーンチャンネル（coffee）'
+GCH_COFFEE_ID='jra.gch.hq'
+GCH_COFFEE_SOURCE=Path('cafeaulait.m3u')
+
+def gch_coffee_url():
+ lines=GCH_COFFEE_SOURCE.read_text(encoding='utf-8-sig').splitlines()
+ matches=[lines[i+1].strip() for i,line in enumerate(lines[:-1])
+          if line.startswith('#EXTINF:') and line.rsplit(',',1)[-1].strip()=='☕Green Channel（coffee）']
+ if len(matches)!=1 or not re.fullmatch(r'https://coffee\.linxei\.biz\.id/stream/jp/green_channel/stream-output\.m3u8(?:\?[^\s]*)?',matches[0]):
+  raise SystemExit('Coffee GCH source missing or unexpected')
+ return matches[0]
+
 # Additional viewing routes; programme EPG remains tied to jra.gch.hq.
 GCH_PROVIDER_BACKUPS=(
  ('グリーンチャンネル (5002直)', 'http://67.215.237.218:5002/bs14.m3u8?gid=bs14&token=guoziyun&channel=zhongying&uin=159413&ts=0&sign=&playseek=0'),
@@ -150,12 +162,13 @@ def main():
   outbase='jra.local' if source=='jra.hokkaido' else source
   for q,stream,logo in (('hq',hq,hqlogo),('lq',lq,lqlogo)):
    cid=f'{outbase}.{q}'; label=f'{name} {q.upper()}'
-   logo_url=(GCH_LOCAL_LOGO if source=='jra.gch' else LOGO) + '/' + logo
+   logo_url=GCH_SINORI_LOGO
    rows += [f'#EXTINF:-1 tvg-id="{cid}" tvg-name="{label}" tvg-logo="{logo_url}" group-title="{GROUP}",{label}',f'{RAW}/{stream}','']
    exposed.append(cid)
   if source=='jra.gch':
    for backup_label, backup_url in GCH_PROVIDER_BACKUPS:
-    rows += [f'#EXTINF:-1 tvg-id="jra.gch.hq" tvg-name="{backup_label}" tvg-logo="{GCH_LOCAL_LOGO}/gch_hq.png" group-title="{GROUP}",{backup_label}',backup_url,'']
+    rows += [f'#EXTINF:-1 tvg-id="jra.gch.hq" tvg-name="{backup_label}" tvg-logo="{GCH_SINORI_LOGO}" group-title="{GROUP}",{backup_label}',backup_url,'']
+   rows += [f'#EXTINF:-1 tvg-id="{GCH_COFFEE_ID}" tvg-name="{GCH_COFFEE_NAME}" tvg-logo="{GCH_SINORI_LOGO}" group-title="{GROUP}",{GCH_COFFEE_NAME}',gch_coffee_url(),'']
  managed=START+'\n## 本日の開催場（JRA / ajiousama HQ・LQ）\n'+'\n'.join(rows).rstrip()+('\n' if rows else '')+END
  anchor='# === GENERAL_YOUTUBE_MANAGED_START ==='
  text=base.replace(anchor,managed+'\n\n'+anchor,1) if anchor in base else base.rstrip()+'\n\n'+managed+'\n'

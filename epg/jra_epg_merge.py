@@ -28,6 +28,7 @@ for base, _ in QUALITY.values():
 
 JST = timezone(timedelta(hours=9))
 GCH_QUALITIES = ("jra.gch.hq", "jra.gch.lq")
+GCH_LOGO = "https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/contrast/jp_d11ee186.png"
 MISSING_MARKERS = (
     "番組詳細EPG未取得", "実EPG未対応", "番組表取得待ち",
     "実レースEPG取得失敗", "データ取得準備中",
@@ -54,6 +55,8 @@ def xmltv_time(dt):
 def add_channel(root, cid, name):
     ch = ET.SubElement(root, "channel", {"id": cid})
     ET.SubElement(ch, "display-name").text = name
+    if cid.startswith(("jra.gch.", "jra.east.", "jra.west.", "jra.local.")):
+        ET.SubElement(ch, "icon", {"src": GCH_LOGO})
 
 
 def clone(programme, channel):
@@ -269,6 +272,12 @@ def main():
         for p in schedule:
             root.append(clone(p, cid))
 
+    # Keep the original Sinori guide's icon identical to all MAIN routes.
+    for ch in root.findall("channel"):
+        if ch.get("id") == "グリーンチャンネル_jp":
+            for icon in ch.findall("icon"):
+                ch.remove(icon)
+            ET.SubElement(ch, "icon", {"src": GCH_LOGO})
     ET.indent(tree, space="  ")
     tree.write(GUIDES, encoding="utf-8", xml_declaration=True)
     real = sum(real_gch(p) for p in schedule)
