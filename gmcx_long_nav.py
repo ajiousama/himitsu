@@ -142,7 +142,7 @@ def frame_title_candidates(replay: dict) -> dict[tuple[str, int], tuple[str, int
             ep = int(row["episode_candidate"]) if row.get("episode_candidate") else None
         except (TypeError, ValueError):
             continue
-        result[(vod_id, at)] = (title, ep)
+        result[(vod_id, at)] = (title, ep, row.get("confidence") == "actual_video_shows_subject_but_exact_episode_unverified")
     return result
 
 
@@ -356,10 +356,11 @@ def build_time_navigation_entries(
                     verified_start=begin in verified_starts,
                 )
             elif gameplay:
-                game, possible_episode = gameplay
+                game, possible_episode, is_content_only = gameplay
                 hint = f"（#{possible_episode}候補）" if possible_episode else ""
+                evidence_label = "実映像で内容確認" if is_content_only else "実映像でゲーム名確認"
                 label = (
-                    f"📼 GCCX {game}{hint}（実映像でゲーム名確認・境界仮／"
+                    f"📼 GCCX {game}{hint}（{evidence_label}・境界仮／"
                     f"{date_label} {hms(begin)}〜{hms(stop)}）"
                 )
             elif matched_title:
@@ -392,6 +393,9 @@ def build_time_navigation_entries(
                 label = label.replace(
                     "実映像でゲーム名確認・境界仮",
                     "実映像でゲーム名確認・音声境界仮"
+                ).replace(
+                    "実映像で内容確認・境界仮",
+                    "実映像で内容確認・音声境界仮"
                 ).replace(
                     "映像OCR候補・境界仮", "映像OCR候補・音声境界仮"
                 )
