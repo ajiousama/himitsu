@@ -11,12 +11,12 @@ LOGO = RAW + '/logos/public_sports/jra_quality'
 CHANNELS = [
     ('jra.gch.hq','グリーンチャンネル HQ','gchmain_master.m3u8','main_hq.webp','jra.gch'),
     ('jra.gch.lq','グリーンチャンネル LQ','gchmain_LQ.m3u8','main_lq.webp','jra.gch'),
-    ('jra.east.hq','JRA EAST HQ','gch_east_master.m3u8','east_hq_restored.webp','jra.east'),
-    ('jra.east.lq','JRA EAST LQ','gch_east_LQ.m3u8','east_lq_restored.webp','jra.east'),
-    ('jra.west.hq','JRA WEST HQ','gch_west_master.m3u8','west_hq_restored.webp','jra.west'),
-    ('jra.west.lq','JRA WEST LQ','gch_west_LQ.m3u8','west_lq_restored.webp','jra.west'),
-    ('jra.local.hq','JRA LOCAL WEB5 HQ','gch_hokkaido_master.m3u8','local_hq_restored.webp','jra.hokkaido'),
-    ('jra.local.lq','JRA LOCAL WEB5 LQ','gch_hokkaido_LQ.m3u8','local_lq_restored.webp','jra.hokkaido'),
+    ('jra.east.hq','JRA EAST HQ','gch_east_master.m3u8','east_hq.webp','jra.east'),
+    ('jra.east.lq','JRA EAST LQ','gch_east_LQ.m3u8','east_lq.webp','jra.east'),
+    ('jra.west.hq','JRA WEST HQ','gch_west_master.m3u8','west_hq.webp','jra.west'),
+    ('jra.west.lq','JRA WEST LQ','gch_west_LQ.m3u8','west_lq.webp','jra.west'),
+    ('jra.local.hq','JRA LOCAL WEB5 HQ','gch_hokkaido_master.m3u8','local_hq.webp','jra.hokkaido'),
+    ('jra.local.lq','JRA LOCAL WEB5 LQ','gch_hokkaido_LQ.m3u8','local_lq.webp','jra.hokkaido'),
 ]
 
 

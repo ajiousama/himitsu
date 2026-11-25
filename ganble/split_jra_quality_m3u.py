@@ -14,25 +14,25 @@ SERVICES = {
     },
     'jra.east': {
         'name': 'JRA EAST',
-        'hq_logo': 'east_hq_restored.webp',
-        'lq_logo': 'east_lq_restored.webp',
+        'hq_logo': 'east_hq.webp',
+        'lq_logo': 'east_lq.webp',
     },
     'jra.west': {
         'name': 'JRA WEST',
-        'hq_logo': 'west_hq_restored.webp',
-        'lq_logo': 'west_lq_restored.webp',
+        'hq_logo': 'west_hq.webp',
+        'lq_logo': 'west_lq.webp',
     },
     'jra.hokkaido': {
         'name': 'JRA LOCAL',
         'output_base': 'jra.local',
-        'hq_logo': 'local_hq_restored.webp',
-        'lq_logo': 'local_lq_restored.webp',
+        'hq_logo': 'local_hq.webp',
+        'lq_logo': 'local_lq.webp',
     },
     'jra.local': {
         'name': 'JRA LOCAL',
         'output_base': 'jra.local',
-        'hq_logo': 'local_hq_restored.webp',
-        'lq_logo': 'local_lq_restored.webp',
+        'hq_logo': 'local_hq.webp',
+        'lq_logo': 'local_lq.webp',
     },
 }
 

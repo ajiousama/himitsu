@@ -11,9 +11,9 @@ LOGO=RAW+'/logos/public_sports/jra_quality'
 GCH_LOCAL_LOGO='https://raw.githubusercontent.com/ajiousama/himitsu/main/logos/public_sports/jra_quality'
 SOURCES={
  'jra.gch':('グリーンチャンネル MAIN','gchmain_master.m3u8','gchmain_LQ.m3u8','main_hq.webp','main_lq.webp'),
- 'jra.east':('JRA EAST WEB3','gch_east_master.m3u8','gch_east_LQ.m3u8','east_hq_restored.webp','east_lq_restored.webp'),
- 'jra.west':('JRA WEST WEB4','gch_west_master.m3u8','gch_west_LQ.m3u8','west_hq_restored.webp','west_lq_restored.webp'),
- 'jra.hokkaido':('JRA LOCAL WEB5','gch_hokkaido_master.m3u8','gch_hokkaido_LQ.m3u8','local_hq_restored.webp','local_lq_restored.webp'),
+ 'jra.east':('JRA EAST WEB3','gch_east_master.m3u8','gch_east_LQ.m3u8','east_hq.webp','east_lq.webp'),
+ 'jra.west':('JRA WEST WEB4','gch_west_master.m3u8','gch_west_LQ.m3u8','west_hq.webp','west_lq.webp'),
+ 'jra.hokkaido':('JRA LOCAL WEB5','gch_hokkaido_master.m3u8','gch_hokkaido_LQ.m3u8','local_hq.webp','local_lq.webp'),
 }
 QUALITY_IDS={f'{base}.{q}' if base!='jra.hokkaido' else f'jra.local.{q}' for base in SOURCES for q in ('hq','lq')}
 # Keep sinori with the JRA-managed GCH rows, not a separate persistent section.

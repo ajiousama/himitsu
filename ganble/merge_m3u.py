@@ -21,12 +21,12 @@ INPUTS = [
 JRA = [
     ('jra.gch.hq','グリーンチャンネル HQ','グリーンチャンネル（高画質）','gchmain_master.m3u8','logos/public_sports/jra_quality/main_hq.webp'),
     ('jra.gch.lq','グリーンチャンネル LQ','グリーンチャンネル（低画質）','gchmain_LQ.m3u8','logos/public_sports/jra_quality/main_lq.webp'),
-    ('jra.east.hq','JRA EAST HQ','JRA EAST（高画質）','gch_east_master.m3u8','logos/public_sports/jra_quality/east_hq_restored.webp'),
-    ('jra.east.lq','JRA EAST LQ','JRA EAST（低画質）','gch_east_LQ.m3u8','logos/public_sports/jra_quality/east_lq_restored.webp'),
-    ('jra.west.hq','JRA WEST HQ','JRA WEST（高画質）','gch_west_master.m3u8','logos/public_sports/jra_quality/west_hq_restored.webp'),
-    ('jra.west.lq','JRA WEST LQ','JRA WEST（低画質）','gch_west_LQ.m3u8','logos/public_sports/jra_quality/west_lq_restored.webp'),
-    ('jra.local.hq','JRA LOCAL WEB5 HQ','JRA LOCAL WEB5（高画質）','gch_hokkaido_master.m3u8','logos/public_sports/jra_quality/local_hq_restored.webp'),
-    ('jra.local.lq','JRA LOCAL WEB5 LQ','JRA LOCAL WEB5（低画質）','gch_hokkaido_LQ.m3u8','logos/public_sports/jra_quality/local_lq_restored.webp'),
+    ('jra.east.hq','JRA EAST HQ','JRA EAST（高画質）','gch_east_master.m3u8','logos/public_sports/jra_quality/east_hq.webp'),
+    ('jra.east.lq','JRA EAST LQ','JRA EAST（低画質）','gch_east_LQ.m3u8','logos/public_sports/jra_quality/east_lq.webp'),
+    ('jra.west.hq','JRA WEST HQ','JRA WEST（高画質）','gch_west_master.m3u8','logos/public_sports/jra_quality/west_hq.webp'),
+    ('jra.west.lq','JRA WEST LQ','JRA WEST（低画質）','gch_west_LQ.m3u8','logos/public_sports/jra_quality/west_lq.webp'),
+    ('jra.local.hq','JRA LOCAL WEB5 HQ','JRA LOCAL WEB5（高画質）','gch_hokkaido_master.m3u8','logos/public_sports/jra_quality/local_hq.webp'),
+    ('jra.local.lq','JRA LOCAL WEB5 LQ','JRA LOCAL WEB5（低画質）','gch_hokkaido_LQ.m3u8','logos/public_sports/jra_quality/local_lq.webp'),
 ]
 
 
