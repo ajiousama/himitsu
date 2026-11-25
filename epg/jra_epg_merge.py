@@ -142,7 +142,7 @@ def build_gch_schedule(programmes, start, end):
     return result
 
 
-JRA_VENUE_RE = re.compile(r"^JRA (東京|中山|新潟|福島|京都|阪神|中京|小倉|札幌|函館)(?:\\s|$)")
+JRA_VENUE_RE = re.compile(r"^JRA (東京|中山|新潟|福島|京都|阪神|中京|小倉|札幌|函館)(?:\s|$)")
 
 
 def meeting_names_by_day(regional):
