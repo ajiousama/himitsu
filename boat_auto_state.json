@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-25",
-  "generated_at": "2026-11-25T12:50:33.678629+09:00",
+  "generated_at": "2026-11-25T12:51:37.512012+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261125.json",
   "schedule_checked_at": "2026-11-25T12:37:09.318926+09:00",
@@ -52,7 +52,7 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 11,
+    "requested": 12,
     "fetched": 8,
     "failures": [],
     "deferred": [
@@ -60,6 +60,11 @@
         "jcd": "12",
         "name": "住之江",
         "start": "2026-11-25T14:25:00+09:00"
+      },
+      {
+        "jcd": "19",
+        "name": "下関",
+        "start": "2026-11-25T14:45:00+09:00"
       },
       {
         "jcd": "20",
@@ -502,14 +507,14 @@
       "last_race": "15:59",
       "alert_from": "2026-11-25T09:58:00+09:00",
       "next_race": {
-        "race": 6,
-        "start": "12:51"
+        "race": 7,
+        "start": "13:25"
       },
       "stream_window": "live_or_prestart",
       "intermission": null,
       "guidance_switch_at": "2026-11-25T16:44:00+09:00",
       "seed_required": false,
-      "reverify_due": true,
+      "reverify_due": false,
       "playback_verified": true,
       "first_verified_at": "2026-11-25T09:50:39.118333+09:00",
       "ready_before_first_race": true,
@@ -1125,7 +1130,8 @@
           "name": "一般"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "provider_stream_start": "2026-11-25T14:45:00+09:00",
+      "source": "公式BR配信開始待ち 14:45"
     },
     "boat.wakamatsu": {
       "jcd": "20",
