@@ -40,7 +40,14 @@ epg_build.SOURCE_PIN.update({
     for channel_id in RAKUTEN_CHANNELS
 })
 
+from epg.coffee_epg_history import load as load_history, merge_history
+
+_previous_coffee_guide = load_history(Path('guides.xml'))
 epg_build.main()
+_coffee_tree = ET.parse('guides.xml')
+print('Coffee real historical EPG:', merge_history(_coffee_tree.getroot(), _previous_coffee_guide))
+ET.indent(_coffee_tree, space='  ')
+_coffee_tree.write('guides.xml', encoding='utf-8', xml_declaration=True)
 
 out = Path("guides.xml")
 if not out.is_file() or out.stat().st_size < 100_000:

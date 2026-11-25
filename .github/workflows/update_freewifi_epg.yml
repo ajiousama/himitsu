@@ -13,6 +13,11 @@ on:
       - "vod5/**"
       - "kick_gccx2_sync.py"
       - "epg/jra_epg_merge.py"
+      - "epg/coffee_epg_history.py"
+      - "test_coffee_epg_history.py"
+      - "epg/epg_build.py"
+      - "epg/epg_build_safe.py"
+      - "cafeaulait.m3u"
       - "sports_race_time.py"
       - "normalize_race_epg_switch.py"
       - "publish_public_sports.py"
@@ -198,7 +203,9 @@ jobs:
           python -c "import xml.etree.ElementTree as ET; ET.parse('guides.xml'); print('GUIDES BASE XML OK')"
 
       - name: Build merged EPG safely without external public-sports source
-        run: python -m epg.epg_build_safe
+        run: |
+          python -m unittest -q test_coffee_epg_history
+          python -m epg.epg_build_safe
 
       - name: Merge selected Radiko EPG
         run: python -m epg.radiko_epg_merge
@@ -297,7 +304,9 @@ jobs:
             echo "EPG overlay publish attempt $attempt/5"
             git fetch origin main
             git reset --hard origin/main
+            cp guides.xml "$snapshot/latest-guides.xml"
             cp "$snapshot/guides.xml" guides.xml
+            python -m epg.coffee_epg_history guides.xml "$snapshot/latest-guides.xml"
             cp "$snapshot/epg_coverage.txt" epg_coverage.txt
             # Keep the newest canonical public-sports snapshot from main.
             # A long TV EPG build must never restore its earlier race state.

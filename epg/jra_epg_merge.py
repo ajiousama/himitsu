@@ -228,6 +228,12 @@ def main():
     start = now.replace(hour=0, minute=0, second=0, microsecond=0)
     end = start + timedelta(days=3)
     source_id, source_schedule = actual_gch_schedule(root, start, end)
+    # Capture real past metadata before replacing the shared GCH IDs.
+    from epg.coffee_epg_history import merge_history
+    previous_history = ET.Element('tv')
+    for p in root.findall('programme'):
+        if p.get('channel') in GCH_QUALITIES:
+            previous_history.append(copy.deepcopy(p))
 
     venues_by_day = meeting_names_by_day(regional)
 
@@ -274,6 +280,8 @@ def main():
         add_channel(root, cid, f"グリーンチャンネル MAIN {label}")
         for p in schedule:
             root.append(clone(p, cid))
+
+    print('Coffee historical EPG:', merge_history(root, previous_history, now))
 
     # Keep the original common Green Channel guide icon.
     for ch in root.findall("channel"):

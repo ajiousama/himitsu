@@ -90,6 +90,7 @@ EXPLICIT = {
     "jra.gch.lq": ["BS234", "Ch.688", "GreenChannel.jp", "グリーンチャンネル_jp"],
     "グリーンチャンネル_jp": ["BS234", "Ch.688", "GreenChannel.jp"], "グリーンチャンネル2_jp": ["Ch.689", "GreenChannel2.jp"],
     "フジテレビONE_jp": ["FujiTVONE.jp", "CS307"], "フジテレビTWO_jp": ["FujiTVTWO.jp", "CS308"],
+    "Pigoo_jp": ["pigoo_nsfw", "Pigoo_jp", "Pigoo"],
     "フジテレビNEXT_jp": ["FujiTVNEXT.jp", "CS309"], "ヒストリーチャンネル_jp": ["HistoryChannel.jp", "History.jp"],
     "rch_102": ["QVC.jp", "CS161", "Ch.525"], "スペースシャワーTV_jp": ["SpaceShowerTV.jp"],
     "WOWOWプラス_jp": ["WOWOWPlus.jp"], "カートゥーン-ネットワーク_jp": ["CartoonNetwork.jp"],
