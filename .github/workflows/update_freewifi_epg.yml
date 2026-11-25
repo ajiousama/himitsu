@@ -19,6 +19,9 @@ on:
       - "public_sports_epg_local.py"
       - "public_sports_epg_local_fast.py"
       - "sports_race_time.py"
+      - "normalize_race_epg_switch.py"
+      - "test_normalize_race_epg_switch.py"
+      - "epg/finalize_public_sports_prestart_epg.py"
       - "finalize_today_public_sports.py"
       - "group_freewifi_sources.py"
       - ".github/workflows/update_freewifi_epg.yml"
@@ -378,6 +381,9 @@ jobs:
             cp "$snapshot/public_sports_epg_local.xml" public_sports_epg_local.xml
             cp "$snapshot/verified_daily_status.json" verified_daily_status.json
             python boat_publish.py --epg-only
+            python -m unittest -v test_normalize_race_epg_switch
+            python normalize_race_epg_switch.py guides.xml public_sports_epg_local.xml
+            python normalize_race_epg_switch.py --check guides.xml public_sports_epg_local.xml
 
             python - <<'PY'
           import xml.etree.ElementTree as ET

@@ -7,6 +7,9 @@ on:
       - main
     paths:
       - "normalize_race_epg_switch.py"
+      - "sports_race_time.py"
+      - "test_normalize_race_epg_switch.py"
+      - "epg/finalize_public_sports_prestart_epg.py"
       - ".github/workflows/normalize_race_epg_switch.yml"
   workflow_run:
     workflows:
@@ -50,6 +53,7 @@ jobs:
             git fetch origin main
             git reset --hard origin/main
 
+            python -m unittest -v test_normalize_race_epg_switch
             python normalize_race_epg_switch.py guides.xml public_sports_epg_local.xml
             python normalize_race_epg_switch.py --check guides.xml public_sports_epg_local.xml
 

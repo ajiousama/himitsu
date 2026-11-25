@@ -3,6 +3,7 @@ from datetime import datetime, timedelta, timezone, time
 import re
 
 JST = timezone(timedelta(hours=9))
+FIRST_RACE_LEAD_MINUTES = 30
 NORMALIZE = str.maketrans('０１２３４５６７８９：Ｒ', '0123456789:R')
 
 

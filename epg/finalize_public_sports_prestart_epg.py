@@ -8,7 +8,7 @@ from pathlib import Path
 import re
 import xml.etree.ElementTree as ET
 
-from sports_race_time import race_time
+from sports_race_time import race_time, FIRST_RACE_LEAD_MINUTES
 
 FREEWIFI = Path("freewifi")
 GUIDES = Path("guides.xml")
@@ -141,7 +141,7 @@ def standardize_file(path: Path, visible: dict[str, str], modes: dict[str, str],
         title = f"本日{clean_name}開催　1R{race['start']}発走　{mode_label}"
 
         # Give the standardized waiting programme the whole pre-start window.
-        race_leadin = max(midnight, first_dt - timedelta(minutes=3))
+        race_leadin = max(midnight, first_dt - timedelta(minutes=FIRST_RACE_LEAD_MINUTES))
         first_programme.set("start", xmltv(race_leadin))
 
         for p in list(root.findall("programme")):
@@ -150,7 +150,7 @@ def standardize_file(path: Path, visible: dict[str, str], modes: dict[str, str],
             ptitle = (p.findtext("title") or "").strip()
             pstart = parse_xmltv(p.get("start"))
             pstop = parse_xmltv(p.get("stop"))
-            if PRESTART_RE.match(ptitle):
+            if PRESTART_RE.match(ptitle) and pstart and pstart.date() == today:
                 root.remove(p)
                 continue
             if pstart and pstop and pstart.date() == today and pstart < race_leadin and pstop > midnight:

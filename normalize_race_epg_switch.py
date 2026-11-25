@@ -3,9 +3,8 @@ from __future__ import annotations
 """Normalize race-by-race XMLTV blocks to the common FreeWiFi race rule.
 
 Rule for every real race programme:
-- normally the first race starts 45 minutes before its advertised start;
-- when FreeWiFi has a standardized "本日開催 / 1R / 開催区分" guide, that guide
-  stays visible from midnight until 3 minutes before 1R;
+- a verified 1R starts 30 minutes before its advertised start, not before midnight;
+- a date-specific "本日開催 / 1R / 開催区分" guide covers midnight to 1R;
 - race N remains selected until its advertised start time + 3 minutes;
 - race N+1 starts exactly at race N start time + 3 minutes;
 - after the final race, an existing finished notice starts at final start + 3 minutes.
@@ -20,10 +19,9 @@ from datetime import datetime, timedelta, time
 from pathlib import Path
 import xml.etree.ElementTree as ET
 
-from sports_race_time import JST, race_time
+from sports_race_time import JST, race_time, FIRST_RACE_LEAD_MINUTES
 
-FIRST_RACE_LEAD = timedelta(minutes=45)
-PRESTART_SWITCH = timedelta(minutes=3)
+FIRST_RACE_LEAD = timedelta(minutes=FIRST_RACE_LEAD_MINUTES)
 SWITCH = timedelta(minutes=3)
 TARGET_PREFIXES = (
     "keirin.",
@@ -31,7 +29,8 @@ TARGET_PREFIXES = (
     "auto.",
     "boat.",
 )
-TARGET_IDS = {"jra.east", "jra.west", "jra.hokkaido"}
+JRA_BASES = {"jra.east", "jra.west", "jra.hokkaido", "jra.local"}
+TARGET_IDS = JRA_BASES | {base + suffix for base in JRA_BASES for suffix in (".hq", ".lq")}
 
 
 def parse_xmltv(value: str | None) -> datetime | None:
@@ -97,15 +96,14 @@ def is_prestart_guidance(programme: ET.Element) -> bool:
     return text.startswith("本日") and "開催" in text and "1R" in text and "発走" in text
 
 
-def prestart_guidance(root: ET.Element, channel: str) -> ET.Element | None:
+def prestart_guidance(root: ET.Element, channel: str, meeting_day) -> ET.Element | None:
     rows = [
         p for p in root.findall("programme")
         if p.get("channel") == channel and not race_time(p) and is_prestart_guidance(p)
+        and (start := parse_xmltv(p.get("start"))) is not None
+        and start.date() == meeting_day
     ]
-    if not rows:
-        return None
-    rows.sort(key=lambda p: p.get("start", ""))
-    return rows[0]
+    return min(rows, key=lambda p: p.get("start", "")) if rows else None
 
 
 def normalize_prestart_guidance(
@@ -113,26 +111,54 @@ def normalize_prestart_guidance(
     channel: str,
     meeting_day,
     first_start: datetime,
+    first_dt: datetime,
+    first_programme: ET.Element,
 ) -> int:
-    """Keep the FreeWiFi '本日開催' guide visible until the real 1R lead-in."""
-    guide = prestart_guidance(root, channel)
-    if guide is None:
-        return 0
+    """Create/repair only this meeting day's confirmed 1R waiting block."""
+    midnight = datetime.combine(meeting_day, time(0, 0), tzinfo=JST)
+    guide = prestart_guidance(root, channel, meeting_day)
     changed = 0
-    wanted_start = datetime.combine(meeting_day, time(0, 0), tzinfo=JST)
-    if guide.get("start") != fmt(wanted_start):
-        guide.set("start", fmt(wanted_start))
-        changed += 1
-    if guide.get("stop") != fmt(first_start):
-        guide.set("stop", fmt(first_start))
+    if first_start > midnight and guide is None:
+        name = next((c.findtext("display-name") for c in root.findall("channel")
+                     if c.get("id") == channel), None) or channel
+        info = race_time(first_programme)
+        clock = info["start"] if info else first_dt.strftime("%H:%M")
+        detail = first_programme.findtext("desc") or ""
+        mode = next((m for m in ("オーバーミッドナイト", "ミッドナイト", "モーニング",
+                                "ナイター", "薄暮", "デイ") if m in detail), "")
+        guide = ET.SubElement(root, "programme", {"channel": channel})
+        ET.SubElement(guide, "title", {"lang": "ja"}).text = (
+            f"本日{name}開催　1R{clock}発走" + (f"　{mode}" if mode else "")
+        )
+        ET.SubElement(guide, "desc", {"lang": "ja"}).text = f"{name}は本日開催です。1R発走予定: {clock}"
         changed += 1
 
-    for programme in list(root.findall("programme")):
-        if programme is guide or programme.get("channel") != channel or race_time(programme):
+    if guide is not None:
+        if first_start <= midnight:
+            root.remove(guide)
+            guide = None
+            changed += 1
+        else:
+            for attr, wanted in (("start", midnight), ("stop", first_start)):
+                if guide.get(attr) != fmt(wanted):
+                    guide.set(attr, fmt(wanted))
+                    changed += 1
+
+    for p in list(root.findall("programme")):
+        if p is guide or p.get("channel") != channel or race_time(p):
             continue
-        text = title(programme)
-        if is_prestart_guidance(programme) or "開催待ち" in text or text.startswith("⏳ 待機"):
-            root.remove(programme)
+        start, stop = parse_xmltv(p.get("start")), parse_xmltv(p.get("stop"))
+        if not start or not stop or stop <= midnight or start >= first_start:
+            continue
+        if start < midnight:
+            # Preserve the preceding day's programme, not its spill into this day.
+            p.set("stop", fmt(midnight))
+            changed += 1
+        elif start.date() == meeting_day:
+            # A confirmed first race supersedes generic same-day waiting placeholders.
+            if "中止" in title(p) or "開催予定に変更" in title(p):
+                continue
+            root.remove(p)
             changed += 1
     return changed
 
@@ -161,14 +187,16 @@ def normalize_root(root: ET.Element) -> tuple[int, int]:
             continue
         races_seen += len(rows)
 
-        first_dt, _first_number, first_programme = rows[0]
-        has_prestart = prestart_guidance(root, channel) is not None
-        wanted_first_start = first_dt - (PRESTART_SWITCH if has_prestart else FIRST_RACE_LEAD)
+        first_dt, first_number, first_programme = rows[0]
+        midnight = datetime.combine(_meeting_day, time(0, 0), tzinfo=JST)
+        wanted_first_start = max(midnight, first_dt - FIRST_RACE_LEAD)
         if first_programme.get("start") != fmt(wanted_first_start):
             first_programme.set("start", fmt(wanted_first_start))
             changed += 1
-        if has_prestart:
-            changed += normalize_prestart_guidance(root, channel, _meeting_day, wanted_first_start)
+        if first_number == 1:
+            changed += normalize_prestart_guidance(
+                root, channel, _meeting_day, wanted_first_start, first_dt, first_programme
+            )
         else:
             changed += trim_overlapping_leadin(root, channel, wanted_first_start)
 
@@ -204,8 +232,12 @@ def validate_root(root: ET.Element, label: str) -> int:
 
         first_dt, first_number, first_programme = rows[0]
         first_start = parse_xmltv(first_programme.get("start"))
-        has_prestart = prestart_guidance(root, channel) is not None
-        wanted_first_start = first_dt - (PRESTART_SWITCH if has_prestart else FIRST_RACE_LEAD)
+        midnight = datetime.combine(meeting_day, time(0, 0), tzinfo=JST)
+        wanted_first_start = max(midnight, first_dt - FIRST_RACE_LEAD)
+        if first_number == 1 and wanted_first_start > midnight:
+            guide = prestart_guidance(root, channel, meeting_day)
+            if guide is None or guide.get("start") != fmt(midnight) or guide.get("stop") != fmt(wanted_first_start):
+                errors.append(f"{channel} {meeting_day} missing/incomplete midnight-to-1R guide")
         if first_start != wanted_first_start:
             errors.append(
                 f"{channel} {meeting_day} {first_number}R first_start={first_start} expected={wanted_first_start}"

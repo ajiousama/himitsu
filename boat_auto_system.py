@@ -796,7 +796,8 @@ def overlay_epg_file(path: Path, cards: dict[str, list[dict]], day: date, cancel
             count += 1
             continue
         start_of_day = datetime.combine(day, time(0, 0), tzinfo=JST)
-        prestart_end = races[0]["start"] - timedelta(minutes=RACE_SWITCH_MINUTES)
+        from sports_race_time import FIRST_RACE_LEAD_MINUTES
+        prestart_end = max(start_of_day, races[0]["start"] - timedelta(minutes=FIRST_RACE_LEAD_MINUTES))
         if prestart_end > start_of_day:
             add_programme(
                 root,

@@ -175,6 +175,10 @@ class BoatAutoSystemTests(unittest.TestCase):
             self.assertIn("本日平和島開催　1R10:05発走　デイ", titles)
             self.assertIn("【１Ｒ】 10:05発走  🚤【BOATRACE平和島 🚤】", titles)
             self.assertEqual(titles[-1], "本日の開催は終了しました")
+            self.assertEqual(programmes[0].get("start"), "20260908000000 +0900")
+            self.assertEqual(programmes[0].get("stop"), "20260908093500 +0900")
+            self.assertEqual(programmes[1].get("start"), "20260908093500 +0900")
+            self.assertEqual(programmes[1].get("stop"), "20260908100800 +0900")
 
 
 if __name__ == "__main__":
