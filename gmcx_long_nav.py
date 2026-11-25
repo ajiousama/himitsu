@@ -123,6 +123,9 @@ def frame_title_candidates(replay: dict) -> dict[tuple[str, int], tuple[str, int
     accepted = {
         "actual_gameplay_visible_episode_and_end_not_verified",
         "actual_gameplay_visible_episode_candidate_not_verified",
+        # Human-reviewed subject/mixed-corner frames: preserve the named content,
+        # never promote it into a verified whole episode or exact boundary.
+        "actual_video_shows_subject_but_exact_episode_unverified",
     }
     result = {}
     for row in data.get("entries", []):
