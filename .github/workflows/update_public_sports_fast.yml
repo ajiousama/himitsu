@@ -11,6 +11,8 @@ on:
     paths:
       - "public_sports_epg_local.py"
       - "sports_race_time.py"
+      - "normalize_race_epg_switch.py"
+      - "test_normalize_race_epg_switch.py"
       - "youtube/test_manager.py"
       - "public_sports_epg_local_fast.py"
       - "freewifi_today_public_sports.py"
@@ -133,6 +135,11 @@ jobs:
             # Publish complete verified KEIRIN race grids every fast cycle.
             # Partial fetch failures preserve the previous successful EPG.
             python ganble/fast_publish_keirin_epg.py
+
+            # Final shared race boundaries: no fast refresh may restore the 6-minute 1R.
+            python -m unittest -v test_normalize_race_epg_switch
+            python normalize_race_epg_switch.py guides.xml public_sports_epg_local.xml ganble/epg.xml
+            python normalize_race_epg_switch.py --check guides.xml public_sports_epg_local.xml ganble/epg.xml
 
             python - <<'PY'
           import json

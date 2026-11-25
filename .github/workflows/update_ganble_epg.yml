@@ -15,6 +15,9 @@ on:
       - "ganble/sync_boat_v4.py"
       - "ganble/merge_m3u.py"
       - "ganble/main_epg_3days.py"
+      - "sports_race_time.py"
+      - "normalize_race_epg_switch.py"
+      - "test_normalize_race_epg_switch.py"
       - "ganble/overlay_active_keirin_epg.py"
       - "ganble/split_jra_quality_epg.py"
       - "ganble/split_jra_quality_m3u.py"
@@ -187,6 +190,12 @@ jobs:
           tree.write("epg.xml", encoding="utf-8", xml_declaration=True)
           print(f"Pruned EPG to {sorted(allowed)}; removed={removed}")
           PY
+
+      - name: Apply shared public-sports 1R waiting and +3 boundaries
+        run: |
+          (cd .. && python -m unittest -v test_normalize_race_epg_switch)
+          python ../normalize_race_epg_switch.py epg.xml
+          python ../normalize_race_epg_switch.py --check epg.xml
 
       - name: Validate XML and 3-day coverage
         run: |
