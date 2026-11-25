@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-26",
-  "generated_at": "2026-11-26T08:05:43.764952+09:00",
+  "generated_at": "2026-11-26T08:07:43.814886+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261126.json",
   "schedule_checked_at": "2026-11-26T08:05:43.764952+09:00",
@@ -20,8 +20,8 @@
   "card_count": 12,
   "held_count": 12,
   "visible_count": 12,
-  "stream_ready_count": 1,
-  "waiting_count": 11,
+  "stream_ready_count": 2,
+  "waiting_count": 10,
   "finished_guidance_count": 0,
   "end_grace_minutes": 45,
   "active_count": 1,
@@ -32,7 +32,7 @@
   "phase_counts": {
     "morning": {
       "held": 3,
-      "acquired": 1,
+      "acquired": 2,
       "active": 1,
       "ended": 0,
       "seed_required": 0,
@@ -57,7 +57,7 @@
   },
   "cloud_acquisition": {
     "requested": 7,
-    "fetched": 1,
+    "fetched": 2,
     "failures": [
       {
         "jcd": "08",
@@ -85,11 +85,6 @@
         "jcd": "17",
         "name": "宮島",
         "start": "2026-11-26T09:40:00+09:00"
-      },
-      {
-        "jcd": "18",
-        "name": "徳山",
-        "start": "2026-11-26T08:08:00+09:00"
       }
     ]
   },
@@ -102,6 +97,22 @@
     "kind": "healthy"
   },
   "streams": {
+    "boat.tokuyama": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/dfff7e6210df447ea9986c5c4b9dbe27/3616760ad3ca4ee8887a88f32624fba9/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjAxZjc5MTcwZWM1YTQwYzdhNThlNjg3OWY1ZmIyOWM3IiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NTgyNDAwMCwic3RhcnQiOjE3OTU2NDgwODAsImlvcyI6MTgsImNwIjoiMjE3ODQzNjgwXzIxNzg4Njg3OSIsInBwdyI6IjN1NyJ9.fTDrEKS_x3YTmvjLfSApviSpKcB4oHeitrjRdO9dPRg",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-11-26T08:08:10.986121+09:00",
+      "checked_at": "2026-11-26T08:08:10.986121+09:00",
+      "first_verified_at": "2026-11-26T08:08:10.986121+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 9126393,
+        "last_segment": "/dfff7e6210df447ea9986c5c4b9dbe27/3616760ad3ca4ee8887a88f32624fba9/manifest_1_9126394.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
+    },
     "boat.karatsu": {
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/43cf32b65d0442db93f885d34bde234f/42635f6d911e42698729418d21a5690e/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjAxZjc5MTcwZWM1YTQwYzdhNThlNjg3OWY1ZmIyOWM3IiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NTgyNDAwMCwic3RhcnQiOjE3OTU2NDc2MDAsImlvcyI6MTgsImNwIjoiMjE3ODQzMjAwXzIxNzg4NjM5OSIsInBwdyI6IjN1NyJ9.XxrfdjkUveWQjX_rQsNxsiakJhiu8UkuyBrbOn-YXuY",
       "source": "automatic acquisition + audio/video decode",
@@ -890,12 +901,12 @@
       "guidance_switch_at": "2026-11-26T15:11:00+09:00",
       "seed_required": false,
       "reverify_due": false,
-      "playback_verified": false,
-      "stream_ready": false,
-      "waiting": true,
+      "playback_verified": true,
+      "stream_ready": true,
+      "waiting": false,
       "remove_at": "2026-11-26T15:11:00+09:00",
-      "first_verified_at": null,
-      "ready_before_first_race": false,
+      "first_verified_at": "2026-11-26T08:08:10.986121+09:00",
+      "ready_before_first_race": true,
       "acquire_from": "2026-11-26T06:13:00+09:00",
       "races": [
         {
@@ -959,8 +970,9 @@
           "name": "すなっち特選"
         }
       ],
-      "provider_stream_start": "2026-11-26T08:08:00+09:00",
-      "source": "公式BR配信開始待ち 08:08"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/dfff7e6210df447ea9986c5c4b9dbe27/3616760ad3ca4ee8887a88f32624fba9/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjAxZjc5MTcwZWM1YTQwYzdhNThlNjg3OWY1ZmIyOWM3IiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NTgyNDAwMCwic3RhcnQiOjE3OTU2NDgwODAsImlvcyI6MTgsImNwIjoiMjE3ODQzNjgwXzIxNzg4Njg3OSIsInBwdyI6IjN1NyJ9.fTDrEKS_x3YTmvjLfSApviSpKcB4oHeitrjRdO9dPRg",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     },
     "boat.shimonoseki": {
       "jcd": "19",
