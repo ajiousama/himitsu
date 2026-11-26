@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-26",
-  "generated_at": "2026-11-26T16:46:17.078092+09:00",
+  "generated_at": "2026-11-26T16:48:28.356859+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261126.json",
   "schedule_checked_at": "2026-11-26T16:42:51.736956+09:00",
@@ -19,14 +19,13 @@
   "alert_lead_minutes": 30,
   "card_count": 12,
   "held_count": 12,
-  "visible_count": 6,
+  "visible_count": 5,
   "stream_ready_count": 4,
   "waiting_count": 0,
-  "finished_guidance_count": 2,
+  "finished_guidance_count": 1,
   "end_grace_minutes": 45,
   "active_count": 4,
   "ended_kept": [
-    "江戸川",
     "常滑"
   ],
   "seed_required": false,
@@ -73,22 +72,6 @@
     "kind": "healthy"
   },
   "streams": {
-    "boat.edogawa": {
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/b1f019f92f70452dbc53f723fc157b36/f5dfc46f85e04e06a7aede6777820bb4/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjAxZjc5MTcwZWM1YTQwYzdhNThlNjg3OWY1ZmIyOWM3IiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NTgzMTIwMCwic3RhcnQiOjE3OTU2NTYzMDAsImlvcyI6MTgsImNwIjoiMjE3ODUxOTAwXzIxNzg5NTA5OSIsInBwdyI6IjN1NyJ9.hH-We25Sim5PFNcVB9vKDZ5f6JFYQ7j-4J4jTo6TX7k",
-      "source": "automatic acquisition + audio/video decode",
-      "acquired_at": "2026-11-26T10:25:10.997132+09:00",
-      "checked_at": "2026-11-26T16:00:51.743550+09:00",
-      "first_verified_at": "2026-11-26T10:25:10.997132+09:00",
-      "playback_verified": true,
-      "probe": {
-        "ok": true,
-        "sequence": 9127451,
-        "last_segment": "/b1f019f92f70452dbc53f723fc157b36/f5dfc46f85e04e06a7aede6777820bb4/manifest_1_9130809.ts",
-        "video_decoded": true,
-        "audio_decoded": true
-      },
-      "consecutive_failures": 0
-    },
     "boat.tokoname": {
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/cfbc207f7dd14a9c961e408da3701dbf/84099a6950ca463dae4a93867beb52d5/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjAxZjc5MTcwZWM1YTQwYzdhNThlNjg3OWY1ZmIyOWM3IiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NTgyNzYwMCwic3RhcnQiOjE3OTU2NTQyMDAsImlvcyI6MTgsImNwIjoiMjE3ODQ5ODAwXzIxNzg5Mjk5OSIsInBwdyI6IjN1NyJ9.hynbV5ROJOlV0PcRX4XjFpc0VZyu4G2DKA5pStKHLsw",
       "source": "automatic acquisition + audio/video decode",
@@ -175,7 +158,7 @@
       "jcd": "03",
       "name": "江戸川",
       "held": true,
-      "visible": true,
+      "visible": false,
       "ended": true,
       "active": false,
       "cancelled": false,
@@ -185,7 +168,7 @@
       "last_race": "16:00",
       "alert_from": "2026-11-26T10:32:00+09:00",
       "next_race": null,
-      "stream_window": "ended_guidance",
+      "stream_window": "ended_hidden",
       "intermission": null,
       "guidance_switch_at": "2026-11-26T16:48:00+09:00",
       "seed_required": false,
@@ -635,14 +618,14 @@
       "last_race": "20:40",
       "alert_from": "2026-11-26T14:47:00+09:00",
       "next_race": {
-        "race": 4,
-        "start": "16:48"
+        "race": 5,
+        "start": "17:15"
       },
       "stream_window": "live_or_prestart",
       "intermission": null,
       "guidance_switch_at": "2026-11-26T21:28:00+09:00",
       "seed_required": false,
-      "reverify_due": true,
+      "reverify_due": false,
       "playback_verified": true,
       "stream_ready": true,
       "waiting": false,
