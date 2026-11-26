@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-26",
-  "generated_at": "2026-11-26T20:40:02.152031+09:00",
+  "generated_at": "2026-11-26T20:43:12.817095+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261126.json",
   "schedule_checked_at": "2026-11-26T20:30:53.168762+09:00",
@@ -20,12 +20,13 @@
   "card_count": 12,
   "held_count": 12,
   "visible_count": 4,
-  "stream_ready_count": 2,
+  "stream_ready_count": 1,
   "waiting_count": 0,
-  "finished_guidance_count": 2,
+  "finished_guidance_count": 3,
   "end_grace_minutes": 45,
-  "active_count": 2,
+  "active_count": 1,
   "ended_kept": [
+    "住之江",
     "下関",
     "若松"
   ],
@@ -51,16 +52,16 @@
     },
     "night": {
       "held": 4,
-      "acquired": 2,
-      "active": 2,
-      "ended": 2,
+      "acquired": 1,
+      "active": 1,
+      "ended": 3,
       "seed_required": 0,
       "cancelled": 0
     }
   },
   "cloud_acquisition": {
-    "requested": 2,
-    "fetched": 2,
+    "requested": 1,
+    "fetched": 1,
     "failures": [],
     "deferred": []
   },
@@ -594,8 +595,8 @@
       "name": "住之江",
       "held": true,
       "visible": true,
-      "ended": false,
-      "active": true,
+      "ended": true,
+      "active": false,
       "cancelled": false,
       "mode": "night",
       "mode_label": "ナイター",
@@ -603,13 +604,13 @@
       "last_race": "20:40",
       "alert_from": "2026-11-26T14:47:00+09:00",
       "next_race": null,
-      "stream_window": "live_or_prestart",
+      "stream_window": "ended_guidance",
       "intermission": null,
       "guidance_switch_at": "2026-11-26T21:28:00+09:00",
       "seed_required": false,
-      "reverify_due": true,
+      "reverify_due": false,
       "playback_verified": true,
-      "stream_ready": true,
+      "stream_ready": false,
       "waiting": false,
       "remove_at": "2026-11-26T21:28:00+09:00",
       "first_verified_at": "2026-11-26T14:25:19.643314+09:00",
@@ -677,9 +678,7 @@
           "name": "優勝戦"
         }
       ],
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/5a11a02981924616aafea02e362e72ff/e2257c29c0dd4f218daa028908678cea/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjAxZjc5MTcwZWM1YTQwYzdhNThlNjg3OWY1ZmIyOWM3IiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NTg0NTYwMCwic3RhcnQiOjE3OTU2NzA3MDAsImlvcyI6MTgsImNwIjoiMjE3ODY2MzAwXzIxNzkwNzk5OSIsInBwdyI6IjN1NyJ9.WTJyn_gOYn23af4oEQV3LTzbFi6yFnHXG7HtgRHa0bg",
-      "source": "automatic acquisition + audio/video decode",
-      "token_expired": false
+      "source": "本日の開催は終了しました"
     },
     "boat.marugame": {
       "jcd": "15",
