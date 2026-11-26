@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-26",
-  "generated_at": "2026-11-26T14:15:40.347721+09:00",
+  "generated_at": "2026-11-26T14:17:44.864541+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261126.json",
   "schedule_checked_at": "2026-11-26T14:14:10.812616+09:00",
@@ -20,21 +20,23 @@
   "card_count": 12,
   "held_count": 12,
   "visible_count": 12,
-  "stream_ready_count": 9,
+  "stream_ready_count": 8,
   "waiting_count": 3,
-  "finished_guidance_count": 0,
+  "finished_guidance_count": 1,
   "end_grace_minutes": 45,
-  "active_count": 8,
-  "ended_kept": [],
+  "active_count": 7,
+  "ended_kept": [
+    "唐津"
+  ],
   "seed_required": false,
   "seed_required_venues": [],
   "system_errors": [],
   "phase_counts": {
     "morning": {
       "held": 3,
-      "acquired": 3,
-      "active": 3,
-      "ended": 0,
+      "acquired": 2,
+      "active": 2,
+      "ended": 1,
       "seed_required": 0,
       "cancelled": 0
     },
@@ -56,8 +58,8 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 12,
-    "fetched": 9,
+    "requested": 11,
+    "fetched": 8,
     "failures": [],
     "deferred": [
       {
@@ -341,14 +343,14 @@
       "last_race": "15:47",
       "alert_from": "2026-11-26T10:03:00+09:00",
       "next_race": {
-        "race": 9,
-        "start": "14:16"
+        "race": 10,
+        "start": "14:46"
       },
       "stream_window": "live_or_prestart",
       "intermission": null,
       "guidance_switch_at": "2026-11-26T16:35:00+09:00",
       "seed_required": false,
-      "reverify_due": true,
+      "reverify_due": false,
       "playback_verified": true,
       "stream_ready": true,
       "waiting": false,
@@ -1279,8 +1281,8 @@
       "name": "唐津",
       "held": true,
       "visible": true,
-      "ended": false,
-      "active": true,
+      "ended": true,
+      "active": false,
       "cancelled": false,
       "mode": "morning",
       "mode_label": "モーニング",
@@ -1288,13 +1290,13 @@
       "last_race": "14:14",
       "alert_from": "2026-11-26T08:05:00+09:00",
       "next_race": null,
-      "stream_window": "live_or_prestart",
+      "stream_window": "ended_guidance",
       "intermission": null,
       "guidance_switch_at": "2026-11-26T15:02:00+09:00",
       "seed_required": false,
-      "reverify_due": true,
+      "reverify_due": false,
       "playback_verified": true,
-      "stream_ready": true,
+      "stream_ready": false,
       "waiting": false,
       "remove_at": "2026-11-26T15:02:00+09:00",
       "first_verified_at": "2026-11-26T08:00:10.930616+09:00",
@@ -1362,9 +1364,7 @@
           "name": "ドリーム"
         }
       ],
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/43cf32b65d0442db93f885d34bde234f/42635f6d911e42698729418d21a5690e/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjAxZjc5MTcwZWM1YTQwYzdhNThlNjg3OWY1ZmIyOWM3IiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NTgyNDAwMCwic3RhcnQiOjE3OTU2NDc2MDAsImlvcyI6MTgsImNwIjoiMjE3ODQzMjAwXzIxNzg4NjM5OSIsInBwdyI6IjN1NyJ9.XxrfdjkUveWQjX_rQsNxsiakJhiu8UkuyBrbOn-YXuY",
-      "source": "automatic acquisition + audio/video decode",
-      "token_expired": false
+      "source": "本日の開催は終了しました"
     }
   }
 }
