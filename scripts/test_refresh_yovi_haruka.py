@@ -41,7 +41,11 @@ class HarukaRefreshSafetyTest(unittest.TestCase):
         self.assertEqual(len(haruka.CHANNELS), 20)
         for number, name in expected.items():
             self.assertIn((number, name, {"BS日テレ": "BS日テレ_jp", "WOWOWライブ": "WOWOWライブ_jp", "WOWOWシネマ": "WOWOWシネマ_jp"}[name], "BS"), haruka.CHANNELS)
-        sample = "#EXTM3U\\n#EXTINF:-1 group-title=\\\"ABEMA系\\\",KEEP\\nhttps://example.net/abema.m3u8\\n"
+        sample = (
+            "#EXTM3U\n"
+            '#EXTINF:-1 group-title="ABEMA系",KEEP\n'
+            "https://example.net/abema.m3u8\n"
+        )
         block, _ = haruka.update_yovi(sample, "http://14.241.72.93:9394", set(expected))
         self.assertEqual(block.count('group-title="HARUKA試験 BS"'), 3)
         for number in expected:
