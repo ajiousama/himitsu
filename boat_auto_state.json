@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-26",
-  "generated_at": "2026-11-26T16:01:10.979583+09:00",
+  "generated_at": "2026-11-26T16:03:13.837564+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261126.json",
   "schedule_checked_at": "2026-11-26T15:55:00.868969+09:00",
@@ -20,12 +20,13 @@
   "card_count": 12,
   "held_count": 12,
   "visible_count": 9,
-  "stream_ready_count": 6,
+  "stream_ready_count": 5,
   "waiting_count": 0,
-  "finished_guidance_count": 3,
+  "finished_guidance_count": 4,
   "end_grace_minutes": 45,
-  "active_count": 6,
+  "active_count": 5,
   "ended_kept": [
+    "江戸川",
     "多摩川",
     "びわこ",
     "宮島"
@@ -44,9 +45,9 @@
     },
     "day": {
       "held": 5,
-      "acquired": 2,
-      "active": 2,
-      "ended": 3,
+      "acquired": 1,
+      "active": 1,
+      "ended": 4,
       "seed_required": 0,
       "cancelled": 0
     },
@@ -60,8 +61,8 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 6,
-    "fetched": 6,
+    "requested": 5,
+    "fetched": 5,
     "failures": [],
     "deferred": []
   },
@@ -225,8 +226,8 @@
       "name": "江戸川",
       "held": true,
       "visible": true,
-      "ended": false,
-      "active": true,
+      "ended": true,
+      "active": false,
       "cancelled": false,
       "mode": "day",
       "mode_label": "デイ",
@@ -234,13 +235,13 @@
       "last_race": "16:00",
       "alert_from": "2026-11-26T10:32:00+09:00",
       "next_race": null,
-      "stream_window": "live_or_prestart",
+      "stream_window": "ended_guidance",
       "intermission": null,
       "guidance_switch_at": "2026-11-26T16:48:00+09:00",
       "seed_required": false,
-      "reverify_due": true,
+      "reverify_due": false,
       "playback_verified": true,
-      "stream_ready": true,
+      "stream_ready": false,
       "waiting": false,
       "remove_at": "2026-11-26T16:48:00+09:00",
       "first_verified_at": "2026-11-26T10:25:10.997132+09:00",
@@ -308,9 +309,7 @@
           "name": "江戸川選抜"
         }
       ],
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/b1f019f92f70452dbc53f723fc157b36/f5dfc46f85e04e06a7aede6777820bb4/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjAxZjc5MTcwZWM1YTQwYzdhNThlNjg3OWY1ZmIyOWM3IiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NTgzMTIwMCwic3RhcnQiOjE3OTU2NTYzMDAsImlvcyI6MTgsImNwIjoiMjE3ODUxOTAwXzIxNzg5NTA5OSIsInBwdyI6IjN1NyJ9.hH-We25Sim5PFNcVB9vKDZ5f6JFYQ7j-4J4jTo6TX7k",
-      "source": "automatic acquisition + audio/video decode",
-      "token_expired": false
+      "source": "本日の開催は終了しました"
     },
     "boat.tamagawa": {
       "jcd": "05",
