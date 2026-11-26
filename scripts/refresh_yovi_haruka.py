@@ -24,7 +24,8 @@ BOOTSTRAP_BASE = "http://14.241.72.93:9394"  # initial manual test only
 BEGIN = "# === YOVI_HARUKA_TRIAL_BEGIN ==="
 END = "# === YOVI_HARUKA_TRIAL_END ==="
 PAYLOAD = {"os": 1, "appId": 7, "deviceId": 602539, "newsId": 12}
-# Only channels for which both HLS and a MPEG-TS segment were fetched on 2026-11-23.
+# Confirmed HLS progression and TS fetch: 17 trial channels on 2026-11-23/26
+# plus BS日テレ and WOWOWライブ・シネマ on 2026-11-26.
 CHANNELS = (
     (4, "日本テレビ", "日本テレビ_jp", "地上波"),
     (5, "TBS", "TBS_jp", "地上波"),
@@ -38,11 +39,14 @@ CHANNELS = (
     (22, "テレビ大阪", "テレビ大阪_jp", "地上波"),
     (28, "ABCテレビ", "ABCテレビ_jp", "地上波"),
     (116, "KBS京都", "KBS京都_jp", "地上波"),
+    (44, "BS日テレ", "BS日テレ_jp", "BS"),
     (35, "BS朝日", "BS朝日_jp", "BS"),
     (36, "BS-TBS", "BS-TBS_jp", "BS"),
     (37, "BSテレ東", "BSテレ東_jp", "BS"),
     (38, "BSフジ", "BSフジ_jp", "BS"),
     (39, "WOWOWプライム", "WOWOWプライム_jp", "BS"),
+    (40, "WOWOWライブ", "WOWOWライブ_jp", "BS"),
+    (41, "WOWOWシネマ", "WOWOWシネマ_jp", "BS"),
 )
 OPENER = urllib.request.build_opener(urllib.request.ProxyHandler({}))
 HEADERS = {"User-Agent": "VLC/3.0.24", "Accept": "application/vnd.apple.mpegurl,*/*"}

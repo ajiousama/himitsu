@@ -53,7 +53,7 @@ def check():
         trial, after = remainder.split(trial_end, 1)
         if ":9394/stream/" in before or ":9394/stream/" in after:
             raise SystemExit("yovi: HARUKA stream outside dedicated trial block")
-        allowed = {4, 5, 7, 8, 12, 17, 18, 20, 21, 22, 28, 116, 35, 36, 37, 38, 39}
+        allowed = {4, 5, 7, 8, 12, 17, 18, 20, 21, 22, 28, 116, 35, 36, 37, 38, 39, 40, 41, 44}
         for line in trial.splitlines():
             if line.startswith("#EXTINF:") and 'group-title="HARUKA試験 ' not in line:
                 raise SystemExit("yovi: non-trial channel inside HARUKA block")
