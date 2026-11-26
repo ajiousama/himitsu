@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-26",
-  "generated_at": "2026-11-26T14:51:30.565266+09:00",
+  "generated_at": "2026-11-26T14:53:50.062607+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261126.json",
   "schedule_checked_at": "2026-11-26T14:46:53.939554+09:00",
@@ -24,7 +24,7 @@
   "waiting_count": 0,
   "finished_guidance_count": 3,
   "end_grace_minutes": 45,
-  "active_count": 8,
+  "active_count": 9,
   "ended_kept": [
     "三国",
     "徳山",
@@ -53,7 +53,7 @@
     "night": {
       "held": 4,
       "acquired": 4,
-      "active": 3,
+      "active": 4,
       "ended": 0,
       "seed_required": 0,
       "cancelled": 0
@@ -839,7 +839,7 @@
       "held": true,
       "visible": true,
       "ended": false,
-      "active": false,
+      "active": true,
       "cancelled": false,
       "mode": "night",
       "mode_label": "ナイター",
@@ -850,7 +850,7 @@
         "race": 1,
         "start": "15:23"
       },
-      "stream_window": "scheduled",
+      "stream_window": "live_or_prestart",
       "intermission": null,
       "guidance_switch_at": "2026-11-26T21:33:00+09:00",
       "seed_required": false,
@@ -942,14 +942,14 @@
       "last_race": "15:28",
       "alert_from": "2026-11-26T09:49:00+09:00",
       "next_race": {
-        "race": 11,
-        "start": "14:53"
+        "race": 12,
+        "start": "15:28"
       },
       "stream_window": "live_or_prestart",
       "intermission": null,
       "guidance_switch_at": "2026-11-26T16:16:00+09:00",
       "seed_required": false,
-      "reverify_due": true,
+      "reverify_due": false,
       "playback_verified": true,
       "stream_ready": true,
       "waiting": false,
