@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-26",
-  "generated_at": "2026-11-26T09:38:43.777160+09:00",
+  "generated_at": "2026-11-26T09:39:43.776477+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261126.json",
   "schedule_checked_at": "2026-11-26T09:27:43.832532+09:00",
@@ -20,8 +20,8 @@
   "card_count": 12,
   "held_count": 12,
   "visible_count": 12,
-  "stream_ready_count": 3,
-  "waiting_count": 9,
+  "stream_ready_count": 4,
+  "waiting_count": 8,
   "finished_guidance_count": 0,
   "end_grace_minutes": 45,
   "active_count": 3,
@@ -40,7 +40,7 @@
     },
     "day": {
       "held": 5,
-      "acquired": 0,
+      "acquired": 1,
       "active": 0,
       "ended": 0,
       "seed_required": 0,
@@ -57,7 +57,7 @@
   },
   "cloud_acquisition": {
     "requested": 8,
-    "fetched": 3,
+    "fetched": 4,
     "failures": [
       {
         "jcd": "08",
@@ -80,11 +80,6 @@
         "jcd": "11",
         "name": "びわこ",
         "start": "2026-11-26T09:50:00+09:00"
-      },
-      {
-        "jcd": "17",
-        "name": "宮島",
-        "start": "2026-11-26T09:40:00+09:00"
       }
     ]
   },
@@ -108,6 +103,22 @@
         "ok": true,
         "sequence": 9120885,
         "last_segment": "/ecef8a6853f3423294c45a549379a91f/6b80ecb56479423cb2ff2543736ee2af/manifest_4_9121686.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
+    },
+    "boat.miyajima": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/479f240a82074e8eaf748f7f6da8b688/36c07a21c1c54576adb5d1148873ebd7/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjAxZjc5MTcwZWM1YTQwYzdhNThlNjg3OWY1ZmIyOWM3IiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NTgyNzYwMCwic3RhcnQiOjE3OTU2NTM2MDAsImlvcyI6MTgsImNwIjoiMjE3ODQ5MjAwXzIxNzg5MjM5OSIsInBwdyI6IjN1NyJ9.ompgIPBrrB_tektUp40CJhU-_88vB8xcP5qBx4Fv-Ts",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-11-26T09:40:11.058861+09:00",
+      "checked_at": "2026-11-26T09:40:11.058861+09:00",
+      "first_verified_at": "2026-11-26T09:40:11.058861+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 9113233,
+        "last_segment": "/479f240a82074e8eaf748f7f6da8b688/36c07a21c1c54576adb5d1148873ebd7/manifest_1_9113234.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -825,12 +836,12 @@
       "guidance_switch_at": "2026-11-26T16:16:00+09:00",
       "seed_required": false,
       "reverify_due": false,
-      "playback_verified": false,
-      "stream_ready": false,
-      "waiting": true,
+      "playback_verified": true,
+      "stream_ready": true,
+      "waiting": false,
       "remove_at": "2026-11-26T16:16:00+09:00",
-      "first_verified_at": null,
-      "ready_before_first_race": false,
+      "first_verified_at": "2026-11-26T09:40:11.058861+09:00",
+      "ready_before_first_race": true,
       "acquire_from": "2026-11-26T07:49:00+09:00",
       "races": [
         {
@@ -894,8 +905,9 @@
           "name": "モンタ特選"
         }
       ],
-      "provider_stream_start": "2026-11-26T09:40:00+09:00",
-      "source": "公式BR配信開始待ち 09:40"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/479f240a82074e8eaf748f7f6da8b688/36c07a21c1c54576adb5d1148873ebd7/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjAxZjc5MTcwZWM1YTQwYzdhNThlNjg3OWY1ZmIyOWM3IiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NTgyNzYwMCwic3RhcnQiOjE3OTU2NTM2MDAsImlvcyI6MTgsImNwIjoiMjE3ODQ5MjAwXzIxNzg5MjM5OSIsInBwdyI6IjN1NyJ9.ompgIPBrrB_tektUp40CJhU-_88vB8xcP5qBx4Fv-Ts",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     },
     "boat.tokuyama": {
       "jcd": "18",
