@@ -2,10 +2,10 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-26",
-  "generated_at": "2026-11-26T15:00:49.886577+09:00",
+  "generated_at": "2026-11-26T15:02:52.841213+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261126.json",
-  "schedule_checked_at": "2026-11-26T14:46:53.939554+09:00",
+  "schedule_checked_at": "2026-11-26T15:02:52.841213+09:00",
   "schedule_warnings": [
     "official_cards: TimeoutError"
   ],
@@ -19,16 +19,15 @@
   "alert_lead_minutes": 30,
   "card_count": 12,
   "held_count": 12,
-  "visible_count": 12,
+  "visible_count": 11,
   "stream_ready_count": 9,
   "waiting_count": 0,
-  "finished_guidance_count": 3,
+  "finished_guidance_count": 2,
   "end_grace_minutes": 45,
   "active_count": 9,
   "ended_kept": [
     "三国",
-    "徳山",
-    "唐津"
+    "徳山"
   ],
   "seed_required": false,
   "seed_required_venues": [],
@@ -245,22 +244,6 @@
         "ok": true,
         "sequence": 9131373,
         "last_segment": "/1f52b742674645be91cf54823adf417f/1e9c1c6e34134066bfc3d24cb768bf9e/manifest_4_9131528.ts",
-        "video_decoded": true,
-        "audio_decoded": true
-      },
-      "consecutive_failures": 0
-    },
-    "boat.karatsu": {
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/43cf32b65d0442db93f885d34bde234f/42635f6d911e42698729418d21a5690e/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjAxZjc5MTcwZWM1YTQwYzdhNThlNjg3OWY1ZmIyOWM3IiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NTgyNDAwMCwic3RhcnQiOjE3OTU2NDc2MDAsImlvcyI6MTgsImNwIjoiMjE3ODQzMjAwXzIxNzg4NjM5OSIsInBwdyI6IjN1NyJ9.XxrfdjkUveWQjX_rQsNxsiakJhiu8UkuyBrbOn-YXuY",
-      "source": "automatic acquisition + audio/video decode",
-      "acquired_at": "2026-11-26T08:00:10.930616+09:00",
-      "checked_at": "2026-11-26T14:15:13.129882+09:00",
-      "first_verified_at": "2026-11-26T08:00:10.930616+09:00",
-      "playback_verified": true,
-      "probe": {
-        "ok": true,
-        "sequence": 9128561,
-        "last_segment": "/43cf32b65d0442db93f885d34bde234f/42635f6d911e42698729418d21a5690e/manifest_4_9132314.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -759,7 +742,7 @@
       "intermission": null,
       "guidance_switch_at": "2026-11-26T21:28:00+09:00",
       "seed_required": false,
-      "reverify_due": false,
+      "reverify_due": true,
       "playback_verified": true,
       "stream_ready": true,
       "waiting": false,
@@ -1307,7 +1290,7 @@
       "jcd": "23",
       "name": "唐津",
       "held": true,
-      "visible": true,
+      "visible": false,
       "ended": true,
       "active": false,
       "cancelled": false,
@@ -1317,7 +1300,7 @@
       "last_race": "14:14",
       "alert_from": "2026-11-26T08:05:00+09:00",
       "next_race": null,
-      "stream_window": "ended_guidance",
+      "stream_window": "ended_hidden",
       "intermission": null,
       "guidance_switch_at": "2026-11-26T15:02:00+09:00",
       "seed_required": false,
