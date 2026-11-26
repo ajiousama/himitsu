@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-26",
-  "generated_at": "2026-11-26T12:52:15.265664+09:00",
+  "generated_at": "2026-11-26T12:53:19.423720+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261126.json",
   "schedule_checked_at": "2026-11-26T12:51:01.487121+09:00",
@@ -56,7 +56,7 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 11,
+    "requested": 12,
     "fetched": 8,
     "failures": [],
     "deferred": [
@@ -64,6 +64,11 @@
         "jcd": "12",
         "name": "住之江",
         "start": "2026-11-26T14:25:00+09:00"
+      },
+      {
+        "jcd": "15",
+        "name": "丸亀",
+        "start": "2026-11-26T13:55:00+09:00"
       },
       {
         "jcd": "19",
@@ -876,7 +881,8 @@
           "name": "予選選抜"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "provider_stream_start": "2026-11-26T13:55:00+09:00",
+      "source": "公式BR配信開始待ち 13:55"
     },
     "boat.miyajima": {
       "jcd": "17",
@@ -994,7 +1000,7 @@
       "intermission": null,
       "guidance_switch_at": "2026-11-26T15:11:00+09:00",
       "seed_required": false,
-      "reverify_due": false,
+      "reverify_due": true,
       "playback_verified": true,
       "stream_ready": true,
       "waiting": false,
