@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-26",
-  "generated_at": "2026-11-26T15:29:53.440590+09:00",
+  "generated_at": "2026-11-26T15:31:57.162782+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261126.json",
   "schedule_checked_at": "2026-11-26T15:19:45.514903+09:00",
@@ -20,12 +20,14 @@
   "card_count": 12,
   "held_count": 12,
   "visible_count": 9,
-  "stream_ready_count": 9,
+  "stream_ready_count": 8,
   "waiting_count": 0,
-  "finished_guidance_count": 0,
+  "finished_guidance_count": 1,
   "end_grace_minutes": 45,
-  "active_count": 9,
-  "ended_kept": [],
+  "active_count": 8,
+  "ended_kept": [
+    "宮島"
+  ],
   "seed_required": false,
   "seed_required_venues": [],
   "system_errors": [],
@@ -40,9 +42,9 @@
     },
     "day": {
       "held": 5,
-      "acquired": 5,
-      "active": 5,
-      "ended": 0,
+      "acquired": 4,
+      "active": 4,
+      "ended": 1,
       "seed_required": 0,
       "cancelled": 0
     },
@@ -56,8 +58,8 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 9,
-    "fetched": 9,
+    "requested": 8,
+    "fetched": 8,
     "failures": [],
     "deferred": []
   },
@@ -881,8 +883,8 @@
       "name": "宮島",
       "held": true,
       "visible": true,
-      "ended": false,
-      "active": true,
+      "ended": true,
+      "active": false,
       "cancelled": false,
       "mode": "day",
       "mode_label": "デイ",
@@ -890,13 +892,13 @@
       "last_race": "15:28",
       "alert_from": "2026-11-26T09:49:00+09:00",
       "next_race": null,
-      "stream_window": "live_or_prestart",
+      "stream_window": "ended_guidance",
       "intermission": null,
       "guidance_switch_at": "2026-11-26T16:16:00+09:00",
       "seed_required": false,
-      "reverify_due": true,
+      "reverify_due": false,
       "playback_verified": true,
-      "stream_ready": true,
+      "stream_ready": false,
       "waiting": false,
       "remove_at": "2026-11-26T16:16:00+09:00",
       "first_verified_at": "2026-11-26T09:40:11.058861+09:00",
@@ -964,9 +966,7 @@
           "name": "モンタ特選"
         }
       ],
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/479f240a82074e8eaf748f7f6da8b688/36c07a21c1c54576adb5d1148873ebd7/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjAxZjc5MTcwZWM1YTQwYzdhNThlNjg3OWY1ZmIyOWM3IiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NTgyNzYwMCwic3RhcnQiOjE3OTU2NTM2MDAsImlvcyI6MTgsImNwIjoiMjE3ODQ5MjAwXzIxNzg5MjM5OSIsInBwdyI6IjN1NyJ9.ompgIPBrrB_tektUp40CJhU-_88vB8xcP5qBx4Fv-Ts",
-      "source": "automatic acquisition + audio/video decode",
-      "token_expired": false
+      "source": "本日の開催は終了しました"
     },
     "boat.tokuyama": {
       "jcd": "18",
@@ -1079,7 +1079,7 @@
       "intermission": null,
       "guidance_switch_at": "2026-11-26T21:23:00+09:00",
       "seed_required": false,
-      "reverify_due": false,
+      "reverify_due": true,
       "playback_verified": true,
       "stream_ready": true,
       "waiting": false,
