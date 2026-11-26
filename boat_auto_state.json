@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-26",
-  "generated_at": "2026-11-26T14:23:20.612854+09:00",
+  "generated_at": "2026-11-26T14:24:25.417957+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261126.json",
   "schedule_checked_at": "2026-11-26T14:14:10.812616+09:00",
@@ -20,8 +20,8 @@
   "card_count": 12,
   "held_count": 12,
   "visible_count": 12,
-  "stream_ready_count": 8,
-  "waiting_count": 3,
+  "stream_ready_count": 9,
+  "waiting_count": 2,
   "finished_guidance_count": 1,
   "end_grace_minutes": 45,
   "active_count": 7,
@@ -50,7 +50,7 @@
     },
     "night": {
       "held": 4,
-      "acquired": 1,
+      "acquired": 2,
       "active": 0,
       "ended": 0,
       "seed_required": 0,
@@ -59,14 +59,9 @@
   },
   "cloud_acquisition": {
     "requested": 11,
-    "fetched": 8,
+    "fetched": 9,
     "failures": [],
     "deferred": [
-      {
-        "jcd": "12",
-        "name": "住之江",
-        "start": "2026-11-26T14:25:00+09:00"
-      },
       {
         "jcd": "19",
         "name": "下関",
@@ -163,6 +158,22 @@
         "ok": true,
         "sequence": 9137034,
         "last_segment": "/380bbb18747049559a9ab2cc242ccc33/57cf4750b56d491393885a1a522be4cf/manifest_4_9139741.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
+    },
+    "boat.suminoe": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/5a11a02981924616aafea02e362e72ff/e2257c29c0dd4f218daa028908678cea/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjAxZjc5MTcwZWM1YTQwYzdhNThlNjg3OWY1ZmIyOWM3IiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NTg0NTYwMCwic3RhcnQiOjE3OTU2NzA3MDAsImlvcyI6MTgsImNwIjoiMjE3ODY2MzAwXzIxNzkwNzk5OSIsInBwdyI6IjN1NyJ9.WTJyn_gOYn23af4oEQV3LTzbFi6yFnHXG7HtgRHa0bg",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-11-26T14:25:19.643314+09:00",
+      "checked_at": "2026-11-26T14:25:19.643314+09:00",
+      "first_verified_at": "2026-11-26T14:25:19.643314+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 9128076,
+        "last_segment": "/5a11a02981924616aafea02e362e72ff/e2257c29c0dd4f218daa028908678cea/manifest_4_9128079.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -731,12 +742,12 @@
       "guidance_switch_at": "2026-11-26T21:28:00+09:00",
       "seed_required": false,
       "reverify_due": false,
-      "playback_verified": false,
-      "stream_ready": false,
-      "waiting": true,
+      "playback_verified": true,
+      "stream_ready": true,
+      "waiting": false,
       "remove_at": "2026-11-26T21:28:00+09:00",
-      "first_verified_at": null,
-      "ready_before_first_race": false,
+      "first_verified_at": "2026-11-26T14:25:19.643314+09:00",
+      "ready_before_first_race": true,
       "acquire_from": "2026-11-26T12:47:00+09:00",
       "races": [
         {
@@ -800,8 +811,9 @@
           "name": "優勝戦"
         }
       ],
-      "provider_stream_start": "2026-11-26T14:25:00+09:00",
-      "source": "公式BR配信開始待ち 14:25"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/5a11a02981924616aafea02e362e72ff/e2257c29c0dd4f218daa028908678cea/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjAxZjc5MTcwZWM1YTQwYzdhNThlNjg3OWY1ZmIyOWM3IiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NTg0NTYwMCwic3RhcnQiOjE3OTU2NzA3MDAsImlvcyI6MTgsImNwIjoiMjE3ODY2MzAwXzIxNzkwNzk5OSIsInBwdyI6IjN1NyJ9.WTJyn_gOYn23af4oEQV3LTzbFi6yFnHXG7HtgRHa0bg",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     },
     "boat.marugame": {
       "jcd": "15",
