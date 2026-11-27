@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-27",
-  "generated_at": "2026-11-27T10:24:04.634000+09:00",
+  "generated_at": "2026-11-27T10:25:09.685853+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261127.json",
   "schedule_checked_at": "2026-11-27T10:12:35.191461+09:00",
@@ -20,8 +20,8 @@
   "card_count": 14,
   "held_count": 14,
   "visible_count": 14,
-  "stream_ready_count": 8,
-  "waiting_count": 6,
+  "stream_ready_count": 9,
+  "waiting_count": 5,
   "finished_guidance_count": 0,
   "end_grace_minutes": 45,
   "active_count": 8,
@@ -40,7 +40,7 @@
     },
     "day": {
       "held": 6,
-      "acquired": 5,
+      "acquired": 6,
       "active": 5,
       "ended": 0,
       "seed_required": 0,
@@ -57,15 +57,9 @@
   },
   "cloud_acquisition": {
     "requested": 9,
-    "fetched": 8,
+    "fetched": 9,
     "failures": [],
-    "deferred": [
-      {
-        "jcd": "03",
-        "name": "江戸川",
-        "start": "2026-11-27T10:25:00+09:00"
-      }
-    ]
+    "deferred": []
   },
   "epg_programmes_written": {
     "public_sports_epg_local.xml": 196,
@@ -87,6 +81,22 @@
         "ok": true,
         "sequence": 9141903,
         "last_segment": "/c562362cd07740d58006821b3fd180fe/334a0b2407a14b2aa3add68893e738c2/manifest_4_9142039.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
+    },
+    "boat.edogawa": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/355eed9ad25749dd8a34dc57d9777fe2/2b9c61f878a149e18bf61ca3223158c3/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjAxZjc5MTcwZWM1YTQwYzdhNThlNjg3OWY1ZmIyOWM3IiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NTkxNzYwMCwic3RhcnQiOjE3OTU3NDI3MDAsImlvcyI6MTgsImNwIjoiMjE3OTM4MzAwXzIxNzk4MTQ5OSIsInBwdyI6IjN1NyJ9.9eO8NWuIduw_OH7-29sxmCn-RW9adbmXNWMWF3ZhI8A",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-11-27T10:26:03.865769+09:00",
+      "checked_at": "2026-11-27T10:26:03.865769+09:00",
+      "first_verified_at": "2026-11-27T10:26:03.865769+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 9141851,
+        "last_segment": "/355eed9ad25749dd8a34dc57d9777fe2/2b9c61f878a149e18bf61ca3223158c3/manifest_1_9141862.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -416,12 +426,12 @@
       "guidance_switch_at": "2026-11-27T16:48:00+09:00",
       "seed_required": false,
       "reverify_due": false,
-      "playback_verified": false,
-      "stream_ready": false,
-      "waiting": true,
+      "playback_verified": true,
+      "stream_ready": true,
+      "waiting": false,
       "remove_at": "2026-11-27T16:48:00+09:00",
-      "first_verified_at": null,
-      "ready_before_first_race": false,
+      "first_verified_at": "2026-11-27T10:26:03.865769+09:00",
+      "ready_before_first_race": true,
       "acquire_from": "2026-11-27T08:29:00+09:00",
       "races": [
         {
@@ -485,8 +495,9 @@
           "name": "記者選抜戦"
         }
       ],
-      "provider_stream_start": "2026-11-27T10:25:00+09:00",
-      "source": "公式BR配信開始待ち 10:25"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/355eed9ad25749dd8a34dc57d9777fe2/2b9c61f878a149e18bf61ca3223158c3/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjAxZjc5MTcwZWM1YTQwYzdhNThlNjg3OWY1ZmIyOWM3IiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NTkxNzYwMCwic3RhcnQiOjE3OTU3NDI3MDAsImlvcyI6MTgsImNwIjoiMjE3OTM4MzAwXzIxNzk4MTQ5OSIsInBwdyI6IjN1NyJ9.9eO8NWuIduw_OH7-29sxmCn-RW9adbmXNWMWF3ZhI8A",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     },
     "boat.gamagori": {
       "jcd": "07",
