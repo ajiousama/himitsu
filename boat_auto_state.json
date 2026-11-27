@@ -2,10 +2,10 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-27",
-  "generated_at": "2026-11-27T21:31:53.254767+09:00",
+  "generated_at": "2026-11-27T21:33:56.508724+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261127.json",
-  "schedule_checked_at": "2026-11-27T21:18:11.793612+09:00",
+  "schedule_checked_at": "2026-11-27T21:33:56.508724+09:00",
   "schedule_warnings": [
     "official_cards: TimeoutError"
   ],
@@ -19,15 +19,13 @@
   "alert_lead_minutes": 30,
   "card_count": 14,
   "held_count": 14,
-  "visible_count": 1,
+  "visible_count": 0,
   "stream_ready_count": 0,
   "waiting_count": 0,
-  "finished_guidance_count": 1,
+  "finished_guidance_count": 0,
   "end_grace_minutes": 45,
   "active_count": 0,
-  "ended_kept": [
-    "大村"
-  ],
+  "ended_kept": [],
   "seed_required": false,
   "seed_required_venues": [],
   "system_errors": [],
@@ -73,24 +71,7 @@
     "active": false,
     "kind": "healthy"
   },
-  "streams": {
-    "boat.omura": {
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/8b9e186fe84541e4b0de23eca8a746eb/32d7adcca42842cb96dfce9f46f26ec4/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjAxZjc5MTcwZWM1YTQwYzdhNThlNjg3OWY1ZmIyOWM3IiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NTkzMjAwMCwic3RhcnQiOjE3OTU3NTgzMDAsImlvcyI6MTgsImNwIjoiMjE3OTUzOTAwXzIxNzk5NDM5OSIsInBwdyI6IjN1NyJ9.7FlpetYNDfw7kq4hZRCb3YVGH2iXbHi8rw2MwcFYJOY",
-      "source": "automatic acquisition + audio/video decode",
-      "acquired_at": "2026-11-27T14:45:20.421087+09:00",
-      "checked_at": "2026-11-27T20:46:29.734846+09:00",
-      "first_verified_at": "2026-11-27T14:45:20.421087+09:00",
-      "playback_verified": true,
-      "probe": {
-        "ok": true,
-        "sequence": 9145528,
-        "last_segment": "/8b9e186fe84541e4b0de23eca8a746eb/32d7adcca42842cb96dfce9f46f26ec4/manifest_1_9149142.ts",
-        "video_decoded": true,
-        "audio_decoded": true
-      },
-      "consecutive_failures": 0
-    }
-  },
+  "streams": {},
   "venues": {
     "boat.kiryu": {
       "jcd": "01",
@@ -1266,7 +1247,7 @@
       "jcd": "24",
       "name": "大村",
       "held": true,
-      "visible": true,
+      "visible": false,
       "ended": true,
       "active": false,
       "cancelled": false,
@@ -1276,7 +1257,7 @@
       "last_race": "20:45",
       "alert_from": "2026-11-27T14:47:00+09:00",
       "next_race": null,
-      "stream_window": "ended_guidance",
+      "stream_window": "ended_hidden",
       "intermission": null,
       "guidance_switch_at": "2026-11-27T21:33:00+09:00",
       "seed_required": false,
