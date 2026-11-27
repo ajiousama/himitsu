@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-27",
-  "generated_at": "2026-11-27T20:42:08.983000+09:00",
+  "generated_at": "2026-11-27T20:45:35.560185+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261127.json",
   "schedule_checked_at": "2026-11-27T20:38:53.994155+09:00",
@@ -20,14 +20,15 @@
   "card_count": 14,
   "held_count": 14,
   "visible_count": 5,
-  "stream_ready_count": 2,
+  "stream_ready_count": 1,
   "waiting_count": 0,
-  "finished_guidance_count": 3,
+  "finished_guidance_count": 4,
   "end_grace_minutes": 45,
-  "active_count": 2,
+  "active_count": 1,
   "ended_kept": [
     "桐生",
     "蒲郡",
+    "丸亀",
     "若松"
   ],
   "seed_required": false,
@@ -52,16 +53,16 @@
     },
     "night": {
       "held": 5,
-      "acquired": 2,
-      "active": 2,
-      "ended": 3,
+      "acquired": 1,
+      "active": 1,
+      "ended": 4,
       "seed_required": 0,
       "cancelled": 0
     }
   },
   "cloud_acquisition": {
-    "requested": 2,
-    "fetched": 2,
+    "requested": 1,
+    "fetched": 1,
     "failures": [],
     "deferred": []
   },
@@ -142,13 +143,13 @@
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/8b9e186fe84541e4b0de23eca8a746eb/32d7adcca42842cb96dfce9f46f26ec4/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjAxZjc5MTcwZWM1YTQwYzdhNThlNjg3OWY1ZmIyOWM3IiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NTkzMjAwMCwic3RhcnQiOjE3OTU3NTgzMDAsImlvcyI6MTgsImNwIjoiMjE3OTUzOTAwXzIxNzk5NDM5OSIsInBwdyI6IjN1NyJ9.7FlpetYNDfw7kq4hZRCb3YVGH2iXbHi8rw2MwcFYJOY",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-11-27T14:45:20.421087+09:00",
-      "checked_at": "2026-11-27T20:38:34.864015+09:00",
+      "checked_at": "2026-11-27T20:46:29.734846+09:00",
       "first_verified_at": "2026-11-27T14:45:20.421087+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
         "sequence": 9145528,
-        "last_segment": "/8b9e186fe84541e4b0de23eca8a746eb/32d7adcca42842cb96dfce9f46f26ec4/manifest_1_9149063.ts",
+        "last_segment": "/8b9e186fe84541e4b0de23eca8a746eb/32d7adcca42842cb96dfce9f46f26ec4/manifest_1_9149142.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -881,8 +882,8 @@
       "name": "丸亀",
       "held": true,
       "visible": true,
-      "ended": false,
-      "active": true,
+      "ended": true,
+      "active": false,
       "cancelled": false,
       "mode": "night",
       "mode_label": "ナイター",
@@ -890,13 +891,13 @@
       "last_race": "20:42",
       "alert_from": "2026-11-27T14:51:00+09:00",
       "next_race": null,
-      "stream_window": "live_or_prestart",
+      "stream_window": "ended_guidance",
       "intermission": null,
       "guidance_switch_at": "2026-11-27T21:30:00+09:00",
       "seed_required": false,
-      "reverify_due": true,
+      "reverify_due": false,
       "playback_verified": true,
-      "stream_ready": true,
+      "stream_ready": false,
       "waiting": false,
       "remove_at": "2026-11-27T21:30:00+09:00",
       "first_verified_at": "2026-11-27T13:55:39.420600+09:00",
@@ -964,9 +965,7 @@
           "name": "予選選抜"
         }
       ],
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/e1ec937494454e97a72f2561c00ebe5c/6d61939c0555439ab390cffac95685fb/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjAxZjc5MTcwZWM1YTQwYzdhNThlNjg3OWY1ZmIyOWM3IiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NTkyODQwMCwic3RhcnQiOjE3OTU3NTUzMDAsImlvcyI6MTgsImNwIjoiMjE3OTUwOTAwXzIxNzk5NDA5OSIsInBwdyI6IjN1NyJ9.DE15Gerub4P88NQAc35wCRD3dZ8bep4fH3ubiU7pCdo",
-      "source": "automatic acquisition + audio/video decode",
-      "token_expired": false
+      "source": "本日の開催は終了しました"
     },
     "boat.miyajima": {
       "jcd": "17",
@@ -1341,10 +1340,7 @@
       "first_race": "15:17",
       "last_race": "20:45",
       "alert_from": "2026-11-27T14:47:00+09:00",
-      "next_race": {
-        "race": 12,
-        "start": "20:45"
-      },
+      "next_race": null,
       "stream_window": "live_or_prestart",
       "intermission": null,
       "guidance_switch_at": "2026-11-27T21:33:00+09:00",
