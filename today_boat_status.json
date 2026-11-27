@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-27",
-  "generated_at": "2026-11-27T20:38:53.994155+09:00",
+  "generated_at": "2026-11-27T20:41:05.673386+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261127.json",
   "schedule_checked_at": "2026-11-27T20:38:53.994155+09:00",
@@ -20,12 +20,13 @@
   "card_count": 14,
   "held_count": 14,
   "visible_count": 5,
-  "stream_ready_count": 3,
+  "stream_ready_count": 2,
   "waiting_count": 0,
-  "finished_guidance_count": 2,
+  "finished_guidance_count": 3,
   "end_grace_minutes": 45,
-  "active_count": 3,
+  "active_count": 2,
   "ended_kept": [
+    "桐生",
     "蒲郡",
     "若松"
   ],
@@ -51,16 +52,16 @@
     },
     "night": {
       "held": 5,
-      "acquired": 3,
-      "active": 3,
-      "ended": 2,
+      "acquired": 2,
+      "active": 2,
+      "ended": 3,
       "seed_required": 0,
       "cancelled": 0
     }
   },
   "cloud_acquisition": {
-    "requested": 3,
-    "fetched": 3,
+    "requested": 2,
+    "fetched": 2,
     "failures": [],
     "deferred": []
   },
@@ -160,8 +161,8 @@
       "name": "桐生",
       "held": true,
       "visible": true,
-      "ended": false,
-      "active": true,
+      "ended": true,
+      "active": false,
       "cancelled": false,
       "mode": "night",
       "mode_label": "ナイター",
@@ -169,13 +170,13 @@
       "last_race": "20:38",
       "alert_from": "2026-11-27T14:55:00+09:00",
       "next_race": null,
-      "stream_window": "live_or_prestart",
+      "stream_window": "ended_guidance",
       "intermission": null,
       "guidance_switch_at": "2026-11-27T21:26:00+09:00",
       "seed_required": false,
-      "reverify_due": true,
+      "reverify_due": false,
       "playback_verified": true,
-      "stream_ready": true,
+      "stream_ready": false,
       "waiting": false,
       "remove_at": "2026-11-27T21:26:00+09:00",
       "first_verified_at": "2026-11-27T14:45:20.419492+09:00",
@@ -243,9 +244,7 @@
           "name": "桐生ドリーム戦"
         }
       ],
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/b983b78f5fb7417ca03c08996ccdd3a8/ab7fe33da6fd4b3593e6b275936ee7c9/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjAxZjc5MTcwZWM1YTQwYzdhNThlNjg3OWY1ZmIyOWM3IiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NTkzMjAwMCwic3RhcnQiOjE3OTU3NTgzMDAsImlvcyI6MTgsImNwIjoiMjE3OTUzOTAwXzIxNzk5NDM5OSIsInBwdyI6IjN1NyJ9.7FlpetYNDfw7kq4hZRCb3YVGH2iXbHi8rw2MwcFYJOY",
-      "source": "automatic acquisition + audio/video decode",
-      "token_expired": false
+      "source": "本日の開催は終了しました"
     },
     "boat.toda": {
       "jcd": "02",
