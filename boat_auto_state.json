@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-27",
-  "generated_at": "2026-11-27T16:51:28.672029+09:00",
+  "generated_at": "2026-11-27T16:53:38.739268+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261127.json",
   "schedule_checked_at": "2026-11-27T16:46:05.318578+09:00",
@@ -19,15 +19,14 @@
   "alert_lead_minutes": 30,
   "card_count": 14,
   "held_count": 14,
-  "visible_count": 7,
+  "visible_count": 6,
   "stream_ready_count": 5,
   "waiting_count": 0,
-  "finished_guidance_count": 2,
+  "finished_guidance_count": 1,
   "end_grace_minutes": 45,
   "active_count": 5,
   "ended_kept": [
-    "常滑",
-    "尼崎"
+    "常滑"
   ],
   "seed_required": false,
   "seed_required_venues": [],
@@ -116,22 +115,6 @@
         "ok": true,
         "sequence": 9141111,
         "last_segment": "/3757aa34f28a46019cef6415972a2265/dd7acf98578b4a07b80945ffdf063392/manifest_4_9144923.ts",
-        "video_decoded": true,
-        "audio_decoded": true
-      },
-      "consecutive_failures": 0
-    },
-    "boat.amagasaki": {
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/18e781b107cb41568e4ee873108c3c09/b07171360c064f339d1ae83430513515/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjAxZjc5MTcwZWM1YTQwYzdhNThlNjg3OWY1ZmIyOWM3IiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NTkxNzYwMCwic3RhcnQiOjE3OTU3NDEzMjAsImlvcyI6MTgsImNwIjoiMjE3OTM2OTIwXzIxNzk4MDExOSIsInBwdyI6IjN1NyJ9.EcERtM7MXXxwFDfEf7k73khxlqyq1OCISA5pz-Knm3s",
-      "source": "automatic acquisition + audio/video decode",
-      "acquired_at": "2026-11-27T10:03:07.729166+09:00",
-      "checked_at": "2026-11-27T16:04:49.190604+09:00",
-      "first_verified_at": "2026-11-27T10:03:07.729166+09:00",
-      "playback_verified": true,
-      "probe": {
-        "ok": true,
-        "sequence": 9162325,
-        "last_segment": "/18e781b107cb41568e4ee873108c3c09/b07171360c064f339d1ae83430513515/manifest_4_9165952.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -741,7 +724,7 @@
       "jcd": "13",
       "name": "尼崎",
       "held": true,
-      "visible": true,
+      "visible": false,
       "ended": true,
       "active": false,
       "cancelled": false,
@@ -751,7 +734,7 @@
       "last_race": "16:05",
       "alert_from": "2026-11-27T10:06:00+09:00",
       "next_race": null,
-      "stream_window": "ended_guidance",
+      "stream_window": "ended_hidden",
       "intermission": null,
       "guidance_switch_at": "2026-11-27T16:53:00+09:00",
       "seed_required": false,
