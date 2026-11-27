@@ -2,10 +2,10 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-27",
-  "generated_at": "2026-11-27T20:48:51.985223+09:00",
+  "generated_at": "2026-11-27T21:18:11.793612+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261127.json",
-  "schedule_checked_at": "2026-11-27T20:38:53.994155+09:00",
+  "schedule_checked_at": "2026-11-27T21:18:11.793612+09:00",
   "schedule_warnings": [
     "official_cards: TimeoutError"
   ],
@@ -19,17 +19,16 @@
   "alert_lead_minutes": 30,
   "card_count": 14,
   "held_count": 14,
-  "visible_count": 5,
+  "visible_count": 4,
   "stream_ready_count": 0,
   "waiting_count": 0,
-  "finished_guidance_count": 5,
+  "finished_guidance_count": 4,
   "end_grace_minutes": 45,
   "active_count": 0,
   "ended_kept": [
     "桐生",
     "蒲郡",
     "丸亀",
-    "若松",
     "大村"
   ],
   "seed_required": false,
@@ -121,22 +120,6 @@
         "ok": true,
         "sequence": 9166303,
         "last_segment": "/e1ec937494454e97a72f2561c00ebe5c/6d61939c0555439ab390cffac95685fb/manifest_4_9170338.ts",
-        "video_decoded": true,
-        "audio_decoded": true
-      },
-      "consecutive_failures": 0
-    },
-    "boat.wakamatsu": {
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/04d05d07866b46dd80aa82f7884ef3e5/7e98dc5ae5e245bd98356067caba19c5/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjAxZjc5MTcwZWM1YTQwYzdhNThlNjg3OWY1ZmIyOWM3IiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NTkzMjAwMCwic3RhcnQiOjE3OTU3NTgzMDAsImlvcyI6MTgsImNwIjoiMjE3OTUzOTAwXzIxNzk5NDM5OSIsInBwdyI6IjN1NyJ9.7FlpetYNDfw7kq4hZRCb3YVGH2iXbHi8rw2MwcFYJOY",
-      "source": "automatic acquisition + audio/video decode",
-      "acquired_at": "2026-11-27T14:45:20.421077+09:00",
-      "checked_at": "2026-11-27T20:32:03.762752+09:00",
-      "first_verified_at": "2026-11-27T14:45:20.421077+09:00",
-      "playback_verified": true,
-      "probe": {
-        "ok": true,
-        "sequence": 9145773,
-        "last_segment": "/04d05d07866b46dd80aa82f7884ef3e5/7e98dc5ae5e245bd98356067caba19c5/manifest_4_9149243.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -1154,7 +1137,7 @@
       "jcd": "20",
       "name": "若松",
       "held": true,
-      "visible": true,
+      "visible": false,
       "ended": true,
       "active": false,
       "cancelled": false,
@@ -1164,7 +1147,7 @@
       "last_race": "20:30",
       "alert_from": "2026-11-27T14:48:00+09:00",
       "next_race": null,
-      "stream_window": "ended_guidance",
+      "stream_window": "ended_hidden",
       "intermission": null,
       "guidance_switch_at": "2026-11-27T21:18:00+09:00",
       "seed_required": false,
