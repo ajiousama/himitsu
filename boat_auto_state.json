@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-27",
-  "generated_at": "2026-11-27T21:23:33.305323+09:00",
+  "generated_at": "2026-11-27T21:26:40.036142+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261127.json",
   "schedule_checked_at": "2026-11-27T21:18:11.793612+09:00",
@@ -19,14 +19,13 @@
   "alert_lead_minutes": 30,
   "card_count": 14,
   "held_count": 14,
-  "visible_count": 3,
+  "visible_count": 2,
   "stream_ready_count": 0,
   "waiting_count": 0,
-  "finished_guidance_count": 3,
+  "finished_guidance_count": 2,
   "end_grace_minutes": 45,
   "active_count": 0,
   "ended_kept": [
-    "桐生",
     "丸亀",
     "大村"
   ],
@@ -76,22 +75,6 @@
     "kind": "healthy"
   },
   "streams": {
-    "boat.kiryu": {
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/b983b78f5fb7417ca03c08996ccdd3a8/ab7fe33da6fd4b3593e6b275936ee7c9/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjAxZjc5MTcwZWM1YTQwYzdhNThlNjg3OWY1ZmIyOWM3IiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NTkzMjAwMCwic3RhcnQiOjE3OTU3NTgzMDAsImlvcyI6MTgsImNwIjoiMjE3OTUzOTAwXzIxNzk5NDM5OSIsInBwdyI6IjN1NyJ9.7FlpetYNDfw7kq4hZRCb3YVGH2iXbHi8rw2MwcFYJOY",
-      "source": "automatic acquisition + audio/video decode",
-      "acquired_at": "2026-11-27T14:45:20.419492+09:00",
-      "checked_at": "2026-11-27T20:38:34.863297+09:00",
-      "first_verified_at": "2026-11-27T14:45:20.419492+09:00",
-      "playback_verified": true,
-      "probe": {
-        "ok": true,
-        "sequence": 9161944,
-        "last_segment": "/b983b78f5fb7417ca03c08996ccdd3a8/ab7fe33da6fd4b3593e6b275936ee7c9/manifest_1_9165478.ts",
-        "video_decoded": true,
-        "audio_decoded": true
-      },
-      "consecutive_failures": 0
-    },
     "boat.marugame": {
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/e1ec937494454e97a72f2561c00ebe5c/6d61939c0555439ab390cffac95685fb/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjAxZjc5MTcwZWM1YTQwYzdhNThlNjg3OWY1ZmIyOWM3IiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NTkyODQwMCwic3RhcnQiOjE3OTU3NTUzMDAsImlvcyI6MTgsImNwIjoiMjE3OTUwOTAwXzIxNzk5NDA5OSIsInBwdyI6IjN1NyJ9.DE15Gerub4P88NQAc35wCRD3dZ8bep4fH3ubiU7pCdo",
       "source": "automatic acquisition + audio/video decode",
@@ -130,7 +113,7 @@
       "jcd": "01",
       "name": "桐生",
       "held": true,
-      "visible": true,
+      "visible": false,
       "ended": true,
       "active": false,
       "cancelled": false,
@@ -140,7 +123,7 @@
       "last_race": "20:38",
       "alert_from": "2026-11-27T14:55:00+09:00",
       "next_race": null,
-      "stream_window": "ended_guidance",
+      "stream_window": "ended_hidden",
       "intermission": null,
       "guidance_switch_at": "2026-11-27T21:26:00+09:00",
       "seed_required": false,
