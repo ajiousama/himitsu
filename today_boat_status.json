@@ -2,10 +2,10 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-27",
-  "generated_at": "2026-11-27T16:10:21.290194+09:00",
+  "generated_at": "2026-11-27T16:13:48.066076+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261127.json",
-  "schedule_checked_at": "2026-11-27T15:55:27.164069+09:00",
+  "schedule_checked_at": "2026-11-27T16:13:48.066076+09:00",
   "schedule_warnings": [
     "official_cards: TimeoutError"
   ],
@@ -20,14 +20,15 @@
   "card_count": 14,
   "held_count": 14,
   "visible_count": 11,
-  "stream_ready_count": 6,
+  "stream_ready_count": 5,
   "waiting_count": 0,
-  "finished_guidance_count": 5,
+  "finished_guidance_count": 6,
   "end_grace_minutes": 45,
-  "active_count": 6,
+  "active_count": 5,
   "ended_kept": [
     "戸田",
     "江戸川",
+    "常滑",
     "びわこ",
     "尼崎",
     "宮島"
@@ -46,9 +47,9 @@
     },
     "day": {
       "held": 6,
-      "acquired": 1,
-      "active": 1,
-      "ended": 5,
+      "acquired": 0,
+      "active": 0,
+      "ended": 6,
       "seed_required": 0,
       "cancelled": 0
     },
@@ -62,8 +63,8 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 6,
-    "fetched": 6,
+    "requested": 5,
+    "fetched": 5,
     "failures": [],
     "deferred": []
   },
@@ -629,8 +630,8 @@
       "name": "常滑",
       "held": true,
       "visible": true,
-      "ended": false,
-      "active": true,
+      "ended": true,
+      "active": false,
       "cancelled": false,
       "mode": "day",
       "mode_label": "デイ",
@@ -638,13 +639,13 @@
       "last_race": "16:10",
       "alert_from": "2026-11-27T09:57:00+09:00",
       "next_race": null,
-      "stream_window": "live_or_prestart",
+      "stream_window": "ended_guidance",
       "intermission": null,
       "guidance_switch_at": "2026-11-27T16:58:00+09:00",
       "seed_required": false,
-      "reverify_due": true,
+      "reverify_due": false,
       "playback_verified": true,
-      "stream_ready": true,
+      "stream_ready": false,
       "waiting": false,
       "remove_at": "2026-11-27T16:58:00+09:00",
       "first_verified_at": "2026-11-27T09:51:07.384032+09:00",
@@ -712,9 +713,7 @@
           "name": "予選"
         }
       ],
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/3757aa34f28a46019cef6415972a2265/dd7acf98578b4a07b80945ffdf063392/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjAxZjc5MTcwZWM1YTQwYzdhNThlNjg3OWY1ZmIyOWM3IiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NTkxNDAwMCwic3RhcnQiOjE3OTU3NDA2MDAsImlvcyI6MTgsImNwIjoiMjE3OTM2MjAwXzIxNzk3OTM5OSIsInBwdyI6IjN1NyJ9.tkkY2f7PdoO9Ra6jjQZd9t33AvSzD7Lug3U2bt9KBEM",
-      "source": "automatic acquisition + audio/video decode",
-      "token_expired": false
+      "source": "本日の開催は終了しました"
     },
     "boat.biwako": {
       "jcd": "11",
