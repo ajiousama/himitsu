@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-27",
-  "generated_at": "2026-11-27T12:46:45.446699+09:00",
+  "generated_at": "2026-11-27T12:47:49.311572+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261127.json",
   "schedule_checked_at": "2026-11-27T12:34:48.295847+09:00",
@@ -56,10 +56,16 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 9,
+    "requested": 10,
     "fetched": 9,
     "failures": [],
-    "deferred": []
+    "deferred": [
+      {
+        "jcd": "24",
+        "name": "大村",
+        "start": "2026-11-27T14:45:00+09:00"
+      }
+    ]
   },
   "epg_programmes_written": {
     "public_sports_epg_local.xml": 196,
@@ -1174,14 +1180,14 @@
       "last_race": "14:28",
       "alert_from": "2026-11-27T08:21:00+09:00",
       "next_race": {
-        "race": 9,
-        "start": "12:47"
+        "race": 10,
+        "start": "13:18"
       },
       "stream_window": "live_or_prestart",
       "intermission": null,
       "guidance_switch_at": "2026-11-27T15:16:00+09:00",
       "seed_required": false,
-      "reverify_due": true,
+      "reverify_due": false,
       "playback_verified": true,
       "stream_ready": true,
       "waiting": false,
@@ -1534,7 +1540,8 @@
           "name": "龍神選抜"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "provider_stream_start": "2026-11-27T14:45:00+09:00",
+      "source": "公式BR配信開始待ち 14:45"
     }
   }
 }
