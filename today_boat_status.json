@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-27",
-  "generated_at": "2026-11-27T13:53:41.203893+09:00",
+  "generated_at": "2026-11-27T13:54:45.232512+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261127.json",
   "schedule_checked_at": "2026-11-27T13:51:23.078647+09:00",
@@ -20,8 +20,8 @@
   "card_count": 14,
   "held_count": 14,
   "visible_count": 14,
-  "stream_ready_count": 9,
-  "waiting_count": 5,
+  "stream_ready_count": 10,
+  "waiting_count": 4,
   "finished_guidance_count": 0,
   "end_grace_minutes": 45,
   "active_count": 9,
@@ -48,7 +48,7 @@
     },
     "night": {
       "held": 5,
-      "acquired": 0,
+      "acquired": 1,
       "active": 0,
       "ended": 0,
       "seed_required": 0,
@@ -57,7 +57,7 @@
   },
   "cloud_acquisition": {
     "requested": 14,
-    "fetched": 9,
+    "fetched": 10,
     "failures": [],
     "deferred": [
       {
@@ -69,11 +69,6 @@
         "jcd": "07",
         "name": "蒲郡",
         "start": "2026-11-27T14:10:00+09:00"
-      },
-      {
-        "jcd": "15",
-        "name": "丸亀",
-        "start": "2026-11-27T13:55:00+09:00"
       },
       {
         "jcd": "20",
@@ -187,6 +182,22 @@
         "ok": true,
         "sequence": 9162714,
         "last_segment": "/331f039ad08e47b7bcabae2511b8a87b/2030b66f8c514c77bd7949534b0f382d/manifest_1_9166223.ts",
+        "video_decoded": true,
+        "audio_decoded": true
+      },
+      "consecutive_failures": 0
+    },
+    "boat.marugame": {
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/e1ec937494454e97a72f2561c00ebe5c/6d61939c0555439ab390cffac95685fb/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjAxZjc5MTcwZWM1YTQwYzdhNThlNjg3OWY1ZmIyOWM3IiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NTkyODQwMCwic3RhcnQiOjE3OTU3NTUzMDAsImlvcyI6MTgsImNwIjoiMjE3OTUwOTAwXzIxNzk5NDA5OSIsInBwdyI6IjN1NyJ9.DE15Gerub4P88NQAc35wCRD3dZ8bep4fH3ubiU7pCdo",
+      "source": "automatic acquisition + audio/video decode",
+      "acquired_at": "2026-11-27T13:55:39.420600+09:00",
+      "checked_at": "2026-11-27T13:55:39.420600+09:00",
+      "first_verified_at": "2026-11-27T13:55:39.420600+09:00",
+      "playback_verified": true,
+      "probe": {
+        "ok": true,
+        "sequence": 9166303,
+        "last_segment": "/e1ec937494454e97a72f2561c00ebe5c/6d61939c0555439ab390cffac95685fb/manifest_4_9166309.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -1022,12 +1033,12 @@
       "guidance_switch_at": "2026-11-27T21:30:00+09:00",
       "seed_required": false,
       "reverify_due": false,
-      "playback_verified": false,
-      "stream_ready": false,
-      "waiting": true,
+      "playback_verified": true,
+      "stream_ready": true,
+      "waiting": false,
       "remove_at": "2026-11-27T21:30:00+09:00",
-      "first_verified_at": null,
-      "ready_before_first_race": false,
+      "first_verified_at": "2026-11-27T13:55:39.420600+09:00",
+      "ready_before_first_race": true,
       "acquire_from": "2026-11-27T12:51:00+09:00",
       "races": [
         {
@@ -1091,8 +1102,9 @@
           "name": "予選選抜"
         }
       ],
-      "provider_stream_start": "2026-11-27T13:55:00+09:00",
-      "source": "公式BR配信開始待ち 13:55"
+      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/e1ec937494454e97a72f2561c00ebe5c/6d61939c0555439ab390cffac95685fb/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjAxZjc5MTcwZWM1YTQwYzdhNThlNjg3OWY1ZmIyOWM3IiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NTkyODQwMCwic3RhcnQiOjE3OTU3NTUzMDAsImlvcyI6MTgsImNwIjoiMjE3OTUwOTAwXzIxNzk5NDA5OSIsInBwdyI6IjN1NyJ9.DE15Gerub4P88NQAc35wCRD3dZ8bep4fH3ubiU7pCdo",
+      "source": "automatic acquisition + audio/video decode",
+      "token_expired": false
     },
     "boat.miyajima": {
       "jcd": "17",
@@ -1108,14 +1120,14 @@
       "last_race": "15:28",
       "alert_from": "2026-11-27T09:49:00+09:00",
       "next_race": {
-        "race": 9,
-        "start": "13:54"
+        "race": 10,
+        "start": "14:21"
       },
       "stream_window": "live_or_prestart",
       "intermission": null,
       "guidance_switch_at": "2026-11-27T16:16:00+09:00",
       "seed_required": false,
-      "reverify_due": true,
+      "reverify_due": false,
       "playback_verified": true,
       "stream_ready": true,
       "waiting": false,
