@@ -2,10 +2,10 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-28",
-  "generated_at": "2026-11-28T15:54:26.498166+09:00",
+  "generated_at": "2026-11-28T15:55:31.167626+09:00",
   "last_update_ok": false,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261128.json",
-  "schedule_checked_at": "2026-11-28T15:39:27.999863+09:00",
+  "schedule_checked_at": "2026-11-28T15:55:31.167626+09:00",
   "schedule_warnings": [
     "official_cards: TimeoutError"
   ],
@@ -24,15 +24,14 @@
   "waiting_count": 3,
   "finished_guidance_count": 2,
   "end_grace_minutes": 45,
-  "active_count": 8,
+  "active_count": 7,
   "ended_kept": [
     "浜名湖",
     "宮島"
   ],
   "seed_required": true,
   "seed_required_venues": [
-    "丸亀",
-    "若松"
+    "丸亀"
   ],
   "system_errors": [
     "開始時刻が近い開催場の当日中継を取得・再生確認できません"
@@ -57,24 +56,19 @@
     "night": {
       "held": 5,
       "acquired": 2,
-      "active": 4,
+      "active": 3,
       "ended": 0,
-      "seed_required": 2,
+      "seed_required": 1,
       "cancelled": 0
     }
   },
   "cloud_acquisition": {
-    "requested": 8,
+    "requested": 7,
     "fetched": 6,
     "failures": [
       {
         "jcd": "15",
         "name": "丸亀",
-        "error": "ValueError: ended VOD playlist is not a live stream"
-      },
-      {
-        "jcd": "20",
-        "name": "若松",
         "error": "ValueError: ended VOD playlist is not a live stream"
       }
     ],
@@ -327,10 +321,7 @@
       "first_race": "10:45",
       "last_race": "15:55",
       "alert_from": "2026-11-28T10:15:00+09:00",
-      "next_race": {
-        "race": 12,
-        "start": "15:55"
-      },
+      "next_race": null,
       "stream_window": "live_or_prestart",
       "intermission": null,
       "guidance_switch_at": "2026-11-28T16:43:00+09:00",
@@ -420,21 +411,21 @@
       "mode": "day",
       "mode_label": "デイ",
       "first_race": "11:07",
-      "last_race": "16:01",
+      "last_race": "16:00",
       "alert_from": "2026-11-28T10:37:00+09:00",
       "next_race": {
         "race": 12,
-        "start": "16:01"
+        "start": "16:00"
       },
       "stream_window": "live_or_prestart",
       "intermission": null,
-      "guidance_switch_at": "2026-11-28T16:49:00+09:00",
+      "guidance_switch_at": "2026-11-28T16:48:00+09:00",
       "seed_required": false,
       "reverify_due": true,
       "playback_verified": true,
       "stream_ready": true,
       "waiting": false,
-      "remove_at": "2026-11-28T16:49:00+09:00",
+      "remove_at": "2026-11-28T16:48:00+09:00",
       "first_verified_at": "2026-11-28T10:25:49.414499+09:00",
       "ready_before_first_race": true,
       "acquire_from": "2026-11-28T08:37:00+09:00",
@@ -496,7 +487,7 @@
         },
         {
           "race": 12,
-          "start": "16:01",
+          "start": "16:00",
           "name": "記者選抜戦"
         }
       ],
@@ -710,7 +701,7 @@
       "intermission": null,
       "guidance_switch_at": "2026-11-28T16:58:00+09:00",
       "seed_required": false,
-      "reverify_due": false,
+      "reverify_due": true,
       "playback_verified": true,
       "stream_ready": true,
       "waiting": false,
@@ -1248,7 +1239,7 @@
       "held": true,
       "visible": true,
       "ended": false,
-      "active": true,
+      "active": false,
       "cancelled": false,
       "mode": "night",
       "mode_label": "ナイター",
@@ -1256,14 +1247,19 @@
       "last_race": "20:30",
       "alert_from": "2026-11-28T11:59:00+09:00",
       "next_race": {
-        "race": 3,
-        "start": "16:07"
+        "race": 4,
+        "start": "16:35"
       },
-      "stream_window": "live_or_prestart",
-      "intermission": null,
+      "stream_window": "intermission",
+      "intermission": {
+        "after_race": 3,
+        "next_race": 4,
+        "from": "2026-11-28T12:44:00+09:00",
+        "until": "2026-11-28T16:05:00+09:00"
+      },
       "guidance_switch_at": "2026-11-28T21:18:00+09:00",
-      "seed_required": true,
-      "reverify_due": true,
+      "seed_required": false,
+      "reverify_due": false,
       "playback_verified": false,
       "stream_ready": false,
       "waiting": true,
@@ -1284,7 +1280,7 @@
         },
         {
           "race": 3,
-          "start": "16:07",
+          "start": "12:41",
           "name": "一般戦"
         },
         {
