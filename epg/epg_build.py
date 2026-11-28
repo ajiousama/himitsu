@@ -21,7 +21,7 @@ SOURCES = [
     ("japanterebi", "https://animenosekai.github.io/japanterebi-xmltv/guide.xml"),
     ("jcom", "https://raw.githubusercontent.com/dbghelp/JCOM-TV-EPG/refs/heads/main/jcom.xml"),
     ("sky", "https://raw.githubusercontent.com/dbghelp/SKY-PerfecTV-EPG/refs/heads/main/perfectv.xml"),
-    ("tver", "https://raw.githubusercontent.com/dbghelp/TVer-EPG/refs/heads/main/tver.xml"),
+    ("tver", "tver/official_schedule.xml"),
     ("abema", "https://raw.githubusercontent.com/dbghelp/Abema-TV-EPG/refs/heads/main/abema.xml"),
     ("karenda", "https://raw.githubusercontent.com/karenda-jp/etc/main/guides.xml"),
     ("public_sports", "https://raw.githubusercontent.com/ajiousama/himitsu/main/public_sports_epg_local.xml"),
@@ -245,7 +245,7 @@ def main():
     ecatv_epg, ecatv_errors = load_ecatv_epg(); errors.extend(ecatv_errors)
     for source_name, url in SOURCES:
         try:
-            root = fetch_xml(url); by_id, by_name, programmes = {}, defaultdict(list), defaultdict(list)
+            root = ET.parse(url).getroot() if source_name == "tver" else fetch_xml(url); by_id, by_name, programmes = {}, defaultdict(list), defaultdict(list)
             for ch in root.findall("channel"):
                 cid = ch.get("id")
                 if not cid: continue
