@@ -2,10 +2,10 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-28",
-  "generated_at": "2026-11-28T17:43:24.993332+09:00",
-  "last_update_ok": false,
+  "generated_at": "2026-11-28T17:44:37.651475+09:00",
+  "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261128.json",
-  "schedule_checked_at": "2026-11-28T17:29:34.514715+09:00",
+  "schedule_checked_at": "2026-11-28T17:44:37.651475+09:00",
   "schedule_warnings": [
     "official_cards: TimeoutError"
   ],
@@ -24,16 +24,11 @@
   "waiting_count": 3,
   "finished_guidance_count": 0,
   "end_grace_minutes": 45,
-  "active_count": 4,
+  "active_count": 2,
   "ended_kept": [],
-  "seed_required": true,
-  "seed_required_venues": [
-    "丸亀",
-    "若松"
-  ],
-  "system_errors": [
-    "開始時刻が近い開催場の当日中継を取得・再生確認できません"
-  ],
+  "seed_required": false,
+  "seed_required_venues": [],
+  "system_errors": [],
   "phase_counts": {
     "morning": {
       "held": 3,
@@ -54,27 +49,16 @@
     "night": {
       "held": 5,
       "acquired": 2,
-      "active": 4,
+      "active": 2,
       "ended": 0,
-      "seed_required": 2,
+      "seed_required": 0,
       "cancelled": 0
     }
   },
   "cloud_acquisition": {
-    "requested": 4,
+    "requested": 2,
     "fetched": 2,
-    "failures": [
-      {
-        "jcd": "15",
-        "name": "丸亀",
-        "error": "ValueError: ended VOD playlist is not a live stream"
-      },
-      {
-        "jcd": "20",
-        "name": "若松",
-        "error": "ValueError: ended VOD playlist is not a live stream"
-      }
-    ],
+    "failures": [],
     "deferred": []
   },
   "epg_programmes_written": {
@@ -82,8 +66,8 @@
     "guides.xml": 196
   },
   "alert": {
-    "active": true,
-    "kind": "system_error"
+    "active": false,
+    "kind": "healthy"
   },
   "streams": {
     "boat.kiryu": {
@@ -856,7 +840,7 @@
       "held": true,
       "visible": true,
       "ended": false,
-      "active": true,
+      "active": false,
       "cancelled": false,
       "mode": "night",
       "mode_label": "ナイター",
@@ -864,14 +848,19 @@
       "last_race": "20:42",
       "alert_from": "2026-11-28T12:15:00+09:00",
       "next_race": {
-        "race": 7,
-        "start": "18:10"
+        "race": 8,
+        "start": "18:40"
       },
-      "stream_window": "live_or_prestart",
-      "intermission": null,
+      "stream_window": "intermission",
+      "intermission": {
+        "after_race": 7,
+        "next_race": 8,
+        "from": "2026-11-28T13:24:00+09:00",
+        "until": "2026-11-28T18:10:00+09:00"
+      },
       "guidance_switch_at": "2026-11-28T21:30:00+09:00",
-      "seed_required": true,
-      "reverify_due": true,
+      "seed_required": false,
+      "reverify_due": false,
       "playback_verified": false,
       "stream_ready": false,
       "waiting": true,
@@ -912,7 +901,7 @@
         },
         {
           "race": 7,
-          "start": "18:10",
+          "start": "13:21",
           "name": "ざるうどん7"
         },
         {
@@ -1129,7 +1118,7 @@
       "held": true,
       "visible": true,
       "ended": false,
-      "active": true,
+      "active": false,
       "cancelled": false,
       "mode": "night",
       "mode_label": "ナイター",
@@ -1137,14 +1126,19 @@
       "last_race": "20:30",
       "alert_from": "2026-11-28T11:59:00+09:00",
       "next_race": {
-        "race": 7,
-        "start": "17:52"
+        "race": 8,
+        "start": "18:22"
       },
-      "stream_window": "live_or_prestart",
-      "intermission": null,
+      "stream_window": "intermission",
+      "intermission": {
+        "after_race": 7,
+        "next_race": 8,
+        "from": "2026-11-28T13:08:00+09:00",
+        "until": "2026-11-28T17:52:00+09:00"
+      },
       "guidance_switch_at": "2026-11-28T21:18:00+09:00",
-      "seed_required": true,
-      "reverify_due": true,
+      "seed_required": false,
+      "reverify_due": false,
       "playback_verified": false,
       "stream_ready": false,
       "waiting": true,
@@ -1185,7 +1179,7 @@
         },
         {
           "race": 7,
-          "start": "17:52",
+          "start": "13:05",
           "name": "一般戦"
         },
         {
