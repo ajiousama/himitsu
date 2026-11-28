@@ -1,18 +1,24 @@
 {
   "system": "boat-auto-v3",
   "date": "2026-11-28",
-  "checked_at": "2026-11-28T17:51:20.620325+09:00",
+  "checked_at": "2026-11-28T17:52:25.088009+09:00",
   "active": true,
   "kind": "system_error",
   "title": "BOAT自動更新エラー",
   "message": "開始時刻が近い開催場の当日中継を取得・再生確認できません",
   "seed_required_venues": [
+    "若松",
     "大村"
   ],
   "system_errors": [
     "開始時刻が近い開催場の当日中継を取得・再生確認できません"
   ],
   "cloud_failures": [
+    {
+      "jcd": "20",
+      "name": "若松",
+      "error": "ValueError: ended VOD playlist is not a live stream"
+    },
     {
       "jcd": "24",
       "name": "大村",
