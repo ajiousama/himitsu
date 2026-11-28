@@ -2,10 +2,10 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-28",
-  "generated_at": "2026-11-28T19:18:44.687487+09:00",
+  "generated_at": "2026-11-28T19:19:55.748864+09:00",
   "last_update_ok": false,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261128.json",
-  "schedule_checked_at": "2026-11-28T19:03:47.295672+09:00",
+  "schedule_checked_at": "2026-11-28T19:19:55.748864+09:00",
   "schedule_warnings": [
     "official_cards: TimeoutError"
   ],
@@ -24,11 +24,12 @@
   "waiting_count": 3,
   "finished_guidance_count": 0,
   "end_grace_minutes": 45,
-  "active_count": 3,
+  "active_count": 4,
   "ended_kept": [],
   "seed_required": true,
   "seed_required_venues": [
-    "丸亀"
+    "丸亀",
+    "大村"
   ],
   "system_errors": [
     "開始時刻が近い開催場の当日中継を取得・再生確認できません"
@@ -53,19 +54,24 @@
     "night": {
       "held": 5,
       "acquired": 2,
-      "active": 3,
+      "active": 4,
       "ended": 0,
-      "seed_required": 1,
+      "seed_required": 2,
       "cancelled": 0
     }
   },
   "cloud_acquisition": {
-    "requested": 3,
+    "requested": 4,
     "fetched": 2,
     "failures": [
       {
         "jcd": "15",
         "name": "丸亀",
+        "error": "ValueError: ended VOD playlist is not a live stream"
+      },
+      {
+        "jcd": "24",
+        "name": "大村",
         "error": "ValueError: ended VOD playlist is not a live stream"
       }
     ],
@@ -1311,7 +1317,7 @@
       "held": true,
       "visible": true,
       "ended": false,
-      "active": false,
+      "active": true,
       "cancelled": false,
       "mode": "night",
       "mode_label": "ナイター",
@@ -1322,16 +1328,11 @@
         "race": 10,
         "start": "19:49"
       },
-      "stream_window": "intermission",
-      "intermission": {
-        "after_race": 9,
-        "next_race": 10,
-        "from": "2026-11-28T14:22:00+09:00",
-        "until": "2026-11-28T19:19:00+09:00"
-      },
+      "stream_window": "live_or_prestart",
+      "intermission": null,
       "guidance_switch_at": "2026-11-28T21:33:00+09:00",
-      "seed_required": false,
-      "reverify_due": false,
+      "seed_required": true,
+      "reverify_due": true,
       "playback_verified": false,
       "stream_ready": false,
       "waiting": true,
