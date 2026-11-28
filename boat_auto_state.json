@@ -2,10 +2,10 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-28",
-  "generated_at": "2026-11-28T20:37:33.569862+09:00",
-  "last_update_ok": false,
+  "generated_at": "2026-11-28T20:38:45.471233+09:00",
+  "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261128.json",
-  "schedule_checked_at": "2026-11-28T20:23:42.758295+09:00",
+  "schedule_checked_at": "2026-11-28T20:38:45.471233+09:00",
   "schedule_warnings": [
     "official_cards: TimeoutError"
   ],
@@ -19,23 +19,18 @@
   "alert_lead_minutes": 30,
   "card_count": 14,
   "held_count": 14,
-  "visible_count": 4,
+  "visible_count": 2,
   "stream_ready_count": 1,
-  "waiting_count": 2,
+  "waiting_count": 0,
   "finished_guidance_count": 1,
   "end_grace_minutes": 45,
-  "active_count": 3,
+  "active_count": 1,
   "ended_kept": [
     "蒲郡"
   ],
-  "seed_required": true,
-  "seed_required_venues": [
-    "丸亀",
-    "大村"
-  ],
-  "system_errors": [
-    "開始時刻が近い開催場の当日中継を取得・再生確認できません"
-  ],
+  "seed_required": false,
+  "seed_required_venues": [],
+  "system_errors": [],
   "phase_counts": {
     "morning": {
       "held": 3,
@@ -46,37 +41,26 @@
       "cancelled": 0
     },
     "day": {
-      "held": 7,
+      "held": 9,
       "acquired": 0,
       "active": 0,
-      "ended": 7,
+      "ended": 9,
       "seed_required": 0,
       "cancelled": 0
     },
     "night": {
-      "held": 4,
+      "held": 2,
       "acquired": 1,
-      "active": 3,
+      "active": 1,
       "ended": 1,
-      "seed_required": 2,
+      "seed_required": 0,
       "cancelled": 0
     }
   },
   "cloud_acquisition": {
-    "requested": 3,
+    "requested": 1,
     "fetched": 1,
-    "failures": [
-      {
-        "jcd": "15",
-        "name": "丸亀",
-        "error": "ValueError: ended VOD playlist is not a live stream"
-      },
-      {
-        "jcd": "24",
-        "name": "大村",
-        "error": "ValueError: ended VOD playlist is not a live stream"
-      }
-    ],
+    "failures": [],
     "deferred": []
   },
   "epg_programmes_written": {
@@ -84,8 +68,8 @@
     "guides.xml": 196
   },
   "alert": {
-    "active": true,
-    "kind": "system_error"
+    "active": false,
+    "kind": "healthy"
   },
   "streams": {
     "boat.kiryu": {
@@ -851,28 +835,25 @@
       "jcd": "15",
       "name": "丸亀",
       "held": true,
-      "visible": true,
-      "ended": false,
-      "active": true,
+      "visible": false,
+      "ended": true,
+      "active": false,
       "cancelled": false,
-      "mode": "night",
-      "mode_label": "ナイター",
+      "mode": "day",
+      "mode_label": "デイ",
       "first_race": "12:45",
-      "last_race": "20:42",
+      "last_race": "13:56",
       "alert_from": "2026-11-28T12:15:00+09:00",
-      "next_race": {
-        "race": 12,
-        "start": "20:42"
-      },
-      "stream_window": "live_or_prestart",
+      "next_race": null,
+      "stream_window": "ended_hidden",
       "intermission": null,
-      "guidance_switch_at": "2026-11-28T21:30:00+09:00",
-      "seed_required": true,
-      "reverify_due": true,
+      "guidance_switch_at": "2026-11-28T14:44:00+09:00",
+      "seed_required": false,
+      "reverify_due": false,
       "playback_verified": false,
       "stream_ready": false,
-      "waiting": true,
-      "remove_at": "2026-11-28T21:30:00+09:00",
+      "waiting": false,
+      "remove_at": "2026-11-28T14:44:00+09:00",
       "first_verified_at": null,
       "ready_before_first_race": false,
       "acquire_from": "2026-11-28T10:15:00+09:00",
@@ -934,11 +915,11 @@
         },
         {
           "race": 12,
-          "start": "20:42",
+          "start": "13:56",
           "name": "一般選抜"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "source": "本日の開催は終了しました"
     },
     "boat.miyajima": {
       "jcd": "17",
@@ -1304,28 +1285,25 @@
       "jcd": "24",
       "name": "大村",
       "held": true,
-      "visible": true,
-      "ended": false,
-      "active": true,
+      "visible": false,
+      "ended": true,
+      "active": false,
       "cancelled": false,
-      "mode": "night",
-      "mode_label": "ナイター",
+      "mode": "day",
+      "mode_label": "デイ",
       "first_race": "13:31",
-      "last_race": "20:45",
+      "last_race": "14:42",
       "alert_from": "2026-11-28T13:01:00+09:00",
-      "next_race": {
-        "race": 12,
-        "start": "20:45"
-      },
-      "stream_window": "live_or_prestart",
+      "next_race": null,
+      "stream_window": "ended_hidden",
       "intermission": null,
-      "guidance_switch_at": "2026-11-28T21:33:00+09:00",
-      "seed_required": true,
-      "reverify_due": true,
+      "guidance_switch_at": "2026-11-28T15:30:00+09:00",
+      "seed_required": false,
+      "reverify_due": false,
       "playback_verified": false,
       "stream_ready": false,
-      "waiting": true,
-      "remove_at": "2026-11-28T21:33:00+09:00",
+      "waiting": false,
+      "remove_at": "2026-11-28T15:30:00+09:00",
       "first_verified_at": null,
       "ready_before_first_race": false,
       "acquire_from": "2026-11-28T11:01:00+09:00",
@@ -1387,11 +1365,11 @@
         },
         {
           "race": 12,
-          "start": "20:45",
+          "start": "14:42",
           "name": "予選特選"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "source": "本日の開催は終了しました"
     }
   }
 }
