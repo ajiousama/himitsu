@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-28",
-  "generated_at": "2026-11-28T16:30:10.890817+09:00",
+  "generated_at": "2026-11-28T16:31:22.568623+09:00",
   "last_update_ok": false,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261128.json",
   "schedule_checked_at": "2026-11-28T16:26:44.201604+09:00",
@@ -24,7 +24,7 @@
   "waiting_count": 3,
   "finished_guidance_count": 5,
   "end_grace_minutes": 45,
-  "active_count": 3,
+  "active_count": 4,
   "ended_kept": [
     "戸田",
     "江戸川",
@@ -34,6 +34,7 @@
   ],
   "seed_required": true,
   "seed_required_venues": [
+    "若松",
     "大村"
   ],
   "system_errors": [
@@ -59,16 +60,21 @@
     "night": {
       "held": 5,
       "acquired": 2,
-      "active": 3,
+      "active": 4,
       "ended": 0,
-      "seed_required": 1,
+      "seed_required": 2,
       "cancelled": 0
     }
   },
   "cloud_acquisition": {
-    "requested": 3,
+    "requested": 4,
     "fetched": 2,
     "failures": [
+      {
+        "jcd": "20",
+        "name": "若松",
+        "error": "ValueError: ended VOD playlist is not a live stream"
+      },
       {
         "jcd": "24",
         "name": "大村",
@@ -1214,7 +1220,7 @@
       "held": true,
       "visible": true,
       "ended": false,
-      "active": false,
+      "active": true,
       "cancelled": false,
       "mode": "night",
       "mode_label": "ナイター",
@@ -1225,16 +1231,11 @@
         "race": 5,
         "start": "17:01"
       },
-      "stream_window": "intermission",
-      "intermission": {
-        "after_race": 4,
-        "next_race": 5,
-        "from": "2026-11-28T12:50:00+09:00",
-        "until": "2026-11-28T16:31:00+09:00"
-      },
+      "stream_window": "live_or_prestart",
+      "intermission": null,
       "guidance_switch_at": "2026-11-28T21:18:00+09:00",
-      "seed_required": false,
-      "reverify_due": false,
+      "seed_required": true,
+      "reverify_due": true,
       "playback_verified": false,
       "stream_ready": false,
       "waiting": true,
