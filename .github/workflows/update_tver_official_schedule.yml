@@ -1,0 +1,123 @@
+name: Update TVer official schedule
+on:
+  schedule:
+    - cron: '42 * * * *'
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/update_tver_official_schedule.yml']
+permissions:
+  contents: write
+concurrency:
+  group: tver-official-epg
+  cancel-in-progress: false
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v5
+      - name: Read official public programme listings
+        run: |
+          python -m pip install --disable-pip-version-check playwright
+          python -m playwright install chromium
+          python - <<'PY'
+          import re, os, tempfile
+          from datetime import datetime, timedelta, timezone, time
+          from pathlib import Path
+          import xml.etree.ElementTree as ET
+          from playwright.sync_api import sync_playwright
+          JST=timezone(timedelta(hours=9))
+          names={'ntv':'日テレ系','ex':'テレ朝系','tbs':'TBS系','tx':'テレ東系','cx':'フジ系'}
+          clock=re.compile(r'^(\d{1,2}):(\d{2})〜(\d{1,2}):(\d{2})$')
+          heading=re.compile(r'^(\d+)月(\d+)日\([日月火水木金土]\)$')
+          relative={'昨日':-1,'今日':0,'明日':1}
+          root=ET.Element('tv',{'generator-info-name':'TVer official public schedule'})
+          for cid,name in names.items():
+              ch=ET.SubElement(root,'channel',id=cid)
+              ET.SubElement(ch,'display-name',lang='ja').text=name
+          def parse(text, cid, today):
+              rows=[x.strip() for x in text.splitlines()]
+              if '今日' not in rows or 'あなたにおすすめ' not in rows:
+                  raise ValueError(cid+' schedule not fully loaded')
+              day=None
+              result=[]
+              seen=set()
+              for i,x in enumerate(rows):
+                  if x=='あなたにおすすめ': break
+                  m=heading.fullmatch(x)
+                  if m:
+                      options=[]
+                      for year in (today.year-1,today.year,today.year+1):
+                          try: options.append(today.replace(year=year,month=int(m[1]),day=int(m[2])))
+                          except ValueError: pass
+                      day=min(options,key=lambda d:abs(d-today))
+                      continue
+                  if x in relative:
+                      day=today+timedelta(days=relative[x])
+                      continue
+                  m=clock.fullmatch(x)
+                  if not m or day is None: continue
+                  a,b,c,d=map(int,m.groups())
+                  start=datetime.combine(day,time(a,b),JST)
+                  stop=datetime.combine(day,time(c,d),JST)
+                  if stop<=start: stop+=timedelta(days=1)
+                  title=rows[i+1]
+                  sub=rows[i+2] if i+2<len(rows) else ''
+                  if not title or title in ('LIVE','配信予定','追っかけ') or clock.fullmatch(title):
+                      raise ValueError(cid+' missing title')
+                  if stop.date()<today-timedelta(days=1) or stop<=datetime.combine(today-timedelta(days=1),time(),JST): continue
+                  k=(start,stop,title)
+                  if k in seen: continue
+                  seen.add(k)
+                  if result and start<result[-1][1]:
+                      raise ValueError(cid+' overlapping programme slots')
+                  result.append((start,stop,title,sub))
+              if len(result)<10 or not any(stop>datetime.now(JST) for start,stop,title,sub in result):
+                  raise ValueError(cid+' insufficient current schedule')
+              return result
+          with sync_playwright() as p:
+              browser=p.chromium.launch(headless=True)
+              page=browser.new_page(locale='ja-JP',timezone_id='Asia/Tokyo')
+              def route(r):
+                  if r.request.resource_type=='media' or re.search(r'\.(m3u8|mpd|m4s|ts)(?:\?|$)',r.request.url,re.I): r.abort()
+                  else: r.continue_()
+              page.route('**/*',route)
+              for cid in names:
+                  resp=page.goto('https://tver.jp/live/'+cid,wait_until='domcontentloaded',timeout=35000)
+                  if not resp or resp.status!=200: raise RuntimeError(cid+' HTTP failure')
+                  page.wait_for_function("document.body.innerText.split('\\n').includes('今日') && document.body.innerText.includes('あなたにおすすめ')",timeout=30000)
+                  today=datetime.now(JST).date()
+                  rows=parse(page.locator('body').inner_text(),cid,today)
+                  for start,stop,title,sub in rows:
+                      fmt=lambda t:t.strftime('%Y%m%d%H%M%S %z')
+                      node=ET.SubElement(root,'programme',start=fmt(start),stop=fmt(stop),channel=cid)
+                      ET.SubElement(node,'title',lang='ja').text=title
+                      if sub and sub!=title and sub not in relative and sub not in ('LIVE','配信予定','追っかけ','あなたにおすすめ') and not clock.fullmatch(sub) and not heading.fullmatch(sub):
+                          ET.SubElement(node,'sub-title',lang='ja').text=sub
+                  print(cid,len(rows))
+              browser.close()
+          ET.indent(root,space='  ')
+          target=Path('tver/official_schedule.xml')
+          tmp=target.with_suffix('.tmp')
+          ET.ElementTree(root).write(tmp,encoding='utf-8',xml_declaration=True)
+          ET.parse(tmp)
+          os.replace(tmp,target)
+          PY
+      - name: Publish only the validated TVer source
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          snapshot=$(mktemp)
+          cp tver/official_schedule.xml "$snapshot"
+          for attempt in 1 2 3; do
+            git fetch origin main
+            git reset --hard origin/main
+            cp "$snapshot" tver/official_schedule.xml
+            git add tver/official_schedule.xml
+            if git diff --cached --quiet; then exit 0; fi
+            git commit -m 'Refresh TVer official programme listings [skip ci] [skip render]'
+            if git push origin HEAD:main; then exit 0; fi
+          done
+          exit 1
