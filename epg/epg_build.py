@@ -211,6 +211,10 @@ def add_fallback(out_root, target_id, target_name, target_group="", sports_statu
         title = "グリーンチャンネル｜番組表取得待ち"
         desc = "番組情報を取得できていません。放送休止を意味する案内ではありません。"
         category = "番組情報"
+    elif target_id in {"tver_ntv", "tver_ex", "tver_tbs", "tver_tx", "tver_cx"}:
+        title = f"{target_name}｜番組表取得待ち"
+        desc = "TVerの最新配信番組表を取得できていません。放送休止を意味する案内ではありません。"
+        category = "番組情報"
     elif target_group == "今日の開催場" and sport:
         title = next_text or target_name
         desc = f"{target_name} / {sport.get('section','公営競技')}。実レースEPG取得失敗時の案内です。"
@@ -250,6 +254,20 @@ def main():
                     for a in aliases(val): by_name[a].append(cid)
             for p in root.findall("programme"):
                 if p.get("channel"): programmes[p.get("channel")].append(p)
+            if source_name == "tver":
+                now = datetime.now(timezone.utc)
+                for cid in list(by_id):
+                    def future(p):
+                        try:
+                            return datetime.strptime(p.get("stop", ""), "%Y%m%d%H%M%S %z") > now
+                        except ValueError:
+                            return False
+                    if not any(future(p) for p in programmes.get(cid, [])):
+                        errors.append(f"tver/{cid}: no current or future programmes")
+                        programmes.pop(cid, None)
+                        del by_id[cid]
+                for name in list(by_name):
+                    by_name[name] = [cid for cid in by_name[name] if cid in by_id]
             loaded.append((source_name, by_id, by_name, programmes))
         except Exception as e: errors.append(f"{source_name}: {type(e).__name__}: {e}")
     id_index, name_index = defaultdict(list), defaultdict(list); source_map = {x[0]: x for x in loaded}
@@ -292,6 +310,8 @@ def main():
         for item in uniq:
             _, sn, sid = item; pc = len(source_map[sn][3].get(sid, [])); usable.append((0 if pc else 1, item[0], -pc, sn, sid))
         usable.sort()
+        if target_id in {"tver_ntv", "tver_ex", "tver_tbs", "tver_tx", "tver_cx"}:
+            usable = [item for item in usable if item[0] == 0 and item[3] == "tver"]
         if not usable:
             add_fallback(out_root, target_id, target_name, target_group, sports_status); fallback += 1; missing.append((target_id, target_name)); coverage.append(f"FALLBACK\t{target_id}\t{target_name}\t{target_group}\t12 programmes"); continue
         _, _, _, source_name, source_id = usable[0]; _, by_id, _, programmes = source_map[source_name]; ch = clone(by_id[source_id]); ch.set("id", target_id); out_root.append(ch)
