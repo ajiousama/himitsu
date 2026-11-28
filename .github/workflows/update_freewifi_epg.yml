@@ -313,6 +313,8 @@ jobs:
             python -m epg.jra_epg_merge
             python -m unittest -v test_normalize_race_epg_switch test_publish_public_sports
             python publish_public_sports.py
+            # Never let an older build snapshot overwrite the latest official TVer schedule.
+            python tver/official_epg_overlay.py
 
             python - <<'PY'
           import xml.etree.ElementTree as ET
