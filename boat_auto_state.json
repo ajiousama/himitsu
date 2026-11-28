@@ -2,10 +2,10 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-28",
-  "generated_at": "2026-11-28T18:46:27.631599+09:00",
+  "generated_at": "2026-11-28T18:47:39.854515+09:00",
   "last_update_ok": false,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261128.json",
-  "schedule_checked_at": "2026-11-28T18:31:39.773867+09:00",
+  "schedule_checked_at": "2026-11-28T18:47:39.854515+09:00",
   "schedule_warnings": [
     "official_cards: TimeoutError"
   ],
@@ -24,12 +24,11 @@
   "waiting_count": 3,
   "finished_guidance_count": 0,
   "end_grace_minutes": 45,
-  "active_count": 5,
+  "active_count": 4,
   "ended_kept": [],
   "seed_required": true,
   "seed_required_venues": [
     "丸亀",
-    "若松",
     "大村"
   ],
   "system_errors": [
@@ -55,24 +54,19 @@
     "night": {
       "held": 5,
       "acquired": 2,
-      "active": 5,
+      "active": 4,
       "ended": 0,
-      "seed_required": 3,
+      "seed_required": 2,
       "cancelled": 0
     }
   },
   "cloud_acquisition": {
-    "requested": 5,
+    "requested": 4,
     "fetched": 2,
     "failures": [
       {
         "jcd": "15",
         "name": "丸亀",
-        "error": "ValueError: ended VOD playlist is not a live stream"
-      },
-      {
-        "jcd": "20",
-        "name": "若松",
         "error": "ValueError: ended VOD playlist is not a live stream"
       },
       {
@@ -1135,7 +1129,7 @@
       "held": true,
       "visible": true,
       "ended": false,
-      "active": true,
+      "active": false,
       "cancelled": false,
       "mode": "night",
       "mode_label": "ナイター",
@@ -1143,14 +1137,19 @@
       "last_race": "20:30",
       "alert_from": "2026-11-28T11:59:00+09:00",
       "next_race": {
-        "race": 9,
-        "start": "18:52"
+        "race": 10,
+        "start": "19:23"
       },
-      "stream_window": "live_or_prestart",
-      "intermission": null,
+      "stream_window": "intermission",
+      "intermission": {
+        "after_race": 9,
+        "next_race": 10,
+        "from": "2026-11-28T13:20:00+09:00",
+        "until": "2026-11-28T18:53:00+09:00"
+      },
       "guidance_switch_at": "2026-11-28T21:18:00+09:00",
-      "seed_required": true,
-      "reverify_due": true,
+      "seed_required": false,
+      "reverify_due": false,
       "playback_verified": false,
       "stream_ready": false,
       "waiting": true,
@@ -1201,7 +1200,7 @@
         },
         {
           "race": 9,
-          "start": "18:52",
+          "start": "13:17",
           "name": "一般特選"
         },
         {
