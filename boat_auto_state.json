@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-28",
-  "generated_at": "2026-11-28T14:52:43.411685+09:00",
+  "generated_at": "2026-11-28T14:53:58.301570+09:00",
   "last_update_ok": false,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261128.json",
   "schedule_checked_at": "2026-11-28T14:52:43.411685+09:00",
@@ -24,13 +24,14 @@
   "waiting_count": 3,
   "finished_guidance_count": 2,
   "end_grace_minutes": 45,
-  "active_count": 9,
+  "active_count": 10,
   "ended_kept": [
     "鳴門",
     "唐津"
   ],
   "seed_required": true,
   "seed_required_venues": [
+    "丸亀",
     "若松",
     "大村"
   ],
@@ -57,9 +58,9 @@
     "night": {
       "held": 5,
       "acquired": 2,
-      "active": 3,
+      "active": 4,
       "ended": 0,
-      "seed_required": 2,
+      "seed_required": 3,
       "cancelled": 0
     }
   },
@@ -745,14 +746,14 @@
       "last_race": "16:10",
       "alert_from": "2026-11-28T09:56:00+09:00",
       "next_race": {
-        "race": 10,
-        "start": "14:53"
+        "race": 11,
+        "start": "15:31"
       },
       "stream_window": "live_or_prestart",
       "intermission": null,
       "guidance_switch_at": "2026-11-28T16:58:00+09:00",
       "seed_required": false,
-      "reverify_due": true,
+      "reverify_due": false,
       "playback_verified": true,
       "stream_ready": true,
       "waiting": false,
@@ -1017,7 +1018,7 @@
       "held": true,
       "visible": true,
       "ended": false,
-      "active": false,
+      "active": true,
       "cancelled": false,
       "mode": "night",
       "mode_label": "ナイター",
@@ -1028,11 +1029,11 @@
         "race": 1,
         "start": "15:23"
       },
-      "stream_window": "scheduled",
+      "stream_window": "live_or_prestart",
       "intermission": null,
       "guidance_switch_at": "2026-11-28T21:30:00+09:00",
-      "seed_required": false,
-      "reverify_due": false,
+      "seed_required": true,
+      "reverify_due": true,
       "playback_verified": false,
       "stream_ready": false,
       "waiting": true,
