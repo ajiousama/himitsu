@@ -2,8 +2,8 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-28",
-  "generated_at": "2026-11-28T16:45:04.210826+09:00",
-  "last_update_ok": true,
+  "generated_at": "2026-11-28T16:46:06.869063+09:00",
+  "last_update_ok": false,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261128.json",
   "schedule_checked_at": "2026-11-28T16:43:43.001128+09:00",
   "schedule_warnings": [
@@ -24,15 +24,19 @@
   "waiting_count": 3,
   "finished_guidance_count": 3,
   "end_grace_minutes": 45,
-  "active_count": 2,
+  "active_count": 3,
   "ended_kept": [
     "江戸川",
     "常滑",
     "尼崎"
   ],
-  "seed_required": false,
-  "seed_required_venues": [],
-  "system_errors": [],
+  "seed_required": true,
+  "seed_required_venues": [
+    "丸亀"
+  ],
+  "system_errors": [
+    "開始時刻が近い開催場の当日中継を取得・再生確認できません"
+  ],
   "phase_counts": {
     "morning": {
       "held": 3,
@@ -53,16 +57,22 @@
     "night": {
       "held": 5,
       "acquired": 2,
-      "active": 2,
+      "active": 3,
       "ended": 0,
-      "seed_required": 0,
+      "seed_required": 1,
       "cancelled": 0
     }
   },
   "cloud_acquisition": {
-    "requested": 2,
+    "requested": 3,
     "fetched": 2,
-    "failures": [],
+    "failures": [
+      {
+        "jcd": "15",
+        "name": "丸亀",
+        "error": "ValueError: ended VOD playlist is not a live stream"
+      }
+    ],
     "deferred": []
   },
   "epg_programmes_written": {
@@ -70,8 +80,8 @@
     "guides.xml": 196
   },
   "alert": {
-    "active": false,
-    "kind": "healthy"
+    "active": true,
+    "kind": "system_error"
   },
   "streams": {
     "boat.kiryu": {
@@ -892,7 +902,7 @@
       "held": true,
       "visible": true,
       "ended": false,
-      "active": false,
+      "active": true,
       "cancelled": false,
       "mode": "night",
       "mode_label": "ナイター",
@@ -903,16 +913,11 @@
         "race": 5,
         "start": "17:16"
       },
-      "stream_window": "intermission",
-      "intermission": {
-        "after_race": 4,
-        "next_race": 5,
-        "from": "2026-11-28T13:06:00+09:00",
-        "until": "2026-11-28T16:46:00+09:00"
-      },
+      "stream_window": "live_or_prestart",
+      "intermission": null,
       "guidance_switch_at": "2026-11-28T21:30:00+09:00",
-      "seed_required": false,
-      "reverify_due": false,
+      "seed_required": true,
+      "reverify_due": true,
       "playback_verified": false,
       "stream_ready": false,
       "waiting": true,
