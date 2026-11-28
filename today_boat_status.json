@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-28",
-  "generated_at": "2026-11-28T15:21:22.755972+09:00",
+  "generated_at": "2026-11-28T15:22:27.320399+09:00",
   "last_update_ok": false,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261128.json",
   "schedule_checked_at": "2026-11-28T15:07:47.049436+09:00",
@@ -24,10 +24,11 @@
   "waiting_count": 3,
   "finished_guidance_count": 0,
   "end_grace_minutes": 45,
-  "active_count": 10,
+  "active_count": 11,
   "ended_kept": [],
   "seed_required": true,
   "seed_required_venues": [
+    "丸亀",
     "若松",
     "大村"
   ],
@@ -54,16 +55,21 @@
     "night": {
       "held": 5,
       "acquired": 2,
-      "active": 4,
+      "active": 5,
       "ended": 0,
-      "seed_required": 2,
+      "seed_required": 3,
       "cancelled": 0
     }
   },
   "cloud_acquisition": {
-    "requested": 10,
+    "requested": 11,
     "fetched": 8,
     "failures": [
+      {
+        "jcd": "15",
+        "name": "丸亀",
+        "error": "ValueError: ended VOD playlist is not a live stream"
+      },
       {
         "jcd": "20",
         "name": "若松",
@@ -325,14 +331,14 @@
       "last_race": "15:55",
       "alert_from": "2026-11-28T10:15:00+09:00",
       "next_race": {
-        "race": 11,
-        "start": "15:22"
+        "race": 12,
+        "start": "15:55"
       },
       "stream_window": "live_or_prestart",
       "intermission": null,
       "guidance_switch_at": "2026-11-28T16:43:00+09:00",
       "seed_required": false,
-      "reverify_due": true,
+      "reverify_due": false,
       "playback_verified": true,
       "stream_ready": true,
       "waiting": false,
@@ -977,7 +983,7 @@
       "held": true,
       "visible": true,
       "ended": false,
-      "active": false,
+      "active": true,
       "cancelled": false,
       "mode": "night",
       "mode_label": "ナイター",
@@ -988,16 +994,11 @@
         "race": 2,
         "start": "15:52"
       },
-      "stream_window": "intermission",
-      "intermission": {
-        "after_race": 1,
-        "next_race": 2,
-        "from": "2026-11-28T12:48:00+09:00",
-        "until": "2026-11-28T15:22:00+09:00"
-      },
+      "stream_window": "live_or_prestart",
+      "intermission": null,
       "guidance_switch_at": "2026-11-28T21:30:00+09:00",
-      "seed_required": false,
-      "reverify_due": false,
+      "seed_required": true,
+      "reverify_due": true,
       "playback_verified": false,
       "stream_ready": false,
       "waiting": true,
