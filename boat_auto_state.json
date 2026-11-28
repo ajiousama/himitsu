@@ -2,10 +2,10 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-28",
-  "generated_at": "2026-11-28T20:48:55.509920+09:00",
+  "generated_at": "2026-11-28T21:22:54.046518+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261128.json",
-  "schedule_checked_at": "2026-11-28T20:38:45.471233+09:00",
+  "schedule_checked_at": "2026-11-28T21:22:54.046518+09:00",
   "schedule_warnings": [
     "official_cards: TimeoutError"
   ],
@@ -19,15 +19,14 @@
   "alert_lead_minutes": 30,
   "card_count": 14,
   "held_count": 14,
-  "visible_count": 2,
+  "visible_count": 1,
   "stream_ready_count": 0,
   "waiting_count": 0,
-  "finished_guidance_count": 2,
+  "finished_guidance_count": 1,
   "end_grace_minutes": 45,
   "active_count": 0,
   "ended_kept": [
-    "桐生",
-    "蒲郡"
+    "桐生"
   ],
   "seed_required": false,
   "seed_required_venues": [],
@@ -86,22 +85,6 @@
         "ok": true,
         "sequence": 9176344,
         "last_segment": "/297c80d4f812441481606c37b55623dc/c609046db5514973b45352214175f7ad/manifest_1_9179958.ts",
-        "video_decoded": true,
-        "audio_decoded": true
-      },
-      "consecutive_failures": 0
-    },
-    "boat.gamagori": {
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/d908bbc97b4c43d0b1280ea163d7b343/ba91bd24330142bfbf4cc1ad423fab0e/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjAxZjc5MTcwZWM1YTQwYzdhNThlNjg3OWY1ZmIyOWM3IiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NjAxODQwMCwic3RhcnQiOjE3OTU4NDI2MDAsImlvcyI6MTgsImNwIjoiMjE4MDM4MjAwXzIxODA4MDc5OSIsInBwdyI6IjN1NyJ9.PsXZr09wk_YHJIRwADclxMz7hRnLbg-ZCQNIQRDpR9o",
-      "source": "automatic acquisition + audio/video decode",
-      "acquired_at": "2026-11-28T14:11:01.263034+09:00",
-      "checked_at": "2026-11-28T20:31:42.412808+09:00",
-      "first_verified_at": "2026-11-28T14:11:01.263034+09:00",
-      "playback_verified": true,
-      "probe": {
-        "ok": true,
-        "sequence": 9157106,
-        "last_segment": "/d908bbc97b4c43d0b1280ea163d7b343/ba91bd24330142bfbf4cc1ad423fab0e/manifest_4_9160922.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -473,7 +456,7 @@
       "jcd": "07",
       "name": "蒲郡",
       "held": true,
-      "visible": true,
+      "visible": false,
       "ended": true,
       "active": false,
       "cancelled": false,
@@ -483,7 +466,7 @@
       "last_race": "20:34",
       "alert_from": "2026-11-28T14:50:00+09:00",
       "next_race": null,
-      "stream_window": "ended_guidance",
+      "stream_window": "ended_hidden",
       "intermission": null,
       "guidance_switch_at": "2026-11-28T21:22:00+09:00",
       "seed_required": false,
