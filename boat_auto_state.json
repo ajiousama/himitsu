@@ -2,8 +2,8 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-28",
-  "generated_at": "2026-11-28T14:45:59.630319+09:00",
-  "last_update_ok": true,
+  "generated_at": "2026-11-28T14:47:06.118094+09:00",
+  "last_update_ok": false,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261128.json",
   "schedule_checked_at": "2026-11-28T14:37:42.224392+09:00",
   "schedule_warnings": [
@@ -24,14 +24,18 @@
   "waiting_count": 3,
   "finished_guidance_count": 2,
   "end_grace_minutes": 45,
-  "active_count": 6,
+  "active_count": 7,
   "ended_kept": [
     "鳴門",
     "唐津"
   ],
-  "seed_required": false,
-  "seed_required_venues": [],
-  "system_errors": [],
+  "seed_required": true,
+  "seed_required_venues": [
+    "大村"
+  ],
+  "system_errors": [
+    "開始時刻が近い開催場の当日中継を取得・再生確認できません"
+  ],
   "phase_counts": {
     "morning": {
       "held": 3,
@@ -52,9 +56,9 @@
     "night": {
       "held": 5,
       "acquired": 2,
-      "active": 0,
+      "active": 1,
       "ended": 0,
-      "seed_required": 0,
+      "seed_required": 1,
       "cancelled": 0
     }
   },
@@ -85,8 +89,8 @@
     "guides.xml": 196
   },
   "alert": {
-    "active": false,
-    "kind": "healthy"
+    "active": true,
+    "kind": "system_error"
   },
   "streams": {
     "boat.kiryu": {
@@ -550,14 +554,14 @@
       "last_race": "15:50",
       "alert_from": "2026-11-28T09:59:00+09:00",
       "next_race": {
-        "race": 10,
-        "start": "14:47"
+        "race": 11,
+        "start": "15:15"
       },
       "stream_window": "live_or_prestart",
       "intermission": null,
       "guidance_switch_at": "2026-11-28T16:38:00+09:00",
       "seed_required": false,
-      "reverify_due": true,
+      "reverify_due": false,
       "playback_verified": true,
       "stream_ready": true,
       "waiting": false,
@@ -1473,7 +1477,7 @@
       "held": true,
       "visible": true,
       "ended": false,
-      "active": false,
+      "active": true,
       "cancelled": false,
       "mode": "night",
       "mode_label": "ナイター",
@@ -1484,11 +1488,11 @@
         "race": 1,
         "start": "15:17"
       },
-      "stream_window": "scheduled",
+      "stream_window": "live_or_prestart",
       "intermission": null,
       "guidance_switch_at": "2026-11-28T21:33:00+09:00",
-      "seed_required": false,
-      "reverify_due": false,
+      "seed_required": true,
+      "reverify_due": true,
       "playback_verified": false,
       "stream_ready": false,
       "waiting": true,
