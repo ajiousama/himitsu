@@ -2,10 +2,10 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-28",
-  "generated_at": "2026-11-28T18:15:23.609866+09:00",
+  "generated_at": "2026-11-28T18:16:36.010348+09:00",
   "last_update_ok": false,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261128.json",
-  "schedule_checked_at": "2026-11-28T18:00:37.871519+09:00",
+  "schedule_checked_at": "2026-11-28T18:16:36.010348+09:00",
   "schedule_warnings": [
     "official_cards: TimeoutError"
   ],
@@ -29,7 +29,7 @@
   "seed_required": true,
   "seed_required_venues": [
     "丸亀",
-    "若松"
+    "大村"
   ],
   "system_errors": [
     "開始時刻が近い開催場の当日中継を取得・再生確認できません"
@@ -70,8 +70,8 @@
         "error": "ValueError: ended VOD playlist is not a live stream"
       },
       {
-        "jcd": "20",
-        "name": "若松",
+        "jcd": "24",
+        "name": "大村",
         "error": "ValueError: ended VOD playlist is not a live stream"
       }
     ],
@@ -1129,7 +1129,7 @@
       "held": true,
       "visible": true,
       "ended": false,
-      "active": true,
+      "active": false,
       "cancelled": false,
       "mode": "night",
       "mode_label": "ナイター",
@@ -1137,14 +1137,19 @@
       "last_race": "20:30",
       "alert_from": "2026-11-28T11:59:00+09:00",
       "next_race": {
-        "race": 8,
-        "start": "18:22"
+        "race": 9,
+        "start": "18:52"
       },
-      "stream_window": "live_or_prestart",
-      "intermission": null,
+      "stream_window": "intermission",
+      "intermission": {
+        "after_race": 8,
+        "next_race": 9,
+        "from": "2026-11-28T13:14:00+09:00",
+        "until": "2026-11-28T18:22:00+09:00"
+      },
       "guidance_switch_at": "2026-11-28T21:18:00+09:00",
-      "seed_required": true,
-      "reverify_due": true,
+      "seed_required": false,
+      "reverify_due": false,
       "playback_verified": false,
       "stream_ready": false,
       "waiting": true,
@@ -1190,7 +1195,7 @@
         },
         {
           "race": 8,
-          "start": "18:22",
+          "start": "13:11",
           "name": "エイトビート"
         },
         {
@@ -1312,7 +1317,7 @@
       "held": true,
       "visible": true,
       "ended": false,
-      "active": false,
+      "active": true,
       "cancelled": false,
       "mode": "night",
       "mode_label": "ナイター",
@@ -1323,16 +1328,11 @@
         "race": 8,
         "start": "18:46"
       },
-      "stream_window": "intermission",
-      "intermission": {
-        "after_race": 7,
-        "next_race": 8,
-        "from": "2026-11-28T14:10:00+09:00",
-        "until": "2026-11-28T18:16:00+09:00"
-      },
+      "stream_window": "live_or_prestart",
+      "intermission": null,
       "guidance_switch_at": "2026-11-28T21:33:00+09:00",
-      "seed_required": false,
-      "reverify_due": false,
+      "seed_required": true,
+      "reverify_due": true,
       "playback_verified": false,
       "stream_ready": false,
       "waiting": true,
