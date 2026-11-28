@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-28",
-  "generated_at": "2026-11-28T16:56:00.145877+09:00",
+  "generated_at": "2026-11-28T16:58:10.359338+09:00",
   "last_update_ok": false,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261128.json",
   "schedule_checked_at": "2026-11-28T16:43:43.001128+09:00",
@@ -19,18 +19,17 @@
   "alert_lead_minutes": 30,
   "card_count": 14,
   "held_count": 14,
-  "visible_count": 6,
+  "visible_count": 5,
   "stream_ready_count": 2,
   "waiting_count": 3,
-  "finished_guidance_count": 1,
+  "finished_guidance_count": 0,
   "end_grace_minutes": 45,
-  "active_count": 4,
-  "ended_kept": [
-    "常滑"
-  ],
+  "active_count": 5,
+  "ended_kept": [],
   "seed_required": true,
   "seed_required_venues": [
     "丸亀",
+    "若松",
     "大村"
   ],
   "system_errors": [
@@ -56,19 +55,24 @@
     "night": {
       "held": 5,
       "acquired": 2,
-      "active": 4,
+      "active": 5,
       "ended": 0,
-      "seed_required": 2,
+      "seed_required": 3,
       "cancelled": 0
     }
   },
   "cloud_acquisition": {
-    "requested": 4,
+    "requested": 5,
     "fetched": 2,
     "failures": [
       {
         "jcd": "15",
         "name": "丸亀",
+        "error": "ValueError: ended VOD playlist is not a live stream"
+      },
+      {
+        "jcd": "20",
+        "name": "若松",
         "error": "ValueError: ended VOD playlist is not a live stream"
       },
       {
@@ -115,22 +119,6 @@
         "ok": true,
         "sequence": 9157106,
         "last_segment": "/d908bbc97b4c43d0b1280ea163d7b343/ba91bd24330142bfbf4cc1ad423fab0e/manifest_4_9158762.ts",
-        "video_decoded": true,
-        "audio_decoded": true
-      },
-      "consecutive_failures": 0
-    },
-    "boat.tokoname": {
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/0b52d8b152534d8cbd0a5042ce1e3c9a/a7aacb3920454112a81373d7356e517c/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjAxZjc5MTcwZWM1YTQwYzdhNThlNjg3OWY1ZmIyOWM3IiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NjAwMDQwMCwic3RhcnQiOjE3OTU4MjcwMDAsImlvcyI6MTgsImNwIjoiMjE4MDIyNjAwXzIxODA2NTc5OSIsInBwdyI6IjN1NyJ9.JC2-hB6qPeqIV_6IV3DZn2YPDkrEytCnx_T0S5AmQds",
-      "source": "automatic acquisition + audio/video decode",
-      "acquired_at": "2026-11-28T09:51:01.484493+09:00",
-      "checked_at": "2026-11-28T16:12:05.872094+09:00",
-      "first_verified_at": "2026-11-28T09:51:01.484493+09:00",
-      "playback_verified": true,
-      "probe": {
-        "ok": true,
-        "sequence": 9155511,
-        "last_segment": "/0b52d8b152534d8cbd0a5042ce1e3c9a/a7aacb3920454112a81373d7356e517c/manifest_4_9159331.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -602,7 +590,7 @@
       "jcd": "08",
       "name": "常滑",
       "held": true,
-      "visible": true,
+      "visible": false,
       "ended": true,
       "active": false,
       "cancelled": false,
@@ -612,7 +600,7 @@
       "last_race": "16:10",
       "alert_from": "2026-11-28T09:56:00+09:00",
       "next_race": null,
-      "stream_window": "ended_guidance",
+      "stream_window": "ended_hidden",
       "intermission": null,
       "guidance_switch_at": "2026-11-28T16:58:00+09:00",
       "seed_required": false,
@@ -1147,7 +1135,7 @@
       "held": true,
       "visible": true,
       "ended": false,
-      "active": false,
+      "active": true,
       "cancelled": false,
       "mode": "night",
       "mode_label": "ナイター",
@@ -1158,16 +1146,11 @@
         "race": 6,
         "start": "17:27"
       },
-      "stream_window": "intermission",
-      "intermission": {
-        "after_race": 5,
-        "next_race": 6,
-        "from": "2026-11-28T12:56:00+09:00",
-        "until": "2026-11-28T16:57:00+09:00"
-      },
+      "stream_window": "live_or_prestart",
+      "intermission": null,
       "guidance_switch_at": "2026-11-28T21:18:00+09:00",
-      "seed_required": false,
-      "reverify_due": false,
+      "seed_required": true,
+      "reverify_due": true,
       "playback_verified": false,
       "stream_ready": false,
       "waiting": true,
