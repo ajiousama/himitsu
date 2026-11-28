@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-28",
-  "generated_at": "2026-11-28T12:54:09.369214+09:00",
+  "generated_at": "2026-11-28T12:55:15.534837+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261128.json",
   "schedule_checked_at": "2026-11-28T12:49:22.352677+09:00",
@@ -56,7 +56,7 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 13,
+    "requested": 14,
     "fetched": 8,
     "failures": [
       {
@@ -66,6 +66,11 @@
       }
     ],
     "deferred": [
+      {
+        "jcd": "01",
+        "name": "桐生",
+        "start": "2026-11-28T14:45:00+09:00"
+      },
       {
         "jcd": "07",
         "name": "蒲郡",
@@ -213,7 +218,7 @@
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/006d41315bb840e7b61823643a86e1c1/01fea981001742ad850759238e3170e0/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjAxZjc5MTcwZWM1YTQwYzdhNThlNjg3OWY1ZmIyOWM3IiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NTk5NjgwMCwic3RhcnQiOjE3OTU4MjEzNjAsImlvcyI6MTgsImNwIjoiMjE4MDE2OTYwXzIxODA2MDE1OSIsInBwdyI6IjN1NyJ9.UBYNhXpG96_jEjO2FzfUPPyfeTWcu8yU1L4UH5mPmbQ",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-11-28T08:16:32.289354+09:00",
-      "checked_at": "2026-11-28T12:55:03.660531+09:00",
+      "checked_at": "2026-11-28T12:56:09.866811+09:00",
       "first_verified_at": "2026-11-28T08:16:32.289354+09:00",
       "playback_verified": false,
       "probe": {
@@ -223,7 +228,7 @@
         "video_decoded": true,
         "audio_decoded": true
       },
-      "consecutive_failures": 32
+      "consecutive_failures": 33
     },
     "boat.karatsu": {
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/2b660e7c507a4e93865ec36931f212c2/df19d491b6c240cf876bb2c88650d22b/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjAxZjc5MTcwZWM1YTQwYzdhNThlNjg3OWY1ZmIyOWM3IiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NTk5NjgwMCwic3RhcnQiOjE3OTU4MjA4ODAsImlvcyI6MTgsImNwIjoiMjE4MDE2NDgwXzIxODA1OTY3OSIsInBwdyI6IjN1NyJ9.H5r2w8ifHmypNu8KerxFg38w89ansZaBw0BbQ-ZfkFI",
@@ -334,7 +339,8 @@
           "name": "桐生特選"
         }
       ],
-      "source": "automatic cloud SEED pending"
+      "provider_stream_start": "2026-11-28T14:45:00+09:00",
+      "source": "公式BR配信開始待ち 14:45"
     },
     "boat.toda": {
       "jcd": "02",
