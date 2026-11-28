@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-28",
-  "generated_at": "2026-11-28T20:34:14.334788+09:00",
+  "generated_at": "2026-11-28T20:37:33.569862+09:00",
   "last_update_ok": false,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261128.json",
   "schedule_checked_at": "2026-11-28T20:23:42.758295+09:00",
@@ -20,12 +20,14 @@
   "card_count": 14,
   "held_count": 14,
   "visible_count": 4,
-  "stream_ready_count": 2,
+  "stream_ready_count": 1,
   "waiting_count": 2,
-  "finished_guidance_count": 0,
+  "finished_guidance_count": 1,
   "end_grace_minutes": 45,
-  "active_count": 4,
-  "ended_kept": [],
+  "active_count": 3,
+  "ended_kept": [
+    "蒲郡"
+  ],
   "seed_required": true,
   "seed_required_venues": [
     "丸亀",
@@ -53,16 +55,16 @@
     },
     "night": {
       "held": 4,
-      "acquired": 2,
-      "active": 4,
-      "ended": 0,
+      "acquired": 1,
+      "active": 3,
+      "ended": 1,
       "seed_required": 2,
       "cancelled": 0
     }
   },
   "cloud_acquisition": {
-    "requested": 4,
-    "fetched": 2,
+    "requested": 3,
+    "fetched": 1,
     "failures": [
       {
         "jcd": "15",
@@ -90,13 +92,13 @@
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/297c80d4f812441481606c37b55623dc/c609046db5514973b45352214175f7ad/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjAxZjc5MTcwZWM1YTQwYzdhNThlNjg3OWY1ZmIyOWM3IiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NjAxODQwMCwic3RhcnQiOjE3OTU4NDQ3MDAsImlvcyI6MTgsImNwIjoiMjE4MDQwMzAwXzIxODA4MDc5OSIsInBwdyI6IjN1NyJ9.qrcwzMxBpZP5Ufadsb0oAo9LkfIQb-8ei61a9q21z_Q",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-11-28T14:45:39.407340+09:00",
-      "checked_at": "2026-11-28T20:31:42.412486+09:00",
+      "checked_at": "2026-11-28T20:38:28.101514+09:00",
       "first_verified_at": "2026-11-28T14:45:39.407340+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
         "sequence": 9176344,
-        "last_segment": "/297c80d4f812441481606c37b55623dc/c609046db5514973b45352214175f7ad/manifest_1_9179810.ts",
+        "last_segment": "/297c80d4f812441481606c37b55623dc/c609046db5514973b45352214175f7ad/manifest_1_9179877.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -490,8 +492,8 @@
       "name": "蒲郡",
       "held": true,
       "visible": true,
-      "ended": false,
-      "active": true,
+      "ended": true,
+      "active": false,
       "cancelled": false,
       "mode": "night",
       "mode_label": "ナイター",
@@ -499,13 +501,13 @@
       "last_race": "20:34",
       "alert_from": "2026-11-28T14:50:00+09:00",
       "next_race": null,
-      "stream_window": "live_or_prestart",
+      "stream_window": "ended_guidance",
       "intermission": null,
       "guidance_switch_at": "2026-11-28T21:22:00+09:00",
       "seed_required": false,
-      "reverify_due": true,
+      "reverify_due": false,
       "playback_verified": true,
-      "stream_ready": true,
+      "stream_ready": false,
       "waiting": false,
       "remove_at": "2026-11-28T21:22:00+09:00",
       "first_verified_at": "2026-11-28T14:11:01.263034+09:00",
@@ -573,9 +575,7 @@
           "name": "予選特選"
         }
       ],
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/d908bbc97b4c43d0b1280ea163d7b343/ba91bd24330142bfbf4cc1ad423fab0e/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjAxZjc5MTcwZWM1YTQwYzdhNThlNjg3OWY1ZmIyOWM3IiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NjAxODQwMCwic3RhcnQiOjE3OTU4NDI2MDAsImlvcyI6MTgsImNwIjoiMjE4MDM4MjAwXzIxODA4MDc5OSIsInBwdyI6IjN1NyJ9.PsXZr09wk_YHJIRwADclxMz7hRnLbg-ZCQNIQRDpR9o",
-      "source": "automatic acquisition + audio/video decode",
-      "token_expired": false
+      "source": "本日の開催は終了しました"
     },
     "boat.tokoname": {
       "jcd": "08",
