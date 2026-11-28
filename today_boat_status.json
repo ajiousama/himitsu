@@ -2,10 +2,10 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-28",
-  "generated_at": "2026-11-28T19:29:11.049384+09:00",
-  "last_update_ok": false,
+  "generated_at": "2026-11-28T19:35:03.055099+09:00",
+  "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261128.json",
-  "schedule_checked_at": "2026-11-28T19:19:55.748864+09:00",
+  "schedule_checked_at": "2026-11-28T19:35:03.055099+09:00",
   "schedule_warnings": [
     "official_cards: TimeoutError"
   ],
@@ -24,17 +24,11 @@
   "waiting_count": 3,
   "finished_guidance_count": 0,
   "end_grace_minutes": 45,
-  "active_count": 5,
+  "active_count": 2,
   "ended_kept": [],
-  "seed_required": true,
-  "seed_required_venues": [
-    "丸亀",
-    "若松",
-    "大村"
-  ],
-  "system_errors": [
-    "開始時刻が近い開催場の当日中継を取得・再生確認できません"
-  ],
+  "seed_required": false,
+  "seed_required_venues": [],
+  "system_errors": [],
   "phase_counts": {
     "morning": {
       "held": 3,
@@ -55,32 +49,16 @@
     "night": {
       "held": 5,
       "acquired": 2,
-      "active": 5,
+      "active": 2,
       "ended": 0,
-      "seed_required": 3,
+      "seed_required": 0,
       "cancelled": 0
     }
   },
   "cloud_acquisition": {
-    "requested": 5,
+    "requested": 2,
     "fetched": 2,
-    "failures": [
-      {
-        "jcd": "15",
-        "name": "丸亀",
-        "error": "ValueError: ended VOD playlist is not a live stream"
-      },
-      {
-        "jcd": "20",
-        "name": "若松",
-        "error": "ValueError: ended VOD playlist is not a live stream"
-      },
-      {
-        "jcd": "24",
-        "name": "大村",
-        "error": "ValueError: ended VOD playlist is not a live stream"
-      }
-    ],
+    "failures": [],
     "deferred": []
   },
   "epg_programmes_written": {
@@ -88,21 +66,21 @@
     "guides.xml": 196
   },
   "alert": {
-    "active": true,
-    "kind": "system_error"
+    "active": false,
+    "kind": "healthy"
   },
   "streams": {
     "boat.kiryu": {
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/297c80d4f812441481606c37b55623dc/c609046db5514973b45352214175f7ad/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjAxZjc5MTcwZWM1YTQwYzdhNThlNjg3OWY1ZmIyOWM3IiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NjAxODQwMCwic3RhcnQiOjE3OTU4NDQ3MDAsImlvcyI6MTgsImNwIjoiMjE4MDQwMzAwXzIxODA4MDc5OSIsInBwdyI6IjN1NyJ9.qrcwzMxBpZP5Ufadsb0oAo9LkfIQb-8ei61a9q21z_Q",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-11-28T14:45:39.407340+09:00",
-      "checked_at": "2026-11-28T19:26:40.220538+09:00",
+      "checked_at": "2026-11-28T19:36:05.600609+09:00",
       "first_verified_at": "2026-11-28T14:45:39.407340+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
         "sequence": 9176344,
-        "last_segment": "/297c80d4f812441481606c37b55623dc/c609046db5514973b45352214175f7ad/manifest_1_9179159.ts",
+        "last_segment": "/297c80d4f812441481606c37b55623dc/c609046db5514973b45352214175f7ad/manifest_1_9179253.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -112,13 +90,13 @@
       "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/d908bbc97b4c43d0b1280ea163d7b343/ba91bd24330142bfbf4cc1ad423fab0e/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjAxZjc5MTcwZWM1YTQwYzdhNThlNjg3OWY1ZmIyOWM3IiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NjAxODQwMCwic3RhcnQiOjE3OTU4NDI2MDAsImlvcyI6MTgsImNwIjoiMjE4MDM4MjAwXzIxODA4MDc5OSIsInBwdyI6IjN1NyJ9.PsXZr09wk_YHJIRwADclxMz7hRnLbg-ZCQNIQRDpR9o",
       "source": "automatic acquisition + audio/video decode",
       "acquired_at": "2026-11-28T14:11:01.263034+09:00",
-      "checked_at": "2026-11-28T19:26:40.220895+09:00",
+      "checked_at": "2026-11-28T19:36:05.600969+09:00",
       "first_verified_at": "2026-11-28T14:11:01.263034+09:00",
       "playback_verified": true,
       "probe": {
         "ok": true,
         "sequence": 9157106,
-        "last_segment": "/d908bbc97b4c43d0b1280ea163d7b343/ba91bd24330142bfbf4cc1ad423fab0e/manifest_4_9160272.ts",
+        "last_segment": "/d908bbc97b4c43d0b1280ea163d7b343/ba91bd24330142bfbf4cc1ad423fab0e/manifest_4_9160366.ts",
         "video_decoded": true,
         "audio_decoded": true
       },
@@ -140,14 +118,14 @@
       "last_race": "20:38",
       "alert_from": "2026-11-28T14:55:00+09:00",
       "next_race": {
-        "race": 10,
-        "start": "19:35"
+        "race": 11,
+        "start": "20:07"
       },
       "stream_window": "live_or_prestart",
       "intermission": null,
       "guidance_switch_at": "2026-11-28T21:26:00+09:00",
       "seed_required": false,
-      "reverify_due": true,
+      "reverify_due": false,
       "playback_verified": true,
       "stream_ready": true,
       "waiting": false,
@@ -862,7 +840,7 @@
       "held": true,
       "visible": true,
       "ended": false,
-      "active": true,
+      "active": false,
       "cancelled": false,
       "mode": "night",
       "mode_label": "ナイター",
@@ -870,14 +848,19 @@
       "last_race": "20:42",
       "alert_from": "2026-11-28T12:15:00+09:00",
       "next_race": {
-        "race": 10,
-        "start": "19:42"
+        "race": 11,
+        "start": "20:12"
       },
-      "stream_window": "live_or_prestart",
-      "intermission": null,
+      "stream_window": "intermission",
+      "intermission": {
+        "after_race": 10,
+        "next_race": 11,
+        "from": "2026-11-28T13:42:00+09:00",
+        "until": "2026-11-28T19:42:00+09:00"
+      },
       "guidance_switch_at": "2026-11-28T21:30:00+09:00",
-      "seed_required": true,
-      "reverify_due": true,
+      "seed_required": false,
+      "reverify_due": false,
       "playback_verified": false,
       "stream_ready": false,
       "waiting": true,
@@ -933,7 +916,7 @@
         },
         {
           "race": 10,
-          "start": "19:42",
+          "start": "13:39",
           "name": "蒼月まるる特賞"
         },
         {
@@ -1135,7 +1118,7 @@
       "held": true,
       "visible": true,
       "ended": false,
-      "active": true,
+      "active": false,
       "cancelled": false,
       "mode": "night",
       "mode_label": "ナイター",
@@ -1143,14 +1126,19 @@
       "last_race": "20:30",
       "alert_from": "2026-11-28T11:59:00+09:00",
       "next_race": {
-        "race": 11,
-        "start": "19:56"
+        "race": 12,
+        "start": "20:30"
       },
-      "stream_window": "live_or_prestart",
-      "intermission": null,
+      "stream_window": "intermission",
+      "intermission": {
+        "after_race": 11,
+        "next_race": 12,
+        "from": "2026-11-28T13:32:00+09:00",
+        "until": "2026-11-28T20:00:00+09:00"
+      },
       "guidance_switch_at": "2026-11-28T21:18:00+09:00",
-      "seed_required": true,
-      "reverify_due": true,
+      "seed_required": false,
+      "reverify_due": false,
       "playback_verified": false,
       "stream_ready": false,
       "waiting": true,
@@ -1211,7 +1199,7 @@
         },
         {
           "race": 11,
-          "start": "19:56",
+          "start": "13:29",
           "name": "選抜戦"
         },
         {
@@ -1318,7 +1306,7 @@
       "held": true,
       "visible": true,
       "ended": false,
-      "active": true,
+      "active": false,
       "cancelled": false,
       "mode": "night",
       "mode_label": "ナイター",
@@ -1326,14 +1314,19 @@
       "last_race": "20:45",
       "alert_from": "2026-11-28T13:01:00+09:00",
       "next_race": {
-        "race": 10,
-        "start": "19:49"
+        "race": 11,
+        "start": "20:17"
       },
-      "stream_window": "live_or_prestart",
-      "intermission": null,
+      "stream_window": "intermission",
+      "intermission": {
+        "after_race": 10,
+        "next_race": 11,
+        "from": "2026-11-28T14:28:00+09:00",
+        "until": "2026-11-28T19:47:00+09:00"
+      },
       "guidance_switch_at": "2026-11-28T21:33:00+09:00",
-      "seed_required": true,
-      "reverify_due": true,
+      "seed_required": false,
+      "reverify_due": false,
       "playback_verified": false,
       "stream_ready": false,
       "waiting": true,
@@ -1389,7 +1382,7 @@
         },
         {
           "race": 10,
-          "start": "19:49",
+          "start": "14:25",
           "name": "予選特賞"
         },
         {
