@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-28",
-  "generated_at": "2026-11-28T14:23:56.523002+09:00",
+  "generated_at": "2026-11-28T14:26:03.085794+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261128.json",
   "schedule_checked_at": "2026-11-28T14:22:34.894570+09:00",
@@ -20,13 +20,14 @@
   "card_count": 14,
   "held_count": 14,
   "visible_count": 13,
-  "stream_ready_count": 8,
+  "stream_ready_count": 7,
   "waiting_count": 4,
-  "finished_guidance_count": 1,
+  "finished_guidance_count": 2,
   "end_grace_minutes": 45,
-  "active_count": 7,
+  "active_count": 6,
   "ended_kept": [
-    "鳴門"
+    "鳴門",
+    "唐津"
   ],
   "seed_required": false,
   "seed_required_venues": [],
@@ -34,9 +35,9 @@
   "phase_counts": {
     "morning": {
       "held": 3,
-      "acquired": 1,
-      "active": 1,
-      "ended": 2,
+      "acquired": 0,
+      "active": 0,
+      "ended": 3,
       "seed_required": 0,
       "cancelled": 0
     },
@@ -58,8 +59,8 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 12,
-    "fetched": 8,
+    "requested": 11,
+    "fetched": 7,
     "failures": [
       {
         "jcd": "15",
@@ -1371,8 +1372,8 @@
       "name": "唐津",
       "held": true,
       "visible": true,
-      "ended": false,
-      "active": true,
+      "ended": true,
+      "active": false,
       "cancelled": false,
       "mode": "morning",
       "mode_label": "モーニング",
@@ -1380,13 +1381,13 @@
       "last_race": "14:23",
       "alert_from": "2026-11-28T08:13:00+09:00",
       "next_race": null,
-      "stream_window": "live_or_prestart",
+      "stream_window": "ended_guidance",
       "intermission": null,
       "guidance_switch_at": "2026-11-28T15:11:00+09:00",
       "seed_required": false,
-      "reverify_due": true,
+      "reverify_due": false,
       "playback_verified": true,
-      "stream_ready": true,
+      "stream_ready": false,
       "waiting": false,
       "remove_at": "2026-11-28T15:11:00+09:00",
       "first_verified_at": "2026-11-28T08:08:23.462911+09:00",
@@ -1454,9 +1455,7 @@
           "name": "からっキー選抜"
         }
       ],
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/2b660e7c507a4e93865ec36931f212c2/df19d491b6c240cf876bb2c88650d22b/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjAxZjc5MTcwZWM1YTQwYzdhNThlNjg3OWY1ZmIyOWM3IiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NTk5NjgwMCwic3RhcnQiOjE3OTU4MjA4ODAsImlvcyI6MTgsImNwIjoiMjE4MDE2NDgwXzIxODA1OTY3OSIsInBwdyI6IjN1NyJ9.H5r2w8ifHmypNu8KerxFg38w89ansZaBw0BbQ-ZfkFI",
-      "source": "automatic acquisition + audio/video decode",
-      "token_expired": false
+      "source": "本日の開催は終了しました"
     },
     "boat.omura": {
       "jcd": "24",
