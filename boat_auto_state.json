@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-28",
-  "generated_at": "2026-11-28T15:58:52.197736+09:00",
+  "generated_at": "2026-11-28T16:00:06.094352+09:00",
   "last_update_ok": false,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261128.json",
   "schedule_checked_at": "2026-11-28T15:55:31.167626+09:00",
@@ -24,7 +24,7 @@
   "waiting_count": 3,
   "finished_guidance_count": 3,
   "end_grace_minutes": 45,
-  "active_count": 6,
+  "active_count": 7,
   "ended_kept": [
     "戸田",
     "浜名湖",
@@ -32,7 +32,8 @@
   ],
   "seed_required": true,
   "seed_required_venues": [
-    "丸亀"
+    "丸亀",
+    "大村"
   ],
   "system_errors": [
     "開始時刻が近い開催場の当日中継を取得・再生確認できません"
@@ -57,19 +58,24 @@
     "night": {
       "held": 5,
       "acquired": 2,
-      "active": 3,
+      "active": 4,
       "ended": 0,
-      "seed_required": 1,
+      "seed_required": 2,
       "cancelled": 0
     }
   },
   "cloud_acquisition": {
-    "requested": 6,
+    "requested": 7,
     "fetched": 5,
     "failures": [
       {
         "jcd": "15",
         "name": "丸亀",
+        "error": "ValueError: ended VOD playlist is not a live stream"
+      },
+      {
+        "jcd": "24",
+        "name": "大村",
         "error": "ValueError: ended VOD playlist is not a live stream"
       }
     ],
@@ -412,10 +418,7 @@
       "first_race": "11:07",
       "last_race": "16:00",
       "alert_from": "2026-11-28T10:37:00+09:00",
-      "next_race": {
-        "race": 12,
-        "start": "16:00"
-      },
+      "next_race": null,
       "stream_window": "live_or_prestart",
       "intermission": null,
       "guidance_switch_at": "2026-11-28T16:48:00+09:00",
@@ -605,7 +608,7 @@
       "intermission": null,
       "guidance_switch_at": "2026-11-28T21:22:00+09:00",
       "seed_required": false,
-      "reverify_due": false,
+      "reverify_due": true,
       "playback_verified": true,
       "stream_ready": true,
       "waiting": false,
@@ -1426,7 +1429,7 @@
       "held": true,
       "visible": true,
       "ended": false,
-      "active": false,
+      "active": true,
       "cancelled": false,
       "mode": "night",
       "mode_label": "ナイター",
@@ -1437,16 +1440,11 @@
         "race": 3,
         "start": "16:30"
       },
-      "stream_window": "intermission",
-      "intermission": {
-        "after_race": 2,
-        "next_race": 3,
-        "from": "2026-11-28T13:40:00+09:00",
-        "until": "2026-11-28T16:00:00+09:00"
-      },
+      "stream_window": "live_or_prestart",
+      "intermission": null,
       "guidance_switch_at": "2026-11-28T21:33:00+09:00",
-      "seed_required": false,
-      "reverify_due": false,
+      "seed_required": true,
+      "reverify_due": true,
       "playback_verified": false,
       "stream_ready": false,
       "waiting": true,
