@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-28",
-  "generated_at": "2026-11-28T20:45:39.572172+09:00",
+  "generated_at": "2026-11-28T20:48:55.509920+09:00",
   "last_update_ok": true,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261128.json",
   "schedule_checked_at": "2026-11-28T20:38:45.471233+09:00",
@@ -20,12 +20,13 @@
   "card_count": 14,
   "held_count": 14,
   "visible_count": 2,
-  "stream_ready_count": 1,
+  "stream_ready_count": 0,
   "waiting_count": 0,
-  "finished_guidance_count": 1,
+  "finished_guidance_count": 2,
   "end_grace_minutes": 45,
-  "active_count": 1,
+  "active_count": 0,
   "ended_kept": [
+    "桐生",
     "蒲郡"
   ],
   "seed_required": false,
@@ -50,18 +51,20 @@
     },
     "night": {
       "held": 2,
-      "acquired": 1,
-      "active": 1,
-      "ended": 1,
+      "acquired": 0,
+      "active": 0,
+      "ended": 2,
       "seed_required": 0,
       "cancelled": 0
     }
   },
   "cloud_acquisition": {
-    "requested": 1,
-    "fetched": 1,
+    "requested": 0,
+    "fetched": 0,
     "failures": [],
-    "deferred": []
+    "deferred": [],
+    "deferred_count": 14,
+    "reason": "stream acquisition waits until each venue 1R prefetch window"
   },
   "epg_programmes_written": {
     "public_sports_epg_local.xml": 196,
@@ -111,8 +114,8 @@
       "name": "桐生",
       "held": true,
       "visible": true,
-      "ended": false,
-      "active": true,
+      "ended": true,
+      "active": false,
       "cancelled": false,
       "mode": "night",
       "mode_label": "ナイター",
@@ -120,13 +123,13 @@
       "last_race": "20:45",
       "alert_from": "2026-11-28T14:55:00+09:00",
       "next_race": null,
-      "stream_window": "live_or_prestart",
+      "stream_window": "ended_guidance",
       "intermission": null,
       "guidance_switch_at": "2026-11-28T21:33:00+09:00",
       "seed_required": false,
-      "reverify_due": true,
+      "reverify_due": false,
       "playback_verified": true,
-      "stream_ready": true,
+      "stream_ready": false,
       "waiting": false,
       "remove_at": "2026-11-28T21:33:00+09:00",
       "first_verified_at": "2026-11-28T14:45:39.407340+09:00",
@@ -194,9 +197,7 @@
           "name": "桐生特選"
         }
       ],
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/297c80d4f812441481606c37b55623dc/c609046db5514973b45352214175f7ad/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjAxZjc5MTcwZWM1YTQwYzdhNThlNjg3OWY1ZmIyOWM3IiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NjAxODQwMCwic3RhcnQiOjE3OTU4NDQ3MDAsImlvcyI6MTgsImNwIjoiMjE4MDQwMzAwXzIxODA4MDc5OSIsInBwdyI6IjN1NyJ9.qrcwzMxBpZP5Ufadsb0oAo9LkfIQb-8ei61a9q21z_Q",
-      "source": "automatic acquisition + audio/video decode",
-      "token_expired": false
+      "source": "本日の開催は終了しました"
     },
     "boat.toda": {
       "jcd": "02",
