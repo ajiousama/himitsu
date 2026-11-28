@@ -2,10 +2,10 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-28",
-  "generated_at": "2026-11-28T16:25:39.891457+09:00",
+  "generated_at": "2026-11-28T16:26:44.201604+09:00",
   "last_update_ok": false,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261128.json",
-  "schedule_checked_at": "2026-11-28T16:11:03.287733+09:00",
+  "schedule_checked_at": "2026-11-28T16:26:44.201604+09:00",
   "schedule_warnings": [
     "official_cards: TimeoutError"
   ],
@@ -24,7 +24,7 @@
   "waiting_count": 3,
   "finished_guidance_count": 5,
   "end_grace_minutes": 45,
-  "active_count": 5,
+  "active_count": 3,
   "ended_kept": [
     "戸田",
     "江戸川",
@@ -34,8 +34,6 @@
   ],
   "seed_required": true,
   "seed_required_venues": [
-    "丸亀",
-    "若松",
     "大村"
   ],
   "system_errors": [
@@ -61,26 +59,16 @@
     "night": {
       "held": 5,
       "acquired": 2,
-      "active": 5,
+      "active": 3,
       "ended": 0,
-      "seed_required": 3,
+      "seed_required": 1,
       "cancelled": 0
     }
   },
   "cloud_acquisition": {
-    "requested": 5,
+    "requested": 3,
     "fetched": 2,
     "failures": [
-      {
-        "jcd": "15",
-        "name": "丸亀",
-        "error": "ValueError: ended VOD playlist is not a live stream"
-      },
-      {
-        "jcd": "20",
-        "name": "若松",
-        "error": "ValueError: ended VOD playlist is not a live stream"
-      },
       {
         "jcd": "24",
         "name": "大村",
@@ -948,7 +936,7 @@
       "held": true,
       "visible": true,
       "ended": false,
-      "active": true,
+      "active": false,
       "cancelled": false,
       "mode": "night",
       "mode_label": "ナイター",
@@ -956,14 +944,19 @@
       "last_race": "20:42",
       "alert_from": "2026-11-28T12:15:00+09:00",
       "next_race": {
-        "race": 4,
-        "start": "16:50"
+        "race": 5,
+        "start": "17:16"
       },
-      "stream_window": "live_or_prestart",
-      "intermission": null,
+      "stream_window": "intermission",
+      "intermission": {
+        "after_race": 4,
+        "next_race": 5,
+        "from": "2026-11-28T13:06:00+09:00",
+        "until": "2026-11-28T16:46:00+09:00"
+      },
       "guidance_switch_at": "2026-11-28T21:30:00+09:00",
-      "seed_required": true,
-      "reverify_due": true,
+      "seed_required": false,
+      "reverify_due": false,
       "playback_verified": false,
       "stream_ready": false,
       "waiting": true,
@@ -984,12 +977,12 @@
         },
         {
           "race": 3,
-          "start": "16:24",
+          "start": "12:57",
           "name": "予選"
         },
         {
           "race": 4,
-          "start": "16:50",
+          "start": "13:03",
           "name": "予選"
         },
         {
@@ -1221,7 +1214,7 @@
       "held": true,
       "visible": true,
       "ended": false,
-      "active": true,
+      "active": false,
       "cancelled": false,
       "mode": "night",
       "mode_label": "ナイター",
@@ -1229,14 +1222,19 @@
       "last_race": "20:30",
       "alert_from": "2026-11-28T11:59:00+09:00",
       "next_race": {
-        "race": 4,
-        "start": "16:35"
+        "race": 5,
+        "start": "17:01"
       },
-      "stream_window": "live_or_prestart",
-      "intermission": null,
+      "stream_window": "intermission",
+      "intermission": {
+        "after_race": 4,
+        "next_race": 5,
+        "from": "2026-11-28T12:50:00+09:00",
+        "until": "2026-11-28T16:31:00+09:00"
+      },
       "guidance_switch_at": "2026-11-28T21:18:00+09:00",
-      "seed_required": true,
-      "reverify_due": true,
+      "seed_required": false,
+      "reverify_due": false,
       "playback_verified": false,
       "stream_ready": false,
       "waiting": true,
@@ -1262,7 +1260,7 @@
         },
         {
           "race": 4,
-          "start": "16:35",
+          "start": "12:47",
           "name": "一般戦"
         },
         {
@@ -1412,8 +1410,8 @@
       "last_race": "20:45",
       "alert_from": "2026-11-28T13:01:00+09:00",
       "next_race": {
-        "race": 3,
-        "start": "16:30"
+        "race": 4,
+        "start": "16:56"
       },
       "stream_window": "live_or_prestart",
       "intermission": null,
@@ -1440,7 +1438,7 @@
         },
         {
           "race": 3,
-          "start": "16:30",
+          "start": "13:43",
           "name": "予選"
         },
         {
