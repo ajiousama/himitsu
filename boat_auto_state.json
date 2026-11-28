@@ -2,10 +2,10 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-28",
-  "generated_at": "2026-11-28T16:58:10.359338+09:00",
+  "generated_at": "2026-11-28T16:59:15.120488+09:00",
   "last_update_ok": false,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261128.json",
-  "schedule_checked_at": "2026-11-28T16:43:43.001128+09:00",
+  "schedule_checked_at": "2026-11-28T16:59:15.120488+09:00",
   "schedule_warnings": [
     "official_cards: TimeoutError"
   ],
@@ -24,11 +24,10 @@
   "waiting_count": 3,
   "finished_guidance_count": 0,
   "end_grace_minutes": 45,
-  "active_count": 5,
+  "active_count": 4,
   "ended_kept": [],
   "seed_required": true,
   "seed_required_venues": [
-    "丸亀",
     "若松",
     "大村"
   ],
@@ -55,21 +54,16 @@
     "night": {
       "held": 5,
       "acquired": 2,
-      "active": 5,
+      "active": 4,
       "ended": 0,
-      "seed_required": 3,
+      "seed_required": 2,
       "cancelled": 0
     }
   },
   "cloud_acquisition": {
-    "requested": 5,
+    "requested": 4,
     "fetched": 2,
     "failures": [
-      {
-        "jcd": "15",
-        "name": "丸亀",
-        "error": "ValueError: ended VOD playlist is not a live stream"
-      },
       {
         "jcd": "20",
         "name": "若松",
@@ -605,12 +599,12 @@
       "guidance_switch_at": "2026-11-28T16:58:00+09:00",
       "seed_required": false,
       "reverify_due": false,
-      "playback_verified": true,
+      "playback_verified": false,
       "stream_ready": false,
       "waiting": false,
       "remove_at": "2026-11-28T16:58:00+09:00",
-      "first_verified_at": "2026-11-28T09:51:01.484493+09:00",
-      "ready_before_first_race": true,
+      "first_verified_at": null,
+      "ready_before_first_race": false,
       "acquire_from": "2026-11-28T07:56:00+09:00",
       "races": [
         {
@@ -862,7 +856,7 @@
       "held": true,
       "visible": true,
       "ended": false,
-      "active": true,
+      "active": false,
       "cancelled": false,
       "mode": "night",
       "mode_label": "ナイター",
@@ -870,14 +864,19 @@
       "last_race": "20:42",
       "alert_from": "2026-11-28T12:15:00+09:00",
       "next_race": {
-        "race": 5,
-        "start": "17:16"
+        "race": 6,
+        "start": "17:42"
       },
-      "stream_window": "live_or_prestart",
-      "intermission": null,
+      "stream_window": "intermission",
+      "intermission": {
+        "after_race": 5,
+        "next_race": 6,
+        "from": "2026-11-28T13:12:00+09:00",
+        "until": "2026-11-28T17:12:00+09:00"
+      },
       "guidance_switch_at": "2026-11-28T21:30:00+09:00",
-      "seed_required": true,
-      "reverify_due": true,
+      "seed_required": false,
+      "reverify_due": false,
       "playback_verified": false,
       "stream_ready": false,
       "waiting": true,
@@ -908,7 +907,7 @@
         },
         {
           "race": 5,
-          "start": "17:16",
+          "start": "13:09",
           "name": "予選"
         },
         {
