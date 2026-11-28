@@ -2,8 +2,8 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-28",
-  "generated_at": "2026-11-28T15:07:47.049436+09:00",
-  "last_update_ok": true,
+  "generated_at": "2026-11-28T15:11:13.475192+09:00",
+  "last_update_ok": false,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261128.json",
   "schedule_checked_at": "2026-11-28T15:07:47.049436+09:00",
   "schedule_warnings": [
@@ -19,18 +19,20 @@
   "alert_lead_minutes": 30,
   "card_count": 14,
   "held_count": 14,
-  "visible_count": 12,
+  "visible_count": 11,
   "stream_ready_count": 8,
   "waiting_count": 3,
-  "finished_guidance_count": 1,
+  "finished_guidance_count": 0,
   "end_grace_minutes": 45,
-  "active_count": 8,
-  "ended_kept": [
-    "唐津"
+  "active_count": 9,
+  "ended_kept": [],
+  "seed_required": true,
+  "seed_required_venues": [
+    "大村"
   ],
-  "seed_required": false,
-  "seed_required_venues": [],
-  "system_errors": [],
+  "system_errors": [
+    "開始時刻が近い開催場の当日中継を取得・再生確認できません"
+  ],
   "phase_counts": {
     "morning": {
       "held": 3,
@@ -51,16 +53,22 @@
     "night": {
       "held": 5,
       "acquired": 2,
-      "active": 2,
+      "active": 3,
       "ended": 0,
-      "seed_required": 0,
+      "seed_required": 1,
       "cancelled": 0
     }
   },
   "cloud_acquisition": {
-    "requested": 8,
+    "requested": 9,
     "fetched": 8,
-    "failures": [],
+    "failures": [
+      {
+        "jcd": "24",
+        "name": "大村",
+        "error": "ValueError: ended VOD playlist is not a live stream"
+      }
+    ],
     "deferred": []
   },
   "epg_programmes_written": {
@@ -68,8 +76,8 @@
     "guides.xml": 196
   },
   "alert": {
-    "active": false,
-    "kind": "healthy"
+    "active": true,
+    "kind": "system_error"
   },
   "streams": {
     "boat.kiryu": {
@@ -199,22 +207,6 @@
         "audio_decoded": true
       },
       "consecutive_failures": 0
-    },
-    "boat.karatsu": {
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/2b660e7c507a4e93865ec36931f212c2/df19d491b6c240cf876bb2c88650d22b/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjAxZjc5MTcwZWM1YTQwYzdhNThlNjg3OWY1ZmIyOWM3IiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NTk5NjgwMCwic3RhcnQiOjE3OTU4MjA4ODAsImlvcyI6MTgsImNwIjoiMjE4MDE2NDgwXzIxODA1OTY3OSIsInBwdyI6IjN1NyJ9.H5r2w8ifHmypNu8KerxFg38w89ansZaBw0BbQ-ZfkFI",
-      "source": "automatic acquisition + audio/video decode",
-      "acquired_at": "2026-11-28T08:08:23.462911+09:00",
-      "checked_at": "2026-11-28T14:23:37.303834+09:00",
-      "first_verified_at": "2026-11-28T08:08:23.462911+09:00",
-      "playback_verified": true,
-      "probe": {
-        "ok": true,
-        "sequence": 9157441,
-        "last_segment": "/2b660e7c507a4e93865ec36931f212c2/df19d491b6c240cf876bb2c88650d22b/manifest_4_9161197.ts",
-        "video_decoded": true,
-        "audio_decoded": true
-      },
-      "consecutive_failures": 0
     }
   },
   "venues": {
@@ -239,7 +231,7 @@
       "intermission": null,
       "guidance_switch_at": "2026-11-28T21:26:00+09:00",
       "seed_required": false,
-      "reverify_due": false,
+      "reverify_due": true,
       "playback_verified": true,
       "stream_ready": true,
       "waiting": false,
@@ -1358,7 +1350,7 @@
       "jcd": "23",
       "name": "唐津",
       "held": true,
-      "visible": true,
+      "visible": false,
       "ended": true,
       "active": false,
       "cancelled": false,
@@ -1368,7 +1360,7 @@
       "last_race": "14:23",
       "alert_from": "2026-11-28T08:13:00+09:00",
       "next_race": null,
-      "stream_window": "ended_guidance",
+      "stream_window": "ended_hidden",
       "intermission": null,
       "guidance_switch_at": "2026-11-28T15:11:00+09:00",
       "seed_required": false,
@@ -1450,7 +1442,7 @@
       "held": true,
       "visible": true,
       "ended": false,
-      "active": false,
+      "active": true,
       "cancelled": false,
       "mode": "night",
       "mode_label": "ナイター",
@@ -1461,16 +1453,11 @@
         "race": 2,
         "start": "15:41"
       },
-      "stream_window": "intermission",
-      "intermission": {
-        "after_race": 1,
-        "next_race": 2,
-        "from": "2026-11-28T13:34:00+09:00",
-        "until": "2026-11-28T15:11:00+09:00"
-      },
+      "stream_window": "live_or_prestart",
+      "intermission": null,
       "guidance_switch_at": "2026-11-28T21:33:00+09:00",
-      "seed_required": false,
-      "reverify_due": false,
+      "seed_required": true,
+      "reverify_due": true,
       "playback_verified": false,
       "stream_ready": false,
       "waiting": true,
