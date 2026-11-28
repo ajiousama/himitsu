@@ -2,7 +2,7 @@
   "system": "boat-auto-v3",
   "architecture_version": 4,
   "date": "2026-11-28",
-  "generated_at": "2026-11-28T16:05:34.430585+09:00",
+  "generated_at": "2026-11-28T16:08:44.935375+09:00",
   "last_update_ok": false,
   "schedule_source": "https://boatraceopenapi.github.io/api/v1/2026/20261128.json",
   "schedule_checked_at": "2026-11-28T15:55:31.167626+09:00",
@@ -20,15 +20,16 @@
   "card_count": 14,
   "held_count": 14,
   "visible_count": 11,
-  "stream_ready_count": 4,
+  "stream_ready_count": 3,
   "waiting_count": 3,
-  "finished_guidance_count": 4,
+  "finished_guidance_count": 5,
   "end_grace_minutes": 45,
-  "active_count": 7,
+  "active_count": 6,
   "ended_kept": [
     "戸田",
     "江戸川",
     "浜名湖",
+    "尼崎",
     "宮島"
   ],
   "seed_required": true,
@@ -51,9 +52,9 @@
     },
     "day": {
       "held": 6,
-      "acquired": 2,
-      "active": 2,
-      "ended": 4,
+      "acquired": 1,
+      "active": 1,
+      "ended": 5,
       "seed_required": 0,
       "cancelled": 0
     },
@@ -67,8 +68,8 @@
     }
   },
   "cloud_acquisition": {
-    "requested": 7,
-    "fetched": 4,
+    "requested": 6,
+    "fetched": 3,
     "failures": [
       {
         "jcd": "15",
@@ -787,8 +788,8 @@
       "name": "尼崎",
       "held": true,
       "visible": true,
-      "ended": false,
-      "active": true,
+      "ended": true,
+      "active": false,
       "cancelled": false,
       "mode": "day",
       "mode_label": "デイ",
@@ -796,13 +797,13 @@
       "last_race": "16:05",
       "alert_from": "2026-11-28T10:05:00+09:00",
       "next_race": null,
-      "stream_window": "live_or_prestart",
+      "stream_window": "ended_guidance",
       "intermission": null,
       "guidance_switch_at": "2026-11-28T16:53:00+09:00",
       "seed_required": false,
-      "reverify_due": true,
+      "reverify_due": false,
       "playback_verified": true,
-      "stream_ready": true,
+      "stream_ready": false,
       "waiting": false,
       "remove_at": "2026-11-28T16:53:00+09:00",
       "first_verified_at": "2026-11-28T10:02:40.502405+09:00",
@@ -870,9 +871,7 @@
           "name": "予選特選"
         }
       ],
-      "url": "https://manifest.streaks.jp/v4/cp-boatrace-prod/a69b7f0951654a86b4d5d030758c131a/b3485c2a5adc4685ab36119ea5d96742/hls/v3/manifest.m3u8?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYyI6IjgwNTEyMDg0YTFiODRjMWRhZDJiZTExZjc5NWI2ZGYxIiwiZWRnZSI6IjAxZjc5MTcwZWM1YTQwYzdhNThlNjg3OWY1ZmIyOWM3IiwiY29kZWNzIjoiYXV0byIsImV4cCI6MTc5NjAwNDAwMCwic3RhcnQiOjE3OTU4Mjc3MjAsImlvcyI6MTgsImNwIjoiMjE4MDIzMzIwXzIxODA2NjUxOSIsInBwdyI6IjN1NyJ9.3Sx-D5tKhvCKLcQLKzwnZ9gzhc6xzwdOOj7bkMn31z0",
-      "source": "automatic acquisition + audio/video decode",
-      "token_expired": false
+      "source": "本日の開催は終了しました"
     },
     "boat.naruto": {
       "jcd": "14",
